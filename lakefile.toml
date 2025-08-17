@@ -20,5 +20,9 @@ name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
 rev = "v4.22.0"
 
+
+[[require]]
+name = "checkdecls"
+git = "https://github.com/PatrickMassot/checkdecls.git"
 [[lean_lib]]
 name = "NegativeRupert"
