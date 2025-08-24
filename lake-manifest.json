@@ -28,7 +28,7 @@
    "rev": "ea6327fe4da1011c5e4e3895d5aeead1b6b921c1",
    "name": "rupert",
    "manifestFile": "lake-manifest.json",
-   "inputRev": "ea6327fe4da1011c5e4e3895d5aeead1b6b921c1",
+   "inputRev": "lean-v4.22.0",
    "inherited": false,
    "configFile": "lakefile.toml"},
   {"url": "https://github.com/leanprover-community/plausible",

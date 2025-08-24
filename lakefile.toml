@@ -13,16 +13,21 @@ maxSynthPendingDepth = 3
 [[require]]
 name = "rupert"
 git = "https://github.com/dwrensha/Rupert.lean"
-rev = "ea6327fe4da1011c5e4e3895d5aeead1b6b921c1"
+rev = "lean-v4.22.0"
 
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
 rev = "v4.22.0"
 
-
 [[require]]
 name = "checkdecls"
 git = "https://github.com/PatrickMassot/checkdecls.git"
+
 [[lean_lib]]
 name = "NegativeRupert"
+
+[[lean_exe]]
+name = "json-test"
+srcDir = "json-test"
+root = "Main"
