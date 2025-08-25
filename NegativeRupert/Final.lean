@@ -1,15 +1,16 @@
 import NegativeRupert.Basic
 import NegativeRupert.MatrixCand
 import NegativeRupert.ViewCand
+import NegativeRupert.Snub
+import NegativeRupert.MatrixViewRel
 
-def snubCube : Shape := sorry
-
-def snubCand (mp : MatrixPose) : MatrixCand :=
-  { pose := mp
-    shape := snubCube }
-
-theorem all_snub_cands_safe : ∀ mp : MatrixPose, (snubCand mp).Safe := by
+theorem all_snub_view_cands_safe : ∀ vp : ViewPose, (snubViewCand vp).Safe := by
  sorry
+
+theorem all_snub_matrix_cands_safe : ∀ mp : MatrixPose, (snubCand mp).Safe := by
+  intros mp
+  let ⟨ vc, hvc ⟩ := exists_snub_view_equiv mp
+  sorry
 
 theorem snub_cube_not_rupert : ¬ IsRupert snubCube.vertices := by
   unfold IsRupert
@@ -23,6 +24,6 @@ theorem snub_cube_not_rupert : ¬ IsRupert snubCube.vertices := by
     outerRot := ⟨outerRot, outer_rot_so3⟩,
     innerOffset,
   }
-  obtain ⟨y, hy, hy'⟩ := all_snub_cands_safe mp
+  obtain ⟨y, hy, hy'⟩ := all_snub_matrix_cands_safe mp
   use y
   exact ⟨hy, fun hy2 ↦ hy' (interior_subset hy2)⟩
