@@ -2,25 +2,35 @@ import Batteries.Data.Rat
 import Lean
 open Lean
 
-def loadJsonFile (relPath : System.FilePath) : IO Json := do
-  let root ← IO.currentDir
-  let path := root / relPath
-
-  let content ← IO.FS.readFile path
-
-  match Json.parse content with
-  | Except.ok j     => pure j
-  | Except.error err => throw <| IO.userError s!"Failed to parse JSON: {err}"
-
-def toIO {ε α} [ToString ε] (ex : Except ε α) : IO α :=
-  match ex with
-  | .ok a    => pure a
-  | .error e => throw (IO.userError (toString e))
-
-structure Spherical where
+structure RawSpherical where
   az : Float
   an : Float
 deriving FromJson, Repr
+
+structure Spherical where
+  az : Rat
+  an : Rat
+deriving Repr
+
+instance : FromJson Spherical where
+  fromJson? (json : Json) := do
+    let raw : RawSpherical ← FromJson.fromJson? json
+    pure { az := raw.az.toRat0, an := raw.an.toRat0 }
+
+structure RawPoint where
+  x : Float
+  y : Float
+deriving FromJson, Repr
+
+structure Point where
+  x : Rat
+  y : Rat
+deriving Repr
+
+instance : FromJson Point where
+  fromJson? (json : Json) := do
+    let raw : RawPoint ← FromJson.fromJson? json
+    pure { x := raw.x.toRat0, y := raw.y.toRat0 }
 
 structure Cartesian where
   x : Float
@@ -29,18 +39,23 @@ structure Cartesian where
 deriving FromJson, Repr
 
 structure ViewExample where
-  code : String
-  mask : String
+  -- code : String
+  -- mask : String
   ex_spherical : Spherical
-  ex_cartesian : Cartesian
+  -- ex_cartesian : Cartesian
+  ex_hull : Array Point
 deriving FromJson, Repr
 
 abbrev ViewsTestData := Array ViewExample
 
-def main : IO Unit := do
-  let jsonTxt ← loadJsonFile "raw_data/views.json"
-  let vtd : ViewsTestData ← toIO (FromJson.fromJson? jsonTxt)
+def viewsTestData : Except String ViewExample := do
+ let data : String := include_str "../raw_data/views.json"
+ let json : Json ← Json.parse data
+ let vtd : ViewsTestData ← FromJson.fromJson? json
+ let some fst := vtd[0]? | throw "nope"
+ pure fst
 
-  let some fst := vtd[0]? | throw (IO.userError "nope")
-  let q : Rat := fst.ex_spherical.an.toRat0
-  IO.println s!"Loaded JSON: {repr q}"
+#eval viewsTestData
+
+def main : IO Unit := do
+  IO.println s!"Nop!"
