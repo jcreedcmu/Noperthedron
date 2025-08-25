@@ -39,6 +39,6 @@ def innerShadow (c : ViewCand) : Set ℝ² :=
 A candidate is "safe" if it does not admit a Rupert solution.
 -/
 def Safe (c : ViewCand) : Prop :=
- sorry
+  ∃ y, y ∈ c.innerShadow ∧ ¬ y ∈ c.outerShadow
 
 end ViewCand

@@ -9,8 +9,9 @@ theorem all_snub_view_cands_safe : ∀ vp : ViewPose, (snubViewCand vp).Safe := 
 
 theorem all_snub_matrix_cands_safe : ∀ mp : MatrixPose, (snubCand mp).Safe := by
   intros mp
-  let ⟨ vc, hvc ⟩ := exists_snub_view_equiv mp
-  sorry
+  let ⟨ vp, hvp ⟩ := exists_snub_view_equiv mp
+  have hs : (snubViewCand vp).Safe := all_snub_view_cands_safe vp
+  exact equiv_preserves_safety (snubCand mp) (snubViewCand vp) hvp hs
 
 theorem snub_cube_not_rupert : ¬ IsRupert snubCube.vertices := by
   unfold IsRupert

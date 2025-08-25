@@ -35,7 +35,7 @@ def innerShadow (c : MatrixCand) : Set ℝ² :=
 /--
 A candidate is "safe" if it does not admit a Rupert solution.
 -/
-def Safe (w : MatrixCand) : Prop :=
- ∃ y, y ∈ w.innerShadow ∧ ¬ y ∈ w.outerShadow
+def Safe (c : MatrixCand) : Prop :=
+  ∃ y, y ∈ c.innerShadow ∧ ¬ y ∈ c.outerShadow
 
 end MatrixCand

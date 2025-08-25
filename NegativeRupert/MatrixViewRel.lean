@@ -22,8 +22,11 @@ def equiv_cand (mc : MatrixCand) (vc : ViewCand) : Prop :=
 Equivalence across format preserves the property of being "safe".
 -/
 theorem equiv_preserves_safety (mc : MatrixCand) (vc : ViewCand)
-    (_ : equiv_cand mc vc) (vc_safe : vc.Safe) : mc.Safe := by
-  sorry
+    (ec : equiv_cand mc vc) (vc_safe : vc.Safe) : mc.Safe := by
+  let ⟨shape_equiv, outer_eq, inner_eq⟩ := ec
+  unfold MatrixCand.Safe
+  rw [inner_eq, outer_eq]
+  exact vc_safe
 
 /--
 For the snub cube specifically, for any matrix pose there is a
