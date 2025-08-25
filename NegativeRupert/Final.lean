@@ -1,17 +1,11 @@
 import NegativeRupert.Basic
 import NegativeRupert.MatrixCand
-import NegativeRupert.View
-
-def matrix_of_view (vc : ViewPose) : MatrixPose :=
-  let { innerView, outerView, innerSpin, innerOffset } := vc
-  { innerRot := sorry,
-    outerRot := sorry,
-    innerOffset }
+import NegativeRupert.ViewCand
 
 def snubCube : Shape := sorry
 
 def snubCand (mp : MatrixPose) : MatrixCand :=
-  { config := mp
+  { pose := mp
     shape := snubCube }
 
 theorem all_snub_cands_safe : ∀ mp : MatrixPose, (snubCand mp).Safe := by

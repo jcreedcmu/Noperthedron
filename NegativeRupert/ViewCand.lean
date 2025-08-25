@@ -24,10 +24,16 @@ A view-format pose together with a shape. This is enough data to
 make being "safe" a meaningful property, see MatrixCand.Safe below.
 -/
 structure ViewCand : Type where
-  config : ViewPose
+  pose : ViewPose
   shape : Shape
 
 namespace ViewCand
+
+def outerShadow (c : ViewCand) : Set ℝ² :=
+  sorry
+
+def innerShadow (c : ViewCand) : Set ℝ² :=
+  sorry
 
 /--
 A candidate is "safe" if it does not admit a Rupert solution.
