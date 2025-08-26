@@ -2,6 +2,7 @@ import NegativeRupert.Basic
 import NegativeRupert.MatrixCand
 import NegativeRupert.ViewCand
 import NegativeRupert.Snub
+import NegativeRupert.Patches
 import NegativeRupert.MatrixViewRel
 
 theorem all_snub_view_cands_safe : ∀ vp : ViewPose, (snubViewCand vp).Safe := by

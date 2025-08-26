@@ -1,13 +1,18 @@
 import NegativeRupert.Basic
 
+open Real
+
 /--
 Parameters that give an orthographic camera view.
 
 TODO: a plain description of what azimuth and elevation mean.
 -/
 structure ViewParams : Type where
-  aziumth : ℝ
+  azimuth : ℝ
   elevation : ℝ
+  azimuth_in : azimuth ∈ Set.Ioc 0 (2 * π)
+  /-- Explicitly disallow `elevation == 0` -/
+  elevation_in : elevation ∈ Set.Ioo 0 (2 * π)
 
 /--
 One pose consisting of two views, a spin, and an offset
