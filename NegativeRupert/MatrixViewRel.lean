@@ -24,7 +24,7 @@ Equivalence across format preserves the property of being "safe".
 theorem equiv_preserves_safety (mc : MatrixCand) (vc : ViewCand)
     (ec : equiv_cand mc vc) (vc_safe : vc.Safe) : mc.Safe := by
   let ⟨shape_equiv, outer_eq, inner_eq⟩ := ec
-  unfold MatrixCand.Safe
+  change ∃ y ∈ mc.innerShadow, y ∉ mc.outerShadow
   rw [inner_eq, outer_eq]
   exact vc_safe
 

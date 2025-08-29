@@ -62,7 +62,7 @@ theorem rotation_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) (rot : SO3)
 
 theorem shadow_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (out : SO3) :
     Convex ℝ {x | ∃ p ∈ S, proj_xy (out *ᵥ p) = x} := by
- sorry
+  sorry
 
 /--
 Translation as a homeomorphism ℝⁿ → ℝⁿ
