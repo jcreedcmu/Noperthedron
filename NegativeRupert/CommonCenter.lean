@@ -45,21 +45,72 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
       norm_num
   exact segment_sub_b a_in_segment
 
+/--
+Projection preserves the property of being pointsymmetric.
+-/
 theorem proj_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) : PointSym (proj_xy '' S) := by
-  sorry
+  intro a ⟨b, hb, he⟩
+  use -b
+  refine ⟨?_, ?_⟩
+  · exact s_sym b hb
+  · simp [proj_xy] ; ext i; fin_cases i;
+    · simp only [Fin.zero_eta, Matrix.cons_val_zero, Pi.neg_apply, neg_inj]
+      exact congrFun he 0
+    · simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Fin.mk_one, Matrix.cons_val_one,
+      Matrix.cons_val_fin_one, Pi.neg_apply, neg_inj]
+      exact congrFun he 1
 
+/--
+Pointsymmetric flip as a homeomorphism
+-/
+def pointSymHomeo {n : ℕ} : Homeomorph (Fin n → ℝ) (Fin n → ℝ) :=
+{ toFun := fun x ↦ -x,
+  invFun := fun x ↦ -x,
+  left_inv := by intro; simp,
+  right_inv := by intro; simp,
+  continuous_toFun := continuous_pi (fun i ↦ (continuous_apply i).neg),
+  continuous_invFun := continuous_pi (fun i ↦ (continuous_apply i).neg) }
+
+/--
+Topological closure preserves the property of being pointsymmetric.
+-/
 theorem closure_pres_point_sym {n : ℕ} {S : Set (Fin n → ℝ)}
     (s_sym : PointSym S) : PointSym (closure S) := by
-  sorry
+  intro a ha
+  have h : (fun x => -x) '' closure S = closure ((fun x => -x) '' S) :=
+    Homeomorph.image_closure pointSymHomeo S
+  suffices z : S = ((fun x => -x) '' S) by
+    rw [z, ← h]; exact Set.mem_image_of_mem (fun x ↦ -x) ha
+  ext x
+  constructor
+  · intro hx; use -x; exact ⟨ s_sym x hx, by simp ⟩
+  · intro ⟨ y, hy, e ⟩ ; rw [← e]; exact s_sym y hy
 
+/--
+Topological interior preserves the property of being pointsymmetric.
+-/
 theorem interior_pres_point_sym {n : ℕ} {S : Set (Fin n → ℝ)}
     (s_sym : PointSym S) : PointSym (interior S) := by
-  sorry
+  intro a ha
+  have h : (fun x => -x) '' interior S = interior ((fun x => -x) '' S) :=
+    Homeomorph.image_interior pointSymHomeo S
+  suffices z : S = ((fun x => -x) '' S) by
+    rw [z, ← h]; exact Set.mem_image_of_mem (fun x ↦ -x) ha
+  ext x
+  constructor
+  · intro hx; use -x; exact ⟨ s_sym x hx, by simp ⟩
+  · intro ⟨ y, hy, e ⟩ ; rw [← e]; exact s_sym y hy
 
+/--
+Rotation preserves the property of being pointsymmetric.
+-/
 theorem rotation_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) (rot : SO3) :
     PointSym ((fun x => rot.1 *ᵥ x) '' S) := by
   sorry
 
+/--
+Taking the shadow of a rotation of a convex set is still convex
+-/
 theorem shadow_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (rot : SO3) :
     Convex ℝ {x | ∃ p ∈ S, proj_xy (rot *ᵥ p) = x} := by
   sorry
@@ -92,7 +143,7 @@ theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex
   let inner_shadow' := pose'.innerShadow S
 
   have inner_shadow'_eq : shift '' closure (pose.innerShadow S) = closure inner_shadow' := by
-    rw [ Homeomorph.image_closure shift ]
+    rw [Homeomorph.image_closure shift]
     refine congrArg closure ?_
     change _ '' ((fun p => 0 + proj_xy (pose.innerRot *ᵥ p)) '' S) = _
     rw [← Set.image_comp]
