@@ -1,6 +1,19 @@
 import Rupert.Basic
 import Rupert.Set
+import Rupert.Equivalences.Util
 import NegativeRupert.RotRupert
+
+/-
+This file more or less captures Proposition 2 from
+"An algorithmic approach to Rupert's problem"
+[Steininger, Yurkevich 2021]
+https://arxiv.org/pdf/2112.13754
+
+The crux is that if a polyhedron (or indeed any convex set) S is
+pointsymmetric (i.e. invariant under x ↦ -x) then the question of
+whether S is Rupert can, without loss, be analyzed by only considering
+rotations, and ignoring translations.
+-/
 
 open scoped Matrix
 
@@ -113,15 +126,15 @@ theorem rotation_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) (rot : SO3)
 Projection preserves convexity
 -/
 theorem proj_pres_convex {S : Set ℝ³} (s_convex : Convex ℝ S) :
-    Convex ℝ (proj_xy '' S) := by
-  sorry
+    Convex ℝ (proj_xy '' S) :=
+  Convex.linear_image s_convex proj_xy_linear
 
 /--
 Rotation preserves convexity
 -/
 theorem rotation_pres_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (rot : SO3) :
     Convex ℝ ((fun x => rot.1 *ᵥ x) '' S) := by
-  sorry
+  refine Convex.linear_image s_convex (Matrix.mulVecLin rot.1)
 
 /--
 Translation as a homeomorphism ℝⁿ → ℝⁿ
