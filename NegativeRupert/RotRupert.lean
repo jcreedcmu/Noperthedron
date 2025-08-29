@@ -2,19 +2,38 @@ import Rupert.Basic
 
 open scoped Matrix
 
-/-- The Rotational. Rupert Property for a pair of subsets X, Y of ℝ³. X has the
-    Rupert property with respect to Y if there such that the shadow of
-    X fits "comfortably" within the shadow of Y under rotations.
-    By "comfortably" we mean the closure of one set is
-    a subset of the interior of the other. This definition rules out
-    trivial cases of a set fitting inside itself. -/
-def IsRotRupertPair (inner outer : Set ℝ³) : Prop :=
-   ∃ inner_rot ∈ SO3, ∃ outer_rot ∈ SO3,
-   let inner_shadow := { proj_xy (inner_rot *ᵥ p) | p ∈ inner }
-   let outer_shadow := { proj_xy (outer_rot *ᵥ p) | p ∈  outer }
-   closure inner_shadow ⊆ interior outer_shadow
+structure Pose : Type where
+  innerRot : SO3
+  outerRot : SO3
+  innerOffset : ℝ²
+
+namespace Pose
+
+def outerShadow (p : Pose) (s : Set ℝ³) : Set ℝ² :=
+  { proj_xy (p.outerRot *ᵥ v) | v ∈ s }
+
+def innerShadow (p : Pose) (s : Set ℝ³) : Set ℝ² :=
+  { p.innerOffset + proj_xy (p.innerRot *ᵥ v) | v ∈ s }
+
+/--
+A candidate is "safe" if it does not admit a Rupert solution.
+-/
+def IsRupert (p : Pose) (s : Set ℝ³) : Prop :=
+  closure (p.innerShadow s) ⊆ interior (p.outerShadow s)
+
+/--
+A pose is "safe" if it decisively does not admit a Rupert solution.
+-/
+def Safe (p : Pose) (s : Set ℝ³) : Prop :=
+  ∃ y, y ∈ p.innerShadow s ∧ ¬ y ∈ p.outerShadow s
+
+def IsRot (p : Pose) : Prop :=
+  p.innerOffset = 0
+
+end Pose
+
 
 /-- The Rupert Property for a subset S of ℝ³. S has the Rupert property if there
     are rotations and translations such that one 2-dimensional "shadow" of S can
     be made to fit entirely inside the interior of another such "shadow". -/
-def IsRotRupertSet (S : Set ℝ³) : Prop := IsRotRupertPair S S
+def IsRotRupertSet (S : Set ℝ³) : Prop := ∃ p : Pose, p.IsRot ∧ p.IsRupert S

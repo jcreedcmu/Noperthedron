@@ -60,8 +60,8 @@ theorem rotation_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) (rot : SO3)
     PointSym ((fun x => rot.1 *ᵥ x) '' S) := by
   sorry
 
-theorem shadow_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (out : SO3) :
-    Convex ℝ {x | ∃ p ∈ S, proj_xy (out *ᵥ p) = x} := by
+theorem shadow_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (rot : SO3) :
+    Convex ℝ {x | ∃ p ∈ S, proj_xy (rot *ᵥ p) = x} := by
   sorry
 
 /--
@@ -84,23 +84,27 @@ theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex
   unfold IsRupertSet IsRupertPair at r
   obtain ⟨inn, inn_so3, off, out, out_so3, shadow_sub⟩ := r
   let shift := translationHomeo off
-  use inn, inn_so3, out, out_so3
-  intro inner_shadow outer_shadow
-  let inner_shadow' := {x | ∃ p ∈ S, off + proj_xy (inn.mulVec p) = x}
+  let pose := Pose.mk ⟨inn, inn_so3⟩ ⟨out, out_so3⟩ 0
+  let pose' := Pose.mk ⟨inn, inn_so3⟩ ⟨out, out_so3⟩ off
+  use pose
+  refine ⟨rfl, ?_⟩
 
-  have inner_shadow'_eq : shift '' closure inner_shadow = closure inner_shadow' := by
+  let inner_shadow' := pose'.innerShadow S
+
+  have inner_shadow'_eq : shift '' closure (pose.innerShadow S) = closure inner_shadow' := by
     rw [ Homeomorph.image_closure shift ]
     refine congrArg closure ?_
-    unfold inner_shadow'
-    have (v : ℝ²) : off + v = v + off := by rw [ add_comm ]
-    have hc : (fun p => p + off) = (fun p => off + p) := by ext p; rw [add_comm]
-    change (fun p => p + off) '' ((fun p => proj_xy (inn *ᵥ p)) '' S) = _
-    rw [hc, ← Set.image_comp]
+    change _ '' ((fun p => 0 + proj_xy (pose.innerRot *ᵥ p)) '' S) = _
+    rw [← Set.image_comp]
+    change (fun p ↦ (0 + proj_xy _) + off) '' _ = _
+    conv => lhs; lhs; intro p; rw [zero_add, add_comm]
     rfl
 
-  change closure inner_shadow' ⊆ interior outer_shadow at shadow_sub
+  change closure inner_shadow' ⊆ interior (pose.outerShadow S) at shadow_sub
   refine common_center ?_ ?_ ?_ off ?_
   · refine closure_pres_point_sym ?_
+    change PointSym ((fun z => 0 + proj_xy (inn *ᵥ z)) '' S)
+    conv => rhs; lhs; intro z; rw [zero_add]
     change PointSym ((proj_xy ∘ (fun z => inn *ᵥ z)) '' S)
     rw [Set.image_comp]
     exact proj_pres_point_sym (rotation_pres_point_sym s_sym ⟨inn, inn_so3⟩)
