@@ -110,10 +110,17 @@ theorem rotation_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) (rot : SO3)
   exact ⟨-y, s_sym y hy, (Matrix.mulVec_neg y rot.1).trans (congrArg Neg.neg e)⟩
 
 /--
-Taking the shadow of a rotation of a convex set is still convex
+Projection preserves convexity
 -/
-theorem shadow_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (rot : SO3) :
-    Convex ℝ {x | ∃ p ∈ S, proj_xy (rot *ᵥ p) = x} := by
+theorem proj_pres_convex {S : Set ℝ³} (s_convex : Convex ℝ S) :
+    Convex ℝ (proj_xy '' S) := by
+  sorry
+
+/--
+Rotation preserves convexity
+-/
+theorem rotation_pres_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (rot : SO3) :
+    Convex ℝ ((fun x => rot.1 *ᵥ x) '' S) := by
   sorry
 
 /--
@@ -165,5 +172,7 @@ theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex
     rw [Set.image_comp]
     exact proj_pres_point_sym (rotation_pres_point_sym s_sym ⟨out, out_so3⟩)
   · refine Convex.interior ?_
-    exact shadow_convex s_convex ⟨out, out_so3⟩
+    change Convex ℝ ((proj_xy ∘ (out *ᵥ ·)) '' S)
+    rw [Set.image_comp]
+    exact proj_pres_convex (rotation_pres_convex s_convex ⟨out, out_so3⟩)
   · change shift '' _ ⊆ _; rw [inner_shadow'_eq]; exact shadow_sub
