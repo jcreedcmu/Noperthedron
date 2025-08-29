@@ -106,7 +106,8 @@ Rotation preserves the property of being pointsymmetric.
 -/
 theorem rotation_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) (rot : SO3) :
     PointSym ((fun x => rot.1 *ᵥ x) '' S) := by
-  sorry
+  intro a ⟨y, hy, e⟩
+  exact ⟨-y, s_sym y hy, (Matrix.mulVec_neg y rot.1).trans (congrArg Neg.neg e)⟩
 
 /--
 Taking the shadow of a rotation of a convex set is still convex
