@@ -79,6 +79,8 @@ theorem zero_offset_elim (p : Pose) :
   change p.zero_offset.inner_offset_part (p.innerRot *ᵥ v) = _
   rw [zero_offset_id]
 
+def shift (p : Pose) : ℝ² ≃ₜ ℝ² := translationHomeo p.innerOffset
+
 end Pose
 
 theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy (v + inject_xy t) := by
