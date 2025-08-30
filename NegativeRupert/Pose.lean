@@ -30,6 +30,12 @@ instance : Affines Pose where
 
 namespace Pose
 
+/--
+If we zero out the offset, then the offset part of the inner
+action is the identity.
+
+TODO(easy): prove
+-/
 theorem zero_offset_id (p : Pose) (v : ℝ³) : p.zero_offset.inner_offset_part v = v := by
  sorry
 

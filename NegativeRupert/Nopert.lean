@@ -1,8 +1,12 @@
 import NegativeRupert.Basic
-import NegativeRupert.MatrixCand
-import NegativeRupert.ViewCand
 
-def nopertNumVerts : ℕ := 24 -- TODO: this is wrong
+def nopertNumVerts : ℕ := 90
+
+/--
+The noperthedron, given as a finite set of vertices.
+
+TODO(medium): See [SY25] §2 for the construction.
+-/
 def nopertVerts : Fin nopertNumVerts → ℝ³ := sorry
 
 def nopert : Shape where

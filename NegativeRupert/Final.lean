@@ -21,6 +21,8 @@ theorem rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
 
 /--
 There is no pose that makes the Noperthedron (as a subset of ℝ³) have the Rupert property
+
+TODO(hard): prove
 -/
 theorem no_nopert_pose : ¬ ∃ p : Pose, Shadows.IsRupert p nopert.hull := by
   sorry

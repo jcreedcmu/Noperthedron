@@ -112,5 +112,10 @@ def inject_xy (v : ℝ²) : ℝ³ := fun i => match i with
  | 1 => v 1
  | 2 => 0
 
+/--
+Injecting ℝ² into ℝ³ commutes as expected with projection
+
+TODO(easy): prove
+-/
 theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy (v + inject_xy t) := by
  sorry
