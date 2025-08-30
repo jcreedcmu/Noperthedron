@@ -2,18 +2,28 @@ import Rupert.Equivalences.RupertEquivRupertSet
 import NegativeRupert.Basic
 import NegativeRupert.Nopert
 import NegativeRupert.ViewPose
+import NegativeRupert.TightViewPose
+import NegativeRupert.Tightening
 import NegativeRupert.ConvertPose
 import NegativeRupert.CommonCenter
 
 open scoped Matrix
 
 /--
-There is no view pose that makes the Noperthedron have the Rupert property
+There is no tight view pose that makes the Noperthedron have the Rupert property
 
 TODO(hard): prove
 -/
-theorem no_nopert_view_pose : ¬ ∃ v : ViewPose, Shadows.IsRupert v nopert.hull := by
+theorem no_nopert_tight_view_pose : ¬ ∃ v : TightViewPose, Shadows.IsRupert v nopert.hull := by
   sorry
+
+/--
+There is no view pose that makes the Noperthedron have the Rupert property
+-/
+theorem no_nopert_view_pose : ¬ ∃ v : ViewPose, Shadows.IsRupert v nopert.hull := by
+  intro r
+  obtain ⟨p, r⟩ := r
+  exact no_nopert_tight_view_pose (rupert_tightening p r)
 
 /--
 There is no purely rotational pose that makes the Noperthedron have the Rupert property

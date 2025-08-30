@@ -5,14 +5,14 @@ import NegativeRupert.Basic
 open scoped Matrix
 open scoped Real
 
-structure ViewPose : Type where
-  θ1 : Set.Ico 0 (2 * π)
-  θ2 : Set.Ico 0 (2 * π)
+structure TightViewPose : Type where
+  θ1 : Set.Icc 0 (2 * π / 15)
+  θ2 : Set.Icc 0 (2 * π / 15)
   φ1 : Set.Icc 0 π
-  φ2 : Set.Icc 0 π
-  α : Set.Ico (-π) π
+  φ2 : Set.Icc 0 (π/2)
+  α : Set.Ico (-π/2) (π/2)
 
 noncomputable
-instance : Affines ViewPose where
+instance : Affines TightViewPose where
   inner vp := rotRM vp.θ1 vp.φ1 vp.α
   outer vp := rotRM vp.θ2 vp.φ2 0
