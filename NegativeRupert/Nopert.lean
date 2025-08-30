@@ -36,13 +36,11 @@ theorem c1_norm_one : ‖C1R‖ = 1 := by
   simp only [Fin.sum_univ_three, Pi.mul_apply, Matrix.cons_val]
   norm_num
 
-/- TODO(easy) -/
 theorem c2_norm_bound : ‖C2‖ ∈ Set.Ioo (98/100) (99/100) := by
-  sorry
+  sorry -- TODO(easy)
 
-/- TODO(easy) -/
 theorem c3_norm_bound : ‖C3‖ ∈ Set.Ioo (98/100) (99/100) := by
-  sorry
+  sorry -- TODO(easy)
 
 noncomputable
 def C30 : List (Matrix (Fin 3) (Fin 3) ℝ) := do
@@ -83,6 +81,5 @@ def nopert : Shape where
   size := nopertNumVerts
   vertices := nopertVerts
 
-/- TODO(medium) -/
 theorem nopert_point_symmetric : PointSym nopert.hull := by
-  sorry
+  sorry -- TODO(medium)
