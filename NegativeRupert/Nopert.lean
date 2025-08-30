@@ -1,15 +1,16 @@
 import NegativeRupert.Basic
 import NegativeRupert.Util
 
+/-
+This file covers [SY25] §2.1.
+-/
+
 open scoped Matrix
 
 namespace Nopert
 
 open Real
 
-/-
-These constants are taken from [SY25] §2.
--/
 def C1 : Fin 3 → ℚ := (1/259375205) * ![152024884, 0, 210152163]
 def C2 : Fin 3 → ℚ := (1/10^10) * ![6632738028, 6106948881, 3980949609]
 def C3 : Fin 3 → ℚ := (1/10^10) * ![8193990033, 5298215096, 1230614493]
@@ -42,13 +43,6 @@ theorem c2_norm_bound : ‖C2‖ ∈ Set.Ioo (98/100) (99/100) := by
 /- TODO(easy) -/
 theorem c3_norm_bound : ‖C3‖ ∈ Set.Ioo (98/100) (99/100) := by
   sorry
-
--- rotation about z-axis by θ
-noncomputable
-def Rz (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
-  !![cos θ, -sin θ, 0;
-     sin θ,  cos θ, 0;
-     0,      0,     1]
 
 noncomputable
 def C30 : List (Matrix (Fin 3) (Fin 3) ℝ) := do

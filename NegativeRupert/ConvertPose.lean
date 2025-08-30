@@ -1,8 +1,10 @@
 import NegativeRupert.Pose
 import NegativeRupert.ViewPose
 
-def poseOfViewPose (v : ViewPose) : Pose := by
-  sorry
+def poseOfViewPose (v : ViewPose) : Pose where
+  innerRot := sorry
+  outerRot := sorry
+  innerOffset := sorry
 
 theorem converted_pose_inner_shadow_eq (v : ViewPose) (S : Set ℝ³) :
     Shadows.inner v S = Shadows.inner (poseOfViewPose v) S := by
