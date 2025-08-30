@@ -26,8 +26,3 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 
 [[lean_lib]]
 name = "NegativeRupert"
-
-[[lean_exe]]
-name = "json-test"
-srcDir = "json-test"
-root = "Main"
