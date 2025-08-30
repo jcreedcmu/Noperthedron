@@ -49,8 +49,6 @@ def inner_rot_part (p : Pose) : ℝ³ → ℝ³ := fun v => p.innerRot *ᵥ v
 
 end Pose
 
-
-
 noncomputable
 instance : Affines Pose where
   inner p := (translationAffineEquiv (inject_xy p.innerOffset)).toAffineMap.comp
@@ -69,12 +67,15 @@ theorem pose_ext (p : Pose) (v : ℝ³) :
       ((Matrix.mulVecLin p.innerRot).toAffineMap) v :=
   by rfl
 
-theorem zero_offset_fact (p : Pose) (v : ℝ³) :
-    Affines.inner p.zero_offset v = Affines.inner p v := by
-  sorry
+theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy (v + inject_xy t) := by
+ sorry
 
-theorem zero_offset_simple (p : Pose) :
+theorem zero_offset_id (p : Pose) (v : ℝ³) : p.zero_offset.inner_offset_part v = v := by
+ sorry
+
+@[simp]
+theorem zero_offset_elim (p : Pose) :
     ↑(Affines.inner p.zero_offset) = (fun (v : ℝ³) => p.innerRot *ᵥ v) := by
   ext1 v
-  have q := zero_offset_fact p v
-  sorry
+  change p.zero_offset.inner_offset_part (p.innerRot *ᵥ v) = _
+  rw [zero_offset_id]

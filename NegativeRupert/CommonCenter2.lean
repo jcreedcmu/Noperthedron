@@ -80,13 +80,13 @@ theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex
     rw [Homeomorph.image_closure shift]
     refine congrArg closure ?_
     change shift '' ((proj_xy ∘ Affines.inner p.zero_offset) '' S) = _
+    simp only [zero_offset_elim]
+    rw [← Set.image_comp]
+    change ((shift ∘ proj_xy) ∘ p.inner_rot_part) '' S =
+       ((proj_xy ∘ p.inner_offset_part) ∘ p.inner_rot_part) '' S
+    rw [show shift ∘ proj_xy = proj_xy ∘ p.inner_offset_part from funext fun v ↦
+      proj_offset_commute off v]
 
-    change _ '' ((fun v => 0 + proj_xy (pose.innerRot *ᵥ v)) '' S) = _
-  --   rw [← Set.image_comp]
-  --   change (fun p ↦ (0 + proj_xy _) + off) '' _ = _
-  --   conv => lhs; lhs; intro p; rw [zero_add, add_comm]
-  --   rfl
-    sorry
   change closure (Shadows.inner p S) ⊆ interior (Shadows.outer p S) at shadow_sub
   refine common_center ?_ ?_ ?_ off ?_
   · refine closure_pres_point_sym ?_
