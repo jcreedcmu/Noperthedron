@@ -71,8 +71,8 @@ theorem shadow_outer_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : Pose) 
   exact proj_pres_point_sym (rotation_pres_point_sym (s_psym) p.outerRot)
 
 theorem shadow_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : Pose) :
-  PointSym (Shadows.inner p.zero_offset S) := by
-  change PointSym (proj_xy ∘ Affines.inner p.zero_offset '' S)
+  PointSym (Shadows.inner p.zeroOffset S) := by
+  change PointSym (proj_xy ∘ Affines.inner p.zeroOffset '' S)
   rw [Set.image_comp]
   refine proj_pres_point_sym ?_
   simp only [Pose.zero_offset_elim]
@@ -82,16 +82,16 @@ theorem shadow_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : Pose) 
 We can pull out the shift baked into Shadows.inner all the way outside
 -/
 lemma shadows_eq {S : Set ℝ³} (p : Pose) :
-    p.shift '' closure (Shadows.inner p.zero_offset S) =
+    p.shift '' closure (Shadows.inner p.zeroOffset S) =
       closure (Shadows.inner p S) := by
   rw [Homeomorph.image_closure p.shift]
   refine congrArg closure ?_
-  change p.shift '' ((proj_xy ∘ Affines.inner p.zero_offset) '' S) = _
+  change p.shift '' ((proj_xy ∘ Affines.inner p.zeroOffset) '' S) = _
   simp only [Pose.zero_offset_elim]
   rw [← Set.image_comp]
-  change ((p.shift ∘ proj_xy) ∘ p.inner_rot_part) '' S =
-     ((proj_xy ∘ p.inner_offset_part) ∘ p.inner_rot_part) '' S
-  rw [show p.shift ∘ proj_xy = proj_xy ∘ p.inner_offset_part from funext fun v ↦
+  change ((p.shift ∘ proj_xy) ∘ p.innerRotPart) '' S =
+     ((proj_xy ∘ p.innerOffsetPart) ∘ p.innerRotPart) '' S
+  rw [show p.shift ∘ proj_xy = proj_xy ∘ p.innerOffsetPart from funext fun v ↦
     proj_offset_commute _ _]
 
 /--
@@ -99,7 +99,7 @@ If a set is point symmetric and convex, then it being rupert implies
 being purely rotationally rupert.
 -/
 theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex : Convex ℝ S)
-    (p : Pose) (r : Shadows.IsRupert p S) : Shadows.IsRupert (p.zero_offset) S := by
+    (p : Pose) (r : Shadows.IsRupert p S) : Shadows.IsRupert (p.zeroOffset) S := by
   refine common_center ?_ ?_ ?_ p.innerOffset ?_
   · exact closure_pres_point_sym (shadow_inner_pres_psym s_sym p)
   · exact interior_pres_point_sym (shadow_outer_pres_psym s_sym p)
