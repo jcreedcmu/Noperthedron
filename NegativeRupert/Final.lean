@@ -68,7 +68,14 @@ theorem nopert_not_rupert_set : ¬ IsRupertSet nopert.hull := fun r =>
   no_nopert_pose (rupert_set_implies_pose_rupert r)
 
 /--
-The Noperthedron is not Rupert
+The Noperthedron is not Rupert.
+
+FIXME: Ideally we'd like to reconcile this with
+[https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/Paper/Rupert.lean](the
+formal-conjectures formulation) which will require some minor
+impedance matching, and an extra proof obligation that the interior of
+the Noperthedron is nonempty.
 -/
+
 theorem nopert_not_rupert : ¬ IsRupert nopertVerts := fun r =>
   nopert_not_rupert_set ((rupert_iff_rupert_set (nopert.vertices)).mp r)
