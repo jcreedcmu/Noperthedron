@@ -20,12 +20,25 @@ theorem rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
   exact sub
 
 /--
-There is no pose that makes the Noperthedron (as a subset of ℝ³) have the Rupert property
+There is no purely rotational pose that makes the Noperthedron (as a
+subset of ℝ³) have the Rupert property
 
 TODO(hard): prove
 -/
-theorem no_nopert_pose : ¬ ∃ p : Pose, Shadows.IsRupert p nopert.hull := by
+theorem no_nopert_rot_pose : ¬ ∃ p : Pose, Shadows.IsRupert (p.zero_offset) nopert.hull := by
   sorry
+
+/--
+There is no pose that makes the Noperthedron (as a subset of ℝ³) have the Rupert property
+-/
+theorem no_nopert_pose : ¬ ∃ p : Pose, Shadows.IsRupert p nopert.hull := by
+  intro r
+  obtain ⟨p, r⟩ := r
+  have hconvex : Convex ℝ nopert.hull := by
+    unfold Shape.hull
+    exact convex_convexHull ℝ (Set.range nopert.vertices)
+  have r' := rupert_implies_rot_rupert nopert_point_symmetric hconvex p r
+  exact no_nopert_rot_pose ⟨p, r'⟩
 
 /--
 The Noperthedron (as a subset of ℝ³) is not Rupert

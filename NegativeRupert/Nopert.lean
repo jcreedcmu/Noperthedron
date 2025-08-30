@@ -1,4 +1,5 @@
 import NegativeRupert.Basic
+import NegativeRupert.Util
 
 open scoped Matrix
 
@@ -87,3 +88,7 @@ noncomputable
 def nopert : Shape where
   size := nopertNumVerts
   vertices := nopertVerts
+
+/- TODO(medium) -/
+theorem nopert_point_symmetric : PointSym nopert.hull := by
+  sorry
