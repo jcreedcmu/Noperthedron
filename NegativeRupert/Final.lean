@@ -1,8 +1,6 @@
+import Rupert.Equivalences.RupertEquivRupertSet
 import NegativeRupert.Basic
-import NegativeRupert.MatrixCand
-import NegativeRupert.ViewCand
 import NegativeRupert.Nopert
-import NegativeRupert.MatrixViewRel
 import NegativeRupert.CommonCenter
 
 open scoped Matrix
@@ -21,27 +19,20 @@ theorem rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
   rw [p.inner_shadow_lemma]
   exact sub
 
-theorem all_nopert_view_cands_safe : ∀ vp : ViewPose, (nopertViewCand vp).Safe := by
- sorry
+/--
+There is no pose that makes the Noperthedron (as a subset of ℝ³) have the Rupert property
+-/
+theorem no_nopert_pose : ¬ ∃ p : Pose, Shadows.IsRupert p nopert.hull := by
+  sorry
 
-theorem all_nopert_matrix_cands_safe : ∀ mp : MatrixPose, (nopertCand mp).Safe := by
-  intros mp
-  let ⟨ vp, hvp ⟩ := exists_nopert_view_equiv mp
-  have hs : (nopertViewCand vp).Safe := all_nopert_view_cands_safe vp
-  exact equiv_preserves_safety (nopertCand mp) (nopertViewCand vp) hvp hs
+/--
+The Noperthedron (as a subset of ℝ³) is not Rupert
+-/
+theorem nopert_not_rupert_set : ¬ IsRupertSet nopert.hull := fun r =>
+  no_nopert_pose (rupert_set_implies_pose_rupert r)
 
-theorem nopert_cube_not_rupert : ¬ IsRupert nopertCube.vertices := by
-  unfold IsRupert
-  push_neg
-  intros innerRot inner_rot_so3 innerOffset outerRot outer_rot_so3
-  lift_lets
-  intros hull inner_shadow outer_shadow
-  refine Set.not_subset.mpr ?_
-  let mp : MatrixPose := {
-    innerRot := ⟨innerRot, inner_rot_so3⟩,
-    outerRot := ⟨outerRot, outer_rot_so3⟩,
-    innerOffset,
-  }
-  obtain ⟨y, hy, hy'⟩ := all_nopert_matrix_cands_safe mp
-  use y
-  exact ⟨hy, fun hy2 ↦ hy' (interior_subset hy2)⟩
+/--
+The Noperthedron is not Rupert
+-/
+theorem nopert_not_rupert : ¬ IsRupert nopertVerts := fun r =>
+  nopert_not_rupert_set ((rupert_iff_rupert_set (nopert.vertices)).mp r)
