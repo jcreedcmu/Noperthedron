@@ -55,20 +55,19 @@ instance : Affines Pose where
       ((Matrix.mulVecLin p.innerRot).toAffineMap)
   outer p := (Matrix.mulVecLin p.outerRot).toAffineMap
 
-theorem zero_offset_only_inner (p : Pose) : Shadows.outer (p.zero_offset) = Shadows.outer p := by
-  rfl
+namespace Pose
 
-theorem pose_ext2 (p : Pose) (v : ℝ³) :
-    Affines.inner p v = p.inner_offset_part (p.inner_rot_part v) :=
-  by rfl
+-- theorem zero_offset_only_inner (p : Pose) : Shadows.outer (p.zero_offset) = Shadows.outer p := by
+--   rfl
 
-theorem pose_ext (p : Pose) (v : ℝ³) :
-    Affines.inner p v = (translationAffineEquiv (inject_xy p.innerOffset)).toAffineMap.comp
-      ((Matrix.mulVecLin p.innerRot).toAffineMap) v :=
-  by rfl
+-- theorem pose_ext2 (p : Pose) (v : ℝ³) :
+--     Affines.inner p v = p.inner_offset_part (p.inner_rot_part v) :=
+--   by rfl
 
-theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy (v + inject_xy t) := by
- sorry
+-- theorem pose_ext (p : Pose) (v : ℝ³) :
+--     Affines.inner p v = (translationAffineEquiv (inject_xy p.innerOffset)).toAffineMap.comp
+--       ((Matrix.mulVecLin p.innerRot).toAffineMap) v :=
+--   by rfl
 
 theorem zero_offset_id (p : Pose) (v : ℝ³) : p.zero_offset.inner_offset_part v = v := by
  sorry
@@ -79,3 +78,8 @@ theorem zero_offset_elim (p : Pose) :
   ext1 v
   change p.zero_offset.inner_offset_part (p.innerRot *ᵥ v) = _
   rw [zero_offset_id]
+
+end Pose
+
+theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy (v + inject_xy t) := by
+ sorry

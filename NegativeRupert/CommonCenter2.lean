@@ -57,6 +57,22 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
       norm_num
   exact segment_sub_b a_in_segment
 
+theorem proj_affine_outer_pres_convex {S : Set ℝ³} (s_conv : Convex ℝ S) (p : Pose) :
+  Convex ℝ (proj_xy ∘ Affines.outer p '' S) := by
+  rw [Set.image_comp]
+  exact proj_pres_convex (rotation_pres_convex s_conv p.outerRot)
+
+theorem proj_affine_outer_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : Pose) :
+  PointSym (proj_xy ∘ Affines.outer p '' S) := by
+  rw [Set.image_comp]
+  exact proj_pres_point_sym (rotation_pres_point_sym (s_psym) p.outerRot)
+
+theorem proj_affine_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : Pose) :
+  PointSym (proj_xy ∘ Affines.inner p.zero_offset '' S) := by
+  rw [Set.image_comp]
+  refine proj_pres_point_sym ?_
+  simp only [Pose.zero_offset_elim]
+  exact rotation_pres_point_sym s_psym p.innerRot
 
 /--
 If a set is point symmetric and convex, then it being rupert implies
@@ -80,7 +96,7 @@ theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex
     rw [Homeomorph.image_closure shift]
     refine congrArg closure ?_
     change shift '' ((proj_xy ∘ Affines.inner p.zero_offset) '' S) = _
-    simp only [zero_offset_elim]
+    simp only [Pose.zero_offset_elim]
     rw [← Set.image_comp]
     change ((shift ∘ proj_xy) ∘ p.inner_rot_part) '' S =
        ((proj_xy ∘ p.inner_offset_part) ∘ p.inner_rot_part) '' S
@@ -89,18 +105,7 @@ theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex
 
   change closure (Shadows.inner p S) ⊆ interior (Shadows.outer p S) at shadow_sub
   refine common_center ?_ ?_ ?_ off ?_
-  · refine closure_pres_point_sym ?_
-    change PointSym ((fun z => 0 + proj_xy (inn *ᵥ z)) '' S)
-    conv => rhs; lhs; intro z; rw [zero_add]
-    change PointSym ((proj_xy ∘ (fun z => inn *ᵥ z)) '' S)
-    rw [Set.image_comp]
-    exact proj_pres_point_sym (rotation_pres_point_sym s_sym ⟨inn, inn_so3⟩)
-  · refine interior_pres_point_sym ?_
-    change PointSym ((proj_xy ∘ (fun z => out *ᵥ z)) '' S)
-    rw [Set.image_comp]
-    exact proj_pres_point_sym (rotation_pres_point_sym s_sym ⟨out, out_so3⟩)
-  · refine Convex.interior ?_
-    change Convex ℝ ((proj_xy ∘ (out *ᵥ ·)) '' S)
-    rw [Set.image_comp]
-    exact proj_pres_convex (rotation_pres_convex s_convex ⟨out, out_so3⟩)
+  · exact closure_pres_point_sym (proj_affine_inner_pres_psym s_sym p)
+  · exact interior_pres_point_sym (proj_affine_outer_pres_psym s_sym p)
+  · exact Convex.interior (proj_affine_outer_pres_convex s_convex p)
   · change shift '' _ ⊆ _; rw [inner_shadow'_eq]; exact shadow_sub
