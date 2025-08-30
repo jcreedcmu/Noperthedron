@@ -1,6 +1,6 @@
 import NegativeRupert.MatrixCand
 import NegativeRupert.ViewCand
-import NegativeRupert.Snub
+import NegativeRupert.Nopert
 
 /-
 This file manages the relationship between matrix-format candidates and view-format candidates.
@@ -29,10 +29,10 @@ theorem equiv_preserves_safety (mc : MatrixCand) (vc : ViewCand)
   exact vc_safe
 
 /--
-For the snub cube specifically, for any matrix pose there is a
+For the nopert polyhedron specifically, for any matrix pose there is a
 view pose that induces an equivalence. Assuming view poses actually
 exclude the straight-down-the-barrel-of-the-z-axis pose, this relies
-on octagonal symmetry of the snub cube.
+on octagonal symmetry of the nopert cube.
 -/
-theorem exists_snub_view_equiv (mp : MatrixPose) : ∃ vp : ViewPose,
-    equiv_cand (snubCand mp) (snubViewCand vp) := sorry
+theorem exists_nopert_view_equiv (mp : MatrixPose) : ∃ vp : ViewPose,
+    equiv_cand (nopertCand mp) (nopertViewCand vp) := sorry
