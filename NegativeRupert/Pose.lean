@@ -9,11 +9,6 @@ structure Pose : Type where
   outerRot : SO3
   innerOffset : ℝ²
 
-def inject_xy (v : ℝ²) : ℝ³ := fun i => match i with
- | 0 => v 0
- | 1 => v 1
- | 2 => 0
-
 namespace Pose
 
 def IsRot (p : Pose) : Prop :=
@@ -47,7 +42,18 @@ theorem zero_offset_elim (p : Pose) :
 
 def shift (p : Pose) : ℝ² ≃ₜ ℝ² := translationHomeo p.innerOffset
 
-end Pose
+/--
+We can massage Shadows.inner p S into the form of the standard Rupert definition
+-/
+theorem inner_shadow_lemma (p : Pose) (S : Set ℝ³) :
+    Shadows.inner p S = {x | ∃ v ∈ S, p.innerOffset + proj_xy (p.innerRot *ᵥ v) = x} := by
+  change ((proj_xy ∘ (· + inject_xy p.innerOffset)) ∘ p.inner_rot_part) '' S =
+         (((p.innerOffset + ·) ∘ proj_xy) ∘ p.inner_rot_part) '' S
+  suffices h : proj_xy ∘ (· + inject_xy p.innerOffset) = (p.innerOffset + ·) ∘ proj_xy by
+    rw[h]
+  ext1 v
+  simp only [Function.comp_apply]
+  nth_rw 2 [add_comm]
+  rw [proj_offset_commute p.innerOffset v]
 
-theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy (v + inject_xy t) := by
- sorry
+end Pose

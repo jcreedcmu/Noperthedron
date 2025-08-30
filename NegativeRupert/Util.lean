@@ -106,3 +106,11 @@ Rotation preserves convexity
 theorem rotation_pres_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (rot : SO3) :
     Convex ℝ ((fun x => rot.1 *ᵥ x) '' S) := by
   refine Convex.linear_image s_convex (Matrix.mulVecLin rot.1)
+
+def inject_xy (v : ℝ²) : ℝ³ := fun i => match i with
+ | 0 => v 0
+ | 1 => v 1
+ | 2 => 0
+
+theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy (v + inject_xy t) := by
+ sorry
