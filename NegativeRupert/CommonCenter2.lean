@@ -13,6 +13,8 @@ The crux is that if a polyhedron (or indeed any convex set) S is
 pointsymmetric (i.e. invariant under x ↦ -x) then the question of
 whether S is Rupert can, without loss, be analyzed by only considering
 rotations, and ignoring translations.
+
+This is meant to replace CommonCenter.lean once I finish refactoring...
 -/
 
 open scoped Matrix
@@ -61,27 +63,31 @@ If a set is point symmetric and convex, then it being rupert implies
 being purely rotationally rupert.
 -/
 theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex : Convex ℝ S)
-    (r : IsRupertSet S) : IsRotRupertSet S := by
-  unfold IsRupertSet IsRupertPair at r
-  obtain ⟨inn, inn_so3, off, out, out_so3, shadow_sub⟩ := r
-  let shift := translationHomeo off
-  let pose := Pose.mk ⟨inn, inn_so3⟩ ⟨out, out_so3⟩ 0
-  let pose' := Pose.mk ⟨inn, inn_so3⟩ ⟨out, out_so3⟩ off
-  use pose
-  refine ⟨rfl, ?_⟩
+    (p : Pose) (r : Shadows.IsRupert p S) : Shadows.IsRupert (p.zero_offset) S := by
 
-  let inner_shadow' := pose'.innerShadow S
+  let p' := p.zero_offset
+  let inner_shadow' := Shadows.inner p' S
 
-  have inner_shadow'_eq : shift '' closure (pose.innerShadow S) = closure inner_shadow' := by
+  let shadow_sub := r
+  unfold Shadows.IsRupert at shadow_sub ⊢
+
+  let off := p.innerOffset
+  let shift := translationHomeo p.innerOffset
+  let pose := p
+  let pose' := p'
+
+  have inner_shadow'_eq : shift '' closure (Shadows.inner p' S) = closure (Shadows.inner p S) := by
     rw [Homeomorph.image_closure shift]
     refine congrArg closure ?_
-    change _ '' ((fun p => 0 + proj_xy (pose.innerRot *ᵥ p)) '' S) = _
-    rw [← Set.image_comp]
-    change (fun p ↦ (0 + proj_xy _) + off) '' _ = _
-    conv => lhs; lhs; intro p; rw [zero_add, add_comm]
-    rfl
+    change shift '' ((proj_xy ∘ Affines.inner p.zero_offset) '' S) = _
 
-  change closure inner_shadow' ⊆ interior (pose.outerShadow S) at shadow_sub
+    change _ '' ((fun v => 0 + proj_xy (pose.innerRot *ᵥ v)) '' S) = _
+  --   rw [← Set.image_comp]
+  --   change (fun p ↦ (0 + proj_xy _) + off) '' _ = _
+  --   conv => lhs; lhs; intro p; rw [zero_add, add_comm]
+  --   rfl
+    sorry
+  change closure (Shadows.inner p S) ⊆ interior (Shadows.outer p S) at shadow_sub
   refine common_center ?_ ?_ ?_ off ?_
   · refine closure_pres_point_sym ?_
     change PointSym ((fun z => 0 + proj_xy (inn *ᵥ z)) '' S)

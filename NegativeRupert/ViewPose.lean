@@ -1,4 +1,5 @@
 import Rupert.Basic
+import NegativeRupert.PoseClasses
 
 open scoped Matrix
 open scoped Real
@@ -10,7 +11,20 @@ structure ViewPose : Type where
   φ2 : Set.Icc 0 π
   α : Set.Ico (-π) π
 
-namespace ViewPose
+noncomputable
+def e3 : Module.Basis (Fin 3) ℝ ℝ³ := (EuclideanSpace.basisFun (Fin 3) ℝ).toBasis
 
+noncomputable
+def R (α : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ :=
+  let A : Matrix (Fin 3) (Fin 3) ℝ := sorry
+  (A.toLin e3 e3).toAffineMap
 
-end ViewPose
+noncomputable
+def M (θ : ℝ) (φ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ :=
+  let A : Matrix (Fin 3) (Fin 3) ℝ := sorry
+  (A.toLin e3 e3).toAffineMap
+
+noncomputable
+instance : Affines ViewPose where
+  inner vp := (R (vp.α)).comp (M vp.θ1 vp.φ1)
+  outer vp := M vp.θ2 vp.φ2
