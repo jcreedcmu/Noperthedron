@@ -16,28 +16,6 @@ def inject_xy (v : ℝ²) : ℝ³ := fun i => match i with
 
 namespace Pose
 
-@[deprecated "should use Shadows instead" (since := "2025-08-30")]
-def outerShadow (p : Pose) (s : Set ℝ³) : Set ℝ² :=
-  { proj_xy (p.outerRot *ᵥ v) | v ∈ s }
-
-@[deprecated "should use Shadows instead" (since := "2025-08-30")]
-def innerShadow (p : Pose) (s : Set ℝ³) : Set ℝ² :=
-  { p.innerOffset + proj_xy (p.innerRot *ᵥ v) | v ∈ s }
-
-/--
-A candidate is "safe" if it does not admit a Rupert solution.
--/
-@[deprecated "should use Shadows instead" (since := "2025-08-30")]
-def IsRupert (p : Pose) (s : Set ℝ³) : Prop :=
-  closure (p.innerShadow s) ⊆ interior (p.outerShadow s)
-
-/--
-A pose is "safe" if it decisively does not admit a Rupert solution.
--/
-@[deprecated "should use Shadows instead" (since := "2025-08-30")]
-def Safe (p : Pose) (s : Set ℝ³) : Prop :=
-  ∃ y, y ∈ p.innerShadow s ∧ ¬ y ∈ p.outerShadow s
-
 def IsRot (p : Pose) : Prop :=
   p.innerOffset = 0
 
@@ -56,18 +34,6 @@ instance : Affines Pose where
   outer p := (Matrix.mulVecLin p.outerRot).toAffineMap
 
 namespace Pose
-
--- theorem zero_offset_only_inner (p : Pose) : Shadows.outer (p.zero_offset) = Shadows.outer p := by
---   rfl
-
--- theorem pose_ext2 (p : Pose) (v : ℝ³) :
---     Affines.inner p v = p.inner_offset_part (p.inner_rot_part v) :=
---   by rfl
-
--- theorem pose_ext (p : Pose) (v : ℝ³) :
---     Affines.inner p v = (translationAffineEquiv (inject_xy p.innerOffset)).toAffineMap.comp
---       ((Matrix.mulVecLin p.innerRot).toAffineMap) v :=
---   by rfl
 
 theorem zero_offset_id (p : Pose) (v : ℝ³) : p.zero_offset.inner_offset_part v = v := by
  sorry

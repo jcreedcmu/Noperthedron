@@ -1,7 +1,8 @@
 import Rupert.Basic
 import Rupert.Set
-import NegativeRupert.RotRupert
 import NegativeRupert.Util
+import NegativeRupert.Pose
+import NegativeRupert.PoseClasses
 
 /-
 This file more or less captures Proposition 2 from
@@ -13,6 +14,8 @@ The crux is that if a polyhedron (or indeed any convex set) S is
 pointsymmetric (i.e. invariant under x ↦ -x) then the question of
 whether S is Rupert can, without loss, be analyzed by only considering
 rotations, and ignoring translations.
+
+This is meant to replace CommonCenter.lean once I finish refactoring...
 -/
 
 open scoped Matrix
@@ -55,46 +58,52 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
       norm_num
   exact segment_sub_b a_in_segment
 
+theorem shadow_outer_pres_convex {S : Set ℝ³} (s_conv : Convex ℝ S) (p : Pose) :
+  Convex ℝ (Shadows.outer p S) := by
+  change Convex ℝ (proj_xy ∘ Affines.outer p '' S)
+  rw [Set.image_comp]
+  exact proj_pres_convex (rotation_pres_convex s_conv p.outerRot)
+
+theorem shadow_outer_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : Pose) :
+  PointSym (Shadows.outer p S) := by
+  change PointSym (proj_xy ∘ Affines.outer p '' S)
+  rw [Set.image_comp]
+  exact proj_pres_point_sym (rotation_pres_point_sym (s_psym) p.outerRot)
+
+theorem shadow_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : Pose) :
+  PointSym (Shadows.inner p.zero_offset S) := by
+  change PointSym (proj_xy ∘ Affines.inner p.zero_offset '' S)
+  rw [Set.image_comp]
+  refine proj_pres_point_sym ?_
+  simp only [Pose.zero_offset_elim]
+  exact rotation_pres_point_sym s_psym p.innerRot
+
+/--
+We can pull out the shift baked into Shadows.inner all the way outside
+-/
+lemma shadows_eq {S : Set ℝ³} (p : Pose) :
+    p.shift '' closure (Shadows.inner p.zero_offset S) =
+      closure (Shadows.inner p S) := by
+  rw [Homeomorph.image_closure p.shift]
+  refine congrArg closure ?_
+  change p.shift '' ((proj_xy ∘ Affines.inner p.zero_offset) '' S) = _
+  simp only [Pose.zero_offset_elim]
+  rw [← Set.image_comp]
+  change ((p.shift ∘ proj_xy) ∘ p.inner_rot_part) '' S =
+     ((proj_xy ∘ p.inner_offset_part) ∘ p.inner_rot_part) '' S
+  rw [show p.shift ∘ proj_xy = proj_xy ∘ p.inner_offset_part from funext fun v ↦
+    proj_offset_commute _ _]
 
 /--
 If a set is point symmetric and convex, then it being rupert implies
 being purely rotationally rupert.
 -/
 theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex : Convex ℝ S)
-    (r : IsRupertSet S) : IsRotRupertSet S := by
-  unfold IsRupertSet IsRupertPair at r
-  obtain ⟨inn, inn_so3, off, out, out_so3, shadow_sub⟩ := r
-  let shift := translationHomeo off
-  let pose := Pose.mk ⟨inn, inn_so3⟩ ⟨out, out_so3⟩ 0
-  let pose' := Pose.mk ⟨inn, inn_so3⟩ ⟨out, out_so3⟩ off
-  use pose
-  refine ⟨rfl, ?_⟩
-
-  let inner_shadow' := pose'.innerShadow S
-
-  have inner_shadow'_eq : shift '' closure (pose.innerShadow S) = closure inner_shadow' := by
-    rw [Homeomorph.image_closure shift]
-    refine congrArg closure ?_
-    change _ '' ((fun p => 0 + proj_xy (pose.innerRot *ᵥ p)) '' S) = _
-    rw [← Set.image_comp]
-    change (fun p ↦ (0 + proj_xy _) + off) '' _ = _
-    conv => lhs; lhs; intro p; rw [zero_add, add_comm]
-    rfl
-
-  change closure inner_shadow' ⊆ interior (pose.outerShadow S) at shadow_sub
-  refine common_center ?_ ?_ ?_ off ?_
-  · refine closure_pres_point_sym ?_
-    change PointSym ((fun z => 0 + proj_xy (inn *ᵥ z)) '' S)
-    conv => rhs; lhs; intro z; rw [zero_add]
-    change PointSym ((proj_xy ∘ (fun z => inn *ᵥ z)) '' S)
-    rw [Set.image_comp]
-    exact proj_pres_point_sym (rotation_pres_point_sym s_sym ⟨inn, inn_so3⟩)
-  · refine interior_pres_point_sym ?_
-    change PointSym ((proj_xy ∘ (fun z => out *ᵥ z)) '' S)
-    rw [Set.image_comp]
-    exact proj_pres_point_sym (rotation_pres_point_sym s_sym ⟨out, out_so3⟩)
-  · refine Convex.interior ?_
-    change Convex ℝ ((proj_xy ∘ (out *ᵥ ·)) '' S)
-    rw [Set.image_comp]
-    exact proj_pres_convex (rotation_pres_convex s_convex ⟨out, out_so3⟩)
-  · change shift '' _ ⊆ _; rw [inner_shadow'_eq]; exact shadow_sub
+    (p : Pose) (r : Shadows.IsRupert p S) : Shadows.IsRupert (p.zero_offset) S := by
+  refine common_center ?_ ?_ ?_ p.innerOffset ?_
+  · exact closure_pres_point_sym (shadow_inner_pres_psym s_sym p)
+  · exact interior_pres_point_sym (shadow_outer_pres_psym s_sym p)
+  · exact Convex.interior (shadow_outer_pres_convex s_convex p)
+  · change p.shift '' _ ⊆ _
+    rw [shadows_eq]
+    exact r
