@@ -12,7 +12,8 @@ open scoped Matrix
 /--
 There is no tight view pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_tight_view_pose : ¬ ∃ v : TightViewPose, Shadows.IsRupert v nopert.hull := by
+theorem no_nopert_tight_view_pose : ¬ ∃ v : ViewPose,
+    tightInterval.contains v ∧  Shadows.IsRupert v nopert.hull := by
   sorry -- TODO(hard)
 
 /--
