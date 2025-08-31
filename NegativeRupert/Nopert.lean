@@ -36,11 +36,33 @@ theorem c1_norm_one : ‖C1R‖ = 1 := by
   simp only [Fin.sum_univ_three, Pi.mul_apply, Matrix.cons_val]
   norm_num
 
-theorem c2_norm_bound : ‖C2‖ ∈ Set.Ioo (98/100) (99/100) := by
-  sorry -- TODO(easy)
+theorem c2_norm_bound : ‖C2R‖ ∈ Set.Ioo (98/100) (99/100) := by
+  rw [EuclideanSpace.norm_eq]
+  constructor
+  · refine lt_sqrt_of_sq_lt ?_
+    simp only [Real.norm_eq_abs, sq_abs]
+    unfold C2R C2
+    simp only [Fin.sum_univ_three, Pi.mul_apply, Matrix.cons_val]
+    norm_num
+  · refine (sqrt_lt' (by norm_num)).mpr ?_
+    simp only [Real.norm_eq_abs, sq_abs]
+    unfold C2R C2
+    simp only [Fin.sum_univ_three, Pi.mul_apply, Matrix.cons_val]
+    norm_num
 
-theorem c3_norm_bound : ‖C3‖ ∈ Set.Ioo (98/100) (99/100) := by
-  sorry -- TODO(easy)
+theorem c3_norm_bound : ‖C3R‖ ∈ Set.Ioo (98/100) (99/100) := by
+  rw [EuclideanSpace.norm_eq]
+  constructor
+  · refine lt_sqrt_of_sq_lt ?_
+    simp only [Real.norm_eq_abs, sq_abs]
+    unfold C3R C3
+    simp only [Fin.sum_univ_three, Pi.mul_apply, Matrix.cons_val]
+    norm_num
+  · refine (sqrt_lt' (by norm_num)).mpr ?_
+    simp only [Real.norm_eq_abs, sq_abs]
+    unfold C3R C3
+    simp only [Fin.sum_univ_three, Pi.mul_apply, Matrix.cons_val]
+    norm_num
 
 /-- This is half of the C30 defined in [SY25]. In order
 to see that this is pointsymmetric, it's convenient to
