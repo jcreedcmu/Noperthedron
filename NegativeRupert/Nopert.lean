@@ -111,5 +111,8 @@ theorem nopert_verts_pointsym : PointSym nopertVertSet := by
   simp only [nopertVertList]
   apply pointsymmetrization_is_pointsym
 
+/--
+The noperthedron is pointsymmetric.
+-/
 theorem nopert_point_symmetric : PointSym nopert.hull := by
-  sorry -- TODO(medium)
+  exact hull_pres_pointsym nopert_verts_pointsym
