@@ -1,9 +1,10 @@
 #include <lean/lean.h>
 #include <stdio.h>
 
-extern uint32_t lean_io_fs_handle_seek(uint32_t a, uint32_t b) {
-  printf("Made it to ffi\n");
-  return a + b;
+extern uint32_t lean_io_fs_handle_seek(lean_object *handle, uint32_t offset) {
+  FILE *fp = (FILE *)(lean_get_external_data(handle));
+  printf("Seeking...\n");
+  return fseek(fp, offset, SEEK_SET);
   /* FILE* fp = lean_to_io_handle(h); */
   /* if (fp == NULL) { */
   /*     return lean_io_result_mk_error(lean_mk_io_user_error("invalid handle"), w); */
