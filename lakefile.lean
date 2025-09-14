@@ -26,20 +26,18 @@ target ffi_seek.o pkg : FilePath := do
   let srcJob ← ffi_seek.c.fetch
   let oFile := pkg.buildDir / "ffi" / "ffi_seek.o"
   let weakArgs := #["-I", (← getLeanIncludeDir).toString]
-  buildO oFile srcJob weakArgs #["-fPIC"] "cc" getLeanTrace
+  buildO oFile srcJob weakArgs #["-fPIC"] "cc"
 
-target libleanffi_seek pkg : Dynlib := do
-  let libName := "leanffi"
+target libleanffi_seek pkg : FilePath := do
   let ffiO ← ffi_seek.o.fetch
-  let weakArgs := #["-L", (← getLeanLibDir).toString]
-  let leanArgs ← getLeanLinkSharedFlags
-  buildSharedLib libName (pkg.sharedLibDir / nameToSharedLib libName)
-    #[ffiO] #[] weakArgs leanArgs "cc" getLeanTrace
+  let name := nameToStaticLib "leanffi"
+  buildStaticLib (pkg.staticLibDir / name) #[ffiO]
 
 -- Parquet
 
 lean_lib Parquet where
-  moreLinkLibs := #[libleanffi_seek]
+  moreLinkObjs := #[libleanffi_seek]
+
 
 lean_exe ParquetTest {
   root := `ParquetTest
