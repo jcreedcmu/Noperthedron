@@ -38,7 +38,6 @@ target libleanffi_seek pkg : FilePath := do
 lean_lib Parquet where
   moreLinkObjs := #[libleanffi_seek]
 
-
 lean_exe ParquetTest {
   root := `ParquetTest
   moreLeancArgs := #[]
