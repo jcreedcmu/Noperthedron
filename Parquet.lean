@@ -10,4 +10,5 @@ def readParquetFile (path : System.FilePath) : IO Parquet := do
   let _contents ← IO.FS.withFile path IO.FS.Mode.read (fun f => do
     f.seek 0 0
   )
+  IO.println "Success"
   pure Parquet.mk
