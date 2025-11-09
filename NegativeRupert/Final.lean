@@ -41,7 +41,6 @@ theorem no_nopert_rot_pose : ¬ ∃ p : Pose, Shadows.IsRupert p.zeroOffset nope
 /--
 There is no pose that makes the Noperthedron have the Rupert property
 -/
-@[blueprint]
 theorem no_nopert_pose : ¬ ∃ p : Pose, Shadows.IsRupert p nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
@@ -68,7 +67,6 @@ lemma rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
 /--
 The Noperthedron (as a subset of ℝ³) is not Rupert
 -/
-@[blueprint]
 theorem nopert_not_rupert_set : ¬ IsRupertSet nopert.hull := fun r =>
   no_nopert_pose (rupert_set_implies_pose_rupert r)
 
@@ -82,6 +80,5 @@ impedance matching, and an extra proof obligation that the interior of
 the Noperthedron is nonempty.
 -/
 
-@[blueprint]
 theorem nopert_not_rupert : ¬ IsRupert nopertVerts := fun r =>
   nopert_not_rupert_set ((rupert_iff_rupert_set (nopert.vertices)).mp r)
