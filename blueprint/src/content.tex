@@ -1,5 +1,6 @@
+\chapter{Preliminaries}
 
-\begin{theorem}
+\begin{theorem}[Rupert Polyhedron iff Rupert Set]
 \label{thm:rupert_iff_rupert_set}
 \lean{rupert_iff_rupert_set}
 \leanok
@@ -10,14 +11,16 @@ The following are equivalent:
 \end{itemize}
 \end{theorem}
 
-\begin{theorem}
+\chapter{Main Theorems}
+
+\begin{theorem}[Noperthedron is not a Rupert Set]
 \label{thm:nopert_not_rupert_set}
 \lean{nopert_not_rupert_set}
 \leanok
 The Noperthedron is not a Rupert set.
 \end{theorem}
 
-\begin{theorem}
+\begin{theorem}[Noperthedron is not Rupert]
 \label{thm:nopert_not_rupert}
 \lean{nopert_not_rupert}
 \leanok
@@ -27,6 +30,6 @@ The Noperthedron is not a Rupert polyhedron.
 \begin{proof}
 \leanok
 \uses{thm:rupert_iff_rupert_set, thm:nopert_not_rupert_set}
-By \ref{thm:rupert_iff_rupert_set} it suffices to show that the convex hull of
-the noperthedron vertices is not a Rupert set. But this is exactly what \ref{thm:nopert_not_rupert_set} shows.
+By Theorem~\ref{thm:rupert_iff_rupert_set} it suffices to show that the convex hull of
+the noperthedron vertices is not a Rupert set. But this is exactly what Theorem~\ref{thm:nopert_not_rupert_set} shows.
 \end{proof}
