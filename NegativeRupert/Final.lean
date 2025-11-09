@@ -7,7 +7,6 @@ import NegativeRupert.Tightening
 import NegativeRupert.ConvertPose
 import NegativeRupert.CommonCenter
 import NegativeRupert.Import
-import BlueprintGen
 
 open scoped Matrix
 
