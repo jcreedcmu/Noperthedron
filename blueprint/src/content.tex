@@ -1,15 +1,32 @@
-% In this file you should put the actual content of the blueprint.
-% It will be used both by the web and the print version.
-% It should *not* include the \begin{document}
-%
-% If you want to split the blueprint content into several files then
-% the current file can be a simple sequence of \input. Otherwise It
-% can start with a \section or \chapter for instance.
 
-\begin{theorem}\lean{nopert_not_rupert}\leanok
-The Noperthedron is not Rupert.
+\begin{theorem}
+\label{thm:rupert_iff_rupert_set}
+\lean{rupert_iff_rupert_set}
+\leanok
+The following are equivalent:
+\begin{itemize}
+\item The convex polyhedron with vertex set $v$ is Rupert.
+\item The convex closure of $v$ is a Rupert set.
+\end{itemize}
+\end{theorem}
+
+\begin{theorem}
+\label{thm:nopert_not_rupert_set}
+\lean{nopert_not_rupert_set}
+\leanok
+The Noperthedron is not a Rupert set.
+\end{theorem}
+
+\begin{theorem}
+\label{thm:nopert_not_rupert}
+\lean{nopert_not_rupert}
+\leanok
+The Noperthedron is not a Rupert polyhedron.
 \end{theorem}
 
 \begin{proof}
-Try all the ways.
+\leanok
+\uses{thm:rupert_iff_rupert_set, thm:nopert_not_rupert_set}
+By \ref{thm:rupert_iff_rupert_set} it suffices to show that the convex hull of
+the noperthedron vertices is not a Rupert set. But this is exactly what \ref{thm:nopert_not_rupert_set} shows.
 \end{proof}
