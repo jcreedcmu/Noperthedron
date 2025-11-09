@@ -16,9 +16,6 @@ require checkdecls from git
 require «blueprint-gen» from git
   "https://github.com/hanwenzhu/blueprint-gen.git" @ "main"
 
-@[default_target]
-lean_lib NegativeRupert
-
 -- FFI library
 
 input_file ffi_seek.c where
@@ -46,3 +43,8 @@ lean_exe ParquetTest {
   moreLeancArgs := #[]
   moreLinkArgs := #[]
 }
+
+-- Main Library
+
+@[default_target]
+lean_lib NegativeRupert
