@@ -15,9 +15,10 @@ theorem proj_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) : PointSym (pro
   refine ⟨?_, ?_⟩
   · exact s_sym b hb
   · simp [proj_xy] ; ext i; fin_cases i;
-    · simp only [Fin.zero_eta, Matrix.cons_val_zero, Pi.neg_apply, neg_inj]
+    · simp only [Fin.isValue, Fin.zero_eta, PiLp.toLp_apply, Matrix.cons_val_zero, Pi.neg_apply,
+      neg_inj]
       exact congrFun he 0
-    · simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Fin.mk_one, Matrix.cons_val_one,
+    · simp only [Fin.isValue, Fin.mk_one, PiLp.toLp_apply, Matrix.cons_val_one,
       Matrix.cons_val_fin_one, Pi.neg_apply, neg_inj]
       exact congrFun he 1
 
