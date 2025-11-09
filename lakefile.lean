@@ -5,13 +5,16 @@ package NegativeRupert where
   version := v!"0.1.0"
 
 require rupert from git
-  "https://github.com/dwrensha/Rupert.lean" @ "lean-v4.22.0"
+  "https://github.com/dwrensha/Rupert.lean" @ "main"
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4" @ "v4.22.0"
+  "https://github.com/leanprover-community/mathlib4" @ "v4.25.0-rc2"
 
 require checkdecls from git
   "https://github.com/PatrickMassot/checkdecls.git"
+
+require «blueprint-gen» from git
+  "https://github.com/hanwenzhu/blueprint-gen.git" @ "main"
 
 @[default_target]
 lean_lib NegativeRupert
