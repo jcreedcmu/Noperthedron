@@ -52,7 +52,7 @@ jobs:
 
       - name: Build project API documentation
         run: ~/.elan/bin/lake -R -Kenv=dev build NegativeRupert:docs
-      
+
       - name: Check for `home_page` folder # this is meant to detect a Jekyll-based website
         id: check_home_page
         run: |
@@ -77,7 +77,14 @@ jobs:
             python3 -m venv env
             source env/bin/activate
             pip install --upgrade pip requests wheel
-            pip install pygraphviz --global-option=build_ext --global-option="-L/usr/lib/graphviz/" --global-option="-R/usr/lib/graphviz/"
+
+            # Tell compiler/linker where to find Graphviz
+            export CFLAGS="-I/usr/include/graphviz"
+            export LDFLAGS="-L/usr/lib/graphviz -R/usr/lib/graphviz"
+
+            # Install pygraphviz normally (modern pip ignores deprecated flags)
+            pip install pygraphviz
+
             pip install leanblueprint
             leanblueprint pdf
             mkdir -p home_page
@@ -122,4 +129,3 @@ jobs:
 
       - name: Make sure the API documentation cache works
         run: mv home_page/docs .lake/build/doc
-     
