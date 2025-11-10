@@ -1,12 +1,10 @@
 # NegativeRupert
 
-The purpose of this repository is to sketch out the Lean proof steps
-that would be required to complete a proof that the Noperthedron does
-not have the Rupert property.
-
-The citation `[SY25]` in the body of the Lean code refers to
+The goal of this project is to formalize the main result of
 ["A convex polyhedron without Rupert's property"](https://arxiv.org/abs/2508.18475)
-by Jakob Steininger & Sergey Yurkevich.
+by Jakob Steininger & Sergey Yurkevich (cited as `[SY25]` herein).
+
+That is, we aim to write a Lean 4 proof that the Noperthedron does not "fit through itself".
 
 ## Blueprint
 
