@@ -20,7 +20,7 @@
 
 title: Negative Rupert
 #email: your-email@example.com
-description: A project to formalize ∞-category theory in Lean.
+description: Not all convex polyhedra have the Rupert Property
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://jcreedcmu.github.io/NegativeRupert" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username:
