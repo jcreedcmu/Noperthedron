@@ -20,7 +20,7 @@ def t100 : Witness 4 100 := .node t4 t25
 open Lean Elab Command
 
 /-
-An elaborator that reads in a file an parses it, creating lean decls in response
+An elaborator that reads in a file and parses it, creating lean decls in response
 -/
 elab "#mkfoo" : command => do
   let ty  : Expr := mkConst ``Nat
