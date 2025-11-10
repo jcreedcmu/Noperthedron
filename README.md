@@ -6,6 +6,8 @@ by Jakob Steininger & Sergey Yurkevich (cited as `[SY25]` herein).
 
 That is, we aim to write a Lean 4 proof that the Noperthedron does not "fit through itself".
 
+<img src="./home_page/assets/noperthedron.png" width="400" alt="noperthedron">
+
 ## Blueprint
 
 Install [leanblueprint](https://github.com/PatrickMassot/leanblueprint) with something like
