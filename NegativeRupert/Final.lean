@@ -6,7 +6,6 @@ import NegativeRupert.TightViewPose
 import NegativeRupert.Tightening
 import NegativeRupert.ConvertPose
 import NegativeRupert.CommonCenter
-import NegativeRupert.Import
 
 open scoped Matrix
 
