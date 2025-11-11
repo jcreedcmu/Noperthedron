@@ -5,3 +5,11 @@ blueprint/src/web.paux
 blueprint/src/web.bbl
 blueprint/lean_decls
 texput.log
+
+# These are created if you manually run tex in blueprint/src
+blueprint/src/print.aux
+blueprint/src/print.bbl
+blueprint/src/print.blg
+blueprint/src/print.log
+blueprint/src/print.out
+blueprint/src/print.pdf

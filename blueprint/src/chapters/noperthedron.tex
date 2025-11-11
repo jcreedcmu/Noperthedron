@@ -1,0 +1,124 @@
+\chapter{The Noperthedron}
+
+We define three points $C_1,C_2,C_3\in \mathbb{Q}^3$.
+\[
+    C_1\coloneqq
+        \frac{1}{259375205}
+        \begin{pmatrix}
+        {152024884} \\ 0 \\ {210152163}
+        \end{pmatrix},
+\qquad
+    C_2\coloneqq \frac{1}{10^{10}}
+        \begin{pmatrix}
+        6632738028 \\ 6106948881 \\ 3980949609
+        \end{pmatrix},
+\]
+\[
+    C_3\coloneqq
+        \frac{1}{10^{10}}
+        \begin{pmatrix}
+        8193990033 \\ 5298215096 \\ 1230614493
+        \end{pmatrix}.
+\]
+
+\begin{lemma}
+\label{c1_c2_c3_norms}
+\lean{Nopert.c1_norm_one, Nopert.c2_norm_bound, Nopert.c3_norm_bound, Nopert.C15}
+\leanok
+$\| C_1 \| = 1$,
+${98 \over 100} < \| C_2 \| < {99 \over 100}$, and
+${98 \over 100} < \| C_3 \| < {99 \over 100}$.
+\end{lemma}
+\begin{proof}
+\leanok
+Trivial arithmetic.
+\end{proof}
+
+Rotations about the $x, y, z$ axes $R_x,R_y,R_z:$  $\mathbb{R}\to \mathbb{R}^{3\times 3}$
+are defined in the usual way:
+    \[
+            R_x(\alpha)\coloneqq
+        \begin{pmatrix}
+            1 & 0 & 0\\
+            0 & \cos\alpha & -\sin\alpha\\
+            0 & \sin\alpha & \cos\alpha
+        \end{pmatrix},
+        \hspace{1cm}
+        R_y(\alpha)\coloneqq
+        \begin{pmatrix}
+            \cos\alpha & 0 & -\sin\alpha\\
+            0 & 1 & 0\\
+            \sin\alpha & 0 & \cos\alpha
+        \end{pmatrix},
+    \]
+    \[
+        R_z(\alpha)\coloneqq
+        \begin{pmatrix}
+            \cos\alpha & -\sin\alpha &0\\
+            \sin\alpha & \cos\alpha &0\\
+            0 & 0 & 1
+        \end{pmatrix}.
+    \]
+
+Where Steininger and Yurkevich define a 30-element set $C_30$
+\[
+    \mathcal{C}_{30} \coloneqq \left\{(-1)^\ell R_z\left(\frac{2\pi k}{15}\right) \colon k=0,\dots,14; \ell=0,1\right\}.
+\]
+of rotations, we instead define
+\begin{definition}
+  \label{def:C15}
+  \leanok
+  \lean{Nopert.C15}
+\[
+    \mathcal{C}_{15} \coloneqq \left\{ R_z\left(\frac{2\pi k}{15}\right) \colon k=0,\dots,14 \right\}.
+\]
+\end{definition}
+without point-symmetricness `baked in' as it is in $C_{30}$. It's more convenient for the formalization to apply $C_{15}$ to the points $C_1, C_2, C_3$, and then point-symmetrize that set afterwards.
+
+\begin{definition}
+\label{def:pointsymmetric}
+\lean{PointSym}
+\leanok
+A set $S \subseteq \R^3$ is {\em point-symmetric} if $x \in S$ implies $-x \in S$.
+\end{definition}
+
+\begin{definition}
+\label{def:pointsymmetrize}
+\lean{pointsymmetrize}
+\leanok
+The {\em pointsymmetrization} of a collection of vertices $v_1, \ldots, v_n \in \R^3$
+is $v_1, \ldots, v_n, -v_1, \ldots, -v_n$.
+\end{definition}
+
+\begin{definition}
+\label{def:nopert_verts}
+\lean{halfNopertVertList, nopertVertList}
+\uses{def:pointsymmetrize,def:C15}
+\leanok
+The set of vertices of the Noperthedron is the pointsymmetrization of
+\[C_{15} \cdot C_1 \cup C_{15} \cdot C_2 \cup C_{15} \cdot C_3\]
+\end{definition}
+
+\begin{lemma}
+\label{lemma:pointsymmetrization_is_pointsym}
+\lean{pointsymmetrization_is_pointsym}
+\leanok
+The pointsymmetrization of any set is point-symmetric.
+\end{lemma}
+\begin{proof}
+\leanok
+Evident from definitions.
+\end{proof}
+
+\begin{lemma}
+\label{lemma:nopert_point_symmetric}
+\lean{nopert_point_symmetric}
+\leanok
+\uses{def:pointsymmetric, def:nopert_verts}
+The noperthedron is point-symmetric.
+\end{lemma}
+\begin{proof}
+\leanok
+\uses{lemma:pointsymmetrization_is_pointsym}
+Follows from Lemma~\ref{lemma:pointsymmetrization_is_pointsym}.
+\end{proof}
