@@ -1,44 +1,9 @@
 \chapter{Introduction}
-We follow for the most part the structure of
-\cite{polyhedron.without.rupert}.
+We follow for the most part the structure of \cite{polyhedron.without.rupert}.
 
 \input{chapters/noperthedron.tex}
-
-\chapter{Preliminaries}
-
-\begin{theorem}[Rupert Polyhedron iff Rupert Set]
-\label{thm:rupert_iff_rupert_set}
-\lean{rupert_iff_rupert_set}
-\leanok
-The following are equivalent:
-\begin{itemize}
-\item The convex polyhedron with vertex set $v$ is Rupert.
-\item The convex closure of $v$ is a Rupert set.
-\end{itemize}
-\end{theorem}
-
-\chapter{Main Theorems}
-
-\begin{theorem}[Noperthedron is not a Rupert Set]
-\label{thm:nopert_not_rupert_set}
-\lean{nopert_not_rupert_set}
-\leanok
-The Noperthedron is not a Rupert set.
-\end{theorem}
-
-\begin{theorem}[Noperthedron is not Rupert]
-\label{thm:nopert_not_rupert}
-\lean{nopert_not_rupert}
-\leanok
-The Noperthedron is not a Rupert polyhedron.
-\end{theorem}
-
-\begin{proof}
-\leanok
-\uses{thm:rupert_iff_rupert_set, thm:nopert_not_rupert_set}
-By Theorem~\ref{thm:rupert_iff_rupert_set} it suffices to show that the convex hull of
-the noperthedron vertices is not a Rupert set. But this is exactly what Theorem~\ref{thm:nopert_not_rupert_set} shows.
-\end{proof}
+\input{chapters/prelims.tex}
+\input{chapters/main.tex}
 
 \bibliographystyle{alpha}
 \bibliography{references}

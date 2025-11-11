@@ -1,0 +1,89 @@
+\chapter{Main Theorems}
+
+\begin{theorem}
+\label{thm:no_nopert_tight_view_pose}
+\lean{no_nopert_tight_view_pose}
+\uses{def:noperthedron}
+\leanok
+There does not in fact exist a noperthedron Rupert solution with
+\begin{align*}
+\theta_1,\theta_2&\in[0,2\pi/15] \subset [0,0.42], \\
+\varphi_1&\in [0,\pi] \subset [0,3.15],\\
+\varphi_2&\in [0,\pi/2] \subset [0,1.58],\\
+\alpha &\in [-\pi/2,\pi/2] \subset [-1.58,1.58].
+\end{align*}
+\end{theorem}
+
+\begin{theorem}
+\label{thm:no_nopert_view_pose}
+\lean{no_nopert_view_pose}
+\leanok
+There is no view pose that makes the noperthedron have the Rupert property.
+\end{theorem}
+\begin{proof}
+\uses{thm:no_nopert_tight_view_pose, cor:rupert_tightening}
+\leanok
+Theorem~\ref{thm:no_nopert_tight_view_pose} says there is no tight view pose
+that makes the noperthedron Rupert. Corollary~\ref{cor:rupert_tightening}
+says that this suffices for the general case.
+\end{proof}
+
+
+\begin{theorem}
+\label{thm:no_nopert_rot_pose}
+\lean{no_nopert_rot_pose}
+\leanok
+There is no purely rotational pose that makes the noperthedron have the Rupert property.
+\end{theorem}
+\begin{proof}
+\uses{thm:view_pose_of_pose, thm:no_nopert_view_pose}
+\leanok
+Suppose there were a purely rotational pose. Then convert that to an equivalent view pose
+with Theorem~\ref{thm:view_pose_of_pose} and
+appeal to Theorem~\ref{thm:no_nopert_view_pose}.
+\end{proof}
+
+
+\begin{theorem}
+\label{thm:no_nopert_pose}
+\lean{no_nopert_pose}
+\leanok
+There is no pose that makes the noperthedron have the Rupert property.
+\end{theorem}
+\begin{proof}
+\uses{lemma:nopert_point_symmetric, thm:no_nopert_rot_pose, thm:rupert_implies_rot_rupert}
+\leanok
+By Theorem~\ref{thm:rupert_implies_rot_rupert}, we need only show that the noperthedron
+is pointsymmetric to see that if it is Rupert, then it must be Rupert via a purely rotational pose.
+But Lemma~\ref{lemma:nopert_point_symmetric} shows exactly this. And yet we know via
+Theorem~\ref{thm:no_nopert_rot_pose} that the noperthedron is not rotationally Rupert, so we have
+a contradiction, hence the noperthedron has no pose that makes it Rupert.
+\end{proof}
+
+
+\begin{theorem}
+\uses{def:noperthedron}
+\label{thm:nopert_not_rupert_set}
+\lean{nopert_not_rupert_set}
+\leanok
+The noperthedron is not a Rupert set.
+\end{theorem}
+\begin{proof}
+\uses{thm:no_nopert_pose}
+\leanok
+By Theorem~\ref{thm:no_nopert_pose}, there is no pose that makes the noperthedron a Rupert set.
+\end{proof}
+
+\begin{theorem}
+\label{thm:nopert_not_rupert}
+\lean{nopert_not_rupert}
+\leanok
+The noperthedron is not a Rupert polyhedron.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:rupert_iff_rupert_set, thm:nopert_not_rupert_set}
+By Theorem~\ref{thm:rupert_iff_rupert_set} it suffices to show that the convex hull of
+the noperthedron vertices is not a Rupert set. But this is exactly what Theorem~\ref{thm:nopert_not_rupert_set} shows.
+\end{proof}

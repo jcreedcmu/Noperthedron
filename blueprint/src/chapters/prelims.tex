@@ -1,0 +1,47 @@
+\chapter{Preliminaries}
+
+TODO: This whole chapter needs organization, it's just a grab bag of miscellaneous results for now.
+
+\section{Rupert Sets}
+
+\begin{theorem}[Rupert Polyhedron iff Rupert Set]
+\label{thm:rupert_iff_rupert_set}
+\lean{rupert_iff_rupert_set}
+\leanok
+The following are equivalent:
+\begin{itemize}
+\item The convex polyhedron with vertex set $v$ is Rupert.
+\item The convex closure of $v$ is a Rupert set.
+\end{itemize}
+\end{theorem}
+\begin{proof}
+\leanok
+TODO: import this from the other repo
+\end{proof}
+
+
+\section{Poses}
+
+TODO
+
+\begin{theorem}
+\label{thm:view_pose_of_pose}
+\lean{view_pose_of_pose, converted_pose_rupert_iff}
+\leanok
+Given a pose with zero offset, there exists a view pose that is equivalent to it.
+\end{theorem}
+
+\section{Pointsymmetry and Rupertness}
+
+\begin{theorem}
+\label{thm:rupert_implies_rot_rupert}
+\lean{rupert_implies_rot_rupert}
+\leanok
+If a set is point symmetric and convex, then it being Rupert implies
+it being purely rotationally Rupert.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\todo{informalize proof}
+\end{proof}

@@ -14,8 +14,6 @@ The crux is that if a polyhedron (or indeed any convex set) S is
 pointsymmetric (i.e. invariant under x ↦ -x) then the question of
 whether S is Rupert can, without loss, be analyzed by only considering
 rotations, and ignoring translations.
-
-This is meant to replace CommonCenter.lean once I finish refactoring...
 -/
 
 open scoped Matrix

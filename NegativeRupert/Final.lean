@@ -49,9 +49,9 @@ theorem no_nopert_pose : ¬ ∃ p : Pose, Shadows.IsRupert p nopert.hull := by
   exact no_nopert_rot_pose ⟨p, r'⟩
 
 /--
-If a set is Rupert according to the standard definition, then we can package
-up the pose parameters. This should be an iff, but I haven't bothered proving
-the converse.
+If a set is Rupert according to the standard definition, then we can
+package up the pose parameters. The converse also should be true, but
+there hasn't been any need for it yet.
 -/
 lemma rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
     ∃ p : Pose, Shadows.IsRupert p S := by

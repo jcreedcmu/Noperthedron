@@ -1,5 +1,7 @@
 \chapter{The Noperthedron}
 
+\section{Definition of the Noperthedron}
+
 We define three points $C_1,C_2,C_3\in \mathbb{Q}^3$.
 \[
     C_1\coloneqq
@@ -90,12 +92,15 @@ The {\em pointsymmetrization} of a collection of vertices $v_1, \ldots, v_n \in 
 is $v_1, \ldots, v_n, -v_1, \ldots, -v_n$.
 \end{definition}
 
+We write $\mathcal{C}_{15} \cdot P = \{c P \,\text{ for } \, c \in \mathcal{C}_{15}\}$ for the orbit of $P$ under the action of $\mathcal{C}_{15}$.
+
 \begin{definition}
-\label{def:nopert_verts}
-\lean{halfNopertVertList, nopertVertList}
+\label{def:noperthedron}
+\lean{halfNopertVertList, nopertVertList, nopert}
 \uses{def:pointsymmetrize,def:C15}
 \leanok
-The set of vertices of the Noperthedron is the pointsymmetrization of
+The Noperthedron is polyhedron given by the vertex set that is the
+pointsymmetrization of
 \[\mathcal{C}_{15} \cdot C_1 \cup \mathcal{C}_{15} \cdot C_2 \cup \mathcal{C}_{15} \cdot C_3\]
 \end{definition}
 
@@ -114,11 +119,28 @@ Evident from definitions.
 \label{lemma:nopert_point_symmetric}
 \lean{nopert_point_symmetric}
 \leanok
-\uses{def:pointsymmetric, def:nopert_verts}
+\uses{def:pointsymmetric, def:noperthedron}
 The noperthedron is point-symmetric.
 \end{lemma}
 \begin{proof}
 \leanok
 \uses{lemma:pointsymmetrization_is_pointsym}
 Follows from Lemma~\ref{lemma:pointsymmetrization_is_pointsym}.
+
+\section{Refined Rupert's property for the Noperthedron}
+
+\begin{corr}
+\label{cor:rupert_tightening}
+\lean{rupert_tightening}
+\leanok
+If the noperthedron is Rupert, then there exists a solution with
+\begin{align*}
+\theta_1,\theta_2&\in[0,2\pi/15] \subset [0,0.42], \\
+\varphi_1&\in [0,\pi] \subset [0,3.15],\\
+\varphi_2&\in [0,\pi/2] \subset [0,1.58],\\
+\alpha &\in [-\pi/2,\pi/2] \subset [-1.58,1.58].
+\end{align*}
+\end{corr}
+
+
 \end{proof}
