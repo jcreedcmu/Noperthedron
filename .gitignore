@@ -2,5 +2,6 @@
 blueprint/print
 blueprint/web
 blueprint/src/web.paux
+blueprint/src/web.bbl
 blueprint/lean_decls
 texput.log
