@@ -6,13 +6,13 @@ open scoped Matrix
 open scoped Real
 
 structure ViewPose : Type where
-  θ1 : Set.Ico 0 (2 * π)
-  θ2 : Set.Ico 0 (2 * π)
-  φ1 : Set.Icc 0 π
-  φ2 : Set.Icc 0 π
+  θ₁ : Set.Ico 0 (2 * π)
+  θ₂ : Set.Ico 0 (2 * π)
+  φ₁ : Set.Icc 0 π
+  φ₂ : Set.Icc 0 π
   α : Set.Ico (-π) π
 
 noncomputable
 instance : Affines ViewPose where
-  inner vp := rotRM vp.θ1 vp.φ1 vp.α
-  outer vp := rotRM vp.θ2 vp.φ2 0
+  inner vp := rotRM vp.θ₁ vp.φ₁ vp.α
+  outer vp := rotRM vp.θ₂ vp.φ₂ 0
