@@ -3,7 +3,7 @@ import Rupert.Equivalences.Util
 
 open scoped Matrix
 
-def PointSym {n : ℕ} (A : Set (Fin n → ℝ)) : Prop :=
+def PointSym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
  ∀ x ∈ A, -x ∈ A
 
 /--
@@ -15,17 +15,18 @@ theorem proj_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) : PointSym (pro
   refine ⟨?_, ?_⟩
   · exact s_sym b hb
   · simp [proj_xy] ; ext i; fin_cases i;
-    · simp only [Fin.isValue, Fin.zero_eta, PiLp.toLp_apply, Matrix.cons_val_zero, Pi.neg_apply,
+    · simp only [Fin.isValue, Fin.zero_eta, PiLp.toLp_apply, Matrix.cons_val_zero, PiLp.neg_apply,
       neg_inj]
       exact congrFun he 0
     · simp only [Fin.isValue, Fin.mk_one, PiLp.toLp_apply, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one, Pi.neg_apply, neg_inj]
+      Matrix.cons_val_fin_one, PiLp.neg_apply, neg_inj]
       exact congrFun he 1
 
 /--
 Translation as a homeomorphism ℝⁿ → ℝⁿ
 -/
-def translationHomeo {n : ℕ} (v : Fin n → ℝ) : Homeomorph (Fin n → ℝ) (Fin n → ℝ) :=
+noncomputable def translationHomeo {n : ℕ} (v : EuclideanSpace ℝ (Fin n)) :
+    Homeomorph (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin n)) :=
 { toFun := fun x ↦ x + v,
   invFun := fun x ↦ x - v,
   left_inv := by intro; simp,
@@ -36,7 +37,8 @@ def translationHomeo {n : ℕ} (v : Fin n → ℝ) : Homeomorph (Fin n → ℝ) 
 /--
 Translation AffineEquiv ℝⁿ → ℝⁿ
 -/
-def translationAffineEquiv {n : ℕ} (v : Fin n → ℝ) : (Fin n → ℝ) ≃ᵃ[ℝ] (Fin n → ℝ) :=
+noncomputable def translationAffineEquiv {n : ℕ} (v : EuclideanSpace ℝ (Fin n)) :
+    EuclideanSpace ℝ (Fin n) ≃ᵃ[ℝ] EuclideanSpace ℝ (Fin n) :=
 { toFun x := x + v,
   invFun x := x - v,
   linear := by rfl,
@@ -48,7 +50,7 @@ def translationAffineEquiv {n : ℕ} (v : Fin n → ℝ) : (Fin n → ℝ) ≃�
 /--
 Pointsymmetric flip as a homeomorphism
 -/
-def pointSymHomeo {n : ℕ} : Homeomorph (Fin n → ℝ) (Fin n → ℝ) :=
+def pointSymHomeo {n : ℕ} : Homeomorph (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin n)) :=
 { toFun := fun x ↦ -x,
   invFun := fun x ↦ -x,
   left_inv := by intro; simp,
@@ -60,7 +62,7 @@ def pointSymHomeo {n : ℕ} : Homeomorph (Fin n → ℝ) (Fin n → ℝ) :=
 Pointsymmetric flip as a linear map
 -/
 noncomputable
-def pointSymLinEquiv {n : ℕ} : (Fin n → ℝ) ≃ₗ[ℝ] (Fin n → ℝ) :=
+def pointSymLinEquiv {n : ℕ} : EuclideanSpace ℝ (Fin n) ≃ₗ[ℝ] EuclideanSpace ℝ (Fin n) :=
 { toFun := fun x ↦ -x,
   invFun := fun x ↦ -x,
   left_inv := by intro; simp,
@@ -72,7 +74,7 @@ def pointSymLinEquiv {n : ℕ} : (Fin n → ℝ) ≃ₗ[ℝ] (Fin n → ℝ) :=
 /--
 Topological closure preserves the property of being pointsymmetric.
 -/
-theorem closure_pres_point_sym {n : ℕ} {S : Set (Fin n → ℝ)}
+theorem closure_pres_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
     (s_sym : PointSym S) : PointSym (closure S) := by
   intro a ha
   have h : (fun x => -x) '' closure S = closure ((fun x => -x) '' S) :=
@@ -87,7 +89,7 @@ theorem closure_pres_point_sym {n : ℕ} {S : Set (Fin n → ℝ)}
 /--
 Topological interior preserves the property of being pointsymmetric.
 -/
-theorem interior_pres_point_sym {n : ℕ} {S : Set (Fin n → ℝ)}
+theorem interior_pres_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
     (s_sym : PointSym S) : PointSym (interior S) := by
   intro a ha
   have h : (fun x => -x) '' interior S = interior ((fun x => -x) '' S) :=

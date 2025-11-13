@@ -17,7 +17,8 @@ def IsRot (p : Pose) : Prop :=
 def zeroOffset (p : Pose) : Pose :=
   { p with innerOffset := 0 }
 
-def innerOffsetPart (p : Pose) : ℝ³ → ℝ³ := (translationAffineEquiv (inject_xy p.innerOffset))
+noncomputable def innerOffsetPart (p : Pose) : ℝ³ → ℝ³ :=
+  translationAffineEquiv (inject_xy p.innerOffset)
 def innerRotPart (p : Pose) : ℝ³ → ℝ³ := fun v => p.innerRot *ᵥ v
 
 end Pose
@@ -53,7 +54,7 @@ theorem zero_offset_elim (p : Pose) :
   change p.zeroOffset.innerOffsetPart (p.innerRot *ᵥ v) = _
   rw [zero_offset_id]
 
-def shift (p : Pose) : ℝ² ≃ₜ ℝ² := translationHomeo p.innerOffset
+noncomputable def shift (p : Pose) : ℝ² ≃ₜ ℝ² := translationHomeo p.innerOffset
 
 /--
 We can massage Shadows.inner p S into the form of the standard Rupert definition
