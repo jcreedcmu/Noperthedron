@@ -1,0 +1,48 @@
+\chapter{Rational Versions}
+
+\begin{theorem}[Rational Global Theorem] \label{thm:global_rational}
+    Let $\PPP$ be a pointsymmetric convex polyhedron with radius $\rho =1$ and $\widetilde{\PPP}$ a $\kappa$-rational approximation. Let $\widetilde{S} \in \widetilde{\PPP}$. Further let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \Q \cap [-4,4]$.
+    Let $w\in\Q^2$ be a unit vector. Denote $\Mib \coloneqq M_{\Q}(\thetab_1, \phib_1)$, $ \Miib \coloneqq M_{\Q}(\thetab_2, \phib_2)$ as well as $\Mib^{\theta} \coloneqq M_{\Q}^\theta(\thetab_1, \phib_1)$, $\Mib^{\phi} \coloneqq M_{\Q}^\phi(\thetab_1, \phib_1)$ and analogously for $\Miib^{\theta}, \Miib^{\phi}$. Finally set
+    \begin{align*}
+        G^{\Q}& \coloneqq \langle R_{\Q}(\alphab) \Mib \widetilde{S},w \rangle - \epsilon\cdot\big(|\langle R_{\Q}'(\alphab)  \Mib \widetilde{S},w \rangle|+|\langle R_{\Q}(\alphab) \Mib^\theta \widetilde{S},w \rangle|+|\langle R_{\Q}(\alphab) \Mib^\phi \widetilde{S},w \rangle|\big) \\
+        & \hspace{11cm}- 9\epsilon^2/2 - 4\kappa ( 1 + 3 \epsilon),\\
+        H^{\Q}_P & \coloneqq \langle \Miib P,w \rangle + \epsilon\cdot\big(|\langle \Miib^\theta P,w \rangle|+|\langle  \Miib^\varphi P,w \rangle|\big) + 2\epsilon^2 + 3\kappa( 1+2\epsilon).
+    \end{align*}
+    If $G^{\Q}>\max_{P\in \widetilde{\PPP}} H^{\Q}_P$ then there does not exist a solution to Rupert's condition to $\PPP$ with
+    \[
+    (\theta_1,\varphi_1,\theta_2,\varphi_2,\alpha) \in [\thetab_1\pm\epsilon,\phib_1\pm\epsilon,\thetab_2\pm\epsilon,\phib_2\pm\epsilon,\alphab\pm\epsilon].
+    \]
+\end{theorem}
+
+\begin{proof}
+\uses{thm:global}
+\end{proof}
+
+\begin{theorem}[Rational Local Theorem] \label{thm:local_rational}
+    Let $\PPP$ be a polyhedron with radius $\rho=1$ and $\widetilde{P}_i$ be a $\kappa$-rational approximation of $P_i \in \PPP$. Set $\widetilde{\PPP} = \{\widetilde{P}_i \text{ for } P_i \in \PPP \}$. Let $P_1, P_2, P_3, Q_1, Q_2, Q_3 \in \PPP$ be not necessarily distinct and assume that $P_1, P_2, P_3$ and $Q_1, Q_2, Q_3$ are congruent.
+    Let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \Q \cap [-4,4]$.
+    Set $\Xib \coloneqq X_{\Q}(\thetab_1,\phib_1), \Xiib \coloneqq X_{\Q}(\thetab_2,\phib_2)$ as well as $\Mib \coloneqq M_{\Q}(\thetab_1,\phib_1), \Miib \coloneqq M_{\Q}(\thetab_2,\phib_2)$.
+    Assume that there exist $\sigma_P, \sigma_Q \in \{0,1\}$ such that
+    \[
+        (-1)^{\sigma_P} \langle \Xib,\widetilde{P}_i\rangle>\sqrt{2}\varepsilon + 3\kappa \quad \text{and} \quad
+        (-1)^{\sigma_Q} \langle \Xiib , \widetilde{Q}_i\rangle>\sqrt{2}\varepsilon + 3\kappa, \tag{A$^{\Q}_\epsilon$}
+    \]
+    for all $i=1,2,3$.
+    Moreover, assume that $\widetilde{P}_1,\widetilde{P}_2,\widetilde{P}_3$ are $\epsilon$-$\kappa$-spanning for $(\thetab_1,\phib_1)$ and that $\widetilde{Q}_1,\widetilde{Q}_2,\widetilde{Q}_3$ are $\epsilon$-$\kappa$-spanning for $(\thetab_2,\phib_2)$. Let $\sqrt[+]{x}$ and $\sqrt[-]{x}$ be upper- and lower-$\Q$-square-root functions, then set $\|Z\|_{+} \coloneqq \sqrt[+]{\|Z\|^2}$ and $\|Z\|_{-} \coloneqq \sqrt[-]{\|Z\|^2}$ for $Z \in \Q^n$.
+    Finally, assume that for all $i = 1,2,3$ and any $\widetilde{Q}_j \in \widetilde{\PPP} \setminus \widetilde{Q}_i$ it holds that
+    \[
+        \frac{\langle \Miib \widetilde{Q}_i,\Miib (\widetilde{Q}_i-\widetilde{Q}_j)\rangle - 10\kappa - 2 \epsilon ( \|\widetilde{Q}_i-\widetilde{Q}_j\|_{+} + 2 \kappa ) \cdot  (\sqrt{2}+\varepsilon)}{ \big(\|\Miib \widetilde{Q}_i\|_{+}+\sqrt{2} \varepsilon + 3\kappa \big) \cdot \big(\|\Miib(\widetilde{Q}_i-\widetilde{Q}_j)\|_{+}+2 \sqrt{2} \varepsilon + 6\kappa\big)} > \frac{\sqrt{5} \epsilon + \delta}{r}, \tag{B$^{\Q}_\epsilon$}
+    \]
+    for some $r >0$ such that $\min_{i=1,2,3}\| \Miib \widetilde{Q}_i \|_{-} > r + \sqrt{2} \epsilon + 3\kappa$ and for some $\delta \in \R$ with
+    \[
+        \delta = \max_{i=1,2,3}\left\|R_{\Q}(\alphab) \Mib \widetilde{P}_i-\Miib \widetilde{Q}_i\right\|_{+}/2 + 3\kappa.
+    \]
+    Then there exists no solution to Rupert's problem $R(\alpha) M(\theta_1,\phi_1)\PPP \subset  M(\theta_2,\phi_2)\PPP^\circ$ with
+    \[
+        (\theta_1, \phi_1, \theta_2, \phi_2, \alpha) \in [\thetab_1\pm\epsilon,\phib_1\pm\epsilon,\thetab_2\pm\epsilon,\phib_2\pm\epsilon,\alphab\pm\epsilon] \subseteq \R^5.
+    \]
+\end{theorem}
+
+\begin{proof}
+\uses{thm:local}
+\end{proof}

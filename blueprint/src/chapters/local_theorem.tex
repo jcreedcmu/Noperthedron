@@ -1,0 +1,26 @@
+\chapter{The Local Theorem}
+
+\begin{theorem}[Local Theorem] \label{thm:local}
+    Let $\PPP$ be a polyhedron with radius $\rho=1$ and $P_1, P_2, P_3, Q_1, Q_2, Q_3 \in \PPP$ be not necessarily distinct. Assume that $P_1, P_2, P_3$ and $Q_1, Q_2, Q_3$ are congruent.
+
+    Let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \R$, then set $\Xib \coloneqq X(\thetab_1,\phib_1), \Xiib \coloneqq X(\thetab_2,\phib_2)$ as well as $\Mib \coloneqq M(\thetab_1,\phib_1), \Miib \coloneqq M(\thetab_2,\phib_2)$.
+    Assume that there exist $\sigma_P, \sigma_Q \in \{0,1\}$ such that
+    \[
+        (-1)^{\sigma_P} \langle \Xib,P_i\rangle>\sqrt{2}\varepsilon \quad \text{and} \quad
+        (-1)^{\sigma_Q} \langle \Xiib , Q_i\rangle>\sqrt{2}\varepsilon, \tag{A$_\epsilon$}
+    \]
+    for all $i=1,2,3$.
+    Moreover, assume that $P_1,P_2,P_3$ are $\epsilon$-spanning for $(\thetab_1,\phib_1)$ and that $Q_1,Q_2,Q_3$ are $\epsilon$-spanning for $(\thetab_2,\phib_2)$.
+    Finally, assume that for all $i = 1,2,3$ and any $Q_j \in \PPP \setminus Q_i$ it holds~that
+    \[
+        \frac{\langle \Miib Q_i,\Miib (Q_i-Q_j)\rangle - 2 \epsilon \|Q_i-Q_j\| \cdot  (\sqrt{2}+\varepsilon)}{ \big(\|\Miib Q_i\|+\sqrt{2} \varepsilon \big) \cdot \big(\|\Miib(Q_i-Q_j)\|+2 \sqrt{2} \varepsilon\big)} > \frac{\sqrt{5} \epsilon + \delta}{r}, \tag{B$_\epsilon$}
+    \]
+    for some $r >0$ such that $\min_{i=1,2,3}\| \Miib Q_i \| > r + \sqrt{2} \epsilon$ and for some $\delta \in \R$ with
+    \[
+        \delta \geq \max_{i=1,2,3}\left\|R(\alphab) \Mib P_i - \Miib Q_i\right\|/2.
+    \]
+    Then there exists no solution to Rupert's problem $R(\alpha) M(\theta_1,\phi_1)\PPP \subset  M(\theta_2,\phi_2)\PPP^\circ$ with
+    \[
+        (\theta_1, \phi_1, \theta_2, \phi_2, \alpha) \in [\thetab_1\pm\epsilon,\phib_1\pm\epsilon,\thetab_2\pm\epsilon,\phib_2\pm\epsilon,\alphab\pm\epsilon] \coloneqq U \subseteq \R^5.
+    \]
+\end{theorem}

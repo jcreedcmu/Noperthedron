@@ -1,6 +1,19 @@
 \chapter{Main Theorems}
 
 \begin{theorem}
+\label{thm:big_computational_step}
+There exists a solution tree that spans all of
+\begin{align*}
+\theta_1,\theta_2&\in[0,2\pi/15] \subset [0,0.42], \\
+\varphi_1&\in [0,\pi] \subset [0,3.15],\\
+\varphi_2&\in [0,\pi/2] \subset [0,1.58],\\
+\alpha &\in [-\pi/2,\pi/2] \subset [-1.58,1.58].
+\end{align*}
+such that every point is covered by a leaf equipped with enough
+evidence to allow the rational global theorem or rational local theorem to apply.
+\end{theorem}
+
+\begin{theorem}
 \label{thm:no_nopert_tight_view_pose}
 \lean{no_nopert_tight_view_pose}
 \uses{def:noperthedron}
@@ -13,6 +26,13 @@ There does not in fact exist a noperthedron Rupert solution with
 \alpha &\in [-\pi/2,\pi/2] \subset [-1.58,1.58].
 \end{align*}
 \end{theorem}
+
+\begin{proof}
+\uses{thm:big_computational_step, thm:global_rational, thm:local_rational}
+By \ref{thm:big_computational_step}, every point in the above 5-dimensional
+interval is covered by the rational global theorem (Theorem~\ref{thm:global_rational})
+or the rational local theorem (Theorem~\ref{thm:local_rational}).
+\end{proof}
 
 \begin{theorem}
 \label{thm:no_nopert_view_pose}

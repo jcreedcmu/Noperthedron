@@ -1,0 +1,11 @@
+\chapter{The Global Theorem}
+
+\begin{theorem}[Global Theorem] \label{thm:global}
+    Let $\PPP$ be a pointsymmetric convex polyhedron with radius $\rho =1$ and let $S \in \PPP$. Further let $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \R$ and let $w\in\R^2$ be a unit vector. Denote $\Mib \coloneqq M(\thetab_1, \phib_1)$, $ \Miib \coloneqq M(\thetab_2, \phib_2)$ as well as $\Mib^{\theta} \coloneqq M^\theta(\thetab_1, \phib_1)$, $\Mib^{\phi} \coloneqq M^\phi(\thetab_1, \phib_1)$ and analogously for $\Miib^{\theta}, \Miib^{\phi}$. Finally set
+    \begin{align*}
+        G& \coloneqq \langle R(\alphab) \Mib S,w \rangle - \epsilon\cdot\big(|\langle R'(\alphab)  \Mib S,w \rangle|+|\langle R(\alphab) \Mib^\theta S,w \rangle|+|\langle R(\alphab) \Mib^\phi S,w \rangle|\big)- 9\epsilon^2/2,\\
+        H_P & \coloneqq \langle \Miib P,w \rangle + \epsilon\cdot\big(|\langle \Miib^\theta P,w \rangle|+|\langle  \Miib^\varphi P,w \rangle|\big) + 2\epsilon^2, \quad \text{ for } P \in \PPP.
+    \end{align*}
+    If $G>\max_{P\in \PPP} H_P$ then there does not exist a solution to Rupert's condition with
+    $$(\theta_1,\varphi_1,\theta_2,\varphi_2,\alpha) \in U \coloneqq [\thetab_1\pm\epsilon,\phib_1\pm\epsilon,\thetab_2\pm\epsilon,\phib_2\pm\epsilon,\alphab\pm\epsilon] \subseteq \R^5.$$
+\end{theorem}
