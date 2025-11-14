@@ -15,12 +15,12 @@ theorem proj_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) : PointSym (pro
   refine ⟨?_, ?_⟩
   · exact s_sym b hb
   · simp [proj_xy] ; ext i; fin_cases i;
-    · simp only [Fin.isValue, Fin.zero_eta, PiLp.toLp_apply, Matrix.cons_val_zero, PiLp.neg_apply,
-      neg_inj]
-      exact congrFun he 0
-    · simp only [Fin.isValue, Fin.mk_one, PiLp.toLp_apply, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one, PiLp.neg_apply, neg_inj]
-      exact congrFun he 1
+    · simp only [Fin.isValue, Fin.zero_eta, Matrix.cons_val_zero, PiLp.neg_apply,
+        neg_inj, ←he]
+      rfl
+    · simp only [Fin.isValue, Fin.mk_one, Matrix.cons_val_one,
+        Matrix.cons_val_fin_one, PiLp.neg_apply, neg_inj, ←he]
+      rfl
 
 /--
 Translation as a homeomorphism ℝⁿ → ℝⁿ
@@ -31,8 +31,9 @@ noncomputable def translationHomeo {n : ℕ} (v : EuclideanSpace ℝ (Fin n)) :
   invFun := fun x ↦ x - v,
   left_inv := by intro; simp,
   right_inv := by intro; simp,
-  continuous_toFun := continuous_pi fun i ↦ (continuous_apply i).add continuous_const,
-  continuous_invFun := continuous_pi fun i ↦ (continuous_apply i).sub continuous_const }
+  continuous_toFun := continuous_add_right v
+  continuous_invFun := continuous_sub_right v
+}
 
 /--
 Translation AffineEquiv ℝⁿ → ℝⁿ
@@ -55,8 +56,9 @@ def pointSymHomeo {n : ℕ} : Homeomorph (EuclideanSpace ℝ (Fin n)) (Euclidean
   invFun := fun x ↦ -x,
   left_inv := by intro; simp,
   right_inv := by intro; simp,
-  continuous_toFun := continuous_pi (fun i ↦ (continuous_apply i).neg),
-  continuous_invFun := continuous_pi (fun i ↦ (continuous_apply i).neg) }
+  continuous_toFun := continuous_neg
+  continuous_invFun := continuous_neg
+}
 
 /--
 Pointsymmetric flip as a linear map
@@ -105,9 +107,9 @@ theorem interior_pres_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
 Rotation preserves the property of being pointsymmetric.
 -/
 theorem rotation_pres_point_sym {S : Set ℝ³} (s_sym : PointSym S) (rot : SO3) :
-    PointSym ((fun x => rot.1 *ᵥ x) '' S) := by
+    PointSym (rot.1.toEuclideanLin  '' S) := by
   intro a ⟨y, hy, e⟩
-  exact ⟨-y, s_sym y hy, (Matrix.mulVec_neg y rot.1).trans (congrArg Neg.neg e)⟩
+  aesop
 
 /--
 Projection preserves convexity
@@ -120,8 +122,8 @@ theorem proj_pres_convex {S : Set ℝ³} (s_convex : Convex ℝ S) :
 Rotation preserves convexity
 -/
 theorem rotation_pres_convex {S : Set ℝ³} (s_convex : Convex ℝ S) (rot : SO3) :
-    Convex ℝ ((fun x => rot.1 *ᵥ x) '' S) := by
-  refine Convex.linear_image s_convex (Matrix.mulVecLin rot.1)
+    Convex ℝ (rot.1.toEuclideanLin '' S) := by
+  apply Convex.linear_image s_convex
 
 /--
 If S is a pointsymmetric set, then the flip of S is equal to S.
@@ -156,10 +158,7 @@ lemma hull_pres_pointsym {S : Set ℝ³} (s_psym : PointSym S) : PointSym (conve
   exact hy
 
 
-def inject_xy (v : ℝ²) : ℝ³ := fun i => match i with
- | 0 => v 0
- | 1 => v 1
- | 2 => 0
+def inject_xy (v : ℝ²) : ℝ³ := !₂[v 0, v 1, 0]
 
 /--
 Injecting ℝ² into ℝ³ commutes as expected with projection and sum

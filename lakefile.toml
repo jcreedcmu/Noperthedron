@@ -9,17 +9,17 @@ relaxedAutoImplicit = false
 [[require]]
 name = "rupert"
 git = "https://github.com/dwrensha/Rupert.lean"
-rev = "main"
+rev = "lean-v4.25.0"
 
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
-rev = "v4.25.0-rc2"
+rev = "v4.25.0"
 
 [[require]]
 name = "«doc-gen4»"
 git = "https://github.com/leanprover/doc-gen4"
-rev = "v4.25.0-rc2"
+rev = "v4.25.0"
 
 [[require]]
 name = "checkdecls"

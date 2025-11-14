@@ -16,13 +16,13 @@ def C2 : Fin 3 → ℚ := (1/10^10) * ![6632738028, 6106948881, 3980949609]
 def C3 : Fin 3 → ℚ := (1/10^10) * ![8193990033, 5298215096, 1230614493]
 
 noncomputable
-def C1R : EuclideanSpace ℝ (Fin 3) := fun i => C1 i
+def C1R : EuclideanSpace ℝ (Fin 3) := WithLp.toLp 2 (fun i => C1 i)
 
 noncomputable
-def C2R : EuclideanSpace ℝ (Fin 3) := fun i => C2 i
+def C2R : EuclideanSpace ℝ (Fin 3) := WithLp.toLp 2 (fun i => C2 i)
 
 noncomputable
-def C3R : EuclideanSpace ℝ (Fin 3) := fun i => C3 i
+def C3R : EuclideanSpace ℝ (Fin 3) := WithLp.toLp 2 (fun i => C3 i)
 
 theorem c1_norm_one : ‖C1R‖ = 1 := by
   rw [EuclideanSpace.norm_eq]
@@ -81,9 +81,9 @@ The noperthedron, given as a finite list of vertices.
 -/
 noncomputable
 def halfNopertVertList : List ℝ³ :=
-    List.map (· *ᵥ Nopert.C1R) Nopert.C15 ++
-    List.map (· *ᵥ Nopert.C2R) Nopert.C15 ++
-    List.map (· *ᵥ Nopert.C3R) Nopert.C15
+    List.map (·.toEuclideanLin Nopert.C1R) Nopert.C15 ++
+    List.map (·.toEuclideanLin Nopert.C2R) Nopert.C15 ++
+    List.map (·.toEuclideanLin Nopert.C3R) Nopert.C15
 
 def pointsymmetrize (ℓ : List ℝ³) : List ℝ³ := ℓ ++ ℓ.map (fun x => -x)
 
