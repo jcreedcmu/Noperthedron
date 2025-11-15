@@ -1,0 +1,78 @@
+\chapter{Bounding $R_a(\alpha), R(\alpha), M(\theta, \phi)$}
+
+\begin{lemma} \label{lem:jensen}
+    For all $a,b \in \R$ with $|a|,|b|\leq 2$ the following inequality holds:
+    \[
+        (1+\cos(a))(1+\cos(b))\geq 2+2\cos\Big(\sqrt{a^2+b^2}\Big),
+    \]
+    with equality only for $a=0$ or $b=0$.
+\end{lemma}
+
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 11.
+\end{proof}
+
+\begin{lemma} \label{lem:RxRy}
+For any $\alpha,\beta\in \mathbb{R}$ one has
+\[
+    \|R_x(\alpha)R_y(\beta)-\id\| \leq  \sqrt{\alpha^2+\beta^2}
+\]
+with equality only for $\alpha = \beta = 0$.
+\end{lemma}
+
+\begin{proof}
+\uses{lem:jensen}
+See \cite{polyhedron.without.rupert}, Lemma 12.
+\end{proof}
+
+\begin{lemma} \label{lem:sqrt2}
+Let $\epsilon>0$ and $|\theta-\thetab|,|\varphi-\phib| \leq \varepsilon$ then
+$\|M(\theta, \phi)-M(\thetab,\phib)\|, \|X({\theta, \varphi})-X(\thetab,\phib)\| < \sqrt{2}\varepsilon.$
+\end{lemma}
+
+\begin{proof}
+\uses{lem:RxRy}
+See \cite{polyhedron.without.rupert}, Lemma 13.
+\end{proof}
+
+\begin{lemma} \label{lem:XPgt0}
+    Let $P \in \R^3$ with $\|P\| \leq 1$. Further, let $\epsilon>0$ and $\thetab,\phib, \theta, \phi \in \R$ such that $|\thetab-\theta|, |\phib - \phi| \leq \epsilon$. If
+    \(
+        \langle X(\thetab,\phib),P \rangle>\sqrt{2}\varepsilon
+    \)
+    then
+    \(
+        \langle X(\theta, \phi),P \rangle>0.
+    \)
+\end{lemma}
+
+\begin{proof}
+\uses{lem:sqrt2}
+See \cite{polyhedron.without.rupert}, Lemma 14.
+\end{proof}
+
+\begin{lemma} \label{lem:MP>r}
+    Let $P \in \R^3$ with $\|P\| \leq 1$. Further, let $\epsilon, r>0$ and $\thetab,\phib, \theta, \phi \in \R$ such that $|\thetab-\theta|, |\phib - \phi| \leq \epsilon$. If
+    \(
+        \| M(\thetab,\phib) P \| > r + \sqrt{2}\varepsilon
+    \)
+    then
+    \(
+        \| M(\theta,\phi) P \| > r.
+    \)
+\end{lemma}
+
+\begin{proof}
+\uses{lem:sqrt2}
+See \cite{polyhedron.without.rupert}, Lemma 15.
+\end{proof}
+
+\begin{lemma} \label{lem:sqrt5}
+    Let $\epsilon>0$ and $|\theta-\thetab|,|\varphi-\phib|,|\alpha-\alphab|\leq\varepsilon$ then
+    $\|R(\alpha) M(\theta, \phi)-R(\alphab)M(\thetab,\phib)\| < \sqrt{5} \varepsilon.$
+\end{lemma}
+
+\begin{proof}
+\uses{lem:sqrt2, lem:RxRy}
+See \cite{polyhedron.without.rupert}, Lemma 16.
+\end{proof}

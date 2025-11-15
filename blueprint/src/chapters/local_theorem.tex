@@ -1,5 +1,107 @@
 \chapter{The Local Theorem}
 
+\begin{lemma} \label{lem:pythagoras}
+    For any $P \in \mathbb{R}^3$ one has
+    $\big\|M(\theta, \phi) P\big\|^2=\|P\|^2-\langle X({\theta,\varphi}),P\rangle^2$.
+\end{lemma}
+
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 21.
+\end{proof}
+
+\begin{lemma} \label{lem:langles}
+Let $V_1,V_2,V_3,Y,Z \in \R^3$ with $\|Y \|=\| Z \|$ and $Y,Z \in \mathrm{span}^+(V_1,V_2,V_3)$. Then at least one of the following inequalities does not hold:
+\begin{align*}
+    \langle V_1, Y \rangle > \langle V_1, Z \rangle,\\
+    \langle V_2, Y \rangle > \langle V_2, Z \rangle,\\
+    \langle V_3, Y \rangle > \langle V_3, Z \rangle.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 23.
+\end{proof}
+
+\begin{lemma} \label{lem:scalarprodbars}
+    For $A,\overline{A},B,\overline{B}\in \R^{n\times n}$ and $P_1,P_2\in \R^n$ it holds that
+    \[
+        |\langle AP_1,BP_2\rangle-\langle \overline{A}P_1,\overline{B}P_2\rangle|\leq \|P_1\|\cdot \|P_2\|\cdot \Big( \|A-\overline{A}\|\cdot \|\overline{B}\| +  \|\overline{A}\|\cdot \|B-\overline{B}\|+\|A-\overline{A}\|\cdot \|B-\overline{B}\|\Big).
+    \]
+\end{lemma}
+
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 24.
+\end{proof}
+
+\begin{lemma} \label{lem:absscalar}
+    For $A,B\in \R^{n\times n}$ and $P_1,P_2\in \R^n$ one has
+    $$|\langle AP_1,AP_2\rangle-\langle BP_1,BP_2\rangle|\leq \|P_1\|\cdot \|P_2\|\cdot \|A-B\|\cdot \bigg(\|A\|+\|B\| + \|A-B\|\bigg).$$
+\end{lemma}
+
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 25.
+\end{proof}
+
+\begin{lemma} \label{lem:origintriangle}
+    Let $A,B,C\in \mathbb{R}^2$ be such that $
+    \langle R({\pi/2}) A,B\rangle,
+    \langle R({\pi/2}) B,C\rangle,
+    \langle R({\pi/2}) C,A\rangle >0$. Then the origin lies strictly in the triangle $ABC$.
+\end{lemma}
+
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 26.
+\end{proof}
+
+\begin{lemma} \label{lem:eps-spanning}
+    Let $P_1, P_2, P_3 \in \R^3$ with $\|P_1\|,\|P_2\|,\|P_3\| \leq 1$ be $\epsilon$-spanning for $(\thetab, \phib)$ and let $\theta, \phi \in \R$ such that $|\theta - \overline{\theta}|, |\phi - \overline{\phi}| \leq \epsilon$. Assume that $\langle X(\theta, \phi), P_i \rangle > 0$ for $i=1,2,3$. Then
+    \[
+        X(\theta, \phi) \in \spanp(P_1, P_2, P_3).
+    \]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:scalarprodbars, lem:origintriangle, lem:sqrt2}
+See \cite{polyhedron.without.rupert}, Lemma 28.
+\end{proof}
+
+\begin{lemma} \label{lem:inCirc}
+    Let $P, Q \in \R^3$ with $\|P\|, \|Q\| \leq 1$. Let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \R$, then set
+    \[
+        T \coloneqq \left(R(\alphab) M(\thetab_1, \phib_1) P + M(\thetab_2, \phib_2) Q\right)/2 \in \R^2,
+    \]
+    and $\delta \geq \|T - M(\thetab_2, \phib_2) Q\|$. Finally, let $\theta_1, \phi_1, \theta_2, \phi_2, \alpha \in \R$ with $|\thetab_1-\theta_1|, |\phib_1 - \phi_1|, |\thetab_2-\theta_2|, |\phib_2-\phi_2|, |\alphab - \alpha| \leq \epsilon$. Then $R(\alpha)M(\theta_1, \phi_1) P, M(\theta_2, \phi_2) Q \in \Circ_{\delta + \sqrt{5} \epsilon}(T)$.
+\end{lemma}
+
+\begin{proof}
+\uses{lem:sqrt2, lem:sqrt5}
+See \cite{polyhedron.without.rupert}, Lemma 30.
+\end{proof}
+
+\begin{lemma} \label{lem:LMD}
+    Let $\PP$ be a convex polygon and $Q \in \PP$ be one of its vertices. Let $\overline{Q} \in \R^2$ with $\|Q - \overline{Q}\| < \delta$ for some $\delta>0$. Assume that for some $r > 0 $ such that $\|Q\| > r$ it holds that
+    \[
+        \frac{\langle Q, Q - P_j \rangle}{\|Q\|\|Q - P_j\|} \geq \delta/r,
+    \]
+    for all other vertices $P_j \in \PP \setminus Q$. Then $Q \in \PP$ is $\delta$-locally maximally distant with respect to $\overline{Q}$.
+\end{lemma}
+
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 32.
+\end{proof}
+
+\begin{lemma} \label{lem:coss}
+    Let $\epsilon>0$ and $\theta,\thetab, \phi, \phib \in \R$ with $|\theta - \overline{\theta}|, |\phi - \overline{\phi}| \leq \epsilon$. Define $M = M(\theta, \phi)$ and $\overline{M} = M(\thetab, \phib)$ and let $P, Q \in \R^3$ with $\|P\|, \|Q\| \leq 1$. Then:
+    \[
+        \frac{\langle {M} P,{M} (P-Q)\rangle}{\|{M} P\| \cdot \|{M}(P-Q)\|} \geq
+        \frac{\langle \overline{M} P,\overline{M} (P-Q)\rangle - 2 \epsilon \|P-Q\| \cdot  (\sqrt{2}+\varepsilon)}{ \big(\|\overline{M} P\|+\sqrt{2} \varepsilon \big) \cdot \big(\|\overline{M}(P-Q)\|+2 \sqrt{2} \varepsilon\big)}.
+    \]
+\end{lemma}
+\begin{proof}
+\uses{lem:absscalar, lem:sqrt2}
+See \cite{polyhedron.without.rupert}, Lemma 33.
+\end{proof}
+
 \begin{theorem}[Local Theorem] \label{thm:local}
     Let $\PPP$ be a polyhedron with radius $\rho=1$ and $P_1, P_2, P_3, Q_1, Q_2, Q_3 \in \PPP$ be not necessarily distinct. Assume that $P_1, P_2, P_3$ and $Q_1, Q_2, Q_3$ are congruent.
 
@@ -24,3 +126,8 @@
         (\theta_1, \phi_1, \theta_2, \phi_2, \alpha) \in [\thetab_1\pm\epsilon,\phib_1\pm\epsilon,\thetab_2\pm\epsilon,\phib_2\pm\epsilon,\alphab\pm\epsilon] \coloneqq U \subseteq \R^5.
     \]
 \end{theorem}
+
+\begin{proof}
+\uses{lem:langles,lem:XPgt0,lem:eps-spanning,lem:MP>r,lem:inCirc,lem:coss,lem:LMD,lem:pythagoras}
+See \cite{polyhedron.without.rupert}, Theorem 36.
+\end{proof}
