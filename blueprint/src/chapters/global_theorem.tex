@@ -1,14 +1,33 @@
 \chapter{The Global Theorem}
 
 \begin{lemma} \label{lem:hullscalarprod}
-    If $\mathcal{P} \subseteq \R^2$ is a convex polygon, $S \in \mathcal{P}^\circ$ and $w \in \R^2$ then
+\leanok
+\lean{GlobalTheorem.hull_scalar_prod}
+Suppose $V = V_1, \ldots, V_m \subseteq \R^n$ be a finite sequence of points. Suppose $\hull V$ is its convex hull.
+Let $S \in \hull V$ and $w \in \R^n$ be given. then
     \[
-        \langle S ,w \rangle \leq \max_{P \in \PP} \langle P ,w\rangle.
+        \langle S ,w \rangle \leq \max_{i} \langle V_i ,w\rangle
     \]
 \end{lemma}
 
 \begin{proof}
-See \cite{polyhedron.without.rupert}, Lemma 18.
+This is a mild generalization of \cite{polyhedron.without.rupert}, Lemma 18.
+
+Since $S \in \hull V$, we have
+\[ S = \sum_{j=1}^m \lambda_j V_j \]
+for some $\lambda_1,\ldots,\lambda_m \in [0,1]$ with
+\[ 1 = \sum_{j=1}^m \lambda_j  \]
+Therefore
+\[
+\langle S ,w \rangle = \left\langle  \sum_{j=1}^m \lambda_j V_j ,w \right\rangle
+=  \sum_{j=1}^m \lambda_j \left\langle   V_j ,w \right\rangle
+\le   \sum_{j=1}^m \lambda_j \max_{i} \langle V_i ,w\rangle
+\]
+\[
+=  \max_{i} \langle V_i ,w\rangle \sum_{j=1}^m \lambda_j
+=  \max_{i} \langle V_i ,w\rangle
+\]
+as required.
 \end{proof}
 
 
