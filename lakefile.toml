@@ -9,7 +9,7 @@ relaxedAutoImplicit = false
 [[require]]
 name = "rupert"
 git = "https://github.com/dwrensha/Rupert.lean"
-rev = "lean-v4.25.0"
+rev = "main"
 
 [[require]]
 name = "mathlib"
