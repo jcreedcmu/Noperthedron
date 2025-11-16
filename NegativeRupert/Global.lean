@@ -23,11 +23,21 @@ theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)}
     grw [hle ⟨x, hx⟩]
     exact WithBot.coe_nonneg.mpr (hw1 x hx)
 
+  have nonempt : ∃ (m : ℝ), (Finset.image f V).max = ↑m := by
+    sorry
+
+  have extract_const (m : ℝ)  : ∑ x ∈ V, (w x) * (m : WithBot ℝ) = ↑(∑ x ∈ V, w x) * m := by
+    suffices h : (WithBot.some (∑ x ∈ V, (w x) * m)) = WithBot.some ((∑ x ∈ V, w x) * m) by
+      push_cast at h ⊢
+      exact h
+    refine congrArg WithBot.some ?_
+    rw [← Finset.sum_mul]
+
   calc
     ↑(f S) = ↑(f (∑ i ∈ V, w i • id i)) := by rw [← hw3, Finset.centerMass_eq_of_sum_1 V id hw2]
     _       = ↑(∑ x ∈ V, w x * f x) := by simp
     _       ≤ ↑(∑ x ∈ V, w x * ((Finset.image f V).max)) := le_imp_sum_le fx_le_fvmax
-    _       = ↑((∑ x ∈ V, w x) * (Finset.image f V).max) := by sorry
+    _       = ↑((∑ x ∈ V, w x) * (Finset.image f V).max) := by let ⟨m, hm⟩ := nonempt; rw [hm]; exact extract_const m
     _       = (Finset.image f V).max := by rw [hw2]; simp
 
 theorem fintype_hull_linear_max {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
