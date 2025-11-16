@@ -23,8 +23,13 @@ theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)}
     grw [hle ⟨x, hx⟩]
     exact WithBot.coe_nonneg.mpr (hw1 x hx)
 
-  have nonempt : ∃ (m : ℝ), (Finset.image f V).max = ↑m := by
-    sorry
+  have V_nonempty : V.Nonempty := by
+    rw [Finset.nonempty_iff_ne_empty]
+    intro h
+    simp [h] at hw2
+
+  have nonempt : ∃ (m : ℝ), (Finset.image f V).max = ↑m :=
+    Finset.max_of_nonempty (V_nonempty.image f)
 
   have extract_const (m : ℝ)  : ∑ x ∈ V, (w x) * (m : WithBot ℝ) = ↑(∑ x ∈ V, w x) * m := by
     suffices h : (WithBot.some (∑ x ∈ V, (w x) * m)) = WithBot.some ((∑ x ∈ V, w x) * m) by
@@ -43,11 +48,17 @@ theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)}
 theorem fintype_hull_linear_max {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
     (S : E n) (hs : S ∈ convexHull ℝ (Set.range V)) (f : E n →ₗ[ℝ] ℝ) :
     f S ≤ Finset.max (Finset.univ.image (f ∘ V)) := by
-  sorry
+  rw [← Finset.image_image]
+  exact finset_hull_linear_max S (by simpa) _
 
 theorem hull_scalar_prod {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
     (S : E n) (hs : S ∈ convexHull ℝ (Set.range V)) (w : E n) :
     ⟪S, w⟫ ≤ Finset.max (Finset.univ.image (⟪V ·, w⟫)) := by
-  sorry
+  calc
+    (⟪S, w⟫ : WithBot ℝ) = ⟪w, S⟫ := by rw [real_inner_comm]
+    _ ≤ _ := fintype_hull_linear_max V S hs (innerₗ _ w)
+    _ = (Finset.image (fun x ↦ ⟪V x, w⟫) Finset.univ).max := by
+      congr! 3 with x
+      simp [real_inner_comm]
 
 end GlobalTheorem
