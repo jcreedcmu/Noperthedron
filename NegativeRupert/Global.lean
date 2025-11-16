@@ -1,4 +1,5 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.InnerProductSpace.Dual
 open scoped RealInnerProductSpace
 
 namespace GlobalTheorem
@@ -52,7 +53,7 @@ theorem fintype_hull_linear_max {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E
 
 theorem hull_scalar_prod {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
     (S : E n) (hs : S ∈ convexHull ℝ (Set.range V)) (w : E n) :
-    ⟪S, w⟫ ≤ Finset.max (Finset.univ.image (⟪V ·, w⟫)) := by
-  sorry
+    ⟪w, S⟫ ≤ Finset.max (Finset.univ.image (⟪w, V ·⟫)) :=
+  fintype_hull_linear_max V S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
 
 end GlobalTheorem
