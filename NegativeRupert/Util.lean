@@ -29,7 +29,7 @@ noncomputable def translationHomeo {n : ℕ} (v : EuclideanSpace ℝ (Fin n)) :
     Homeomorph (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin n)) :=
 { toFun := fun x ↦ x + v,
   invFun := fun x ↦ x - v,
-  left_inv := by intro; simp,
+  left_inv := leftInverse_sub_add_left v
   right_inv := by intro; simp,
   continuous_toFun := continuous_add_right v
   continuous_invFun := continuous_sub_right v
@@ -67,9 +67,9 @@ noncomputable
 def pointSymLinEquiv {n : ℕ} : EuclideanSpace ℝ (Fin n) ≃ₗ[ℝ] EuclideanSpace ℝ (Fin n) :=
 { toFun := fun x ↦ -x,
   invFun := fun x ↦ -x,
-  left_inv := by intro; simp,
-  right_inv := by intro; simp,
-  map_add' := by intro x y; exact neg_add x y
+  left_inv := leftInverse_neg _
+  right_inv := rightInverse_neg _
+  map_add' := neg_add
   map_smul' := by intro m x;  simp only [smul_neg, RingHom.id_apply]
 }
 

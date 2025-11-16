@@ -45,16 +45,7 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
     rw [e] at hnn
     exact hnn
   have segment_sub_b := convex_iff_segment_subset.mp b_convex h1 h2
-  have a_in_segment : a ∈ segment ℝ (a + v) (a - v) := by
-    unfold segment
-    simp only [smul_add, exists_and_left, Set.mem_setOf_eq]
-    refine ⟨ 1/2, ?_, 1/2, ?_, ?_, ?_ ⟩
-    · simp only [one_div, inv_nonneg, Nat.ofNat_nonneg]
-    · simp only [one_div, inv_nonneg, Nat.ofNat_nonneg]
-    · grind
-    · rw [segment_lemma (1/2) a v]
-      norm_num
-  exact segment_sub_b a_in_segment
+  exact segment_sub_b (mem_segment_add_sub a v)
 
 theorem shadow_outer_pres_convex {S : Set ℝ³} (s_conv : Convex ℝ S) (p : Pose) :
   Convex ℝ (Shadows.outer p S) := by

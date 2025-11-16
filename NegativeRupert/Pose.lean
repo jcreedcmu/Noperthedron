@@ -36,12 +36,10 @@ If we zero out the offset, then the offset part of the inner
 action is the identity.
 -/
 theorem zero_offset_id (p : Pose) (v : ℝ³) : p.zeroOffset.innerOffsetPart v = v := by
-  let z : ℝ³ := 0
-  have z_is_zero : z = 0 := by ext i; fin_cases i <;> rfl
   ext i; fin_cases i
   all_goals
-    change (translationAffineEquiv z) v _ = v _
-    rw [z_is_zero]; unfold translationAffineEquiv;
+    change (translationAffineEquiv 0) v _ = v _
+    unfold translationAffineEquiv;
     simp
 
 @[simp]
