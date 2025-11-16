@@ -47,7 +47,8 @@ theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)}
 theorem fintype_hull_linear_max {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
     (S : E n) (hs : S ∈ convexHull ℝ (Set.range V)) (f : E n →ₗ[ℝ] ℝ) :
     f S ≤ Finset.max (Finset.univ.image (f ∘ V)) := by
-  sorry
+  rw [← Finset.image_image]
+  exact finset_hull_linear_max S (by simp [hs]) f
 
 theorem hull_scalar_prod {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
     (S : E n) (hs : S ∈ convexHull ℝ (Set.range V)) (w : E n) :
