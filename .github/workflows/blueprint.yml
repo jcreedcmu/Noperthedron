@@ -35,6 +35,5 @@ jobs:
       - name: Compile blueprint and documentation
         uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
         with:
-          api-docs: false
           blueprint: true
           homepage: home_page
