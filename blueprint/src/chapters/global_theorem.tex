@@ -33,6 +33,8 @@ as required.
 
 
 \begin{lemma} \label{lem:leq1}
+\lean{GlobalTheorem.second_derivative_bounded}
+\leanok
     Let $S \in \R^3$ and $w \in \R^2$ be unit vectors and set $f(x_1,x_2,x_3) = \langle R(x_3) M(x_1,x_2)S,w \rangle$. Then for all $x_1,x_2,x_3 \in \R$ and any $i,j \in \{1,2,3\}$ it holds that
     \[
         \left|\frac{\dd^2 f}{\dd x_i \dd x_j}(x_1,x_2,x_3)\right|\leq 1.

@@ -1,5 +1,7 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.Calculus.FDeriv.Defs
 import Mathlib.Analysis.InnerProductSpace.Dual
+import NegativeRupert.Basic
+
 open scoped RealInnerProductSpace
 
 namespace GlobalTheorem
@@ -55,5 +57,17 @@ theorem hull_scalar_prod {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
     (S : E n) (hs : S ∈ convexHull ℝ (Set.range V)) (w : E n) :
     ⟪w, S⟫ ≤ Finset.max (Finset.univ.image (⟪w, V ·⟫)) :=
   fintype_hull_linear_max V S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
+
+noncomputable
+def rotation_map (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
+  ⟪rotprojRM (x 0) (x 1) (x 2) S, w⟫
+
+noncomputable
+def nth_partial (i : Fin 3) (f : ℝ³ → ℝ) (x : ℝ³) : ℝ :=
+  fderiv ℝ f x (EuclideanSpace.single i 1)
+
+theorem second_derivative_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³)
+   (i j : Fin 3) : abs ((nth_partial i <| nth_partial j <| (rotation_map S w)) x) ≤ 1 := by
+  sorry
 
 end GlobalTheorem

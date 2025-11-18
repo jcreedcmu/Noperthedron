@@ -91,3 +91,8 @@ infixr:80 " ∘ᵃ " => AffineMap.comp
 noncomputable
 def rotRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ :=
   Rz_affine (-(π / 2)) ∘ᵃ Rz_affine α ∘ᵃ Ry_affine φ ∘ᵃ Rz_affine (-θ)
+
+-- This is R(α) M(θ, φ) in (5) in [SY25] § 2.2,
+noncomputable
+def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →ᵃ[ℝ] ℝ² :=
+  rotR α ∘ᵃ rotM θ φ
