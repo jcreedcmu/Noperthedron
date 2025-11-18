@@ -33,7 +33,7 @@ as required.
 
 
 \begin{lemma} \label{lem:leq1}
-\lean{GlobalTheorem.second_derivative_bounded}
+\lean{GlobalTheorem.rotation_partials_bounded}
 \leanok
     Let $S \in \R^3$ and $w \in \R^2$ be unit vectors and set $f(x_1,x_2,x_3) = \langle R(x_3) M(x_1,x_2)S,w \rangle$. Then for all $x_1,x_2,x_3 \in \R$ and any $i,j \in \{1,2,3\}$ it holds that
     \[
@@ -46,6 +46,8 @@ See \cite{polyhedron.without.rupert}, Lemma 19.
 \end{proof}
 
 \begin{lemma} \label{lem:n2}
+\lean{bounded_partials_control_difference}
+\leanok
     Let $f:\R^n\to \R$ be a $C^2$-function and $x_1,\dots,x_n,y_1,\dots,y_n \in \R$ such that $|x_1-y_1|,\dots,|x_n-y_n|\leq \varepsilon$.
     If
     \(

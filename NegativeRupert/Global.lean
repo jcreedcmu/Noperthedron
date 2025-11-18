@@ -63,11 +63,20 @@ def rotation_map (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
   ⟪rotprojRM (x 0) (x 1) (x 2) S, w⟫
 
 noncomputable
-def nth_partial (i : Fin 3) (f : ℝ³ → ℝ) (x : ℝ³) : ℝ :=
+def nth_partial {n : ℕ} (i : Fin n) (f : E n → ℝ) (x : E n) : ℝ :=
   fderiv ℝ f x (EuclideanSpace.single i 1)
 
-theorem second_derivative_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³)
-   (i j : Fin 3) : abs ((nth_partial i <| nth_partial j <| (rotation_map S w)) x) ≤ 1 := by
+def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) (x : E n) : Prop :=
+  ∀ (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
+
+theorem rotation_partials_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³) :
+  mixed_partials_bounded (rotation_map S w) x := by
+  sorry
+
+theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ) (x y : E n)
+  (ε : ℝ) (hε : ε > 0) (hdiff : (i : Fin n) → |x i - y i| < ε)
+  (mpb : mixed_partials_bounded f x) :
+  |f x - f y| ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by
   sorry
 
 end GlobalTheorem
