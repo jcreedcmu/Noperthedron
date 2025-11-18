@@ -1,4 +1,4 @@
-import Rupert.Equivalences.RupertEquivRupertSet
+import NegativeRupert.Rupert.Equivalences.RupertEquivRupertSet
 import NegativeRupert.Basic
 import NegativeRupert.Nopert
 import NegativeRupert.ViewPose

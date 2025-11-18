@@ -1,5 +1,5 @@
-import Rupert.Basic
-import Rupert.Equivalences.Util
+import NegativeRupert.Rupert.Basic
+import NegativeRupert.Rupert.Equivalences.Util
 
 open scoped Matrix
 

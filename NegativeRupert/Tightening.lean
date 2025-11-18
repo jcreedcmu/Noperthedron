@@ -1,4 +1,4 @@
-import Rupert.Basic
+import NegativeRupert.Rupert.Basic
 import NegativeRupert.PoseClasses
 import NegativeRupert.Basic
 import NegativeRupert.Nopert

@@ -1,5 +1,5 @@
-import Rupert.Basic
-import Rupert.Set
+import NegativeRupert.Rupert.Basic
+import NegativeRupert.Rupert.Set
 import NegativeRupert.Util
 import NegativeRupert.Pose
 import NegativeRupert.PoseClasses

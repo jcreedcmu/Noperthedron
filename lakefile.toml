@@ -7,11 +7,6 @@ autoImplicit = false
 relaxedAutoImplicit = false
 
 [[require]]
-name = "rupert"
-git = "https://github.com/dwrensha/Rupert.lean"
-rev = "lean-v4.25.1"
-
-[[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
 rev = "v4.25.1"
