@@ -1,4 +1,3 @@
-import Mathlib
 import Mathlib.Analysis.Calculus.FDeriv.Defs
 import Mathlib.Analysis.InnerProductSpace.Dual
 import NegativeRupert.Basic
