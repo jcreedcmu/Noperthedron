@@ -126,7 +126,9 @@ def global_theorem_precondition (p : LooseViewPose) (ε : ℝ) : Prop :=
 
 theorem global_theorem (p : LooseViewPose) (ε : ℝ) (hε : ε > 0)
     (hp : global_theorem_precondition p ε) :
-    ¬ ∃ p', (p.closed_ball ε).contains p' ∧ Shadows.IsRupert p' nopert.hull := by
+    ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q nopert.hull := by
+  intro ⟨q, q_near_p, q_is_rupert⟩
+  simp only [Membership.mem] at q_near_p
   sorry
 
 end GlobalTheorem

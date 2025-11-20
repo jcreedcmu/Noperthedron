@@ -105,6 +105,9 @@ def contains (iv : PoseInterval) (vp : LooseViewPose) : Prop :=
 
 end PoseInterval
 
+instance : Membership LooseViewPose PoseInterval where
+  mem iv vp := iv.contains vp
+
 structure TightViewPose : Type where
   θ₁ : Set.Icc 0 (2 * π / 15)
   θ₂ : Set.Icc 0 (2 * π / 15)
