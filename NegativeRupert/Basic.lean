@@ -71,11 +71,32 @@ def rotR (α : ℝ) : ℝ² →ᵃ[ℝ] ℝ² :=
     !![cos α, -sin α; sin α, cos α]
   (A.toLin e2 e2).toAffineMap
 
+-- Derivative of rotR with respect to its parameter
+noncomputable
+def rotR' (α : ℝ) : ℝ² →ᵃ[ℝ] ℝ² :=
+  let A : Matrix (Fin 2) (Fin 2) ℝ :=
+    !![-sin α, -cos α; cos α, -sin α]
+  (A.toLin e2 e2).toAffineMap
+
 -- [SY25] § 1.1 Definition 2
 noncomputable
 def rotM (θ : ℝ) (φ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ² :=
   let A : Matrix (Fin 2) (Fin 3) ℝ :=
     !![-sin θ, cos θ, 0; -cos θ * cos φ, -sin θ * cos φ, sin φ]
+  (A.toLin e3 e2).toAffineMap
+
+-- Partial derivative of rotM with respect to θ
+noncomputable
+def rotMθ (θ : ℝ) (φ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ² :=
+  let A : Matrix (Fin 2) (Fin 3) ℝ :=
+    !![-cos θ, -sin θ, 0; sin θ * cos φ, -cos θ * cos φ, 0]
+  (A.toLin e3 e2).toAffineMap
+
+-- Partial derivative of rotM with respect to φ
+noncomputable
+def rotMφ (θ : ℝ) (φ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ² :=
+  let A : Matrix (Fin 2) (Fin 3) ℝ :=
+    !![0, 0, 0; cos θ * sin φ, sin θ * sin φ, cos φ]
   (A.toLin e3 e2).toAffineMap
 
 theorem sin_neg_pi_div_two : Real.sin (-(π / 2)) = -1 := by

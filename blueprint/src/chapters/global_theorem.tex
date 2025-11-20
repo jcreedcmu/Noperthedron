@@ -64,6 +64,8 @@ See \cite{polyhedron.without.rupert}, Lemma 20.
 \end{proof}
 
 \begin{theorem}[Global Theorem] \label{thm:global}
+\lean{GlobalTheorem.global_theorem}
+\leanok
     Let $\PPP$ be a pointsymmetric convex polyhedron with radius $\rho =1$ and let $S \in \PPP$. Further let $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \R$ and let $w\in\R^2$ be a unit vector. Denote $\Mib \coloneqq M(\thetab_1, \phib_1)$, $ \Miib \coloneqq M(\thetab_2, \phib_2)$ as well as $\Mib^{\theta} \coloneqq M^\theta(\thetab_1, \phib_1)$, $\Mib^{\phi} \coloneqq M^\phi(\thetab_1, \phib_1)$ and analogously for $\Miib^{\theta}, \Miib^{\phi}$. Finally set
     \begin{align*}
         G& \coloneqq \langle R(\alphab) \Mib S,w \rangle - \epsilon\cdot\big(|\langle R'(\alphab)  \Mib S,w \rangle|+|\langle R(\alphab) \Mib^\theta S,w \rangle|+|\langle R(\alphab) \Mib^\phi S,w \rangle|\big)- 9\epsilon^2/2,\\

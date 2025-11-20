@@ -110,6 +110,20 @@ The noperthedron, given as a set of vertices.
 noncomputable
 def nopertVertSet : Set ℝ³ := Set.range nopertVerts
 
+/--
+The noperthedron, given as a manifestly finite set of vertices.
+-/
+noncomputable
+def nopertVertFinset : Finset ℝ³ := nopertVertList.toFinset
+
+instance : Nonempty nopertVertFinset := by
+  refine Finset.Nonempty.to_subtype ?_
+  unfold nopertVertFinset
+  simp only [List.toFinset_nonempty_iff]
+  refine List.ne_nil_of_length_pos ?_
+  rw [nopert_vert_list_length, nopertNumVerts]
+  norm_num
+
 noncomputable
 def nopert : Shape where
   size := nopertNumVerts

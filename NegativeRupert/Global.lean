@@ -1,13 +1,24 @@
+import Mathlib
 import Mathlib.Analysis.Calculus.FDeriv.Defs
 import Mathlib.Analysis.InnerProductSpace.Dual
 import NegativeRupert.Basic
+import NegativeRupert.Nopert
+import NegativeRupert.PoseClasses
+import NegativeRupert.TightViewPose
 
 open scoped RealInnerProductSpace
+
+/--
+A little convenience lemma to turn a Nonempty typeclass into a Finset.Nonempty fact
+for a image of that finite set.
+-/
+lemma Finset.image_nonempty' {α β : Type} (s : Finset α) {f : α → β} [n : Nonempty s] [DecidableEq β] :
+    (s.image f).Nonempty :=
+  s.image_nonempty.mpr (nonempty_coe_sort.mp n)
 
 namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
-
 
 private lemma f_le_max {n : ℕ} {V : Finset (E n)} (w : E n → ℝ) (hw1 : ∀ y ∈ V, 0 ≤ w y)
       (f : E n →ₗ[ℝ] ℝ) :
@@ -59,7 +70,7 @@ theorem hull_scalar_prod {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
   fintype_hull_linear_max V S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
 
 noncomputable
-def rotation_map (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
+def rotproj_inner (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
   ⟪rotprojRM (x 0) (x 1) (x 2) S, w⟫
 
 noncomputable
@@ -70,13 +81,53 @@ def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) (x : E n) : Prop :=
   ∀ (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
 
 theorem rotation_partials_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³) :
-  mixed_partials_bounded (rotation_map S w) x := by
+  mixed_partials_bounded (rotproj_inner S w) x := by
   sorry
 
 theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ) (x y : E n)
   (ε : ℝ) (hε : ε > 0) (hdiff : (i : Fin n) → |x i - y i| < ε)
   (mpb : mixed_partials_bounded f x) :
   |f x - f y| ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by
+  sorry
+
+noncomputable
+def polyhedron_radius {n : ℕ} (ι : Finset (E n)) [Nonempty ι] : ℝ :=
+  (ι.image (‖·‖)).max' ι.image_nonempty'
+
+/--
+A measure of how far an inner-shadow vertex S can "stick out"
+-/
+noncomputable
+def G (p : LooseViewPose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
+  ⟪p.rotR (p.rotM₁ S), w⟫ - ε * |⟪p.rotR' (p.rotM₁ S), w⟫ + ⟪p.rotR (p.rotM₁θ S), w⟫ + ⟪p.rotR (p.rotM₁φ S), w⟫|
+  - 9 * ε^2 / 2
+
+/--
+A measure of how far an outer-shadow vertex P can "reach" along w.
+-/
+noncomputable
+def H (p : LooseViewPose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
+  ⟪p.rotM₂ P, w⟫ + ε * |⟪p.rotM₂θ P, w⟫ + ⟪p.rotM₂φ P, w⟫| + 2 * ε^2
+
+/--
+A measure of how far all of the outer-shadow vertices can "reach" along w.
+-/
+noncomputable
+def maxH (p : LooseViewPose) (ε : ℝ) (w : ℝ²) : ℝ :=
+  nopertVertFinset.image (H p ε w) |>.max' nopertVertFinset.image_nonempty'
+
+/--
+A compact way of saying "the pose satisfies the global theorem precondition at width ε".
+We require the existence of some inner-shadow vertex S from the polyehdron, and a covector w meant to express
+the direction we're projecting ℝ² → ℝ to find that S "sticks out too far" compared to all the
+other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
+-/
+def global_theorem_precondition (p : LooseViewPose) (ε : ℝ) : Prop :=
+  ∃ S ∈ nopertVertSet, ∃ (w : ℝ²), G p ε S w > maxH p ε w
+
+theorem global_theorem (p : LooseViewPose) (ε : ℝ) (hε : ε > 0)
+    (hp : global_theorem_precondition p ε) :
+    ¬ ∃ p', (p.closed_ball ε).contains p' ∧ Shadows.IsRupert p' nopert.hull := by
   sorry
 
 end GlobalTheorem
