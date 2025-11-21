@@ -83,9 +83,9 @@ def rotR' (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
 notation "ℝ¹" => EuclideanSpace ℝ (Fin 1)
 
 noncomputable
-def rotX (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ¹ :=
-  let A : Matrix (Fin 1) (Fin 3) ℝ :=
-    !![cos θ * sin φ, sin θ * sin φ, cos φ]
+def rotX (θ : ℝ) (φ : ℝ) : ℝ¹ →L[ℝ] ℝ³ :=
+  let A : Matrix (Fin 3) (Fin 1) ℝ :=
+    !![cos θ * sin φ; sin θ * sin φ; cos φ]
   A.toEuclideanLin.toContinuousLinearMap
 
 -- [SY25] § 1.1 Definition 2

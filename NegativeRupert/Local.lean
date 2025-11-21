@@ -8,6 +8,12 @@ open scoped RealInnerProductSpace Real
 
 notation "Euc(" n:arg ")" => EuclideanSpace ℝ (Fin n)
 
+-- TODO: The WithLp.toLP conversion below is awkward. To we have a nicer way
+-- to get a handle on that conversion?
+theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
+    ‖rotM θ φ P‖ ^ 2 = ‖P‖ ^ 2 - ⟪rotX θ φ (WithLp.toLp 2 fun _ ↦ 1), P⟫ ^ 2 := by
+  sorry
+
 theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
     |⟪A P₁, B P₂⟫ - ⟪A_ P₁, B_ P₂⟫| ≤
     ‖P₁‖ * ‖P₂‖ * (‖A - A_‖ * ‖B‖ + ‖A_‖ * ‖B - B_‖ + ‖A - A_‖ * ‖A - B_‖) := by
