@@ -23,6 +23,12 @@ def e3 : Module.Basis (Fin 3) ℝ ℝ³ := (EuclideanSpace.basisFun (Fin 3) ℝ)
 noncomputable
 def e2 : Module.Basis (Fin 2) ℝ ℝ² := (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis
 
+-- Is this silly? Should we use bare ℝ instead?
+notation "ℝ¹" => EuclideanSpace ℝ (Fin 1)
+
+noncomputable
+def e1 : Module.Basis (Fin 1) ℝ ℝ¹ := (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis
+
 open Real
 
 -- rotation about x-axis by θ
@@ -86,6 +92,12 @@ def rotR' (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
   let A : Matrix (Fin 2) (Fin 2) ℝ :=
     !![-sin α, -cos α; cos α, -sin α]
   (A.toLin e2 e2).toContinuousLinearMap
+
+noncomputable
+def rotX (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ¹ :=
+  let A : Matrix (Fin 1) (Fin 3) ℝ :=
+    !![cos θ * sin φ, sin θ * sin φ, cos φ]
+  (A.toLin e3 e1).toContinuousLinearMap
 
 -- [SY25] § 1.1 Definition 2
 noncomputable

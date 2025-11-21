@@ -17,4 +17,6 @@ theorem norm_M_sub_lt (ε θ θ_ φ φ_ : ℝ) (hε : 0 < ε) (hθ : |θ - θ_| 
     ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
   sorry
 
--- TODO norm_X_sub_lt
+theorem norm_X_sub_lt (ε θ θ_ φ φ_ : ℝ) (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
+    ‖rotX θ φ - rotX θ_ φ_‖ < √2 * ε := by
+  sorry
