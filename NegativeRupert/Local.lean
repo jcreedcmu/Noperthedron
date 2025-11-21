@@ -18,6 +18,6 @@ theorem abs_sub_inner_le {n : ℕ} (A B : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : 
   sorry
 
 theorem origin_in_triangle {A B C : Euc(2)}
-    (hA : 0 < ⟪rotR (π/2) A, B⟫) (hB : 0 < ⟪rotR (π/2) B, C⟫) (hB : 0 < ⟪rotR (π/2) C, A⟫) :
+    (hA : 0 < ⟪rotR (π/2) A, B⟫) (hB : 0 < ⟪rotR (π/2) B, C⟫) (hC : 0 < ⟪rotR (π/2) C, A⟫) :
     0 ∈ interior (convexHull ℝ {A, B, C}) := by
   sorry
