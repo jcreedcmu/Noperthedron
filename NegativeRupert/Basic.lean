@@ -38,7 +38,8 @@ def Rx_linear (θ : ℝ) : ℝ³ →ₗ[ℝ] ℝ³ := (Rx θ).toLin e3 e3
 noncomputable
 def Rx_affine (θ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ := (Rx_linear θ).toAffineMap
 
-noncomputable def RxL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Rx_linear θ).toContinuousLinearMap
+noncomputable
+def RxL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Rx_linear θ).toContinuousLinearMap
 
 -- rotation about y-axis by θ
 noncomputable
@@ -53,7 +54,8 @@ def Ry_linear (θ : ℝ) : ℝ³ →ₗ[ℝ] ℝ³ := (Ry θ).toLin e3 e3
 noncomputable
 def Ry_affine (θ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ := (Ry_linear θ).toAffineMap
 
-noncomputable def RyL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Ry_linear θ).toContinuousLinearMap
+noncomputable
+def RyL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Ry_linear θ).toContinuousLinearMap
 
 -- rotation about z-axis by θ
 noncomputable
@@ -67,6 +69,9 @@ def Rz_linear (θ : ℝ) : ℝ³ →ₗ[ℝ] ℝ³ := (Rz θ).toLin e3 e3
 
 noncomputable
 def Rz_affine (θ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ := (Rz_linear θ).toAffineMap
+
+noncomputable
+def RzL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Rz_linear θ).toContinuousLinearMap
 
 -- [SY25] § 1.1 Definition 2
 noncomputable
