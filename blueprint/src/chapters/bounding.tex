@@ -15,8 +15,8 @@ Use the Jensen inequality. See \cite{polyhedron.without.rupert}, Lemma 11.
 \end{proof}
 
 \begin{lemma} \label{lem:RxRy}
-  \lean{Bounding.norm_RxRy_minus_id_le}
-  \leanok
+\lean{Bounding.norm_RxRy_minus_id_le}
+\leanok
 For any $\alpha,\beta\in \mathbb{R}$ one has
 \[
     \|R_x(\alpha)R_y(\beta)-\id\| \leq  \sqrt{\alpha^2+\beta^2}
@@ -30,8 +30,8 @@ See \cite{polyhedron.without.rupert}, Lemma 12.
 \end{proof}
 
 \begin{lemma} \label{lem:sqrt2}
-  \lean{Bounding.norm_M_sub_lt}
-  \leanok
+\lean{Bounding.norm_M_sub_lt}
+\leanok
 Let $\epsilon>0$ and $|\theta-\thetab|,|\varphi-\phib| \leq \varepsilon$ then
 $\|M(\theta, \phi)-M(\thetab,\phib)\|, \|X({\theta, \varphi})-X(\thetab,\phib)\| < \sqrt{2}\varepsilon.$
 \end{lemma}
@@ -58,6 +58,8 @@ See \cite{polyhedron.without.rupert}, Lemma 14.
 \end{proof}
 
 \begin{lemma} \label{lem:MPgtr}
+\lean{Bounding.norm_M_apply_gt}
+\leanok
     Let $P \in \R^3$ with $\|P\| \leq 1$. Further, let $\epsilon, r>0$ and $\thetab,\phib, \theta, \phi \in \R$ such that $|\thetab-\theta|, |\phib - \phi| \leq \epsilon$. If
     \(
         \| M(\thetab,\phib) P \| > r + \sqrt{2}\varepsilon
