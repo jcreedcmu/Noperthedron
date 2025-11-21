@@ -1,5 +1,4 @@
 import NegativeRupert.Rupert.Basic
-import Mathlib
 
 open scoped Matrix
 
