@@ -13,6 +13,8 @@ theorem one_plus_cos_mul_one_plus_cos_ge (a b : ℝ) (ha : |a| ≤ 2) (hb : |b| 
 theorem norm_RxRy_minus_id_le (α β : ℝ) : ‖RxL α ∘L RyL β - 1‖ ≤ √(α ^ 2 + β ^ 2) := by
   sorry
 
-theorem norm_RxRy_minus_id_eq_iff (α β : ℝ) :
-    ‖RxL α ∘L RyL β - 1‖ = √(α ^ 2 + β ^ 2) ↔ α = 0 ∧ β = 0 := by
+theorem norm_M_sub_lt (ε θ θ_ φ φ_ : ℝ) (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
+    ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
   sorry
+
+-- TODO norm_X_sub_lt

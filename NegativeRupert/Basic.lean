@@ -1,4 +1,5 @@
 import NegativeRupert.Rupert.Basic
+import Mathlib
 
 open scoped Matrix
 
@@ -75,38 +76,38 @@ def RzL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Rz_linear θ).toContinuousLinearM
 
 -- [SY25] § 1.1 Definition 2
 noncomputable
-def rotR (α : ℝ) : ℝ² →ᵃ[ℝ] ℝ² :=
+def rotR (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
   let A : Matrix (Fin 2) (Fin 2) ℝ :=
     !![cos α, -sin α; sin α, cos α]
-  (A.toLin e2 e2).toAffineMap
+  (A.toLin e2 e2).toContinuousLinearMap
 
 -- Derivative of rotR with respect to its parameter
 noncomputable
-def rotR' (α : ℝ) : ℝ² →ᵃ[ℝ] ℝ² :=
+def rotR' (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
   let A : Matrix (Fin 2) (Fin 2) ℝ :=
     !![-sin α, -cos α; cos α, -sin α]
-  (A.toLin e2 e2).toAffineMap
+  (A.toLin e2 e2).toContinuousLinearMap
 
 -- [SY25] § 1.1 Definition 2
 noncomputable
-def rotM (θ : ℝ) (φ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ² :=
+def rotM (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   let A : Matrix (Fin 2) (Fin 3) ℝ :=
     !![-sin θ, cos θ, 0; -cos θ * cos φ, -sin θ * cos φ, sin φ]
-  (A.toLin e3 e2).toAffineMap
+  (A.toLin e3 e2).toContinuousLinearMap
 
 -- Partial derivative of rotM with respect to θ
 noncomputable
-def rotMθ (θ : ℝ) (φ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ² :=
+def rotMθ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   let A : Matrix (Fin 2) (Fin 3) ℝ :=
     !![-cos θ, -sin θ, 0; sin θ * cos φ, -cos θ * cos φ, 0]
-  (A.toLin e3 e2).toAffineMap
+  (A.toLin e3 e2).toContinuousLinearMap
 
 -- Partial derivative of rotM with respect to φ
 noncomputable
-def rotMφ (θ : ℝ) (φ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ² :=
+def rotMφ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   let A : Matrix (Fin 2) (Fin 3) ℝ :=
     !![0, 0, 0; cos θ * sin φ, sin θ * sin φ, cos φ]
-  (A.toLin e3 e2).toAffineMap
+  (A.toLin e3 e2).toContinuousLinearMap
 
 theorem sin_neg_pi_div_two : Real.sin (-(π / 2)) = -1 := by
   simp only [Real.sin_neg, Real.sin_pi_div_two]
@@ -124,5 +125,5 @@ def rotRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ :=
 
 -- This is R(α) M(θ, φ) in (5) in [SY25] § 2.2,
 noncomputable
-def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →ᵃ[ℝ] ℝ² :=
-  rotR α ∘ᵃ rotM θ φ
+def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  rotR α ∘L rotM θ φ

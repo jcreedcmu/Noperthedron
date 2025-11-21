@@ -75,22 +75,22 @@ def closed_ball (p : LooseViewPose) (ε : ℝ) : PoseInterval := {
 -- we actually use them not in the context of a LooseViewPose.
 
 noncomputable
-def rotM₁ (p : LooseViewPose) : ℝ³ →ᵃ[ℝ] ℝ² := rotM (p.θ₁) (p.φ₁)
+def rotM₁ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₁) (p.φ₁)
 noncomputable
-def rotM₂ (p : LooseViewPose) : ℝ³ →ᵃ[ℝ] ℝ² := rotM (p.θ₂) (p.φ₂)
+def rotM₂ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₂) (p.φ₂)
 noncomputable
-def rotR (p : LooseViewPose) : ℝ² →ᵃ[ℝ] ℝ² := _root_.rotR (p.α)
+def rotR (p : LooseViewPose) : ℝ² →L[ℝ] ℝ² := _root_.rotR (p.α)
 
 noncomputable
-def rotM₁θ (p : LooseViewPose) : ℝ³ →ᵃ[ℝ] ℝ² := rotMθ (p.θ₁) (p.φ₁)
+def rotM₁θ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₁) (p.φ₁)
 noncomputable
-def rotM₂θ (p : LooseViewPose) : ℝ³ →ᵃ[ℝ] ℝ² := rotMθ (p.θ₂) (p.φ₂)
+def rotM₂θ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₂) (p.φ₂)
 noncomputable
-def rotM₁φ (p : LooseViewPose) : ℝ³ →ᵃ[ℝ] ℝ² := rotMφ (p.θ₁) (p.φ₁)
+def rotM₁φ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₁) (p.φ₁)
 noncomputable
-def rotM₂φ (p : LooseViewPose) : ℝ³ →ᵃ[ℝ] ℝ² := rotMφ (p.θ₂) (p.φ₂)
+def rotM₂φ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₂) (p.φ₂)
 noncomputable
-def rotR' (p : LooseViewPose) : ℝ² →ᵃ[ℝ] ℝ² := _root_.rotR' (p.α)
+def rotR' (p : LooseViewPose) : ℝ² →L[ℝ] ℝ² := _root_.rotR' (p.α)
 
 end LooseViewPose
 
