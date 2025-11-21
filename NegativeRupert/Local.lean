@@ -4,7 +4,7 @@ import NegativeRupert.Basic
 
 namespace Local
 
-open scoped RealInnerProductSpace
+open scoped RealInnerProductSpace Real
 
 notation "Euc(" n:arg ")" => EuclideanSpace ℝ (Fin n)
 
@@ -15,4 +15,9 @@ theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P
 
 theorem abs_sub_inner_le {n : ℕ} (A B : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
     |⟪A P₁, A P₂⟫ - ⟪B P₁, B P₂⟫| ≤ ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (‖A‖ + ‖B‖ + ‖A - B‖) := by
+  sorry
+
+theorem origin_in_triangle {A B C : Euc(2)}
+    (hA : 0 < ⟪rotR (π/2) A, B⟫) (hB : 0 < ⟪rotR (π/2) B, C⟫) (hB : 0 < ⟪rotR (π/2) C, A⟫) :
+    0 ∈ interior (convexHull ℝ {A, B, C}) := by
   sorry
