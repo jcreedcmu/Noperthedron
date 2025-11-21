@@ -23,6 +23,8 @@ See \cite{polyhedron.without.rupert}, Lemma 23.
 \end{proof}
 
 \begin{lemma} \label{lem:scalarprodbars}
+\lean{Local.abs_sub_inner_bars_le}
+\leanok
     For $A,\overline{A},B,\overline{B}\in \R^{n\times n}$ and $P_1,P_2\in \R^n$ it holds that
     \[
         |\langle AP_1,BP_2\rangle-\langle \overline{A}P_1,\overline{B}P_2\rangle|\leq \|P_1\|\cdot \|P_2\|\cdot \Big( \|A-\overline{A}\|\cdot \|\overline{B}\| +  \|\overline{A}\|\cdot \|B-\overline{B}\|+\|A-\overline{A}\|\cdot \|B-\overline{B}\|\Big).
