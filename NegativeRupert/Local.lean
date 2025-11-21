@@ -17,6 +17,11 @@ theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
 def spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=
   {w | ∃ c : Fin n → ℝ, ∀ i, 0 < c i ∧ w = ∑ i, c i • v i }
 
+theorem langles {Y Z : Euc(3)} {V : Fin 3 → Euc(3)} (hYZ : ‖Y‖ = ‖Z‖)
+    (hY : Y ∈ spanp V) (hZ : Z ∈ spanp V) :
+    ⟪V 0, Y⟫ ≤ ⟪V 0, Z⟫ ∨ ⟪V 1, Y⟫ ≤ ⟪V 1, Z⟫ ∨ ⟪V 2, Y⟫ ≤ ⟪V 2, Z⟫ := by
+  sorry
+
 theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
     |⟪A P₁, B P₂⟫ - ⟪A_ P₁, B_ P₂⟫| ≤
     ‖P₁‖ * ‖P₂‖ * (‖A - A_‖ * ‖B‖ + ‖A_‖ * ‖B - B_‖ + ‖A - A_‖ * ‖A - B_‖) := by
