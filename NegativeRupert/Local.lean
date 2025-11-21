@@ -36,3 +36,10 @@ structure Spanning (θ φ ε : ℝ) (P₁ P₂ P₃ : Euc(3)) : Prop where
   lt1 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₁), rotM θ φ P₂⟫
   lt2 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₂), rotM θ φ P₃⟫
   lt3 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₃), rotM θ φ P₁⟫
+
+theorem rotX_spanning {θ θ_ φ φ_ ε : ℝ} (P : Fin 3 → Euc(3))
+    (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
+    (hSpanning: Spanning θ_ φ_ ε (P 1) (P 2) (P 3))
+    (hX : ∀ i, 0 < ⟪rotX θ φ (WithLp.toLp 2 fun _ ↦ 1), P i⟫) :
+    rotX θ φ (WithLp.toLp 2 fun _ ↦ 1) ∈ spanp P := by
+  sorry

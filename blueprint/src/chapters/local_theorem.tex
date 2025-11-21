@@ -87,7 +87,9 @@ See \cite{polyhedron.without.rupert}, Lemma 26.
 
 
 \begin{lemma} \label{lem:eps-spanning}
-\uses{def:eps-spanning, def:spanp}
+  \uses{def:eps-spanning, def:spanp}
+  \lean{Local.rotX_spanning}
+  \leanok
     Let $P_1, P_2, P_3 \in \R^3$ with $\|P_1\|,\|P_2\|,\|P_3\| \leq 1$ be $\epsilon$-spanning for $(\thetab, \phib)$ and let $\theta, \phi \in \R$ such that $|\theta - \overline{\theta}|, |\phi - \overline{\phi}| \leq \epsilon$. Assume that $\langle X(\theta, \phi), P_i \rangle > 0$ for $i=1,2,3$. Then
     \[
         X(\theta, \phi) \in \spanp(P_1, P_2, P_3).
