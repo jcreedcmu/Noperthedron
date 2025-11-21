@@ -117,10 +117,10 @@ structure TightViewPose : Type where
 
 noncomputable
 instance : Affines LooseViewPose where
-  inner vp := rotRM vp.θ₁ vp.φ₁ vp.α
-  outer vp := rotRM vp.θ₂ vp.φ₂ 0
+  inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
+  outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap
 
 noncomputable
 instance : Affines TightViewPose where
-  inner vp := rotRM vp.θ₁ vp.φ₁ vp.α
-  outer vp := rotRM vp.θ₂ vp.φ₂ 0
+  inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
+  outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap

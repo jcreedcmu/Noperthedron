@@ -14,5 +14,5 @@ structure ViewPose : Type where
 
 noncomputable
 instance : Affines ViewPose where
-  inner vp := rotRM vp.θ₁ vp.φ₁ vp.α
-  outer vp := rotRM vp.θ₂ vp.φ₂ 0
+  inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
+  outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap
