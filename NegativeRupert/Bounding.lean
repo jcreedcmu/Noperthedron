@@ -2,7 +2,7 @@ import Mathlib.Analysis.Complex.Trigonometric
 
 import NegativeRupert.Basic
 
-open scoped Real
+open scoped RealInnerProductSpace Real
 
 namespace Bounding
 
@@ -21,7 +21,13 @@ theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
     ‖rotX θ φ - rotX θ_ φ_‖ < √2 * ε := by
   sorry
 
-theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} (P : ℝ³)
+theorem XPgt0 {P : ℝ³} {ε θ θ_ φ φ_ : ℝ} (hP : ‖P‖ ≤ 1)
+    (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
+    (hX : √2 * ε < ⟪rotX θ_ φ_ (WithLp.toLp 2 fun _ ↦ 1), P⟫) :
+    0 < ⟪rotX θ φ (WithLp.toLp 2 fun _ ↦ 1), P⟫ := by
+  sorry
+
+theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} {P : ℝ³}
     (hP : ‖P‖ ≤ 1) (hε : 0 < ε) (hr : 0 < r) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hM : r + √2 * ε < ‖rotM θ_ φ_ P‖) : r < ‖rotM θ φ P‖ := by
   sorry
