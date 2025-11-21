@@ -25,3 +25,8 @@ theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} (P : ℝ³)
     (hP : ‖P‖ ≤ 1) (hε : 0 < ε) (hr : 0 < r) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hM : r + √2 * ε < ‖rotM θ_ φ_ P‖) : r < ‖rotM θ φ P‖ := by
   sorry
+
+theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
+    (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) (hα : |α - α_| ≤ ε) :
+    ‖rotprojRM θ φ α - rotprojRM θ_ φ_ α_‖ < √5 * ε := by
+  sorry
