@@ -21,3 +21,9 @@ theorem origin_in_triangle {A B C : Euc(2)}
     (hA : 0 < ⟪rotR (π/2) A, B⟫) (hB : 0 < ⟪rotR (π/2) B, C⟫) (hC : 0 < ⟪rotR (π/2) C, A⟫) :
     0 ∈ interior (convexHull ℝ {A, B, C}) := by
   sorry
+
+structure Spanning (θ φ ε : ℝ) (P₁ P₂ P₃ : Euc(3)) : Prop where
+  pos : 0 < ε
+  lt1 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₁), rotM θ φ P₂⟫
+  lt2 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₂), rotM θ φ P₃⟫
+  lt3 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₃), rotM θ φ P₁⟫
