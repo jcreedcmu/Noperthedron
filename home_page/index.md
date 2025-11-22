@@ -6,7 +6,7 @@
 usemathjax: true
 ---
 
-<img src="{{ site.url }}/assets/noperthedron.png" width="250" alt="noperthedron">
+<img src="{{ site.url }}/assets/noperthedron.png" width="225" alt="noperthedron" style="display: block; margin: 0 auto">
 
 Useful links:
 
