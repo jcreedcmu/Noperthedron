@@ -78,6 +78,12 @@ def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) := Metric.ball
 def LocallyMaximallyDistant (δ : ℝ) (Q Q_ : Euc(2)) (P : Finset Euc(2)) : Prop :=
   ∀ A ∈ sect δ Q_ P, ‖A‖ < ‖Q‖
 
+theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
+    (hQ : Q ∈ P) (hQ_ : ‖Q - Q_‖ < δ) (hr : 0 < r) (hrQ : r < ‖Q‖)
+    (hle : ∀ Pᵢ ∈ P \ {Q}, δ / r ≤ ⟪Q, Q - Pᵢ⟫ / (‖Q‖ * ‖Q - Pᵢ‖)) :
+    LocallyMaximallyDistant δ Q Q_ P := by
+  sorry
+
 /-- [SY25] Lemma 33 -/
 theorem coss {δ ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
     (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)

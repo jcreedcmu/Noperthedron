@@ -128,7 +128,9 @@ See \cite{polyhedron.without.rupert}, Lemma 30.
 \end{definition}
 
 \begin{lemma} \label{lem:LMD}
-\uses{def:LMD}
+  \uses{def:LMD}
+  \lean{Local.inner_ge_implies_LMD}
+  \leanok
     Let $\PP$ be a convex polygon and $Q \in \PP$ be one of its vertices. Let $\overline{Q} \in \R^2$ with $\|Q - \overline{Q}\| < \delta$ for some $\delta>0$. Assume that for some $r > 0 $ such that $\|Q\| > r$ it holds that
     \[
         \frac{\langle Q, Q - P_j \rangle}{\|Q\|\|Q - P_j\|} \geq \delta/r,
