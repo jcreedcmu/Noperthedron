@@ -37,6 +37,7 @@ theorem origin_in_triangle {A B C : Euc(2)}
 
 def Triangle : Type := Fin 3 → ℝ³
 
+/-- The triangle P is congruent to Q in the usual geometric sense -/
 def Triangle.Congruent (P Q : Triangle) : Prop := by
   sorry
 
@@ -44,6 +45,7 @@ structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where
   pos : 0 < ε
   lt : ∀ i : Fin 3, 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ (P i)), rotM θ φ (P (i + 1))⟫
 
+/-- [SY25] Lemma 28 -/
 theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
     (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hSpanning: P.Spanning θ_ φ_ ε)
@@ -51,6 +53,7 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
     vecX θ φ ∈ spanp P := by
   sorry
 
+/-- [SY25] Lemma 30 -/
 theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_: ℝ} {P Q : Euc(3)}
     (hε : 0 < ε)
     (hθ₁ : |θ₁ - θ₁_| ≤ ε) (hφ₁ : |φ₁ - φ₁_| ≤ ε)
@@ -68,6 +71,7 @@ def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) := Metric.ball
 def LocallyMaximallyDistant (δ : ℝ) (Q Q_ : Euc(2)) (P : Finset Euc(2)) : Prop :=
   ∀ A ∈ sect δ Q_ P, ‖A‖ < ‖Q‖
 
+/-- [SY25] Lemma 33 -/
 theorem coss {δ ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
     (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
@@ -100,9 +104,11 @@ def Triangle.Bε (Q : Triangle) (p : LooseViewPose) (ε δ r : ℝ) : Prop :=
 instance : Membership Triangle (Finset ℝ³) where
   mem set tri := ∀ i : Fin 3, (tri i) ∈ set
 
+/-- The condition on δ in the Local Theorem -/
 def BoundDelta (δ : ℝ) (p : LooseViewPose) (P Q : Triangle) : Prop :=
   ∀ i : Fin 3, δ ≥ ‖p.rotR (p.rotM₁ (P i)) - p.rotM₂ (Q i)‖/2
 
+/-- The condition on r in the Local Theorem -/
 def BoundR (r ε : ℝ) (p : LooseViewPose) (Q : Triangle): Prop :=
   ∀ i : Fin 3, ‖p.rotM₂ (Q i)‖ > r + ε * √2
 
