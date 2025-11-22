@@ -90,6 +90,11 @@ def rotX (θ : ℝ) (φ : ℝ) : ℝ¹ →L[ℝ] ℝ³ :=
 
 -- [SY25] § 1.1 Definition 2
 noncomputable
+def vecX (θ : ℝ) (φ : ℝ) : ℝ³ :=
+  mkVec3 ![ cos θ * sin φ, sin θ * sin φ, cos φ ]
+
+-- [SY25] § 1.1 Definition 2
+noncomputable
 def rotM (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   let A : Matrix (Fin 2) (Fin 3) ℝ :=
     !![-sin θ, cos θ, 0; -cos θ * cos φ, -sin θ * cos φ, sin φ]
