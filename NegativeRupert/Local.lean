@@ -62,6 +62,12 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
      rotM θ₂ φ₂ Q ∈ Metric.ball T (δ + √5 * ε)) := by
   sorry
 
+/-- The intersection of the δ-disc centered at Q with the interior of P -/
+def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) := Metric.ball Q δ ∩ interior P
+
+def LocallyMaximallyDistant (δ : ℝ) (Q Q_ : Euc(2)) (P : Finset Euc(2)) : Prop :=
+  ∀ A ∈ sect δ Q_ P, ‖A‖ < ‖Q‖
+
 theorem coss {δ ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
     (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
@@ -75,6 +81,7 @@ theorem coss {δ ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
 
 def Triangle.Az (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
   ∃ σ ∈ ({-1, 1} : Set ℝ), ∀ i : Fin 3, ⟪X, P i⟫ > ε * √2
+
 
 theorem local_theorem (P Q : Triangle)
     (cong_tri : P.Congruent Q)

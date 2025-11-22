@@ -119,7 +119,9 @@ See \cite{polyhedron.without.rupert}, Lemma 30.
 \end{proof}
 
 \begin{definition}
-\label{def:LMD}
+  \label{def:LMD}
+  \lean{Local.LocallyMaximallyDistant}
+  \leanok
     Let $\PP \subset \R^2$ be a convex polygon and $Q \in \PP$ one of its vertices. Assume that for some $\overline{Q} \in \R^2$ it holds that $Q \in \Circ_{\delta}(\overline{Q})$, i.e. $\|Q - \overline{Q}\| < \delta$. Define $\Sect_\delta(\overline{Q}) \coloneqq \Circ_{\delta}(\overline{Q}) \cap \PP^\circ$ as the intersection between $\Circ_{\delta}(\overline{Q})$ and the interior of the convex hull of $\PP$.
 
     Moreover, $Q \in \PP$ is called \emph{$\delta$-locally maximally distant with respect to $\overline{Q}$ ($\delta$-LMD$(\overline{Q})$)} if for all $A \in \Sect_\delta(\overline{Q})$ it holds that $\|Q\| > \|A\|$.
