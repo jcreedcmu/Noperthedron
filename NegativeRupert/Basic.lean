@@ -82,7 +82,7 @@ def rotR' (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
 -- [SY25] § 1.1 Definition 2
 noncomputable
 def vecX (θ : ℝ) (φ : ℝ) : ℝ³ :=
-  mkVec3 ![ cos θ * sin φ, sin θ * sin φ, cos φ ]
+  !₂[ cos θ * sin φ, sin θ * sin φ, cos φ ]
 
 -- [SY25] § 1.1 Definition 2
 noncomputable
