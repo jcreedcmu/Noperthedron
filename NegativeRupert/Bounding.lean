@@ -6,6 +6,13 @@ open scoped RealInnerProductSpace Real
 
 namespace Bounding
 
+theorem RaRa {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
+    ‖rotR α - rotR α_‖ < ε ∧
+    ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ ∧
+    ‖RyL α - RyL α_‖ = ‖rotR α - rotR α_‖ ∧
+    ‖RzL α - RzL α_‖ = ‖rotR α - rotR α_‖ := by
+  sorry
+
 theorem one_plus_cos_mul_one_plus_cos_ge {a b : ℝ} (ha : |a| ≤ 2) (hb : |b| ≤ 2) :
     2 + 2 * Real.cos √(a ^ 2 + b ^ 2) ≤ (1 + Real.cos a) * (1 + Real.cos b) := by
   sorry

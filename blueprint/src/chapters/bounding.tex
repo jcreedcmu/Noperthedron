@@ -1,5 +1,15 @@
 \chapter{Bounding Rotations}
 
+\begin{lemma} \label{lem:RaRa}
+  \lean{Bounding.RaRa}
+  \leanok
+Let $\epsilon>0$, $|\alpha-\alphab|\leq\varepsilon$ and $a \in \{x,y,z\}$ then
+$\|R_a(\alpha)-R_a({\alphab})\|=\|R(\alpha)-R(\alphab)\| < \varepsilon$.
+\end{lemma}
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 10.
+\end{proof}
+
 \begin{lemma} \label{lem:jensen}
 \lean{Bounding.one_plus_cos_mul_one_plus_cos_ge}
 \leanok
@@ -25,7 +35,7 @@ with equality only for $\alpha = \beta = 0$.
 \end{lemma}
 
 \begin{proof}
-\uses{lem:jensen}
+\uses{lem:jensen, lem:RaRa}
 See \cite{polyhedron.without.rupert}, Lemma 12.
 \end{proof}
 
