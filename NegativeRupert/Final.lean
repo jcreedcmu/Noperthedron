@@ -2,7 +2,7 @@ import NegativeRupert.Rupert.Equivalences.RupertEquivRupertSet
 import NegativeRupert.Basic
 import NegativeRupert.Nopert
 import NegativeRupert.ViewPose
-import NegativeRupert.TightViewPose
+import NegativeRupert.PoseInterval
 import NegativeRupert.Tightening
 import NegativeRupert.ConvertPose
 import NegativeRupert.CommonCenter

@@ -1,7 +1,7 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import NegativeRupert.Basic
-import NegativeRupert.TightViewPose
+import NegativeRupert.PoseInterval
 
 namespace Local
 

@@ -3,7 +3,7 @@ import NegativeRupert.PoseClasses
 import NegativeRupert.Basic
 import NegativeRupert.Nopert
 import NegativeRupert.ViewPose
-import NegativeRupert.TightViewPose
+import NegativeRupert.PoseInterval
 
 -- [SY25] §2.2, Corollary 8
 -- This is a piece that relies on symmetry of the Noperthedron

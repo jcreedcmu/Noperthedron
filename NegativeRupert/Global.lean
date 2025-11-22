@@ -3,7 +3,7 @@ import Mathlib.Analysis.InnerProductSpace.Dual
 import NegativeRupert.Basic
 import NegativeRupert.Nopert
 import NegativeRupert.PoseClasses
-import NegativeRupert.TightViewPose
+import NegativeRupert.PoseInterval
 
 open scoped RealInnerProductSpace
 

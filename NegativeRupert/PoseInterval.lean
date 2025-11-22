@@ -2,16 +2,10 @@ import NegativeRupert.Rupert.Basic
 import NegativeRupert.PoseClasses
 import NegativeRupert.Basic
 import NegativeRupert.ViewPose
+import NegativeRupert.Pose
 
 open scoped Matrix
 open scoped Real
-
-structure Pose : Type where
-  θ₁ : ℝ
-  θ₂ : ℝ
-  φ₁ : ℝ
-  φ₂ : ℝ
-  α : ℝ
 
 instance : Coe ViewPose Pose where
   coe vp := {
@@ -65,32 +59,6 @@ def closed_ball (p : Pose) (ε : ℝ) : PoseInterval := {
   }
 }
 
--- Some convenience functions for doing rotations with dot notation
--- Maybe the rotations in basic could be inlined here? It depends on whether
--- we actually use them not in the context of a Pose.
-
-noncomputable
-def rotM₁ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₁) (p.φ₁)
-noncomputable
-def rotM₂ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₂) (p.φ₂)
-noncomputable
-def rotR (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.rotR (p.α)
-noncomputable
-def vecX₁ (p : Pose) : ℝ³ := vecX (p.θ₁) (p.φ₁)
-noncomputable
-def vecX₂ (p : Pose) : ℝ³ := vecX (p.θ₂) (p.φ₂)
-
-noncomputable
-def rotM₁θ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₁) (p.φ₁)
-noncomputable
-def rotM₂θ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₂) (p.φ₂)
-noncomputable
-def rotM₁φ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₁) (p.φ₁)
-noncomputable
-def rotM₂φ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₂) (p.φ₂)
-noncomputable
-def rotR' (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.rotR' (p.α)
-
 end Pose
 
 namespace PoseInterval
@@ -113,11 +81,6 @@ structure TightViewPose : Type where
   φ₁ : Set.Icc 0 π
   φ₂ : Set.Icc 0 (π/2)
   α : Set.Icc (-π/2) (π/2)
-
-noncomputable
-instance : Affines Pose where
-  inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
-  outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap
 
 noncomputable
 instance : Affines TightViewPose where
