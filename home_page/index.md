@@ -8,6 +8,9 @@ usemathjax: true
 
 <img src="{{ site.url }}/assets/noperthedron.png" width="225" alt="noperthedron" style="display: block; margin: 0 auto">
 
+This is a collaborative project to write a [Lean 4](https://lean-lang.org/) proof that the Noperthedron
+does not have the [Rupert property](https://en.wikipedia.org/wiki/Prince_Rupert%27s_cube).
+
 Internal links:
 
 * [Blueprint]({{ site.url }}/blueprint/)
