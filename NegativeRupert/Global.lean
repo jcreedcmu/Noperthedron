@@ -81,10 +81,6 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ) (x y : E
   |f x - f y| ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by
   sorry
 
-noncomputable
-def polyhedron_radius {n : ℕ} (ι : Finset (E n)) [Nonempty ι] : ℝ :=
-  (ι.image (‖·‖)).max' ι.image_nonempty'
-
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
