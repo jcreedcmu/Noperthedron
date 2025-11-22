@@ -1,4 +1,4 @@
-# NegativeRupert
+# Noperthedron
 
 The goal of this project is to formalize the main result of
 ["A convex polyhedron without Rupert's property"](https://arxiv.org/abs/2508.18475)

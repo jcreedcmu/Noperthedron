@@ -22,10 +22,10 @@ title: Noperthedron
 #email: your-email@example.com
 description: A convex polyhedron without the Rupert property
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://jcreedcmu.github.io/NegativeRupert" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://jcreedcmu.github.io/Noperthedron" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username:
 github_username: jcreedcmu
-repository: jcreedcmu/NegativeRupert
+repository: jcreedcmu/Noperthedron
 
 # Build settings
 remote_theme: pages-themes/cayman@v0.2.0
