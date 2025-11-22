@@ -32,16 +32,4 @@ A pose `p` demonstrates that a set `s` is rupert if the closure of the
 def IsRupert {P : Type} [Shadows P] (p : P) (s : Set ℝ³) : Prop :=
   closure (Shadows.inner p s) ⊆ interior (Shadows.outer p s)
 
-/--
-This was meant to be "safe" from the point of view of us trying to
-demonstrate that the noperthedron is not rupert. `IsSafe` holds if we
-do have a point in the inner shadow that lies outside of the outer
-shadow, meaning that this particular pose `p` definitely doesn't
-establish rupertness. I don't see this definition being used right now
-anywhere. If it remains unused we should delete it.
--/
-@[deprecated "Not sure what this was needed for" (since := "2025-11-20")]
-def IsSafe {P : Type} [Shadows P] (p : P) (s : Set ℝ³) : Prop :=
-  ∃ y, y ∈ Shadows.inner p s ∧ ¬ y ∈ Shadows.outer p s
-
 end Shadows
