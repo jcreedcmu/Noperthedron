@@ -11,14 +11,14 @@ usemathjax: true
 This is a collaborative project to write a [Lean 4](https://lean-lang.org/) proof that the Noperthedron
 does not have the [Rupert property](https://en.wikipedia.org/wiki/Prince_Rupert%27s_cube).
 
-Internal links:
+### Internal links:
 
 * [Blueprint]({{ site.url }}/blueprint/)
 * [Blueprint as pdf]({{ site.url }}/blueprint.pdf)
 * [Dependency graph]({{ site.url }}/blueprint/dep_graph_document.html)
 * [Doc pages for this repository]({{ site.url }}/docs/)
 
-External links:
+### External links:
 
 * [Original Noperthedron paper](https://arxiv.org/abs/2508.18475)
 * [Original Sagemath verification](https://github.com/Jakob256/Rupert)
