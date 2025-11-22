@@ -22,7 +22,7 @@ of our current progress.
 
 ## Getting started
 
-[Install Lean](https://www.lean-lang.org/lean-get-started), clone this project, then build it with:
+[Install Lean](https://lean-lang.org/install/manual/), clone this project, then build it with:
 
 ```
 lake exe cache get
