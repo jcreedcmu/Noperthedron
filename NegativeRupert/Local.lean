@@ -11,7 +11,7 @@ notation "Euc(" n:arg ")" => EuclideanSpace ℝ (Fin n)
 -- TODO: The WithLp.toLP conversion below is awkward. To we have a nicer way
 -- to get a handle on that conversion?
 theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
-    ‖rotM θ φ P‖ ^ 2 = ‖P‖ ^ 2 - ⟪rotX θ φ (WithLp.toLp 2 fun _ ↦ 1), P⟫ ^ 2 := by
+    ‖rotM θ φ P‖ ^ 2 = ‖P‖ ^ 2 - ⟪vecX θ φ, P⟫ ^ 2 := by
   sorry
 
 def spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=
@@ -42,11 +42,11 @@ structure Spanning (θ φ ε : ℝ) (P₁ P₂ P₃ : Euc(3)) : Prop where
   lt2 : 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ P₂), rotM θ φ P₃⟫
   lt3 : 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ P₃), rotM θ φ P₁⟫
 
-theorem rotX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Fin 3 → Euc(3))
+theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Fin 3 → Euc(3))
     (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hSpanning: Spanning θ_ φ_ ε (P 1) (P 2) (P 3))
-    (hX : ∀ i, 0 < ⟪rotX θ φ (WithLp.toLp 2 fun _ ↦ 1), P i⟫) :
-    rotX θ φ (WithLp.toLp 2 fun _ ↦ 1) ∈ spanp P := by
+    (hX : ∀ i, 0 < ⟪vecX θ φ, P i⟫) :
+    vecX θ φ ∈ spanp P := by
   sorry
 
 theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_: ℝ} {P Q : Euc(3)}

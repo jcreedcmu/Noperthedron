@@ -79,15 +79,6 @@ def rotR' (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
     !![-sin α, -cos α; cos α, -sin α]
   A.toEuclideanLin.toContinuousLinearMap
 
--- Is this silly? Should we use bare ℝ instead?
-notation "ℝ¹" => EuclideanSpace ℝ (Fin 1)
-
-noncomputable
-def rotX (θ : ℝ) (φ : ℝ) : ℝ¹ →L[ℝ] ℝ³ :=
-  let A : Matrix (Fin 3) (Fin 1) ℝ :=
-    !![cos θ * sin φ; sin θ * sin φ; cos φ]
-  A.toEuclideanLin.toContinuousLinearMap
-
 -- [SY25] § 1.1 Definition 2
 noncomputable
 def vecX (θ : ℝ) (φ : ℝ) : ℝ³ :=

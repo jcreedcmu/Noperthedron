@@ -25,13 +25,13 @@ theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
   sorry
 
 theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
-    ‖rotX θ φ - rotX θ_ φ_‖ < √2 * ε := by
+    ‖vecX θ φ - vecX θ_ φ_‖ < √2 * ε := by
   sorry
 
 theorem XPgt0 {P : ℝ³} {ε θ θ_ φ φ_ : ℝ} (hP : ‖P‖ ≤ 1)
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
-    (hX : √2 * ε < ⟪rotX θ_ φ_ (WithLp.toLp 2 fun _ ↦ 1), P⟫) :
-    0 < ⟪rotX θ φ (WithLp.toLp 2 fun _ ↦ 1), P⟫ := by
+    (hX : √2 * ε < ⟪vecX θ_ φ_, P⟫) :
+    0 < ⟪vecX θ φ, P⟫ := by
   sorry
 
 theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} {P : ℝ³}
