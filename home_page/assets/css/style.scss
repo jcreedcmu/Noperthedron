@@ -7,3 +7,7 @@
 @import "{{ site.theme }}";
 
 /* Put your rules below this line */
+
+.page-header {
+  background-image: linear-gradient(120deg, #16508a, #2c7d90);
+}
