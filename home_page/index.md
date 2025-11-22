@@ -6,6 +6,8 @@
 usemathjax: true
 ---
 
+<img src="assets/noperthedron.png" width="250" alt="noperthedron">
+
 Useful links:
 
 * [Blueprint]({{ site.url }}/blueprint/)
