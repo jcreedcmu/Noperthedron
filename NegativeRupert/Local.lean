@@ -1,6 +1,7 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import NegativeRupert.Basic
+import NegativeRupert.TightViewPose
 
 namespace Local
 
@@ -34,15 +35,18 @@ theorem origin_in_triangle {A B C : Euc(2)}
     0 ∈ interior (convexHull ℝ {A, B, C}) := by
   sorry
 
-structure Spanning (θ φ ε : ℝ) (P₁ P₂ P₃ : Euc(3)) : Prop where
-  pos : 0 < ε
-  lt1 : 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ P₁), rotM θ φ P₂⟫
-  lt2 : 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ P₂), rotM θ φ P₃⟫
-  lt3 : 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ P₃), rotM θ φ P₁⟫
+def Triangle : Type := Fin 3 → ℝ³
 
-theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Fin 3 → Euc(3))
+def Triangle.Congruent (P Q : Triangle) : Prop := by
+  sorry
+
+structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where
+  pos : 0 < ε
+  lt : ∀ i : Fin 3, 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ (P i)), rotM θ φ (P (i + 1))⟫
+
+theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
     (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
-    (hSpanning: Spanning θ_ φ_ ε (P 1) (P 2) (P 3))
+    (hSpanning: P.Spanning θ_ φ_ ε)
     (hX : ∀ i, 0 < ⟪vecX θ φ, P i⟫) :
     vecX θ φ ∈ spanp P := by
   sorry
@@ -67,4 +71,17 @@ theorem coss {δ ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
      ((‖M_ P‖ + √2 * ε) * (‖M_ (P - Q)‖ + 2 * √2 * ε))
     ≤
      ⟪M P, M (P - Q)⟫ / (‖M P‖ * ‖M (P - Q)‖):= by
+  sorry
+
+def Triangle.Az (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
+  ∃ σ ∈ ({-1, 1} : Set ℝ), ∀ i : Fin 3, ⟪X, P i⟫ > ε * √2
+
+theorem local_theorem (P Q : Triangle)
+    (cong_tri : P.Congruent Q)
+    (bP : Finset ℝ³) [Nonempty bP]
+    (radius_one : polyhedron_radius bP = 1)
+    (ε : ℝ) (hε : ε > 0)
+    (p : LooseViewPose)
+    (az₁ : P.Az p.vecX₁ ε) (az₂ : Q.Az p.vecX₂ ε)
+    : True := by -- FIXME not all premises here yet
   sorry

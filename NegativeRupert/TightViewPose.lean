@@ -80,6 +80,10 @@ noncomputable
 def rotM₂ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₂) (p.φ₂)
 noncomputable
 def rotR (p : LooseViewPose) : ℝ² →L[ℝ] ℝ² := _root_.rotR (p.α)
+noncomputable
+def vecX₁ (p : LooseViewPose) : ℝ³ := vecX (p.θ₁) (p.φ₁)
+noncomputable
+def vecX₂ (p : LooseViewPose) : ℝ³ := vecX (p.θ₂) (p.φ₂)
 
 noncomputable
 def rotM₁θ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₁) (p.φ₁)
