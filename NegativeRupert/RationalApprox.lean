@@ -9,24 +9,24 @@ open Nat -- for ! notation
 noncomputable section
 
 /--
-Sine partial sum `x - x³/3! + x⁵/5! - ⋯` up to and including the 2n-1 degree term.
+Sine partial sum $x - x^3/3! + x^5/5! - ⋯$ up to and including the degree $2n-1$ term.
 -/
 def sin_psum (n : ℕ) (x : ℚ) : ℚ :=
   ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!)
 
 /--
-Cosine partial sum `1 - x²/2! + x⁴/4! - ⋯` up to and including the 2n-2 degree term.
+Cosine partial sum $1 - x^2/2! + x^4/4! - ⋯$ up to and including the degree $2n-2$ degree term.
 -/
 def cos_psum (n : ℕ) (x : ℚ) : ℚ :=
   ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i) / (2 * i)!)
 
 /--
-Sine partial sum `x - x³/3! + x⁵/5! - ⋯ + x²⁵/25!`
+Sine partial sum $x - x^3/3! + x^5/5! - ⋯ + x^{25}/25!$
 -/
 def sinℚ := sin_psum 13
 
 /--
-Cosine partial sum `1 - x²/2! + x⁴/4! - ⋯ + x²⁴/24!`
+Cosine partial sum $1 - x^2/2! + x^4/4! - ⋯ + x^{24}/24!$
 -/
 def cosℚ := cos_psum 13
 
