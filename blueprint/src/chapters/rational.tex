@@ -2,7 +2,7 @@
 
 \begin{definition}
 \leanok
-\lean{sinℚ,cosℚ}
+\lean{RationalApprox.sinℚ,RationalApprox.cosℚ}
     We define the two functions $\ssin, \scos: \R \to \R$ by:
     \begin{align*}
     \ssin(x) & \coloneqq x-\frac{x^3}{3}+\frac{x^5}{5!}\mp \dots +\frac{x^{25}}{25!},\\
@@ -13,6 +13,33 @@
     R_{\Q}(\alpha), R'_{\Q}(\alpha), X_{\Q}(\theta, \phi), M_{\Q}(\theta, \phi), M_{\Q}^{\theta}(\theta,\varphi),M_{\Q}^{\phi}(\theta,\varphi).
 \]
 \end{definition}
+
+\begin{lemma} \label{lem:sin27cos26}
+\leanok
+\lean{RationalApprox.sinℚ_approx,RationalApprox.cosℚ_approx}
+    \[
+        |\ssin(x)-\sin(x)|\leq \frac{|x|^{27}}{27!} \quad \text{and} \quad
+    |\scos(x)-\cos(x)|\leq \frac{|x|^{26}}{26!}.
+    \]
+\end{lemma}
+\begin{proof}
+Appeal to Taylor series bounds, using the fact that all absolute values of
+higher derivatives of sine and cosine never exceed 1.
+\end{proof}
+
+\begin{lemma} \label{lem:kappa7}
+\leanok
+\lean{RationalApprox.sinℚ_approx',RationalApprox.cosℚ_approx'}
+    For every $x\in [-4,4]$ it holds that
+    \[
+    |\ssin(x)-\sin(x)| \leq \frac{\kappa}{7} \quad \text{and} \quad |\scos(x)-\cos(x)|\leq \frac{\kappa}{7}.
+    \]
+\end{lemma}
+\begin{proof}
+\uses{lem:sin27cos26}
+Straightforward numerical calculation from Lemma~\ref{lem:sin27cos26}.
+\end{proof}
+
 
 \begin{theorem}[Rational Global Theorem] \label{thm:global_rational}
     Let $\PPP$ be a pointsymmetric convex polyhedron with radius $\rho =1$ and $\widetilde{\PPP}$ a $\kappa$-rational approximation. Let $\widetilde{S} \in \widetilde{\PPP}$. Further let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \Q \cap [-4,4]$.
