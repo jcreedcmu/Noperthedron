@@ -5,6 +5,7 @@ import NegativeRupert.Basic
 open scoped Matrix
 open scoped Real
 
+/- TODO: Better name "Bounded Pose" or something? -/
 structure ViewPose : Type where
   θ₁ : Set.Ico 0 (2 * π)
   θ₂ : Set.Ico 0 (2 * π)

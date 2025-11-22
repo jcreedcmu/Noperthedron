@@ -103,14 +103,14 @@ def Triangle.Aε (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
   ∃ σ ∈ ({-1, 1} : Set ℝ), ∀ i : Fin 3, ⟪X, P i⟫ > ε * √2
 
 noncomputable
-def Triangle.Bε.lhs (i j : Fin 3) (Q : Triangle) (p : LooseViewPose) (ε : ℝ) : ℝ :=
+def Triangle.Bε.lhs (i j : Fin 3) (Q : Triangle) (p : Pose) (ε : ℝ) : ℝ :=
    (⟪p.rotM₂ (Q i), p.rotM₂ (Q i - Q j)⟫ - 2 * ε * ‖Q i - Q j‖ * (ε + √2))
    / ((‖p.rotM₂ (Q i)‖ + ε * √2) * (‖p.rotM₂ (Q i - Q j)‖ + 2 * ε * √2))
 
 /--
 Condition B_ε from [SY25] Theorem 36
 -/
-def Triangle.Bε (Q : Triangle) (p : LooseViewPose) (ε δ r : ℝ) : Prop :=
+def Triangle.Bε (Q : Triangle) (p : Pose) (ε δ r : ℝ) : Prop :=
   ∀ i j : Fin 3, i ≠ j →
   Triangle.Bε.lhs i j Q p ε > (δ + ε * √5) / r
 
@@ -118,11 +118,11 @@ instance : Membership Triangle (Finset ℝ³) where
   mem set tri := ∀ i : Fin 3, (tri i) ∈ set
 
 /-- The condition on δ in the Local Theorem -/
-def BoundDelta (δ : ℝ) (p : LooseViewPose) (P Q : Triangle) : Prop :=
+def BoundDelta (δ : ℝ) (p : Pose) (P Q : Triangle) : Prop :=
   ∀ i : Fin 3, δ ≥ ‖p.rotR (p.rotM₁ (P i)) - p.rotM₂ (Q i)‖/2
 
 /-- The condition on r in the Local Theorem -/
-def BoundR (r ε : ℝ) (p : LooseViewPose) (Q : Triangle): Prop :=
+def BoundR (r ε : ℝ) (p : Pose) (Q : Triangle): Prop :=
   ∀ i : Fin 3, ‖p.rotM₂ (Q i)‖ > r + ε * √2
 
 -- FIXME: is this the cleanest way of getting convex hull from
@@ -140,7 +140,7 @@ theorem local_theorem (P Q : Triangle)
     (poly : Finset ℝ³) [Nonempty poly]
     (hP : P ∈ poly) (hQ : Q ∈ poly)
     (radius_one : polyhedron_radius poly = 1)
-    (p : LooseViewPose)
+    (p : Pose)
     (ε δ r : ℝ) (hε : ε > 0) (hr : r > 0)
     (hr : BoundR r ε p Q)
     (hδ : BoundDelta δ p P Q)

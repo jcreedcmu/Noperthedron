@@ -6,19 +6,14 @@ import NegativeRupert.ViewPose
 open scoped Matrix
 open scoped Real
 
-/--
-Maybe this should be renamed something much shorter like "Pose".
-I'm starting to get a feeling this is a more basic type
-than the things currently called "Pose" and "ViewPose".
--/
-structure LooseViewPose : Type where
+structure Pose : Type where
   θ₁ : ℝ
   θ₂ : ℝ
   φ₁ : ℝ
   φ₂ : ℝ
   α : ℝ
 
-instance : Coe ViewPose LooseViewPose where
+instance : Coe ViewPose Pose where
   coe vp := {
     θ₁ := vp.θ₁,
     θ₂ := vp.θ₂,
@@ -31,8 +26,8 @@ instance : Coe ViewPose LooseViewPose where
 Represents a closed 5d box in parameter space.
 -/
 structure PoseInterval : Type where
-  min : LooseViewPose
-  max : LooseViewPose
+  min : Pose
+  max : Pose
 
 noncomputable
 def tightInterval : PoseInterval where
@@ -51,9 +46,9 @@ def tightInterval : PoseInterval where
     α := π / 2
   }
 
-namespace LooseViewPose
+namespace Pose
 
-def closed_ball (p : LooseViewPose) (ε : ℝ) : PoseInterval := {
+def closed_ball (p : Pose) (ε : ℝ) : PoseInterval := {
   min := {
     θ₁ := p.θ₁ - ε
     θ₂ := p.θ₂ - ε
@@ -72,35 +67,35 @@ def closed_ball (p : LooseViewPose) (ε : ℝ) : PoseInterval := {
 
 -- Some convenience functions for doing rotations with dot notation
 -- Maybe the rotations in basic could be inlined here? It depends on whether
--- we actually use them not in the context of a LooseViewPose.
+-- we actually use them not in the context of a Pose.
 
 noncomputable
-def rotM₁ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₁) (p.φ₁)
+def rotM₁ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₁) (p.φ₁)
 noncomputable
-def rotM₂ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₂) (p.φ₂)
+def rotM₂ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotM (p.θ₂) (p.φ₂)
 noncomputable
-def rotR (p : LooseViewPose) : ℝ² →L[ℝ] ℝ² := _root_.rotR (p.α)
+def rotR (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.rotR (p.α)
 noncomputable
-def vecX₁ (p : LooseViewPose) : ℝ³ := vecX (p.θ₁) (p.φ₁)
+def vecX₁ (p : Pose) : ℝ³ := vecX (p.θ₁) (p.φ₁)
 noncomputable
-def vecX₂ (p : LooseViewPose) : ℝ³ := vecX (p.θ₂) (p.φ₂)
+def vecX₂ (p : Pose) : ℝ³ := vecX (p.θ₂) (p.φ₂)
 
 noncomputable
-def rotM₁θ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₁) (p.φ₁)
+def rotM₁θ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₁) (p.φ₁)
 noncomputable
-def rotM₂θ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₂) (p.φ₂)
+def rotM₂θ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMθ (p.θ₂) (p.φ₂)
 noncomputable
-def rotM₁φ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₁) (p.φ₁)
+def rotM₁φ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₁) (p.φ₁)
 noncomputable
-def rotM₂φ (p : LooseViewPose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₂) (p.φ₂)
+def rotM₂φ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₂) (p.φ₂)
 noncomputable
-def rotR' (p : LooseViewPose) : ℝ² →L[ℝ] ℝ² := _root_.rotR' (p.α)
+def rotR' (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.rotR' (p.α)
 
-end LooseViewPose
+end Pose
 
 namespace PoseInterval
 
-def contains (iv : PoseInterval) (vp : LooseViewPose) : Prop :=
+def contains (iv : PoseInterval) (vp : Pose) : Prop :=
   (vp.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁) ∧
   (vp.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂) ∧
   (vp.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁) ∧
@@ -109,7 +104,7 @@ def contains (iv : PoseInterval) (vp : LooseViewPose) : Prop :=
 
 end PoseInterval
 
-instance : Membership LooseViewPose PoseInterval where
+instance : Membership Pose PoseInterval where
   mem iv vp := iv.contains vp
 
 structure TightViewPose : Type where
@@ -120,7 +115,7 @@ structure TightViewPose : Type where
   α : Set.Icc (-π/2) (π/2)
 
 noncomputable
-instance : Affines LooseViewPose where
+instance : Affines Pose where
   inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
   outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap
 

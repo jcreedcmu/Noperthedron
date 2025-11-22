@@ -85,7 +85,7 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ) (x y : E
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
-def G (p : LooseViewPose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
+def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
   ⟪p.rotR (p.rotM₁ S), w⟫ - ε * |⟪p.rotR' (p.rotM₁ S), w⟫ + ⟪p.rotR (p.rotM₁θ S), w⟫ + ⟪p.rotR (p.rotM₁φ S), w⟫|
   - 9 * ε^2 / 2
 
@@ -93,14 +93,14 @@ def G (p : LooseViewPose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
 A measure of how far an outer-shadow vertex P can "reach" along w.
 -/
 noncomputable
-def H (p : LooseViewPose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
+def H (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
   ⟪p.rotM₂ P, w⟫ + ε * |⟪p.rotM₂θ P, w⟫ + ⟪p.rotM₂φ P, w⟫| + 2 * ε^2
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
-def maxH (p : LooseViewPose) (ε : ℝ) (w : ℝ²) : ℝ :=
+def maxH (p : Pose) (ε : ℝ) (w : ℝ²) : ℝ :=
   nopertVertFinset.image (H p ε w) |>.max' nopertVertFinset.image_nonempty'
 
 /--
@@ -109,10 +109,10 @@ We require the existence of some inner-shadow vertex S from the polyehdron, and 
 the direction we're projecting ℝ² → ℝ to find that S "sticks out too far" compared to all the
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
-def global_theorem_precondition (p : LooseViewPose) (ε : ℝ) : Prop :=
+def global_theorem_precondition (p : Pose) (ε : ℝ) : Prop :=
   ∃ S ∈ nopertVertSet, ∃ (w : ℝ²), G p ε S w > maxH p ε w
 
-theorem global_theorem (p : LooseViewPose) (ε : ℝ) (hε : ε > 0)
+theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     (hp : global_theorem_precondition p ε) :
     ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q nopert.hull := by
   intro ⟨q, q_near_p, q_is_rupert⟩
