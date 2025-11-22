@@ -1,6 +1,6 @@
-import NegativeRupert.Rupert.Basic
-import NegativeRupert.PoseClasses
-import NegativeRupert.Util
+import Noperthedron.Rupert.Basic
+import Noperthedron.PoseClasses
+import Noperthedron.Util
 
 open scoped Matrix
 

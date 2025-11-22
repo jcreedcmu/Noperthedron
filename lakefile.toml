@@ -1,5 +1,5 @@
-name = "NegativeRupert"
-defaultTargets = ["NegativeRupert"]
+name = "Noperthedron"
+defaultTargets = ["Noperthedron"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -21,4 +21,4 @@ name = "checkdecls"
 git = "https://github.com/PatrickMassot/checkdecls.git"
 
 [[lean_lib]]
-name = "NegativeRupert"
+name = "Noperthedron"

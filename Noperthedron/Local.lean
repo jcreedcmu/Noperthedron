@@ -1,7 +1,7 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
-import NegativeRupert.Basic
-import NegativeRupert.PoseInterval
+import Noperthedron.Basic
+import Noperthedron.PoseInterval
 
 namespace Local
 

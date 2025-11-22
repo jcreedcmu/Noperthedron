@@ -1,8 +1,8 @@
-import NegativeRupert.Rupert.Basic
-import NegativeRupert.Rupert.Set
-import NegativeRupert.Util
-import NegativeRupert.MatrixPose
-import NegativeRupert.PoseClasses
+import Noperthedron.Rupert.Basic
+import Noperthedron.Rupert.Set
+import Noperthedron.Util
+import Noperthedron.MatrixPose
+import Noperthedron.PoseClasses
 
 /-
 This file more or less captures Proposition 2 from

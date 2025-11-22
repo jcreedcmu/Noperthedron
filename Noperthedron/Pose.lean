@@ -1,5 +1,5 @@
-import NegativeRupert.PoseClasses
-import NegativeRupert.Basic
+import Noperthedron.PoseClasses
+import Noperthedron.Basic
 
 structure Pose : Type where
   θ₁ : ℝ

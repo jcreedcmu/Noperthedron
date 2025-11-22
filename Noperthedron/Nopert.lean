@@ -1,5 +1,5 @@
-import NegativeRupert.Basic
-import NegativeRupert.Util
+import Noperthedron.Basic
+import Noperthedron.Util
 
 /-
 This file covers [SY25] §2.1.

@@ -1,5 +1,5 @@
-import NegativeRupert.Rupert.Basic
-import NegativeRupert.Rupert.Equivalences.Util
+import Noperthedron.Rupert.Basic
+import Noperthedron.Rupert.Equivalences.Util
 
 open scoped Matrix
 

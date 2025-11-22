@@ -1,11 +1,11 @@
-import NegativeRupert.Rupert.Equivalences.RupertEquivRupertSet
-import NegativeRupert.Basic
-import NegativeRupert.Nopert
-import NegativeRupert.ViewPose
-import NegativeRupert.PoseInterval
-import NegativeRupert.Tightening
-import NegativeRupert.ConvertPose
-import NegativeRupert.CommonCenter
+import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
+import Noperthedron.Basic
+import Noperthedron.Nopert
+import Noperthedron.ViewPose
+import Noperthedron.PoseInterval
+import Noperthedron.Tightening
+import Noperthedron.ConvertPose
+import Noperthedron.CommonCenter
 
 open scoped Matrix
 

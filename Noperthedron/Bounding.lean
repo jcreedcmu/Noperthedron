@@ -1,6 +1,6 @@
 import Mathlib.Analysis.Complex.Trigonometric
 
-import NegativeRupert.Basic
+import Noperthedron.Basic
 
 open scoped RealInnerProductSpace Real
 

@@ -1,4 +1,4 @@
-import NegativeRupert.Rupert.Equivalences.Util
+import Noperthedron.Rupert.Equivalences.Util
 open Matrix
 
 theorem rupert_imp_rupert_set {ι : Type} [Fintype ι] (v : ι → ℝ³) :

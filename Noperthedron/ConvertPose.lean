@@ -1,5 +1,5 @@
-import NegativeRupert.MatrixPose
-import NegativeRupert.ViewPose
+import Noperthedron.MatrixPose
+import Noperthedron.ViewPose
 
 def poseOfViewPose (v : ViewPose) : MatrixPose where
   innerRot := sorry -- TODO(easy)

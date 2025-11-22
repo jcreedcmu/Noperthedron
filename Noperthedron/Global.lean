@@ -1,9 +1,9 @@
 import Mathlib.Analysis.Calculus.FDeriv.Defs
 import Mathlib.Analysis.InnerProductSpace.Dual
-import NegativeRupert.Basic
-import NegativeRupert.Nopert
-import NegativeRupert.PoseClasses
-import NegativeRupert.PoseInterval
+import Noperthedron.Basic
+import Noperthedron.Nopert
+import Noperthedron.PoseClasses
+import Noperthedron.PoseInterval
 
 open scoped RealInnerProductSpace
 
