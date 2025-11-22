@@ -27,7 +27,7 @@ theorem no_nopert_view_pose : ¬ ∃ v : ViewPose, Shadows.IsRupert v nopert.hul
 /--
 There is no purely rotational pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_rot_pose : ¬ ∃ p : Pose, Shadows.IsRupert p.zeroOffset nopert.hull := by
+theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, Shadows.IsRupert p.zeroOffset nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
   let ⟨v, e⟩ := view_pose_of_pose p
@@ -39,7 +39,7 @@ theorem no_nopert_rot_pose : ¬ ∃ p : Pose, Shadows.IsRupert p.zeroOffset nope
 /--
 There is no pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_pose : ¬ ∃ p : Pose, Shadows.IsRupert p nopert.hull := by
+theorem no_nopert_pose : ¬ ∃ p : MatrixPose, Shadows.IsRupert p nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
   have hconvex : Convex ℝ nopert.hull := by
@@ -54,9 +54,9 @@ package up the pose parameters. The converse also should be true, but
 there hasn't been any need for it yet.
 -/
 lemma rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
-    ∃ p : Pose, Shadows.IsRupert p S := by
+    ∃ p : MatrixPose, Shadows.IsRupert p S := by
   obtain ⟨inner, inner_so3, offset, outer, outer_so3, sub⟩ := r
-  let p : Pose := Pose.mk ⟨inner, inner_so3⟩ ⟨outer, outer_so3⟩ offset
+  let p : MatrixPose := MatrixPose.mk ⟨inner, inner_so3⟩ ⟨outer, outer_so3⟩ offset
   use p
   change closure (Shadows.inner p S) ⊆ interior (Shadows.outer p S)
   rw [p.inner_shadow_lemma]

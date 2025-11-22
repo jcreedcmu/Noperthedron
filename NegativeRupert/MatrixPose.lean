@@ -4,38 +4,38 @@ import NegativeRupert.Util
 
 open scoped Matrix
 
-structure Pose : Type where
+structure MatrixPose : Type where
   innerRot : SO3
   outerRot : SO3
   innerOffset : ℝ²
 
-namespace Pose
+namespace MatrixPose
 
-def IsRot (p : Pose) : Prop :=
+def IsRot (p : MatrixPose) : Prop :=
   p.innerOffset = 0
 
-def zeroOffset (p : Pose) : Pose :=
+def zeroOffset (p : MatrixPose) : MatrixPose :=
   { p with innerOffset := 0 }
 
-noncomputable def innerOffsetPart (p : Pose) : ℝ³ → ℝ³ :=
+noncomputable def innerOffsetPart (p : MatrixPose) : ℝ³ → ℝ³ :=
   translationAffineEquiv (inject_xy p.innerOffset)
-noncomputable def innerRotPart (p : Pose) : ℝ³ → ℝ³ := p.innerRot.val.toEuclideanLin
+noncomputable def innerRotPart (p : MatrixPose) : ℝ³ → ℝ³ := p.innerRot.val.toEuclideanLin
 
-end Pose
+end MatrixPose
 
 noncomputable
-instance : Affines Pose where
+instance : Affines MatrixPose where
   inner p := (translationAffineEquiv (inject_xy p.innerOffset)).toAffineMap.comp
       (p.innerRot.val.toEuclideanLin.toAffineMap)
   outer p := p.outerRot.val.toEuclideanLin.toAffineMap
 
-namespace Pose
+namespace MatrixPose
 
 /--
 If we zero out the offset, then the offset part of the inner
 action is the identity.
 -/
-theorem zero_offset_id (p : Pose) (v : ℝ³) : p.zeroOffset.innerOffsetPart v = v := by
+theorem zero_offset_id (p : MatrixPose) (v : ℝ³) : p.zeroOffset.innerOffsetPart v = v := by
   ext i; fin_cases i
   all_goals
     change (translationAffineEquiv 0) v _ = v _
@@ -43,18 +43,18 @@ theorem zero_offset_id (p : Pose) (v : ℝ³) : p.zeroOffset.innerOffsetPart v =
     simp
 
 @[simp]
-theorem zero_offset_elim (p : Pose) :
+theorem zero_offset_elim (p : MatrixPose) :
     ↑(Affines.inner p.zeroOffset) = (fun (v : ℝ³) => p.innerRot.val.toEuclideanLin v) := by
   ext1 v
   change p.zeroOffset.innerOffsetPart (p.innerRot.val.toEuclideanLin v) = _
   rw [zero_offset_id]
 
-noncomputable def shift (p : Pose) : ℝ² ≃ₜ ℝ² := translationHomeo p.innerOffset
+noncomputable def shift (p : MatrixPose) : ℝ² ≃ₜ ℝ² := translationHomeo p.innerOffset
 
 /--
 We can massage Shadows.inner p S into the form of the standard Rupert definition
 -/
-theorem inner_shadow_lemma (p : Pose) (S : Set ℝ³) :
+theorem inner_shadow_lemma (p : MatrixPose) (S : Set ℝ³) :
     Shadows.inner p S = {x | ∃ v ∈ S, p.innerOffset + proj_xy (p.innerRot.val.toEuclideanLin v) = x} := by
   change ((proj_xy ∘ (· + inject_xy p.innerOffset)) ∘ p.innerRotPart) '' S =
          (((p.innerOffset + ·) ∘ proj_xy) ∘ p.innerRotPart) '' S
@@ -65,4 +65,4 @@ theorem inner_shadow_lemma (p : Pose) (S : Set ℝ³) :
   nth_rw 2 [add_comm]
   rw [proj_offset_commute p.innerOffset v]
 
-end Pose
+end MatrixPose

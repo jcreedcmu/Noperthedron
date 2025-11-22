@@ -1,7 +1,7 @@
-import NegativeRupert.Pose
+import NegativeRupert.MatrixPose
 import NegativeRupert.ViewPose
 
-def poseOfViewPose (v : ViewPose) : Pose where
+def poseOfViewPose (v : ViewPose) : MatrixPose where
   innerRot := sorry -- TODO(easy)
   outerRot := sorry -- TODO(easy)
   innerOffset := 0
@@ -21,5 +21,5 @@ theorem converted_pose_rupert_iff (v : ViewPose) (S : Set ℝ³) :
     rw [converted_pose_inner_shadow_eq, converted_pose_outer_shadow_eq]
     exact id
 
-theorem view_pose_of_pose (p : Pose) : ∃ v : ViewPose, poseOfViewPose v = p.zeroOffset := by
+theorem view_pose_of_pose (p : MatrixPose) : ∃ v : ViewPose, poseOfViewPose v = p.zeroOffset := by
   sorry -- TODO(easy)
