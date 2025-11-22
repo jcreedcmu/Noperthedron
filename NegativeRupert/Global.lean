@@ -7,14 +7,6 @@ import NegativeRupert.TightViewPose
 
 open scoped RealInnerProductSpace
 
-/--
-A little convenience lemma to turn a Nonempty typeclass into a Finset.Nonempty fact
-for a image of that finite set.
--/
-lemma Finset.image_nonempty' {α β : Type} (s : Finset α) {f : α → β} [n : Nonempty s] [DecidableEq β] :
-    (s.image f).Nonempty :=
-  s.image_nonempty.mpr (nonempty_coe_sort.mp n)
-
 namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
