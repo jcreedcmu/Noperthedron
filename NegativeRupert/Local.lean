@@ -9,27 +9,33 @@ open scoped RealInnerProductSpace Real
 
 notation "Euc(" n:arg ")" => EuclideanSpace ℝ (Fin n)
 
+/-- [SY25] Lemma 21 -/
 theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
     ‖rotM θ φ P‖ ^ 2 = ‖P‖ ^ 2 - ⟪vecX θ φ, P⟫ ^ 2 := by
   sorry
 
+/-- The positive cone of a finite collection of vectors -/
 def spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=
   {w | ∃ c : Fin n → ℝ, ∀ i, 0 < c i ∧ w = ∑ i, c i • v i }
 
+/-- [SY25] Lemma 23 -/
 theorem langles {Y Z : Euc(3)} {V : Fin 3 → Euc(3)} (hYZ : ‖Y‖ = ‖Z‖)
     (hY : Y ∈ spanp V) (hZ : Z ∈ spanp V) :
     ⟪V 0, Y⟫ ≤ ⟪V 0, Z⟫ ∨ ⟪V 1, Y⟫ ≤ ⟪V 1, Z⟫ ∨ ⟪V 2, Y⟫ ≤ ⟪V 2, Z⟫ := by
   sorry
 
+/-- [SY25] Lemma 24 -/
 theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
     |⟪A P₁, B P₂⟫ - ⟪A_ P₁, B_ P₂⟫| ≤
     ‖P₁‖ * ‖P₂‖ * (‖A - A_‖ * ‖B‖ + ‖A_‖ * ‖B - B_‖ + ‖A - A_‖ * ‖A - B_‖) := by
   sorry
 
+/-- [SY25] Lemma 25 -/
 theorem abs_sub_inner_le {n : ℕ} (A B : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
     |⟪A P₁, A P₂⟫ - ⟪B P₁, B P₂⟫| ≤ ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (‖A‖ + ‖B‖ + ‖A - B‖) := by
   sorry
 
+/-- [SY25] Lemma 26 -/
 theorem origin_in_triangle {A B C : Euc(2)}
     (hA : 0 < ⟪rotR (π/2) A, B⟫) (hB : 0 < ⟪rotR (π/2) B, C⟫) (hC : 0 < ⟪rotR (π/2) C, A⟫) :
     0 ∈ interior (convexHull ℝ {A, B, C}) := by
