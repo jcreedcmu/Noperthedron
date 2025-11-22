@@ -70,6 +70,13 @@ def contains (iv : PoseInterval) (vp : Pose) : Prop :=
   (vp.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂) ∧
   (vp.α ∈ Set.Icc iv.min.α iv.max.α)
 
+def center (iv : PoseInterval) : Pose where
+  θ₁ := (iv.min.θ₁ + iv.max.θ₁)
+  θ₂ := (iv.min.θ₂ + iv.max.θ₂)
+  φ₁ := (iv.min.φ₁ + iv.max.φ₁)
+  φ₂ := (iv.min.φ₂ + iv.max.φ₂)
+  α := (iv.min.α + iv.max.α)
+
 end PoseInterval
 
 instance : Membership Pose PoseInterval where
