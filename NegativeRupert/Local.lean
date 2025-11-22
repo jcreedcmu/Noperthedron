@@ -47,6 +47,7 @@ def Triangle : Type := Fin 3 → ℝ³
 def Triangle.Congruent (P Q : Triangle) : Prop := by
   sorry
 
+/-- [SY25] Definition 27. Note that the "+ 1" at the type Fin 3 wraps. -/
 structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where
   pos : 0 < ε
   lt : ∀ i : Fin 3, 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ (P i)), rotM θ φ (P (i + 1))⟫
