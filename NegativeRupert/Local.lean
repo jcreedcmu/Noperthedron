@@ -38,9 +38,9 @@ theorem origin_in_triangle {A B C : Euc(2)}
 
 structure Spanning (θ φ ε : ℝ) (P₁ P₂ P₃ : Euc(3)) : Prop where
   pos : 0 < ε
-  lt1 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₁), rotM θ φ P₂⟫
-  lt2 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₂), rotM θ φ P₃⟫
-  lt3 : 2 * ε * (√2 + ε) <  ⟪rotR (π / 2) (rotM θ φ P₃), rotM θ φ P₁⟫
+  lt1 : 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ P₁), rotM θ φ P₂⟫
+  lt2 : 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ P₂), rotM θ φ P₃⟫
+  lt3 : 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ P₃), rotM θ φ P₁⟫
 
 theorem rotX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Fin 3 → Euc(3))
     (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
@@ -49,7 +49,18 @@ theorem rotX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Fin 3 → Euc(3))
     rotX θ φ (WithLp.toLp 2 fun _ ↦ 1) ∈ spanp P := by
   sorry
 
-theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
+theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_: ℝ} {P Q : Euc(3)}
+    (hε : 0 < ε)
+    (hθ₁ : |θ₁ - θ₁_| ≤ ε) (hφ₁ : |φ₁ - φ₁_| ≤ ε)
+    (hθ₂ : |θ₂ - θ₂_| ≤ ε) (hφ₂ : |φ₂ - φ₂_| ≤ ε)
+    (hα : |α - α_| ≤ ε) :
+    let T : Euc(2) := (1/2) • (rotR α_ (rotM θ₁_ φ₁_ P) + rotM θ₂_ φ₂_ Q)
+    ‖T - rotM θ₂_ φ₂_ Q‖ ≤ δ →
+    (rotR α (rotM θ₁ φ₁ P) ∈ Metric.ball T (δ + √5 * ε) ∧
+     rotM θ₂ φ₂ Q ∈ Metric.ball T (δ + √5 * ε)) := by
+  sorry
+
+theorem coss {δ ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
     (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     let M := rotM θ φ
