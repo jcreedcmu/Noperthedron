@@ -19,4 +19,5 @@ External links:
 
 * [Original Noperthedron paper](https://arxiv.org/abs/2508.18475)
 * [Original Sagemath verification](https://github.com/Jakob256/Rupert)
+* [Lean formalization of Rupert's cube and other polyhedra](https://github.com/dwrensha/Rupert.lean)
 * [Quanta article](https://www.quantamagazine.org/first-shape-found-that-cant-pass-through-itself-20251024/)
