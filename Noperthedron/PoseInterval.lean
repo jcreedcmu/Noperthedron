@@ -82,6 +82,9 @@ end PoseInterval
 instance : Membership Pose PoseInterval where
   mem iv vp := iv.contains vp
 
+instance : HasSubset PoseInterval where
+  Subset a b := ∀ p, p ∈ a → p ∈ b
+
 structure TightViewPose : Type where
   θ₁ : Set.Icc 0 (2 * π / 15)
   θ₂ : Set.Icc 0 (2 * π / 15)
