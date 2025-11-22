@@ -8,8 +8,6 @@ open scoped RealInnerProductSpace Real
 
 notation "Euc(" n:arg ")" => EuclideanSpace ℝ (Fin n)
 
--- TODO: The WithLp.toLP conversion below is awkward. To we have a nicer way
--- to get a handle on that conversion?
 theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
     ‖rotM θ φ P‖ ^ 2 = ‖P‖ ^ 2 - ⟪vecX θ φ, P⟫ ^ 2 := by
   sorry
