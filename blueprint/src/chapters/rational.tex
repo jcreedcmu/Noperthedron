@@ -1,6 +1,6 @@
 \chapter{Rational Versions}
 
-\begin{definition}
+\begin{definition} \label{dfn:sin_cos_approx}
 \leanok
 \lean{RationalApprox.sinℚ,RationalApprox.cosℚ}
     We define the two functions $\ssin, \scos: \R \to \R$ by:
@@ -21,6 +21,7 @@
         |\ssin(x)-\sin(x)|\leq \frac{|x|^{27}}{27!} \quad \text{and} \quad
     |\scos(x)-\cos(x)|\leq \frac{|x|^{26}}{26!}.
     \]
+\uses{dfn:sin_cos_approx}
 \end{lemma}
 \begin{proof}
 Appeal to Taylor series bounds, using the fact that all absolute values of
