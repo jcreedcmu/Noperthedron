@@ -9,8 +9,7 @@ IDs start from zero. See [SY25] §7.1 for the meaning of all these fields.
 -/
 structure Row : Type where
    ID : ℕ
-   nodeType : ℕ
-   hnt : nodeType ∈ Finset.Icc 1 3
+   nodeType : Finset.Icc 1 3
    nrChildren : ℕ
    IDfirstChild : ℕ
    split : Finset.Icc 1 6
