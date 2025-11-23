@@ -48,10 +48,35 @@ theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 := by
   simp
 
 theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 := by
-  sorry
+  refine pres_sq_norm_imp_norm_one ?_
+  intro v
+  simp only [RyL, Ry_mat, PiLp.norm_sq_eq_of_L2]
+  simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
+    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct, Fin.isValue,
+    Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, one_mul, zero_mul, add_zero, zero_add, neg_mul]
+  ring_nf
+  convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
+           + (v 1)^2
+           + (v 2)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
+           = _
+  · ring_nf
+  simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
+  ring_nf
 
 theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 := by
-  sorry
+  refine pres_sq_norm_imp_norm_one ?_
+  intro v
+  simp only [RzL, Rz_mat, PiLp.norm_sq_eq_of_L2]
+  simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
+    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct, Fin.isValue,
+    Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, one_mul, zero_mul, add_zero, zero_add, neg_mul]
+  ring_nf
+  convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
+           + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
+           + (v 2)^2
+           = _
+  · ring_nf
+  simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
 
 theorem M_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   sorry

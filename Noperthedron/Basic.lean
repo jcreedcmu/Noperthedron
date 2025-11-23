@@ -37,36 +37,40 @@ noncomputable
 def RxL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rx_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
 -- rotation about y-axis by θ
+@[simp]
 noncomputable
-def Ry (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
-  !![cos θ, 0, -sin θ;
-     0,     1,      0;
-     sin θ, 0,  cos θ]
+def Ry_mat (α : ℝ) : (Matrix (Fin 3) (Fin 3) ℝ) :=
+  Matrix.of fun
+      | 0, 0 => Real.cos α
+      | 0, 1 => 0
+      | 0, 2 => -Real.sin α
+      | 1, 0 => 0
+      | 1, 1 => 1
+      | 1, 2 => 0
+      | 2, 0 => Real.sin α
+      | 2, 1 => 0
+      | 2, 2 => Real.cos α
 
 noncomputable
-def Ry_linear (θ : ℝ) : ℝ³ →ₗ[ℝ] ℝ³ := (Ry θ).toEuclideanLin
-
-noncomputable
-def Ry_affine (θ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ := (Ry_linear θ).toAffineMap
-
-noncomputable
-def RyL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Ry_linear θ).toContinuousLinearMap
+def RyL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Ry_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
 -- rotation about z-axis by θ
+@[simp]
 noncomputable
-def Rz (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
-  !![cos θ, -sin θ, 0;
-     sin θ,  cos θ, 0;
-     0,      0,     1]
+def Rz_mat (α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
+  Matrix.of fun
+      | 0, 0 => Real.cos α
+      | 0, 1 => -Real.sin α
+      | 0, 2 => 0
+      | 1, 0 => Real.sin α
+      | 1, 1 => Real.cos α
+      | 1, 2 => 0
+      | 2, 0 => 0
+      | 2, 1 => 0
+      | 2, 2 => 1
 
 noncomputable
-def Rz_linear (θ : ℝ) : ℝ³ →ₗ[ℝ] ℝ³ := (Rz θ).toEuclideanLin
-
-noncomputable
-def Rz_affine (θ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ := (Rz_linear θ).toAffineMap
-
-noncomputable
-def RzL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Rz_linear θ).toContinuousLinearMap
+def RzL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rz_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
 @[simp]
 noncomputable
