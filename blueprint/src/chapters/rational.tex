@@ -41,6 +41,82 @@ higher derivatives of sine and cosine never exceed 1.
 Straightforward numerical calculation from Lemma~\ref{lem:sin27cos26}.
 \end{proof}
 
+\begin{lemma} \label{lem:A_lt_deltamn}
+Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and $\delta >0$. Assume that $|a_{i,j}| \leq \delta$. Then it holds that $\|A\| \leq \delta \sqrt{mn}.$
+\end{lemma}
+
+\begin{proof}
+    For any $v\in \R^n$ we have
+    \begin{align*}
+        \|Av\|^2 &=\sum_{i=1}^m \left(\sum_{j=1}^na_{i,j}v_j\right)^2 \leq \sum_{i=1}^m\left(\sum_{j=1}^n \delta |v_j|\right)^2 = \delta^2 m\left(\sum_{j=1}^n |v_j|\right)^2 \leq \delta^2 m n \|v\|^2
+    \end{align*}
+    using the Cauchy-Schwarz inequality. Dividing by $\|v\|$ and taking the square root proves the claim.
+\end{proof}
+
+\begin{lemma}\label{lem:dist_lt_kappa}
+    Let $A(x,y)$ be an $m\times n$ matrix with $1 \leq m,n\leq 3$ such that every entry is of the form $a_1(x)\cdot a_2(y)$ where
+    $a_i(z)\in \{0,1,-1,\pm\sin(z),\pm\cos(z)\}.$
+    Define $A_{\mathbb{Q}}(x,y)$ by replacing $\sin$ with $\ssin$ and $\cos$ with $\scos$. Then for every $x,y\in[-4,4]$ it holds that
+    $\|A(x,y)-A_{\mathbb{Q}}(x,y)\|\leq\kappa$.
+\end{lemma}
+
+\begin{proof}
+\uses{lem:kappa7,lem:A_lt_deltamn}
+    For fixed $x,y$ every entry of $A(x,y)-A_{\mathbb{Q}}(x,y)$ is of the form
+    $a b - \widetilde{a}\widetilde{b}$ for some $a,b\in[-1,1]$ and $|a-\widetilde{a}|,|b-\widetilde{b}|\leq \kappa/7$ by \cref{lem:kappa7}. This implies that
+    \begin{align*}
+      |ab-\widetilde{a}\widetilde{b}|&\leq |a b-a\widetilde{b}|+|a \widetilde{b}-\widetilde{a}\widetilde{b}|
+      =|a|\cdot |b-\widetilde{b}|+|\widetilde{b}|\cdot |a-\widetilde{a}| \leq 1\cdot \kappa/7+(1+\kappa/7) \cdot \kappa/7 <\kappa/3.
+    \end{align*}
+    So we can apply \cref{lem:A_lt_deltamn} and obtain that $\|A(x,y)-A_{\Q}(x,y)\|<\kappa/3\cdot \sqrt{3\cdot 3}=\kappa$.
+\end{proof}
+
+
+\begin{corollary} \label{corr:kappa1kappa}
+    Let $\alpha,\theta,\phi\in [-4,4]$. Then it holds that
+    \begin{align*}
+        \|R(\alpha)-R_{\Q}(\alpha)\|, \|R'(\alpha)-R_{\Q}'(\alpha)\|,\|X(\theta,\phi)-X_{\Q}(\theta, \phi)\|, \|M(\theta, \phi)-M_{\Q}(\theta, \phi)\|, \\
+        \|M^\theta(\theta,\phi)-M_{\Q}^\theta(\theta,\phi)\|,
+        \|M^\phi(\theta,\phi) - M_{\Q}^\phi(\theta,\phi)\|\leq \kappa.
+    \end{align*}
+    Moreover,
+    \[
+        \|R_{\Q}(\alpha)\|, \|R'_{\Q}(\alpha)\|, \|X_{\Q}(\theta, \phi)\|, \|M_{\Q}(\theta, \phi)\|, \|M_{\Q}^{\theta}(\theta,\varphi)\|, \|M_{\Q}^{\phi}(\theta,\varphi)\| \leq 1+\kappa
+    \]
+\end{corollary}
+
+\begin{proof}
+\uses{lem:dist_lt_kappa,lem:RaRalpha}
+    The first statement is a direct application of \cref{lem:dist_lt_kappa} and the second statement follows immediately after using \cref{lem:RaRalpha} and the triangle inequality.
+\end{proof}
+
+\begin{lem} \label{lem:A1AnB1Bn}
+    For $1 \leq i \leq n$ let $(A_i,B_i)$ be pairs of real matrices, such that for each $i$ the dimensions of $A_i$ and $B_i$ are equal. Assume moreover that the products $A_1\cdots A_n$ and $B_1 \cdots B_n$ are well defined. Finally, assume that $\|A_i-B_i\|\leq \kappa$ and let $\delta_i\geq \max(\|A_i\|,\|B_i\|,1)$. Then it holds that
+    $\|A_1\cdots A_n-B_1\cdots B_n\|\leq n\kappa\cdot \delta_1\cdots \delta_n$.
+\end{lem}
+
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 42.
+\end{proof}
+
+
+\begin{lemma} \label{lem:boundskappa}
+    Let $\alpha, \theta, \phi \in [-4,4]$, $P\in \R^3$ with $\|P\| \leq 1$ and let $\widetilde{P}$ be a $\kappa$-rational approximation of $P$. Set $M = M(\theta, \phi)$ and $M_{\Q} = M_{\Q}(\theta, \phi)$, $M^\theta = M^\theta(\theta, \phi)$, $M^\theta_{\Q} = M^\theta_{\Q}(\theta, \phi)$, $M^\phi = M^\phi(\theta, \phi)$, $M^\phi_{\Q} = M^\phi_{\Q}(\theta, \phi)$ as well as $R = R(\alpha)$, $R_{\Q} = R_{\Q}(\alpha)$, $R' = R'(\alpha)$, $R'_{\Q} = R'_{\Q}(\alpha)$. Finally let $w \in \R^2$ with $\|w\| = 1$. Then:
+    \begin{align}
+        | \langle M P, w\rangle - \langle M_{\Q} \widetilde{P}, w\rangle | & \leq 3\kappa, \label{eq:boundskappa1} \\
+        | \langle M^\theta P, w\rangle - \langle M^\theta_{\Q} \widetilde{P}, w\rangle | & \leq 3\kappa,\\
+        | \langle M^\phi P, w\rangle - \langle M^\phi_{\Q} \widetilde{P}, w\rangle | & \leq 3\kappa,\\
+        | \langle R M P, w\rangle - \langle R_{\Q} M_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa,\label{eq:boundskappa4} \\
+        | \langle R' M P, w\rangle - \langle R'_{\Q} M_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa,\\
+        | \langle R M^\theta P, w\rangle - \langle R_{\Q} M^\theta_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa,\\
+        | \langle R M^\phi P, w\rangle - \langle R_{\Q} M^\phi_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa.
+    \end{align}
+\end{lemma}
+\begin{proof}
+\uses{lem:A1AnB1Bn,corr:kappa1kappa}
+See \cite{polyhedron.without.rupert}, Lemma 44.
+\end{proof}
+
 
 \begin{theorem}[Rational Global Theorem] \label{thm:global_rational}
     Let $\PPP$ be a pointsymmetric convex polyhedron with radius $\rho =1$ and $\widetilde{\PPP}$ a $\kappa$-rational approximation. Let $\widetilde{S} \in \widetilde{\PPP}$. Further let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \Q \cap [-4,4]$.
@@ -57,7 +133,7 @@ Straightforward numerical calculation from Lemma~\ref{lem:sin27cos26}.
 \end{theorem}
 
 \begin{proof}
-\uses{thm:global}
+\uses{thm:global,lem:boundskappa}
 \end{proof}
 
 \begin{theorem}[Rational Local Theorem] \label{thm:local_rational}
