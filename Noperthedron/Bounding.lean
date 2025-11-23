@@ -12,7 +12,7 @@ theorem pres_norm_imp_norm_one {n:ℕ} [NeZero n] {f : E n →L[ℝ] E n} (hf : 
       simp only [EuclideanSpace.toLp_single, EuclideanSpace.norm_single, one_mem,
         CStarRing.norm_of_mem_unitary, e]
     have z := k e; rw [hf e] at z; simp [he] at z; exact z
-  refine ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) decrease increase
+  exact ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) decrease increase
 
 theorem pres_sq_norm_imp_norm_one {n:ℕ} [NeZero n] {f : E n →L[ℝ] E n} (hf : (v : E n) → ‖f v‖^2 = ‖v‖^2) : ‖f‖ = 1  := by
   refine pres_norm_imp_norm_one ?_
@@ -79,7 +79,9 @@ theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 := by
   simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
 
 theorem M_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
-  sorry
+  refine ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) ?_ ?_
+  · sorry
+  · sorry
 
 theorem RaRa {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖rotR α - rotR α_‖ < ε ∧

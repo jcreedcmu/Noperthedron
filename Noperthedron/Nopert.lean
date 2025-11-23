@@ -68,9 +68,9 @@ theorem c3_norm_bound : ‖C3R‖ ∈ Set.Ioo (98/100) (99/100) := by
 to see that this is pointsymmetric, it's convenient to
 do explicit pointsymmetrization later. -/
 noncomputable
-def C15 : List (Matrix (Fin 3) (Fin 3) ℝ) := do
+def C15 : List (ℝ³ →L[ℝ] ℝ³) := do
   let k ← List.range 15
-  pure (Rz (2 * π * k / 15))
+  pure (RzL (2 * π * k / 15))
 
 lemma length_c15 : C15.length = 15 := by simp [C15]
 
@@ -81,9 +81,9 @@ The noperthedron, given as a finite list of vertices.
 -/
 noncomputable
 def halfNopertVertList : List ℝ³ :=
-    List.map (·.toEuclideanLin Nopert.C1R) Nopert.C15 ++
-    List.map (·.toEuclideanLin Nopert.C2R) Nopert.C15 ++
-    List.map (·.toEuclideanLin Nopert.C3R) Nopert.C15
+    List.map (· Nopert.C1R) Nopert.C15 ++
+    List.map (· Nopert.C2R) Nopert.C15 ++
+    List.map (· Nopert.C3R) Nopert.C15
 
 def pointsymmetrize (ℓ : List ℝ³) : List ℝ³ := ℓ ++ ℓ.map (fun x => -x)
 

@@ -112,10 +112,18 @@ def vecX (θ : ℝ) (φ : ℝ) : ℝ³ :=
 
 -- [SY25] § 1.1 Definition 2
 noncomputable
+def rotM_mat (θ : ℝ) (φ : ℝ) : Matrix (Fin 2) (Fin 3) ℝ :=
+  Matrix.of fun
+  | 0, 0  => -sin θ
+  | 0, 1 => cos θ
+  | 0, 2 => 0
+  | 1, 0 => -cos θ * cos φ
+  | 1, 1 =>-sin θ * cos φ
+  | 1, 2 => sin φ
+
+noncomputable
 def rotM (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
-  let A : Matrix (Fin 2) (Fin 3) ℝ :=
-    !![-sin θ, cos θ, 0; -cos θ * cos φ, -sin θ * cos φ, sin φ]
-  A.toEuclideanLin.toContinuousLinearMap
+  rotM_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
 
 -- Partial derivative of rotM with respect to θ
 noncomputable
