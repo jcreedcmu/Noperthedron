@@ -10,10 +10,10 @@ IDs start from zero. See [SY25] §7.1 for the meaning of all these fields.
 structure Row : Type where
    ID : ℕ
    nodeType : ℕ
-   hnt : nodeType ∈ ({1, 2, 3} : Finset ℕ)
+   hnt : nodeType ∈ Finset.Icc 1 3
    nrChildren : ℕ
    IDfirstChild : ℕ
-   split : ({1, 2, 3, 4, 5, 6} : Finset ℕ)
+   split : Finset.Icc 1 6
    T1_min : ℕ
    T1_max : ℕ
    V1_min : ℕ
@@ -35,7 +35,7 @@ structure Row : Type where
    Q2_index : ℕ
    Q3_index : ℕ
    r : ℤ
-   sigma_Q : ({-1, 1} : Finset ℤ)
+   sigma_Q : Finset.Icc 0 1
 
 abbrev Table : Type := Array Row
 
