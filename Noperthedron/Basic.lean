@@ -18,20 +18,23 @@ end Shape
 open Real
 
 -- rotation about x-axis by θ
+@[simp]
 noncomputable
-def Rx (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
-  !![1,     0,      0;
-     0, cos θ, -sin θ;
-     0, sin θ,  cos θ]
+def Rx_mat (α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
+  Matrix.of fun
+      | 0, 0 => 1
+      | 0, 1 => 0
+      | 0, 2 => 0
+      | 1, 0 => 0
+      | 1, 1 => Real.cos α
+      | 1, 2 => -Real.sin α
+      | 2, 0 => 0
+      | 2, 1 => Real.sin α
+      | 2, 2 => Real.cos α
 
+@[simp]
 noncomputable
-def Rx_linear (θ : ℝ) : ℝ³ →ₗ[ℝ] ℝ³ := (Rx θ).toEuclideanLin
-
-noncomputable
-def Rx_affine (θ : ℝ) : ℝ³ →ᵃ[ℝ] ℝ³ := (Rx_linear θ).toAffineMap
-
-noncomputable
-def RxL (θ : ℝ) : ℝ³ →L[ℝ] ℝ³ := (Rx_linear θ).toContinuousLinearMap
+def RxL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rx_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
 -- rotation about y-axis by θ
 noncomputable

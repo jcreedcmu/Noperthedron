@@ -1,35 +1,51 @@
-import Mathlib
-import Mathlib.Analysis.Complex.Trigonometric
 import Noperthedron.Basic
 
 open scoped RealInnerProductSpace Real
 
 namespace Bounding
 
-theorem pres_norm_imp_norm_one {f : ℝ² →L[ℝ] ℝ²} (hf : (v : ℝ²) → ‖f v‖ = ‖v‖) : ‖f‖ = 1  := by
-  have decrease (x : ℝ²) : ‖f x‖ ≤ 1 * ‖x‖ := by rw [hf x]; simp
-  have increase (N : ℝ) (hN : N ≥ 0) (k : ∀ (x : ℝ²), ‖f x‖ ≤ N * ‖x‖) : 1 ≤ N := by
-    have z := k !₂[1,0]
-    rw [hf !₂[1,0]] at z
-    simp only [norm_pos_iff, ne_eq, WithLp.toLp_eq_zero, Matrix.cons_eq_zero_iff, one_ne_zero,
-      Matrix.zero_empty, and_self, and_true, not_false_eq_true, le_mul_iff_one_le_left] at z;
-    exact z
+theorem pres_norm_imp_norm_one {n:ℕ} [NeZero n] {f : E n →L[ℝ] E n} (hf : (v : E n) → ‖f v‖ = ‖v‖) : ‖f‖ = 1  := by
+  have decrease (x : E n) : ‖f x‖ ≤ 1 * ‖x‖ := by rw [hf x]; simp
+  have increase (N : ℝ) (hN : N ≥ 0) (k : ∀ (x : E n), ‖f x‖ ≤ N * ‖x‖) : 1 ≤ N := by
+    let e : E n := (WithLp.toLp 2 (Pi.single 0 1))
+    have he : ‖e‖ = 1 := by
+      simp only [EuclideanSpace.toLp_single, EuclideanSpace.norm_single, one_mem,
+        CStarRing.norm_of_mem_unitary, e]
+    have z := k e; rw [hf e] at z; simp [he] at z; exact z
   refine ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) decrease increase
 
-theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
+theorem pres_sq_norm_imp_norm_one {n:ℕ} [NeZero n] {f : E n →L[ℝ] E n} (hf : (v : E n) → ‖f v‖^2 = ‖v‖^2) : ‖f‖ = 1  := by
   refine pres_norm_imp_norm_one ?_
   intro v
-  suffices h : ‖v‖^2 = ‖rotR α v‖^2 by simp_all
+  suffices h : ‖f v‖^2 = ‖v‖^2  by simp_all
+  exact hf v
+
+theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
+  refine pres_sq_norm_imp_norm_one ?_
+  intro v
   simp only [rotR, rotR_mat, PiLp.norm_sq_eq_of_L2]
-  simp only [Real.norm_eq_abs, sq_abs, Fin.sum_univ_two, Fin.isValue, AddChar.coe_mk,
-    LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply,
-    Matrix.mulVec, Matrix.of_apply, Matrix.vec2_dotProduct, neg_mul]
-  convert_to _ = (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
+  simp only [AddChar.coe_mk, LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
+    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec2_dotProduct, Fin.isValue,
+    Real.norm_eq_abs, sq_abs, Fin.sum_univ_two, neg_mul]
+  ring_nf
+  convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) = _
   · ring_nf
   simp
 
 theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 := by
-  sorry
+  refine pres_sq_norm_imp_norm_one ?_
+  intro v
+  simp only [RxL, Rx_mat, PiLp.norm_sq_eq_of_L2]
+  simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
+    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct, Fin.isValue,
+    Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, one_mul, zero_mul, add_zero, zero_add, neg_mul]
+  ring_nf
+  convert_to (v 0)^2
+           + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
+           + (v 2)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
+           = _
+  · ring_nf
+  simp
 
 theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 := by
   sorry
