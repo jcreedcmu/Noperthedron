@@ -11,23 +11,13 @@ import Noperthedron.ComputationalStep
 open scoped Matrix
 
 /--
-There is no pose which is tight that makes the Noperthedron have the Rupert property
--/
-theorem no_nopert_tight_view_pose' : ¬ ∃ v : Pose,
-    tightInterval.contains v ∧  Shadows.IsRupert v nopert.hull := by
-  intro ⟨v, h1, h2⟩
-  let ⟨tab, htab, row, hrow, tight⟩ := exists_solution_table
-  specialize tight v h1
-  refine Solution.Row.valid_imp_not_rupert tab htab row hrow ?_
-  use v
-
-/--
 There is no tight view pose that makes the Noperthedron have the Rupert property
 -/
 theorem no_nopert_tight_view_pose : ¬ ∃ v : ViewPose,
-    tightInterval.contains v ∧  Shadows.IsRupert v nopert.hull := by
+    tightInterval.contains v ∧ Shadows.IsRupert v nopert.hull := by
   intro ⟨v, h1, h2⟩
-  refine no_nopert_tight_view_pose' ⟨v, h1, h2⟩
+  let ⟨tab, htab, row, hrow, tight⟩ := exists_solution_table
+  exact Solution.Row.valid_imp_not_rupert tab htab row hrow ⟨v, tight v h1, h2⟩
 
 /--
 There is no view pose that makes the Noperthedron have the Rupert property
