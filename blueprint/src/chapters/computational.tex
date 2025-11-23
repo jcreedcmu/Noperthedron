@@ -1,0 +1,36 @@
+\chapter{Computational Step}
+
+\begin{theorem}
+\lean{exists_solution_table}
+\leanok
+\label{thm:exists_solution_table}
+There exists a valid solution table with some row that covers
+\begin{align*}
+\theta_1,\theta_2&\in[0,2\pi/15] \subset [0,0.42], \\
+\varphi_1&\in [0,\pi] \subset [0,3.15],\\
+\varphi_2&\in [0,\pi/2] \subset [0,1.58],\\
+\alpha &\in [-\pi/2,\pi/2] \subset [-1.58,1.58].
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+By exhibiting the table and running the validity checking algorithm.
+\end{proof}
+
+
+\begin{theorem}
+\leanok
+\lean{Solution.Row.valid_imp_not_rupert}
+\label{thm:row_valid_imp_not_rupert}
+\uses{def:noperthedron}
+For any valid row in a valid solution table, there can be no Rupert solution
+in the pose interval of that row.
+\end{theorem}
+
+\begin{proof}
+\uses{thm:global_rational, thm:local_rational} Either appeal
+recursively to this same theorem if the row splits into other nodes in
+the tree, or appeal to the rational global theorem
+(Theorem~\ref{thm:global_rational}) or the rational local theorem
+(Theorem~\ref{thm:local_rational}) at the leaves.
+\end{proof}
