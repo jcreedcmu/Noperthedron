@@ -90,10 +90,10 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
     The first statement is a direct application of \cref{lem:dist_lt_kappa} and the second statement follows immediately after using \cref{lem:RaRalpha} and the triangle inequality.
 \end{proof}
 
-\begin{lem} \label{lem:A1AnB1Bn}
+\begin{lemma} \label{lem:A1AnB1Bn}
     For $1 \leq i \leq n$ let $(A_i,B_i)$ be pairs of real matrices, such that for each $i$ the dimensions of $A_i$ and $B_i$ are equal. Assume moreover that the products $A_1\cdots A_n$ and $B_1 \cdots B_n$ are well defined. Finally, assume that $\|A_i-B_i\|\leq \kappa$ and let $\delta_i\geq \max(\|A_i\|,\|B_i\|,1)$. Then it holds that
     $\|A_1\cdots A_n-B_1\cdots B_n\|\leq n\kappa\cdot \delta_1\cdots \delta_n$.
-\end{lem}
+\end{lemma}
 
 \begin{proof}
 See \cite{polyhedron.without.rupert}, Lemma 42.
@@ -136,6 +136,57 @@ See \cite{polyhedron.without.rupert}, Lemma 44.
 \uses{thm:global,lem:boundskappa}
 \end{proof}
 
+\begin{lemma} \label{lem:ekspanningespanning}
+    Let $P_1, P_2, P_3 \in \R^3$ with $\|P_i\| \leq 1$ and $\widetilde{P}_1, \widetilde{P}_2, \widetilde{P}_3 \in \Q^3$ be their $\kappa$-rational approximations. Assume that $\widetilde{P}_1, \widetilde{P}_2, \widetilde{P}_3$ are $\epsilon$-$\kappa$-spanning for some $\theta, \phi \in \Q \cap [-4,4]$, then $P_1, P_2, P_3$ are $\epsilon$-spanning for $\theta, \phi$.
+\end{lemma}
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 46.
+\uses{lem:A1AnB1Bn,lem:eps-spanning}
+\end{proof}
+
+
+\begin{lemma} \label{lem:boundskappa3}
+    Let $P,Q \in \R^3$ with $\|P\|,\|Q\|\leq 1$ and $\widetilde{P},\widetilde{Q}$ some respective $\kappa$-rational approximations. Moreover, let $\alpha, \theta, \phi \in \R \in [-4,4]$ and set $X = X(\theta, \phi)$, $X_{\Q} = X_{\Q}(\theta, \phi)$ as well as $M = M(\theta, \phi)$, $M_{\Q} = M_{\Q}(\theta, \phi)$. Then
+    \begin{align}
+        |\langle X, P \rangle - \langle X_{\Q}, \widetilde{P} \rangle| & \leq 3 \kappa, \label{eq:boundskappa3.1}\\
+        |\langle MP, MQ \rangle - \langle M_{\Q} \widetilde{P}, M_{\Q}\widetilde{Q} \rangle| & \leq 5 \kappa, \label{eq:boundskappa3.3}\\
+        |\| M Q \| - \| M_{\Q}\widetilde{Q} \| | & \leq 3 \kappa.\label{eq:boundskappa3.2}
+    \end{align}
+\end{lemma}
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 49.
+\uses{lem:A1AnB1Bn}
+\end{proof}
+
+
+\begin{corollary} \label{corr:deltakappa}
+    In the setting of  \cref{lem:boundskappa3} let additionally $\thetab, \phib \in \R \cap [-4,4]$ and set $\overline{M} = M(\thetab, \phib)$, $\overline{M}_{\Q} = M_{\Q}(\thetab, \phib)$. Then
+    \[
+    |\| R(\alpha) M P - \overline{M} Q\|- \| R_{\Q}(\alpha) M_{\Q} \widetilde{P} - \overline{M}_{\Q} \widetilde{Q}\| | \leq 6 \kappa.\label{eq:boundskappa3.4}
+    \]
+\end{corollary}
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Corollary 50.
+\uses{lem:boundskappa3}
+\end{proof}
+
+
+\begin{corollary} \label{lem:boundskappa4}
+    In the setting of \cref{lem:boundskappa3}, let $\sqrt[+]{x}$ be an upper-$\Q$-square-root function and set $\|x\|_{+} \coloneqq \sqrt[+]{\|x\|^2}$. Set
+    \[
+        A =  \frac{\langle M P, M(P-Q)\rangle - 2 \epsilon  \|P-Q\| \cdot  (\sqrt{2}+\varepsilon)}{ \big(\| M P\|+\sqrt{2} \varepsilon \big) \cdot \big(\|M(P-Q)\|+2 \sqrt{2} \varepsilon\big)}
+    \]
+    as well as
+    \[
+        A_{\Q} =         \frac{\langle M_{\Q} \widetilde{P}, M_{\Q} (\widetilde{P}-\widetilde{Q})\rangle - 10\kappa - 2 \epsilon ( \|\widetilde{P}-\widetilde{Q}\|_{+} + 2 \kappa ) \cdot  (\sqrt{2}+\varepsilon)}{ \big(\| M_{\Q} \widetilde{P}\|_{+}+\sqrt{2} \varepsilon + 3\kappa \big) \cdot \big(\|M_{\Q}(\widetilde{P}-\widetilde{Q})\|_{+}+2 \sqrt{2} \varepsilon + 6\kappa\big)}.
+    \]
+    Then it holds that $A \geq A_{\Q}$.
+\end{corollary}
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Corollary 51.
+\uses{lem:boundskappa3}
+\end{proof}
+
 \begin{theorem}[Rational Local Theorem] \label{thm:local_rational}
     Let $\PPP$ be a polyhedron with radius $\rho=1$ and $\widetilde{P}_i$ be a $\kappa$-rational approximation of $P_i \in \PPP$. Set $\widetilde{\PPP} = \{\widetilde{P}_i \text{ for } P_i \in \PPP \}$. Let $P_1, P_2, P_3, Q_1, Q_2, Q_3 \in \PPP$ be not necessarily distinct and assume that $P_1, P_2, P_3$ and $Q_1, Q_2, Q_3$ are congruent.
     Let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \Q \cap [-4,4]$.
@@ -162,5 +213,5 @@ See \cite{polyhedron.without.rupert}, Lemma 44.
 \end{theorem}
 
 \begin{proof}
-\uses{thm:local}
+\uses{thm:local,lem:boundskappa3,lem:boundskappa4,corr:deltakappa,lem:ekspanningespanning},
 \end{proof}
