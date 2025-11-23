@@ -42,3 +42,10 @@ To run a server hosting the html, run
 ```
 leanblueprint serve
 ```
+
+## License Information
+
+Portions of this project use Apache License 2.0–licensed code from
+https://github.com/badly-drawn-wizards/noperthedron
+©2025 Reuben Steenekamp
+See LICENSE for details.
