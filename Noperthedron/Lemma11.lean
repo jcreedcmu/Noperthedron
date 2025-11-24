@@ -61,15 +61,7 @@ lemma sin_sub_mul_cos_monotone_on : MonotoneOn sin_sub_mul_cos (Set.Icc 0 π) :=
     unfold sin_sub_mul_cos
     continuity
   · unfold sin_sub_mul_cos
-    simp only [interior_Icc]
-    apply DifferentiableOn.sub
-    · apply Differentiable.differentiableOn
-      simp
-    apply DifferentiableOn.mul
-    · apply Differentiable.differentiableOn
-      simp
-    apply Differentiable.differentiableOn
-    simp
+    fun_prop
   simp only [interior_Icc]
   intros x x_in
   unfold sin_sub_mul_cos
