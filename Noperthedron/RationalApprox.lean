@@ -6,7 +6,7 @@ import Noperthedron.Basic
 
 namespace RationalApprox
 
-open Nat -- for ! notation
+open scoped Nat -- for ! notation
 
 noncomputable section
 
