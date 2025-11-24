@@ -41,7 +41,9 @@ higher derivatives of sine and cosine never exceed 1.
 Straightforward numerical calculation from Lemma~\ref{lem:sin27cos26}.
 \end{proof}
 
-\begin{lemma} \label{lem:A_lt_deltamn}
+\begin{lemma} \label{lem:A_le_deltamn}
+  \lean{RationalApprox.norm_le_delta_sqrt_dims}
+  \leanok
 Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and $\delta >0$. Assume that $|a_{i,j}| \leq \delta$. Then it holds that $\|A\| \leq \delta \sqrt{mn}.$
 \end{lemma}
 
@@ -61,14 +63,14 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
 \end{lemma}
 
 \begin{proof}
-\uses{lem:kappa7,lem:A_lt_deltamn}
+\uses{lem:kappa7,lem:A_le_deltamn}
     For fixed $x,y$ every entry of $A(x,y)-A_{\mathbb{Q}}(x,y)$ is of the form
     $a b - \widetilde{a}\widetilde{b}$ for some $a,b\in[-1,1]$ and $|a-\widetilde{a}|,|b-\widetilde{b}|\leq \kappa/7$ by \cref{lem:kappa7}. This implies that
     \begin{align*}
       |ab-\widetilde{a}\widetilde{b}|&\leq |a b-a\widetilde{b}|+|a \widetilde{b}-\widetilde{a}\widetilde{b}|
       =|a|\cdot |b-\widetilde{b}|+|\widetilde{b}|\cdot |a-\widetilde{a}| \leq 1\cdot \kappa/7+(1+\kappa/7) \cdot \kappa/7 <\kappa/3.
     \end{align*}
-    So we can apply \cref{lem:A_lt_deltamn} and obtain that $\|A(x,y)-A_{\Q}(x,y)\|<\kappa/3\cdot \sqrt{3\cdot 3}=\kappa$.
+    So we can apply \cref{lem:A_le_deltamn} and obtain that $\|A(x,y)-A_{\Q}(x,y)\|<\kappa/3\cdot \sqrt{3\cdot 3}=\kappa$.
 \end{proof}
 
 

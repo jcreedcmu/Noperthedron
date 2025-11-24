@@ -2,6 +2,8 @@ import Mathlib.Analysis.Complex.Trigonometric
 import Mathlib.Analysis.RCLike.Basic
 import Mathlib.Tactic.NormNum.NatFactorial
 
+import Noperthedron.Basic
+
 namespace RationalApprox
 
 open Nat -- for ! notation
@@ -67,3 +69,7 @@ theorem cosℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cos
     norm_num [κ]
   grw [← this]
   exact z
+
+theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : (E m) →L[ℝ] (E n)) (hδ : 0 < δ) :
+    ‖A‖ ≤ δ * √(m * n)  := by
+  sorry
