@@ -67,7 +67,7 @@ theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 := by
   intro v
   simp only [RzL, Rz_mat, PiLp.norm_sq_eq_of_L2]
   simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
-    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct, Fin.isValue,
+    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
     Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, Matrix.cons_val]
   ring_nf
   convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
