@@ -22,5 +22,10 @@ rev = "v4.25.0"
 name = "checkdecls"
 git = "https://github.com/PatrickMassot/checkdecls.git"
 
+[[require]]
+name = "tryAtEachStep"
+git = "https://github.com/dwrensha/tryAtEachStep"
+rev = "lean-v4.25.0"
+
 [[lean_lib]]
 name = "Noperthedron"

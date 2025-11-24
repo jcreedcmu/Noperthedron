@@ -118,10 +118,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
       · apply DifferentiableOn.div
         · apply Differentiable.differentiableOn
           simp
-        · apply Differentiable.differentiableOn
-          apply Differentiable.mul
-          · simp
-          · simp
+        · fun_prop
         · grind
       · apply DifferentiableOn.sqrt
         · apply Differentiable.differentiableOn
@@ -227,8 +224,7 @@ theorem one_plus_cos_mul_one_plus_cos_ge' {a b : ℝ} (a_nonneg : 0 ≤ a) (a_le
     field_simp; simp; field_simp
   rw [this]
   generalize ha : a / 2 = x, hb : b / 2 = y
-  convert_to _ ≤ (cos x * cos y) ^ 2
-  · simp [sq]; ring
+  rw [← mul_pow]
   apply sq_le_sq.mpr
   have hxy : 0 ≤ cos x * cos y := by rw [← ha, ← hb]; exact cosx_cosy_pos a b a_nonneg a_le b_nonneg b_le
   have hxy2 : 0 ≤ cos √(x ^ 2 + y ^ 2) := by rw [← ha, ← hb]; exact cos_sqrt_pos a b a_nonneg a_le b_nonneg b_le
@@ -248,7 +244,7 @@ theorem one_plus_cos_mul_one_plus_cos_ge {a b : ℝ} (ha : |a| ≤ 2) (hb : |b| 
   simp only [abs_le, and_imp]
   intro le_a a_le le_b b_le
   by_cases a_sign : 0 ≤ a <;> by_cases b_sign : 0 ≤ b
-  · apply one_plus_cos_mul_one_plus_cos_ge' <;> linarith
+  · exact one_plus_cos_mul_one_plus_cos_ge' a_sign a_le b_sign b_le
   · rw [lemma11_1_2, lemma11_1_4]
     apply one_plus_cos_mul_one_plus_cos_ge' <;> linarith
   · rw [lemma11_1_1, lemma11_1_3]
