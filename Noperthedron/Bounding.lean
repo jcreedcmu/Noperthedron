@@ -1,4 +1,5 @@
 import Noperthedron.Basic
+import Noperthedron.Lemma11
 
 open scoped RealInnerProductSpace Real
 
@@ -87,10 +88,6 @@ theorem RaRa {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ ∧
     ‖RyL α - RyL α_‖ = ‖rotR α - rotR α_‖ ∧
     ‖RzL α - RzL α_‖ = ‖rotR α - rotR α_‖ := by
-  sorry
-
-theorem one_plus_cos_mul_one_plus_cos_ge {a b : ℝ} (ha : |a| ≤ 2) (hb : |b| ≤ 2) :
-    2 + 2 * Real.cos √(a ^ 2 + b ^ 2) ≤ (1 + Real.cos a) * (1 + Real.cos b) := by
   sorry
 
 theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ √(α ^ 2 + β ^ 2) := by
