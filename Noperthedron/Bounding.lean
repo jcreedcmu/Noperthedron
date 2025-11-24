@@ -78,7 +78,7 @@ theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 := by
   · ring_nf
   simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
 
-theorem M_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
+theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) ?_ ?_
   · sorry
   · sorry
