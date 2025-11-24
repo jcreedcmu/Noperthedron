@@ -1,5 +1,9 @@
 import Mathlib.Analysis.Real.Pi.Bounds
 
+/-!
+ Proof of [SY25] Lemma 11, imported from https://github.com/badly-drawn-wizards/noperthedron.
+-/
+
 namespace Bounding
 
 open Real
@@ -35,16 +39,16 @@ lemma cos_sqrt_pos (a b : ℝ) (a_nonneg : 0 ≤ a) (a_le : a ≤ 2) (b_nonneg :
         positivity
   · field_simp
     rw [sqrt_div, sqrt_sq]
-    field_simp
-    apply le_of_lt
-    calc
-      √(a^2 + b^2) ≤ √(2^2 + 2^2) := by
-        apply sqrt_monotone
-        apply add_le_add <;> apply sq_le_sq.mpr <;> simpa [abs_of_nonneg, a_nonneg, b_nonneg]
+    · field_simp
+      apply le_of_lt
+      calc
+        √(a^2 + b^2) ≤ √(2^2 + 2^2) := by
+          apply sqrt_monotone
+          apply add_le_add <;> apply sq_le_sq.mpr <;> simpa [abs_of_nonneg, a_nonneg, b_nonneg]
       _ = √8 := by ring_nf
       _ ≤ 3 := by simp only [sqrt_le_iff, Nat.ofNat_nonneg, true_and]; linarith
       _ < π := by assumption
-    linarith
+    · linarith
     positivity
 
 noncomputable
@@ -52,20 +56,20 @@ def sin_sub_mul_cos (x : ℝ) : ℝ := sin x - x * cos x
 
 lemma sin_sub_mul_cos_monotone_on : MonotoneOn sin_sub_mul_cos (Set.Icc 0 π) := by
   apply monotoneOn_of_deriv_nonneg
-  apply convex_Icc
-  apply Continuous.continuousOn
-  unfold sin_sub_mul_cos
-  continuity
-  unfold sin_sub_mul_cos
-  simp only [interior_Icc]
-  apply DifferentiableOn.sub
-  apply Differentiable.differentiableOn
-  simp
-  apply DifferentiableOn.mul
-  apply Differentiable.differentiableOn
-  simp
-  apply Differentiable.differentiableOn
-  simp
+  · apply convex_Icc
+  · apply Continuous.continuousOn
+    unfold sin_sub_mul_cos
+    continuity
+  · unfold sin_sub_mul_cos
+    simp only [interior_Icc]
+    apply DifferentiableOn.sub
+    · apply Differentiable.differentiableOn
+      simp
+    apply DifferentiableOn.mul
+    · apply Differentiable.differentiableOn
+      simp
+    apply Differentiable.differentiableOn
+    simp
   simp only [interior_Icc]
   intros x x_in
   unfold sin_sub_mul_cos
@@ -95,7 +99,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
     · linarith
     · simp
     · apply DifferentiableAt.sqrt
-      simp
+      · simp
       linarith
   apply convexOn_of_deriv2_nonneg
   · apply convex_Icc
@@ -124,12 +128,12 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
           simp
         · apply Differentiable.differentiableOn
           apply Differentiable.mul
-          simp
-          simp
+          · simp
+          · simp
         · grind
       · apply DifferentiableOn.sqrt
-        apply Differentiable.differentiableOn
-        · simp
+        · apply Differentiable.differentiableOn
+          · simp
         · grind
       · apply Set.mapsTo_iff_subset_preimage.mpr
         simp only [Set.subset_def, Set.mem_Ioo, Set.mem_preimage, Set.mem_Ioi, sqrt_pos, and_imp]
@@ -141,39 +145,39 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
     Function.comp_apply, and_imp]
     intro x x_pos x_lt
     rw [(Set.EqOn.deriv (_ : Set.EqOn (deriv (cos ∘ sqrt)) (fun y => -sin √y / (2 * √y)) (Set.Ioo 0 (π^2))) (by simp [Ioo_eq_ball] : IsOpen (Set.Ioo 0 (π^2))))]
-    rw [deriv_fun_div]
-    simp only [deriv.fun_neg', neg_mul, deriv_const_mul_field',
-      sub_neg_eq_add]
-    conv in (fun y => sin √y) =>
-      change (sin ∘ sqrt)
-    rw [deriv_comp, deriv_sqrt, _root_.deriv_sin, deriv_id'']
-    simp only [mul_one, one_div, mul_inv_rev]
-    field_simp; ring_nf
-    rw [add_comm]
-    apply sin_sub_mul_cos_nonneg
-    simp only [Set.mem_Icc, sqrt_nonneg, sqrt_le_iff, true_and]
-    constructor
-    exact pi_nonneg
-    linarith
-    · simp
-    · simp
-    · linarith
-    · simp
-    · apply DifferentiableAt.sqrt
-      simp
-      linarith
-    · simp only [differentiableAt_fun_neg_iff]
-      apply DifferentiableAt.fun_comp'
-      simp
-      apply DifferentiableAt.sqrt
-      simp
-      linarith
-    · apply DifferentiableAt.const_mul
-      apply DifferentiableAt.sqrt
-      simp
-      linarith
-    · have : 0 < √x := sqrt_pos.mpr x_pos
-      linarith
+    · rw [deriv_fun_div]
+      · simp only [deriv.fun_neg', neg_mul, deriv_const_mul_field',
+          sub_neg_eq_add]
+        conv in (fun y => sin √y) =>
+          change (sin ∘ sqrt)
+        rw [deriv_comp, deriv_sqrt, _root_.deriv_sin, deriv_id'']
+        · simp only [mul_one, one_div, mul_inv_rev]
+          field_simp; ring_nf
+          rw [add_comm]
+          apply sin_sub_mul_cos_nonneg
+          simp only [Set.mem_Icc, sqrt_nonneg, sqrt_le_iff, true_and]
+          constructor
+          · exact pi_nonneg
+          · linarith
+        · simp
+        · simp
+        · linarith
+        · simp
+        · apply DifferentiableAt.sqrt
+          · simp
+          · linarith
+      · simp only [differentiableAt_fun_neg_iff]
+        apply DifferentiableAt.fun_comp'
+        · simp
+        apply DifferentiableAt.sqrt
+        · simp
+        linarith
+      · apply DifferentiableAt.const_mul
+        apply DifferentiableAt.sqrt
+        · simp
+        · linarith
+      · have : 0 < √x := sqrt_pos.mpr x_pos
+        linarith
     · grind
     · intros x; apply cos_sqrt_deriv
 
@@ -209,12 +213,12 @@ theorem one_plus_cos_mul_one_plus_cos_ge'' {a b : ℝ} (a_nonneg : 0 ≤ a) (a_l
         · positivity
         · apply sq_le_sq.mpr
           repeat rw [abs_of_nonneg]
-          field_simp
-          apply le_of_lt
-          calc
-            a + b = _ := by rfl
-            _ ≤ 2 * 3 := by linarith
-            _ < 2 * π := by simp [pi_gt_three]
+          · field_simp
+            apply le_of_lt
+            calc
+              a + b = _ := by rfl
+              _ ≤ 2 * 3 := by linarith
+              _ < 2 * π := by simp [pi_gt_three]
           · positivity
           · positivity
       · positivity
