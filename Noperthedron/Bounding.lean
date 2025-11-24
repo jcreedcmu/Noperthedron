@@ -4,7 +4,8 @@ open scoped RealInnerProductSpace Real
 
 namespace Bounding
 
-theorem pres_norm_imp_norm_one {n:ℕ} [NeZero n] {f : E n →L[ℝ] E n} (hf : (v : E n) → ‖f v‖ = ‖v‖) : ‖f‖ = 1  := by
+theorem pres_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (hf : (v : E n) → ‖f v‖ = ‖v‖) :
+    ‖f‖ = 1  := by
   have decrease (x : E n) : ‖f x‖ ≤ 1 * ‖x‖ := by rw [hf x]; simp
   have increase (N : ℝ) (hN : N ≥ 0) (k : ∀ (x : E n), ‖f x‖ ≤ N * ‖x‖) : 1 ≤ N := by
     let e : E n := (WithLp.toLp 2 (Pi.single 0 1))
@@ -14,7 +15,8 @@ theorem pres_norm_imp_norm_one {n:ℕ} [NeZero n] {f : E n →L[ℝ] E n} (hf : 
     have z := k e; rw [hf e] at z; simp [he] at z; exact z
   exact ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) decrease increase
 
-theorem pres_sq_norm_imp_norm_one {n:ℕ} [NeZero n] {f : E n →L[ℝ] E n} (hf : (v : E n) → ‖f v‖^2 = ‖v‖^2) : ‖f‖ = 1  := by
+theorem pres_sq_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m}
+    (hf : (v : E n) → ‖f v‖^2 = ‖v‖^2) : ‖f‖ = 1  := by
   refine pres_norm_imp_norm_one ?_
   intro v
   suffices h : ‖f v‖^2 = ‖v‖^2  by simp_all
