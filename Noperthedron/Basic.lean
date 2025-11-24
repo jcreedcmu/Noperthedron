@@ -20,17 +20,10 @@ open Real
 -- rotation about x-axis by θ
 @[simp]
 noncomputable
-def Rx_mat (α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
-  Matrix.of fun
-      | 0, 0 => 1
-      | 0, 1 => 0
-      | 0, 2 => 0
-      | 1, 0 => 0
-      | 1, 1 => Real.cos α
-      | 1, 2 => -Real.sin α
-      | 2, 0 => 0
-      | 2, 1 => Real.sin α
-      | 2, 2 => Real.cos α
+def Rx_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
+  !![1,     0,      0;
+     0, cos θ, -sin θ;
+     0, sin θ,  cos θ]
 
 @[simp]
 noncomputable
@@ -39,17 +32,10 @@ def RxL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rx_mat θ |>.toEuclideanLin.toCo
 -- rotation about y-axis by θ
 @[simp]
 noncomputable
-def Ry_mat (α : ℝ) : (Matrix (Fin 3) (Fin 3) ℝ) :=
-  Matrix.of fun
-      | 0, 0 => Real.cos α
-      | 0, 1 => 0
-      | 0, 2 => -Real.sin α
-      | 1, 0 => 0
-      | 1, 1 => 1
-      | 1, 2 => 0
-      | 2, 0 => Real.sin α
-      | 2, 1 => 0
-      | 2, 2 => Real.cos α
+def Ry_mat (θ : ℝ) : (Matrix (Fin 3) (Fin 3) ℝ) :=
+  !![cos θ, 0, -sin θ;
+     0,     1,      0;
+     sin θ, 0,  cos θ]
 
 noncomputable
 def RyL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Ry_mat θ |>.toEuclideanLin.toContinuousLinearMap
@@ -57,17 +43,10 @@ def RyL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Ry_mat θ |>.toEuclideanLin.toCo
 -- rotation about z-axis by θ
 @[simp]
 noncomputable
-def Rz_mat (α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
-  Matrix.of fun
-      | 0, 0 => Real.cos α
-      | 0, 1 => -Real.sin α
-      | 0, 2 => 0
-      | 1, 0 => Real.sin α
-      | 1, 1 => Real.cos α
-      | 1, 2 => 0
-      | 2, 0 => 0
-      | 2, 1 => 0
-      | 2, 2 => 1
+def Rz_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
+  !![cos θ, -sin θ, 0;
+     sin θ,  cos θ, 0;
+     0,      0,     1]
 
 noncomputable
 def RzL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rz_mat θ |>.toEuclideanLin.toContinuousLinearMap
@@ -113,13 +92,7 @@ def vecX (θ : ℝ) (φ : ℝ) : ℝ³ :=
 -- [SY25] § 1.1 Definition 2
 noncomputable
 def rotM_mat (θ : ℝ) (φ : ℝ) : Matrix (Fin 2) (Fin 3) ℝ :=
-  Matrix.of fun
-  | 0, 0  => -sin θ
-  | 0, 1 => cos θ
-  | 0, 2 => 0
-  | 1, 0 => -cos θ * cos φ
-  | 1, 1 =>-sin θ * cos φ
-  | 1, 2 => sin φ
+  !![-sin θ, cos θ, 0; -cos θ * cos φ, -sin θ * cos φ, sin φ]
 
 noncomputable
 def rotM (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
