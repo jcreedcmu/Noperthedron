@@ -8,11 +8,9 @@ theorem pres_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (h
     ‖f‖ = 1  := by
   have decrease (x : E n) : ‖f x‖ ≤ 1 * ‖x‖ := by rw [hf x]; simp
   have increase (N : ℝ) (hN : N ≥ 0) (k : ∀ (x : E n), ‖f x‖ ≤ N * ‖x‖) : 1 ≤ N := by
-    let e : E n := (WithLp.toLp 2 (Pi.single 0 1))
-    have he : ‖e‖ = 1 := by
-      simp only [EuclideanSpace.toLp_single, EuclideanSpace.norm_single, one_mem,
-        CStarRing.norm_of_mem_unitary, e]
-    have z := k e; rw [hf e] at z; simp [he] at z; exact z
+    let e : E n := EuclideanSpace.single 0 1
+    have he : ‖e‖ = 1 := by simp [e]
+    have z := k e; rw [hf, he, mul_one] at z; exact z
   exact ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) decrease increase
 
 theorem pres_sq_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m}
