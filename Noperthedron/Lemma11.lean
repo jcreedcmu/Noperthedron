@@ -99,8 +99,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
     · continuity
     · apply Continuous.continuousOn
       continuity
-    · apply Set.mapsTo_iff_subset_preimage.mpr
-      simp
+    · exact Set.mapsTo_univ _ _
   · refine DifferentiableOn.comp (t:=Set.univ) ?_ ?_ ?_
     · apply Differentiable.differentiableOn
       simp
@@ -109,8 +108,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
       · apply Differentiable.differentiableOn
         simp
       · grind
-    · apply Set.mapsTo_iff_subset_preimage.mpr
-      simp
+    · exact Set.mapsTo_univ _ _
   · simp only [interior_Icc]
     apply DifferentiableOn.congr (f := (-((sin ·) / (2 * ·)) ∘ sqrt))
     · simp only [differentiableOn_neg_iff]

@@ -54,8 +54,8 @@ Pointsymmetric flip as a homeomorphism
 def pointSymHomeo {n : ℕ} : Homeomorph (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin n)) :=
 { toFun := fun x ↦ -x,
   invFun := fun x ↦ -x,
-  left_inv := by intro; simp,
-  right_inv := by intro; simp,
+  left_inv := leftInverse_neg _
+  right_inv := rightInverse_neg _
   continuous_toFun := continuous_neg
   continuous_invFun := continuous_neg
 }
