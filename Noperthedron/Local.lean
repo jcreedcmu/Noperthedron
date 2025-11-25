@@ -123,7 +123,7 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
     (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hSpanning: P.Spanning θ_ φ_ ε)
     (hX : ∀ i, 0 < ⟪vecX θ φ, P i⟫) :
-    vecX θ φ ∈ spanp P := by
+    vecX θ φ ∈ Spanp P := by
   sorry
 
 /-- [SY25] Lemma 30 -/
