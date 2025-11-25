@@ -1,3 +1,4 @@
+import Mathlib
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import Noperthedron.Basic
@@ -18,11 +19,30 @@ theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
 def spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=
   {w | ∃ c : Fin n → ℝ, ∀ i, 0 < c i ∧ w = ∑ i, c i • v i }
 
+def componentwise_gt (v w : Fin 3 → ℝ) : Prop := ∀ i : Fin 3, v i > w i
+
+infixr:20 " ≫ " => componentwise_gt
+
+open scoped Matrix in
 /-- [SY25] Lemma 23 -/
 theorem langles {Y Z : Euc(3)} {V : Fin 3 → Euc(3)} (hYZ : ‖Y‖ = ‖Z‖)
     (hY : Y ∈ spanp V) (hZ : Z ∈ spanp V) :
     ⟪V 0, Y⟫ ≤ ⟪V 0, Z⟫ ∨ ⟪V 1, Y⟫ ≤ ⟪V 1, Z⟫ ∨ ⟪V 2, Y⟫ ≤ ⟪V 2, Z⟫ := by
+  by_contra h
+  simp only [Fin.isValue, not_or, not_le] at h
+  obtain ⟨h1, h2, h3⟩ := h
+  let VT : Matrix (Fin 3) (Fin 3) ℝ := fun i j => V i j
+
+  have VT_def (i : Fin 3) (X : Euc(3)): (VT *ᵥ X) i = ⟪V i, X⟫ := by
+    simp [Matrix.mulVec, VT, inner, dotProduct, Fin.sum_univ_three]
+    ring_nf
+
+  have compwise : VT *ᵥ Y ≫ VT *ᵥ Z := by
+    intro i; rw [VT_def, VT_def]; fin_cases i <;> assumption
+
   sorry
+
+#exit
 
 /-- [SY25] Lemma 24 -/
 theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
