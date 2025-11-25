@@ -55,8 +55,6 @@ theorem langles {Y Z : Euc(3)} {V : Fin 3 → Euc(3)} (hYZ : ‖Y‖ = ‖Z‖)
     sorry
   sorry
 
-#exit
-
 /-- [SY25] Lemma 24 -/
 theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
     |⟪A P₁, B P₂⟫ - ⟪A_ P₁, B_ P₂⟫| ≤
