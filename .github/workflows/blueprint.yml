@@ -28,6 +28,10 @@ jobs:
         run: |
           ! (find Noperthedron -type f -name "*.lean" -exec grep -Hn '^import Mathlib$' {} +)
 
+      - name: Don't '#exit'
+        run: |
+          ! (find Noperthedron -type f -name "*.lean" -exec grep -Hn '^#exit$' {} +)
+
       - name: Build the project
         uses: leanprover/lean-action@434f25c2f80ded67bba02502ad3a86f25db50709 # v1.3.0
         with:
