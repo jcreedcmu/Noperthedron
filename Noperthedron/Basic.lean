@@ -17,6 +17,17 @@ end Shape
 
 open Real
 
+-- flip about y-axis
+@[simp]
+noncomputable
+def flip_y_mat : Matrix (Fin 2) (Fin 2) ℝ :=
+  !![1,  0;
+     0, -1]
+
+@[simp]
+noncomputable
+def flip_y : (ℝ² →L[ℝ] ℝ²) := flip_y_mat |>.toEuclideanLin.toContinuousLinearMap
+
 -- rotation about x-axis by θ
 @[simp]
 noncomputable

@@ -13,7 +13,7 @@ open scoped Matrix
 /--
 There is no tight view pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_tight_view_pose : ¬ ∃ v : ViewPose,
+theorem no_nopert_tight_view_pose : ¬ ∃ v : Pose,
     tightInterval.contains v ∧ Shadows.IsRupert v nopert.hull := by
   intro ⟨v, h1, h2⟩
   let ⟨tab, htab, row, hrow, tight⟩ := exists_solution_table
@@ -22,10 +22,10 @@ theorem no_nopert_tight_view_pose : ¬ ∃ v : ViewPose,
 /--
 There is no view pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_view_pose : ¬ ∃ v : ViewPose, Shadows.IsRupert v nopert.hull := by
+theorem no_nopert_view_pose : ¬ ∃ v : Pose, Shadows.IsRupert v nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
-  exact no_nopert_tight_view_pose (rupert_tightening p r)
+  exact no_nopert_tight_view_pose (Tightening.rupert_tightening p r)
 
 /--
 There is no purely rotational pose that makes the Noperthedron have the Rupert property

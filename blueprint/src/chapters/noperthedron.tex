@@ -126,12 +126,33 @@ The noperthedron is point-symmetric.
 \leanok
 \uses{lemma:pointsymmetrization_is_pointsym}
 Follows from Lemma~\ref{lemma:pointsymmetrization_is_pointsym}.
+\end{proof}
 
 \section{Refined Rupert's property for the Noperthedron}
 
-\begin{corr}
+\begin{lemma} \label{lem:symmetries}
+\leanok
+\lean{Tightening.lemma7_1,Tightening.lemma7_2,Tightening.lemma7_3}
+Let $\PPP = \NOP$, then for all $\theta, \varphi, \alpha \in \R$, the following three identities hold (as sets):
+\begin{align*}
+    M({\theta+2\pi/15,\varphi})\cdot \PPP &=M(\theta, \phi) \cdot \PPP,\\
+    R(\alpha+\pi)M(\theta, \phi) \cdot \PPP &=R(\alpha)M(\theta, \phi) \cdot \PPP,\\
+    \begin{pmatrix}
+        1&0\\
+        0&-1
+    \end{pmatrix}
+    M(\theta, \phi) \cdot \PPP&=
+    M({\theta+\pi/15,\pi-\varphi}) \cdot \PPP.
+\end{align*}
+\end{lemma}
+\begin{proof}
+See \cite{polyhedron.without.rupert}, Lemma 7.
+\end{proof}
+
+
+\begin{corollary}
 \label{cor:rupert_tightening}
-\lean{rupert_tightening}
+\lean{Tightening.rupert_tightening}
 \leanok
 If the noperthedron is Rupert, then there exists a solution with
 \begin{align*}
@@ -140,7 +161,9 @@ If the noperthedron is Rupert, then there exists a solution with
 \varphi_2&\in [0,\pi/2] \subset [0,1.58],\\
 \alpha &\in [-\pi/2,\pi/2] \subset [-1.58,1.58].
 \end{align*}
-\end{corr}
+\end{corollary}
 
-
+\begin{proof}
+\uses{lem:symmetries}
+See \cite{polyhedron.without.rupert}, Lemma 8.
 \end{proof}
