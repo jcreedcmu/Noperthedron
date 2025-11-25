@@ -16,43 +16,78 @@ theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
   sorry
 
 /-- The positive cone of a finite collection of vectors -/
-def spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=
+def Spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=
   {w | ∃ c : Fin n → ℝ, (∀ i, 0 < c i) ∧ w = ∑ i, c i • v i }
 
 def componentwise_gt (v w : Fin 3 → ℝ) : Prop := ∀ i : Fin 3, v i > w i
 
 infixr:20 " ≫ " => componentwise_gt
 
+lemma foo {n m : ℕ}  (i : Fin n) (Q : Fin m → Euc(n)) : (∑ x, Q x).ofLp i = ∑ x, (Q x).ofLp i := by
+  simp only [WithLp.ofLp_sum, Finset.sum_apply]
+
+/--
+Three ℝ³ vectors
+--/
+
+def Vec3 : Type := Fin 3 → Euc(3)
+
+namespace Vec3
+@[simp]
+def mat (V : Vec3) : Matrix (Fin 3) (Fin 3) ℝ := fun i j => V j i
+end Vec3
+
+open scoped Matrix in
+theorem V_apply (i : Fin 3) (V : Vec3) (X : Euc(3)): (V.matᵀ *ᵥ X) i = ⟪V i, X⟫ := by
+  simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue, inner,
+    RCLike.inner_apply, Real.ringHom_apply, Matrix.transpose, Fin.isValue, Matrix.of_apply, Vec3.mat]
+  ring_nf
+
 open scoped Matrix in
 /-- [SY25] Lemma 23 -/
-theorem langles {Y Z : Euc(3)} {V : Fin 3 → Euc(3)} (hYZ : ‖Y‖ = ‖Z‖)
-    (hY : Y ∈ spanp V) (hZ : Z ∈ spanp V) :
+theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
+    (hY : Y ∈ Spanp V) (hZ : Z ∈ Spanp V) :
     ⟪V 0, Y⟫ ≤ ⟪V 0, Z⟫ ∨ ⟪V 1, Y⟫ ≤ ⟪V 1, Z⟫ ∨ ⟪V 2, Y⟫ ≤ ⟪V 2, Z⟫ := by
   by_contra h
   simp only [Fin.isValue, not_or, not_le] at h
   obtain ⟨h1, h2, h3⟩ := h
-  let VT : Matrix (Fin 3) (Fin 3) ℝ := fun i j => V i j
 
-  have VT_def (i : Fin 3) (X : Euc(3)): (VT *ᵥ X) i = ⟪V i, X⟫ := by
-    simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue, inner,
-      RCLike.inner_apply, Real.ringHom_apply, VT]
-    ring_nf
+  let Vm := V.mat
 
-  have compwise : VT *ᵥ Y ≫ VT *ᵥ Z := by
-    intro i; rw [VT_def, VT_def]; fin_cases i <;> assumption
+  have compwise : Vmᵀ *ᵥ Y ≫ Vmᵀ *ᵥ Z := by
+    intro i; rw [V_apply, V_apply]; fin_cases i <;> assumption
 
   let ⟨Yco, ⟨Ypos, Ysum⟩⟩ := hY -- [SY25] calls these
   let ⟨Zco, ⟨Zpos, Zsum⟩⟩ := hZ -- Yco = λ and Zco = ν
 
-  have ll (i : Fin 3) : ∑ x, (V x).ofLp i * Yco x = (∑ x, Yco x • V x) i := by
-    sorry
-
-  have Yvec : Y = VT.transpose *ᵥ Yco := by
+  have Yvec : Y = Vm *ᵥ Yco := by
     ext i
-    simp [VT, Matrix.transpose, Matrix.mulVec, dotProduct]
+    simp [Vm, Matrix.mulVec, dotProduct]
     ring_nf
-    rw [ll]
-    sorry
+    have : Y.ofLp i = (∑ x, Yco x • V x).ofLp i :=
+      congrFun (congrArg WithLp.ofLp Ysum) i
+    simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
+      smul_eq_mul] at this
+    conv at this => rhs; arg 2; intro x; rw [mul_comm]; skip
+    exact this
+
+  have Zvec : Z = Vm *ᵥ Zco := by
+    ext i
+    simp [Vm, Matrix.mulVec, dotProduct]
+    ring_nf
+    have : Z.ofLp i = (∑ x, Zco x • V x).ofLp i :=
+      congrFun (congrArg WithLp.ofLp Zsum) i
+    simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
+      smul_eq_mul] at this
+    conv at this => rhs; arg 2; intro x; rw [mul_comm]; skip
+    exact this
+
+  have sqnorm : ‖Y‖^2 = ‖Z‖^2 := by exact congrFun (congrArg HPow.hPow hYZ) 2
+  have : ⟪Y, Y⟫ = ‖Y‖^2 := real_inner_self_eq_norm_sq Y
+  -- For the next few steps, we need to convert a vector to a matrix
+  -- so we can reason about matrix product associativity and transposes.
+  -- We want to go ⟪Y, Y⟫ = YᵀY = (Vλ)ᵀ(Vλ) = λᵀVᵀVλ
+  -- so that we can use the fact that `compwise` says VᵀVλ ≫ VᵀVμ.
   sorry
 
 /-- [SY25] Lemma 24 -/
