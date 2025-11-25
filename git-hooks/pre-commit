@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Copy this file to .git/hooks/pre-commit if you want to catch some common
+# things that we'd rather not check in.
+
+matches=$(ag -G 'lean$' '#exit')
+
+if [ -n "$matches" ]; then
+    echo "❌ Commit blocked: Found forbidden #exit"
+    echo "$matches"
+    exit 1
+fi
+
+matches=$(ag -G 'lean$' 'import Mathlib$')
+
+if [ -n "$matches" ]; then
+    echo "❌ Commit blocked: Found bare import Mathlib"
+    echo "$matches"
+    exit 1
+fi
+
+exit 0
