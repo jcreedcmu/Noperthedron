@@ -63,7 +63,7 @@ lemma sin_sub_mul_cos_monotone_on : MonotoneOn sin_sub_mul_cos (Set.Icc 0 π) :=
   · unfold sin_sub_mul_cos
     fun_prop
   simp only [interior_Icc]
-  intros x x_in
+  intro x x_in
   unfold sin_sub_mul_cos
   simp only [differentiableAt_sin, differentiableAt_fun_id, differentiableAt_cos,
     DifferentiableAt.fun_mul, deriv_fun_sub, Real.deriv_sin, deriv_fun_mul, deriv_id'', one_mul,
@@ -75,7 +75,7 @@ lemma sin_sub_mul_cos_monotone_on : MonotoneOn sin_sub_mul_cos (Set.Icc 0 π) :=
 
 lemma sin_sub_mul_cos_nonneg (x : ℝ) : x ∈ Set.Icc 0 π → 0 ≤ sin_sub_mul_cos x := by
   simp only [Set.mem_Icc, and_imp]
-  intros x_nonneg x_le
+  intro x_nonneg x_le
   calc
     0 = sin_sub_mul_cos 0 := by simp [sin_sub_mul_cos]
     _ ≤ sin_sub_mul_cos x := by
@@ -84,7 +84,7 @@ lemma sin_sub_mul_cos_nonneg (x : ℝ) : x ∈ Set.Icc 0 π → 0 ≤ sin_sub_mu
 lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
   have cos_sqrt_deriv : ∀ x ∈ Set.Ioo 0 (π ^ 2), deriv (cos ∘ sqrt) x = -sin √x / (2 * √x) := by
     simp only [Set.mem_Ioo, and_imp]
-    intros x x_pos x_lt
+    intro x x_pos x_lt
     rw [deriv_comp, deriv_cos', deriv_sqrt, deriv_id'']
     · field_simp
     · simp
@@ -125,7 +125,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
       · apply Set.mapsTo_iff_subset_preimage.mpr
         simp only [Set.subset_def, Set.mem_Ioo, Set.mem_preimage, Set.mem_Ioi, sqrt_pos, and_imp]
         grind
-    · intros x x_in
+    · intro x x_in
       simp only [Pi.neg_apply, Function.comp_apply, Pi.div_apply]
       grind
   · simp only [interior_Icc, Set.mem_Ioo, Function.iterate_succ, Function.iterate_zero, Function.id_def,
@@ -166,7 +166,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
       · have : 0 < √x := sqrt_pos.mpr x_pos
         linarith
     · grind
-    · intros x; apply cos_sqrt_deriv
+    · intro x; apply cos_sqrt_deriv
 
 theorem one_plus_cos_mul_one_plus_cos_ge'' {a b : ℝ} (a_nonneg : 0 ≤ a) (a_le : a ≤ 2) (b_nonneg : 0 ≤ b) (b_le : b ≤ 2)
   (x y : ℝ) (ha : a / 2 = x) (hb: b / 2 = y) :
