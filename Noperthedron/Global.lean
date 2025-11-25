@@ -115,7 +115,7 @@ def global_theorem_precondition (p : Pose) (ε : ℝ) : Prop :=
 theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     (hp : global_theorem_precondition p ε) :
     ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q nopert.hull := by
-  intro ⟨q, q_near_p, q_is_rupert⟩
+  rintro ⟨q, q_near_p, q_is_rupert⟩
   simp only [Membership.mem] at q_near_p
   sorry
 

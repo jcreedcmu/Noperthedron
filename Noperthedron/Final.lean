@@ -15,7 +15,7 @@ There is no tight view pose that makes the Noperthedron have the Rupert property
 -/
 theorem no_nopert_tight_view_pose : ¬ ∃ v : Pose,
     tightInterval.contains v ∧ Shadows.IsRupert v nopert.hull := by
-  intro ⟨v, h1, h2⟩
+  rintro ⟨v, h1, h2⟩
   let ⟨tab, htab, row, hrow, tight⟩ := exists_solution_table
   exact Solution.Row.valid_imp_not_rupert tab htab row hrow ⟨v, tight v h1, h2⟩
 
