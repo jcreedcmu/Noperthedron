@@ -45,7 +45,7 @@ noncomputable def translationAffineEquiv {n : ℕ} (v : EuclideanSpace ℝ (Fin 
   linear := by rfl,
   map_vadd' m x := add_assoc x m v,
   right_inv := by grind only [= Function.RightInverse.eq_1, = Function.LeftInverse.eq_1],
-  left_inv := by grind only [= Function.LeftInverse.eq_1],
+  left_inv := leftInverse_sub_add_left v
   }
 
 /--
