@@ -62,16 +62,15 @@ lemma sin_sub_mul_cos_monotone_on : MonotoneOn sin_sub_mul_cos (Set.Icc 0 π) :=
     continuity
   · unfold sin_sub_mul_cos
     fun_prop
-  simp only [interior_Icc]
+  simp only [interior_Icc, Set.mem_Ioo]
   intro x x_in
   unfold sin_sub_mul_cos
   simp only [differentiableAt_sin, differentiableAt_fun_id, differentiableAt_cos,
     DifferentiableAt.fun_mul, deriv_fun_sub, Real.deriv_sin, deriv_fun_mul, deriv_id'', one_mul,
     deriv_cos', mul_neg, sub_add_cancel_left, neg_neg]
   have := sin_pos_of_mem_Ioo x_in
-  simp at x_in
-  rcases x_in with ⟨x_pos,x_lt⟩
-  apply mul_nonneg <;> linarith
+  rcases x_in with ⟨x_pos, x_lt⟩
+  positivity
 
 lemma sin_sub_mul_cos_nonneg (x : ℝ) : x ∈ Set.Icc 0 π → 0 ≤ sin_sub_mul_cos x := by
   simp only [Set.mem_Icc, and_imp]
@@ -163,8 +162,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
         apply DifferentiableAt.sqrt
         · simp
         · linarith
-      · have : 0 < √x := sqrt_pos.mpr x_pos
-        linarith
+      · positivity
     · grind
     · intro x; apply cos_sqrt_deriv
 
