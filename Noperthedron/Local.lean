@@ -17,7 +17,7 @@ theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
 
 /-- The positive cone of a finite collection of vectors -/
 def spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=
-  {w | ∃ c : Fin n → ℝ, ∀ i, 0 < c i ∧ w = ∑ i, c i • v i }
+  {w | ∃ c : Fin n → ℝ, (∀ i, 0 < c i) ∧ w = ∑ i, c i • v i }
 
 def componentwise_gt (v w : Fin 3 → ℝ) : Prop := ∀ i : Fin 3, v i > w i
 
@@ -34,12 +34,25 @@ theorem langles {Y Z : Euc(3)} {V : Fin 3 → Euc(3)} (hYZ : ‖Y‖ = ‖Z‖)
   let VT : Matrix (Fin 3) (Fin 3) ℝ := fun i j => V i j
 
   have VT_def (i : Fin 3) (X : Euc(3)): (VT *ᵥ X) i = ⟪V i, X⟫ := by
-    simp [Matrix.mulVec, VT, inner, dotProduct, Fin.sum_univ_three]
+    simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue, inner,
+      RCLike.inner_apply, Real.ringHom_apply, VT]
     ring_nf
 
   have compwise : VT *ᵥ Y ≫ VT *ᵥ Z := by
     intro i; rw [VT_def, VT_def]; fin_cases i <;> assumption
 
+  let ⟨Yco, ⟨Ypos, Ysum⟩⟩ := hY -- [SY25] calls these
+  let ⟨Zco, ⟨Zpos, Zsum⟩⟩ := hZ -- Yco = λ and Zco = ν
+
+  have ll (i : Fin 3) : ∑ x, (V x).ofLp i * Yco x = (∑ x, Yco x • V x) i := by
+    sorry
+
+  have Yvec : Y = VT.transpose *ᵥ Yco := by
+    ext i
+    simp [VT, Matrix.transpose, Matrix.mulVec, dotProduct]
+    ring_nf
+    rw [ll]
+    sorry
   sorry
 
 #exit
