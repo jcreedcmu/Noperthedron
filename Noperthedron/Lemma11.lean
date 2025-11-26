@@ -46,9 +46,9 @@ lemma cos_sqrt_pos (a b : ℝ) (a_nonneg : 0 ≤ a) (a_le : a ≤ 2) (b_nonneg :
           apply sqrt_monotone
           apply add_le_add <;> apply sq_le_sq.mpr <;> simpa [abs_of_nonneg, a_nonneg, b_nonneg]
       _ = √8 := by ring_nf
-      _ ≤ 3 := by simp only [sqrt_le_iff, Nat.ofNat_nonneg, true_and]; linarith
+      _ ≤ 3 := by simp only [sqrt_le_iff, Nat.ofNat_nonneg, true_and]; norm_num
       _ < π := by assumption
-    · linarith
+    · norm_num
     positivity
 
 noncomputable
