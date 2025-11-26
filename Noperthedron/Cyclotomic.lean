@@ -1,6 +1,4 @@
 import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Analysis.CStarAlgebra.Classes
-import Mathlib.Data.Int.Star
 import Mathlib.RingTheory.RootsOfUnity.Complex
 import Mathlib.RingTheory.SimpleRing.Principal
 
@@ -13,47 +11,6 @@ namespace Cyclotomic
 noncomputable section
 
 def ω (N : ℕ) : ℂ := exp (2 * π * I / N)
-
-lemma ω_wrap (N : ℕ) [NeZero N] : ω N ^ N = 1 := by
-  have : (N : ℂ) ≠ 0 := by aesop
-  simp only [ω, ← Complex.exp_nat_mul];
-  field_simp
-  exact exp_two_pi_mul_I
-
-def cyclic_sum (N : ℕ) := ∑ n : Fin N, (ω N)^(n : ℕ)
-
-lemma cyclic_sum_mul_eq (N : ℕ) (hN : 1 ≤ N) : ω N * cyclic_sum N = cyclic_sum N := by
-  simp only [cyclic_sum, Finset.mul_sum]
-  conv => lhs; rhs; intro i; rw [mul_comm]; change ω N ^ ((i : ℕ) + 1)
-  let M := N - 1
-  have hM : M + 1 = N := Nat.sub_add_cancel hN
-  repeat rw [← hM]
-  rw [Fin.sum_univ_castSucc, Fin.sum_univ_succ]
-  simp only [ω_wrap, Fin.coe_castSucc, Fin.val_last, Fin.coe_ofNat_eq_mod,
-    Nat.zero_mod, Fin.val_succ]
-  ring_nf
-
-lemma cyclic_sum_mul_eq' (N : ℕ) (hN : 1 ≤ N) : (ω N - 1) * cyclic_sum N = 0 := by
-  have hh (a b : ℂ) (h : a * b = b) : (a - 1) * b = 0 := by push_lefta h
-  exact hh (ω N) (cyclic_sum N) (cyclic_sum_mul_eq N hN)
-
-lemma primitive_root_not_one (N : ℕ) (hN : 1 < N) : ω N ≠ 1 := by
-  have : (N : ℂ) ≠ 0 := by aesop
-  intro h
-  let ⟨n, hn⟩ := Complex.exp_eq_one_iff.mp h
-  field_simp at hn
-  rw [show (1 : ℂ) = (↑(1 : ℤ) : ℂ) by push_cast; rfl] at hn
-  rw [show (↑N : ℂ) * (↑n : ℂ) = (↑(N * n) : ℂ) by push_cast; rfl] at hn
-  simp only [Int.cast_inj] at hn
-  have z := Int.eq_one_or_neg_one_of_mul_eq_one hn.symm
-  simp only [Nat.cast_eq_one, Int.reduceNeg, reduceCtorEq, or_false] at z
-  linarith
-
-lemma cyclic_sum_eq_zero (N : ℕ) (hN : 1 < N) : cyclic_sum N = 0 := by
-  have : ω N - 1 ≠ 0 := fun k =>
-    primitive_root_not_one N hN (by push_lefta k)
-  have : NeZero N := { out := by intro a; subst a; simp_all only [not_neg] }
-  cases (mul_eq_zero.mp) (cyclic_sum_mul_eq' N (le_of_lt hN)) <;> simp_all
 
 def z := ω 15
 
