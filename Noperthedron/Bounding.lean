@@ -83,10 +83,19 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   · sorry
   · sorry
 
-theorem RaRa {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
-    ‖rotR α - rotR α_‖ < ε ∧
-    ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ ∧
-    ‖RyL α - RyL α_‖ = ‖rotR α - rotR α_‖ ∧
+theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
+    ‖rotR α - rotR α_‖ < ε := by
+  sorry
+
+theorem norm_RxL_sub_RxL_eq {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
+    ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ := by
+  sorry
+
+theorem norm_RyL_sub_RyL_eq {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
+    ‖RyL α - RyL α_‖ = ‖rotR α - rotR α_‖ := by
+  sorry
+
+theorem norm_RzL_sub_RzL_eq {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖RzL α - RzL α_‖ = ‖rotR α - rotR α_‖ := by
   sorry
 
