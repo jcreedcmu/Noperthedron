@@ -18,6 +18,13 @@ name = "«doc-gen4»"
 git = "https://github.com/leanprover/doc-gen4"
 rev = "v4.26.0-rc2"
 
+# This a dependency of doc-gen4. We shouldn't need to depend on it
+# directly, except currently doc-gen4 tries to pull in a nonexistent commit.
+[[require]]
+name = "«UnicodeBasic»"
+git = "https://github.com/fgdorais/lean4-unicode-basic"
+rev = "eac4e25"
+
 [[require]]
 name = "checkdecls"
 git = "https://github.com/PatrickMassot/checkdecls.git"
