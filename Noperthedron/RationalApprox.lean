@@ -1,7 +1,7 @@
 import Mathlib.Analysis.Complex.Trigonometric
 import Mathlib.Analysis.RCLike.Basic
 import Mathlib.Tactic.NormNum.NatFactorial
-
+import Noperthedron.Lemma39
 import Noperthedron.Basic
 
 namespace RationalApprox
@@ -70,11 +70,6 @@ theorem cosℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cos
   grw [← this]
   exact z
 
-theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : Matrix (Fin m) (Fin n) ℝ)
-    (hδ : 0 < δ) (hle : ∀ i j, |A i j| ≤ δ) :
-    ‖A.toEuclideanLin.toContinuousLinearMap‖ ≤ δ * √(m * n)  := by
-  sorry
-
 inductive ApproximableEntry : Type where
   | zero : ApproximableEntry
   | one : ApproximableEntry
@@ -123,5 +118,5 @@ def matrixApprox {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y 
    A.map (·.approx x y) |>.toEuclideanLin.toContinuousLinearMap
 
 theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3} (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : Set.Icc (-4) 4) :
-    ‖matrixActual A x y - matrixApprox A x y‖ ≤ κ  := by
+    ‖matrixActual A x y - matrixApprox A x y‖ ≤ κ := by
   sorry
