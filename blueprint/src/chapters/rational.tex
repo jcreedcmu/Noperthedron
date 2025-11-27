@@ -57,15 +57,19 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
 \end{proof}
 
 \begin{lemma}\label{lem:dist_lt_kappa}
-    Let $A(x,y)$ be an $m\times n$ matrix with $1 \leq m,n\leq 3$ such that every entry is of the form $a_1(x)\cdot a_2(y)$ where
-    $a_i(z)\in \{0,1,-1,\pm\sin(z),\pm\cos(z)\}.$
+\leanok
+\lean{RationalApprox.norm_matrix_actual_approx_le_kappa}
+    Let $A(x,y)$ be an $m\times n$ matrix with $1 \leq m,n\leq 3$ such that every entry is in $[-1,1]$.of the form $a_1(x)\cdot a_2(y)$ where $a_i(z) \in [-1,1]$.
     Define $A_{\mathbb{Q}}(x,y)$ by replacing $\sin$ with $\ssin$ and $\cos$ with $\scos$. Then for every $x,y\in[-4,4]$ it holds that
     $\|A(x,y)-A_{\mathbb{Q}}(x,y)\|\leq\kappa$.
 \end{lemma}
 
 \begin{proof}
 \uses{lem:kappa7,lem:A_le_deltamn}
-    For fixed $x,y$ every entry of $A(x,y)-A_{\mathbb{Q}}(x,y)$ is of the form
+    We've replaced the assumption $a_i(z)\in \{0,1,-1,\pm\sin(z),\pm\cos(z)\}$  in See \cite{polyhedron.without.rupert}'s
+    Lemma~40 with $a_i(z)\in [-1,1]$.
+
+    By assumption, for fixed $x,y$ every entry of $A(x,y)-A_{\mathbb{Q}}(x,y)$ is of the form
     $a b - \widetilde{a}\widetilde{b}$ for some $a,b\in[-1,1]$ and $|a-\widetilde{a}|,|b-\widetilde{b}|\leq \kappa/7$ by \cref{lem:kappa7}. This implies that
     \begin{align*}
       |ab-\widetilde{a}\widetilde{b}|&\leq |a b-a\widetilde{b}|+|a \widetilde{b}-\widetilde{a}\widetilde{b}|

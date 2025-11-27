@@ -73,3 +73,54 @@ theorem cosℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cos
 theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : (E m) →L[ℝ] (E n)) (hδ : 0 < δ) :
     ‖A‖ ≤ δ * √(m * n)  := by
   sorry
+
+inductive ApproximableEntry : Type where
+  | zero : ApproximableEntry
+  | one : ApproximableEntry
+  | minus_one : ApproximableEntry
+  | sin : ApproximableEntry
+  | cos : ApproximableEntry
+  | msin : ApproximableEntry
+  | mcos : ApproximableEntry
+
+def DistLtKappaEntry := ApproximableEntry × ApproximableEntry
+
+noncomputable
+def ApproximableEntry.actual (z : ℚ) : ApproximableEntry → ℝ
+| .zero => 0
+| .one => 1
+| .minus_one => -1
+| .sin => Real.sin z
+| .cos => Real.cos z
+| .msin => -Real.sin z
+| .mcos => -Real.cos z
+
+noncomputable
+def DistLtKappaEntry.actual (dlke : DistLtKappaEntry) (x y : ℚ) :=
+  dlke.fst.actual x * dlke.snd.actual y
+
+noncomputable
+def ApproximableEntry.approx (z : ℚ) : ApproximableEntry → ℝ
+| .zero => 0
+| .one => 1
+| .minus_one => -1
+| .sin => sinℚ z
+| .cos => cosℚ z
+| .msin => -sinℚ z
+| .mcos => -cosℚ z
+
+noncomputable
+def DistLtKappaEntry.approx (dlke : DistLtKappaEntry) (x y : ℚ) :=
+  dlke.fst.approx x * dlke.snd.approx y
+
+noncomputable
+def matrixActual {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : ℚ) : E n →L[ℝ] E m :=
+   A.map (·.actual x y) |>.toEuclideanLin.toContinuousLinearMap
+
+noncomputable
+def matrixApprox {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : ℚ) : E n →L[ℝ] E m :=
+   A.map (·.approx x y) |>.toEuclideanLin.toContinuousLinearMap
+
+theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3} (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : Set.Icc (-4) 4) :
+    ‖matrixActual A x y - matrixApprox A x y‖ ≤ κ  := by
+  sorry
