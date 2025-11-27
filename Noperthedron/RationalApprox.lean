@@ -70,8 +70,9 @@ theorem cosℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cos
   grw [← this]
   exact z
 
-theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : (E m) →L[ℝ] (E n)) (hδ : 0 < δ) :
-    ‖A‖ ≤ δ * √(m * n)  := by
+theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : Matrix (Fin m) (Fin n) ℝ)
+    (hδ : 0 < δ) (hle : ∀ i j, |A i j| ≤ δ) :
+    ‖A.toEuclideanLin.toContinuousLinearMap‖ ≤ δ * √(m * n)  := by
   sorry
 
 inductive ApproximableEntry : Type where
