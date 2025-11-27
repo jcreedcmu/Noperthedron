@@ -4,11 +4,20 @@ namespace RationalApprox
 
 noncomputable section
 
--- Use the triangle inequality
 theorem sum_mul_sq_le_sum_mul_abs_sq {n : ℕ} (v w : Fin n → ℝ)
-    (δ : ℝ) (hle : ∀ j, |w j| ≤ δ) :
+    (δ : ℝ) (hδ : 0 < δ) (hle : ∀ j, |w j| ≤ δ) :
     (∑ j, w j * v j)^2 ≤ (∑ j, δ * |v j|)^2 := by
-  sorry
+  calc (∑ j, w j * v j)^2
+    _ ≤ (|(∑ j, w j * v j)|)^2 := by rw [sq_abs]
+    _ ≤ ((∑ j, |w j * v j|))^2 := by
+        refine (sq_le_sq₀ (by positivity) (by positivity)).mpr ?_
+        exact Finset.abs_sum_le_sum_abs (fun i ↦ w i * v i) Finset.univ
+    _ = ((∑ j, |w j| * |v j|))^2 := by simp
+    _ ≤ (∑ j, δ * |v j|)^2 := by
+        refine (sq_le_sq₀ (by positivity) (by positivity)).mpr ?_
+        apply Finset.sum_le_sum
+        intro i hi
+        grw [hle i]
 
 -- Use Cauchy-Schwartz
 theorem sum_abs_sq_le_sum_abs_sq_mul {n : ℕ} (v : Fin n → ℝ) :
@@ -33,7 +42,7 @@ theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : Matrix (Fin m) (Fin 
     _ = ∑ i, A.mulVec v.ofLp i ^ 2 := by simp [PiLp.norm_sq_eq_of_L2]
     _ = ∑ i, (∑ j, A i j * v j) ^ 2 := by simp [Matrix.mulVec, dotProduct]
     _ ≤ ∑ i : Fin m, (∑ j, δ * |v j|) ^ 2 :=
-        Finset.sum_le_sum (fun i _ => sum_mul_sq_le_sum_mul_abs_sq v.ofLp (A i) δ (hle i))
+        Finset.sum_le_sum (fun i _ => sum_mul_sq_le_sum_mul_abs_sq v.ofLp (A i) δ hδ (hle i))
     _ = m * (∑ j, δ * |v j|) ^ 2 := by
         simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
     _ = m * (δ * (∑ j, |v j|)) ^ 2 := by rw [← Finset.mul_sum]
