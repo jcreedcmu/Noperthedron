@@ -50,6 +50,10 @@ theorem c2_norm_bound : ‖C2R‖ ∈ Set.Ioo (98/100) (99/100) := by
     simp only [Fin.sum_univ_three, Pi.mul_apply, Matrix.cons_val]
     norm_num
 
+theorem c2_norm_le_one : ‖C2R‖ ≤ 1 := by
+  grw [c2_norm_bound.2]
+  norm_num
+
 theorem c3_norm_bound : ‖C3R‖ ∈ Set.Ioo (98/100) (99/100) := by
   rw [EuclideanSpace.norm_eq]
   constructor
@@ -63,6 +67,10 @@ theorem c3_norm_bound : ‖C3R‖ ∈ Set.Ioo (98/100) (99/100) := by
     unfold C3R C3
     simp only [Fin.sum_univ_three, Pi.mul_apply, Matrix.cons_val]
     norm_num
+
+theorem c3_norm_le_one : ‖C3R‖ ≤ 1 := by
+  grw [c3_norm_bound.2]
+  norm_num
 
 /-- This is half of the C30 defined in [SY25]. In order
 to see that this is pointsymmetric, it's convenient to
@@ -78,6 +86,9 @@ lemma C15_nonempty (pt : ℝ³) : (C15 pt).Nonempty := by
   simp only [C15, Finset.mem_image, Finset.mem_range]
   use 0
   simp only [Nat.ofNat_pos, CharP.cast_eq_zero, mul_zero, zero_div, and_self]
+
+lemma C15_pres_norm (pt v : ℝ³) (hv : v ∈ C15 pt) : ‖v‖ = ‖pt‖ := by
+  sorry
 
 end Nopert
 
@@ -104,7 +115,14 @@ lemma half_nopert_norms_nonempty : halfNopertNorms.Nonempty := by
   exact half_nopert_verts_nonempty
 
 lemma half_nopert_verts_norm_le_one : ∀ v ∈ halfNopertVerts, ‖v‖ ≤ 1 := by
-  sorry
+  intro v hv
+  simp only [halfNopertVerts, Finset.union_assoc, Finset.mem_union] at hv
+  rcases hv with h | h | h
+  · rw [show ‖v‖ = ‖Nopert.C1R‖ from Nopert.C15_pres_norm Nopert.C1R v h, Nopert.c1_norm_one]
+  · rw [show ‖v‖ = ‖Nopert.C2R‖ from Nopert.C15_pres_norm Nopert.C2R v h]
+    exact Nopert.c2_norm_le_one
+  · rw [show ‖v‖ = ‖Nopert.C3R‖ from Nopert.C15_pres_norm Nopert.C3R v h]
+    exact Nopert.c3_norm_le_one
 
 @[simp]
 noncomputable
