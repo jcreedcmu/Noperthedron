@@ -66,7 +66,7 @@ theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 := by
 theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 := by
   refine pres_sq_norm_imp_norm_one ?_
   intro v
-  simp only [RzL, Rz_mat, PiLp.norm_sq_eq_of_L2]
+  simp only [RzL, Rz_mat, PiLp.norm_sq_eq_of_L2, AddChar.coe_mk]
   simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
     Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
     Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, Matrix.cons_val]
