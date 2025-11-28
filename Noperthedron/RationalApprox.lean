@@ -38,6 +38,14 @@ of rational versions to real counterparts.
 -/
 def κ : ℝ := 1 / 10^10
 
+def κApproxMat {m n : ℕ}
+    (A : Matrix (Fin m) (Fin n) ℝ)
+    (A' : Matrix (Fin m) (Fin n) ℚ) : Prop :=
+  ‖(A - A'.map (fun x => (↑x : ℝ))).toEuclideanLin.toContinuousLinearMap‖ ≤ κ
+
+def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
+  ‖(A - A').toEuclideanLin.toContinuousLinearMap‖ ≤ κ
+
 end
 
 theorem sin_psum_approx (x : ℚ) (n : ℕ) : |Real.sin x - sin_psum n x| ≤ |x|^(2 * n + 1) / (2 * n + 1)! := by
@@ -70,19 +78,19 @@ theorem cosℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cos
   grw [← this]
   exact z
 
-inductive ApproximableEntry : Type where
-  | zero : ApproximableEntry
-  | one : ApproximableEntry
-  | minus_one : ApproximableEntry
-  | sin : ApproximableEntry
-  | cos : ApproximableEntry
-  | msin : ApproximableEntry
-  | mcos : ApproximableEntry
+inductive RewritableEntry : Type where
+  | zero : RewritableEntry
+  | one : RewritableEntry
+  | minus_one : RewritableEntry
+  | sin : RewritableEntry
+  | cos : RewritableEntry
+  | msin : RewritableEntry
+  | mcos : RewritableEntry
 
-def DistLtKappaEntry := ApproximableEntry × ApproximableEntry
+def DistLtKappaEntry := RewritableEntry × RewritableEntry
 
 noncomputable
-def ApproximableEntry.actual (z : ℚ) : ApproximableEntry → ℝ
+def RewritableEntry.actual (z : ℚ) : RewritableEntry → ℝ
 | .zero => 0
 | .one => 1
 | .minus_one => -1
@@ -96,7 +104,7 @@ def DistLtKappaEntry.actual (dlke : DistLtKappaEntry) (x y : ℚ) :=
   dlke.fst.actual x * dlke.snd.actual y
 
 noncomputable
-def ApproximableEntry.approx (z : ℚ) : ApproximableEntry → ℝ
+def RewritableEntry.approx (z : ℚ) : RewritableEntry → ℝ
 | .zero => 0
 | .one => 1
 | .minus_one => -1
