@@ -126,9 +126,9 @@ def shape_of (S : Finset ℝ³) : Shape where
 -- tree check.
 theorem local_theorem (P Q : Triangle)
     (cong_tri : P.Congruent Q)
-    (poly : Finset ℝ³) [Nonempty poly]
+    (poly : Finset ℝ³) (ne : poly.Nonempty)
     (hP : P ∈ poly) (hQ : Q ∈ poly)
-    (radius_one : polyhedron_radius poly = 1)
+    (radius_one : polyhedron_radius poly ne = 1)
     (p : Pose)
     (ε δ r : ℝ) (hε : ε > 0) (hr : r > 0)
     (hr : BoundR r ε p Q)

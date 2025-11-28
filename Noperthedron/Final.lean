@@ -72,6 +72,26 @@ theorem nopert_not_rupert_set : ¬ IsRupertSet nopert.hull := fun r =>
   no_nopert_pose (rupert_set_implies_pose_rupert r)
 
 /--
+FIXME: `sortedVerts` and the lemma `mem_iff_symm_mem` are a temporary
+hack so I can proceed with a refactoring piecemeal. We'd rather work
+with `Finset ℝ³` in as many places as possible, and this is the
+conversion from that to picking a specific finite type ι and a map ι →
+ℝ³.
+-/
+noncomputable
+def sortedVerts : Fin nopert.vertices.card → ℝ³ := fun i => nopertVerts.equivFin.symm i
+
+lemma mem_iff_symm_mem {a : Type} {A : Finset a} {n : ℕ} {x : a} (eq : ↥A ≃ Fin n) :
+    x ∈ A ↔ ∃ y, eq.symm y = x := by
+  constructor
+  · intro hx
+    use eq ⟨x, hx⟩
+    simp only [Equiv.symm_apply_apply]
+  · rintro ⟨y, hy⟩
+    rw [← hy]
+    simp
+
+/--
 The Noperthedron is not Rupert.
 
 FIXME: Ideally we'd like to reconcile this with
@@ -80,18 +100,16 @@ formal-conjectures formulation) which will require some minor
 impedance matching, and an extra proof obligation that the interior of
 the Noperthedron is nonempty.
 -/
-theorem nopert_not_rupert : ¬ IsRupert nopertVerts := by
+theorem nopert_not_rupert : ¬ IsRupert sortedVerts := by
   intro r
 
   refine nopert_not_rupert_set ?_
-  let ι := Fin nopert.vertices.card
-  let sortedVerts : Fin nopert.vertices.card → ℝ³ := fun i => nopert.vertices.equivFin.symm i
-
-  have h1 : IsRupert nopertVerts → IsRupert sortedVerts := by
-    sorry
-  have h2 : Set.range sortedVerts = ↑nopert.vertices := by
-    sorry
-
   unfold Shape.hull
-  rw [← h2]
-  exact rupert_iff_rupert_set (ι := ι) sortedVerts |>.mp (h1 r)
+
+  have hsort : ↑nopert.vertices = Set.range sortedVerts := by
+    ext v
+    simp [sortedVerts]
+    exact mem_iff_symm_mem nopertVerts.equivFin
+
+  rw [hsort]
+  exact rupert_iff_rupert_set sortedVerts |>.mp r

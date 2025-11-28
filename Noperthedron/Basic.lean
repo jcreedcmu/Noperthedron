@@ -143,12 +143,12 @@ def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →L[ℝ] ℝ² :=
 
 /--
 A little convenience lemma to turn a Nonempty typeclass into a Finset.Nonempty fact
-for a image of that finite set.
+for a image of that finite set. FIXME: is this unused now?
 -/
 lemma Finset.image_nonempty' {α β : Type} (s : Finset α) {f : α → β} [n : Nonempty s] [DecidableEq β] :
     (s.image f).Nonempty :=
   s.image_nonempty.mpr (nonempty_coe_sort.mp n)
 
 noncomputable
-def polyhedron_radius {n : ℕ} (ι : Finset (E n)) [Nonempty ι] : ℝ :=
-  (ι.image (‖·‖)).max' ι.image_nonempty'
+def polyhedron_radius {n : ℕ} (ι : Finset (E n)) (ne : ι.Nonempty) : ℝ :=
+  (ι.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)

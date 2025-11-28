@@ -101,7 +101,9 @@ A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
 def maxH (p : Pose) (ε : ℝ) (w : ℝ²) : ℝ :=
-  nopertVertFinset.image (H p ε w) |>.max' nopertVertFinset.image_nonempty'
+  nopertVerts.image (H p ε w) |>.max' <| by
+    simp only [Finset.image_nonempty]; exact
+    nopert_verts_nonempty
 
 /--
 A compact way of saying "the pose satisfies the global theorem precondition at width ε".
