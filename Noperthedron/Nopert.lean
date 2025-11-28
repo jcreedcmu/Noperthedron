@@ -103,7 +103,7 @@ lemma half_nopert_norms_nonempty : halfNopertNorms.Nonempty := by
   simp only [halfNopertNorms, Finset.image_nonempty]
   exact half_nopert_verts_nonempty
 
-lemma half_nopert_norms_max_one : halfNopertNorms.max' half_nopert_norms_nonempty = 1 := by
+lemma half_nopert_verts_norm_le_one : ∀ v ∈ halfNopertVerts, ‖v‖ ≤ 1 := by
   sorry
 
 @[simp]
@@ -176,11 +176,13 @@ lemma c1r_in_half_nopert_verts : Nopert.C1R ∈ halfNopertVerts := by
 /--
 The radius of the half-noperthedron is 1.
 -/
-theorem half_nopert_radius_one : polyhedron_radius halfNopertVerts half_nopert_verts_nonempty = 1 := by
-  have bound : ∀ v ∈ halfNopertVerts, ‖v‖ ≤ 1 := sorry
-  exact polyhedron_radius_def halfNopertVerts half_nopert_verts_nonempty
-    Nopert.C1R c1r_in_half_nopert_verts Nopert.c1_norm_one bound
+theorem half_nopert_radius_one : polyhedron_radius halfNopertVerts half_nopert_verts_nonempty = 1 :=
+  polyhedron_radius_def halfNopertVerts half_nopert_verts_nonempty
+    Nopert.C1R c1r_in_half_nopert_verts Nopert.c1_norm_one half_nopert_verts_norm_le_one
 
+/--
+Pointsymmetrization preserves the radius of any set
+-/
 theorem pointsymmetrize_pres_radius {vs : Finset ℝ³} (vsne : vs.Nonempty) :
     polyhedron_radius (pointsymmetrize vs) (by simpa) = polyhedron_radius vs vsne := by
   sorry

@@ -42,8 +42,9 @@ Trivial arithmetic.
 The radius of the Noperthedron is one.
 \end{lemma}
 \begin{proof}
-\uses{c1_c2_c3_norms}
-By \cref{c1_c2_c3_norms}.
+\uses{c1_c2_c3_norms, thm:pointsymmetrize_pres_radius, thm:polyhedron_radius_def, lemma:half_nopert_verts_norm_le_one}
+By \cref{c1_c2_c3_norms}, \cref{thm:pointsymmetrize_pres_radius}, \cref{thm:polyhedron_radius_def},
+and \cref{lemma:half_nopert_verts_norm_le_one}.
 \end{proof}
 
 Rotations about the $x, y, z$ axes $R_x,R_y,R_z:$  $\mathbb{R}\to \mathbb{R}^{3\times 3}$
@@ -115,8 +116,19 @@ pointsymmetrization of
 \end{definition}
 
 \begin{lemma}
+\label{lemma:half_nopert_verts_norm_le_one}
+\lean{half_nopert_verts_norm_le_one}
+\leanok
+The norm of any vertex in the prepointsymmetrized version of the Noperthedron is no more than 1.
+\end{lemma}
+\begin{proof}
+\leanok
+Evident from definitions.
+\end{proof}
+
+\begin{lemma}
 \label{lemma:pointsymmetrization_is_pointsym}
-\lean{pointsymmetrization_is_pointsym}
+\lean{pointsymmetrize_is_pointsym}
 \leanok
 The pointsymmetrization of any set is point-symmetric.
 \end{lemma}

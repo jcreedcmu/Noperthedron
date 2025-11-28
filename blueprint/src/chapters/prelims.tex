@@ -45,3 +45,29 @@ it being purely rotationally Rupert.
 \leanok
 TODO: informalize proof
 \end{proof}
+
+\begin{theorem}
+\label{thm:pointsymmetrize_pres_radius}
+\lean{pointsymmetrize_pres_radius}
+\leanok
+Pointsymmetrization preserves radius.
+\end{theorem}
+\begin{proof}
+Because the reflection of a point about the origin preserves its norm.
+\end{proof}
+
+
+\begin{theorem}
+\label{thm:polyhedron_radius_def}
+\lean{polyhedron_radius_def}
+\leanok
+Suppose $S$ is a finite set of points in $\R^n$. If
+\begin{itemize}
+\item there is a vector $v \in S$ with $\|v\| = r$
+\item all vectors $v \in S$ have $\|v\| \le r$
+\end{itemize}
+then the radius of the polyhedron $S$ is $r$.
+\end{theorem}
+\begin{proof}
+Immediate from definition.
+\end{proof}
