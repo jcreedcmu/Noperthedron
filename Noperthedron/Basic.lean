@@ -167,4 +167,13 @@ def polyhedron_radius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
 theorem polyhedron_radius_def {n : ℕ} {r : ℝ} (S : Finset (E n)) (ne : S.Nonempty)
     (v : E n) (v_in_S : v ∈ S) (hv : ‖v‖ = r) (bound : ∀ v ∈ S, ‖v‖ ≤ r) :
     polyhedron_radius S ne = r := by
-  sorry
+  simp only [polyhedron_radius, Finset.max'_eq_iff]
+  constructor
+  · rw [← hv]
+    simp only [Finset.mem_image]
+    use v
+  · intro vn
+    simp only [Finset.mem_image, forall_exists_index, and_imp]
+    intro x hx hx'
+    rw [← hx']
+    exact bound x hx
