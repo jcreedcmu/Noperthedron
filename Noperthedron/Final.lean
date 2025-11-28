@@ -47,7 +47,7 @@ theorem no_nopert_pose : ¬ ∃ p : MatrixPose, Shadows.IsRupert p nopert.hull :
   obtain ⟨p, r⟩ := r
   have hconvex : Convex ℝ nopert.hull := by
     unfold Shape.hull
-    exact convex_convexHull ℝ (Set.range nopert.vertices)
+    exact convex_convexHull ℝ (↑nopert.vertices : Set ℝ³)
   have r' := rupert_implies_rot_rupert nopert_point_symmetric hconvex p r
   exact no_nopert_rot_pose ⟨p, r'⟩
 
@@ -80,6 +80,18 @@ formal-conjectures formulation) which will require some minor
 impedance matching, and an extra proof obligation that the interior of
 the Noperthedron is nonempty.
 -/
+theorem nopert_not_rupert : ¬ IsRupert nopertVerts := by
+  intro r
 
-theorem nopert_not_rupert : ¬ IsRupert nopertVerts := fun r =>
-  nopert_not_rupert_set ((rupert_iff_rupert_set (nopert.vertices)).mp r)
+  refine nopert_not_rupert_set ?_
+  let ι := Fin nopert.vertices.card
+  let sortedVerts : Fin nopert.vertices.card → ℝ³ := fun i => nopert.vertices.equivFin.symm i
+
+  have h1 : IsRupert nopertVerts → IsRupert sortedVerts := by
+    sorry
+  have h2 : Set.range sortedVerts = ↑nopert.vertices := by
+    sorry
+
+  unfold Shape.hull
+  rw [← h2]
+  exact rupert_iff_rupert_set (ι := ι) sortedVerts |>.mp (h1 r)

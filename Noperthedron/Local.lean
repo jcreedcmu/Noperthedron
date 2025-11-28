@@ -116,12 +116,10 @@ def BoundDelta (δ : ℝ) (p : Pose) (P Q : Triangle) : Prop :=
 def BoundR (r ε : ℝ) (p : Pose) (Q : Triangle): Prop :=
   ∀ i : Fin 3, ‖p.rotM₂ (Q i)‖ > r + ε * √2
 
--- FIXME: is this the cleanest way of getting convex hull from
--- Finset? Probably not.
+--- XXX: this is a leftover shim that should be cleaned up
 noncomputable
 def shape_of (S : Finset ℝ³) : Shape where
-  size := S.card
-  vertices i := (S.equivFin.symm i).1
+  vertices := S
 
 -- TODO: Somehow separate out the "local theorem precondition"
 -- predicate in a way that is suitable for the computational step's

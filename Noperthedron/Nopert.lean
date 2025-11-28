@@ -126,8 +126,7 @@ instance : Nonempty nopertVertFinset := by
 
 noncomputable
 def nopert : Shape where
-  size := nopertNumVerts
-  vertices := nopertVerts
+  vertices := nopertVertFinset
 
 lemma pointsymmetrization_is_pointsym (ℓ : List ℝ³) :
     PointSym { x | x ∈ pointsymmetrize ℓ } := by
@@ -151,4 +150,4 @@ theorem nopert_verts_pointsym : PointSym nopertVertSet := by
 The noperthedron is pointsymmetric.
 -/
 theorem nopert_point_symmetric : PointSym nopert.hull := by
-  exact hull_pres_pointsym nopert_verts_pointsym
+  exact hull_pres_pointsym (by sorry)
