@@ -161,5 +161,10 @@ lemma Finset.image_nonempty' {α β : Type} (s : Finset α) {f : α → β} [n :
   s.image_nonempty.mpr (nonempty_coe_sort.mp n)
 
 noncomputable
-def polyhedron_radius {n : ℕ} (ι : Finset (E n)) (ne : ι.Nonempty) : ℝ :=
-  (ι.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)
+def polyhedron_radius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
+  (S.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)
+
+theorem polyhedron_radius_def {n : ℕ} {r : ℝ} (S : Finset (E n)) (ne : S.Nonempty)
+    (v : E n) (v_in_S : v ∈ S) (hv : ‖v‖ = r) (bound : ∀ v ∈ S, ‖v‖ ≤ r) :
+    polyhedron_radius S ne = r := by
+  sorry

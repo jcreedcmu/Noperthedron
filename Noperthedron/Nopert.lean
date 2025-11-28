@@ -106,6 +106,7 @@ lemma half_nopert_norms_nonempty : halfNopertNorms.Nonempty := by
 lemma half_nopert_norms_max_one : halfNopertNorms.max' half_nopert_norms_nonempty = 1 := by
   sorry
 
+@[simp]
 noncomputable
 def pointsymmetrize (vs : Finset ℝ³) : Finset ℝ³ := vs ∪ vs.image (-·)
 
@@ -144,7 +145,7 @@ noncomputable
 def nopert : Shape where
   vertices := nopertVerts
 
-lemma pointsymmetrization_is_pointsym (vs : Finset ℝ³) :
+lemma pointsymmetrize_is_pointsym (vs : Finset ℝ³) :
     PointSym (pointsymmetrize vs : Set ℝ³) := by
   intro a ha
   simp only [SetLike.mem_coe]
@@ -153,7 +154,7 @@ lemma pointsymmetrization_is_pointsym (vs : Finset ℝ³) :
   exact pointsymmetrize_mem vs (-a) |>.mpr z'
 
 theorem nopert_verts_pointsym : PointSym nopertVertSet :=
-  pointsymmetrization_is_pointsym halfNopertVerts
+  pointsymmetrize_is_pointsym halfNopertVerts
 
 /--
 The noperthedron is pointsymmetric.
@@ -162,7 +163,31 @@ theorem nopert_point_symmetric : PointSym nopert.hull := by
   exact hull_pres_pointsym nopert_verts_pointsym
 
 /--
+The point C1R is in the half-noperthedron
+-/
+lemma c1r_in_half_nopert_verts : Nopert.C1R ∈ halfNopertVerts := by
+    simp only [halfNopertVerts]
+    apply Finset.mem_union_left
+    apply Finset.mem_union_left
+    simp only [Nopert.C15, Finset.mem_image, Finset.mem_range]
+    use 0
+    simp
+
+/--
+The radius of the half-noperthedron is 1.
+-/
+theorem half_nopert_radius_one : polyhedron_radius halfNopertVerts half_nopert_verts_nonempty = 1 := by
+  have bound : ∀ v ∈ halfNopertVerts, ‖v‖ ≤ 1 := sorry
+  exact polyhedron_radius_def halfNopertVerts half_nopert_verts_nonempty
+    Nopert.C1R c1r_in_half_nopert_verts Nopert.c1_norm_one bound
+
+theorem pointsymmetrize_pres_radius {vs : Finset ℝ³} (vsne : vs.Nonempty) :
+    polyhedron_radius (pointsymmetrize vs) (by simpa) = polyhedron_radius vs vsne := by
+  sorry
+
+/--
 The radius of the noperthedron is 1.
 -/
 theorem Nopert.noperthedron_radius_one : polyhedron_radius nopertVerts nopert_verts_nonempty = 1 := by
-  sorry
+  simp only [nopertVerts, pointsymmetrize_pres_radius half_nopert_verts_nonempty]
+  exact half_nopert_radius_one
