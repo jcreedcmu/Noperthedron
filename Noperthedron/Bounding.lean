@@ -63,9 +63,10 @@ theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 := by
   · ring_nf
   simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
 
-theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 := by
-  refine pres_sq_norm_imp_norm_one ?_
+theorem Rz_pres_norm (α : ℝ) :
+    ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ := by
   intro v
+  suffices h : ‖(RzL α) v‖^2 = ‖v‖^2  by simp_all
   simp only [RzL, Rz_mat, PiLp.norm_sq_eq_of_L2, AddChar.coe_mk]
   simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
     Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
@@ -77,6 +78,9 @@ theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 := by
            = _
   · ring_nf
   simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
+
+theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 :=
+  pres_norm_imp_norm_one (Rz_pres_norm α)
 
 theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) ?_ ?_

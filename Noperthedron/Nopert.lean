@@ -1,5 +1,6 @@
 import Noperthedron.Basic
 import Noperthedron.Util
+import Noperthedron.Bounding
 
 /-
 This file covers [SY25] §2.1.
@@ -88,7 +89,9 @@ lemma C15_nonempty (pt : ℝ³) : (C15 pt).Nonempty := by
   simp only [Nat.ofNat_pos, CharP.cast_eq_zero, mul_zero, zero_div, and_self]
 
 lemma C15_pres_norm (pt v : ℝ³) (hv : v ∈ C15 pt) : ‖v‖ = ‖pt‖ := by
-  sorry
+  simp only [C15, Finset.mem_image, Finset.mem_range] at hv
+  obtain ⟨a, ⟨ha, ha'⟩⟩ := hv
+  rw [← ha', Bounding.Rz_pres_norm _]
 
 end Nopert
 
