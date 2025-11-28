@@ -53,20 +53,21 @@ TODO: informalize proof
 Pointsymmetrization preserves radius.
 \end{theorem}
 \begin{proof}
+\leanok
 Because the reflection of a point about the origin preserves its norm.
 \end{proof}
 
 
 \begin{theorem}
-\label{thm:polyhedron_radius_def}
-\lean{polyhedron_radius_def}
+\label{thm:polyhedron_radius_iff}
+\lean{polyhedron_radius_iff}
 \leanok
-Suppose $S$ is a finite set of points in $\R^n$. If
+Suppose $S$ is a finite set of points in $\R^n$.
+The radius of the polyhedron $S$ is $r$ iff
 \begin{itemize}
 \item there is a vector $v \in S$ with $\|v\| = r$
 \item all vectors $v \in S$ have $\|v\| \le r$
 \end{itemize}
-then the radius of the polyhedron $S$ is $r$.
 \end{theorem}
 \begin{proof}
 \leanok
