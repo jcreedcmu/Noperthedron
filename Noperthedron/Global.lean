@@ -1,8 +1,6 @@
-import Mathlib.Analysis.Calculus.FDeriv.Defs
+import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.InnerProductSpace.Dual
-import Noperthedron.Basic
 import Noperthedron.Nopert
-import Noperthedron.PoseClasses
 import Noperthedron.PoseInterval
 
 open scoped RealInnerProductSpace
@@ -72,13 +70,35 @@ def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) (x : E n) : Prop :=
   ∀ (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
 
 theorem rotation_partials_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³) :
-  mixed_partials_bounded (rotproj_inner S w) x := by
+    mixed_partials_bounded (rotproj_inner S w) x := by
   sorry
 
-theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ) (x y : E n)
-  (ε : ℝ) (hε : ε > 0) (hdiff : (i : Fin n) → |x i - y i| < ε)
-  (mpb : mixed_partials_bounded f x) :
-  |f x - f y| ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by
+theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
+    (fc : ContDiff ℝ 2 f) (x y : E n)
+    (ε : ℝ) (hε : ε > 0) (hdiff : (i : Fin n) → |x i - y i| < ε)
+    (mpb : mixed_partials_bounded f x) :
+    |f x - f y| ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by
+  let g₀ : ℝ → E n := fun t => (1 - t) • x + t • y
+  let g := f ∘ g₀
+  let h : ℝ → ℝ  := deriv (fun t => f <| (1 - t) • x + t • y)
+  let g' (t : ℝ) : ℝ := ∑ i, (y i - x i) * nth_partial i f ((1 - t) • x + t • y)
+  have z : deriv g = g' := by
+    ext x
+    have hg : DifferentiableAt ℝ f (g₀ x) := by sorry
+    have hf : DifferentiableAt ℝ g₀ x := by sorry
+    change fderiv ℝ g x 1 = g' x
+
+    simp only [g, fderiv_comp x hg hf,
+      ContinuousLinearMap.coe_comp', Function.comp_apply, fderiv_eq_smul_deriv, one_smul]
+
+    sorry
+  let g0 : ℝ → E n := fun t => (1 - t) • x + t • y
+  have hg : g = f ∘ g0 := by rfl
+
+  have hab : (0 : ℝ) ≤ 1 := by norm_num
+  have hcont : ContinuousOn g (Set.Icc 0 1) := by sorry
+  have hderiv : ∀ x ∈ Set.Ioo 0 1, HasDerivAt g (g' x) x := sorry
+  have gint := intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le hab hcont hderiv
   sorry
 
 /--
