@@ -26,7 +26,8 @@ theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
   intro v
   simp only [rotR, rotR_mat, PiLp.norm_sq_eq_of_L2]
   simp only [AddChar.coe_mk, LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
-    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec2_dotProduct, Fin.isValue,
+    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_fin_one,
+    Matrix.vec2_dotProduct, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
     Real.norm_eq_abs, sq_abs, Fin.sum_univ_two, neg_mul]
   ring_nf
   convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) = _

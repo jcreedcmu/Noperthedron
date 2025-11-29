@@ -75,11 +75,8 @@ def RzL : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
 @[simp]
 noncomputable
 def rotR_mat (α : ℝ) : Matrix (Fin 2) (Fin 2) ℝ :=
-  Matrix.of fun
-      | 0, 0 => Real.cos α
-      | 0, 1 => -Real.sin α
-      | 1, 0 => Real.sin α
-      | 1, 1 => Real.cos α
+  !![Real.cos α, -Real.sin α;
+     Real.sin α,  Real.cos α]
 
 -- [SY25] § 1.1 Definition 2
 @[simp]
@@ -88,7 +85,13 @@ def rotR : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
   toFun α := (rotR_mat α).toEuclideanLin.toContinuousLinearMap
   map_zero_eq_one' := by
     ext v i
-    fin_cases i <;> simp [Matrix.toEuclideanLin_apply, Matrix.mulVec]
+    simp only [rotR_mat, cos_zero, sin_zero, neg_zero, LinearMap.coe_toContinuousLinearMap',
+      Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply, Matrix.cons_mulVec,
+      Matrix.cons_dotProduct, one_mul, zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, zero_add,
+      Matrix.empty_mulVec, ContinuousLinearMap.one_apply]
+    simp only [Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one, Nat.reduceAdd,
+      Function.comp_apply, Fin.succ_zero_eq_one]
+    fin_cases i <;> rfl
 
   map_add_eq_mul' := by
     intro α β
@@ -101,9 +104,7 @@ def rotR : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
 -- Derivative of rotR with respect to its parameter
 noncomputable
 def rotR' (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
-  let A : Matrix (Fin 2) (Fin 2) ℝ :=
-    !![-sin α, -cos α; cos α, -sin α]
-  A.toEuclideanLin.toContinuousLinearMap
+  (rotR_mat α).toEuclideanLin.toContinuousLinearMap
 
 -- [SY25] § 1.1 Definition 2
 noncomputable
