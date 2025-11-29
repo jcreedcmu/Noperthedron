@@ -1,5 +1,5 @@
-import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.InnerProductSpace.Dual
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 
