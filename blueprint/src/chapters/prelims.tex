@@ -46,17 +46,6 @@ it being purely rotationally Rupert.
 TODO: informalize proof
 \end{proof}
 
-\begin{theorem}
-\label{thm:pointsymmetrize_pres_radius}
-\lean{pointsymmetrize_pres_radius}
-\leanok
-Pointsymmetrization preserves radius.
-\end{theorem}
-\begin{proof}
-\leanok
-Because the reflection of a point about the origin preserves its norm.
-\end{proof}
-
 
 \begin{theorem}
 \label{thm:polyhedron_radius_iff}
@@ -72,4 +61,17 @@ The radius of the polyhedron $S$ is $r$ iff
 \begin{proof}
 \leanok
 Immediate from definition.
+\end{proof}
+
+
+\begin{theorem}
+\label{thm:pointsymmetrize_pres_radius}
+\lean{pointsymmetrize_pres_radius}
+\leanok
+Pointsymmetrization preserves radius.
+\end{theorem}
+\begin{proof}
+\uses{thm:polyhedron_radius_iff}
+\leanok
+Because the reflection of a point about the origin preserves its norm.
 \end{proof}
