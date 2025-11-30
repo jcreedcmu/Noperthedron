@@ -91,7 +91,6 @@ theorem sin_taylor_poly_eq (n : ℕ) (x : ℝ) :
   field_simp
   aesop
 
-set_option maxHeartbeats 200000 in
 /--
 The error of the degree $2n$ Taylor polynomial for sine is bounded by $|x|^{2n+1}/(2n+1)!$.
 -/
