@@ -213,9 +213,6 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
   let mi := maxInner q poly poly_ne hp.w
   let mo := maxOuter q poly poly_ne hp.w
 
-  let poly_proj := poly.image p.outer
-  let poly_proj_ne : poly_proj.Nonempty := by simp only [poly_proj, Finset.image_nonempty]; exact poly_ne
-
   have sval_in_img_inner : Sval ∈ imgInner q poly hp.w := by
     simp only [Finset.mem_image, imgInner]
     use hp.S, hp.S_in_poly
