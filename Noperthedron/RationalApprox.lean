@@ -91,7 +91,7 @@ theorem sin_taylor_poly_eq (n : ℕ) (x : ℝ) :
   field_simp
   aesop
 
-set_option maxHeartbeats 300000 in
+set_option maxHeartbeats 200000 in
 /--
 The error of the degree $2n$ Taylor polynomial for sine is bounded by $|x|^{2n+1}/(2n+1)!$.
 -/
@@ -109,13 +109,11 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
     -- Apply the Lagrange form of the remainder for the Taylor series of sin(x).
     have h_lagrange : ∀ x : ℝ, 0 ≤ x → ∃ c ∈ Set.Icc 0 x, Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!) = (iteratedDeriv (2 * n + 1) Real.sin c) * x ^ (2 * n + 1) / (2 * n + 1)! := by
       intro x hx
-      have := @taylor_mean_remainder_lagrange
       by_cases hx' : x = 0
       · aesop
-      · -- Apply the Lagrange remainder theorem with the given parameters.
-        have := @this (fun x => Real.sin x) x 0 (2 * n) (by positivity) Real.contDiff_sin.contDiffOn
+      · have := @taylor_mean_remainder_lagrange Real.sin x 0 (2 * n) (by positivity) Real.contDiff_sin.contDiffOn
                 (by
-        refine' DifferentiableOn.congr _ _;
+        refine' DifferentiableOn.congr _ _
         · use fun x => Real.sin ( x + Real.pi * n )
         · exact Differentiable.differentiableOn ( Real.differentiable_sin.comp ( differentiable_id.add_const _ ) );
         · intro y hy; rw [ iteratedDerivWithin_eq_iterate ];
@@ -135,25 +133,22 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
         have h_iterated_deriv : iteratedDerivWithin (2 * n + 1) Real.sin (Set.Icc 0 x) c = iteratedDeriv (2 * n + 1) Real.sin c := by
           rw [ iteratedDerivWithin_eq_iteratedDeriv ];
-          · exact uniqueDiffOn_Icc ( by linarith [ hc₁.1, hc₁.2 ] );
+          · exact uniqueDiffOn_Icc (by linarith only [hc₁.1, hc₁.2])
           · exact Real.contDiff_sin.contDiffAt;
           · exact Set.Ioo_subset_Icc_self hc₁;
         simp_all +decide [ taylorWithinEval ];
         -- By definition of the polynomial, we can rewrite the left-hand side of the equation.
         have h_poly_eval : PolynomialModule.eval x (taylorWithin (fun x => Real.sin x) (2 * n) (Set.Icc 0 x) 0) = ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
-          unfold taylorWithin
-          simp_all only [map_zero, sub_zero, PolynomialModule.comp_apply, PolynomialModule.map_single,
-            PolynomialModule.eval_single, map_sum, PolynomialModule.eval_smul, Polynomial.eval_pow, Polynomial.eval_X,
-            PolynomialModule.eval_lsingle, pow_zero, smul_eq_mul, one_mul]
-          obtain ⟨left, right⟩ := hc₁
-          unfold taylorCoeffWithin
-          simp_all only [smul_eq_mul]
+          simp_all only [taylorWithin, map_zero, sub_zero, PolynomialModule.comp_apply,
+            PolynomialModule.map_single, PolynomialModule.eval_single, map_sum,
+            PolynomialModule.eval_smul, Polynomial.eval_pow, Polynomial.eval_X,
+            PolynomialModule.eval_lsingle, pow_zero, smul_eq_mul, one_mul, taylorCoeffWithin]
           refine' Finset.sum_congr rfl fun i hi => _
           rw [iteratedDerivWithin_eq_iteratedDeriv]
           · ring_nf
-          · exact uniqueDiffOn_Icc (by linarith)
+          · exact uniqueDiffOn_Icc (by linarith only [hc₁.1, hc₁.2])
           · exact Real.contDiff_sin.contDiffAt
-          · constructor <;> linarith
+          · exact Set.left_mem_Icc.mpr hx
         -- Since the iterated derivative of sin at 0 is zero for even i, we can split the sum into even and odd terms.
         have h_split_sum :
             ∑ i ∈ Finset.range (2 * n + 1),
@@ -176,8 +171,7 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         have h_iterated_deriv : ∀ i : ℕ, iteratedDeriv (2 * i + 1) Real.sin 0 = (-1 : ℝ) ^ i := by
           simp
         use c
-        refine ⟨⟨by linarith, by linarith⟩, ?_⟩
-        clear this
+        refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
         simp_all +decide [mul_div_assoc]
     intro x hx
     specialize h_lagrange x hx
