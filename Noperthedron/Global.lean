@@ -141,11 +141,17 @@ structure GlobalTheoremPrecondition (poly : Finset ℝ³) (poly_ne : poly.Nonemp
 
 theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (hpoly : polyhedronRadius poly poly_ne = 1)
-    (poly_pointsym : PointSym (poly : Set ℝ³))
+    (poly_pointsym : PointSym (convexHull ℝ (poly : Set ℝ³)))
     (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
     ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q (convexHull ℝ poly) := by
   rintro ⟨q, q_near_p, q_is_rupert⟩
   simp only [Membership.mem] at q_near_p
   sorry
+
+theorem global_theorem_nopert (p : Pose) (ε : ℝ) (hε : ε > 0)
+    (hp : GlobalTheoremPrecondition nopertVerts nopert_verts_nonempty p ε) :
+    ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q nopert.hull :=
+  global_theorem p ε hε nopertVerts nopert_verts_nonempty Nopert.noperthedron_radius_one
+      nopert_point_symmetric hp
 
 end GlobalTheorem
