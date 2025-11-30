@@ -160,6 +160,13 @@ theorem outer_def (p : Pose) (v : ℝ³) : p.outer v = p.rotM₂ v := by
   simp [Pose.outer, Affines.outer]
   sorry
 
+-- FIXME: move somewhere more basic
+theorem rupert_adapt (p : Pose)
+    (poly : Finset ℝ³)
+    (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (v : ℝ³) :
+     p.inner v ∈ convexHull ℝ (p.outer '' poly) := by
+  sorry
+
 /--
 This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is:
 
@@ -171,7 +178,25 @@ theorem global_theorem_le_reasoning (p : Pose)
     (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (w : ℝ²) :
     maxInner p poly poly_ne w ≤ maxOuter p poly poly_ne w
     := by
-  sorry
+  simp only [maxInner]
+  refine Finset.max'_le _ _ _ ?_
+  intro y hy
+  simp only [maxOuter, imgOuter]
+  simp only [imgInner, Finset.mem_image] at hy
+  let ⟨v, ⟨hv, hv'⟩⟩ := hy
+  rw [← hv']
+  clear hv'
+  change ⟪w, p.inner v⟫ ≤ (poly.image (⟪w, p.outer ·⟫)).max' _
+  convert_to ⟪w, p.inner v⟫ ≤ ((poly.image p.outer).image (⟪w, ·⟫)).max' (by
+      simp only [Finset.image_nonempty]; exact poly_ne)
+  · simp [Finset.image_image]; rfl
+  let S := p.inner v
+  let V := poly.image p.outer
+  have Vne : V.Nonempty := by simp only [V, Finset.image_nonempty]; exact poly_ne
+  change ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) _
+  refine hull_scalar_prod V Vne S ?_ w
+  simp only [Finset.coe_image, V, S]
+  exact rupert_adapt p poly h_rupert v
 
 theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (hpoly : polyhedronRadius poly poly_ne = 1)
@@ -198,9 +223,9 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
   have hgt : mi > mo := by calc
     mi
     _ ≥ Sval := Finset.le_max' (H2 := sval_in_img_inner)
-    _ ≥ G p ε hp.S hp.w := by sorry -- do some calculus here
+    _ ≥ G p ε hp.S hp.w := by sorry -- rely on calculus lemmas here
     _ > maxH p poly poly_ne ε hp.w := hp.exceeds
-    _ ≥ mo := by sorry -- do some calculus here
+    _ ≥ mo := by sorry -- relay on calculus lemmas here
 
   have hle : mi ≤ mo :=
     global_theorem_le_reasoning q poly poly_ne q_is_rupert hp.w
