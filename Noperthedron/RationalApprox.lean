@@ -72,19 +72,22 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
                 (by
         refine' DifferentiableOn.congr _ _
         · use fun x => Real.sin (x + Real.pi * n)
-        · exact Differentiable.differentiableOn ( Real.differentiable_sin.comp ( differentiable_id.add_const _ ) );
+        · fun_prop
         · intro y hy
           rw [iteratedDerivWithin_eq_iterate]
           -- By induction on $n$, we can show that the $2n$-th derivative of $\sin(x)$ is $\sin(x + n\pi)$.
           have h_ind : ∀ n : ℕ, deriv^[2 * n] Real.sin = fun x => Real.sin (x + n * Real.pi) := by
             intro n
-            induction n <;> simp_all +decide [Nat.mul_succ, Function.iterate_succ_apply', Real.sin_add]
-            norm_num [add_mul, Real.sin_add, Real.cos_add]
+            induction n <;> simp_all [Nat.mul_succ, Function.iterate_succ_apply',
+                                      Real.sin_add, add_mul, Real.sin_add, Real.cos_add]
           convert congr_fun ( h_ind n ) y using 1
-          · induction' 2 * n with n ih generalizing y <;> simp_all +decide [ Function.iterate_succ_apply' ]
+          · induction' 2 * n with n ih generalizing y <;> simp_all [Function.iterate_succ_apply']
             -- Since $y \in (0, x)$, the derivative within the interval $[0, x]$ at $y$ is the same as the regular derivative.
-            have h_deriv_eq : derivWithin ((fun g => derivWithin g (Set.Icc 0 x))^[n] (fun x => Real.sin x)) (Set.Icc 0 x) y = deriv ((fun g => derivWithin g (Set.Icc 0 x))^[n] (fun x => Real.sin x)) y := by
-              rw [derivWithin_of_mem_nhds ( Icc_mem_nhds hy.1 hy.2 )]
+            have h_deriv_eq :
+                derivWithin ((fun g => derivWithin g (Set.Icc 0 x))^[n] (fun x => Real.sin x))
+                            (Set.Icc 0 x) y =
+                deriv ((fun g => derivWithin g (Set.Icc 0 x))^[n] (fun x => Real.sin x)) y := by
+              rw [derivWithin_of_mem_nhds (Icc_mem_nhds hy.1 hy.2)]
             rw [ h_deriv_eq, Filter.EventuallyEq.deriv_eq ( Filter.eventuallyEq_of_mem ( Ioo_mem_nhds hy.1 hy.2 ) fun z hz => ih z hz.1 hz.2 ) ]
           · ring_nf)
         obtain ⟨c, hc₁, hc₂⟩ := this
@@ -94,7 +97,9 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
           · exact uniqueDiffOn_Icc (by linarith only [hc₁.1, hc₁.2])
           · exact Real.contDiff_sin.contDiffAt
           · exact Set.Ioo_subset_Icc_self hc₁
-        simp_all +decide [ taylorWithinEval ]
+        simp_all only [Set.mem_Ioo, taylorWithinEval, Real.iteratedDeriv_add_one_sin,
+          Real.iteratedDeriv_even_cos, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply,
+          sub_zero, Set.mem_Icc]
         -- By definition of the polynomial, we can rewrite the left-hand side of the equation.
         have h_poly_eval : PolynomialModule.eval x (taylorWithin (fun x => Real.sin x) (2 * n) (Set.Icc 0 x) 0) = ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
           simp_all only [taylorWithin, map_zero, sub_zero, PolynomialModule.comp_apply,
@@ -119,9 +124,9 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
             ext i
             simp only [Finset.mem_range, Finset.mem_union, Finset.mem_image]
             refine ⟨fun hi ↦ ?_, fun hi ↦ ?_⟩
-            · rcases Nat.even_or_odd' i with ⟨ k, rfl | rfl ⟩ <;> [left; right] <;>
-                exact ⟨ k, by linarith, rfl ⟩
-            · rcases hi with ( ⟨ k, hk, rfl ⟩ | ⟨ k, hk, rfl ⟩ ) <;> linarith
+            · rcases Nat.even_or_odd' i with ⟨k, rfl | rfl⟩ <;> [left; right] <;>
+                exact ⟨k, by linarith, rfl⟩
+            · rcases hi with (⟨k, hk, rfl⟩ | ⟨k, hk, rfl⟩) <;> linarith
           rw [h_split_sum, Finset.sum_union]
           · norm_num
           · simp only [Finset.disjoint_right, Finset.mem_image, Finset.mem_range, forall_exists_index]
@@ -133,10 +138,9 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         simp_all [mul_div_assoc]
     intro x hx
     specialize h_lagrange x hx
+    obtain ⟨w, h⟩ := h_lagrange
     simp_all only [Set.mem_Icc, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos,
       Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply]
-    obtain ⟨w, h⟩ := h_lagrange
-    simp_all only
     simp only [abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
     exact mul_le_of_le_one_left (by positivity) (Real.abs_cos_le_one _)
   by_cases hx : 0 ≤ x
@@ -145,7 +149,7 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
               (by rw [div_mul_cancel₀ _ (by positivity)])
   · have := h_taylor_mean (-x) (by linarith)
     simp_all only [not_le, Real.sin_neg, abs_neg, ge_iff_le]
-    convert mul_le_mul_of_nonneg_right this ( Nat.cast_nonneg ( 2 * n + 1 ) ! ) using 1
+    convert mul_le_mul_of_nonneg_right this (Nat.cast_nonneg (2 * n + 1)!) using 1
     · simp only [mul_comm, pow_add, pow_one, mul_assoc, div_eq_mul_inv, mul_left_comm, even_two,
         Even.mul_left, Even.neg_pow, neg_mul, mul_neg, Finset.sum_neg_distrib, sub_neg_eq_add,
         mul_eq_mul_left_iff, Nat.cast_eq_zero]
