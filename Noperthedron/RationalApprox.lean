@@ -71,9 +71,10 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
       · have := @taylor_mean_remainder_lagrange Real.sin x 0 (2 * n) (by positivity) Real.contDiff_sin.contDiffOn
                 (by
         refine' DifferentiableOn.congr _ _
-        · use fun x => Real.sin ( x + Real.pi * n )
+        · use fun x => Real.sin (x + Real.pi * n)
         · exact Differentiable.differentiableOn ( Real.differentiable_sin.comp ( differentiable_id.add_const _ ) );
-        · intro y hy; rw [ iteratedDerivWithin_eq_iterate ];
+        · intro y hy
+          rw [iteratedDerivWithin_eq_iterate]
           -- By induction on $n$, we can show that the $2n$-th derivative of $\sin(x)$ is $\sin(x + n\pi)$.
           have h_ind : ∀ n : ℕ, deriv^[2 * n] Real.sin = fun x => Real.sin (x + n * Real.pi) := by
             intro n
@@ -89,7 +90,7 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         obtain ⟨c, hc₁, hc₂⟩ := this
         -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
         have h_iterated_deriv : iteratedDerivWithin (2 * n + 1) Real.sin (Set.Icc 0 x) c = iteratedDeriv (2 * n + 1) Real.sin c := by
-          rw [ iteratedDerivWithin_eq_iteratedDeriv ];
+          rw [iteratedDerivWithin_eq_iteratedDeriv]
           · exact uniqueDiffOn_Icc (by linarith only [hc₁.1, hc₁.2])
           · exact Real.contDiff_sin.contDiffAt
           · exact Set.Ioo_subset_Icc_self hc₁
@@ -129,7 +130,7 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
           simp
         use c
         refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
-        simp_all +decide [mul_div_assoc]
+        simp_all [mul_div_assoc]
     intro x hx
     specialize h_lagrange x hx
     simp_all only [Set.mem_Icc, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos,
