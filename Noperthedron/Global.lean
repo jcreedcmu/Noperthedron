@@ -120,10 +120,10 @@ def H (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
-def maxH (p : Pose) (ε : ℝ) (w : ℝ²) : ℝ :=
-  nopertVerts.image (H p ε w) |>.max' <| by
-    simp only [Finset.image_nonempty]; exact
-    nopert_verts_nonempty
+def maxH (p : Pose) (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (ε : ℝ) (w : ℝ²) : ℝ :=
+  poly.image (H p ε w) |>.max' <| by
+    simp only [Finset.image_nonempty]
+    exact poly_ne
 
 /--
 A compact way of saying "the pose satisfies the global theorem precondition at width ε".
@@ -131,12 +131,19 @@ We require the existence of some inner-shadow vertex S from the polyehdron, and 
 the direction we're projecting ℝ² → ℝ to find that S "sticks out too far" compared to all the
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
-def global_theorem_precondition (p : Pose) (ε : ℝ) : Prop :=
-  ∃ S ∈ nopertVertSet, ∃ (w : ℝ²), G p ε S w > maxH p ε w
+structure GlobalTheoremPrecondition (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (p : Pose) (ε : ℝ) : Type where
+  S : ℝ³
+  h_in_poly : S ∈ poly
+  w : ℝ²
+  S_unit : ‖(S : ℝ³)‖ = 1
+  w_unit : ‖w‖ = 1
+  exceeds : G p ε S w > maxH p poly poly_ne ε w
 
 theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
-    (hp : global_theorem_precondition p ε) :
-    ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q nopert.hull := by
+    (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (hpoly : polyhedronRadius poly poly_ne = 1)
+    (poly_pointsym : PointSym (poly : Set ℝ³))
+    (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
+    ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q (convexHull ℝ poly) := by
   rintro ⟨q, q_near_p, q_is_rupert⟩
   simp only [Membership.mem] at q_near_p
   sorry

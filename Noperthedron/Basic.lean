@@ -153,28 +153,20 @@ noncomputable
 def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   rotR α ∘L rotM θ φ
 
-/--
-A little convenience lemma to turn a Nonempty typeclass into a Finset.Nonempty fact
-for a image of that finite set. FIXME: is this unused now?
--/
-lemma Finset.image_nonempty' {α β : Type} (s : Finset α) {f : α → β} [n : Nonempty s] [DecidableEq β] :
-    (s.image f).Nonempty :=
-  s.image_nonempty.mpr (nonempty_coe_sort.mp n)
-
 noncomputable
-def polyhedron_radius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
+def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
   (S.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)
 
 theorem polyhedron_radius_iff {n : ℕ} {r : ℝ} (S : Finset (E n)) (ne : S.Nonempty) :
-    polyhedron_radius S ne = r ↔ (∃ v ∈ S, ‖v‖ = r) ∧ ∀ v ∈ S, ‖v‖ ≤ r := by
+    polyhedronRadius S ne = r ↔ (∃ v ∈ S, ‖v‖ = r) ∧ ∀ v ∈ S, ‖v‖ ≤ r := by
   constructor
   · intro h
-    simp only [polyhedron_radius, Finset.max'_eq_iff] at h
+    simp only [polyhedronRadius, Finset.max'_eq_iff] at h
     let ⟨h1, h2⟩ := h
     simp only [Finset.mem_image] at h1 h2
     simp only [forall_exists_index, and_imp, forall_apply_eq_imp_iff₂] at h2
     exact ⟨h1, h2⟩
   · intro h
-    simp only [polyhedron_radius, Finset.max'_eq_iff]
+    simp only [polyhedronRadius, Finset.max'_eq_iff]
     simp only [Finset.mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
     exact h
