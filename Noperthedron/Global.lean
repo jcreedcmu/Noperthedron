@@ -152,9 +152,8 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
   rintro ⟨q, q_near_p, q_is_rupert⟩
   simp only [Membership.mem] at q_near_p
 
-  -- we aim to show max₁ ≥ Sval ≥ G ≥ H ≥ max₂
-  let K₁ := poly.image fun P => ⟪p.rotR (p.rotM₁ P), hp.w⟫
-  let max₁ := K₁.max' (by simp only [K₁, Finset.image_nonempty]; exact poly_ne)
+  -- we aim to show Sval ≥ G ≥ H ≥ max₂
+  -- I don't actually know why the inequality (i) in [SY25]'s proof is needed.
   let K₂ := poly.image fun P => ⟪(p.rotM₂ P), hp.w⟫
   let max₂ := K₂.max' (by simp only [K₂, Finset.image_nonempty]; exact poly_ne)
   let Sproj := p.rotR (p.rotM₁ hp.S)
@@ -163,9 +162,6 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
   let poly_proj := poly.image (fun v => (p.rotM₂ v))
   let poly_proj_ne : poly_proj.Nonempty := by simp only [poly_proj, Finset.image_nonempty]; exact poly_ne
   let Sproj_in_hull : Sproj ∈ convexHull ℝ poly_proj := by sorry
-
-  have : Sval ∈ K₁ :=
-    Finset.mem_image_of_mem (fun P ↦ ⟪p.rotR (p.rotM₁ P), hp.w⟫) hp.S_in_poly
 
   have hgt := by calc
     Sval
