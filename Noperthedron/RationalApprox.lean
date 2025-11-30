@@ -161,7 +161,7 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
       ring_nf
     · rw [div_mul_cancel₀ _ (by positivity)]
 
-set_option maxHeartbeats 600000 in
+set_option maxHeartbeats 500000 in
 /--
 The difference between cos(x) and its Taylor polynomial of degree 2n-2 is bounded by |x|^(2n)/(2n)!.
 -/
@@ -208,7 +208,7 @@ theorem Real.cos_approx_sum (x : ℝ) (n : ℕ) : |Real.cos x - ∑ i ∈ Finset
       -- Apply the induction hypothesis to the integral inside the absolute value.
       have h_ind : |∫ u in (0 : ℝ)..t, (Real.cos u - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * u ^ (2 * i) / (2 * i)!)| ≤ ∫ u in (0 : ℝ)..t, |u| ^ (2 * n) / (2 * n)! := by
         rw [intervalIntegral.integral_of_le ht.1, intervalIntegral.integral_of_le ht.1]
-        refine' le_trans ( MeasureTheory.norm_integral_le_integral_norm ( _ : ℝ → ℝ ) ) ( MeasureTheory.integral_mono_of_nonneg _ _ _ )
+        refine le_trans (MeasureTheory.norm_integral_le_integral_norm (_ : ℝ → ℝ)) ( MeasureTheory.integral_mono_of_nonneg ?_ ?_ ?_)
         · exact Filter.Eventually.of_forall fun _ => norm_nonneg _
         · exact Continuous.integrableOn_Ioc ( by fun_prop )
         · filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioc ] with u hu using ih u
@@ -220,18 +220,20 @@ theorem Real.cos_approx_sum (x : ℝ) (n : ℕ) : |Real.cos x - ∑ i ∈ Finset
       rw [abs_of_nonneg ht.1]
     -- Apply the induction hypothesis to bound the integral.
     have h_integral_bound : |∫ t in (0 : ℝ)..x, (Real.sin t - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * t ^ (2 * i + 1) / (2 * i + 1)!)| ≤ ∫ t in (0 : ℝ)..|x|, |t| ^ (2 * n + 1) / (2 * n + 1)! := by
-      obtain hx | hx := abs_cases x <;> simp_all [ intervalIntegral ]
+      obtain hx | hx := abs_cases x <;> simp_all [intervalIntegral]
       · rw [abs_of_nonneg hx]
-        refine' le_trans ( MeasureTheory.norm_integral_le_integral_norm ( _ : ℝ → ℝ ) ) ( MeasureTheory.integral_mono_of_nonneg _ _ _ );
+        refine le_trans (MeasureTheory.norm_integral_le_integral_norm (_ : ℝ → ℝ)) ?_
+        refine MeasureTheory.integral_mono_of_nonneg ?_ ?_ ?_
         · exact Filter.Eventually.of_forall fun _ => norm_nonneg _;
         · exact Continuous.integrableOn_Ioc (by fun_prop)
         · filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioc ] with t ht using h_ind t ht.1.le ht.2;
-      · refine' le_trans ( MeasureTheory.norm_integral_le_integral_norm ( _ : ℝ → ℝ ) ) ( le_trans ( MeasureTheory.integral_mono_of_nonneg _ _ _ ) _ )
-        · refine' fun t ↦ |t| ^ ( 2 * n + 1 ) / ( 2 * n + 1 )!
+      · refine le_trans (MeasureTheory.norm_integral_le_integral_norm (_ : ℝ → ℝ)) ?_
+        refine le_trans (MeasureTheory.integral_mono_of_nonneg
+                         (g := fun (t:ℝ) ↦ |t| ^ (2 * n + 1) / (2 * n + 1)!) ?_ ?_ ?_) ?_
         · exact Filter.Eventually.of_forall fun _ => norm_nonneg _
         · exact Continuous.integrableOn_Ioc (by fun_prop)
         · filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioc ] with t ht
-          convert h_ind (-t) (by linarith only [ht.1, ht.2]) (by linarith only [ht.1, ht.2]) using 1 <;> norm_num [ abs_neg, abs_of_nonpos, ht.1.le, ht.2 ]
+          convert h_ind (-t) (by grind) (by grind) using 1 <;> norm_num [abs_neg, abs_of_nonpos, ht.1.le, ht.2]
           simp only [pow_succ', even_two, Even.mul_right, Even.neg_pow, neg_mul, mul_neg, neg_div,
             Finset.sum_neg_distrib, sub_neg_eq_add]
           rw [ neg_add_eq_sub, abs_sub_comm ]
