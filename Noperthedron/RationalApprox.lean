@@ -217,17 +217,17 @@ theorem Real.cos_approx_sum (x : ℝ) (n : ℕ) : |Real.cos x - ∑ i ∈ Finset
       simp only [mul_comm, pow_succ, Nat.factorial_succ, Nat.cast_mul, Nat.cast_add, Nat.cast_ofNat,
         Nat.cast_one, div_eq_mul_inv, mul_inv_rev, mul_assoc, intervalIntegral.integral_mul_const,
         integral_pow, zero_mul, sub_zero, mul_left_comm]
-      rw [ abs_of_nonneg ht.1 ]
+      rw [abs_of_nonneg ht.1]
     -- Apply the induction hypothesis to bound the integral.
     have h_integral_bound : |∫ t in (0 : ℝ)..x, (Real.sin t - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * t ^ (2 * i + 1) / (2 * i + 1)!)| ≤ ∫ t in (0 : ℝ)..|x|, |t| ^ (2 * n + 1) / (2 * n + 1)! := by
       obtain hx | hx := abs_cases x <;> simp_all [ intervalIntegral ]
-      · rw [ abs_of_nonneg ( by positivity : 0 ≤ x ) ]
+      · rw [abs_of_nonneg hx]
         refine' le_trans ( MeasureTheory.norm_integral_le_integral_norm ( _ : ℝ → ℝ ) ) ( MeasureTheory.integral_mono_of_nonneg _ _ _ );
         · exact Filter.Eventually.of_forall fun _ => norm_nonneg _;
         · exact Continuous.integrableOn_Ioc (by fun_prop)
         · filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioc ] with t ht using h_ind t ht.1.le ht.2;
       · refine' le_trans ( MeasureTheory.norm_integral_le_integral_norm ( _ : ℝ → ℝ ) ) ( le_trans ( MeasureTheory.integral_mono_of_nonneg _ _ _ ) _ )
-        · refine' fun t => |t| ^ ( 2 * n + 1 ) / ( 2 * n + 1 )!
+        · refine' fun t ↦ |t| ^ ( 2 * n + 1 ) / ( 2 * n + 1 )!
         · exact Filter.Eventually.of_forall fun _ => norm_nonneg _
         · exact Continuous.integrableOn_Ioc (by fun_prop)
         · filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioc ] with t ht
@@ -262,9 +262,8 @@ theorem sin_psum_approx (x : ℚ) (n : ℕ) : |Real.sin x - sin_psum n x| ≤ |x
   aesop
 
 theorem cos_psum_approx (x : ℚ) (n : ℕ) : |Real.cos x - cos_psum n x| ≤ |x|^(2 * n) / (2 * n)! := by
-  convert Real.cos_approx_sum (x : ℝ) n
-  · exact cos_psum_eq_real_sum n x
-  · exact Rat.cast_abs x
+  rw [Rat.cast_abs x, cos_psum_eq_real_sum n x]
+  exact Real.cos_approx_sum (x : ℝ) n
 
 theorem sinℚ_approx (x : ℚ) : |Real.sin x - sinℚ x| ≤ |x|^27 / 27! :=
   sin_psum_approx x 13
