@@ -156,7 +156,7 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
   -- I don't actually know why the inequality (i) in [SY25]'s proof is needed.
   let K₂ := poly.image fun P => ⟪(p.rotM₂ P), hp.w⟫
   let max₂ := K₂.max' (by simp only [K₂, Finset.image_nonempty]; exact poly_ne)
-  let Sproj := p.rotR (p.rotM₁ hp.S)
+  let Sproj := (p.rotM₂ hp.S)
   let Sval := ⟪Sproj, hp.w⟫
 
   let poly_proj := poly.image (fun v => (p.rotM₂ v))
