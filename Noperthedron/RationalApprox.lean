@@ -53,44 +53,6 @@ def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
 end
 
 noncomputable section AristotleLemmas
-
-/--
-The sum of the first n odd terms of the sine Taylor series equals the Taylor polynomial of degree 2n.
--/
-theorem sin_taylor_poly_eq (n : ℕ) (x : ℝ) :
-    ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!) =
-    taylorWithinEval Real.sin (2 * n) Set.univ 0 x := by
-  -- By definition of taylorWithinEval, we can expand it using taylor_within_apply.
-  have h_taylor :
-      taylorWithinEval Real.sin (2 * n) Set.univ 0 x =
-      ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
-    rw [taylorWithinEval]
-    -- By definition of taylorWithin, we can expand it using the sum of the terms
-    -- up to the 2n-th derivative.
-    simp [taylorWithin, taylorCoeffWithin, div_eq_inv_mul, mul_comm,
-          mul_left_comm, iteratedDerivWithin_univ]
-  -- Split the sum into even and odd indices. For even indices, the iterated derivative of sin at 0 is zero.
-  have h_split : ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) = ∑ i ∈ Finset.filter (fun i => i % 2 = 1) (Finset.range (2 * n + 1)), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
-    rw [Finset.sum_filter, Finset.sum_congr rfl]
-    intro x_1 a
-    simp_all only [Finset.mem_range, left_eq_ite_iff, Nat.mod_two_not_eq_one, div_eq_zero_iff,
-                   mul_eq_zero, pow_eq_zero_iff', ne_eq, Nat.cast_eq_zero]
-    intro a_1
-    rw [← Nat.mod_add_div x_1 2 ]
-    norm_num [a_1, iteratedDeriv_succ, Real.sin_zero, Real.cos_zero]
-  -- The sum of the odd terms in the Taylor series of sin(x) up to 2n is exactly the sum of the terms where the exponent is 2i+1.
-  have h_odd_terms : Finset.filter (fun i => i % 2 = 1) (Finset.range (2 * n + 1)) =
-                     Finset.image (fun i => 2 * i + 1) (Finset.range n) := by
-    ext i
-    cases i with
-    | zero => simp
-    | succ i =>
-      simp only [Finset.mem_filter, Finset.mem_range, add_lt_add_iff_right, Finset.mem_image,
-        Nat.add_right_cancel_iff]
-      exact ⟨ fun hi => ⟨ i / 2, by cutsat, by cutsat⟩, fun hi => by cutsat ⟩
-  field_simp
-  aesop
-
 /--
 The error of the degree $2n$ Taylor polynomial for sine is bounded by $|x|^{2n+1}/(2n+1)!$.
 -/
