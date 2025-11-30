@@ -40,4 +40,12 @@ noncomputable
 def rotM₂φ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₂) (p.φ₂)
 noncomputable
 def rotR' (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.rotR' (p.α)
+
+
+noncomputable
+def inner (p : Pose) v := proj_xy (Affines.inner p v)
+noncomputable
+def outer (p : Pose) v := proj_xy (Affines.outer p v)
+
+
 end Pose

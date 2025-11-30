@@ -134,6 +134,45 @@ structure GlobalTheoremPrecondition (poly : Finset ℝ³) (poly_ne : poly.Nonemp
   w_unit : ‖w‖ = 1
   exceeds : G p ε S w > maxH p poly poly_ne ε w
 
+noncomputable
+def imgInner (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
+  V.image fun P => ⟪w, p.inner P⟫
+
+noncomputable
+def maxInner (p : Pose) (V : Finset ℝ³) (Vne : V.Nonempty) (w : ℝ²) : ℝ :=
+  (imgInner p V w).max' (by simp only [imgInner, Finset.image_nonempty]; exact Vne)
+
+noncomputable
+def imgOuter (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
+  V.image fun P => ⟪w, p.outer P⟫
+
+noncomputable
+def maxOuter (p : Pose) (V : Finset ℝ³) (Vne : V.Nonempty) (w : ℝ²) : ℝ :=
+  (imgOuter p V w).max' (by simp only [imgOuter, Finset.image_nonempty]; exact Vne)
+
+-- FIXME: move somewhere more basic
+theorem inner_def (p : Pose) (v : ℝ³) : p.inner v = p.rotR (p.rotM₁ v) := by
+  simp [Pose.inner, Affines.inner]
+  sorry
+
+-- FIXME: move somewhere more basic
+theorem outer_def (p : Pose) (v : ℝ³) : p.outer v = p.rotM₂ v := by
+  simp [Pose.outer, Affines.outer]
+  sorry
+
+/--
+This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is:
+
+"As noted before, Rupert’s condition and Lemma 18 imply in particular that
+max_{P} ⟪ R(α) M(θ₁, φ₁), P, w ⟫ < max_{P} ⟪ M(θ₂, φ₂), P, w ⟫"
+-/
+theorem global_theorem_lt_reasoning (p : Pose)
+    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
+    (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (w : ℝ²) :
+    maxInner p poly poly_ne w ≤ maxOuter p poly poly_ne w
+    := by
+  sorry
+
 theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (hpoly : polyhedronRadius poly poly_ne = 1)
     (poly_pointsym : PointSym (convexHull ℝ (poly : Set ℝ³)))
@@ -142,30 +181,32 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
   rintro ⟨q, q_near_p, q_is_rupert⟩
   simp only [Membership.mem] at q_near_p
 
-  -- we aim to show Sval ≥ G ≥ H ≥ max₂
-  -- I don't actually know why the inequality (i) in [SY25]'s proof is needed.
-  let K₂ := poly.image fun P => ⟪hp.w, p.rotM₂ P⟫
-  let max₂ := K₂.max' (by simp only [K₂, Finset.image_nonempty]; exact poly_ne)
-  let Sproj := p.rotR (p.rotM₁ hp.S)
+  -- we aim to show maxInner ≥ Sval ≥ G ≥ H ≥ maxOuter
+  let Sproj := q.inner hp.S
   let Sval := ⟪hp.w, Sproj⟫
 
-  let poly_proj := poly.image (fun v => (p.rotM₂ v))
+  let mi := maxInner q poly poly_ne hp.w
+  let mo := maxOuter q poly poly_ne hp.w
+
+  let poly_proj := poly.image p.outer
   let poly_proj_ne : poly_proj.Nonempty := by simp only [poly_proj, Finset.image_nonempty]; exact poly_ne
   let Sproj_in_hull : Sproj ∈ convexHull ℝ poly_proj := by sorry
 
-  have hgt := by calc
-    Sval
+  have sval_in_img_inner : Sval ∈ imgInner q poly hp.w := by
+    simp only [Finset.mem_image, imgInner]
+    use hp.S, hp.S_in_poly
+
+  have hgt : mi > mo := by calc
+    mi
+    _ ≥ Sval := Finset.le_max' (H2 := sval_in_img_inner)
     _ ≥ G p ε hp.S hp.w := by sorry
     _ > maxH p poly poly_ne ε hp.w := hp.exceeds
-    _ ≥ max₂ := by sorry
+    _ ≥ mo := by sorry
 
-  have hle : Sval ≤ max₂ := by
-    have h : Sval ≤ _ := hull_scalar_prod poly_proj poly_proj_ne Sproj Sproj_in_hull hp.w
-    simp only [poly_proj, Finset.image_image] at h
-    exact h
+  have hle : mi ≤ mo :=
+    global_theorem_lt_reasoning q poly poly_ne q_is_rupert hp.w
 
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
-
 
 theorem global_theorem_nopert (p : Pose) (ε : ℝ) (hε : ε > 0)
     (hp : GlobalTheoremPrecondition nopertVerts nopert_verts_nonempty p ε) :
