@@ -125,17 +125,17 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
           · induction' 2 * n with n ih generalizing y <;> simp_all +decide [ Function.iterate_succ_apply' ]
             -- Since $y \in (0, x)$, the derivative within the interval $[0, x]$ at $y$ is the same as the regular derivative.
             have h_deriv_eq : derivWithin ((fun g => derivWithin g (Set.Icc 0 x))^[n] (fun x => Real.sin x)) (Set.Icc 0 x) y = deriv ((fun g => derivWithin g (Set.Icc 0 x))^[n] (fun x => Real.sin x)) y := by
-              rw [ derivWithin_of_mem_nhds ( Icc_mem_nhds hy.1 hy.2 ) ];
-            rw [ h_deriv_eq, Filter.EventuallyEq.deriv_eq ( Filter.eventuallyEq_of_mem ( Ioo_mem_nhds hy.1 hy.2 ) fun z hz => ih z hz.1 hz.2 ) ];
-          · ring_nf);
-        obtain ⟨ c, hc₁, hc₂ ⟩ := this;
+              rw [derivWithin_of_mem_nhds ( Icc_mem_nhds hy.1 hy.2 )]
+            rw [ h_deriv_eq, Filter.EventuallyEq.deriv_eq ( Filter.eventuallyEq_of_mem ( Ioo_mem_nhds hy.1 hy.2 ) fun z hz => ih z hz.1 hz.2 ) ]
+          · ring_nf)
+        obtain ⟨c, hc₁, hc₂⟩ := this
         -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
         have h_iterated_deriv : iteratedDerivWithin (2 * n + 1) Real.sin (Set.Icc 0 x) c = iteratedDeriv (2 * n + 1) Real.sin c := by
           rw [ iteratedDerivWithin_eq_iteratedDeriv ];
           · exact uniqueDiffOn_Icc (by linarith only [hc₁.1, hc₁.2])
-          · exact Real.contDiff_sin.contDiffAt;
-          · exact Set.Ioo_subset_Icc_self hc₁;
-        simp_all +decide [ taylorWithinEval ];
+          · exact Real.contDiff_sin.contDiffAt
+          · exact Set.Ioo_subset_Icc_self hc₁
+        simp_all +decide [ taylorWithinEval ]
         -- By definition of the polynomial, we can rewrite the left-hand side of the equation.
         have h_poly_eval : PolynomialModule.eval x (taylorWithin (fun x => Real.sin x) (2 * n) (Set.Icc 0 x) 0) = ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
           simp_all only [taylorWithin, map_zero, sub_zero, PolynomialModule.comp_apply,
@@ -177,8 +177,6 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
     simp_all only [Set.mem_Icc, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos,
       Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply]
     obtain ⟨w, h⟩ := h_lagrange
-    obtain ⟨left, right⟩ := h
-    obtain ⟨left, right_1⟩ := left
     simp_all only
     simp only [abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
     exact mul_le_of_le_one_left (by positivity) (Real.abs_cos_le_one _)
