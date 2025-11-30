@@ -52,19 +52,15 @@ def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
 
 end
 
-noncomputable section AristotleLemmas
+section AristotleLemmas
 /--
 The error of the degree $2n$ Taylor polynomial for sine is bounded by $|x|^{2n+1}/(2n+1)!$.
 -/
 theorem sin_approx_aux (x : ℝ) (n : ℕ) :
     |Real.sin x - ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!)| ≤
     |x| ^ (2 * n + 1) / (2 * n + 1)! := by
-  suffices H :
-      |Real.sin x - ∑ x_1 ∈ Finset.range n, (-1) ^ x_1 * x ^ (2 * x_1 + 1) /
-       ↑(2 * x_1 + 1)!| * ↑(2 * n + 1)! ≤
-      |x| ^ (2 * n + 1) by
-    field_simp
-    exact H
+  simp_rw [←mul_div_assoc]
+  rw [le_div_iff₀ (by positivity)]
   -- Apply the taylorMeanRemainderLagrange theorem to the interval [0, x].
   have h_taylor_mean : ∀ x : ℝ, 0 ≤ x → |Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!)| ≤ |x| ^ (2 * n + 1) / (2 * n + 1)! := by
     -- Apply the Lagrange form of the remainder for the Taylor series of sin(x).
