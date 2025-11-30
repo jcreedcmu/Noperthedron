@@ -9,18 +9,18 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
-private lemma f_le_max {n : ℕ} {V : Finset (E n)} (w : E n → ℝ) (hw1 : ∀ y ∈ V, 0 ≤ w y)
+private lemma f_le_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty) (w : E n → ℝ) (hw1 : ∀ y ∈ V, 0 ≤ w y)
       (f : E n →ₗ[ℝ] ℝ) :
-  ↑(∑ x ∈ V, w x * f x) ≤ ∑ x ∈ V, ↑(w x) * (Finset.image (⇑f) V).max := by
-  have fx_le_fvmax (x : V) : f x ≤ (Finset.image f V).max := by
-    refine Finset.le_max ?_
+  ↑(∑ x ∈ V, w x * f x) ≤ ∑ x ∈ V, ↑(w x) * (Finset.image (⇑f) V).max' (by simp [Finset.image_nonempty]; exact Vne) := by
+  have fx_le_fvmax (x : V) : f x ≤ (Finset.image f V).max' (by simp [Finset.image_nonempty]; exact Vne) := by
+    refine Finset.le_max' _ _ ?_
     simp only [Finset.mem_image]
     exact ⟨x, Finset.coe_mem x, rfl⟩
   push_cast
   refine Finset.sum_le_sum ?_
   intro x hx
   grw [fx_le_fvmax ⟨x, hx⟩]
-  exact WithBot.coe_nonneg.mpr (hw1 x hx)
+  exact hw1 x hx
 
 private lemma extract_constant {n : ℕ} {V : Finset (E n)} (w : E n → ℝ)
     (S : E n) (hs : S ∈ convexHull ℝ V) (f : E n →ₗ[ℝ] ℝ) :
@@ -34,34 +34,24 @@ private lemma extract_constant {n : ℕ} {V : Finset (E n)} (w : E n → ℝ)
   refine congrArg WithBot.some ?_
   rw [← Finset.sum_mul]
 
-theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)}
+theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (f : E n →ₗ[ℝ] ℝ) :
-    f S ≤ Finset.max (V.image f) := by
+    f S ≤ (V.image f).max' (by simp [Finset.image_nonempty]; exact Vne) := by
+  have Vine : (V.image f).Nonempty := by simp [Finset.image_nonempty]; exact Vne
   have hs_orig := hs
   rw [Finset.convexHull_eq] at hs
   obtain ⟨w, hw1, hw2, hw3⟩ := hs
   calc
-    ↑(f S) = ↑(f (∑ i ∈ V, w i • id i)) := by rw [← hw3, Finset.centerMass_eq_of_sum_1 V id hw2]
-    _       = ↑(∑ x ∈ V, w x * f x) := by simp
-    _       ≤ ↑(∑ x ∈ V, w x * ((Finset.image f V).max)) := f_le_max w hw1 f
-    _       = ↑((∑ x ∈ V, w x) * (Finset.image f V).max) := extract_constant w S hs_orig f
-    _       = (Finset.image f V).max := by rw [hw2]; simp
+    (f S) = (f (∑ i ∈ V, w i • id i)) := by rw [← hw3, Finset.centerMass_eq_of_sum_1 V id hw2]
+    _       = ∑ x ∈ V, w x * f x := by simp
+    _       ≤ ∑ x ∈ V, w x * ((Finset.image f V).max' Vine) := f_le_max Vne w hw1 f
+    _       = (∑ x ∈ V, w x) * ((Finset.image f V).max' Vine) := by rw [← Finset.sum_mul]
+    _       = (Finset.image f V).max' (by simp [Finset.image_nonempty]; exact Vne) := by rw [hw2]; simp
 
-theorem fintype_hull_linear_max {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
-    (S : E n) (hs : S ∈ convexHull ℝ (Set.range V)) (f : E n →ₗ[ℝ] ℝ) :
-    f S ≤ Finset.max (Finset.univ.image (f ∘ V)) := by
-  rw [← Finset.image_image]
-  exact finset_hull_linear_max S (by simpa) _
-
-theorem hull_scalar_prod {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
-    (S : E n) (hs : S ∈ convexHull ℝ (Set.range V)) (w : E n) :
-    ⟪w, S⟫ ≤ Finset.max (Finset.univ.image (⟪w, V ·⟫)) :=
-  fintype_hull_linear_max V S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
-
-theorem hull_scalar_prod' {n : ℕ} (V : Finset (E n)) (V_ne : V.Nonempty)
+theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (w : E n) :
-    ⟪S, w⟫ ≤ Finset.max' (V.image (⟪·, w⟫)) (by simp [Finset.image_nonempty]; exact V_ne) := by
-  sorry
+    ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) (by simp [Finset.image_nonempty]; exact Vne) := by
+  exact finset_hull_linear_max Vne S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
 
 noncomputable
 def rotproj_inner (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
@@ -154,10 +144,10 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
 
   -- we aim to show Sval ≥ G ≥ H ≥ max₂
   -- I don't actually know why the inequality (i) in [SY25]'s proof is needed.
-  let K₂ := poly.image fun P => ⟪(p.rotM₂ P), hp.w⟫
+  let K₂ := poly.image fun P => ⟪hp.w, p.rotM₂ P⟫
   let max₂ := K₂.max' (by simp only [K₂, Finset.image_nonempty]; exact poly_ne)
-  let Sproj := (p.rotM₂ hp.S)
-  let Sval := ⟪Sproj, hp.w⟫
+  let Sproj := p.rotR (p.rotM₁ hp.S)
+  let Sval := ⟪hp.w, Sproj⟫
 
   let poly_proj := poly.image (fun v => (p.rotM₂ v))
   let poly_proj_ne : poly_proj.Nonempty := by simp only [poly_proj, Finset.image_nonempty]; exact poly_ne
@@ -170,7 +160,7 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     _ ≥ max₂ := by sorry
 
   have hle : Sval ≤ max₂ := by
-    have h : Sval ≤ _ := hull_scalar_prod' poly_proj poly_proj_ne Sproj Sproj_in_hull hp.w
+    have h : Sval ≤ _ := hull_scalar_prod poly_proj poly_proj_ne Sproj Sproj_in_hull hp.w
     simp only [poly_proj, Finset.image_image] at h
     exact h
 
