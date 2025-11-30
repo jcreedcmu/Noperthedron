@@ -166,7 +166,7 @@ This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is
 "As noted before, Rupert’s condition and Lemma 18 imply in particular that
 max_{P} ⟪ R(α) M(θ₁, φ₁), P, w ⟫ < max_{P} ⟪ M(θ₂, φ₂), P, w ⟫"
 -/
-theorem global_theorem_lt_reasoning (p : Pose)
+theorem global_theorem_le_reasoning (p : Pose)
     (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
     (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (w : ℝ²) :
     maxInner p poly poly_ne w ≤ maxOuter p poly poly_ne w
@@ -190,7 +190,6 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
 
   let poly_proj := poly.image p.outer
   let poly_proj_ne : poly_proj.Nonempty := by simp only [poly_proj, Finset.image_nonempty]; exact poly_ne
-  let Sproj_in_hull : Sproj ∈ convexHull ℝ poly_proj := by sorry
 
   have sval_in_img_inner : Sval ∈ imgInner q poly hp.w := by
     simp only [Finset.mem_image, imgInner]
@@ -199,12 +198,12 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
   have hgt : mi > mo := by calc
     mi
     _ ≥ Sval := Finset.le_max' (H2 := sval_in_img_inner)
-    _ ≥ G p ε hp.S hp.w := by sorry
+    _ ≥ G p ε hp.S hp.w := by sorry -- do some calculus here
     _ > maxH p poly poly_ne ε hp.w := hp.exceeds
-    _ ≥ mo := by sorry
+    _ ≥ mo := by sorry -- do some calculus here
 
   have hle : mi ≤ mo :=
-    global_theorem_lt_reasoning q poly poly_ne q_is_rupert hp.w
+    global_theorem_le_reasoning q poly poly_ne q_is_rupert hp.w
 
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
 
