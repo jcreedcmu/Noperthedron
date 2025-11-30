@@ -58,6 +58,11 @@ theorem hull_scalar_prod {n : ℕ} {ι : Type} [Fintype ι] (V : ι → E n)
     ⟪w, S⟫ ≤ Finset.max (Finset.univ.image (⟪w, V ·⟫)) :=
   fintype_hull_linear_max V S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
 
+theorem hull_scalar_prod' {n : ℕ} (V : Finset (E n)) (V_ne : V.Nonempty)
+    (S : E n) (hs : S ∈ convexHull ℝ V) (w : E n) :
+    ⟪S, w⟫ ≤ Finset.max' (V.image (⟪·, w⟫)) (by simp [Finset.image_nonempty]; exact V_ne) := by
+  sorry
+
 noncomputable
 def rotproj_inner (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
   ⟪rotprojRM (x 0) (x 1) (x 2) S, w⟫
@@ -133,7 +138,7 @@ other outer-shadow vertices P (which the calculation of H iterates over) in the 
 -/
 structure GlobalTheoremPrecondition (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (p : Pose) (ε : ℝ) : Type where
   S : ℝ³
-  h_in_poly : S ∈ poly
+  S_in_poly : S ∈ poly
   w : ℝ²
   S_unit : ‖(S : ℝ³)‖ = 1
   w_unit : ‖w‖ = 1
@@ -146,7 +151,35 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q (convexHull ℝ poly) := by
   rintro ⟨q, q_near_p, q_is_rupert⟩
   simp only [Membership.mem] at q_near_p
-  sorry
+
+  -- we aim to show max₁ ≥ Sval ≥ G ≥ H ≥ max₂
+  let K₁ := poly.image fun P => ⟪p.rotR (p.rotM₁ P), hp.w⟫
+  let max₁ := K₁.max' (by simp only [K₁, Finset.image_nonempty]; exact poly_ne)
+  let K₂ := poly.image fun P => ⟪(p.rotM₂ P), hp.w⟫
+  let max₂ := K₂.max' (by simp only [K₂, Finset.image_nonempty]; exact poly_ne)
+  let Sproj := p.rotR (p.rotM₁ hp.S)
+  let Sval := ⟪Sproj, hp.w⟫
+
+  let poly_proj := poly.image (fun v => (p.rotM₂ v))
+  let poly_proj_ne : poly_proj.Nonempty := by simp only [poly_proj, Finset.image_nonempty]; exact poly_ne
+  let Sproj_in_hull : Sproj ∈ convexHull ℝ poly_proj := by sorry
+
+  have : Sval ∈ K₁ :=
+    Finset.mem_image_of_mem (fun P ↦ ⟪p.rotR (p.rotM₁ P), hp.w⟫) hp.S_in_poly
+
+  have hgt := by calc
+    Sval
+    _ ≥ G p ε hp.S hp.w := by sorry
+    _ > maxH p poly poly_ne ε hp.w := hp.exceeds
+    _ ≥ max₂ := by sorry
+
+  have hle : Sval ≤ max₂ := by
+    have h : Sval ≤ _ := hull_scalar_prod' poly_proj poly_proj_ne Sproj Sproj_in_hull hp.w
+    simp only [poly_proj, Finset.image_image] at h
+    exact h
+
+  exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
+
 
 theorem global_theorem_nopert (p : Pose) (ε : ℝ) (hε : ε > 0)
     (hp : GlobalTheoremPrecondition nopertVerts nopert_verts_nonempty p ε) :
