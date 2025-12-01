@@ -160,13 +160,6 @@ theorem outer_def (p : Pose) (v : ℝ³) : p.outer v = p.rotM₂ v := by
   simp [Pose.outer, Affines.outer]
   sorry
 
--- FIXME: move somewhere more basic
-theorem rupert_adapt (p : Pose)
-    (poly : Finset ℝ³)
-    (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (v : ℝ³) :
-     p.inner v ∈ convexHull ℝ (p.outer '' poly) := by
-  sorry
-
 /--
 This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is:
 
@@ -196,7 +189,7 @@ theorem global_theorem_le_reasoning (p : Pose)
   change ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) _
   refine hull_scalar_prod V Vne S ?_ w
   simp only [Finset.coe_image, V, S]
-  exact rupert_adapt p poly h_rupert v
+  exact p.is_rupert_imp_inner_in_outer poly h_rupert v
 
 /--
 This is where we use the analytic bounds on rotations, Lemmas 19 and 20.

@@ -47,5 +47,10 @@ def inner (p : Pose) v := proj_xy (Affines.inner p v)
 noncomputable
 def outer (p : Pose) v := proj_xy (Affines.outer p v)
 
+theorem is_rupert_imp_inner_in_outer (p : Pose)
+    (poly : Finset ℝ³)
+    (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (v : ℝ³) :
+     p.inner v ∈ convexHull ℝ (p.outer '' poly) := by
+  sorry
 
 end Pose
