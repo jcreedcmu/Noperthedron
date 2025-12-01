@@ -189,7 +189,7 @@ theorem global_theorem_le_reasoning (p : Pose)
   change ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) _
   refine hull_scalar_prod V Vne S ?_ w
   simp only [Finset.coe_image, V, S]
-  exact p.is_rupert_imp_inner_in_outer poly h_rupert v
+  exact p.is_rupert_imp_inner_in_outer poly h_rupert v hv
 
 /--
 This is where we use the analytic bounds on rotations, Lemmas 19 and 20.

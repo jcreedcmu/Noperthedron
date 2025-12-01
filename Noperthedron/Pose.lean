@@ -47,10 +47,39 @@ def inner (p : Pose) v := proj_xy (Affines.inner p v)
 noncomputable
 def outer (p : Pose) v := proj_xy (Affines.outer p v)
 
+-- FIXME: I probably want to know that p.outer is at least an affine map
+-- to exchange taking the image and convex hull
+lemma hull_outer_eq_outer_hull (p : Pose) (poly : Finset ℝ³) :
+    convexHull ℝ (p.outer '' poly) = Shadows.outer p (convexHull ℝ poly)  := by
+  ext v
+  constructor
+  · intro hv
+    simp only [Shadows.outer, Set.mem_setOf_eq]
+    rw [mem_convexHull_iff] at hv
+    sorry
+  · sorry
+
+/--
+If we have a convex polyhedron with p being a pose witness of the
+rupert property, then in particular every vertex in the "inner"
+transformation lies in the convex hull of the vertices under the
+"outer" transformation.
+-/
 theorem is_rupert_imp_inner_in_outer (p : Pose)
     (poly : Finset ℝ³)
-    (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (v : ℝ³) :
+    (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (v : ℝ³) (hv : v ∈ poly) :
      p.inner v ∈ convexHull ℝ (p.outer '' poly) := by
-  sorry
+  simp only [Shadows.IsRupert] at h_rupert
+  grw [← subset_closure, interior_subset] at h_rupert
+  simp only [Pose.inner]
+  have : v ∈ convexHull ℝ poly := by rw [mem_convexHull_iff]; intro _ a _; exact a hv
+  rw [hull_outer_eq_outer_hull]
+  refine h_rupert ?_
+  simp only [Shadows.inner, Set.mem_setOf_eq]
+  use v
+
+variable (X Y : Type) [TopologicalSpace X] [TopologicalSpace Y] {s t : Set X}
+
+example : (s ⊆ closure s) := by exact subset_closure
 
 end Pose
