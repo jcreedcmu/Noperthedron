@@ -198,35 +198,36 @@ theorem global_theorem_le_reasoning (p : Pose)
   simp only [Finset.coe_image, V, S]
   exact rupert_adapt p poly h_rupert v
 
-theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
-    (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (hpoly : polyhedronRadius poly poly_ne = 1)
-    (poly_pointsym : PointSym (convexHull ℝ (poly : Set ℝ³)))
+/--
+This is where we use the analytic bounds on rotations, Lemmas 19 and 20.
+-/
+theorem global_theorem_gt_reasoning  (p q : Pose) (ε : ℝ) (hε : ε > 0)
+    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
     (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
-    ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q (convexHull ℝ poly) := by
-  rintro ⟨q, q_near_p, q_is_rupert⟩
-  simp only [Membership.mem] at q_near_p
-
-  -- we aim to show maxInner ≥ Sval ≥ G ≥ H ≥ maxOuter
-  let Sproj := q.inner hp.S
-  let Sval := ⟪hp.w, Sproj⟫
-
-  let mi := maxInner q poly poly_ne hp.w
-  let mo := maxOuter q poly poly_ne hp.w
+     maxInner q poly poly_ne hp.w > maxOuter q poly poly_ne hp.w
+    := by
+  let Sval := ⟪hp.w, q.inner hp.S⟫
 
   have sval_in_img_inner : Sval ∈ imgInner q poly hp.w := by
     simp only [Finset.mem_image, imgInner]
     use hp.S, hp.S_in_poly
 
-  have hgt : mi > mo := by calc
-    mi
+  calc
+    maxInner q poly poly_ne hp.w
     _ ≥ Sval := Finset.le_max' (H2 := sval_in_img_inner)
     _ ≥ G p ε hp.S hp.w := by sorry -- rely on calculus lemmas here
     _ > maxH p poly poly_ne ε hp.w := hp.exceeds
-    _ ≥ mo := by sorry -- relay on calculus lemmas here
+    _ ≥ maxOuter q poly poly_ne hp.w := by sorry -- rely on calculus lemmas here
 
-  have hle : mi ≤ mo :=
-    global_theorem_le_reasoning q poly poly_ne q_is_rupert hp.w
-
+theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
+    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
+    (_hpoly : polyhedronRadius poly poly_ne = 1)
+    (_poly_pointsym : PointSym (convexHull ℝ (poly : Set ℝ³)))
+    (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
+    ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q (convexHull ℝ poly) := by
+  rintro ⟨q, q_near_p, q_is_rupert⟩
+  have hgt := global_theorem_gt_reasoning p q ε hε poly poly_ne hp
+  have hle := global_theorem_le_reasoning q poly poly_ne q_is_rupert hp.w
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
 
 theorem global_theorem_nopert (p : Pose) (ε : ℝ) (hε : ε > 0)
