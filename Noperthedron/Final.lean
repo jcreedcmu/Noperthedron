@@ -14,7 +14,7 @@ open scoped Matrix
 There is no tight view pose that makes the Noperthedron have the Rupert property
 -/
 theorem no_nopert_tight_view_pose : ¬ ∃ v : Pose,
-    tightInterval.contains v ∧ Shadows.IsRupert v nopert.hull := by
+    tightInterval.contains v ∧ RupertPose v nopert.hull := by
   rintro ⟨v, h1, h2⟩
   let ⟨tab, htab, row, hrow, tight⟩ := exists_solution_table
   exact Solution.Row.valid_imp_not_rupert tab htab row hrow ⟨v, tight v h1, h2⟩
@@ -22,7 +22,7 @@ theorem no_nopert_tight_view_pose : ¬ ∃ v : Pose,
 /--
 There is no view pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_view_pose : ¬ ∃ v : Pose, Shadows.IsRupert v nopert.hull := by
+theorem no_nopert_view_pose : ¬ ∃ v : Pose, RupertPose v nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
   exact no_nopert_tight_view_pose (Tightening.rupert_tightening p r)
@@ -30,7 +30,7 @@ theorem no_nopert_view_pose : ¬ ∃ v : Pose, Shadows.IsRupert v nopert.hull :=
 /--
 There is no purely rotational pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, Shadows.IsRupert p.zeroOffset nopert.hull := by
+theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, RupertPose p.zeroOffset nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
   let ⟨v, e⟩ := view_pose_of_pose p
@@ -42,7 +42,7 @@ theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, Shadows.IsRupert p.zeroOffse
 /--
 There is no pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_pose : ¬ ∃ p : MatrixPose, Shadows.IsRupert p nopert.hull := by
+theorem no_nopert_pose : ¬ ∃ p : MatrixPose, RupertPose p nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
   have hconvex : Convex ℝ nopert.hull := by
@@ -57,12 +57,13 @@ package up the pose parameters. The converse also should be true, but
 there hasn't been any need for it yet.
 -/
 lemma rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
-    ∃ p : MatrixPose, Shadows.IsRupert p S := by
+    ∃ p : MatrixPose, RupertPose p S := by
   obtain ⟨inner, inner_so3, offset, outer, outer_so3, sub⟩ := r
   let p : MatrixPose := MatrixPose.mk ⟨inner, inner_so3⟩ ⟨outer, outer_so3⟩ offset
   use p
-  change closure (Shadows.inner p S) ⊆ interior (Shadows.outer p S)
-  rw [p.inner_shadow_lemma]
+  change closure (innerShadow p S) ⊆ interior (outerShadow p S)
+  rw [p.inner_shadow_lemma, outerShadow]
+  repeat rw [← proj_xy_eq_proj_xyL]
   exact sub
 
 /--

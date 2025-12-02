@@ -9,7 +9,7 @@ structure Pose : Type where
   α : ℝ
 
 noncomputable
-instance : Affines Pose where
+instance : PoseLike Pose where
   inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
   outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap
 
@@ -41,23 +41,15 @@ def rotM₂φ (p : Pose) : ℝ³ →L[ℝ] ℝ² := rotMφ (p.θ₂) (p.φ₂)
 noncomputable
 def rotR' (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.rotR' (p.α)
 
-
 noncomputable
-def inner (p : Pose) v := proj_xy (Affines.inner p v)
+def inner (p : Pose) : ℝ³ →ᵃ[ℝ] ℝ² := innerProj p
 noncomputable
-def outer (p : Pose) v := proj_xy (Affines.outer p v)
+def outer (p : Pose) : ℝ³ →ᵃ[ℝ] ℝ² := outerProj p
 
--- FIXME: I probably want to know that p.outer is at least an affine map
--- to exchange taking the image and convex hull
-lemma hull_outer_eq_outer_hull (p : Pose) (poly : Finset ℝ³) :
-    convexHull ℝ (p.outer '' poly) = Shadows.outer p (convexHull ℝ poly)  := by
+lemma p_outer_eq_outer_shadow (p : Pose) (S : Set ℝ³) : p.outer '' S  = outerShadow p S := by
+  simp only [Pose.outer, outerProj, outerShadow]
   ext v
-  constructor
-  · intro hv
-    simp only [Shadows.outer, Set.mem_setOf_eq]
-    rw [mem_convexHull_iff] at hv
-    sorry
-  · sorry
+  simp
 
 /--
 If we have a convex polyhedron with p being a pose witness of the
@@ -67,16 +59,17 @@ transformation lies in the convex hull of the vertices under the
 -/
 theorem is_rupert_imp_inner_in_outer (p : Pose)
     (poly : Finset ℝ³)
-    (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (v : ℝ³) (hv : v ∈ poly) :
+    (h_rupert : RupertPose p (convexHull ℝ poly)) (v : ℝ³) (hv : v ∈ poly) :
      p.inner v ∈ convexHull ℝ (p.outer '' poly) := by
-  simp only [Shadows.IsRupert] at h_rupert
+  simp only [RupertPose] at h_rupert
   grw [← subset_closure, interior_subset] at h_rupert
   simp only [Pose.inner]
   have : v ∈ convexHull ℝ poly := by rw [mem_convexHull_iff]; intro _ a _; exact a hv
-  rw [hull_outer_eq_outer_hull]
+  rw [← AffineMap.image_convexHull p.outer poly, p_outer_eq_outer_shadow]
   refine h_rupert ?_
-  simp only [Shadows.inner, Set.mem_setOf_eq]
+  simp only [innerShadow, Set.mem_setOf_eq, innerProj]
   use v
+  simpa
 
 variable (X Y : Type) [TopologicalSpace X] [TopologicalSpace Y] {s t : Set X}
 

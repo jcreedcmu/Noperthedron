@@ -137,5 +137,5 @@ theorem local_theorem (P Q : Triangle)
     (span₁ : P.Spanning p.θ₁ p.φ₁ ε)
     (span₂ : Q.Spanning p.θ₂ p.φ₂ ε)
     (be : Q.Bε p ε δ r)
-    : ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q (shape_of poly |>.hull) := by
+    : ∃ q ∈ p.closed_ball ε, RupertPose q (shape_of poly |>.hull) := by
   sorry

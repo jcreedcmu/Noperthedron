@@ -150,16 +150,6 @@ noncomputable
 def maxOuter (p : Pose) (V : Finset ℝ³) (Vne : V.Nonempty) (w : ℝ²) : ℝ :=
   (imgOuter p V w).max' (by simp only [imgOuter, Finset.image_nonempty]; exact Vne)
 
--- FIXME: move somewhere more basic
-theorem inner_def (p : Pose) (v : ℝ³) : p.inner v = p.rotR (p.rotM₁ v) := by
-  simp [Pose.inner, Affines.inner]
-  sorry
-
--- FIXME: move somewhere more basic
-theorem outer_def (p : Pose) (v : ℝ³) : p.outer v = p.rotM₂ v := by
-  simp [Pose.outer, Affines.outer]
-  sorry
-
 /--
 This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is:
 
@@ -168,7 +158,7 @@ max_{P} ⟪ R(α) M(θ₁, φ₁), P, w ⟫ < max_{P} ⟪ M(θ₂, φ₂), P, w 
 -/
 theorem global_theorem_le_reasoning (p : Pose)
     (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
-    (h_rupert : Shadows.IsRupert p (convexHull ℝ poly)) (w : ℝ²) :
+    (h_rupert : RupertPose p (convexHull ℝ poly)) (w : ℝ²) :
     maxInner p poly poly_ne w ≤ maxOuter p poly poly_ne w
     := by
   simp only [maxInner]
@@ -176,7 +166,7 @@ theorem global_theorem_le_reasoning (p : Pose)
   intro y hy
   simp only [maxOuter, imgOuter]
   simp only [imgInner, Finset.mem_image] at hy
-  let ⟨v, ⟨hv, hv'⟩⟩ := hy
+  obtain ⟨v, ⟨hv, hv'⟩⟩ := hy
   rw [← hv']
   clear hv'
   change ⟪w, p.inner v⟫ ≤ (poly.image (⟪w, p.outer ·⟫)).max' _
@@ -217,7 +207,7 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     (_hpoly : polyhedronRadius poly poly_ne = 1)
     (_poly_pointsym : PointSym (convexHull ℝ (poly : Set ℝ³)))
     (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
-    ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q (convexHull ℝ poly) := by
+    ¬ ∃ q ∈ p.closed_ball ε, RupertPose q (convexHull ℝ poly) := by
   rintro ⟨q, q_near_p, q_is_rupert⟩
   have hgt := global_theorem_gt_reasoning p q ε hε poly poly_ne hp
   have hle := global_theorem_le_reasoning q poly poly_ne q_is_rupert hp.w
@@ -225,7 +215,7 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
 
 theorem global_theorem_nopert (p : Pose) (ε : ℝ) (hε : ε > 0)
     (hp : GlobalTheoremPrecondition nopertVerts nopert_verts_nonempty p ε) :
-    ¬ ∃ q ∈ p.closed_ball ε, Shadows.IsRupert q nopert.hull :=
+    ¬ ∃ q ∈ p.closed_ball ε, RupertPose q nopert.hull :=
   global_theorem p ε hε nopertVerts nopert_verts_nonempty Nopert.noperthedron_radius_one
       nopert_point_symmetric hp
 

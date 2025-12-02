@@ -27,6 +27,32 @@ def flip_y_mat : Matrix (Fin 2) (Fin 2) ℝ :=
 noncomputable
 def flip_y : (ℝ² →L[ℝ] ℝ²) := flip_y_mat |>.toEuclideanLin.toContinuousLinearMap
 
+@[simp]
+noncomputable
+def proj_xy_mat : Matrix (Fin 2) (Fin 3) ℝ :=
+  !![1, 0, 0; 0, 1, 0]
+
+@[simp]
+noncomputable
+def proj_xyL : (ℝ³ →L[ℝ] ℝ²) := proj_xy_mat |>.toEuclideanLin.toContinuousLinearMap
+
+/-
+As mere functions, `proj_xy` and `proj_xyL` are the same.
+The only difference is that `proj_xyL` knows that it is continuous linear,
+and it's defined a little differently, via a matrix, which is the reason
+that it's so easy to see that it's linear.
+
+I think we ought to prefer `proj_xyL` to `proj_xy` in most places.
+but this lemma lets us push back the boundary between the newer uses
+of `proj_xyL` and the older uses of `proj_xy`.
+-/
+lemma proj_xy_eq_proj_xyL :
+    proj_xy = proj_xyL := by
+  ext1
+  simp only [proj_xy, Fin.isValue, proj_xyL, proj_xy_mat, LinearMap.coe_toContinuousLinearMap']
+  ext i
+  fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+
 -- rotation about x-axis by θ
 @[simp]
 noncomputable

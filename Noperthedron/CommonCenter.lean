@@ -48,38 +48,42 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
   exact segment_sub_b (mem_segment_add_sub a v)
 
 theorem shadow_outer_pres_convex {S : Set ℝ³} (s_conv : Convex ℝ S) (p : MatrixPose) :
-  Convex ℝ (Shadows.outer p S) := by
-  change Convex ℝ (proj_xy ∘ Affines.outer p '' S)
+  Convex ℝ (outerShadow p S) := by
+  change Convex ℝ (proj_xyL ∘ PoseLike.outer p '' S)
   rw [Set.image_comp]
+  rw [← proj_xy_eq_proj_xyL]
   exact proj_pres_convex (rotation_pres_convex s_conv p.outerRot)
 
 theorem shadow_outer_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
-  PointSym (Shadows.outer p S) := by
-  change PointSym (proj_xy ∘ Affines.outer p '' S)
+  PointSym (outerShadow p S) := by
+  change PointSym (proj_xyL ∘ PoseLike.outer p '' S)
   rw [Set.image_comp]
+  rw [← proj_xy_eq_proj_xyL]
   exact proj_pres_point_sym (rotation_pres_point_sym (s_psym) p.outerRot)
 
 theorem shadow_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
-  PointSym (Shadows.inner p.zeroOffset S) := by
-  change PointSym (proj_xy ∘ Affines.inner p.zeroOffset '' S)
+  PointSym (innerShadow p.zeroOffset S) := by
+  change PointSym (proj_xyL ∘ PoseLike.inner p.zeroOffset '' S)
   rw [Set.image_comp]
+  rw [← proj_xy_eq_proj_xyL]
   refine proj_pres_point_sym ?_
   simp only [MatrixPose.zero_offset_elim]
   exact rotation_pres_point_sym s_psym p.innerRot
 
 /--
-We can pull out the shift baked into Shadows.inner all the way outside
+We can pull out the shift baked into innerShadow all the way outside
 -/
 lemma shadows_eq {S : Set ℝ³} (p : MatrixPose) :
-    p.shift '' closure (Shadows.inner p.zeroOffset S) =
-      closure (Shadows.inner p S) := by
+    p.shift '' closure (innerShadow p.zeroOffset S) =
+      closure (innerShadow p S) := by
   rw [Homeomorph.image_closure p.shift]
   refine congrArg closure ?_
-  change p.shift '' ((proj_xy ∘ Affines.inner p.zeroOffset) '' S) = _
+  change p.shift '' ((proj_xyL ∘ PoseLike.inner p.zeroOffset) '' S) = _
   simp only [MatrixPose.zero_offset_elim]
   rw [← Set.image_comp]
-  change ((p.shift ∘ proj_xy) ∘ p.innerRotPart) '' S =
-     ((proj_xy ∘ p.innerOffsetPart) ∘ p.innerRotPart) '' S
+  change ((p.shift ∘ proj_xyL) ∘ p.innerRotPart) '' S =
+     ((proj_xyL ∘ p.innerOffsetPart) ∘ p.innerRotPart) '' S
+  rw [← proj_xy_eq_proj_xyL]
   rw [show p.shift ∘ proj_xy = proj_xy ∘ p.innerOffsetPart from funext fun v ↦
     proj_offset_commute _ _]
 
@@ -88,7 +92,7 @@ If a set is point symmetric and convex, then it being rupert implies
 being purely rotationally rupert.
 -/
 theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex : Convex ℝ S)
-    (p : MatrixPose) (r : Shadows.IsRupert p S) : Shadows.IsRupert (p.zeroOffset) S := by
+    (p : MatrixPose) (r : RupertPose p S) : RupertPose (p.zeroOffset) S := by
   refine common_center ?_ ?_ ?_ p.innerOffset ?_
   · exact closure_pres_point_sym (shadow_inner_pres_psym s_sym p)
   · exact interior_pres_point_sym (shadow_outer_pres_psym s_sym p)

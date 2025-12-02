@@ -14,6 +14,6 @@ structure ViewPose : Type where
   α : Set.Ico (-π) π
 
 noncomputable
-instance : Affines ViewPose where
+instance : PoseLike ViewPose where
   inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
   outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap

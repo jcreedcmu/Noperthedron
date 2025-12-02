@@ -1,3 +1,4 @@
+import Noperthedron.Basic
 import Noperthedron.Rupert.Basic
 import Noperthedron.PoseClasses
 import Noperthedron.Util
@@ -24,7 +25,7 @@ noncomputable def innerRotPart (p : MatrixPose) : ℝ³ → ℝ³ := p.innerRot.
 end MatrixPose
 
 noncomputable
-instance : Affines MatrixPose where
+instance : PoseLike MatrixPose where
   inner p := (translationAffineEquiv (inject_xy p.innerOffset)).toAffineMap.comp
       (p.innerRot.val.toEuclideanLin.toAffineMap)
   outer p := p.outerRot.val.toEuclideanLin.toAffineMap
@@ -44,7 +45,7 @@ theorem zero_offset_id (p : MatrixPose) (v : ℝ³) : p.zeroOffset.innerOffsetPa
 
 @[simp]
 theorem zero_offset_elim (p : MatrixPose) :
-    ↑(Affines.inner p.zeroOffset) = (fun (v : ℝ³) => p.innerRot.val.toEuclideanLin v) := by
+    ↑(PoseLike.inner p.zeroOffset) = (fun (v : ℝ³) => p.innerRot.val.toEuclideanLin v) := by
   ext1 v
   change p.zeroOffset.innerOffsetPart (p.innerRot.val.toEuclideanLin v) = _
   rw [zero_offset_id]
@@ -52,17 +53,17 @@ theorem zero_offset_elim (p : MatrixPose) :
 noncomputable def shift (p : MatrixPose) : ℝ² ≃ₜ ℝ² := translationHomeo p.innerOffset
 
 /--
-We can massage Shadows.inner p S into the form of the standard Rupert definition
+We can massage innerShadow p S into the form of the standard Rupert definition
 -/
 theorem inner_shadow_lemma (p : MatrixPose) (S : Set ℝ³) :
-    Shadows.inner p S = {x | ∃ v ∈ S, p.innerOffset + proj_xy (p.innerRot.val.toEuclideanLin v) = x} := by
-  change ((proj_xy ∘ (· + inject_xy p.innerOffset)) ∘ p.innerRotPart) '' S =
-         (((p.innerOffset + ·) ∘ proj_xy) ∘ p.innerRotPart) '' S
-  suffices h : proj_xy ∘ (· + inject_xy p.innerOffset) = (p.innerOffset + ·) ∘ proj_xy by
+    innerShadow p S = {x | ∃ v ∈ S, p.innerOffset + proj_xyL (p.innerRot.val.toEuclideanLin v) = x} := by
+  change ((proj_xyL ∘ (· + inject_xy p.innerOffset)) ∘ p.innerRotPart) '' S =
+         (((p.innerOffset + ·) ∘ proj_xyL) ∘ p.innerRotPart) '' S
+  suffices h : proj_xyL ∘ (· + inject_xy p.innerOffset) = (p.innerOffset + ·) ∘ proj_xyL by
     rw[h]
   ext1 v
   simp only [Function.comp_apply]
   nth_rw 2 [add_comm]
-  rw [proj_offset_commute p.innerOffset v]
+  rw [← proj_xy_eq_proj_xyL, proj_offset_commute p.innerOffset v]
 
 end MatrixPose

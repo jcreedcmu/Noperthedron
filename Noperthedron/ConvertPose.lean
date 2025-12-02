@@ -7,17 +7,17 @@ def poseOfViewPose (v : ViewPose) : MatrixPose where
   innerOffset := 0
 
 theorem converted_pose_inner_shadow_eq (v : ViewPose) (S : Set ℝ³) :
-    Shadows.inner v S = Shadows.inner (poseOfViewPose v) S := by
+    innerShadow v S = innerShadow (poseOfViewPose v) S := by
   sorry -- TODO(easy)
 
 theorem converted_pose_outer_shadow_eq (v : ViewPose) (S : Set ℝ³) :
-    Shadows.outer v S = Shadows.outer (poseOfViewPose v) S := by
+    outerShadow v S = outerShadow (poseOfViewPose v) S := by
   sorry -- TODO(easy)
 
 theorem converted_pose_rupert_iff (v : ViewPose) (S : Set ℝ³) :
-    Shadows.IsRupert v S ↔ Shadows.IsRupert (poseOfViewPose v) S := by
+    RupertPose v S ↔ RupertPose (poseOfViewPose v) S := by
   constructor; all_goals
-  · unfold Shadows.IsRupert
+  · unfold RupertPose
     rw [converted_pose_inner_shadow_eq, converted_pose_outer_shadow_eq]
     exact id
 

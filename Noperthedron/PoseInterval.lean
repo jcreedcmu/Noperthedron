@@ -93,6 +93,6 @@ structure TightViewPose : Type where
   α : Set.Icc (-π/2) (π/2)
 
 noncomputable
-instance : Affines TightViewPose where
+instance : PoseLike TightViewPose where
   inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
   outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap
