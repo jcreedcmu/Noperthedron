@@ -58,6 +58,10 @@ def rotproj_inner (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
   ⟪rotprojRM (x 0) (x 1) (x 2) S, w⟫
 
 noncomputable
+def rotproj_inner_unit (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
+  ⟪rotprojRM (x 0) (x 1) (x 2) S, w⟫ / ‖S‖
+
+noncomputable
 def nth_partial {n : ℕ} (i : Fin n) (f : E n → ℝ) (x : E n) : ℝ :=
   fderiv ℝ f x (EuclideanSpace.single i 1)
 
@@ -65,12 +69,12 @@ def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) (x : E n) : Prop :=
   ∀ (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
 
 theorem rotation_partials_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³) :
-    mixed_partials_bounded (rotproj_inner S w) x := by
+    mixed_partials_bounded (rotproj_inner_unit S w) x := by
   sorry
 
 theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
     (fc : ContDiff ℝ 2 f) (x y : E n)
-    (ε : ℝ) (hε : ε > 0) (hdiff : (i : Fin n) → |x i - y i| < ε)
+    (ε : ℝ) (hε : ε > 0) (hdiff : (i : Fin n) → |x i - y i| ≤ ε)
     (mpb : mixed_partials_bounded f x) :
     |f x - f y| ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by
   let g₀ : ℝ → E n := fun t => (1 - t) • x + t • y
@@ -101,7 +105,7 @@ A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
 def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
-  ⟪p.rotR (p.rotM₁ S), w⟫ - ε * |⟪p.rotR' (p.rotM₁ S), w⟫ + ⟪p.rotR (p.rotM₁θ S), w⟫ + ⟪p.rotR (p.rotM₁φ S), w⟫|
+  ⟪p.inner S, w⟫ - ε * (|⟪p.rotR' (p.rotM₁ S), w⟫ + ⟪p.rotR (p.rotM₁θ S), w⟫ + ⟪p.rotR (p.rotM₁φ S), w⟫|)
   - 9 * ε^2 / 2
 
 /--
@@ -130,9 +134,14 @@ structure GlobalTheoremPrecondition (poly : Finset ℝ³) (poly_ne : poly.Nonemp
   S : ℝ³
   S_in_poly : S ∈ poly
   w : ℝ²
-  S_unit : ‖(S : ℝ³)‖ = 1
   w_unit : ‖w‖ = 1
   exceeds : G p ε S w > maxH p poly poly_ne ε w
+
+noncomputable
+def GlobalTheoremPrecondition.Sval
+    {poly : Finset ℝ³} {poly_ne : poly.Nonempty} {p : Pose} {ε : ℝ}
+    (hp : GlobalTheoremPrecondition poly poly_ne p ε) (q : Pose) : ℝ:=
+    ⟪hp.w, q.inner hp.S⟫
 
 noncomputable
 def imgInner (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
@@ -182,25 +191,53 @@ theorem global_theorem_le_reasoning (p : Pose)
   exact p.is_rupert_imp_inner_in_outer poly h_rupert v hv
 
 /--
-This is where we use the analytic bounds on rotations, Lemmas 19 and 20.
+Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
-theorem global_theorem_gt_reasoning  (p q : Pose) (ε : ℝ) (hε : ε > 0)
+lemma global_theorem_inequality_ii (p q : Pose) (ε : ℝ) (hε : ε > 0)
+    (q_near_p : q ∈ p.closed_ball ε)
+    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
+    (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
+    G p ε hp.S hp.w ≤ hp.Sval q := by
+  let f : ℝ³ → ℝ := rotproj_inner_unit hp.S hp.w
+  have f_is_C2 : ContDiff ℝ 2 f := by
+    sorry
+  have mpb := rotation_partials_bounded hp.S hp.w p.innerParams
+
+  have z := bounded_partials_control_difference f f_is_C2 p.innerParams q.innerParams ε hε
+    (closed_ball_imp_inner_params_near q_near_p) mpb
+  simp only [GlobalTheoremPrecondition.Sval, G]
+  simp only [tsub_le_iff_right, ge_iff_le]
+  sorry
+
+/--
+Use the analytic bounds on rotations, Lemmas 19 and 20.
+-/
+lemma global_theorem_inequality_iv (p q : Pose) (ε : ℝ) (hε : ε > 0)
+    (q_near_p : q ∈ p.closed_ball ε)
+    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
+    (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
+    maxOuter q poly poly_ne hp.w ≤ maxH p poly poly_ne ε hp.w := by
+  sorry
+
+/--
+Here we run through the "sequence of inequalities [which yield] the desired contradiction"
+-/
+theorem global_theorem_gt_reasoning (p q : Pose) (ε : ℝ) (hε : ε > 0)
+    (q_near_p : q ∈ p.closed_ball ε)
     (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
     (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
      maxInner q poly poly_ne hp.w > maxOuter q poly poly_ne hp.w
     := by
-  let Sval := ⟪hp.w, q.inner hp.S⟫
-
-  have sval_in_img_inner : Sval ∈ imgInner q poly hp.w := by
-    simp only [Finset.mem_image, imgInner]
+  have sval_in_img_inner : hp.Sval q ∈ imgInner q poly hp.w := by
+    simp only [Finset.mem_image, imgInner, GlobalTheoremPrecondition.Sval]
     use hp.S, hp.S_in_poly
 
   calc
     maxInner q poly poly_ne hp.w
-    _ ≥ Sval := Finset.le_max' (H2 := sval_in_img_inner)
-    _ ≥ G p ε hp.S hp.w := by sorry -- rely on calculus lemmas here
+    _ ≥ hp.Sval q := Finset.le_max' (H2 := sval_in_img_inner)
+    _ ≥ G p ε hp.S hp.w := global_theorem_inequality_ii p q ε hε q_near_p poly poly_ne hp
     _ > maxH p poly poly_ne ε hp.w := hp.exceeds
-    _ ≥ maxOuter q poly poly_ne hp.w := by sorry -- rely on calculus lemmas here
+    _ ≥ maxOuter q poly poly_ne hp.w := global_theorem_inequality_iv p q ε hε q_near_p poly poly_ne hp
 
 theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
@@ -209,7 +246,7 @@ theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
     (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
     ¬ ∃ q ∈ p.closed_ball ε, RupertPose q (convexHull ℝ poly) := by
   rintro ⟨q, q_near_p, q_is_rupert⟩
-  have hgt := global_theorem_gt_reasoning p q ε hε poly poly_ne hp
+  have hgt := global_theorem_gt_reasoning p q ε hε q_near_p poly poly_ne hp
   have hle := global_theorem_le_reasoning q poly poly_ne q_is_rupert hp.w
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
 

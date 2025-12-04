@@ -46,6 +46,8 @@ def inner (p : Pose) : ℝ³ →ᵃ[ℝ] ℝ² := innerProj p
 noncomputable
 def outer (p : Pose) : ℝ³ →ᵃ[ℝ] ℝ² := outerProj p
 
+def innerParams (p : Pose) : ℝ³ := WithLp.toLp 2 ![p.α, p.θ₁, p.φ₁]
+
 lemma p_outer_eq_outer_shadow (p : Pose) (S : Set ℝ³) : p.outer '' S  = outerShadow p S := by
   simp only [Pose.outer, outerProj, outerShadow]
   ext v

@@ -96,3 +96,11 @@ noncomputable
 instance : PoseLike TightViewPose where
   inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
   outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap
+
+lemma closed_ball_imp_inner_params_near {p q : Pose} {ε : ℝ}
+    (hq : q ∈ p.closed_ball ε) :
+    ∀ i, |p.innerParams.ofLp i - q.innerParams.ofLp i| ≤ ε := by
+  intro i
+  simp [Pose.closed_ball, Membership.mem, PoseInterval.contains] at hq
+  obtain ⟨⟨_, _⟩, _, ⟨_, _⟩, _, ⟨_, _⟩⟩ := hq
+  fin_cases i <;> (simp [Pose.innerParams, abs_sub_le_iff]; grind)
