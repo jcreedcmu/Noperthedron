@@ -23,10 +23,7 @@ theorem sum_abs_sq_le_sum_abs_sq_mul {n : ℕ} (v : Fin n → ℝ) :
     (∑ j, |v j|) ^ 2 ≤ (∑ j, |v j| ^ 2) * n := by
   have h : (∑ j, |v j| * 1)^2  ≤ (∑ j, |v j| ^ 2) * (∑ _ : Fin n, 1 ^ 2) :=
     Finset.sum_mul_sq_le_sq_mul_sq Finset.univ (fun j => |v j|) (fun _ => 1)
-  simp only [mul_one, sq_abs, one_pow, Finset.sum_const, Finset.card_univ,
-    Fintype.card_fin, nsmul_eq_mul] at h
-  conv at h in (∑ x, v x ^ 2) => rhs; intro x; rw [← sq_abs]
-  exact h
+  simpa using h
 
 theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : Matrix (Fin m) (Fin n) ℝ)
     (hδ : 0 < δ) (hle : ∀ i j, |A i j| ≤ δ) :

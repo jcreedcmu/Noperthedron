@@ -193,6 +193,4 @@ theorem polyhedron_radius_iff {n : ℕ} {r : ℝ} (S : Finset (E n)) (ne : S.Non
     simp only [forall_exists_index, and_imp, forall_apply_eq_imp_iff₂] at h2
     exact ⟨h1, h2⟩
   · intro h
-    simp only [polyhedronRadius, Finset.max'_eq_iff]
-    simp only [Finset.mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
-    exact h
+    simpa [polyhedronRadius, Finset.max'_eq_iff]
