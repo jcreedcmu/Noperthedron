@@ -211,3 +211,7 @@ structure GoodPoly : Type where
 
 def GoodPoly.hull (poly : GoodPoly) : Set ℝ³ :=
   convexHull ℝ poly.vertices
+
+theorem GoodPoly.vertex_radius_le_one (poly : GoodPoly) : ∀ v ∈ poly.vertices, ‖v‖ ≤ 1 := by
+  have := poly.radius_eq_one
+  simp_all only [polyhedron_radius_iff, implies_true]
