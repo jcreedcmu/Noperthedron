@@ -148,6 +148,16 @@ theorem GlobalTheoremPrecondition.norm_S_le_one
     (hp : GlobalTheoremPrecondition poly p ε) : ‖hp.S‖ ≤ 1 :=
   poly.vertex_radius_le_one hp.S hp.S_in_poly
 
+theorem GlobalTheoremPrecondition.norm_S_gt_zero
+    {poly : GoodPoly} {p : Pose} {ε : ℝ}
+    (hp : GlobalTheoremPrecondition poly p ε) : 0 < ‖hp.S‖ :=
+  poly.nontriv hp.S hp.S_in_poly
+
+theorem GlobalTheoremPrecondition.norm_S_ne_zero
+    {poly : GoodPoly} {p : Pose} {ε : ℝ}
+    (hp : GlobalTheoremPrecondition poly p ε) : 0 ≠ ‖hp.S‖ :=
+  ne_of_lt hp.norm_S_gt_zero
+
 noncomputable
 def imgInner (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
   V.image fun P => ⟪w, p.inner P⟫
@@ -230,10 +240,26 @@ theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     pc.f pbar.innerParams = ⟪pbar.inner pc.S, pc.w⟫ := by
   rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
+lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    |⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ + ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫ +
+      ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫| = (‖pc.S‖ * ∑ i, |nth_partial i pc.fu pbar.innerParams|) := by
+  sorry
+
 theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     pc.fu p.innerParams * ‖pc.S‖ = pc.f p.innerParams := by
-  sorry
+  have := pc.norm_S_ne_zero
+  simp only [GlobalTheoremPrecondition.fu, GlobalTheoremPrecondition.f, rotproj_inner_unit, rotproj_inner]
+  field_simp
+
+lemma rotproj_helper {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    |pc.fu pbar.innerParams - pc.fu p.innerParams| * ‖pc.S‖ = |⟪pbar.inner pc.S, pc.w⟫ - pc.Sval p| := by
+  rw [← f_pose_eq_sval, ← f_pose_eq_inner]
+  repeat rw [← fu_times_norm_S_eq_f]
+  rw [← sub_mul]
+  simp
 
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
@@ -243,8 +269,7 @@ lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
     (poly : GoodPoly)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     G pbar ε pc.S pc.w ≤ pc.Sval p := by
-
-  have S_norm_pos : 0 < ‖pc.S‖ := poly.nontriv pc.S pc.S_in_poly
+  have S_norm_pos : 0 < ‖pc.S‖ := pc.norm_S_gt_zero
   have S_norm_le_one : ‖pc.S‖ ≤ 1 := pc.norm_S_le_one
   have hz := bounded_partials_control_difference
     pc.fu (rotproj_unit_is_c2 S_norm_pos)
@@ -252,20 +277,13 @@ lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
     (closed_ball_imp_inner_params_near p_near_pbar)
     (rotation_partials_bounded pc.S pc.w pbar.innerParams)
   simp only [G]
-  apply sub_le_of_abs_sub_le_right
-
-  rw [← f_pose_eq_sval, ← f_pose_eq_inner]
-
+  refine sub_le_of_abs_sub_le_right ?_
   have hzs := mul_le_mul_of_nonneg_right hz (ha := le_of_lt S_norm_pos)
-  clear hz
+  rw [← rotproj_helper pc, partials_helper pc]
   norm_num at hzs
   ring_nf at hzs ⊢
   nth_grw 3 [S_norm_le_one] at hzs
-  rw [← abs_norm, ← abs_mul] at hzs
-  simp only [one_mul, sub_mul] at hzs
-  rw [fu_times_norm_S_eq_f, fu_times_norm_S_eq_f, abs_norm] at hzs
-
-  sorry
+  simp_all only [one_mul]
 
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
