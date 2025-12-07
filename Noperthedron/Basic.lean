@@ -199,6 +199,10 @@ structure GoodPoly : Type where
   vertices : Finset ℝ³
   nonempty : vertices.Nonempty
   nontriv : ∀ v ∈ vertices, ‖v‖ > 0
+  radius_eq_one : polyhedronRadius vertices nonempty = 1
 
 def GoodPoly.hull (poly : GoodPoly) : Set ℝ³ :=
   convexHull ℝ poly.vertices
+
+theorem GoodPoly.vertex_radius_le_one (poly : GoodPoly) : ∀ v ∈ poly.vertices, ‖v‖ ≤ 1 := by
+  sorry

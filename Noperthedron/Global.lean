@@ -143,6 +143,11 @@ def GlobalTheoremPrecondition.Sval
     (hp : GlobalTheoremPrecondition poly p ε) (q : Pose) : ℝ:=
     ⟪hp.w, q.inner hp.S⟫
 
+theorem GlobalTheoremPrecondition.norm_S_le_one
+    {poly : GoodPoly} {p : Pose} {ε : ℝ}
+    (hp : GlobalTheoremPrecondition poly p ε) : ‖hp.S‖ ≤ 1 :=
+  poly.vertex_radius_le_one hp.S hp.S_in_poly
+
 noncomputable
 def imgInner (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
   V.image fun P => ⟪w, p.inner P⟫
@@ -196,74 +201,78 @@ lemma rotproj_unit_is_c2 {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : Con
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
-lemma global_theorem_inequality_ii (p q : Pose) (ε : ℝ) (hε : ε > 0)
-    (q_near_p : q ∈ p.closed_ball ε)
+lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
+    (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
-    (hp : GlobalTheoremPrecondition poly p ε) :
-    G p ε hp.S hp.w ≤ hp.Sval q := by
+    (hp : GlobalTheoremPrecondition poly pbar ε) :
+    G pbar ε hp.S hp.w ≤ hp.Sval p := by
   let f : ℝ³ → ℝ := rotproj_inner_unit hp.S hp.w
-  have z := bounded_partials_control_difference
-    f (rotproj_unit_is_c2 (poly.nontriv hp.S hp.S_in_poly))
-    p.innerParams q.innerParams ε hε
-    (closed_ball_imp_inner_params_near q_near_p)
-    (rotation_partials_bounded hp.S hp.w p.innerParams)
+  have S_norm_pos : 0 < ‖hp.S‖ := poly.nontriv hp.S hp.S_in_poly
+  have S_norm_le_one : ‖hp.S‖ ≤ 1 := hp.norm_S_le_one
+  have hz := bounded_partials_control_difference
+    f (rotproj_unit_is_c2 S_norm_pos)
+    pbar.innerParams p.innerParams ε hε
+    (closed_ball_imp_inner_params_near p_near_pbar)
+    (rotation_partials_bounded hp.S hp.w pbar.innerParams)
   simp only [GlobalTheoremPrecondition.Sval, G, tsub_le_iff_right, ge_iff_le]
-  simp at z
-  norm_num at z
-  ring_nf at z ⊢
+  simp only [Nat.cast_ofNat] at hz
+  have hzs := mul_le_mul_of_nonneg_right hz (ha := le_of_lt S_norm_pos)
+  norm_num at hzs
+  ring_nf at hzs ⊢
+  nth_grw 3 [S_norm_le_one] at hzs
+  simp only [one_mul] at hzs
   sorry
 
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
-lemma global_theorem_inequality_iv (p q : Pose) (ε : ℝ) (hε : ε > 0)
-    (q_near_p : q ∈ p.closed_ball ε)
+lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
+    (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
-    (hp : GlobalTheoremPrecondition poly p ε) :
-    maxOuter q poly hp.w ≤ maxH p poly ε hp.w := by
+    (hp : GlobalTheoremPrecondition poly pbar ε) :
+    maxOuter p poly hp.w ≤ maxH pbar poly ε hp.w := by
   sorry
 
 /--
 Here we run through the "sequence of inequalities [which yield] the desired contradiction"
 -/
-theorem global_theorem_gt_reasoning (p q : Pose) (ε : ℝ) (hε : ε > 0)
-    (q_near_p : q ∈ p.closed_ball ε)
+theorem global_theorem_gt_reasoning (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
+    (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
-    (hp : GlobalTheoremPrecondition poly p ε) :
-     maxInner q poly hp.w > maxOuter q poly hp.w
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+     maxInner p poly pc.w > maxOuter p poly pc.w
     := by
-  have sval_in_img_inner : hp.Sval q ∈ imgInner q poly.vertices hp.w := by
+  have sval_in_img_inner : pc.Sval p ∈ imgInner p poly.vertices pc.w := by
     simp only [Finset.mem_image, imgInner, GlobalTheoremPrecondition.Sval]
-    use hp.S, hp.S_in_poly
+    use pc.S, pc.S_in_poly
 
   calc
-    maxInner q poly hp.w
-    _ ≥ hp.Sval q := Finset.le_max' (H2 := sval_in_img_inner)
-    _ ≥ G p ε hp.S hp.w := global_theorem_inequality_ii p q ε hε q_near_p poly hp
-    _ > maxH p poly ε hp.w := hp.exceeds
-    _ ≥ maxOuter q poly hp.w := global_theorem_inequality_iv p q ε hε q_near_p poly hp
+    maxInner p poly pc.w
+    _ ≥ pc.Sval p := Finset.le_max' (H2 := sval_in_img_inner)
+    _ ≥ G pbar ε pc.S pc.w := global_theorem_inequality_ii pbar p ε hε p_near_pbar poly pc
+    _ > maxH pbar poly ε pc.w := pc.exceeds
+    _ ≥ maxOuter p poly pc.w := global_theorem_inequality_iv pbar p ε hε p_near_pbar poly pc
 
 /--
 The Global Theorem, [SY25] Theorem 17
 -/
-theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
+theorem global_theorem (pbar : Pose) (ε : ℝ) (hε : ε > 0)
     (poly : GoodPoly)
-    (_hpoly : polyhedronRadius poly.vertices poly.nonempty = 1)
     (_poly_pointsym : PointSym poly.hull)
-    (hp : GlobalTheoremPrecondition poly p ε) :
-    ¬ ∃ q ∈ p.closed_ball ε, RupertPose q poly.hull := by
-  rintro ⟨q, q_near_p, q_is_rupert⟩
-  have hgt := global_theorem_gt_reasoning p q ε hε q_near_p poly hp
-  have hle := global_theorem_le_reasoning q poly q_is_rupert hp.w
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p poly.hull := by
+  rintro ⟨p, p_near_pbar, p_is_rupert⟩
+  have hgt := global_theorem_gt_reasoning pbar p ε hε p_near_pbar poly pc
+  have hle := global_theorem_le_reasoning p poly p_is_rupert pc.w
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
 
 /--
 The Global Theorem specialized to the noperthedron.
 -/
-theorem global_theorem_nopert (p : Pose) (ε : ℝ) (hε : ε > 0)
-    (hp : GlobalTheoremPrecondition Nopert.poly p ε) :
-    ¬ ∃ q ∈ p.closed_ball ε, RupertPose q nopert.hull :=
-  global_theorem p ε hε Nopert.poly Nopert.noperthedron_radius_one
-      nopert_point_symmetric hp
+theorem global_theorem_nopert (pbar : Pose) (ε : ℝ) (hε : ε > 0)
+    (pc : GlobalTheoremPrecondition Nopert.poly pbar ε) :
+    ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p nopert.hull :=
+  global_theorem pbar ε hε Nopert.poly
+      nopert_point_symmetric pc
 
 end GlobalTheorem

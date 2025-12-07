@@ -254,4 +254,5 @@ def Nopert.poly : GoodPoly := {
   vertices := nopertVerts,
   nonempty := nopert_verts_nonempty,
   nontriv := nopert_verts_nontriv,
+  radius_eq_one := Nopert.noperthedron_radius_one,
 }
