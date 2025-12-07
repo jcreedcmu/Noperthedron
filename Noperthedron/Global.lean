@@ -105,8 +105,8 @@ A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
 def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
-  ⟪p.inner S, w⟫ - ε * (|⟪p.rotR' (p.rotM₁ S), w⟫ + ⟪p.rotR (p.rotM₁θ S), w⟫ + ⟪p.rotR (p.rotM₁φ S), w⟫|)
-  - 9 * ε^2 / 2
+  ⟪p.inner S, w⟫ - (ε * (|⟪p.rotR' (p.rotM₁ S), w⟫ + ⟪p.rotR (p.rotM₁θ S), w⟫ + ⟪p.rotR (p.rotM₁φ S), w⟫|)
+  + 9 * ε^2 / 2)
 
 /--
 A measure of how far an outer-shadow vertex P can "reach" along w.
@@ -198,29 +198,73 @@ theorem global_theorem_le_reasoning (p : Pose)
 lemma rotproj_unit_is_c2 {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : ContDiff ℝ 2 (rotproj_inner_unit S w) := by
   sorry
 
+lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose) : rotproj_inner S w p.innerParams = ⟪p.inner S, w⟫ := by
+  sorry
+
+/--
+This is the function that Theorem 17's proof calls `f`.
+It always returns a unit vector.
+-/
+noncomputable
+def GlobalTheoremPrecondition.fu {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ³ → ℝ :=
+  rotproj_inner_unit pc.S pc.w
+
+/--
+This is the function that Theorem 17's proof calls `f`, but multiplied by ‖S‖.
+-/
+noncomputable
+def GlobalTheoremPrecondition.f {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ³ → ℝ :=
+  rotproj_inner pc.S pc.w
+
+theorem f_pose_eq_sval {p pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    pc.f p.innerParams = pc.Sval p := by
+  simp [GlobalTheoremPrecondition.f, GlobalTheoremPrecondition.Sval]
+  rw [rotproj_inner_pose_eq]
+  apply real_inner_comm
+
+theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    pc.f pbar.innerParams = ⟪pbar.inner pc.S, pc.w⟫ := by
+  rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
+
+theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    pc.fu p.innerParams * ‖pc.S‖ = pc.f p.innerParams := by
+  sorry
+
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
 lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
     (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
-    (hp : GlobalTheoremPrecondition poly pbar ε) :
-    G pbar ε hp.S hp.w ≤ hp.Sval p := by
-  let f : ℝ³ → ℝ := rotproj_inner_unit hp.S hp.w
-  have S_norm_pos : 0 < ‖hp.S‖ := poly.nontriv hp.S hp.S_in_poly
-  have S_norm_le_one : ‖hp.S‖ ≤ 1 := hp.norm_S_le_one
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    G pbar ε pc.S pc.w ≤ pc.Sval p := by
+
+  have S_norm_pos : 0 < ‖pc.S‖ := poly.nontriv pc.S pc.S_in_poly
+  have S_norm_le_one : ‖pc.S‖ ≤ 1 := pc.norm_S_le_one
   have hz := bounded_partials_control_difference
-    f (rotproj_unit_is_c2 S_norm_pos)
+    pc.fu (rotproj_unit_is_c2 S_norm_pos)
     pbar.innerParams p.innerParams ε hε
     (closed_ball_imp_inner_params_near p_near_pbar)
-    (rotation_partials_bounded hp.S hp.w pbar.innerParams)
-  simp only [GlobalTheoremPrecondition.Sval, G, tsub_le_iff_right, ge_iff_le]
-  simp only [Nat.cast_ofNat] at hz
+    (rotation_partials_bounded pc.S pc.w pbar.innerParams)
+  simp only [G]
+  apply sub_le_of_abs_sub_le_right
+
+  rw [← f_pose_eq_sval, ← f_pose_eq_inner]
+
   have hzs := mul_le_mul_of_nonneg_right hz (ha := le_of_lt S_norm_pos)
+  clear hz
   norm_num at hzs
   ring_nf at hzs ⊢
   nth_grw 3 [S_norm_le_one] at hzs
-  simp only [one_mul] at hzs
+  rw [← abs_norm, ← abs_mul] at hzs
+  simp only [one_mul, sub_mul] at hzs
+  rw [fu_times_norm_S_eq_f, fu_times_norm_S_eq_f, abs_norm] at hzs
+
   sorry
 
 /--
