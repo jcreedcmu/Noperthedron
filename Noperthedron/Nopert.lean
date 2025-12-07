@@ -162,6 +162,22 @@ lemma nopert_verts_nonempty : nopertVerts.Nonempty := by
   apply Finset.Nonempty.inl
   apply half_nopert_verts_nonempty
 
+def half_nopert_verts_nontriv : ∀ v ∈ halfNopertVerts, 0 < ‖v‖ := by
+  intro v hv
+  simp_all only [halfNopertVerts, Finset.union_assoc, Finset.mem_union]
+  rcases hv with hv | hv | hv
+  all_goals rw [Nopert.C15_pres_norm _ _ hv]
+  · exact Nopert.c1_norm_one ▸ Real.zero_lt_one
+  · linarith [Nopert.c2_norm_bound.1]
+  · linarith [Nopert.c3_norm_bound.1]
+
+def nopert_verts_nontriv : ∀ v ∈ nopertVerts, 0 < ‖v‖ := by
+  simp only [nopertVerts, pointsymmetrize, Finset.mem_union, Finset.mem_image]
+  intro v hv
+  rcases hv with hv | ⟨a, ha₁, ha₂⟩
+  · exact half_nopert_verts_nontriv v hv
+  · rw [← ha₂]; simp only [norm_neg]; exact half_nopert_verts_nontriv a ha₁
+
 noncomputable
 def nopert : Shape where
   vertices := nopertVerts
@@ -232,3 +248,10 @@ The radius of the noperthedron is 1.
 theorem Nopert.noperthedron_radius_one : polyhedronRadius nopertVerts nopert_verts_nonempty = 1 := by
   simp only [nopertVerts, pointsymmetrize_pres_radius half_nopert_verts_nonempty]
   exact half_nopert_radius_one
+
+noncomputable
+def Nopert.poly : GoodPoly := {
+  vertices := nopertVerts,
+  nonempty := nopert_verts_nonempty,
+  nontriv := nopert_verts_nontriv,
+}

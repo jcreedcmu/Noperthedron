@@ -194,3 +194,11 @@ theorem polyhedron_radius_iff {n : ℕ} {r : ℝ} (S : Finset (E n)) (ne : S.Non
     exact ⟨h1, h2⟩
   · intro h
     simpa [polyhedronRadius, Finset.max'_eq_iff]
+
+structure GoodPoly : Type where
+  vertices : Finset ℝ³
+  nonempty : vertices.Nonempty
+  nontriv : ∀ v ∈ vertices, ‖v‖ > 0
+
+def GoodPoly.hull (poly : GoodPoly) : Set ℝ³ :=
+  convexHull ℝ poly.vertices

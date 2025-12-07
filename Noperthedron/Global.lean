@@ -119,10 +119,10 @@ def H (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
-def maxH (p : Pose) (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (ε : ℝ) (w : ℝ²) : ℝ :=
-  poly.image (H p ε w) |>.max' <| by
+def maxH (p : Pose) (poly : GoodPoly) (ε : ℝ) (w : ℝ²) : ℝ :=
+  poly.vertices.image (H p ε w) |>.max' <| by
     simp only [Finset.image_nonempty]
-    exact poly_ne
+    exact poly.nonempty
 
 /--
 A compact way of saying "the pose satisfies the global theorem precondition at width ε".
@@ -130,17 +130,17 @@ We require the existence of some inner-shadow vertex S from the polyehdron, and 
 the direction we're projecting ℝ² → ℝ to find that S "sticks out too far" compared to all the
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
-structure GlobalTheoremPrecondition (poly : Finset ℝ³) (poly_ne : poly.Nonempty) (p : Pose) (ε : ℝ) : Type where
+structure GlobalTheoremPrecondition (poly : GoodPoly) (p : Pose) (ε : ℝ) : Type where
   S : ℝ³
-  S_in_poly : S ∈ poly
+  S_in_poly : S ∈ poly.vertices
   w : ℝ²
   w_unit : ‖w‖ = 1
-  exceeds : G p ε S w > maxH p poly poly_ne ε w
+  exceeds : G p ε S w > maxH p poly ε w
 
 noncomputable
 def GlobalTheoremPrecondition.Sval
-    {poly : Finset ℝ³} {poly_ne : poly.Nonempty} {p : Pose} {ε : ℝ}
-    (hp : GlobalTheoremPrecondition poly poly_ne p ε) (q : Pose) : ℝ:=
+    {poly : GoodPoly} {p : Pose} {ε : ℝ}
+    (hp : GlobalTheoremPrecondition poly p ε) (q : Pose) : ℝ:=
     ⟪hp.w, q.inner hp.S⟫
 
 noncomputable
@@ -148,16 +148,16 @@ def imgInner (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
   V.image fun P => ⟪w, p.inner P⟫
 
 noncomputable
-def maxInner (p : Pose) (V : Finset ℝ³) (Vne : V.Nonempty) (w : ℝ²) : ℝ :=
-  (imgInner p V w).max' (by simp only [imgInner, Finset.image_nonempty]; exact Vne)
+def maxInner (p : Pose) (poly: GoodPoly) (w : ℝ²) : ℝ :=
+  (imgInner p poly.vertices w).max' (by simp only [imgInner, Finset.image_nonempty]; exact poly.nonempty)
 
 noncomputable
 def imgOuter (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
   V.image fun P => ⟪w, p.outer P⟫
 
 noncomputable
-def maxOuter (p : Pose) (V : Finset ℝ³) (Vne : V.Nonempty) (w : ℝ²) : ℝ :=
-  (imgOuter p V w).max' (by simp only [imgOuter, Finset.image_nonempty]; exact Vne)
+def maxOuter (p : Pose) (poly : GoodPoly) (w : ℝ²) : ℝ :=
+  (imgOuter p poly.vertices w).max' (by simp only [imgOuter, Finset.image_nonempty]; exact poly.nonempty)
 
 /--
 This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is:
@@ -166,9 +166,9 @@ This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is
 max_{P} ⟪ R(α) M(θ₁, φ₁), P, w ⟫ < max_{P} ⟪ M(θ₂, φ₂), P, w ⟫"
 -/
 theorem global_theorem_le_reasoning (p : Pose)
-    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
-    (h_rupert : RupertPose p (convexHull ℝ poly)) (w : ℝ²) :
-    maxInner p poly poly_ne w ≤ maxOuter p poly poly_ne w
+    (poly : GoodPoly)
+    (h_rupert : RupertPose p (convexHull ℝ poly.vertices)) (w : ℝ²) :
+    maxInner p poly w ≤ maxOuter p poly w
     := by
   simp only [maxInner]
   refine Finset.max'_le _ _ _ ?_
@@ -178,35 +178,39 @@ theorem global_theorem_le_reasoning (p : Pose)
   obtain ⟨v, ⟨hv, hv'⟩⟩ := hy
   rw [← hv']
   clear hv'
-  change ⟪w, p.inner v⟫ ≤ (poly.image (⟪w, p.outer ·⟫)).max' _
-  convert_to ⟪w, p.inner v⟫ ≤ ((poly.image p.outer).image (⟪w, ·⟫)).max' (by
-      simp only [Finset.image_nonempty]; exact poly_ne)
+  change ⟪w, p.inner v⟫ ≤ (poly.vertices.image (⟪w, p.outer ·⟫)).max' _
+  convert_to ⟪w, p.inner v⟫ ≤ ((poly.vertices.image p.outer).image (⟪w, ·⟫)).max' (by
+      simp only [Finset.image_nonempty]; exact poly.nonempty)
   · simp [Finset.image_image]; rfl
   let S := p.inner v
-  let V := poly.image p.outer
-  have Vne : V.Nonempty := by simp only [V, Finset.image_nonempty]; exact poly_ne
+  let V := poly.vertices.image p.outer
+  have Vne : V.Nonempty := by simp only [V, Finset.image_nonempty]; exact poly.nonempty
   change ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) _
   refine hull_scalar_prod V Vne S ?_ w
   simp only [Finset.coe_image, V, S]
-  exact p.is_rupert_imp_inner_in_outer poly h_rupert v hv
+  exact p.is_rupert_imp_inner_in_outer poly.vertices h_rupert v hv
+
+lemma rotproj_unit_is_c2 {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : ContDiff ℝ 2 (rotproj_inner_unit S w) := by
+  sorry
 
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
 lemma global_theorem_inequality_ii (p q : Pose) (ε : ℝ) (hε : ε > 0)
     (q_near_p : q ∈ p.closed_ball ε)
-    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
-    (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
+    (poly : GoodPoly)
+    (hp : GlobalTheoremPrecondition poly p ε) :
     G p ε hp.S hp.w ≤ hp.Sval q := by
   let f : ℝ³ → ℝ := rotproj_inner_unit hp.S hp.w
-  have f_is_C2 : ContDiff ℝ 2 f := by
-    sorry
-  have mpb := rotation_partials_bounded hp.S hp.w p.innerParams
-
-  have z := bounded_partials_control_difference f f_is_C2 p.innerParams q.innerParams ε hε
-    (closed_ball_imp_inner_params_near q_near_p) mpb
-  simp only [GlobalTheoremPrecondition.Sval, G]
-  simp only [tsub_le_iff_right, ge_iff_le]
+  have z := bounded_partials_control_difference
+    f (rotproj_unit_is_c2 (poly.nontriv hp.S hp.S_in_poly))
+    p.innerParams q.innerParams ε hε
+    (closed_ball_imp_inner_params_near q_near_p)
+    (rotation_partials_bounded hp.S hp.w p.innerParams)
+  simp only [GlobalTheoremPrecondition.Sval, G, tsub_le_iff_right, ge_iff_le]
+  simp at z
+  norm_num at z
+  ring_nf at z ⊢
   sorry
 
 /--
@@ -214,9 +218,9 @@ Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
 lemma global_theorem_inequality_iv (p q : Pose) (ε : ℝ) (hε : ε > 0)
     (q_near_p : q ∈ p.closed_ball ε)
-    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
-    (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
-    maxOuter q poly poly_ne hp.w ≤ maxH p poly poly_ne ε hp.w := by
+    (poly : GoodPoly)
+    (hp : GlobalTheoremPrecondition poly p ε) :
+    maxOuter q poly hp.w ≤ maxH p poly ε hp.w := by
   sorry
 
 /--
@@ -224,36 +228,42 @@ Here we run through the "sequence of inequalities [which yield] the desired cont
 -/
 theorem global_theorem_gt_reasoning (p q : Pose) (ε : ℝ) (hε : ε > 0)
     (q_near_p : q ∈ p.closed_ball ε)
-    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
-    (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
-     maxInner q poly poly_ne hp.w > maxOuter q poly poly_ne hp.w
+    (poly : GoodPoly)
+    (hp : GlobalTheoremPrecondition poly p ε) :
+     maxInner q poly hp.w > maxOuter q poly hp.w
     := by
-  have sval_in_img_inner : hp.Sval q ∈ imgInner q poly hp.w := by
+  have sval_in_img_inner : hp.Sval q ∈ imgInner q poly.vertices hp.w := by
     simp only [Finset.mem_image, imgInner, GlobalTheoremPrecondition.Sval]
     use hp.S, hp.S_in_poly
 
   calc
-    maxInner q poly poly_ne hp.w
+    maxInner q poly hp.w
     _ ≥ hp.Sval q := Finset.le_max' (H2 := sval_in_img_inner)
-    _ ≥ G p ε hp.S hp.w := global_theorem_inequality_ii p q ε hε q_near_p poly poly_ne hp
-    _ > maxH p poly poly_ne ε hp.w := hp.exceeds
-    _ ≥ maxOuter q poly poly_ne hp.w := global_theorem_inequality_iv p q ε hε q_near_p poly poly_ne hp
+    _ ≥ G p ε hp.S hp.w := global_theorem_inequality_ii p q ε hε q_near_p poly hp
+    _ > maxH p poly ε hp.w := hp.exceeds
+    _ ≥ maxOuter q poly hp.w := global_theorem_inequality_iv p q ε hε q_near_p poly hp
 
+/--
+The Global Theorem, [SY25] Theorem 17
+-/
 theorem global_theorem (p : Pose) (ε : ℝ) (hε : ε > 0)
-    (poly : Finset ℝ³) (poly_ne : poly.Nonempty)
-    (_hpoly : polyhedronRadius poly poly_ne = 1)
-    (_poly_pointsym : PointSym (convexHull ℝ (poly : Set ℝ³)))
-    (hp : GlobalTheoremPrecondition poly poly_ne p ε) :
-    ¬ ∃ q ∈ p.closed_ball ε, RupertPose q (convexHull ℝ poly) := by
+    (poly : GoodPoly)
+    (_hpoly : polyhedronRadius poly.vertices poly.nonempty = 1)
+    (_poly_pointsym : PointSym poly.hull)
+    (hp : GlobalTheoremPrecondition poly p ε) :
+    ¬ ∃ q ∈ p.closed_ball ε, RupertPose q poly.hull := by
   rintro ⟨q, q_near_p, q_is_rupert⟩
-  have hgt := global_theorem_gt_reasoning p q ε hε q_near_p poly poly_ne hp
-  have hle := global_theorem_le_reasoning q poly poly_ne q_is_rupert hp.w
+  have hgt := global_theorem_gt_reasoning p q ε hε q_near_p poly hp
+  have hle := global_theorem_le_reasoning q poly q_is_rupert hp.w
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
 
+/--
+The Global Theorem specialized to the noperthedron.
+-/
 theorem global_theorem_nopert (p : Pose) (ε : ℝ) (hε : ε > 0)
-    (hp : GlobalTheoremPrecondition nopertVerts nopert_verts_nonempty p ε) :
+    (hp : GlobalTheoremPrecondition Nopert.poly p ε) :
     ¬ ∃ q ∈ p.closed_ball ε, RupertPose q nopert.hull :=
-  global_theorem p ε hε nopertVerts nopert_verts_nonempty Nopert.noperthedron_radius_one
+  global_theorem p ε hε Nopert.poly Nopert.noperthedron_radius_one
       nopert_point_symmetric hp
 
 end GlobalTheorem
