@@ -55,11 +55,11 @@ theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
 
 noncomputable
 def rotproj_inner (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
-  ⟪rotprojRM (x 0) (x 1) (x 2) S, w⟫
+  ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫
 
 noncomputable
 def rotproj_inner_unit (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
-  ⟪rotprojRM (x 0) (x 1) (x 2) S, w⟫ / ‖S‖
+  ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫ / ‖S‖
 
 noncomputable
 def nth_partial {n : ℕ} (i : Fin n) (f : E n → ℝ) (x : E n) : ℝ :=
@@ -213,7 +213,7 @@ lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose) : rotproj_inner S
              Matrix.cons_val_zero, Matrix.cons_val, AffineMap.coe_comp,
              LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
   change _ = ⟪(proj_xyL ∘L rotRM p.θ₁ p.φ₁ p.α) S, w⟫
-  rw [proj_rotrm_eq_rotprojrm]
+  rw [← rotRM_identity]
 
 /--
 This is the function that Theorem 17's proof calls `f`.

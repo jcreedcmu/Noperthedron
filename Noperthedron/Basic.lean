@@ -1,4 +1,5 @@
 import Noperthedron.Rupert.Basic
+import Noperthedron.PushLeft
 
 open scoped Matrix
 
@@ -26,6 +27,17 @@ def flip_y_mat : Matrix (Fin 2) (Fin 2) ℝ :=
 @[simp]
 noncomputable
 def flip_y : (ℝ² →L[ℝ] ℝ²) := flip_y_mat |>.toEuclideanLin.toContinuousLinearMap
+
+-- dimension reduction with a rotation baked in
+@[simp]
+noncomputable
+def reduce_mat : Matrix (Fin 2) (Fin 3) ℝ :=
+  !![0,  1, 0;
+     -1, 0, 0]
+
+@[simp]
+noncomputable
+def reduceL : (ℝ³ →L[ℝ] ℝ²) := reduce_mat |>.toEuclideanLin.toContinuousLinearMap
 
 @[simp]
 noncomputable
@@ -179,13 +191,30 @@ noncomputable
 def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   rotR α ∘L rotM θ φ
 
-/--
-The description of rotRM as axis rotations followed by a projection is the same
-thing as the description of rotprojRM as the 2×2 R matrix after the 2×3 M matrix
+/-
+Some nice identities as laid out in [SY25] §2.2
 -/
-lemma proj_rotrm_eq_rotprojrm (θ φ α : ℝ) : proj_xyL ∘L rotRM θ φ α = rotprojRM α θ φ := by
+lemma rotM_identity (θ φ : ℝ) : rotM θ φ = reduceL ∘L RyL φ ∘L RzL (-θ) := by
+  ext v i
+  fin_cases i <;> (simp [RzL, RyL, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; try ring_nf)
+
+lemma rotprojRM_identity (θ φ α : ℝ) : rotprojRM θ φ α = reduceL ∘L RzL α ∘L RyL φ ∘L RzL (-θ) := by
+  simp only [rotprojRM]
+  ext v i
+  fin_cases i <;> (simp [RzL, RyL, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; try ring_nf)
+
+noncomputable
+def reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
+  ext v i
+  simp only [RzL]
+  fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+
+lemma rotRM_identity (θ φ α : ℝ) : proj_xyL ∘L rotRM θ φ α = rotprojRM θ φ α := by
+  rw [rotprojRM_identity θ φ α]
+  simp only [rotRM]
   ext1 v
-  sorry
+  rw [reduce_identity]
+  simp only [ ContinuousLinearMap.coe_comp', Function.comp_apply]
 
 noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
