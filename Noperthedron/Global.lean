@@ -68,6 +68,9 @@ def nth_partial {n : ℕ} (i : Fin n) (f : E n → ℝ) (x : E n) : ℝ :=
 def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) (x : E n) : Prop :=
   ∀ (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
 
+lemma rotation_partials_exist {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : ContDiff ℝ 2 (rotproj_inner_unit S w) := by
+  sorry
+
 theorem rotation_partials_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³) :
     mixed_partials_bounded (rotproj_inner_unit S w) x := by
   sorry
@@ -105,7 +108,7 @@ A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
 def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
-  ⟪p.inner S, w⟫ - (ε * (|⟪p.rotR' (p.rotM₁ S), w⟫ + ⟪p.rotR (p.rotM₁θ S), w⟫ + ⟪p.rotR (p.rotM₁φ S), w⟫|)
+  ⟪p.inner S, w⟫ - (ε * (|⟪p.rotR' (p.rotM₁ S), w⟫| + |⟪p.rotR (p.rotM₁θ S), w⟫| + |⟪p.rotR (p.rotM₁φ S), w⟫|)
   + 9 * ε^2 / 2)
 
 /--
@@ -205,9 +208,6 @@ theorem global_theorem_le_reasoning (p : Pose)
   simp only [Finset.coe_image, V, S]
   exact p.is_rupert_imp_inner_in_outer poly.vertices h_rupert v hv
 
-lemma rotproj_unit_is_c2 {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : ContDiff ℝ 2 (rotproj_inner_unit S w) := by
-  sorry
-
 lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose) : rotproj_inner S w p.innerParams = ⟪p.inner S, w⟫ := by
   sorry
 
@@ -240,11 +240,30 @@ theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     pc.f pbar.innerParams = ⟪pbar.inner pc.S, pc.w⟫ := by
   rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
+lemma partials_helper0 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    ‖pc.S‖ * nth_partial 0 pc.fu pbar.innerParams =
+    ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ := by
+  sorry
+
+lemma partials_helper1 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    ‖pc.S‖ * nth_partial 1 pc.fu pbar.innerParams =
+    ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫ := by
+  sorry
+
+lemma partials_helper2 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    ‖pc.S‖ * nth_partial 2 pc.fu pbar.innerParams =
+    ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫ := by
+  sorry
+
 lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
-    |⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ + ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫ +
-      ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫| = (‖pc.S‖ * ∑ i, |nth_partial i pc.fu pbar.innerParams|) := by
-  sorry
+    |⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫| + |⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫| +
+      |⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫| = (‖pc.S‖ * ∑ i, |nth_partial i pc.fu pbar.innerParams|) := by
+  rw [Finset.mul_sum, Fin.sum_univ_three, ← abs_norm, ← abs_mul, ← abs_mul, ← abs_mul,
+    partials_helper0, partials_helper1, partials_helper2]
 
 theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -272,7 +291,7 @@ lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
   have S_norm_pos : 0 < ‖pc.S‖ := pc.norm_S_gt_zero
   have S_norm_le_one : ‖pc.S‖ ≤ 1 := pc.norm_S_le_one
   have hz := bounded_partials_control_difference
-    pc.fu (rotproj_unit_is_c2 S_norm_pos)
+    pc.fu (rotation_partials_exist S_norm_pos)
     pbar.innerParams p.innerParams ε hε
     (closed_ball_imp_inner_params_near p_near_pbar)
     (rotation_partials_bounded pc.S pc.w pbar.innerParams)
