@@ -209,7 +209,11 @@ theorem global_theorem_le_reasoning (p : Pose)
   exact p.is_rupert_imp_inner_in_outer poly.vertices h_rupert v hv
 
 lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose) : rotproj_inner S w p.innerParams = ⟪p.inner S, w⟫ := by
-  sorry
+  simp only [rotproj_inner, Pose.inner, innerProj, PoseLike.inner, Pose.innerParams,
+             Matrix.cons_val_zero, Matrix.cons_val, AffineMap.coe_comp,
+             LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
+  change _ = ⟪(proj_xyL ∘L rotRM p.θ₁ p.φ₁ p.α) S, w⟫
+  rw [proj_rotrm_eq_rotprojrm]
 
 /--
 This is the function that Theorem 17's proof calls `f`.

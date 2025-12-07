@@ -179,6 +179,14 @@ noncomputable
 def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   rotR α ∘L rotM θ φ
 
+/--
+The description of rotRM as axis rotations followed by a projection is the same
+thing as the description of rotprojRM as the 2×2 R matrix after the 2×3 M matrix
+-/
+lemma proj_rotrm_eq_rotprojrm (θ φ α : ℝ) : proj_xyL ∘L rotRM θ φ α = rotprojRM α θ φ := by
+  ext1 v
+  sorry
+
 noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
   (S.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)
