@@ -244,11 +244,37 @@ theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     pc.f pbar.innerParams = ⟪pbar.inner pc.S, pc.w⟫ := by
   rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
+lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 0 1) =
+    ‖pc.S‖⁻¹ * ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫  := by
+  have := pc.norm_S_ne_zero
+  change (fderiv ℝ (λ x => rotproj_inner_unit pc.S pc.w x) _) _ = _
+  unfold rotproj_inner_unit rotprojRM
+
+  convert_to (fderiv ℝ (‖pc.S‖⁻¹ • (rotproj_inner pc.S pc.w)) pbar.innerParams) (EuclideanSpace.single 0 1) = _
+  · unfold rotproj_inner rotprojRM
+    conv =>
+      rhs; arg 1; lhs; ext x; simp only [Pi.smul_apply, smul_eq_mul]
+      rw [show ∀ (a b : ℝ), a⁻¹ * b = b / a  by intro a b; ring_nf]
+  have hf : DifferentiableAt ℝ (rotproj_inner pc.S pc.w) pbar.innerParams := by
+    sorry
+
+  rw [(hf.hasFDerivAt.const_smul ‖pc.S‖⁻¹).fderiv]
+  simp only [Fin.isValue, ContinuousLinearMap.coe_smul', Pi.smul_apply, smul_eq_mul,
+    mul_eq_mul_left_iff]
+  left
+
+  sorry
+
 lemma partials_helper0 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 0 pc.fu pbar.innerParams =
     ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ := by
-  sorry
+  have := pc.norm_S_ne_zero
+  simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper0a]
+  field_simp
+
 
 lemma partials_helper1 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
