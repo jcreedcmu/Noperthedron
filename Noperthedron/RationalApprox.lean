@@ -97,15 +97,17 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
             rw [h_deriv_eq, Filter.EventuallyEq.deriv_eq (Filter.eventuallyEq_of_mem (Ioo_mem_nhds hy.1 hy.2 ) fun z hz => ih z hz.1 hz.2)]
           · ring_nf)
         obtain ⟨c, hc₁, hc₂⟩ := this
+        use c
+        refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
         -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
         have h_iterated_deriv : iteratedDerivWithin (2 * n + 1) Real.sin (Set.Icc 0 x) c = iteratedDeriv (2 * n + 1) Real.sin c := by
           rw [iteratedDerivWithin_eq_iteratedDeriv]
-          · exact uniqueDiffOn_Icc (by positivity)
+          · exact uniqueDiffOn_Icc hx'
           · exact Real.contDiff_sin.contDiffAt
           · exact Set.Ioo_subset_Icc_self hc₁
         simp_all only [Set.mem_Ioo, taylorWithinEval, Real.iteratedDeriv_add_one_sin,
           Real.iteratedDeriv_even_cos, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply,
-          sub_zero, Set.mem_Icc]
+          sub_zero]
         -- By definition of the polynomial, we can rewrite the left-hand side of the equation.
         have h_poly_eval : PolynomialModule.eval x (taylorWithin Real.sin (2 * n) (Set.Icc 0 x) 0) =
              ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
@@ -138,10 +140,6 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
           · norm_num
           · simp only [Finset.disjoint_right, Finset.mem_image, Finset.mem_range, forall_exists_index]
             cutsat
-        have h_iterated_deriv : ∀ i : ℕ, iteratedDeriv (2 * i + 1) Real.sin 0 = (-1 : ℝ) ^ i := by
-          simp
-        use c
-        refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
         simp_all [mul_div_assoc]
     intro x hx
     specialize h_lagrange x hx
