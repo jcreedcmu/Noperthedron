@@ -140,8 +140,8 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         simp_all [mul_div_assoc]
     intro x hx
     specialize h_lagrange x hx
-    obtain ⟨w, h⟩ := h_lagrange
-    simp_all only [Set.mem_Icc, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos,
+    obtain ⟨w, h₁, h₂⟩ := h_lagrange
+    simp only [h₂, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos,
       Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply]
     simp only [abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
     exact mul_le_of_le_one_left (by positivity) (Real.abs_cos_le_one _)
