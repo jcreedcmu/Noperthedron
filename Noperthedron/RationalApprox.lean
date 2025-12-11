@@ -100,24 +100,13 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         even_two, Even.mul_left, Even.neg_pow, neg_mul, mul_neg, Finset.sum_neg_distrib,
         sub_neg_eq_add]
       grind
-
-  have h_lagrange : ∀ x : ℝ, 0 < x →
-      ∃ c ∈ Set.Icc 0 x,
-        Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!) =
-        (iteratedDeriv (2 * n + 1) Real.sin c) * x ^ (2 * n + 1) / (2 * n + 1)! := by
-    intro x hx
-    obtain ⟨c, hc₁, hc₂⟩ :=
+  obtain ⟨c, -, hc₂⟩ :=
       taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n) hx Real.contDiff_sin.contDiffOn
-    use c
-    refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
-    simp only [taylorWithinEval_sin hx, sub_zero] at hc₂
-    exact hc₂
-  specialize h_lagrange x hx
-  obtain ⟨w, -, h₂⟩ := h_lagrange
-  simp only [h₂, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos, Pi.mul_apply,
-    Pi.pow_apply, Pi.neg_apply, Pi.ofNat_apply, ge_iff_le]
+  simp only [taylorWithinEval_sin hx, sub_zero] at hc₂
+  simp only [hc₂, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos, Pi.mul_apply,
+    Pi.pow_apply, Pi.neg_apply, Pi.ofNat_apply]
   simp only [abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
-  exact Real.abs_cos_le_one w
+  exact Real.abs_cos_le_one c
 
 set_option maxHeartbeats 500000 in
 /--
