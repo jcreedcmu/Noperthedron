@@ -113,11 +113,9 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
             PolynomialModule.eval_smul, Polynomial.eval_pow, Polynomial.eval_X,
             PolynomialModule.eval_lsingle, pow_zero, smul_eq_mul, one_mul, taylorCoeffWithin]
           refine Finset.sum_congr rfl fun i hi => ?_
-          rw [iteratedDerivWithin_eq_iteratedDeriv]
-          · ring_nf
-          · exact uniqueDiffOn_Icc hx'
-          · exact Real.contDiff_sin.contDiffAt
-          · exact Set.left_mem_Icc.mpr hx
+          rw [iteratedDerivWithin_eq_iteratedDeriv
+                (uniqueDiffOn_Icc hx') Real.contDiff_sin.contDiffAt (Set.left_mem_Icc.mpr hx)]
+          ring_nf
         -- Since the iterated derivative of sin at 0 is zero for even i, we can split the sum into even and odd terms.
         have h_split_sum :
             ∑ i ∈ Finset.range (2 * n + 1),
