@@ -100,11 +100,8 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         use c
         refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
         -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
-        have h_iterated_deriv : iteratedDerivWithin (2 * n + 1) Real.sin (Set.Icc 0 x) c = iteratedDeriv (2 * n + 1) Real.sin c := by
-          rw [iteratedDerivWithin_eq_iteratedDeriv]
-          · exact uniqueDiffOn_Icc hx'
-          · exact Real.contDiff_sin.contDiffAt
-          · exact Set.Ioo_subset_Icc_self hc₁
+        rw [iteratedDerivWithin_eq_iteratedDeriv (n := 2 * n + 1) (x := c)
+            (uniqueDiffOn_Icc hx') Real.contDiff_sin.contDiffAt (Set.Ioo_subset_Icc_self hc₁)] at hc₂
         simp_all only [Set.mem_Ioo, taylorWithinEval, Real.iteratedDeriv_add_one_sin,
           Real.iteratedDeriv_even_cos, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply,
           sub_zero]
