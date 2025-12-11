@@ -91,37 +91,36 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
   simp_rw [←mul_div_assoc]
   rw [le_div_iff₀ (by positivity)]
   -- Apply the taylorMeanRemainderLagrange theorem to the interval [0, x].
-  have h_taylor_mean : ∀ x : ℝ, 0 ≤ x →
+  have h_taylor_mean : ∀ x : ℝ, 0 < x →
       |Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!)| ≤
       |x| ^ (2 * n + 1) / (2 * n + 1)! := by
     -- Apply the Lagrange form of the remainder for the Taylor series of sin(x).
-    have h_lagrange : ∀ x : ℝ, 0 ≤ x →
+    have h_lagrange : ∀ x : ℝ, 0 < x →
         ∃ c ∈ Set.Icc 0 x,
           Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!) =
           (iteratedDeriv (2 * n + 1) Real.sin c) * x ^ (2 * n + 1) / (2 * n + 1)! := by
       intro x hx
-      obtain hx' | hx' := (lt_or_eq_of_le' hx).symm
-      · aesop
-      · obtain ⟨c, hc₁, hc₂⟩ :=
-          taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n) hx' Real.contDiff_sin.contDiffOn
-        use c
-        refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
-        -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
-        simp only [taylorWithinEval_sin hx', sub_zero] at hc₂
-        exact hc₂
+      obtain ⟨c, hc₁, hc₂⟩ :=
+        taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n) hx Real.contDiff_sin.contDiffOn
+      use c
+      refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
+      -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
+      simp only [taylorWithinEval_sin hx, sub_zero] at hc₂
+      exact hc₂
     intro x hx
     specialize h_lagrange x hx
-    obtain ⟨w, h₁, h₂⟩ := h_lagrange
+    obtain ⟨w, -, h₂⟩ := h_lagrange
     simp only [h₂, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos,
       Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply]
     simp only [abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
-    exact mul_le_of_le_one_left (by positivity) (Real.abs_cos_le_one _)
-  by_cases hx : 0 ≤ x
+    exact Real.abs_cos_le_one w
+  obtain hx | hx | hx := lt_trichotomy 0 x
   · simpa only [mul_div_assoc] using
      le_trans (mul_le_mul_of_nonneg_right (h_taylor_mean x hx) (by positivity))
               (by rw [div_mul_cancel₀ _ (by positivity)])
+  · simp [←hx]
   · have := h_taylor_mean (-x) (by linarith)
-    simp_all only [not_le, Real.sin_neg, abs_neg, ge_iff_le]
+    simp_all only [Real.sin_neg, abs_neg, ge_iff_le]
     convert mul_le_mul_of_nonneg_right this (Nat.cast_nonneg (2 * n + 1)!) using 1
     · simp only [mul_comm, pow_add, pow_one, mul_assoc, div_eq_mul_inv, mul_left_comm, even_two,
         Even.mul_left, Even.neg_pow, neg_mul, mul_neg, Finset.sum_neg_distrib, sub_neg_eq_add,
