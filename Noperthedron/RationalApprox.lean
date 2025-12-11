@@ -81,21 +81,11 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         refine DifferentiableOn.congr (f := fun x ↦ Real.sin (x + Real.pi * n)) ?_ ?_
         · fun_prop
         · intro y hy
-          rw [iteratedDerivWithin_eq_iterate]
-          -- By induction on $n$, we can show that the $2n$-th derivative of $\sin(x)$ is $\sin(x + n\pi)$.
-          have h_ind : ∀ n : ℕ, deriv^[2 * n] Real.sin = fun x => Real.sin (x + n * Real.pi) := by
-            intro n
-            induction n <;> simp_all [Nat.mul_succ, Function.iterate_succ_apply',
-                                      Real.sin_add, add_mul, Real.sin_add, Real.cos_add]
-          convert congr_fun (h_ind n) y using 1
-          · induction' 2 * n with n ih generalizing y <;> simp_all [Function.iterate_succ_apply']
-            -- Since $y \in (0, x)$, the derivative within the interval $[0, x]$ at $y$ is the same as the regular derivative.
-            have h_deriv_eq :
-                derivWithin ((fun g => derivWithin g (Set.Icc 0 x))^[n] Real.sin) (Set.Icc 0 x) y =
-                deriv ((fun g => derivWithin g (Set.Icc 0 x))^[n] Real.sin) y := by
-              rw [derivWithin_of_mem_nhds (Icc_mem_nhds hy.1 hy.2)]
-            rw [h_deriv_eq, Filter.EventuallyEq.deriv_eq (Filter.eventuallyEq_of_mem (Ioo_mem_nhds hy.1 hy.2 ) fun z hz => ih z hz.1 hz.2)]
-          · ring_nf)
+          rw [iteratedDerivWithin_eq_iteratedDeriv (n := 2 * n) (x := y)
+            (uniqueDiffOn_Icc hx') Real.contDiff_sin.contDiffAt (Set.Ioo_subset_Icc_self hy)]
+          simp only [Real.iteratedDeriv_even_sin, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply,
+            Pi.one_apply]
+          rw [← Real.sin_add_nat_mul_pi, mul_comm])
         obtain ⟨c, hc₁, hc₂⟩ := this
         use c
         refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
