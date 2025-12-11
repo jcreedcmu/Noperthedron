@@ -87,15 +87,14 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
             intro n
             induction n <;> simp_all [Nat.mul_succ, Function.iterate_succ_apply',
                                       Real.sin_add, add_mul, Real.sin_add, Real.cos_add]
-          convert congr_fun ( h_ind n ) y using 1
+          convert congr_fun (h_ind n) y using 1
           · induction' 2 * n with n ih generalizing y <;> simp_all [Function.iterate_succ_apply']
             -- Since $y \in (0, x)$, the derivative within the interval $[0, x]$ at $y$ is the same as the regular derivative.
             have h_deriv_eq :
-                derivWithin ((fun g => derivWithin g (Set.Icc 0 x))^[n] (fun x => Real.sin x))
-                            (Set.Icc 0 x) y =
-                deriv ((fun g => derivWithin g (Set.Icc 0 x))^[n] (fun x => Real.sin x)) y := by
+                derivWithin ((fun g => derivWithin g (Set.Icc 0 x))^[n] Real.sin) (Set.Icc 0 x) y =
+                deriv ((fun g => derivWithin g (Set.Icc 0 x))^[n] Real.sin) y := by
               rw [derivWithin_of_mem_nhds (Icc_mem_nhds hy.1 hy.2)]
-            rw [ h_deriv_eq, Filter.EventuallyEq.deriv_eq ( Filter.eventuallyEq_of_mem ( Ioo_mem_nhds hy.1 hy.2 ) fun z hz => ih z hz.1 hz.2 ) ]
+            rw [h_deriv_eq, Filter.EventuallyEq.deriv_eq (Filter.eventuallyEq_of_mem (Ioo_mem_nhds hy.1 hy.2 ) fun z hz => ih z hz.1 hz.2)]
           · ring_nf)
         obtain ⟨c, hc₁, hc₂⟩ := this
         -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
@@ -108,7 +107,8 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
           Real.iteratedDeriv_even_cos, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply,
           sub_zero, Set.mem_Icc]
         -- By definition of the polynomial, we can rewrite the left-hand side of the equation.
-        have h_poly_eval : PolynomialModule.eval x (taylorWithin (fun x => Real.sin x) (2 * n) (Set.Icc 0 x) 0) = ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
+        have h_poly_eval : PolynomialModule.eval x (taylorWithin Real.sin (2 * n) (Set.Icc 0 x) 0) =
+             ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
           simp_all only [taylorWithin, map_zero, sub_zero, PolynomialModule.comp_apply,
             PolynomialModule.map_single, PolynomialModule.eval_single, map_sum,
             PolynomialModule.eval_smul, Polynomial.eval_pow, Polynomial.eval_X,
