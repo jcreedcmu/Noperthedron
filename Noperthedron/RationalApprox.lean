@@ -65,16 +65,20 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
   simp_rw [←mul_div_assoc]
   rw [le_div_iff₀ (by positivity)]
   -- Apply the taylorMeanRemainderLagrange theorem to the interval [0, x].
-  have h_taylor_mean : ∀ x : ℝ, 0 ≤ x → |Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!)| ≤ |x| ^ (2 * n + 1) / (2 * n + 1)! := by
+  have h_taylor_mean : ∀ x : ℝ, 0 ≤ x →
+      |Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!)| ≤
+      |x| ^ (2 * n + 1) / (2 * n + 1)! := by
     -- Apply the Lagrange form of the remainder for the Taylor series of sin(x).
-    have h_lagrange : ∀ x : ℝ, 0 ≤ x → ∃ c ∈ Set.Icc 0 x, Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!) = (iteratedDeriv (2 * n + 1) Real.sin c) * x ^ (2 * n + 1) / (2 * n + 1)! := by
+    have h_lagrange : ∀ x : ℝ, 0 ≤ x →
+        ∃ c ∈ Set.Icc 0 x,
+          Real.sin x - ∑ i ∈ Finset.range n, (-1 : ℝ) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!) =
+          (iteratedDeriv (2 * n + 1) Real.sin c) * x ^ (2 * n + 1) / (2 * n + 1)! := by
       intro x hx
-      by_cases hx' : x = 0
+      obtain hx' | hx' := (lt_or_eq_of_le' hx).symm
       · aesop
-      · have := @taylor_mean_remainder_lagrange Real.sin x 0 (2 * n) (by positivity) Real.contDiff_sin.contDiffOn
+      · have := taylor_mean_remainder_lagrange (n := 2 * n) hx' Real.contDiff_sin.contDiffOn
                 (by
-        refine' DifferentiableOn.congr _ _
-        · use fun x => Real.sin (x + Real.pi * n)
+        refine DifferentiableOn.congr (f := fun x ↦ Real.sin (x + Real.pi * n)) ?_ ?_
         · fun_prop
         · intro y hy
           rw [iteratedDerivWithin_eq_iterate]
@@ -109,10 +113,10 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
             PolynomialModule.map_single, PolynomialModule.eval_single, map_sum,
             PolynomialModule.eval_smul, Polynomial.eval_pow, Polynomial.eval_X,
             PolynomialModule.eval_lsingle, pow_zero, smul_eq_mul, one_mul, taylorCoeffWithin]
-          refine' Finset.sum_congr rfl fun i hi => _
+          refine Finset.sum_congr rfl fun i hi => ?_
           rw [iteratedDerivWithin_eq_iteratedDeriv]
           · ring_nf
-          · exact uniqueDiffOn_Icc (by positivity)
+          · exact uniqueDiffOn_Icc hx'
           · exact Real.contDiff_sin.contDiffAt
           · exact Set.left_mem_Icc.mpr hx
         -- Since the iterated derivative of sin at 0 is zero for even i, we can split the sum into even and odd terms.
