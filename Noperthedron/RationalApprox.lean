@@ -113,22 +113,11 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
       intro x hx
       obtain hx' | hx' := (lt_or_eq_of_le' hx).symm
       · aesop
-      · have := taylor_mean_remainder_lagrange (n := 2 * n) hx' Real.contDiff_sin.contDiffOn
-                (by
-        refine DifferentiableOn.congr (f := fun x ↦ Real.sin (x + Real.pi * n)) ?_ ?_
-        · fun_prop
-        · intro y hy
-          rw [iteratedDerivWithin_eq_iteratedDeriv (n := 2 * n) (x := y)
-            (uniqueDiffOn_Icc hx') Real.contDiff_sin.contDiffAt (Set.Ioo_subset_Icc_self hy)]
-          simp only [Real.iteratedDeriv_even_sin, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply,
-            Pi.one_apply]
-          rw [← Real.sin_add_nat_mul_pi, mul_comm])
-        obtain ⟨c, hc₁, hc₂⟩ := this
+      · obtain ⟨c, hc₁, hc₂⟩ :=
+          taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n) hx' Real.contDiff_sin.contDiffOn
         use c
         refine ⟨⟨hc₁.1.le, hc₁.2.le⟩, ?_⟩
         -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
-        rw [iteratedDerivWithin_eq_iteratedDeriv (n := 2 * n + 1) (x := c)
-            (uniqueDiffOn_Icc hx') Real.contDiff_sin.contDiffAt (Set.Ioo_subset_Icc_self hc₁)] at hc₂
         simp only [taylorWithinEval_sin hx', sub_zero] at hc₂
         exact hc₂
     intro x hx
