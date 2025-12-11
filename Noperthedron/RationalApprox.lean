@@ -56,6 +56,43 @@ def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
 end
 
 section AristotleLemmas
+
+theorem taylorWithinEval_sin {n : ℕ} {x : ℝ} (hx' : 0 < x) :
+    taylorWithinEval Real.sin (2 * n) (Set.Icc 0 x) 0 x =
+       ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i + 1) / ↑(2 * i + 1)!) := by
+  simp only [taylorWithinEval]
+  -- By definition of the polynomial, we can rewrite the left-hand side of the equation.
+  have h_poly_eval : PolynomialModule.eval x (taylorWithin Real.sin (2 * n) (Set.Icc 0 x) 0) =
+       ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
+    simp_all only [taylorWithin, map_zero, sub_zero, PolynomialModule.comp_apply,
+      PolynomialModule.map_single, PolynomialModule.eval_single, map_sum,
+      PolynomialModule.eval_smul, Polynomial.eval_pow, Polynomial.eval_X,
+      PolynomialModule.eval_lsingle, pow_zero, smul_eq_mul, one_mul, taylorCoeffWithin]
+    refine Finset.sum_congr rfl fun i hi => ?_
+    rw [iteratedDerivWithin_eq_iteratedDeriv
+          (uniqueDiffOn_Icc hx') Real.contDiff_sin.contDiffAt (Set.left_mem_Icc.mpr hx'.le)]
+    ring_nf
+  -- Since the iterated derivative of sin at 0 is zero for even i, we can split the sum into even and odd terms.
+  have h_split_sum :
+      ∑ i ∈ Finset.range (2 * n + 1),
+        (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) =
+      ∑ i ∈ Finset.range n, (iteratedDeriv (2 * i + 1) Real.sin 0) * x ^ (2 * i + 1) /
+         ((2 * i + 1)! : ℝ) := by
+    have h_split_sum : Finset.range (2 * n + 1) =
+        Finset.image (fun i => 2 * i) (Finset.range (n + 1)) ∪
+        Finset.image (fun i => 2 * i + 1) (Finset.range n) := by
+      ext i
+      simp only [Finset.mem_range, Finset.mem_union, Finset.mem_image]
+      refine ⟨fun hi ↦ ?_, fun hi ↦ ?_⟩
+      · rcases Nat.even_or_odd' i with ⟨k, rfl | rfl⟩ <;> [left; right] <;>
+          exact ⟨k, by linarith, rfl⟩
+      · cutsat
+    rw [h_split_sum, Finset.sum_union]
+    · norm_num
+    · simp only [Finset.disjoint_right, Finset.mem_image, Finset.mem_range, forall_exists_index]
+      cutsat
+  simp_all [mul_div_assoc]
+
 /--
 The error of the degree $2n$ Taylor polynomial for sine is bounded by $|x|^{2n+1}/(2n+1)!$.
 -/
@@ -92,40 +129,8 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         -- Since the iterated derivative within the interval [0, x] is the same as the regular derivative, we can replace the iterated derivative within the interval with the regular derivative.
         rw [iteratedDerivWithin_eq_iteratedDeriv (n := 2 * n + 1) (x := c)
             (uniqueDiffOn_Icc hx') Real.contDiff_sin.contDiffAt (Set.Ioo_subset_Icc_self hc₁)] at hc₂
-        simp_all only [Set.mem_Ioo, taylorWithinEval, Real.iteratedDeriv_add_one_sin,
-          Real.iteratedDeriv_even_cos, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply,
-          sub_zero]
-        -- By definition of the polynomial, we can rewrite the left-hand side of the equation.
-        have h_poly_eval : PolynomialModule.eval x (taylorWithin Real.sin (2 * n) (Set.Icc 0 x) 0) =
-             ∑ i ∈ Finset.range (2 * n + 1), (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) := by
-          simp_all only [taylorWithin, map_zero, sub_zero, PolynomialModule.comp_apply,
-            PolynomialModule.map_single, PolynomialModule.eval_single, map_sum,
-            PolynomialModule.eval_smul, Polynomial.eval_pow, Polynomial.eval_X,
-            PolynomialModule.eval_lsingle, pow_zero, smul_eq_mul, one_mul, taylorCoeffWithin]
-          refine Finset.sum_congr rfl fun i hi => ?_
-          rw [iteratedDerivWithin_eq_iteratedDeriv
-                (uniqueDiffOn_Icc hx') Real.contDiff_sin.contDiffAt (Set.left_mem_Icc.mpr hx)]
-          ring_nf
-        -- Since the iterated derivative of sin at 0 is zero for even i, we can split the sum into even and odd terms.
-        have h_split_sum :
-            ∑ i ∈ Finset.range (2 * n + 1),
-              (iteratedDeriv i Real.sin 0) * x ^ i / (i ! : ℝ) =
-            ∑ i ∈ Finset.range n, (iteratedDeriv (2 * i + 1) Real.sin 0) * x ^ (2 * i + 1) /
-               ((2 * i + 1)! : ℝ) := by
-          have h_split_sum : Finset.range (2 * n + 1) =
-              Finset.image (fun i => 2 * i) (Finset.range (n + 1)) ∪
-              Finset.image (fun i => 2 * i + 1) (Finset.range n) := by
-            ext i
-            simp only [Finset.mem_range, Finset.mem_union, Finset.mem_image]
-            refine ⟨fun hi ↦ ?_, fun hi ↦ ?_⟩
-            · rcases Nat.even_or_odd' i with ⟨k, rfl | rfl⟩ <;> [left; right] <;>
-                exact ⟨k, by linarith, rfl⟩
-            · cutsat
-          rw [h_split_sum, Finset.sum_union]
-          · norm_num
-          · simp only [Finset.disjoint_right, Finset.mem_image, Finset.mem_range, forall_exists_index]
-            cutsat
-        simp_all [mul_div_assoc]
+        simp only [taylorWithinEval_sin hx', sub_zero] at hc₂
+        exact hc₂
     intro x hx
     specialize h_lagrange x hx
     obtain ⟨w, h₁, h₂⟩ := h_lagrange
