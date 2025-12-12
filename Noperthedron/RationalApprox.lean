@@ -55,8 +55,6 @@ def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
 
 end
 
-section AristotleLemmas
-
 theorem finset_sum_range_even_odd {n : ℕ} {f : ℕ → ℝ}
     : ∑ i ∈ Finset.range (2 * n + 1), f i =
       ∑ i ∈ Finset.range n, f (2 * i + 1) + ∑ i ∈ Finset.range (n + 1), f (2 * i) := by
@@ -137,7 +135,7 @@ theorem taylorWithinEval_cos {n : ℕ} {x : ℝ} (hx' : 0 < x) :
 /--
 The difference between cos(x) and its Taylor polynomial of degree 2n-2 is bounded by |x|^(2n)/(2n)!.
 -/
-theorem Real.cos_approx_sum (x : ℝ) (n : ℕ) :
+theorem cos_approx_aux (x : ℝ) (n : ℕ) :
     |Real.cos x - ∑ i ∈ Finset.range n, (-1)^i * x^(2*i) / (2*i)!| ≤ |x|^(2*n) / (2*n)! := by
   cases n with
   | zero => simpa using Real.abs_cos_le_one x
@@ -156,24 +154,21 @@ theorem Real.cos_approx_sum (x : ℝ) (n : ℕ) :
       abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
     exact Real.abs_cos_le_one c
 
-theorem cos_psum_eq_real_sum (n : ℕ) (x : ℚ) : (RationalApprox.cos_psum n x : ℝ) = ∑ i ∈ Finset.range n, (-1)^i * (x : ℝ)^(2*i) / (2*i)! := by
-  simp only [cos_psum, Rat.cast_sum, Rat.cast_mul, Rat.cast_pow, Rat.cast_neg, Rat.cast_one,
-    Rat.cast_div, Rat.cast_natCast]
-  simp_rw [mul_div_assoc']
-
-end AristotleLemmas
-
 theorem sin_psum_approx (x : ℚ) (n : ℕ) : |Real.sin x - sin_psum n x| ≤ |x|^(2 * n + 1) / (2 * n + 1)! := by
   have := RationalApprox.sin_approx_aux x n
-  simp_all only [Rat.cast_abs, ge_iff_le]
-  convert this using 4
+  simp only [Rat.cast_abs, ge_iff_le]
+  convert this using 3
   norm_cast
   refine Finset.sum_congr rfl fun _ _ => ?_
-  aesop
+  simp
 
 theorem cos_psum_approx (x : ℚ) (n : ℕ) : |Real.cos x - cos_psum n x| ≤ |x|^(2 * n) / (2 * n)! := by
-  rw [Rat.cast_abs x, cos_psum_eq_real_sum n x]
-  exact Real.cos_approx_sum (x : ℝ) n
+  have := RationalApprox.cos_approx_aux x n
+  simp only [Rat.cast_abs, ge_iff_le]
+  convert this using 3
+  norm_cast
+  refine Finset.sum_congr rfl fun _ _ => ?_
+  simp [field]
 
 theorem sinℚ_approx (x : ℚ) : |Real.sin x - sinℚ x| ≤ |x|^27 / 27! :=
   sin_psum_approx x 13
