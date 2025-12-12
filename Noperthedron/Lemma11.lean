@@ -84,16 +84,10 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
   have cos_sqrt_deriv : ∀ x ∈ Set.Ioo 0 (π ^ 2), deriv (cos ∘ sqrt) x = -sin √x / (2 * √x) := by
     simp only [Set.mem_Ioo, and_imp]
     intro x x_pos x_lt
-    rw [deriv_comp, deriv_cos', deriv_sqrt, deriv_id'']
-    · field_simp
-    · simp
-    · linarith
-    · simp
-    · apply DifferentiableAt.sqrt
-      · simp
-      linarith
-  apply convexOn_of_deriv2_nonneg
-  · apply convex_Icc
+    rw [deriv_comp _ differentiableAt_cos (DifferentiableAt.sqrt differentiableAt_fun_id x_pos.ne.symm)]
+    rw [deriv_cos', deriv_sqrt differentiableAt_fun_id x_pos.ne.symm, deriv_id'']
+    simp [field]
+  apply convexOn_of_deriv2_nonneg (convex_Icc _ _)
   · fun_prop
   · refine DifferentiableOn.comp (t:=Set.univ) ?_ ?_ ?_
     · fun_prop
@@ -107,8 +101,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
     · simp only [differentiableOn_neg_iff]
       apply DifferentiableOn.comp (t:=Set.Ioi 0)
       · apply DifferentiableOn.div
-        · apply Differentiable.differentiableOn
-          simp
+        · fun_prop
         · fun_prop
         · grind
       · apply DifferentiableOn.sqrt
@@ -138,7 +131,7 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
           constructor
           · exact pi_nonneg
           · linarith
-        · simp
+        · exact differentiableAt_fun_id
         · simp
         · linarith
         · simp
