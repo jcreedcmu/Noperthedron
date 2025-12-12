@@ -1,5 +1,6 @@
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import Mathlib.Analysis.InnerProductSpace.Calculus
 import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 
@@ -244,6 +245,21 @@ theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     pc.f pbar.innerParams = ⟪pbar.inner pc.S, pc.w⟫ := by
   rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
+lemma Differentiable.rotprojRM (S : ℝ³) :
+    Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
+  unfold _root_.rotprojRM
+  sorry
+
+@[fun_prop]
+lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_inner S w) :=
+  Differentiable.inner ℝ (Differentiable.rotprojRM S) (by fun_prop)
+
+lemma partials_helper0b {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    (fderiv ℝ (rotproj_inner pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 0 1) =
+    ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ := by
+  sorry
+
 lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 0 1) =
@@ -258,14 +274,14 @@ lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
       rhs; arg 1; lhs; ext x; simp only [Pi.smul_apply, smul_eq_mul]
       rw [show ∀ (a b : ℝ), a⁻¹ * b = b / a  by intro a b; ring_nf]
   have hf : DifferentiableAt ℝ (rotproj_inner pc.S pc.w) pbar.innerParams := by
-    sorry
+    fun_prop
 
   rw [(hf.hasFDerivAt.const_smul ‖pc.S‖⁻¹).fderiv]
   simp only [Fin.isValue, ContinuousLinearMap.coe_smul', Pi.smul_apply, smul_eq_mul,
     mul_eq_mul_left_iff]
   left
 
-  sorry
+  exact partials_helper0b pc
 
 lemma partials_helper0 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
