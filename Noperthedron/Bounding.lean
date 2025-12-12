@@ -102,7 +102,7 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
       Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
       Fin.succ_one_eq_two, one_mul]
     intro v
-    convert Real.sqrt_le_sqrt ( h_expand v ) using 1
+    convert Real.sqrt_le_sqrt (h_expand v) using 1
     · simp only [rotM, Matrix.toEuclideanLin, rotM_mat, neg_mul, LinearEquiv.trans_apply,
         LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
         WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
@@ -115,24 +115,14 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
     · ring_nf!
   · refine le_csInf ?_ ?_;
     · refine ⟨‖rotM θ φ‖, ⟨norm_nonneg _, fun x => ?_⟩⟩
-      exact ContinuousLinearMap.le_opNorm _ _;
+      exact ContinuousLinearMap.le_opNorm _ _
     · intro b a
-      simp_all only [Set.mem_setOf_eq]
-      obtain ⟨left, right⟩ := a
-      have := right !₂[-Real.sin θ, Real.cos θ, 0]
-      simp only [rotM, rotM_mat, neg_mul, LinearMap.coe_toContinuousLinearMap',
-        Matrix.toEuclideanLin_toLp, Matrix.toLin'_apply, Matrix.mulVec_cons, Nat.succ_eq_add_one,
-        Nat.reduceAdd, neg_smul, zero_smul, Matrix.mulVec_empty, add_zero, WithLp.toLp_add,
-        WithLp.toLp_neg, WithLp.toLp_smul, EuclideanSpace.norm_eq, PiLp.add_apply, PiLp.neg_apply,
-        PiLp.smul_apply, Function.comp_apply, smul_eq_mul, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ,
-        Fin.isValue, Matrix.cons_val_zero, Matrix.head_cons, mul_neg, neg_neg, Matrix.tail_cons,
-        Finset.univ_unique, Fin.default_eq_zero, Matrix.cons_val_succ, Matrix.cons_val_fin_one,
-        Finset.sum_const, Finset.card_singleton, one_smul, even_two, Even.neg_pow, ne_eq,
-        OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, Real.sin_sq_add_cos_sq,
-        Real.sqrt_one, mul_one] at this;
-      refine le_trans (Real.le_sqrt_of_sq_le ?_) this
-      rw [one_pow]
-      nlinarith only [Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq φ]
+      rw [Set.mem_setOf_eq] at a
+      obtain ⟨-, right⟩ := a
+      specialize right !₂[-Real.sin θ, Real.cos θ, 0]
+      have h : Real.sin θ * (Real.cos θ * Real.cos φ) + -(Real.cos θ * (Real.sin θ * Real.cos φ)) = 0 := by
+        ring
+      simpa [rotM, rotM_mat, EuclideanSpace.norm_eq, Fin.sum_univ_succ, ←sq, h] using right
 
 theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖rotR α - rotR α_‖ < ε := by
