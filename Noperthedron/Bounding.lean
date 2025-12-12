@@ -6,7 +6,7 @@ open scoped RealInnerProductSpace Real
 namespace Bounding
 
 theorem pres_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (hf : (v : E n) → ‖f v‖ = ‖v‖) :
-    ‖f‖ = 1  := by
+    ‖f‖ = 1 := by
   have decrease (x : E n) : ‖f x‖ ≤ 1 * ‖x‖ := by rw [hf x]; simp
   have increase (N : ℝ) (hN : N ≥ 0) (k : ∀ (x : E n), ‖f x‖ ≤ N * ‖x‖) : 1 ≤ N := by
     let e : E n := EuclideanSpace.single 0 1
@@ -15,10 +15,10 @@ theorem pres_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (h
   exact ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) decrease increase
 
 theorem pres_sq_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m}
-    (hf : (v : E n) → ‖f v‖^2 = ‖v‖^2) : ‖f‖ = 1  := by
+    (hf : (v : E n) → ‖f v‖^2 = ‖v‖^2) : ‖f‖ = 1 := by
   refine pres_norm_imp_norm_one ?_
   intro v
-  suffices h : ‖f v‖^2 = ‖v‖^2  by simp_all
+  suffices h : ‖f v‖^2 = ‖v‖^2 by simp_all
   exact hf v
 
 theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
@@ -85,7 +85,7 @@ theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 :=
 
 theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine le_antisymm ?_ ?_;
-  · refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_;
+  · refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_
     have h_expand :
         ∀ (v : EuclideanSpace ℝ (Fin 3)),
           (-Real.sin θ * v 0 + Real.cos θ * v 1) ^ 2 +
@@ -113,16 +113,13 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
         Matrix.cons_val_fin_one]
       ring_nf!
     · ring_nf!
-  · refine le_csInf ?_ ?_;
-    · refine ⟨‖rotM θ φ‖, ⟨norm_nonneg _, fun x => ?_⟩⟩
-      exact ContinuousLinearMap.le_opNorm _ _
-    · intro b a
-      rw [Set.mem_setOf_eq] at a
-      obtain ⟨-, right⟩ := a
-      specialize right !₂[-Real.sin θ, Real.cos θ, 0]
+  · refine le_csInf ?_ ?_
+    · exact ⟨‖rotM θ φ‖, norm_nonneg _, fun x => ContinuousLinearMap.le_opNorm _ _⟩
+    · rintro b ⟨-, hb⟩
+      specialize hb !₂[-Real.sin θ, Real.cos θ, 0]
       have h : Real.sin θ * (Real.cos θ * Real.cos φ) + -(Real.cos θ * (Real.sin θ * Real.cos φ)) = 0 := by
         ring
-      simpa [rotM, rotM_mat, EuclideanSpace.norm_eq, Fin.sum_univ_succ, ←sq, h] using right
+      simpa [rotM, rotM_mat, EuclideanSpace.norm_eq, Fin.sum_univ_succ, ←sq, h] using hb
 
 theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖rotR α - rotR α_‖ < ε := by
