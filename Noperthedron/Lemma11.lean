@@ -80,13 +80,21 @@ lemma sin_sub_mul_cos_nonneg (x : ℝ) : x ∈ Set.Icc 0 π → 0 ≤ sin_sub_mu
     _ ≤ sin_sub_mul_cos x := by
       apply sin_sub_mul_cos_monotone_on <;> (try simp only [Set.mem_Icc, le_refl, true_and]) <;> grind
 
+@[grind =]
+lemma cos_sqrt_deriv {x : ℝ} (hx : x ∈ Set.Ioo 0 (π ^ 2)) : deriv (cos ∘ sqrt) x = -sin √x / (2 * √x) := by
+  obtain ⟨x_pos, x_le⟩ := hx
+  rw [deriv_comp _ differentiableAt_cos (DifferentiableAt.sqrt differentiableAt_fun_id x_pos.ne.symm)]
+  rw [deriv_cos', deriv_sqrt differentiableAt_fun_id x_pos.ne.symm, deriv_id'']
+  simp [field]
+
+lemma sin_sqrt_deriv {x : ℝ} (hx : x ∈ Set.Ioo 0 (π ^ 2)) : deriv (sin ∘ sqrt) x = cos √x / (2 * √x) := by
+  obtain ⟨x_pos, x_le⟩ := hx
+  rw [show sin ∘ sqrt = fun x ↦ sin (sqrt x) by rfl]
+  rw [_root_.deriv_sin (DifferentiableAt.sqrt differentiableAt_fun_id x_pos.ne.symm)]
+  rw [deriv_sqrt differentiableAt_fun_id x_pos.ne.symm, deriv_id'']
+  simp [field]
+
 lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
-  have cos_sqrt_deriv : ∀ x ∈ Set.Ioo 0 (π ^ 2), deriv (cos ∘ sqrt) x = -sin √x / (2 * √x) := by
-    simp only [Set.mem_Ioo, and_imp]
-    intro x x_pos x_lt
-    rw [deriv_comp _ differentiableAt_cos (DifferentiableAt.sqrt differentiableAt_fun_id x_pos.ne.symm)]
-    rw [deriv_cos', deriv_sqrt differentiableAt_fun_id x_pos.ne.symm, deriv_id'']
-    simp [field]
   apply convexOn_of_deriv2_nonneg (convex_Icc _ _)
   · fun_prop
   · refine DifferentiableOn.comp (t:=Set.univ) ?_ ?_ ?_
@@ -118,26 +126,17 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
     intro x x_pos x_lt
     rw [(Set.EqOn.deriv (_ : Set.EqOn (deriv (cos ∘ sqrt)) (fun y => -sin √y / (2 * √y)) (Set.Ioo 0 (π^2))) (by simp [Ioo_eq_ball] : IsOpen (Set.Ioo 0 (π^2))))]
     · rw [deriv_fun_div]
-      · simp only [deriv.fun_neg', neg_mul, deriv_const_mul_field',
-          sub_neg_eq_add]
+      · simp only [deriv.fun_neg', neg_mul, deriv_const_mul_field', sub_neg_eq_add]
         conv in (fun y => sin √y) =>
           change (sin ∘ sqrt)
-        rw [deriv_comp, deriv_sqrt, _root_.deriv_sin, deriv_id'']
-        · simp only [mul_one, one_div, mul_inv_rev]
-          field_simp; ring_nf
-          rw [add_comm]
-          apply sin_sub_mul_cos_nonneg
-          simp only [Set.mem_Icc, sqrt_nonneg, sqrt_le_iff, true_and]
-          constructor
-          · exact pi_nonneg
-          · linarith
-        · exact differentiableAt_fun_id
-        · simp
-        · linarith
-        · simp
-        · apply DifferentiableAt.sqrt
-          · simp
-          · linarith
+        rw [sin_sqrt_deriv ⟨x_pos, x_lt⟩, deriv_sqrt differentiableAt_fun_id x_pos.ne.symm, deriv_id'']
+        simp only [one_div, mul_inv_rev]
+        field_simp; ring_nf
+        rw [add_comm]
+        apply sin_sub_mul_cos_nonneg
+        simp only [Set.mem_Icc, sqrt_nonneg, sqrt_le_iff, true_and]
+        refine ⟨pi_nonneg, ?_⟩
+        linarith
       · simp only [differentiableAt_fun_neg_iff]
         apply DifferentiableAt.fun_comp'
         · simp
