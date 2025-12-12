@@ -84,25 +84,23 @@ theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 :=
   pres_norm_imp_norm_one (Rz_pres_norm α)
 
 theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
-  refine le_antisymm ?_ ?_;
+  refine le_antisymm ?_ ?_
   · refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_
+    intro v
     have h_expand :
-        ∀ (v : EuclideanSpace ℝ (Fin 3)),
-          (-Real.sin θ * v 0 + Real.cos θ * v 1) ^ 2 +
-           (-Real.cos θ * Real.cos φ * v 0 - Real.sin θ * Real.cos φ * v 1 + Real.sin φ * v 2) ^ 2 ≤
-          v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
-      intro v
+        (-Real.sin θ * v 0 + Real.cos θ * v 1) ^ 2 +
+         (-Real.cos θ * Real.cos φ * v 0 - Real.sin θ * Real.cos φ * v 1 + Real.sin φ * v 2) ^ 2 ≤
+        v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
       have h₁ := sq_nonneg (Real.sin θ * v 1 + Real.cos θ * v 0)
       have h₂ := sq_nonneg (Real.sin θ * v 1 + Real.cos θ * v 0)
-      have h₃ := sq_nonneg (Real.sin φ * ( Real.cos θ * v 0 + Real.sin θ * v 1 ) + Real.cos φ * v 2)
+      have h₃ := sq_nonneg (Real.sin φ * (Real.cos θ * v 0 + Real.sin θ * v 1) + Real.cos φ * v 2)
       have h₄ := Real.sin_sq_add_cos_sq θ
       have h₅ := Real.sin_sq_add_cos_sq φ
       nlinarith
     simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
       Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
       Fin.succ_one_eq_two, one_mul]
-    intro v
-    convert Real.sqrt_le_sqrt (h_expand v) using 1
+    convert Real.sqrt_le_sqrt h_expand using 1
     · simp only [rotM, Matrix.toEuclideanLin, rotM_mat, neg_mul, LinearEquiv.trans_apply,
         LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
         WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
@@ -112,8 +110,9 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
         WithLp.addEquiv_symm_apply, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
         Matrix.cons_val_fin_one]
       ring_nf!
-    · ring_nf!
-  · refine le_csInf ?_ ?_
+    · ring_nf
+  · rw [ContinuousLinearMap.norm_def]
+    refine le_csInf ?_ ?_
     · exact ⟨‖rotM θ φ‖, norm_nonneg _, fun x => ContinuousLinearMap.le_opNorm _ _⟩
     · rintro b ⟨-, hb⟩
       specialize hb !₂[-Real.sin θ, Real.cos θ, 0]
