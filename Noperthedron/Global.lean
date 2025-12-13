@@ -266,9 +266,22 @@ def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :
   ]
   EuclideanSpace.basisFun (Fin 3) ℝ |>.toBasis.constr ℝ grad |>.toContinuousLinearMap
 
+def rotprojRM' (S : ℝ³) : ℝ³ →L[ℝ] ℝ² := sorry
+
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
-  sorry
+
+  have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' S) pbar.innerParams := by
+    sorry
+
+  have step :
+    (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
+            ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
+        ((rotprojRM' S).prod 0)) := by
+    sorry
+
+  rw [step]
+  exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.innerParams)
 
 lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
