@@ -254,10 +254,20 @@ lemma Differentiable.rotprojRM (S : ℝ³) :
 lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_inner S w) :=
   Differentiable.inner ℝ (Differentiable.rotprojRM S) (by fun_prop)
 
-lemma partials_helper0b {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
-    (pc : GlobalTheoremPrecondition poly pbar ε) :
-    (fderiv ℝ (rotproj_inner pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 0 1) =
-    ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ := by
+/--
+An explicit formula for the full derivative of rotproj_inner as a function ℝ³ → ℝ
+-/
+noncomputable
+def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :=
+  let grad : Fin 3 → ℝ := ![
+    ⟪pbar.rotR' (pbar.rotM₁ S), w⟫,
+    ⟪pbar.rotR (pbar.rotM₁θ S), w⟫,
+    ⟪pbar.rotR (pbar.rotM₁φ S), w⟫
+  ]
+  EuclideanSpace.basisFun (Fin 3) ℝ |>.toBasis.constr ℝ grad |>.toContinuousLinearMap
+
+lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
+    (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
   sorry
 
 lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
@@ -281,7 +291,9 @@ lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     mul_eq_mul_left_iff]
   left
 
-  exact partials_helper0b pc
+  rw [HasFDerivAt.rotproj_inner pbar pc.S pc.w |>.fderiv]
+  simp [rotproj_inner']
+
 
 lemma partials_helper0 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
