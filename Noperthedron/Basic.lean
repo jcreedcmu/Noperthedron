@@ -116,6 +116,12 @@ def rotR_mat (α : ℝ) : Matrix (Fin 2) (Fin 2) ℝ :=
   !![Real.cos α, -Real.sin α;
      Real.sin α,  Real.cos α]
 
+@[simp]
+noncomputable
+def rotR'_mat (α : ℝ) : Matrix (Fin 2) (Fin 2) ℝ :=
+  !![-Real.sin α, -Real.cos α;
+     Real.cos α,  -Real.sin α]
+
 -- [SY25] § 1.1 Definition 2
 @[simp]
 noncomputable
@@ -140,9 +146,10 @@ def rotR : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
      }
 
 -- Derivative of rotR with respect to its parameter
+@[simp]
 noncomputable
 def rotR' (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
-  (rotR_mat α).toEuclideanLin.toContinuousLinearMap
+  (rotR'_mat α).toEuclideanLin.toContinuousLinearMap
 
 -- [SY25] § 1.1 Definition 2
 noncomputable
