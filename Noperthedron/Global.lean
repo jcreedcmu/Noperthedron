@@ -295,7 +295,7 @@ lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   · unfold rotproj_inner rotprojRM
     conv =>
       rhs; arg 1; lhs; ext x; simp only [Pi.smul_apply, smul_eq_mul]
-      rw [show ∀ (a b : ℝ), a⁻¹ * b = b / a  by intro a b; ring_nf]
+      rw [inv_mul_eq_div]
   have hf : DifferentiableAt ℝ (rotproj_inner pc.S pc.w) pbar.innerParams := by
     fun_prop
 
