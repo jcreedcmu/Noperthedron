@@ -6,8 +6,7 @@ import Noperthedron.Basic
 lemma hasDerivAt_pi2 (f g : ℝ → ℝ) (f' g' t : ℝ)
     (hf : HasDerivAt f f' t) (hg : HasDerivAt g g' t) :
     HasDerivAt (fun x ↦ ![f x, g x]) (![f', g']) t := by
-  rw [hasDerivAt_pi]
-  intro i; fin_cases i <;> simpa
+  simp [hasDerivAt_pi, hf, hg]
 
 lemma hasDerivAt_clm_pi2 (f g : ℝ → ℝ) (f' g' t : ℝ)
     {F : Type} [inst_1 : NormedAddCommGroup F] [inst_2 : NormedSpace ℝ F]
