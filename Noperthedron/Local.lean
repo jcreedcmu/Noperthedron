@@ -19,38 +19,25 @@ theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
 theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
     |⟪A P₁, B P₂⟫ - ⟪A_ P₁, B_ P₂⟫| ≤
     ‖P₁‖ * ‖P₂‖ * (‖A - A_‖ * ‖B_‖ + ‖A_‖ * ‖B - B_‖ + ‖A - A_‖ * ‖B - B_‖) := by
-  have h₁ : ⟪A P₁, B P₂⟫ = ⟪(A - A_) P₁ + A_ P₁, (B - B_) P₂ + B_ P₂⟫ := by simp
-  have h₂ : ⟪(A - A_) P₁ + A_ P₁, (B - B_) P₂ + B_ P₂⟫ =
-      ⟪(A - A_) P₁, B_ P₂⟫ + ⟪A_ P₁, (B - B_) P₂⟫ +
-      ⟪(A - A_) P₁, (B - B_) P₂⟫ + ⟪A_ P₁, B_ P₂⟫ := by
-    simp only [inner_add_left, inner_add_right]
-    ring
+  have h₁ := calc
+    ⟪A P₁, B P₂⟫ = ⟪(A - A_) P₁ + A_ P₁, (B - B_) P₂ + B_ P₂⟫ := by simp
+               _ = ⟪(A - A_) P₁, B_ P₂⟫ + ⟪A_ P₁, (B - B_) P₂⟫ +
+                   ⟪(A - A_) P₁, (B - B_) P₂⟫ + ⟪A_ P₁, B_ P₂⟫ :=
+                 by simp only [inner_add_left, inner_add_right]
+                    ring
 
   -- Then the inequality follows from the triangle inequality,
   -- the Cauchy-Schwarz inequality and the submultiplicativity of ‖.‖:
-
-  have h₃ : |⟪A P₁, B P₂⟫ - ⟪A_ P₁, B_ P₂⟫| ≤
-      |⟪(A - A_) P₁, B_ P₂⟫| + |⟪A_ P₁, (B - B_) P₂⟫| + |⟪(A - A_) P₁, (B - B_) P₂⟫| := by
-    grind
-
-  have h₄ :
-      |⟪(A - A_) P₁, B_ P₂⟫| + |⟪A_ P₁, (B - B_) P₂⟫| + |⟪(A - A_) P₁, (B - B_) P₂⟫| ≤
-      ‖(A - A_) P₁‖ * ‖B_ P₂‖ + ‖A_ P₁‖ * ‖(B - B_) P₂‖ + ‖(A - A_) P₁‖ * ‖(B - B_) P₂‖ := by
-    simp only [←Real.norm_eq_abs]
-    grw [norm_inner_le_norm, norm_inner_le_norm, norm_inner_le_norm]
-
-  have h₅ :
-      ‖(A - A_) P₁‖ * ‖B_ P₂‖ + ‖A_ P₁‖ * ‖(B - B_) P₂‖ + ‖(A - A_) P₁‖ * ‖(B - B_) P₂‖ ≤
-      ‖P₁‖ * ‖P₂‖ * (‖A - A_‖ * ‖B_‖ + ‖A_‖ * ‖B - B_‖ + ‖A - A_‖ * ‖B - B_‖) := by
-    grw [ContinuousLinearMap.le_opNorm, ContinuousLinearMap.le_opNorm,
-         ContinuousLinearMap.le_opNorm, ContinuousLinearMap.le_opNorm]
-    linarith only
-
   calc
-    _ ≤ _ := h₃
-    _ ≤ _ := h₄
-    _ ≤ _ := h₅
-
+    _ ≤ |⟪(A - A_) P₁, B_ P₂⟫| + |⟪A_ P₁, (B - B_) P₂⟫| + |⟪(A - A_) P₁, (B - B_) P₂⟫| :=
+      by grind
+    _ ≤ ‖(A - A_) P₁‖ * ‖B_ P₂‖ + ‖A_ P₁‖ * ‖(B - B_) P₂‖ + ‖(A - A_) P₁‖ * ‖(B - B_) P₂‖ :=
+      by simp only [←Real.norm_eq_abs]
+         grw [norm_inner_le_norm, norm_inner_le_norm, norm_inner_le_norm]
+    _ ≤ _ :=
+      by grw [ContinuousLinearMap.le_opNorm, ContinuousLinearMap.le_opNorm,
+              ContinuousLinearMap.le_opNorm, ContinuousLinearMap.le_opNorm]
+         linarith only
 
 /-- [SY25] Lemma 25 -/
 theorem abs_sub_inner_le {n : ℕ} (A B : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
