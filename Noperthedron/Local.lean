@@ -25,7 +25,6 @@ theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P
                    ⟪(A - A_) P₁, (B - B_) P₂⟫ + ⟪A_ P₁, B_ P₂⟫ :=
                  by simp only [inner_add_left, inner_add_right]
                     ring
-
   -- Then the inequality follows from the triangle inequality,
   -- the Cauchy-Schwarz inequality and the submultiplicativity of ‖.‖:
   calc
@@ -42,18 +41,16 @@ theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P
 /-- [SY25] Lemma 25 -/
 theorem abs_sub_inner_le {n : ℕ} (A B : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
     |⟪A P₁, A P₂⟫ - ⟪B P₁, B P₂⟫| ≤ ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (‖A‖ + ‖B‖ + ‖A - B‖) := by
-  -- Exactly the same proof as the one for `abs_sub_inner_bars_le` yields
+  -- Exactly the same proof as the one for `abs_sub_inner_bars_le` yields:
   have h₁ : |⟪A P₁, A P₂⟫ - ⟪B P₁, B P₂⟫| ≤
       ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (2 * ‖B‖ + ‖A - B‖) := by
     grind [abs_sub_inner_bars_le]
-
   -- Exchanging A and B, however, also gives the same inequality with 2 * ‖A‖ instead
   -- of 2 * ‖B‖.
   have h₂ : |⟪A P₁, A P₂⟫ - ⟪B P₁, B P₂⟫| ≤
       ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (2 * ‖A‖ + ‖A - B‖) := by
     simp only [norm_sub_rev A B, abs_sub_comm ⟪A P₁, A P₂⟫ ⟪B P₁, B P₂⟫]
     grind [abs_sub_inner_bars_le]
-
   -- Taking the arithmetic mean of these two upper bounds produces the desired
   -- symmetric inequality.
   grind
