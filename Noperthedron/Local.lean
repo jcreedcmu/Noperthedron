@@ -13,7 +13,17 @@ open scoped Matrix
 /-- [SY25] Lemma 21 -/
 theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
     ‖rotM θ φ P‖ ^ 2 = ‖P‖ ^ 2 - ⟪vecX θ φ, P⟫ ^ 2 := by
-  sorry
+  simp only [rotM, LinearMap.coe_toContinuousLinearMap', EuclideanSpace.norm_eq,
+    Fin.sum_univ_three, Fin.sum_univ_two, Real.norm_eq_abs, sq_abs]
+  rw [Real.sq_sqrt (by positivity), Real.sq_sqrt (by positivity)]
+  simp only [rotM_mat, neg_mul, Fin.isValue, Matrix.piLp_ofLp_toEuclideanLin,
+    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.cons_val',
+    Matrix.cons_val_fin_one, Matrix.cons_val_zero, Matrix.cons_dotProduct, zero_mul,
+    Matrix.dotProduct_of_isEmpty, add_zero, Matrix.cons_val_one, inner, vecX,
+    RCLike.inner_apply, Real.ringHom_apply, Fin.sum_univ_succ, Matrix.cons_val_succ,
+    Fin.succ_zero_eq_one, Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton,
+    Fin.succ_one_eq_two, Matrix.vecHead, Matrix.vecTail]
+  grind [Real.sin_sq]
 
 /-- [SY25] Lemma 24 -/
 theorem abs_sub_inner_bars_le {n : ℕ} (A B A_ B_ : Euc(n) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(n)) :
