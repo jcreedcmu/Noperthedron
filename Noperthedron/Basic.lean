@@ -128,14 +128,8 @@ noncomputable
 def rotR : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
   toFun α := (rotR_mat α).toEuclideanLin.toContinuousLinearMap
   map_zero_eq_one' := by
-    ext v i
-    simp only [rotR_mat, cos_zero, sin_zero, neg_zero, LinearMap.coe_toContinuousLinearMap',
-      Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply, Matrix.cons_mulVec,
-      Matrix.cons_dotProduct, one_mul, zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, zero_add,
-      Matrix.empty_mulVec, ContinuousLinearMap.one_apply]
-    simp only [Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one, Nat.reduceAdd,
-      Function.comp_apply, Fin.succ_zero_eq_one]
-    fin_cases i <;> rfl
+    ext x i
+    fin_cases i <;> simp [Matrix.toEuclideanLin, Matrix.vecHead, Matrix.vecTail]
 
   map_add_eq_mul' := by
     intro α β
