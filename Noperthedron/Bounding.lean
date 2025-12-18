@@ -149,8 +149,7 @@ theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_|
     apply le_trans Real.abs_sin_le_abs
     rw [abs_div, abs_two]
   obtain h | h := lt_or_eq_of_le hα
-  · simp only [rotR, rotR_mat, AddChar.coe_mk, gt_iff_lt]
-    exact lt_of_le_of_lt (h_op_norm α α_) (by linarith)
+  · exact lt_of_le_of_lt (h_op_norm α α_) (by linarith)
   · subst h
     simp_all only [rotR, rotR_mat, AddChar.coe_mk, abs_pos, ne_eq, le_refl, gt_iff_lt]
     -- Since $|α - α_| > 0$, we have $|Real.sin ((α - α_) / 2)| < |α - α_| / 2$.
