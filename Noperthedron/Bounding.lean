@@ -122,6 +122,8 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
 
 theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖rotR α - rotR α_‖ < ε := by
+  wlog H : 0 ≤ α - α_
+  · grind [abs_sub_comm, norm_sub_rev]
   -- We'll use that the operator norm of the difference of two rotations is bounded by the
   -- distance between the angles.
   have h_op_norm : ∀ α β : ℝ, ‖rotR α - rotR β‖ ≤ 2 * |Real.sin ((α - β) / 2)| := by
@@ -158,18 +160,9 @@ theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_|
         rw [abs_of_nonneg (Real.sin_nonneg_of_nonneg_of_le_pi hx₁.le hx₂.le)]
         exact Real.sin_lt hx₁
       by_cases h_case : |α - α_| < 2 * Real.pi
-      · cases' abs_cases (α - α_) with h <;> cases lt_or_gt_of_ne hε
-        · linarith
-        · specialize h_sin_lt (|α - α_| / 2) (by positivity) (by linarith)
-          simp_all only [abs_eq_self, sub_nonneg, and_self, sub_pos, gt_iff_lt]
-          simpa only [abs_of_nonneg (sub_nonneg.mpr h)] using h_sin_lt
-        · specialize h_sin_lt (|α - α_| / 2) (by positivity) (by linarith)
-          simp_all only [neg_sub, and_true, sub_neg, gt_iff_lt]
-          convert h_sin_lt using 1; rw [ ← abs_neg ]
-          ring_nf
-          norm_num [ Real.sin_add, Real.sin_sub ]
-          ring_nf
-        · linarith
+      · rw [abs_of_nonneg H] at h_case ⊢
+        refine h_sin_lt _ ?_ (by linarith)
+        exact lt_of_le_of_ne (by linarith) (by grind)
       · apply lt_of_le_of_lt (Real.abs_sin_le_one _)
         linarith [Real.pi_gt_three, abs_nonneg ( α - α_ )]
     linarith [h_op_norm α α_]
