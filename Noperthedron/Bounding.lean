@@ -122,7 +122,80 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
 
 theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖rotR α - rotR α_‖ < ε := by
-  sorry
+  -- We'll use that the operator norm of the difference of two rotations is bounded by the
+  -- distance between the angles.
+  have h_op_norm : ∀ α β : ℝ, ‖rotR α - rotR β‖ ≤ 2 * |Real.sin ((α - β) / 2)| := by
+    intros α β
+    have h_op_norm : ∀ v : EuclideanSpace ℝ (Fin 2),
+        ‖((rotR α) v) - ((rotR β) v)‖ ≤ 2 * |Real.sin ((α - β) / 2)| * ‖v‖ := by
+      intro v
+      have h_op_norm : ‖((rotR α) v) - ((rotR β) v)‖^2 ≤
+                       (2 * |Real.sin ((α - β) / 2)|)^2 * ‖v‖^2 := by
+        simp only [rotR, rotR_mat, AddChar.coe_mk, LinearMap.coe_toContinuousLinearMap',
+          EuclideanSpace.norm_eq, PiLp.sub_apply, Matrix.piLp_ofLp_toEuclideanLin,
+          Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct, neg_mul,
+          Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec, Real.norm_eq_abs, sq_abs,
+          Fin.sum_univ_two, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
+          Matrix.cons_val_fin_one, Real.sq_sqrt <| add_nonneg (sq_nonneg _) (sq_nonneg _)]
+        simp only [Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one,
+          Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one]
+        rw [show α = ( α + β ) / 2 + ( α - β ) / 2 by ring,
+            show β = ( α + β ) / 2 - ( α - β ) / 2 by ring,
+            Real.sin_add, Real.sin_sub, Real.cos_add, Real.cos_sub]
+        ring_nf
+        simp only [one_div, Fin.isValue, sq_abs]
+        rw [Real.cos_sq']
+        ring_nf
+        simp
+      nlinarith [show 0 ≤ 2 * |Real.sin ( ( α - β ) / 2 )| * ‖v‖ by positivity]
+    exact ContinuousLinearMap.opNorm_le_bound _ (by positivity) h_op_norm
+  -- Since $|α - α_| ≤ ε$, we have $|Real.sin ((α - α_) / 2)| ≤ |α - α_| / 2$.
+  have h_sin_bound : |Real.sin ((α - α_) / 2)| ≤ |α - α_| / 2 := by
+    have h_sin_bound : ∀ x : ℝ, |Real.sin x| ≤ |x| := by
+      intro x
+      rw [abs_le]
+      constructor <;> cases abs_cases x
+      · exact le_of_not_gt fun h => by
+         linarith [Real.sin_nonneg_of_nonneg_of_le_pi
+                    (by linarith : 0 ≤ x)
+                    (by linarith [Real.pi_gt_three, abs_le.mp (Real.abs_sin_le_one x)])]
+      · simpa [neg_neg, *] using le_of_lt ( Real.sin_lt <| neg_pos.mpr <| by linarith)
+      · simp only [*]
+        rcases eq_or_lt_of_le (by linarith : 0 ≤ x) with (rfl | hx)
+        · simp
+        · exact le_of_lt (Real.sin_lt hx)
+      · exact le_of_not_gt fun h => by
+          linarith [Real.sin_neg_of_neg_of_neg_pi_lt (by linarith : x < 0)
+            (by linarith [Real.pi_gt_three, abs_le.mp (Real.abs_sin_le_one x)])]
+    apply le_trans (h_sin_bound _)
+    rw [abs_div, abs_two]
+  obtain h | h := lt_or_eq_of_le hα
+  · simp only [rotR, rotR_mat, AddChar.coe_mk, gt_iff_lt]
+    exact lt_of_le_of_lt ( h_op_norm α α_ ) (by linarith)
+  · subst h
+    simp_all only [rotR, rotR_mat, AddChar.coe_mk, abs_pos, ne_eq, le_refl, gt_iff_lt]
+    -- Since $|α - α_| > 0$, we have $|Real.sin ((α - α_) / 2)| < |α - α_| / 2$.
+    have h_sin_lt : |Real.sin ((α - α_) / 2)| < |α - α_| / 2 := by
+      have h_sin_lt : ∀ x : ℝ, 0 < x → x < Real.pi → |Real.sin x| < x := by
+        intro x hx₁ hx₂
+        rw [abs_of_nonneg ( Real.sin_nonneg_of_nonneg_of_le_pi hx₁.le hx₂.le)]
+        exact Real.sin_lt <| by linarith;
+      by_cases h_case : |α - α_| < 2 * Real.pi
+      · cases' abs_cases (α - α_) with h <;> cases lt_or_gt_of_ne hε
+        · linarith
+        · specialize h_sin_lt ( |α - α_| / 2 ) (by positivity) (by linarith)
+          simp_all only [abs_eq_self, sub_nonneg, and_self, sub_pos, gt_iff_lt]
+          simpa only [abs_of_nonneg (sub_nonneg.mpr h)] using h_sin_lt;
+        · specialize h_sin_lt (|α - α_| / 2) (by positivity) (by linarith)
+          simp_all only [neg_sub, and_true, sub_neg, gt_iff_lt]
+          convert h_sin_lt using 1 ; rw [ ← abs_neg ]
+          ring_nf
+          norm_num [ Real.sin_add, Real.sin_sub ]
+          ring_nf
+        · linarith
+      · apply lt_of_le_of_lt (Real.abs_sin_le_one _)
+        linarith [Real.pi_gt_three, abs_nonneg ( α - α_ )]
+    linarith [h_op_norm α α_]
 
 theorem norm_RxL_sub_RxL_eq {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ := by
