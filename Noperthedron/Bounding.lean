@@ -126,29 +126,26 @@ theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_|
   -- distance between the angles.
   have h_op_norm : ∀ α β : ℝ, ‖rotR α - rotR β‖ ≤ 2 * |Real.sin ((α - β) / 2)| := by
     intros α β
-    have h_op_norm : ∀ v : EuclideanSpace ℝ (Fin 2),
-        ‖((rotR α) v) - ((rotR β) v)‖ ≤ 2 * |Real.sin ((α - β) / 2)| * ‖v‖ := by
-      intro v
-      have h_op_norm : ‖((rotR α) v) - ((rotR β) v)‖^2 ≤
-                       (2 * |Real.sin ((α - β) / 2)|)^2 * ‖v‖^2 := by
-        simp only [rotR, rotR_mat, AddChar.coe_mk, LinearMap.coe_toContinuousLinearMap',
-          EuclideanSpace.norm_eq, PiLp.sub_apply, Matrix.piLp_ofLp_toEuclideanLin,
-          Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct, neg_mul,
-          Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec, Real.norm_eq_abs, sq_abs,
-          Fin.sum_univ_two, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
-          Matrix.cons_val_fin_one, Real.sq_sqrt <| add_nonneg (sq_nonneg _) (sq_nonneg _)]
-        simp only [Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one,
-          Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one]
-        rw [show α = ( α + β ) / 2 + ( α - β ) / 2 by ring,
-            show β = ( α + β ) / 2 - ( α - β ) / 2 by ring,
-            Real.sin_add, Real.sin_sub, Real.cos_add, Real.cos_sub]
-        ring_nf
-        simp only [one_div, Fin.isValue, sq_abs]
-        rw [Real.cos_sq']
-        ring_nf
-        simp
-      nlinarith [show 0 ≤ 2 * |Real.sin ( ( α - β ) / 2 )| * ‖v‖ by positivity]
-    exact ContinuousLinearMap.opNorm_le_bound _ (by positivity) h_op_norm
+    refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
+    rw [ContinuousLinearMap.sub_apply]
+    have h_op_norm : ‖rotR α v - rotR β v‖^2 ≤ (2 * |Real.sin ((α - β) / 2)|)^2 * ‖v‖^2 := by
+      simp only [rotR, rotR_mat, AddChar.coe_mk, LinearMap.coe_toContinuousLinearMap',
+        EuclideanSpace.norm_eq, PiLp.sub_apply, Matrix.piLp_ofLp_toEuclideanLin,
+        Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct, neg_mul,
+        Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec, Real.norm_eq_abs, sq_abs,
+        Fin.sum_univ_two, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
+        Matrix.cons_val_fin_one, Real.sq_sqrt <| add_nonneg (sq_nonneg _) (sq_nonneg _)]
+      simp only [Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one,
+        Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one]
+      rw [show α = ( α + β ) / 2 + ( α - β ) / 2 by ring,
+          show β = ( α + β ) / 2 - ( α - β ) / 2 by ring,
+          Real.sin_add, Real.sin_sub, Real.cos_add, Real.cos_sub]
+      ring_nf
+      simp only [one_div, Fin.isValue, sq_abs]
+      rw [Real.cos_sq']
+      ring_nf
+      simp
+    nlinarith [show 0 ≤ 2 * |Real.sin ( ( α - β ) / 2 )| * ‖v‖ by positivity]
   -- Since $|α - α_| ≤ ε$, we have $|Real.sin ((α - α_) / 2)| ≤ |α - α_| / 2$.
   have h_sin_bound : |Real.sin ((α - α_) / 2)| ≤ |α - α_| / 2 := by
     have h_sin_bound : ∀ x : ℝ, |Real.sin x| ≤ |x| := by
