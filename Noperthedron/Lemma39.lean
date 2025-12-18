@@ -47,5 +47,5 @@ theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : Matrix (Fin m) (Fin 
     _ = m * (δ * (∑ j, |v j|)) ^ 2 := by rw [← Finset.mul_sum]
     _ = m * δ^2 * (∑ j, |v j|) ^ 2 := by rw [mul_pow]; ring_nf
     _ ≤ m * δ^2 * (∑ j, |v j| ^ 2) * n := by grw [sum_abs_sq_le_sum_abs_sq_mul v]; ring_nf; simp only [le_refl]
-    _ = m * δ^2 * (∑ j, (v j) ^ 2) * n := by conv in (∑ j, _) => rhs; intro j; rw [sq_abs]
+    _ = m * δ^2 * (∑ j, (v j) ^ 2) * n := by simp
     _ = δ ^ 2 * m * n * ‖v‖^2 := by simp [PiLp.norm_sq_eq_of_L2]; ring_nf
