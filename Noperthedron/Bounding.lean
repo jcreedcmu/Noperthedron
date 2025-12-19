@@ -146,26 +146,15 @@ theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_|
     rw [Real.cos_sq']
     ring_nf
     simp
-  -- Since $|α - α_| ≤ ε$, we have $|Real.sin ((α - α_) / 2)| ≤ |α - α_| / 2$.
-  have h_sin_bound : |Real.sin ((α - α_) / 2)| ≤ |α - α_| / 2 := by
-    apply le_trans Real.abs_sin_le_abs
-    rw [abs_div, abs_two]
+  apply lt_of_le_of_lt (h_op_norm α α_)
   obtain h | rfl := lt_or_eq_of_le hα
-  · exact lt_of_le_of_lt (h_op_norm α α_) (by linarith)
-  · simp_all only [rotR, rotR_mat, AddChar.coe_mk, abs_pos, ne_eq, le_refl, gt_iff_lt]
-    -- Since $|α - α_| > 0$, we have $|Real.sin ((α - α_) / 2)| < |α - α_| / 2$.
-    have h_sin_lt : |Real.sin ((α - α_) / 2)| < |α - α_| / 2 := by
-      have h_sin_lt : ∀ x : ℝ, 0 < x → x < Real.pi → |Real.sin x| < x := by
-        intro x hx₁ hx₂
-        rw [abs_of_nonneg (Real.sin_nonneg_of_nonneg_of_le_pi hx₁.le hx₂.le)]
-        exact Real.sin_lt hx₁
-      by_cases h_case : |α - α_| < 2 * Real.pi
-      · rw [abs_of_nonneg H] at h_case ⊢
-        refine h_sin_lt _ ?_ (by linarith)
-        exact lt_of_le_of_ne (by linarith) (by grind)
-      · apply lt_of_le_of_lt (Real.abs_sin_le_one _)
-        linarith [Real.pi_gt_three, abs_nonneg ( α - α_ )]
-    linarith [h_op_norm α α_]
+  · grw [Real.abs_sin_le_abs]
+    rw [abs_div, abs_two]
+    linarith only [h]
+  · have h₄ : (α - α_) / 2 ≠ 0 := by aesop
+    have h₅ := Real.abs_sin_lt_abs h₄
+    rw [abs_div, abs_two] at h₅
+    linarith only [h₅]
 
 theorem norm_RxL_sub_RxL_eq {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ := by
