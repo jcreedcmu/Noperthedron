@@ -146,9 +146,37 @@ theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_|
     rw [abs_div, abs_two] at h
     linarith only [h]
 
-theorem norm_RxL_sub_RxL_eq {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
-    ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ := by
-  sorry
+theorem norm_RxL_sub_RxL_eq {α α_ : ℝ} : ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ := by
+  simp only [Norm.norm, ContinuousLinearMap.opNorm]
+  congr! 3 with x
+  simp only [OfNat.ofNat_ne_zero, ↓reduceIte, ENNReal.ofNat_ne_top, RxL, Matrix.toEuclideanLin,
+    Rx_mat, LinearEquiv.trans_apply, ContinuousLinearMap.coe_sub',
+    LinearMap.coe_toContinuousLinearMap', Pi.sub_apply, LinearEquiv.arrowCongr_apply,
+    LinearEquiv.symm_symm, WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe,
+    EquivLike.coe_coe, WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec,
+    Matrix.cons_dotProduct, one_mul, zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, neg_mul,
+    zero_add, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply, Equiv.invFun_as_coe,
+    AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, PiLp.sub_apply, ENNReal.toReal_ofNat,
+    Real.rpow_ofNat, sq_abs, Fin.sum_univ_three, Fin.isValue, Matrix.cons_val_zero, sub_self, ne_eq,
+    not_false_eq_true, zero_pow, Matrix.cons_val_one, Matrix.cons_val, one_div, rotR, rotR_mat,
+    AddChar.coe_mk, Fin.sum_univ_two, Matrix.cons_val_fin_one, and_congr_right_iff]
+  intro hx
+  norm_num1
+  simp_all only [one_div, Fin.isValue]
+  apply Iff.intro
+  · intro h₁ v
+    simpa using h₁ (WithLp.toLp 2 fun i => if i = 0 then 0 else if i = 1 then v 0 else v 1)
+  · intro h₁ v
+    specialize h₁ (WithLp.toLp 2 fun i => if i = 0 then v 1 else v 2)
+    simp only [Matrix.vecHead, Fin.isValue, ↓reduceIte, Matrix.vecTail, Nat.succ_eq_add_one,
+      Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one, one_ne_zero] at h₁
+    simp only [Matrix.vecHead, Matrix.vecTail, Nat.succ_eq_add_one, Nat.reduceAdd, Fin.isValue,
+      Function.comp_apply, Fin.succ_zero_eq_one, Fin.succ_one_eq_two]
+    ring_nf at h₁ ⊢
+    calc _ ≤ _ := h₁
+         _ ≤ _ := by
+           refine mul_le_mul_of_nonneg_left ?_ hx
+           exact (Real.rpow_le_rpow (by positivity) (by nlinarith) (by positivity))
 
 theorem norm_RyL_sub_RyL_eq {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖RyL α - RyL α_‖ = ‖rotR α - rotR α_‖ := by
