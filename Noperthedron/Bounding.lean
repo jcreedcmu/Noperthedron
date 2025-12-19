@@ -161,8 +161,6 @@ theorem norm_RxL_sub_RxL_eq {α α_ : ℝ} : ‖RxL α - RxL α_‖ = ‖rotR α
     not_false_eq_true, zero_pow, Matrix.cons_val_one, Matrix.cons_val, one_div, rotR, rotR_mat,
     AddChar.coe_mk, Fin.sum_univ_two, Matrix.cons_val_fin_one, and_congr_right_iff]
   intro hx
-  norm_num1
-  simp only [one_div, Fin.isValue]
   apply Iff.intro
   · intro h₁ v
     simpa using h₁ !₂[0, v 0, v 1]
@@ -194,8 +192,6 @@ theorem norm_RyL_sub_RyL_eq {α α_ : ℝ} : ‖RyL α - RyL α_‖ = ‖rotR α
     not_false_eq_true, zero_pow, Matrix.cons_val_one, Matrix.cons_val, one_div, rotR, rotR_mat,
     AddChar.coe_mk, Fin.sum_univ_two, Matrix.cons_val_fin_one, and_congr_right_iff]
   intro hx
-  norm_num1
-  simp only [one_div, Fin.isValue]
   apply Iff.intro
   · intro h₁ v
     simpa using h₁ !₂[v 0, 0, v 1]
@@ -227,8 +223,6 @@ theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α
     not_false_eq_true, zero_pow, Matrix.cons_val_one, Matrix.cons_val, one_div, rotR, rotR_mat,
     AddChar.coe_mk, Fin.sum_univ_two, Matrix.cons_val_fin_one, and_congr_right_iff]
   intro hx
-  norm_num1
-  simp only [one_div, Fin.isValue]
   apply Iff.intro
   · intro h₁ v
     simpa using h₁ !₂[v 0, v 1, 0]
