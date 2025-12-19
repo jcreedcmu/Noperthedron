@@ -142,10 +142,9 @@ theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_|
   · grw [Real.abs_sin_le_abs]
     rw [abs_div, abs_two]
     linarith only [h]
-  · have h₄ : (α - α_) / 2 ≠ 0 := by aesop
-    have h₅ := Real.abs_sin_lt_abs h₄
-    rw [abs_div, abs_two] at h₅
-    linarith only [h₅]
+  · have h := Real.abs_sin_lt_abs (div_ne_zero (abs_pos.mp hε) two_ne_zero)
+    rw [abs_div, abs_two] at h
+    linarith only [h]
 
 theorem norm_RxL_sub_RxL_eq {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ := by
