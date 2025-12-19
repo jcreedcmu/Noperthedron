@@ -126,26 +126,19 @@ theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_|
   · grind [abs_sub_comm, norm_sub_rev]
   -- We'll use that the operator norm of the difference of two rotations is bounded by the
   -- distance between the angles.
-  have h_op_norm : ∀ α β : ℝ, ‖rotR α - rotR β‖ ≤ 2 * |Real.sin ((α - β) / 2)| := by
-    intros α β
+  have h_op_norm : ∀ α β : ℝ, ‖rotR α - rotR β‖ ≤ 2 * |Real.sin ((α - β) / 2)| := fun α β ↦ by
     refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
-    rw [ContinuousLinearMap.sub_apply, ←sq_le_sq₀ (by positivity) (by positivity), mul_pow]
-    simp only [rotR, rotR_mat, AddChar.coe_mk, LinearMap.coe_toContinuousLinearMap',
-      EuclideanSpace.norm_eq, PiLp.sub_apply, Matrix.piLp_ofLp_toEuclideanLin,
-      Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct, neg_mul,
-      Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec, Real.norm_eq_abs, sq_abs,
-      Fin.sum_univ_two, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one, Real.sq_sqrt <| add_nonneg (sq_nonneg _) (sq_nonneg _)]
-    simp only [Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one,
-      Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one]
-    rw [show α = ( α + β ) / 2 + ( α - β ) / 2 by ring,
-        show β = ( α + β ) / 2 - ( α - β ) / 2 by ring,
-        Real.sin_add, Real.sin_sub, Real.cos_add, Real.cos_sub]
+    rw [ContinuousLinearMap.sub_apply, ←sq_le_sq₀ (norm_nonneg _) (by positivity), mul_pow]
+    nth_rw 1 [show α = (α + β) / 2 + (α - β) / 2 by ring]
+    nth_rw 3 [show β = (α + β) / 2 - (α - β) / 2 by ring]
+    simp only [rotR, rotR_mat, AddChar.coe_mk, Real.cos_add, Real.sin_add, Real.cos_sub, Real.sin_sub,
+      LinearMap.coe_toContinuousLinearMap', EuclideanSpace.norm_sq_eq, PiLp.sub_apply, Matrix.cons_val,
+      Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
+      Matrix.vecHead, Matrix.vecTail, Matrix.dotProduct_of_isEmpty, Real.norm_eq_abs, sq_abs,
+      Fin.sum_univ_two]
     ring_nf
-    simp only [one_div, Fin.isValue, sq_abs]
-    rw [Real.cos_sq']
-    ring_nf
-    simp
+    simp only [one_div, Fin.isValue, sq_abs, Real.cos_sq']
+    grind
   apply lt_of_le_of_lt (h_op_norm α α_)
   obtain h | rfl := lt_or_eq_of_le hα
   · grw [Real.abs_sin_le_abs]
