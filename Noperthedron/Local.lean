@@ -142,16 +142,15 @@ lemma interior_triangle_of_pos_combo {A B C : EuclideanSpace ℝ (Fin 2)} (a b c
         ext i
         simp only [PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, PiLp.sub_apply]
         ring_nf
-        have := congrFun (congrArg WithLp.ofLp h_sum) i
+        have := congr(WithLp.ofLp $h_sum i)
         simp only [PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, PiLp.zero_apply] at this
         rw [show C i = -(a * A i + b * B i) / c by rw [eq_div_iff hc.ne']; linarith only [this]]
         ring
       have := Fintype.linearIndependent_iff.mp h_indep
-      have := this (fun i => if i = 0 then x + a / c * (x + y) else y + b / c * (x + y))
+      have := this ![x + a / c * (x + y), y + b / c * (x + y)]
       simp_all [Fin.forall_fin_two]
-      constructor <;>
-        nlinarith [div_mul_cancel₀ a hc.ne', div_mul_cancel₀ b hc.ne',
-                   mul_pos ha hc, mul_pos hb hc]
+      constructor <;> nlinarith only [div_mul_cancel₀ a hc.ne', div_mul_cancel₀ b hc.ne',
+                                      this, hxy, ha, hb, hc]
     rw [Fintype.linearIndependent_iff]
     intro g hg i
     fin_cases i <;> simp [h_lin_comb _ _ (by simpa [ Fin.sum_univ_succ ] using hg )]
@@ -195,7 +194,7 @@ lemma interior_triangle_of_pos_combo {A B C : EuclideanSpace ℝ (Fin 2)} (a b c
       ring_nf
       exact ⟨by positivity, by positivity,
              by nlinarith [mul_inv_cancel₀ (by positivity : ( a + b + c ) ≠ 0)]⟩
-    · convert congr_arg (fun x => ( a + b + c ) ⁻¹ • x) h_sum using 1
+    · convert congr((a + b + c) ⁻¹ • $h_sum) using 1
       · ext
         simp only [PiLp.add_apply, PiLp.sub_apply, PiLp.smul_apply, smul_eq_mul]
         ring_nf
