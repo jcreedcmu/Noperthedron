@@ -2,8 +2,6 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 
 namespace RationalApprox
 
-noncomputable section
-
 theorem sum_mul_sq_le_sum_mul_abs_sq {n : ℕ} (v w : Fin n → ℝ)
     (δ : ℝ) (hδ : 0 < δ) (hle : ∀ j, |w j| ≤ δ) :
     (∑ j, w j * v j)^2 ≤ (∑ j, δ * |v j|)^2 := by
