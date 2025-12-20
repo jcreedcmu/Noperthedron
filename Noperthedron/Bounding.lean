@@ -237,7 +237,7 @@ theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α
     calc _ ≤ _ := h₁
          _ ≤ _ := by
            refine mul_le_mul_of_nonneg_left ?_ hx
-           exact (Real.rpow_le_rpow (by positivity) (by nlinarith) (by positivity))
+           exact Real.rpow_le_rpow (by positivity) (by nlinarith) (by positivity)
 
 theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ √(α ^ 2 + β ^ 2) := by
   sorry
