@@ -140,12 +140,10 @@ lemma interior_triangle_of_pos_combo {A B C : EuclideanSpace ℝ (Fin 2)} (a b c
       have h_lin_comb : (x + a / c * (x + y)) • A + (y + b / c * (x + y)) • B = 0 := by
         convert hxy using 1
         ext i
-        simp only [PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, PiLp.sub_apply]
-        ring_nf
         have := congr(WithLp.ofLp $h_sum i)
-        simp only [PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, PiLp.zero_apply] at this
-        rw [show C i = -(a * A i + b * B i) / c by rw [eq_div_iff hc.ne']; linarith only [this]]
-        ring
+        simp only [PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, PiLp.sub_apply,
+                   PiLp.zero_apply] at this ⊢
+        grind
       have := Fintype.linearIndependent_iff.mp h_indep
       have := this ![x + a / c * (x + y), y + b / c * (x + y)]
       simp_all [Fin.forall_fin_two]
