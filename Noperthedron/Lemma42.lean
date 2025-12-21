@@ -41,12 +41,30 @@ def MatVec.size {n m : ℕ} (mv : MatVec n m) : ℕ :=
 lemma norm_comp_a_le_prod_max_norm_list_prod
     {n m : ℕ} (mv : MatVec n m) :
     ‖mv.compA‖ ≤ mv.maxNormList.prod := by
-  sorry
+  match mv with
+  | .nil =>
+      simp only [MatVec.compA, MatVec.maxNormList, List.prod_nil, ge_iff_le];
+      exact ContinuousLinearMap.norm_id_le
+  | .cons tl A B =>
+      simp only [MatVec.compA, MatVec.maxNormList, List.prod_append, List.prod_cons, List.prod_nil,
+        mul_one, ge_iff_le]
+      have : ‖tl.compA.comp A‖ ≤ ‖tl.compA‖ * ‖A‖ :=
+        ContinuousLinearMap.opNorm_comp_le tl.compA A
+      grw [this]
+      have : ‖tl.compA‖ ≤ tl.maxNormList.prod := norm_comp_a_le_prod_max_norm_list_prod tl
+      grw [← this]
+      gcongr
+      simp
 
 @[simp]
 lemma MatVec.maxNormList_non_neg {m n : ℕ} (mv : MatVec n m) :
     0 ≤ mv.maxNormList.prod := by
-  sorry
+  match mv with
+  | .nil => simp
+  | .cons tl A B =>
+    simp only [maxNormList, List.prod_append, List.prod_cons, List.prod_nil,
+      mul_one, lt_sup_iff, zero_lt_one, or_true, mul_nonneg_iff_of_pos_right]
+    exact tl.maxNormList_non_neg
 
 def norm_sub_le_prod {n m : ℕ} (mv : MatVec n m)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ) :
