@@ -1,5 +1,6 @@
 import Noperthedron.Basic
 import Noperthedron.Lemma11
+import Noperthedron.Lemma12
 
 open scoped RealInnerProductSpace Real
 
@@ -238,30 +239,6 @@ theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α
          _ ≤ _ := by
            refine mul_le_mul_of_nonneg_left ?_ hx
            exact Real.rpow_le_rpow (by positivity) (by nlinarith) (by positivity)
-
-theorem lemma12_3 {d d' : Fin 3} {α β : ℝ} (n : ℕ) (d_ne_d' : d ≠ d') (α_in : |α| ≤ 2^(n+1)) (β_in : |β| ≤ 2^(n+1)) :
-  ‖rot3 d α ∘L rot3 d' β - 1‖ ≤ √(α^2 + β^2) := by
-  sorry
-
-theorem lemma12_4 {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
-  ‖rot3 d α ∘L rot3 d' β - 1‖ ≤ √(α^2 + β^2) := by
-    let n : ℕ := Nat.clog 2 ⌈max |α| |β|⌉₊
-    apply lemma12_3 n d_ne_d' <;> {
-      unfold n
-      rw [← Real.rpow_natCast, Nat.cast_add]
-      simp only [Nat.cast_one, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, Real.rpow_add_one,
-        Real.rpow_natCast]
-      calc
-        _ ≤ max |α| |β| := by simp
-        _ ≤ ⌈max |α| |β|⌉₊ := by apply Nat.le_ceil
-        _ = ⌈max |α| |β|⌉₊ * 1 := by simp
-        _ ≤ ⌈max |α| |β|⌉₊ * 2 := by gcongr; simp
-        _ ≤ (2 ^ (Nat.clog 2 ⌈max |α| |β|⌉₊) : ℕ) * 2 := by
-          gcongr
-          apply Nat.le_pow_clog
-          simp
-        _ ≤ 2 ^ (Nat.clog 2 ⌈max |α| |β|⌉₊) * 2 := by simp
-    }
 
 theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ √(α ^ 2 + β ^ 2) := by
   have := lemma12_4 (α := α) (β := β) (show 0 ≠ 1 by norm_num)
