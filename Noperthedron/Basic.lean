@@ -77,7 +77,16 @@ def Rx_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
 noncomputable
 def RxL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rx_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
--- rotation about y-axis by θ
+@[simp]
+noncomputable
+def RxC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
+  toFun α := RxL α
+  map_zero_eq_one' := by
+    ext v i; fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+  map_add_eq_mul' α β := by
+    ext v i
+    fin_cases i <;> (simp [RxL, Matrix.vecHead, Matrix.vecTail, cos_add, sin_add]; try ring)
+
 @[simp]
 noncomputable
 def Ry_mat (θ : ℝ) : (Matrix (Fin 3) (Fin 3) ℝ) :=
@@ -85,8 +94,19 @@ def Ry_mat (θ : ℝ) : (Matrix (Fin 3) (Fin 3) ℝ) :=
      0,     1,      0;
      sin θ, 0,  cos θ]
 
+@[simp]
 noncomputable
 def RyL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Ry_mat θ |>.toEuclideanLin.toContinuousLinearMap
+
+@[simp]
+noncomputable
+def RyC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
+  toFun α := RyL α
+  map_zero_eq_one' := by
+    ext v i; fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+  map_add_eq_mul' α β := by
+    ext v i
+    fin_cases i <;> (simp [RyL, Matrix.vecHead, Matrix.vecTail, cos_add, sin_add]; try ring)
 
 -- rotation about z-axis by θ
 @[simp]
@@ -109,6 +129,28 @@ def RzL : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
       simp [Fin.sum_univ_succ, Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
       try ring_nf
     }
+
+@[simp]
+noncomputable
+def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
+  toFun α := RzL α
+  map_zero_eq_one' := by
+    ext v i; fin_cases i <;> simp
+  map_add_eq_mul' α β := by
+    ext v i
+    fin_cases i <;> (simp [RzL, Matrix.vecHead, Matrix.vecTail, cos_add, sin_add]; try ring)
+
+noncomputable
+def rot3_mat : Fin 3 → ℝ → Matrix (Fin 3) (Fin 3) ℝ
+  | 0 => Rx_mat
+  | 1 => Ry_mat
+  | 2 => Rz_mat
+
+noncomputable
+def rot3 : Fin 3 → AddChar ℝ (ℝ³ →L[ℝ] ℝ³)
+  | 0 => RxC
+  | 1 => RyC
+  | 2 => RzC
 
 @[simp]
 noncomputable
