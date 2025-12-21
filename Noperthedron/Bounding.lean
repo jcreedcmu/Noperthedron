@@ -241,7 +241,7 @@ theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α
            exact Real.rpow_le_rpow (by positivity) (by nlinarith) (by positivity)
 
 theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ √(α ^ 2 + β ^ 2) := by
-  have := lemma12_4 (α := α) (β := β) (show 0 ≠ 1 by norm_num)
+  have := lemma12 (α := α) (β := β) (show 0 ≠ 1 by norm_num)
   simp only [rot3] at this
   exact this
 
