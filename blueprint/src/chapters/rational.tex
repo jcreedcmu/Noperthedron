@@ -101,6 +101,8 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
 \end{proof}
 
 \begin{lemma} \label{lem:A1AnB1Bn}
+\lean{RationalApprox.norm_sub_le_prod}
+\leanok
     For $1 \leq i \leq n$ let $(A_i,B_i)$ be pairs of real matrices, such that for each $i$ the dimensions of $A_i$ and $B_i$ are equal. Assume moreover that the products $A_1\cdots A_n$ and $B_1 \cdots B_n$ are well defined. Finally, assume that $\|A_i-B_i\|\leq \kappa$ and let $\delta_i\geq \max(\|A_i\|,\|B_i\|,1)$. Then it holds that
     $\|A_1\cdots A_n-B_1\cdots B_n\|\leq n\kappa\cdot \delta_1\cdots \delta_n$.
 \end{lemma}
