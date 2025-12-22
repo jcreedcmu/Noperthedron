@@ -284,15 +284,8 @@ theorem dist_lt_kappa_entry_error (d : RationalApprox.DistLtKappaEntry) (x y : �
         |e1.actual x * e2.actual y - e1.approx x * e2.approx y| ≤
         |e1.actual x| * |e2.actual y - e2.approx y| +
         |e1.actual x - e1.approx x| * |e2.approx y| := by
-      rw [← abs_mul, ← abs_mul, ← abs_neg]
-      ring_nf
-      cases abs_cases (-(RewritableEntry.actual x e1 * RewritableEntry.actual y e2) +
-                        RewritableEntry.approx x e1 * RewritableEntry.approx y e2 ) <;>
-      cases abs_cases (RewritableEntry.actual x e1 * RewritableEntry.actual y e2 -
-                       RewritableEntry.actual x e1 * RewritableEntry.approx y e2 ) <;>
-      cases abs_cases (RewritableEntry.actual x e1 * RewritableEntry.approx y e2 -
-                       RewritableEntry.approx x e1 * RewritableEntry.approx y e2 ) <;>
-      linarith
+      rw [← abs_mul, ← abs_mul, mul_sub, sub_mul]
+      exact abs_sub_le _ _ _
   -- Applying the bounds from `rewritable_entry_bound` and `rewritable_entry_error`, we get:
   have h_bound (e1 e2 : RationalApprox.RewritableEntry) (x y : ℚ)
         (hx : x ∈ Set.Icc (-4 : ℚ) 4) (hy : y ∈ Set.Icc (-4 : ℚ) 4) :
