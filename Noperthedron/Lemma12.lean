@@ -1,11 +1,9 @@
 import Noperthedron.Basic
+import Noperthedron.Lemma9
 
 namespace Bounding
 
-theorem lemma9 {d : Fin 3} (α : ℝ) : ‖rot3 d α‖ = 1 := by
-  sorry
-
-theorem lemma12_1 {d d' : Fin 3} {α β : ℝ} :
+theorem norm_RxRy_minus_id_le_wlog {d d' : Fin 3} {α β : ℝ} :
     d ≠ d' → |α| ≤ 2 → |β| ≤ 2 → ‖rot3 d α ∘L rot3 d' β - 1‖ ≤ √(α^2 + β^2) := by
   sorry
 
@@ -52,7 +50,7 @@ theorem lemma12_2 {d d' : Fin 3} {α β : ℝ} :
 theorem lemma12_3 {d d' : Fin 3} {α β : ℝ} (n : ℕ) (d_ne_d' : d ≠ d') (α_in : |α| ≤ 2^(n+1)) (β_in : |β| ≤ 2^(n+1)) :
   ‖rot3 d α ∘L rot3 d' β - 1‖ ≤ √(α^2 + β^2) := by
     induction n generalizing α β with
-    | zero => apply lemma12_1 <;> grind
+    | zero => apply norm_RxRy_minus_id_le_wlog <;> grind
     | succ n' h =>
       have two_pow : (2 : ℝ) ^ ((n' + 1) + 1) = (2 : ℝ) * (2 ^ (n' + 1)) := by
         rw [pow_add 2 (n' + 1) 1]
