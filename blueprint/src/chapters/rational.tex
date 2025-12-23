@@ -61,7 +61,8 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
 \begin{lemma}\label{lem:dist_lt_kappa}
 \leanok
 \lean{RationalApprox.norm_matrix_actual_approx_le_kappa}
-    Let $A(x,y)$ be an $m\times n$ matrix with $1 \leq m,n\leq 3$ such that every entry is in $[-1,1]$.of the form $a_1(x)\cdot a_2(y)$ where $a_i(z) \in [-1,1]$.
+    Let $A(x,y)$ be an $m\times n$ matrix with $1 \leq m,n\leq 3$ such that every entry is of the form $a_1(x)\cdot a_2(y)$ where
+    $a_i(z)\in \{0,1,-1,\pm\sin(z),\pm\cos(z)\}.$
     Define $A_{\mathbb{Q}}(x,y)$ by replacing $\sin$ with $\ssin$ and $\cos$ with $\scos$. Then for every $x,y\in[-4,4]$ it holds that
     $\|A(x,y)-A_{\mathbb{Q}}(x,y)\|\leq\kappa$.
 \end{lemma}

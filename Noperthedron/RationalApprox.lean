@@ -327,7 +327,7 @@ theorem kappa_bound_aux : 3 * (2 * κ / 7 + κ^2 / 49) ≤ κ := by norm_num [κ
 end AristotleLemmas
 
 theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
-    (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : Set.Icc (-4) 4) :
+    (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : Set.Icc (-4 : ℚ) 4) :
     ‖matrixActual A x y - matrixApprox A x y‖ ≤ κ := by
   -- Let's choose δ as the upper bound from `dist_lt_kappa_entry_error`.
   set δ := 2 * κ / 7 + κ^2 / 49 with hδ_def
@@ -337,8 +337,8 @@ theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
                           (A.map (fun d => d.approx (x.val) (y.val)) i j)| ≤ δ := by
     intro i j
     apply RationalApprox.dist_lt_kappa_entry_error
-    · exact ⟨mod_cast x.2.1, mod_cast x.2.2⟩
-    · decide +revert
+    · exact x.prop
+    · exact y.prop
   have h_sqrt_bound : Real.sqrt (m.val * n.val) ≤ 3 := by
     refine Real.sqrt_le_iff.mpr ⟨?_, ?_⟩
     · positivity
