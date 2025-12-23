@@ -135,7 +135,7 @@ theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ �
 theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
   by_cases h₁ : θ = θ_ ∧ φ = φ_
-  · have h₂ : ‖rotM θ φ - rotM θ_ φ_‖  = 0 := by
+  · have h₂ : ‖rotM θ φ - rotM θ_ φ_‖ = 0 := by
       obtain ⟨hθ₁, hφ₁⟩ := h₁
       simp [hθ₁, hφ₁]
     rw [h₂]
@@ -150,7 +150,16 @@ theorem XPgt0 {P : ℝ³} {ε θ θ_ φ φ_ : ℝ} (hP : ‖P‖ ≤ 1)
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hX : √2 * ε < ⟪vecX θ_ φ_, P⟫) :
     0 < ⟪vecX θ φ, P⟫ := by
-  sorry
+  have h₁ : ‖⟪vecX θ_ φ_ - vecX θ φ, P⟫‖ ≤ ‖vecX θ_ φ_ - vecX θ φ‖ * ‖P‖ := by
+    exact norm_inner_le_norm (vecX θ_ φ_ - vecX θ φ) P
+  grw [inner_sub_left, ←Real.le_norm_self] at h₁
+  rw [tsub_le_iff_tsub_le] at h₁
+  have h₂ := norm_X_sub_lt hε hθ hφ
+  grw [← h₁]
+  rw [norm_sub_rev] at h₂
+  have h₃ : ‖vecX θ_ φ_ - vecX θ φ‖ * ‖P‖ ≤ ‖vecX θ_ φ_ - vecX θ φ‖ * 1 :=
+     mul_le_mul_of_nonneg_left hP (norm_nonneg _)
+  linarith
 
 theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} {P : ℝ³}
     (hP : ‖P‖ ≤ 1) (hε : 0 < ε) (hr : 0 < r) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
