@@ -132,6 +132,10 @@ theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ �
   simp only [rot3] at this
   exact this
 
+theorem reduceL_norm : ‖reduceL‖ = 1 := by
+  simp only [reduceL, reduce_mat]
+  sorry
+
 theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
   by_cases h₁ : θ = θ_ ∧ φ = φ_
@@ -140,10 +144,18 @@ theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
       simp [hθ₁, hφ₁]
     rw [h₂]
     positivity
+  simp only [rotM_identity, ←ContinuousLinearMap.comp_sub]
+  grw [ContinuousLinearMap.opNorm_comp_le, reduceL_norm, one_mul]
   sorry
 
 theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖vecX θ φ - vecX θ_ φ_‖ < √2 * ε := by
+  by_cases h₁ : θ = θ_ ∧ φ = φ_
+  · have h₂ : ‖vecX θ φ - vecX θ_ φ_‖ = 0 := by
+      obtain ⟨hθ₁, hφ₁⟩ := h₁
+      simp [hθ₁, hφ₁]
+    rw [h₂]
+    positivity
   sorry
 
 theorem XPgt0 {P : ℝ³} {ε θ θ_ φ φ_ : ℝ} (hP : ‖P‖ ≤ 1)
