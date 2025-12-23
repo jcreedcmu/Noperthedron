@@ -308,11 +308,10 @@ theorem dist_lt_kappa_entry_error (d : RationalApprox.DistLtKappaEntry) (x y : �
       |e1.actual x - e1.approx x| ≤ RationalApprox.κ / 7 ∧
       |e2.actual y - e2.approx y| ≤ RationalApprox.κ / 7 := by
     exact ⟨rewritable_entry_error e1 x hx, rewritable_entry_error e2 y hy⟩
-  have := h_abs d.1 d.2 x y hx hy
-  have := h_bound d.1 d.2 x y hx hy
-  have := h_error d.1 d.2 x y hx hy
-  simp only [Set.mem_Icc, and_imp] at *
-  refine le_trans ‹_› ?_
+  refine le_trans (h_abs d.1 d.2 x y hx hy) ?_
+  specialize h_bound d.1 d.2 x y hx hy
+  specialize h_error d.1 d.2 x y hx hy
+  simp only [Set.mem_Icc] at hx hy
   nlinarith [
     abs_nonneg (RewritableEntry.actual x d.1),
     abs_nonneg (RewritableEntry.actual y d.2 - RewritableEntry.approx y d.2),
