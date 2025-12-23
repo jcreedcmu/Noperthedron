@@ -52,10 +52,6 @@ theorem lemma12_3 {d d' : Fin 3} {α β : ℝ} (n : ℕ) (d_ne_d' : d ≠ d') (�
     induction n generalizing α β with
     | zero => apply norm_RxRy_minus_id_le_wlog <;> grind
     | succ n' h =>
-      have two_pow : (2 : ℝ) ^ ((n' + 1) + 1) = (2 : ℝ) * (2 ^ (n' + 1)) := by
-        rw [pow_add 2 (n' + 1) 1]
-        ring_nf
-
       calc ‖rot3 d α ∘L rot3 d' β - 1‖
         _ = ‖rot3 d (2 * (α / 2)) ∘L rot3 d' (2 * (β / 2)) - 1‖ := by
           field_simp
@@ -64,7 +60,7 @@ theorem lemma12_3 {d d' : Fin 3} {α β : ℝ} (n : ℕ) (d_ne_d' : d ≠ d') (�
           grw [h] <;> {
             simp only [abs_div, Nat.abs_ofNat]
             field_simp
-            rw [two_pow] at α_in β_in
+            rw [pow_succ'] at α_in β_in
             assumption
           }
         _ = √(α^2 + β^2) := by
