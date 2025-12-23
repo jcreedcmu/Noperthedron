@@ -80,7 +80,6 @@ lemma sin_sub_mul_cos_nonneg (x : ℝ) : x ∈ Set.Icc 0 π → 0 ≤ sin_sub_mu
     _ ≤ sin_sub_mul_cos x := by
       apply sin_sub_mul_cos_monotone_on <;> (try simp only [Set.mem_Icc, le_refl, true_and]) <;> grind
 
-@[grind =]
 lemma cos_sqrt_deriv {x : ℝ} (hx : x ∈ Set.Ioo 0 (π ^ 2)) : deriv (cos ∘ sqrt) x = -sin √x / (2 * √x) := by
   obtain ⟨x_pos, x_le⟩ := hx
   rw [deriv_comp _ differentiableAt_cos (DifferentiableAt.sqrt differentiableAt_fun_id x_pos.ne.symm)]
@@ -119,8 +118,8 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
         simp only [Set.subset_def, Set.mem_Ioo, Set.mem_preimage, Set.mem_Ioi, sqrt_pos, and_imp]
         grind
     · intro x x_in
-      simp only [Pi.neg_apply, Function.comp_apply, Pi.div_apply]
-      grind
+      simp only [Pi.neg_apply, Function.comp_apply, Pi.div_apply, ←neg_div]
+      exact cos_sqrt_deriv x_in
   · simp only [interior_Icc, Set.mem_Ioo, Function.iterate_succ, Function.iterate_zero, Function.id_def,
     Function.comp_apply, and_imp]
     intro x x_pos x_lt
