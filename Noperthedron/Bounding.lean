@@ -128,12 +128,18 @@ theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α
            exact Real.rpow_le_rpow (by positivity) (by nlinarith) (by positivity)
 
 theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ √(α ^ 2 + β ^ 2) := by
-  have := lemma12 (α := α) (β := β) (show 0 ≠ 1 by norm_num)
+  have := lemma12 (α := α) (β := β) zero_ne_one
   simp only [rot3] at this
   exact this
 
 theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
+  by_cases h₁ : θ = θ_ ∧ φ = φ_
+  · have h₂ : ‖rotM θ φ - rotM θ_ φ_‖  = 0 := by
+      obtain ⟨hθ₁, hφ₁⟩ := h₁
+      simp [hθ₁, hφ₁]
+    rw [h₂]
+    positivity
   sorry
 
 theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
