@@ -116,9 +116,14 @@ def Rz_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
      sin θ,  cos θ, 0;
      0,      0,     1]
 
+@[simp]
 noncomputable
-def RzL : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
-  toFun α := (Rz_mat α).toEuclideanLin.toContinuousLinearMap
+def RzL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rz_mat θ |>.toEuclideanLin.toContinuousLinearMap
+
+@[simp]
+noncomputable
+def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
+  toFun α := RzL α
   map_zero_eq_one' := by
     ext v i
     fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
@@ -128,13 +133,6 @@ def RzL : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
       simp [Fin.sum_univ_succ, Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
       try ring_nf
     }
-
-@[simp]
-noncomputable
-def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
-  toFun α := RzL α
-  map_zero_eq_one' := AddChar.map_zero_eq_one RzL
-  map_add_eq_mul' α β := AddChar.map_add_eq_mul RzL α β
 
 noncomputable
 def rot3_mat : Fin 3 → ℝ → Matrix (Fin 3) (Fin 3) ℝ

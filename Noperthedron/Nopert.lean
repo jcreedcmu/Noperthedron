@@ -208,6 +208,7 @@ lemma c1r_in_half_nopert_verts : Nopert.C1R ∈ halfNopertVerts := by
     apply Finset.mem_union_left
     simp only [Nopert.C15, Finset.mem_image, Finset.mem_range]
     use 0
+    rw [show RzL = ⇑RzC by rfl]
     simp
 
 /--

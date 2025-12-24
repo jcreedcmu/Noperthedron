@@ -65,7 +65,7 @@ theorem Rz_pres_norm (α : ℝ) :
     ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ := by
   intro v
   suffices h : ‖(RzL α) v‖^2 = ‖v‖^2  by simp_all
-  simp only [RzL, Rz_mat, PiLp.norm_sq_eq_of_L2, AddChar.coe_mk]
+  simp only [RzL, Rz_mat, PiLp.norm_sq_eq_of_L2]
   simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
     Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
     Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, Matrix.cons_val]
