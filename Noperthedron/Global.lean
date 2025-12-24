@@ -63,6 +63,10 @@ def rotproj_inner_unit (S : ℝ³) (w : ℝ²) (x : ℝ³) : ℝ :=
   ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫ / ‖S‖
 
 noncomputable
+def rotproj_outer_unit (S : ℝ³) (w : ℝ²) (x : ℝ²) : ℝ :=
+  ⟪rotM (x 0) (x 1) S, w⟫ / ‖S‖
+
+noncomputable
 def nth_partial {n : ℕ} (i : Fin n) (f : E n → ℝ) (x : E n) : ℝ :=
   fderiv ℝ f x (EuclideanSpace.single i 1)
 
@@ -72,8 +76,15 @@ def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) (x : E n) : Prop :=
 lemma rotation_partials_exist {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : ContDiff ℝ 2 (rotproj_inner_unit S w) := by
   sorry
 
+lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : ContDiff ℝ 2 (rotproj_outer_unit S w) := by
+  sorry
+
 theorem rotation_partials_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³) :
     mixed_partials_bounded (rotproj_inner_unit S w) x := by
+  sorry
+
+theorem rotation_partials_bounded_outer (S : ℝ³) (w : ℝ²) (x : ℝ²) :
+    mixed_partials_bounded (rotproj_outer_unit S w) x := by
   sorry
 
 theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
@@ -224,6 +235,14 @@ noncomputable
 def GlobalTheoremPrecondition.fu {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ³ → ℝ :=
   rotproj_inner_unit pc.S pc.w
+
+/--
+This is an outer-shadow analog of `fu`
+-/
+noncomputable
+def GlobalTheoremPrecondition.fu_outer {pbar : Pose} {ε : ℝ} {poly : GoodPoly} (P : ℝ³)
+    (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ² → ℝ :=
+  rotproj_outer_unit P pc.w
 
 /--
 This is the function that Theorem 17's proof calls `f`, but multiplied by ‖S‖.
@@ -381,8 +400,28 @@ Use the analytic bounds on rotations, Lemmas 19 and 20.
 lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
     (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
-    (hp : GlobalTheoremPrecondition poly pbar ε) :
-    maxOuter p poly hp.w ≤ maxH pbar poly ε hp.w := by
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    maxOuter p poly pc.w ≤ maxH pbar poly ε pc.w := by
+  -- First of all, we can relate these two maximums by relating
+  -- their components.
+  suffices h : ∀ vert ∈ poly.vertices,
+      ⟪pc.w, p.outer vert⟫ ≤ H pbar ε pc.w vert by
+    simp only [maxH, maxOuter, imgOuter, Finset.max'_le_iff, Finset.mem_image, forall_exists_index,
+      and_imp, forall_apply_eq_imp_iff₂]
+    simp only [Finset.max', Finset.sup'_image,
+      Finset.le_sup'_iff]
+    exact fun a ha => Exists.intro a ⟨ha, h a ha⟩
+  -- Now we're just considering a single polyhedron vertex P
+  intro P hP
+  have P_norm_pos : 0 < ‖P‖ := poly.nontriv P hP
+
+  have hz := bounded_partials_control_difference
+    (pc.fu_outer P) (rotation_partials_exist_outer P_norm_pos)
+    pbar.outerParams p.outerParams ε hε
+    (closed_ball_imp_outer_params_near p_near_pbar)
+    (rotation_partials_bounded_outer P pc.w pbar.outerParams)
+  simp_all only [H]
+
   sorry
 
 /--
