@@ -340,7 +340,6 @@ lemma partials_helper0 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper0a]
   field_simp
 
-
 lemma partials_helper1 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 1 pc.fu pbar.innerParams =
@@ -351,6 +350,18 @@ lemma partials_helper2 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 2 pc.fu pbar.innerParams =
     ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫ := by
+  sorry
+
+lemma partials_helper3 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    ‖P‖ * nth_partial 0 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
+    ⟪pbar.rotM₂θ P, pc.w⟫ := by
+  sorry
+
+lemma partials_helper4 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    ‖P‖ * nth_partial 1 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
+    ⟪pbar.rotM₂φ P, pc.w⟫ := by
   sorry
 
 lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
@@ -365,8 +376,8 @@ lemma partials_helper_outer {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     |⟪pbar.rotM₂θ P, pc.w⟫| + |⟪pbar.rotM₂φ P, pc.w⟫| =
     ‖P‖ * ∑ i, |nth_partial i (pc.fu_outer P) pbar.outerParams| := by
   rw [Finset.mul_sum, Fin.sum_univ_two, ← abs_norm, ← abs_mul, ← abs_mul]
-  simp
-  sorry
+  simp only [Fin.isValue]
+  rw [partials_helper3 pc P, partials_helper4 pc P]
 
 theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
