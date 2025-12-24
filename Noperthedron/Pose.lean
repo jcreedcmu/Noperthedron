@@ -55,6 +55,9 @@ lemma p_outer_eq_outer_shadow (p : Pose) (S : Set ℝ³) : p.outer '' S  = outer
   ext v
   simp
 
+lemma outer_eq_m2 (p : Pose) (v : ℝ³) : p.outer v = p.rotM₂ v := by
+  sorry
+
 /--
 If we have a convex polyhedron with p being a pose witness of the
 rupert property, then in particular every vertex in the "inner"

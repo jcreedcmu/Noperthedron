@@ -128,7 +128,7 @@ A measure of how far an outer-shadow vertex P can "reach" along w.
 -/
 noncomputable
 def H (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
-  ⟪p.rotM₂ P, w⟫ + ε * |⟪p.rotM₂θ P, w⟫ + ⟪p.rotM₂φ P, w⟫| + 2 * ε^2
+  ⟪p.rotM₂ P, w⟫ + ε * (|⟪p.rotM₂θ P, w⟫| + |⟪p.rotM₂φ P, w⟫|) + 2 * ε^2
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
@@ -264,6 +264,11 @@ theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     pc.f pbar.innerParams = ⟪pbar.inner pc.S, pc.w⟫ := by
   rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
+theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    pc.fu_outer P p.outerParams * ‖P‖ = ⟪pc.w, p.outer P⟫ := by
+  sorry
+
 lemma Differentiable.rotprojRM (S : ℝ³) :
     Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
   unfold _root_.rotprojRM
@@ -355,6 +360,14 @@ lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   rw [Finset.mul_sum, Fin.sum_univ_three, ← abs_norm, ← abs_mul, ← abs_mul, ← abs_mul,
     partials_helper0, partials_helper1, partials_helper2]
 
+lemma partials_helper_outer {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    |⟪pbar.rotM₂θ P, pc.w⟫| + |⟪pbar.rotM₂φ P, pc.w⟫| =
+    ‖P‖ * ∑ i, |nth_partial i (pc.fu_outer P) pbar.outerParams| := by
+  rw [Finset.mul_sum, Fin.sum_univ_two, ← abs_norm, ← abs_mul, ← abs_mul]
+  simp
+  sorry
+
 theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     pc.fu p.innerParams * ‖pc.S‖ = pc.f p.innerParams := by
@@ -414,6 +427,7 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
   -- Now we're just considering a single polyhedron vertex P
   intro P hP
   have P_norm_pos : 0 < ‖P‖ := poly.nontriv P hP
+  have P_norm_le_one : ‖P‖ ≤ 1 := poly.vertex_radius_le_one P hP
 
   have hz := bounded_partials_control_difference
     (pc.fu_outer P) (rotation_partials_exist_outer P_norm_pos)
@@ -421,8 +435,18 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
     (closed_ball_imp_outer_params_near p_near_pbar)
     (rotation_partials_bounded_outer P pc.w pbar.outerParams)
   simp_all only [H]
-
-  sorry
+  rw [abs_sub_comm] at hz
+  replace hz := sub_le_of_abs_sub_le_right hz
+  rw [tsub_le_iff_right] at hz
+  replace hz := mul_le_mul_of_nonneg_right hz (ha := le_of_lt P_norm_pos)
+  rw [add_mul] at hz
+  rw [pc.fu_pose_eq_outer P, pc.fu_pose_eq_outer P] at hz
+  rw [partials_helper_outer pc, ← Pose.outer_eq_m2]
+  conv => rhs; arg 1; arg 1; rw [real_inner_comm]
+  ring_nf at hz ⊢
+  nth_grw 2 [P_norm_le_one] at hz
+  simp only [mul_one] at hz
+  exact hz
 
 /--
 Here we run through the "sequence of inequalities [which yield] the desired contradiction"
