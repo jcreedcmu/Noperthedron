@@ -63,6 +63,30 @@ See \cite{polyhedron.without.rupert}, Lemma 19.
 See \cite{polyhedron.without.rupert}, Lemma 20.
 \end{proof}
 
+\begin{lemma}
+\label{lem:rotation_derivatives}
+\leanok
+\lean{GlobalTheorem.rotation_partials_exist, GlobalTheorem.rotation_partials_exist_outer,
+ GlobalTheorem.partials_helper0, GlobalTheorem.partials_helper1, GlobalTheorem.partials_helper2,
+ GlobalTheorem.partials_helper3, GlobalTheorem.partials_helper4}
+The partial derivatives of all relevant rotations, projections, and inner products
+used in the Global Theorem are as expected.
+Specifically:
+\begin{itemize}
+\item \[  f^\alpha(\theta,\phi,\alpha) = \langle R'(\alpha) M(\theta, \phi) S, w \rangle \]
+\item \[  f^\theta(\theta,\phi,\alpha) = \langle R(\alpha) M^\theta(\theta, \phi) S, w \rangle \]
+\item \[  f^\phi(\theta,\phi,\alpha) = \langle R(\alpha) M^\phi(\theta, \phi) S, w \rangle \]
+\item \[  g^\theta(\theta,\phi) = \langle  M^\theta(\theta, \phi) P, w \rangle \]
+\item \[  g^\phi(\theta,\phi) = \langle  M^\phi(\theta, \phi) P, w \rangle \]
+\end{itemize}
+where $f(\theta,\phi,\alpha) =  \langle R(\alpha) M(\theta,\phi) S / \|S\|, w\rangle $
+and $g(\theta,\phi) =  \langle M(\theta,\phi) P / \|P\|, w\rangle $.
+\end{lemma}
+
+\begin{proof}
+By basic properties of derivatives.
+\end{proof}
+
 \begin{theorem}[Global Theorem] \label{thm:global}
 \lean{GlobalTheorem.global_theorem}
 \leanok
@@ -76,6 +100,7 @@ See \cite{polyhedron.without.rupert}, Lemma 20.
 \end{theorem}
 
 \begin{proof}
-\uses{lem:hullscalarprod,lem:leq1,lem:n2}
+\leanok
+\uses{lem:hullscalarprod,lem:leq1,lem:n2,lem:rotation_derivatives}
 See \cite{polyhedron.without.rupert}, Section~{4.2}.
 \end{proof}
