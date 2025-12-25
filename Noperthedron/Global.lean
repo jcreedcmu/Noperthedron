@@ -105,10 +105,8 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   have g'_cont : Continuous g' := by fun_prop
   have g''_cont : Continuous g'' := by sorry
 
-  let h : ℝ → ℝ  := deriv (fun t => f <| (1 - t) • x + t • y)
   have deriv_g_eq_g' : deriv g = g' := by
     ext x
-
     change fderiv ℝ g x 1 = g' x
     have fdc : fderiv ℝ (f ∘ g₀) x = (fderiv ℝ f (g₀ x)) ∘L (fderiv ℝ g₀ x) :=
       fderiv_comp x (by fun_prop) (by fun_prop)
