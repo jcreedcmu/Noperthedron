@@ -94,26 +94,30 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
     |f x - f y| ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by
   let g₀ : ℝ → E n := fun t => (1 - t) • x + t • y
   let g := f ∘ g₀
-  let h : ℝ → ℝ  := deriv (fun t => f <| (1 - t) • x + t • y)
+
   let g' (t : ℝ) : ℝ := ∑ i, (y i - x i) * nth_partial i f ((1 - t) • x + t • y)
   let g'' (t : ℝ) : ℝ := ∑ i, ∑ j, (y i - x i) * (y j - x j) * (nth_partial i <| nth_partial j f) ((1 - t) • x + t • y)
+
+  have g₀_diff : Differentiable ℝ g₀ := by fun_prop
+  have f_diff : Differentiable ℝ f := fc.differentiable (by norm_num)
+  have g_diff : Differentiable ℝ g := by fun_prop
+  have g'_diff : Differentiable ℝ g' := by sorry
+  have g'_cont : Continuous g' := by fun_prop
+  have g''_cont : Continuous g'' := by sorry
+
+  let h : ℝ → ℝ  := deriv (fun t => f <| (1 - t) • x + t • y)
   have deriv_g_eq_g' : deriv g = g' := by
     ext x
-    have hg : DifferentiableAt ℝ f (g₀ x) := fc.differentiable (by norm_num) |>.differentiableAt
-    have hf : DifferentiableAt ℝ g₀ x := by sorry
-    change fderiv ℝ g x 1 = g' x
 
-    simp only [g, fderiv_comp x hg hf,
+    change fderiv ℝ g x 1 = g' x
+    have fdc : fderiv ℝ (f ∘ g₀) x = (fderiv ℝ f (g₀ x)) ∘L (fderiv ℝ g₀ x) :=
+      fderiv_comp x (by fun_prop) (by fun_prop)
+    simp only [g, fdc,
       ContinuousLinearMap.coe_comp', Function.comp_apply, fderiv_eq_smul_deriv, one_smul]
     sorry
 
   have deriv_g'_eq_g'' : deriv g' = g'' := by
     sorry
-
-  have g_diff : Differentiable ℝ g := by sorry
-  have g'_diff : Differentiable ℝ g' := by sorry
-  have g'_cont : Continuous g' := by fun_prop
-  have g''_cont : Continuous g'' := by sorry
 
   have g''_eq_sub (t : ℝ) : (∫ (s : ℝ) in 0..t, g'' s) = g' t - g' 0 := by
     sorry
