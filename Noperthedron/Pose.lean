@@ -55,8 +55,18 @@ lemma p_outer_eq_outer_shadow (p : Pose) (S : Set ℝ³) : p.outer '' S  = outer
   ext v
   simp
 
-lemma outer_eq_m2 (p : Pose) (v : ℝ³) : p.outer v = p.rotM₂ v := by
-  sorry
+lemma proj_rm_eq_m (θ φ : ℝ) (v : ℝ³) :
+    proj_xyL (rotRM θ φ 0 v) = rotM θ φ v := by
+  ext i
+  simp [proj_xyL, rotRM, rotM, Matrix.vecHead, Matrix.vecTail, rotM_mat]
+  fin_cases i <;> {
+    simp only [Fin.isValue, Fin.zero_eta, Fin.isValue, Fin.mk_one,
+               Matrix.cons_val_one, Matrix.cons_val_fin_one, Matrix.cons_val_zero]
+    try ring_nf
+  }
+
+lemma outer_eq_m2 (p : Pose) (v : ℝ³) : p.outer v = p.rotM₂ v :=
+  proj_rm_eq_m p.θ₂ p.φ₂ v
 
 /--
 If we have a convex polyhedron with p being a pose witness of the
