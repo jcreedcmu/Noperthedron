@@ -133,8 +133,9 @@ theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ �
   exact this
 
 theorem reduceL_norm : ‖reduceL‖ = 1 := by
-  simp only [reduceL, reduce_mat]
-  sorry
+  have h₁ : reduceL = rotM 0 0 := by simp [rotM, reduceL, rotM_mat]
+  rw [h₁]
+  exact Bounding.rotM_norm_one 0 0
 
 theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
