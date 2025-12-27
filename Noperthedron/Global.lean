@@ -73,11 +73,17 @@ def nth_partial {n : ℕ} (i : Fin n) (f : E n → ℝ) (x : E n) : ℝ :=
 def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) (x : E n) : Prop :=
   ∀ (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
 
-lemma rotation_partials_exist {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : ContDiff ℝ 2 (rotproj_inner_unit S w) := by
-  sorry
+lemma rotation_partials_exist {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} :
+    ContDiff ℝ 2 (rotproj_inner_unit S w) := by
+  refine ContDiff.div ?_ contDiff_const (fun x ↦ (ne_of_lt S_nonzero).symm)
+  simp [inner, rotprojRM, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+  fun_prop
 
-lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} : ContDiff ℝ 2 (rotproj_outer_unit S w) := by
-  sorry
+lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} :
+    ContDiff ℝ 2 (rotproj_outer_unit S w) := by
+  refine ContDiff.div ?_ contDiff_const (fun x ↦ (ne_of_lt S_nonzero).symm)
+  simp [inner, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+  fun_prop
 
 theorem rotation_partials_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³) :
     mixed_partials_bounded (rotproj_inner_unit S w) x := by
