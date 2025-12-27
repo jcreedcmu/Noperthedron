@@ -1,7 +1,7 @@
 import Noperthedron.Basic
-import Noperthedron.Lemma9
-import Noperthedron.Lemma11
-import Noperthedron.Lemma12
+import Noperthedron.Bounding.Lemma9
+import Noperthedron.Bounding.Lemma11
+import Noperthedron.Bounding.Lemma12
 
 open scoped RealInnerProductSpace Real
 

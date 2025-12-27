@@ -1,5 +1,5 @@
 import Noperthedron.Basic
-import Noperthedron.Lemma9
+import Noperthedron.Bounding.Lemma9
 
 namespace Bounding
 
