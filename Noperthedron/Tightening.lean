@@ -8,15 +8,68 @@ import Noperthedron.PoseInterval
 open Real
 namespace Tightening
 
+lemma rotM_neg_comm {θ φ : ℝ} (y : ℝ³) : (rotM θ φ) (-y) = -(rotM θ φ) y := by
+  ext i; fin_cases i <;> simp
+
+lemma rotM_preserves_pointsymmetry {θ φ : ℝ} (X : Finset ℝ³) (hX : PointSym (X : Set ℝ³)) :
+    PointSym (rotM θ φ '' X) := by
+  intro x hx
+  simp only [Set.mem_image] at hx ⊢
+  obtain ⟨y, hy, hy2⟩ := hx
+  exact ⟨-y, hX y hy, by rw [← hy2]; exact rotM_neg_comm y⟩
+
+lemma rotR_neg_comm {α : ℝ} (y : ℝ²) : (rotR α) (-y) = -(rotR α) y := by
+  ext i; fin_cases i <;> simp
+
+lemma rotR_preserves_pointsymmetry {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
+    PointSym (rotR α '' X) := by
+  intro x hx
+  simp only [Set.mem_image] at hx ⊢
+  obtain ⟨y, hy, hy2⟩ := hx
+  exact ⟨-y, hX y hy, by rw [← hy2]; exact rotR_neg_comm y⟩
+
+lemma neg_image_eq_if_pointsym (X : Set ℝ²) (hX : PointSym X) : (-·) '' X = X := by
+  simp only [Set.image_neg_eq_neg]; ext x
+  constructor
+  · simp only [Set.mem_neg]; intro hx; specialize hX (-x) hx; simpa [neg_neg] using hX
+  · simp only [Set.mem_neg]; intro hx; specialize hX x hx; exact hX
+
+lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
+    rotR (α + π) '' X = rotR α '' X := by
+  have : rotR (α + π) = (-·) ∘ rotR α := by
+    ext x i; fin_cases i <;> (simp [Matrix.vecHead, Matrix.vecTail]; ring_nf)
+  rw [this, Set.image_comp]
+  exact neg_image_eq_if_pointsym (rotR α '' X) (rotR_preserves_pointsymmetry X hX)
+
+lemma nopert_vertices_rotation_invariant :
+   (RzC (π * (-2 / 15))) '' nopert.vertices = nopert.vertices := by
+ sorry
+
+lemma app_hull_eq_hull_app (s : Shape) (f : ℝ³ →L[ℝ] ℝ²) : f '' s.hull = convexHull ℝ (f '' s.vertices) :=
+  f.image_convexHull s.vertices
+
 theorem lemma7_1 (θ φ : ℝ) :
     (rotM (θ + 2/15*π) φ) '' nopert.hull = rotM θ φ '' nopert.hull := by
-  ext p
-  simp only [Set.mem_image]
-  sorry
+  suffices h : (rotM (θ + 2/15*π) φ) '' nopert.vertices = rotM θ φ '' nopert.vertices by
+    rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
+  suffices h : (RzL (-(θ + 2/15*π))) '' nopert.vertices = (RzL (-θ)) '' nopert.vertices by
+    repeat rw [rotM_identity]
+    push_cast
+    repeat rw [Set.image_comp]
+    rw [h]
+  change (RzC (-(θ + 2 / 15 * π))) '' nopert.vertices = (RzC (-θ)) '' nopert.vertices
+  ring_nf
+  conv => arg 1; arg 1; intro a; simp only [AddChar.map_add_eq_mul]
+  rw [ContinuousLinearMap.coe_mul, Set.image_comp, nopert_vertices_rotation_invariant]
 
 theorem lemma7_2 (θ φ α : ℝ) :
   (rotR (α + π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull := by
-    sorry
+    suffices h : (rotR (α + π) ∘L rotM θ φ) '' nopert.vertices = (rotR α ∘L rotM θ φ) '' nopert.vertices by
+      rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
+    push_cast
+    repeat rw [Set.image_comp]
+    exact rotR_add_pi_eq_if_pointsym (rotM θ φ '' nopert.vertices)
+      (rotM_preserves_pointsymmetry nopert.vertices nopert_verts_pointsym)
 
 theorem lemma7_3 (θ φ : ℝ) :
   (flip_y ∘L rotM θ φ) '' nopert.hull = (-rotM (θ + π / 15) (π - φ)) '' nopert.hull := by
