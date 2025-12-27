@@ -2,7 +2,7 @@ import Noperthedron.Basic
 
 namespace Bounding
 
-theorem pres_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (hf : (v : E n) → ‖f v‖ = ‖v‖) :
+theorem norm_one_of_preserves_norm {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (hf : (v : E n) → ‖f v‖ = ‖v‖) :
     ‖f‖ = 1 := by
   have decrease (x : E n) : ‖f x‖ ≤ 1 * ‖x‖ := by rw [hf x]; simp
   have increase (N : ℝ) (hN : N ≥ 0) (k : ∀ (x : E n), ‖f x‖ ≤ N * ‖x‖) : 1 ≤ N := by
@@ -11,15 +11,15 @@ theorem pres_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (h
     have z := k e; rw [hf, he, mul_one] at z; exact z
   exact ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) decrease increase
 
-theorem pres_sq_norm_imp_norm_one {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m}
+theorem norm_one_of_preserves_sq_norm {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m}
     (hf : (v : E n) → ‖f v‖^2 = ‖v‖^2) : ‖f‖ = 1 := by
-  refine pres_norm_imp_norm_one ?_
+  refine norm_one_of_preserves_norm ?_
   intro v
   suffices h : ‖f v‖^2 = ‖v‖^2 by simp_all
   exact hf v
 
 theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
-  refine pres_sq_norm_imp_norm_one ?_
+  refine norm_one_of_preserves_sq_norm ?_
   intro v
   simp only [rotR, rotR_mat, PiLp.norm_sq_eq_of_L2]
   simp only [AddChar.coe_mk, LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
@@ -32,7 +32,7 @@ theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
   simp
 
 theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 := by
-  refine pres_sq_norm_imp_norm_one ?_
+  refine norm_one_of_preserves_sq_norm ?_
   intro v
   simp only [RxL, Rx_mat, PiLp.norm_sq_eq_of_L2]
   simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
@@ -47,7 +47,7 @@ theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 := by
   simp
 
 theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 := by
-  refine pres_sq_norm_imp_norm_one ?_
+  refine norm_one_of_preserves_sq_norm ?_
   intro v
   simp only [RyL, Ry_mat, PiLp.norm_sq_eq_of_L2]
   simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
@@ -61,7 +61,7 @@ theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 := by
   · ring_nf
   simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
 
-theorem Rz_pres_norm (α : ℝ) :
+theorem Rz_preserves_norm (α : ℝ) :
     ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ := by
   intro v
   suffices h : ‖(RzL α) v‖^2 = ‖v‖^2  by simp_all
@@ -78,7 +78,7 @@ theorem Rz_pres_norm (α : ℝ) :
   simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
 
 theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 :=
-  pres_norm_imp_norm_one (Rz_pres_norm α)
+  norm_one_of_preserves_norm (Rz_preserves_norm α)
 
 theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine le_antisymm ?_ ?_

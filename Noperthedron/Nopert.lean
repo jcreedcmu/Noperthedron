@@ -91,7 +91,7 @@ lemma C15_nonempty (pt : ℝ³) : (C15 pt).Nonempty := by
 lemma C15_pres_norm (pt v : ℝ³) (hv : v ∈ C15 pt) : ‖v‖ = ‖pt‖ := by
   simp only [C15, Finset.mem_image, Finset.mem_range] at hv
   obtain ⟨a, ⟨ha, ha'⟩⟩ := hv
-  rw [← ha', Bounding.Rz_pres_norm _]
+  rw [← ha', Bounding.Rz_preserves_norm _]
 
 end Nopert
 
