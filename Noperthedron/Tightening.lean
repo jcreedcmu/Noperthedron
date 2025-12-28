@@ -41,9 +41,47 @@ lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
   rw [this, Set.image_comp]
   exact neg_image_eq_if_pointsym (rotR α '' X) (rotR_preserves_pointsymmetry X hX)
 
+lemma rotation_preserves_c15_vertices {x y : ℝ³} (hx : x ∈ Nopert.C15 y) (k : ℤ) :
+    RzC (2 * π * k / 15) x ∈ Nopert.C15 y := by
+  simp_all only [Nopert.C15, Finset.mem_image, Finset.mem_range]
+  obtain ⟨a, ha15, har⟩ := hx
+  rw [← har]
+  use ((a + k).natMod 15)
+  constructor
+  · exact Int.natMod_lt (by norm_num)
+  · sorry
+
+lemma every_nopert_vert_in_c15 (x : ℝ³) (hx : x ∈ nopert.vertices) :
+    ∃ (y : ℝ³), x ∈ Nopert.C15 y ∧ Nopert.C15 y ⊆ nopert.vertices := by
+  sorry
+
+lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ nopert.vertices) (k : ℤ) :
+    RzC (2 * π * k / 15) x ∈ nopert.vertices := by
+  obtain ⟨y, hx2, ysub⟩ := every_nopert_vert_in_c15 x hx
+  exact ysub (rotation_preserves_c15_vertices hx2 k)
+
 lemma nopert_vertices_rotation_invariant :
    (RzC (π * (-2 / 15))) '' nopert.vertices = nopert.vertices := by
- sorry
+  ext x
+  constructor
+  · intro hx
+    simp_all only [Set.mem_image, SetLike.mem_coe]
+    obtain ⟨y, hy, hy2⟩ := hx
+    rw [← hy2]
+    have q := rotation_preserves_nopert_vertices y hy (-1)
+    ring_nf at q
+    exact q
+  · intro hx
+    simp_all only [Set.mem_image, SetLike.mem_coe]
+    use (RzC (π * (2 / 15)) x)
+    refine ⟨?_, ?_⟩
+    · have q := rotation_preserves_nopert_vertices x hx 1
+      ring_nf at q
+      exact q
+    · change (RzC (π * (-2 / 15)) * RzC (π * (2 / 15))) x = x
+      rw [← AddChar.map_add_eq_mul RzC]
+      ring_nf; simp
+
 
 lemma app_hull_eq_hull_app (s : Shape) (f : ℝ³ →L[ℝ] ℝ²) : f '' s.hull = convexHull ℝ (f '' s.vertices) :=
   f.image_convexHull s.vertices
