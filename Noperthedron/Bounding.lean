@@ -12,6 +12,9 @@ theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ �
   simp only [rot3] at this
   exact this
 
+/--
+First half of Lemma 13 from [SY25].
+-/
 theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
   by_cases h₁ : θ = θ_ ∧ φ = φ_
@@ -24,6 +27,9 @@ theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
   grw [ContinuousLinearMap.opNorm_comp_le, reduceL_norm, one_mul]
   sorry
 
+/--
+Second half of Lemma 13 from [SY25].
+-/
 theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖vecX θ φ - vecX θ_ φ_‖ < √2 * ε := by
   by_cases h₁ : θ = θ_ ∧ φ = φ_
@@ -34,6 +40,9 @@ theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
     positivity
   sorry
 
+/--
+[SY25] Lemma 14
+-/
 theorem XPgt0 {P : ℝ³} {ε θ θ_ φ φ_ : ℝ} (hP : ‖P‖ ≤ 1)
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hX : √2 * ε < ⟪vecX θ_ φ_, P⟫) :
@@ -49,6 +58,9 @@ theorem XPgt0 {P : ℝ³} {ε θ θ_ φ φ_ : ℝ} (hP : ‖P‖ ≤ 1)
      mul_le_mul_of_nonneg_left hP (norm_nonneg _)
   linarith
 
+/--
+[SY25] Lemma 15
+-/
 theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} {P : ℝ³}
     (hP : ‖P‖ ≤ 1) (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hM : r + √2 * ε < ‖rotM θ_ φ_ P‖) : r < ‖rotM θ φ P‖ := by
@@ -60,6 +72,9 @@ theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} {P : ℝ³}
   grw [hP, mul_one] at h₁
   linarith
 
+/--
+[SY25] Lemma 16
+-/
 theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) (hα : |α - α_| ≤ ε) :
     ‖rotprojRM θ φ α - rotprojRM θ_ φ_ α_‖ < √5 * ε := by
