@@ -85,11 +85,11 @@ lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : �
   simp [inner, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
   fun_prop
 
-theorem rotation_partials_bounded (S : ℝ³) (w : ℝ²) (x : ℝ³) :
+theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) (x : ℝ³) :
     mixed_partials_bounded (rotproj_inner_unit S w) x := by
   sorry
 
-theorem rotation_partials_bounded_outer (S : ℝ³) (w : ℝ²) (x : ℝ²) :
+theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1)  (x : ℝ²) :
     mixed_partials_bounded (rotproj_outer_unit S w) x := by
   sorry
 
@@ -441,7 +441,7 @@ lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
     pc.fu (rotation_partials_exist S_norm_pos)
     pbar.innerParams p.innerParams ε hε
     (closed_ball_imp_inner_params_near p_near_pbar)
-    (rotation_partials_bounded pc.S pc.w pbar.innerParams)
+    (rotation_partials_bounded pc.S pc.w_unit pbar.innerParams)
   simp only [G]
   refine sub_le_of_abs_sub_le_right ?_
   have hzs := mul_le_mul_of_nonneg_right hz (ha := le_of_lt S_norm_pos)
@@ -477,7 +477,7 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
     (pc.fu_outer P) (rotation_partials_exist_outer P_norm_pos)
     pbar.outerParams p.outerParams ε hε
     (closed_ball_imp_outer_params_near p_near_pbar)
-    (rotation_partials_bounded_outer P pc.w pbar.outerParams)
+    (rotation_partials_bounded_outer P pc.w_unit pbar.outerParams)
   simp_all only [H]
   rw [abs_sub_comm] at hz
   replace hz := sub_le_of_abs_sub_le_right hz
