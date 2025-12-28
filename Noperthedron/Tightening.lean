@@ -8,25 +8,19 @@ import Noperthedron.PoseInterval
 open Real
 namespace Tightening
 
-lemma rotM_neg_comm {θ φ : ℝ} (y : ℝ³) : (rotM θ φ) (-y) = -(rotM θ φ) y := by
-  ext i; fin_cases i <;> simp
-
 lemma rotM_preserves_pointsymmetry {θ φ : ℝ} (X : Finset ℝ³) (hX : PointSym (X : Set ℝ³)) :
     PointSym (rotM θ φ '' X) := by
   intro x hx
   simp only [Set.mem_image] at hx ⊢
   obtain ⟨y, hy, hy2⟩ := hx
-  exact ⟨-y, hX y hy, by rw [← hy2]; exact rotM_neg_comm y⟩
-
-lemma rotR_neg_comm {α : ℝ} (y : ℝ²) : (rotR α) (-y) = -(rotR α) y := by
-  ext i; fin_cases i <;> simp
+  exact ⟨-y, hX y hy, by rw [← hy2, (rotM θ φ).map_neg]⟩
 
 lemma rotR_preserves_pointsymmetry {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
     PointSym (rotR α '' X) := by
   intro x hx
   simp only [Set.mem_image] at hx ⊢
   obtain ⟨y, hy, hy2⟩ := hx
-  exact ⟨-y, hX y hy, by rw [← hy2]; exact rotR_neg_comm y⟩
+  exact ⟨-y, hX y hy, by rw [← hy2, (rotR α).map_neg]⟩
 
 lemma neg_image_eq_if_pointsym (X : Set ℝ²) (hX : PointSym X) : (-·) '' X = X := by
   simp only [Set.image_neg_eq_neg]; ext x
@@ -133,9 +127,7 @@ lemma nopert_vertices_rotation_invariant (k : ℤ) :
     simp_all only [Set.mem_image, SetLike.mem_coe]
     obtain ⟨y, hy, hy2⟩ := hx
     rw [← hy2]
-    have q := rotation_preserves_nopert_vertices y hy k
-    ring_nf at q ⊢
-    exact q
+    exact rotation_preserves_nopert_vertices y hy k
   · intro hx
     simp_all only [Set.mem_image, SetLike.mem_coe]
     use (RzC (2 * π * -k / 15) x)
