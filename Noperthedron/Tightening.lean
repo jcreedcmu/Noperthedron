@@ -43,9 +43,21 @@ lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
 
 set_option pp.coercions.types true
 
-lemma rotation_preserves_c15_vertices {x y : ℝ³} (hx : x ∈ pointsymmetrize (Nopert.C15 y)) (k : ℤ) :
-    RzC (2 * π * k / 15) x ∈ pointsymmetrize (Nopert.C15 y) := by
+lemma rotation_preserves_c15_vertices {x y : ℝ³} (hx : x ∈ (Nopert.C15 y)) (k : ℤ) :
+    RzC (2 * π * k / 15) x ∈ (Nopert.C15 y) := by
   sorry
+
+lemma rotation_preserves_pointsym_c15_vertices {x y : ℝ³} (hx : x ∈ pointsymmetrize (Nopert.C15 y)) (k : ℤ) :
+    RzC (2 * π * k / 15) x ∈ pointsymmetrize (Nopert.C15 y) := by
+  simp_all only [pointsymmetrize, Finset.mem_union]
+  rcases hx with h | h
+  · left; exact rotation_preserves_c15_vertices h k
+  · right
+    simp_all only [Finset.mem_image]
+    obtain ⟨a, ha, ha2⟩ := h
+    rw [← ha2]
+    use RzC (2 * π * k / 15) a
+    exact ⟨rotation_preserves_c15_vertices ha k, by simp⟩
 
 open Nopert in
 lemma every_nopert_vert_in_c15 (x : ℝ³) (hx : x ∈ nopert.vertices) :
@@ -89,7 +101,7 @@ lemma every_nopert_vert_in_c15 (x : ℝ³) (hx : x ∈ nopert.vertices) :
 lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ nopert.vertices) (k : ℤ) :
     RzC (2 * π * k / 15) x ∈ nopert.vertices := by
   obtain ⟨y, hx2, ysub⟩ := every_nopert_vert_in_c15 x hx
-  exact ysub (rotation_preserves_c15_vertices hx2 k)
+  exact ysub (rotation_preserves_pointsym_c15_vertices hx2 k)
 
 lemma nopert_vertices_rotation_invariant :
    (RzC (π * (-2 / 15))) '' nopert.vertices = nopert.vertices := by
