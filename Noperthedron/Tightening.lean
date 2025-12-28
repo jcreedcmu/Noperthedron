@@ -167,17 +167,60 @@ theorem lemma7_1 (θ φ : ℝ) :
   rw [ContinuousLinearMap.coe_mul, Set.image_comp, nopert_vertices_rotation_invariant]
 
 theorem lemma7_2 (θ φ α : ℝ) :
-  (rotR (α + π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull := by
-    suffices h : (rotR (α + π) ∘L rotM θ φ) '' nopert.vertices = (rotR α ∘L rotM θ φ) '' nopert.vertices by
-      rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
-    push_cast
-    repeat rw [Set.image_comp]
-    exact rotR_add_pi_eq_if_pointsym (rotM θ φ '' nopert.vertices)
-      (rotM_preserves_pointsymmetry nopert.vertices nopert_verts_pointsym)
+    (rotR (α + π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull := by
+  suffices h : (rotR (α + π) ∘L rotM θ φ) '' nopert.vertices = (rotR α ∘L rotM θ φ) '' nopert.vertices by
+    rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
+  push_cast
+  repeat rw [Set.image_comp]
+  exact rotR_add_pi_eq_if_pointsym (rotM θ φ '' nopert.vertices)
+    (rotM_preserves_pointsymmetry nopert.vertices nopert_verts_pointsym)
 
-theorem lemma7_3 (θ φ : ℝ) :
-  (flip_y ∘L rotM θ φ) '' nopert.hull = (-rotM (θ + π / 15) (π - φ)) '' nopert.hull := by
-    sorry
+lemma lemma7_3_calculation (θ φ : ℝ) (v : ℝ³) :
+    flip_y (rotM θ φ v) = - rotM (θ + π / 15) (π - φ) (RzC (16 * π / 15) v) := by
+  simp only [flip_y, flip_y_mat, rotM, RzC, rotM_mat]
+  ext i
+  simp only [neg_mul, LinearMap.coe_toContinuousLinearMap',
+    Function.comp_apply, Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply, Matrix.cons_mulVec,
+    Matrix.cons_dotProduct, Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one,
+    Nat.reduceAdd, Fin.succ_zero_eq_one, Fin.succ_one_eq_two, zero_mul,
+    Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec, Matrix.mulVec_cons,
+    Matrix.mulVec_empty, Pi.add_apply, Pi.smul_apply, Matrix.cons_val', Matrix.cons_val_zero,
+    Matrix.cons_val_fin_one, smul_eq_mul, Matrix.cons_val_one, cos_pi_sub, mul_neg, neg_neg,
+    sin_pi_sub, RzL, Rz_mat, AddChar.coe_mk, PiLp.neg_apply, one_mul, zero_add, Matrix.cons_val,
+    neg_add_rev]
+  have h0 : sin θ = sin (16 * π / 15) * cos (θ + π / 15) - cos (16 * π / 15) * sin (θ + π / 15) := calc
+    sin θ
+    _ = sin (-θ + π) := by simp
+    _ = sin ((- (θ + π / 15)) + (16 * π / 15)) := by ring_nf
+    _ = sin (16 * π / 15) * cos (- (θ + π / 15)) + cos (16 * π / 15) * sin (- (θ + π / 15)) := by
+      rw [sin_add]; ring_nf
+    _ = sin (16 * π / 15) * cos (θ + π / 15) - cos (16 * π / 15) * sin (θ + π / 15) := by
+      rw [sin_neg, cos_neg]; ring_nf
+
+  have h1 : cos θ = -cos (16 * π / 15) * cos (θ + π / 15) - sin (16 * π / 15) * sin (θ + π / 15) := calc
+    cos θ
+    _ = -(cos (θ - π)) := by simp
+    _ = -(cos (-(16 * π / 15) + (θ + π / 15))) := by ring_nf
+    _ = -cos (-(16 * π / 15)) * cos (θ + π / 15) + sin (- (16 * π / 15)) * sin (θ + π / 15) := by
+      rw [cos_add]; ring_nf
+    _ = -cos (16 * π / 15) * cos (θ + π / 15) - sin (16 * π / 15) * sin (θ + π / 15) := by
+      rw [sin_neg, cos_neg]; ring_nf
+
+  fin_cases i
+  · simp only [Fin.isValue, Fin.zero_eta, Matrix.cons_val_zero, mul_one, mul_zero, add_zero,
+    neg_zero, zero_add, mul_neg, neg_neg]
+    rw [h0, h1]
+    ring_nf
+  · simp only [Fin.isValue, Fin.mk_one, Matrix.cons_val_one, mul_zero, mul_neg, mul_one,
+    neg_add_rev, neg_neg, zero_add];
+    nth_rw 1 [h0, h1]
+    ring_nf
+
+theorem lemma7_3 (α θ φ : ℝ) :
+    (flip_y ∘L rotM θ φ) '' nopert.hull = (-rotM (θ + π / 15) (π - φ)) '' nopert.hull := by
+  suffices h : (flip_y ∘L rotM θ φ) '' nopert.vertices = (-rotM (θ + π / 15) (π - φ)) '' nopert.vertices by
+    rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
+  sorry
 
 -- [SY25] §2.2, Corollary 8
 -- This is a piece that relies on symmetry of the Noperthedron
