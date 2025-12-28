@@ -103,6 +103,34 @@ theorem Rz_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
   simp only [ContinuousLinearMap.norm_def]
   simp_rw [ContinuousLinearMap.comp_apply, Rz_preserves_norm]
 
+theorem Rz_comp_right_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
+    ‖A ∘L (RzL α)‖ = ‖A‖ := by
+  simp only [ContinuousLinearMap.norm_def]
+  simp_rw [ContinuousLinearMap.comp_apply]
+  have h_sets_eq : {c : ℝ | 0 ≤ c ∧ ∀ x : Euc(3), ‖A (RzL α x)‖ ≤ c * ‖x‖} =
+                   {c : ℝ | 0 ≤ c ∧ ∀ x : Euc(3), ‖A x‖ ≤ c * ‖x‖} := by
+    have h_inv : ∀ x : Euc(3), ∃ y : Euc(3), RzL α y = x := by
+      have h_inv : Function.Bijective (RzL α) := by
+        have h_bijective : Function.Injective (RzL α) := by
+          intro x y hxy
+          have := Rz_preserves_norm α (x - y)
+          simp only [map_sub, sub_self, norm_zero, hxy] at this
+          exact sub_eq_zero.mp (norm_eq_zero.mp this.symm)
+        exact ⟨h_bijective, LinearMap.surjective_of_injective h_bijective⟩
+      exact h_inv.surjective
+    ext c
+    apply Iff.intro
+    · intro hc;
+      refine ⟨hc.1, fun x ↦ ?_⟩
+      obtain ⟨ y, rfl ⟩ := h_inv x
+      have := hc.2 y
+      nth_rw 2 [←Rz_preserves_norm α] at this
+      exact this
+    · intro hc
+      refine ⟨hc.1, fun x ↦ ?_⟩
+      simpa only [Rz_preserves_norm α] using hc.2 (RzL α x)
+  rw [h_sets_eq]
+
 theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine le_antisymm ?_ ?_
   · refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_

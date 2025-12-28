@@ -25,6 +25,7 @@ theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
     positivity
   simp only [rotM_identity, ←ContinuousLinearMap.comp_sub]
   grw [ContinuousLinearMap.opNorm_comp_le, reduceL_norm, one_mul]
+  rw [←Ry_preserves_op_norm (-φ), ContinuousLinearMap.comp_sub]
   sorry
 
 /--
