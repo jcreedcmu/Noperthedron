@@ -1,12 +1,12 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Data.Real.CompleteField
 
+import Noperthedron.EuclideanSpaceNotation
+
 namespace Local
 
 open scoped RealInnerProductSpace Real
 open scoped Matrix
-
-notation "Euc(" n:arg ")" => EuclideanSpace ℝ (Fin n)
 
 /-- The positive cone of a finite collection of vectors -/
 def Spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=

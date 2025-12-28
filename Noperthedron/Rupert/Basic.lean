@@ -1,9 +1,8 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
-open scoped Matrix
+import Noperthedron.EuclideanSpaceNotation
 
-notation "ℝ³" => EuclideanSpace ℝ (Fin 3)
-notation "ℝ²" => EuclideanSpace ℝ (Fin 2)
+open scoped Matrix
 
 /-
 Convenience conversions from raw vectors to Lₚ space elements.
