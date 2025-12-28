@@ -257,3 +257,11 @@ def Nopert.poly : GoodPoly := {
   nontriv := nopert_verts_nontriv,
   radius_eq_one := Nopert.noperthedron_radius_one,
 }
+
+section Nopert
+
+lemma pointsym_c1r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C1R) ⊆ nopert.vertices := by sorry
+lemma pointsym_c2r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C2R) ⊆ nopert.vertices := by sorry
+lemma pointsym_c3r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C3R) ⊆ nopert.vertices := by sorry
+
+end Nopert

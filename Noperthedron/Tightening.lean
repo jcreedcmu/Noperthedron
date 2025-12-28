@@ -41,19 +41,50 @@ lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
   rw [this, Set.image_comp]
   exact neg_image_eq_if_pointsym (rotR α '' X) (rotR_preserves_pointsymmetry X hX)
 
-lemma rotation_preserves_c15_vertices {x y : ℝ³} (hx : x ∈ Nopert.C15 y) (k : ℤ) :
-    RzC (2 * π * k / 15) x ∈ Nopert.C15 y := by
-  simp_all only [Nopert.C15, Finset.mem_image, Finset.mem_range]
-  obtain ⟨a, ha15, har⟩ := hx
-  rw [← har]
-  use ((a + k).natMod 15)
-  constructor
-  · exact Int.natMod_lt (by norm_num)
-  · sorry
+set_option pp.coercions.types true
 
-lemma every_nopert_vert_in_c15 (x : ℝ³) (hx : x ∈ nopert.vertices) :
-    ∃ (y : ℝ³), x ∈ Nopert.C15 y ∧ Nopert.C15 y ⊆ nopert.vertices := by
+lemma rotation_preserves_c15_vertices {x y : ℝ³} (hx : x ∈ pointsymmetrize (Nopert.C15 y)) (k : ℤ) :
+    RzC (2 * π * k / 15) x ∈ pointsymmetrize (Nopert.C15 y) := by
   sorry
+
+open Nopert in
+lemma every_nopert_vert_in_c15 (x : ℝ³) (hx : x ∈ nopert.vertices) :
+    ∃ (y : ℝ³), x ∈ pointsymmetrize (Nopert.C15 y) ∧ pointsymmetrize (Nopert.C15 y) ⊆ nopert.vertices := by
+  simp only [nopert, nopertVerts, pointsymmetrize] at hx
+  simp only [Finset.mem_union, Finset.mem_image] at hx
+  rcases hx with h | h
+  · simp only [halfNopertVerts, Finset.mem_union] at h
+    rcases h with (h | h) | h
+    · use Nopert.C1R
+      constructor
+      · simp only [pointsymmetrize, Finset.mem_union]; left; exact h
+      · exact pointsym_c1r_sub_nopert
+    · use Nopert.C2R
+      constructor
+      · simp only [pointsymmetrize, Finset.mem_union]; left; exact h
+      · exact pointsym_c2r_sub_nopert
+    · use Nopert.C3R
+      constructor
+      · simp only [pointsymmetrize, Finset.mem_union]; left; exact h
+      · exact pointsym_c3r_sub_nopert
+  · obtain ⟨a, ha, ha2⟩ := h
+    simp only [halfNopertVerts, Finset.mem_union] at ha
+    rcases ha with (h | h) | h
+    · use Nopert.C1R
+      rw [← ha2]
+      constructor
+      · simp only [pointsymmetrize, Finset.mem_union]; right; simpa using h
+      · exact pointsym_c1r_sub_nopert
+    · use Nopert.C2R
+      rw [← ha2]
+      constructor
+      · simp only [pointsymmetrize, Finset.mem_union]; right; simpa using h
+      · exact pointsym_c2r_sub_nopert
+    · use Nopert.C3R
+      rw [← ha2]
+      constructor
+      · simp only [pointsymmetrize, Finset.mem_union]; right; simpa using h
+      · exact pointsym_c3r_sub_nopert
 
 lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ nopert.vertices) (k : ℤ) :
     RzC (2 * π * k / 15) x ∈ nopert.vertices := by
