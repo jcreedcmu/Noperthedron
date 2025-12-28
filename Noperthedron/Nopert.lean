@@ -260,8 +260,43 @@ def Nopert.poly : GoodPoly := {
 
 section Nopert
 
-lemma pointsym_c1r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C1R) ⊆ nopert.vertices := by sorry
-lemma pointsym_c2r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C2R) ⊆ nopert.vertices := by sorry
-lemma pointsym_c3r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C3R) ⊆ nopert.vertices := by sorry
+lemma pointsym_c1r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C1R) ⊆ nopert.vertices := by
+  simp only [nopert, nopertVerts, pointsymmetrize, halfNopertVerts]
+  intro x hx
+  simp only [Finset.mem_union] at hx ⊢
+  rcases hx with h | h
+  · exact Or.inl (Or.inl (Or.inl h))
+  · right
+    simp_all only [Finset.mem_image]
+    obtain ⟨y, hy, hy2⟩ := h
+    use y
+    simp only [Finset.mem_union]
+    exact ⟨Or.inl (Or.inl hy), hy2⟩
+
+lemma pointsym_c2r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C2R) ⊆ nopert.vertices := by
+  simp only [nopert, nopertVerts, pointsymmetrize, halfNopertVerts]
+  intro x hx
+  simp only [Finset.mem_union] at hx ⊢
+  rcases hx with h | h
+  · exact Or.inl (Or.inl (Or.inr h))
+  · right
+    simp_all only [Finset.mem_image]
+    obtain ⟨y, hy, hy2⟩ := h
+    use y
+    simp only [Finset.mem_union]
+    exact ⟨Or.inl (Or.inr hy), hy2⟩
+
+lemma pointsym_c3r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C3R) ⊆ nopert.vertices := by
+  simp only [nopert, nopertVerts, pointsymmetrize, halfNopertVerts]
+  intro x hx
+  simp only [Finset.mem_union] at hx ⊢
+  rcases hx with h | h
+  · exact Or.inl (Or.inr h)
+  · right
+    simp_all only [Finset.mem_image]
+    obtain ⟨y, hy, hy2⟩ := h
+    use y
+    simp only [Finset.mem_union]
+    exact ⟨Or.inr hy, hy2⟩
 
 end Nopert
