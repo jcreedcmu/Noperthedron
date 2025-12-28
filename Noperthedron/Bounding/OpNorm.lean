@@ -31,9 +31,10 @@ theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
   · ring_nf
   simp
 
-theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 := by
-  refine norm_one_of_preserves_sq_norm ?_
+theorem Rx_preserves_norm (α : ℝ) :
+    ∀ (v : E 3), ‖(RxL α) v‖ = ‖v‖ := by
   intro v
+  suffices h : ‖(RxL α) v‖^2 = ‖v‖^2  by simp_all
   simp only [RxL, Rx_mat, PiLp.norm_sq_eq_of_L2]
   simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
     Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
@@ -46,20 +47,27 @@ theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 := by
   · ring_nf
   simp
 
-theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 := by
-  refine norm_one_of_preserves_sq_norm ?_
+theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 :=
+  norm_one_of_preserves_norm (Rx_preserves_norm α)
+
+theorem Ry_preserves_norm (α : ℝ) :
+    ∀ (v : E 3), ‖(RyL α) v‖ = ‖v‖ := by
   intro v
+  suffices h : ‖(RyL α) v‖^2 = ‖v‖^2  by simp_all
   simp only [RyL, Ry_mat, PiLp.norm_sq_eq_of_L2]
   simp only [LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
     Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
     Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, Matrix.cons_val]
   ring_nf
   convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
-           + (v 1)^2
-           + (v 2)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
+             + (v 1)^2
+             + (v 2)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
            = _
   · ring_nf
   simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
+
+theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 :=
+  norm_one_of_preserves_norm (Ry_preserves_norm α)
 
 theorem Rz_preserves_norm (α : ℝ) :
     ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ := by
