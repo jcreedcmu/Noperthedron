@@ -41,8 +41,6 @@ lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
   rw [this, Set.image_comp]
   exact neg_image_eq_if_pointsym (rotR α '' X) (rotR_preserves_pointsymmetry X hX)
 
--- set_option pp.coercions.types true
-
 lemma rotation_preserves_c15_vertices {x y : ℝ³} (hx : x ∈ (Nopert.C15 y)) (k : ℤ) :
     RzC (2 * π * k / 15) x ∈ (Nopert.C15 y) := by
   simp_all only [Nopert.C15, Finset.mem_image]
@@ -127,25 +125,26 @@ lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ nopert.vertices
   obtain ⟨y, hx2, ysub⟩ := every_nopert_vert_in_c15 x hx
   exact ysub (rotation_preserves_pointsym_c15_vertices hx2 k)
 
-lemma nopert_vertices_rotation_invariant :
-   (RzC (π * (-2 / 15))) '' nopert.vertices = nopert.vertices := by
+lemma nopert_vertices_rotation_invariant (k : ℤ) :
+    (RzC (2 * π * k / 15)) '' nopert.vertices = nopert.vertices := by
   ext x
   constructor
   · intro hx
     simp_all only [Set.mem_image, SetLike.mem_coe]
     obtain ⟨y, hy, hy2⟩ := hx
     rw [← hy2]
-    have q := rotation_preserves_nopert_vertices y hy (-1)
-    ring_nf at q
+    have q := rotation_preserves_nopert_vertices y hy k
+    ring_nf at q ⊢
     exact q
   · intro hx
     simp_all only [Set.mem_image, SetLike.mem_coe]
-    use (RzC (π * (2 / 15)) x)
+    use (RzC (2 * π * -k / 15) x)
     refine ⟨?_, ?_⟩
-    · have q := rotation_preserves_nopert_vertices x hx 1
-      ring_nf at q
+    · have q := rotation_preserves_nopert_vertices x hx (-k)
+      push_cast at q
+      ring_nf at q ⊢
       exact q
-    · change (RzC (π * (-2 / 15)) * RzC (π * (2 / 15))) x = x
+    · change (RzC (2 * π * ↑k / 15) * (RzC (2 * π * -↑k / 15))) x = x
       rw [← AddChar.map_add_eq_mul RzC]
       ring_nf; simp
 
@@ -164,7 +163,9 @@ theorem lemma7_1 (θ φ : ℝ) :
   change (RzC (-(θ + 2 / 15 * π))) '' nopert.vertices = (RzC (-θ)) '' nopert.vertices
   ring_nf
   conv => arg 1; arg 1; intro a; simp only [AddChar.map_add_eq_mul]
-  rw [ContinuousLinearMap.coe_mul, Set.image_comp, nopert_vertices_rotation_invariant]
+  rw [ContinuousLinearMap.coe_mul, Set.image_comp,
+    show π * (-2 / 15) = 2 * π * (-1:ℤ) / 15 by ring_nf,
+    nopert_vertices_rotation_invariant]
 
 theorem lemma7_2 (θ φ α : ℝ) :
     (rotR (α + π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull := by
@@ -216,11 +217,18 @@ lemma lemma7_3_calculation (θ φ : ℝ) (v : ℝ³) :
     nth_rw 1 [h0, h1]
     ring_nf
 
-theorem lemma7_3 (α θ φ : ℝ) :
+theorem lemma7_3 (θ φ : ℝ) :
     (flip_y ∘L rotM θ φ) '' nopert.hull = (-rotM (θ + π / 15) (π - φ)) '' nopert.hull := by
   suffices h : (flip_y ∘L rotM θ φ) '' nopert.vertices = (-rotM (θ + π / 15) (π - φ)) '' nopert.vertices by
     rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
-  sorry
+  simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, lemma7_3_calculation]
+  have : (fun a ↦ -(rotM (θ + π / 15) (π - φ)) ((RzC (16 * π / 15)) a)) =
+    (fun a ↦ -(rotM (θ + π / 15) (π - φ)) a) ∘ (RzC (16 * π / 15)) := by rfl
+  rw [this, Set.image_comp]
+  congr
+  convert_to (RzC (2 * π * 8 / 15)) '' nopert.vertices = nopert.vertices
+  · ring_nf
+  exact nopert_vertices_rotation_invariant 8
 
 -- [SY25] §2.2, Corollary 8
 -- This is a piece that relies on symmetry of the Noperthedron
