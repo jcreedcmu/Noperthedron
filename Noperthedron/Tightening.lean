@@ -41,11 +41,35 @@ lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
   rw [this, Set.image_comp]
   exact neg_image_eq_if_pointsym (rotR α '' X) (rotR_preserves_pointsymmetry X hX)
 
-set_option pp.coercions.types true
+-- set_option pp.coercions.types true
 
 lemma rotation_preserves_c15_vertices {x y : ℝ³} (hx : x ∈ (Nopert.C15 y)) (k : ℤ) :
     RzC (2 * π * k / 15) x ∈ (Nopert.C15 y) := by
-  sorry
+  simp_all only [Nopert.C15, Finset.mem_image]
+  obtain ⟨a, ha, ha2⟩ := hx
+  rw [← ha2]
+  use (a + k).natMod 15
+  simp only [Finset.mem_range]
+  refine ⟨Int.natMod_lt (by norm_num), ?_⟩
+  change RzC (2 * π * (a + k).natMod 15 / 15) y = (RzC (2 * π * k / 15) * RzC (2 * π * a / 15)) y
+  rw [← AddChar.map_add_eq_mul RzC]
+  rw [show 2 * π * k / 15 + 2 * π * a / 15 = 2 * π * (a + k) / 15 by ring_nf]
+  let apk : ℤ := a + k
+  convert_to RzC (2 * π * ↑(apk.natMod 15) / 15) y = RzC (2 * π * apk / 15) y
+  · simp [apk]
+  rw [show (↑(apk.natMod 15) : ℝ) = (↑(↑(apk.natMod 15) : ℤ) : ℝ) by rfl]
+  have (z : ℤ) : (z.natMod 15 : ℤ) = z % 15 := by
+    simp only [Int.natMod]; grind
+  rw [this]
+  -- at this point we are proving
+  -- (RzC (2 * π * (apk % 15) / 15)) y = (RzC (2 * π * apk / 15)) y
+  rw [Int.emod_def]; push_cast; rw [mul_sub, sub_div]
+  have :
+      2 * π * (↑apk : ℝ) / 15 - 2 * π * (15 * (↑(apk / 15) : ℝ)) / 15 =
+      2 * π * (↑apk : ℝ) / 15 + 2 * π * ((↑(-(apk / 15)) : ℝ)) := by
+    push_cast; ring_nf
+  rw [this, AddChar.map_add_eq_mul, RzC_periodic (-↑(apk / 15))]
+  simp
 
 lemma rotation_preserves_pointsym_c15_vertices {x y : ℝ³} (hx : x ∈ pointsymmetrize (Nopert.C15 y)) (k : ℤ) :
     RzC (2 * π * k / 15) x ∈ pointsymmetrize (Nopert.C15 y) := by
@@ -124,7 +148,6 @@ lemma nopert_vertices_rotation_invariant :
     · change (RzC (π * (-2 / 15)) * RzC (π * (2 / 15))) x = x
       rw [← AddChar.map_add_eq_mul RzC]
       ring_nf; simp
-
 
 lemma app_hull_eq_hull_app (s : Shape) (f : ℝ³ →L[ℝ] ℝ²) : f '' s.hull = convexHull ℝ (f '' s.vertices) :=
   f.image_convexHull s.vertices

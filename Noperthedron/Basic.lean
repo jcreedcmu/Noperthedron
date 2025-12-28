@@ -134,6 +134,19 @@ def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
       try ring_nf
     }
 
+theorem RzC_periodic (z : ℤ) : RzC (2 * π * z) = RzC 0 := by
+  have hc : cos (2 * π * z) = 1 := by
+    convert_to cos (z * ↑(2 * π)) = 1
+    · ring_nf
+    rw [Real.cos_int_mul_two_pi]
+  have hs : sin (2 * π * z) = 0 := by
+    convert_to sin (↑(2 * z) * π) = 0
+    · push_cast; ring_nf
+    rw [Real.sin_int_mul_pi]
+  ext v i
+  simp only [RzC, RzL, Rz_mat, AddChar.coe_mk, hc, hs]
+  simp
+
 noncomputable
 def rot3_mat : Fin 3 → ℝ → Matrix (Fin 3) (Fin 3) ℝ
   | 0 => Rx_mat
