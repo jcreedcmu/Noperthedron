@@ -50,6 +50,11 @@ theorem Rx_preserves_norm (α : ℝ) :
 theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 :=
   norm_one_of_preserves_norm (Rx_preserves_norm α)
 
+theorem Rx_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
+    ‖(RxL α).comp A‖ = ‖A‖ := by
+  simp only [ContinuousLinearMap.norm_def]
+  simp_rw [ContinuousLinearMap.comp_apply, Rx_preserves_norm]
+
 theorem Ry_preserves_norm (α : ℝ) :
     ∀ (v : E 3), ‖(RyL α) v‖ = ‖v‖ := by
   intro v
@@ -69,6 +74,11 @@ theorem Ry_preserves_norm (α : ℝ) :
 theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 :=
   norm_one_of_preserves_norm (Ry_preserves_norm α)
 
+theorem Ry_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
+    ‖(RyL α).comp A‖ = ‖A‖ := by
+  simp only [ContinuousLinearMap.norm_def]
+  simp_rw [ContinuousLinearMap.comp_apply, Ry_preserves_norm]
+
 theorem Rz_preserves_norm (α : ℝ) :
     ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ := by
   intro v
@@ -87,6 +97,11 @@ theorem Rz_preserves_norm (α : ℝ) :
 
 theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 :=
   norm_one_of_preserves_norm (Rz_preserves_norm α)
+
+theorem Rz_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
+    ‖(RzL α).comp A‖ = ‖A‖ := by
+  simp only [ContinuousLinearMap.norm_def]
+  simp_rw [ContinuousLinearMap.comp_apply, Rz_preserves_norm]
 
 theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine le_antisymm ?_ ?_
