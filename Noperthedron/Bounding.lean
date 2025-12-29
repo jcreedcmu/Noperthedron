@@ -26,6 +26,39 @@ theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
   simp only [rotM_identity, ←ContinuousLinearMap.comp_sub]
   grw [ContinuousLinearMap.opNorm_comp_le, reduceL_norm, one_mul]
   rw [←Ry_preserves_op_norm (-φ), ContinuousLinearMap.comp_sub]
+  rw [←Rz_comp_right_preserves_op_norm θ, ContinuousLinearMap.sub_comp]
+  have h₂ : ((RyL (-φ)).comp ((RyL φ).comp (RzL (-θ)))).comp (RzL θ) =
+      (RyL (-φ) ∘L (RyL φ)) ∘L (RzL (-θ) ∘L (RzL θ)) := by
+    rw [←ContinuousLinearMap.comp_assoc, ←ContinuousLinearMap.comp_assoc]
+  have h₃ : (RyL (-φ)).comp (RyL φ) = ContinuousLinearMap.id _ _ := by
+    have h₄ : (RyL (-φ)).comp (RyL φ) = RyL (-φ + φ) := by
+      rw [show RyL = RyC from rfl]
+      have : (RyC (-φ)).comp (RyC φ) = (RyC (-φ)) * (RyC φ) := by rfl
+      rw [this, ←AddChar.map_add_eq_mul]
+    rw [h₄]
+    rw [show RyL = RyC from rfl]
+    simp [ContinuousLinearMap.one_def]
+  have h₅ : (RzL (-θ)).comp (RzL θ) = ContinuousLinearMap.id _ _ := by
+    have h₄ : (RzL (-θ)).comp (RzL θ) = RzL (-θ + θ) := by
+      rw [show RzL = RzC from rfl]
+      have : (RzC (-θ)).comp (RzC θ) = (RzC (-θ)) * (RzC θ) := by rfl
+      rw [this, ←AddChar.map_add_eq_mul]
+    rw [h₄]
+    rw [show RzL = RzC from rfl]
+    simp [ContinuousLinearMap.one_def]
+  rw [h₂, h₃, h₅, ContinuousLinearMap.id_comp, ←ContinuousLinearMap.one_def]
+  have h₆ : ((RyL (-φ)).comp ((RyL φ_).comp (RzL (-θ_)))).comp (RzL θ) =
+      (RyL (-φ) ∘L (RyL φ_)) ∘L (RzL (-θ_) ∘L (RzL θ)) := by
+    rw [←ContinuousLinearMap.comp_assoc, ←ContinuousLinearMap.comp_assoc]
+  rw [h₆]
+  clear h₂ h₃ h₅ h₆
+  rw [show RyL = RyC from rfl, show RzL = RzC from rfl]
+  rw [show (RzC (-θ_)).comp (RzC θ) = (RzC (-θ_)) * (RzC θ) from rfl]
+  rw [show (RyC (-φ)).comp (RyC φ_) = (RyC (-φ)) * (RyC φ_) from rfl]
+  simp only [←AddChar.map_add_eq_mul]
+  rw [norm_sub_rev]
+  have h₇ := lemma12 (d := 1) (d' := 2) (α := -φ + φ) (β := -θ_ + θ) (by decide)
+  simp only [rot3] at h₇
   sorry
 
 /--
