@@ -31,9 +31,7 @@ def flip_y : (ℝ² →L[ℝ] ℝ²) := flip_y_mat |>.toEuclideanLin.toContinuou
 @[simp]
 noncomputable
 def flip_y_equiv : (ℝ² ≃L[ℝ] ℝ²) := {
-  toFun := flip_y,
-  map_add' := flip_y.map_add',
-  map_smul' := flip_y.map_smul',
+  flip_y with
   invFun := flip_y,
   left_inv := by intro v; ext i; fin_cases i <;> (simp [Matrix.vecHead, Matrix.vecTail])
   right_inv := by intro v; ext i; fin_cases i <;> (simp [Matrix.vecHead, Matrix.vecTail])
