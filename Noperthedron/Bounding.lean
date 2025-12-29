@@ -57,9 +57,19 @@ theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
   rw [show (RyC (-φ)).comp (RyC φ_) = (RyC (-φ)) * (RyC φ_) from rfl]
   simp only [←AddChar.map_add_eq_mul]
   rw [norm_sub_rev]
-  have h₇ := lemma12 (d := 1) (d' := 2) (α := -φ + φ) (β := -θ_ + θ) (by decide)
+  have h₇ := lemma12 (d := 1) (d' := 2) (α := -φ + φ_) (β := -θ_ + θ) (by decide)
+  have h₇' := lemma12_equality_iff (d := 1) (d' := 2) (α := -φ + φ_) (β := -θ_ + θ) (by decide)
+  have h11 : ¬ (-φ + φ_ = 0 ∧ -θ_ + θ = 0) := by grind
+  replace h₇' := h₇'.not.mpr h11
+  replace h₇ := lt_of_le_of_ne h₇ h₇'
   simp only [rot3] at h₇
-  sorry
+  suffices √((-φ + φ_) ^ 2 + (-θ_ + θ) ^ 2) ≤ √2 * ε by linarith
+  rw [←sq_abs (-φ + _), ←sq_abs (-θ_ + _)]
+  suffices (√(|-φ + φ_| ^ 2 + |-θ_ + θ| ^ 2)) ^ 2 ≤ (√2 * ε) ^ 2 by
+    exact (sq_le_sq₀ (by positivity) (by positivity)).mp this
+  rw [Real.sq_sqrt (by positivity), mul_pow, Real.sq_sqrt (by positivity), two_mul]
+  rw [show |-θ_ + θ| = |θ - θ_| by grind, show |-φ + φ_| = |φ - φ_| by grind]
+  gcongr
 
 /--
 Second half of Lemma 13 from [SY25].
