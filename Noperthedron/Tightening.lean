@@ -209,6 +209,8 @@ lemma lemma7_3_calculation (θ φ : ℝ) (v : ℝ³) :
     nth_rw 1 [h0, h1]
     ring_nf
 
+lemma neg_lin_eq_lin_neg (f : ℝ³ →L[ℝ] ℝ²) : ⇑(-f) = f ∘ (fun x => -x) := by ext; simp
+
 theorem lemma7_3 (θ φ : ℝ) :
     (flip_y ∘L rotM θ φ) '' nopert.hull = (rotM (θ + π / 15) (π - φ)) '' nopert.hull := by
   suffices h : (flip_y ∘L rotM θ φ) '' nopert.vertices = (rotM (θ + π / 15) (π - φ)) '' nopert.vertices by
@@ -218,7 +220,10 @@ theorem lemma7_3 (θ φ : ℝ) :
     (fun a ↦ -(rotM (θ + π / 15) (π - φ)) a) ∘ (RzC (16 * π / 15)) := by rfl
   have h2 : (rotM (θ + π / 15) (π - φ)) '' ↑nopert.vertices =
       (-rotM (θ + π / 15) (π - φ)) '' ↑nopert.vertices := by
-    sorry
+    rw [neg_lin_eq_lin_neg (rotM (θ + π / 15) (π - φ)), Set.image_comp]
+    congr
+    rw [pointsym_imp_neg_image_eq]
+    exact nopert_verts_pointsym
   rw [h2, h1, Set.image_comp]
   congr
   convert_to (RzC (2 * π * ↑8 / 15)) '' ↑nopert.vertices = ↑nopert.vertices
