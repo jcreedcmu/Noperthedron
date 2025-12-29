@@ -3,6 +3,7 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import Noperthedron.Basic
 import Noperthedron.PoseInterval
+import Noperthedron.Local.Coss
 import Noperthedron.Local.Prelims
 import Noperthedron.Local.OriginInTriangle
 import Noperthedron.Local.Lemma23
@@ -53,18 +54,6 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
     (hQ : Q ∈ P) (hQ_ : ‖Q - Q_‖ < δ) (hr : 0 < r) (hrQ : r < ‖Q‖)
     (hle : ∀ Pᵢ ∈ P \ {Q}, δ / r ≤ ⟪Q, Q - Pᵢ⟫ / (‖Q‖ * ‖Q - Pᵢ‖)) :
     LocallyMaximallyDistant δ Q Q_ P := by
-  sorry
-
-/-- [SY25] Lemma 33 -/
-theorem coss {δ ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
-    (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
-    (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
-    let M := rotM θ φ
-    let M_ := rotM θ_ φ_
-    (⟪M_ P, M_ (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)) /
-     ((‖M_ P‖ + √2 * ε) * (‖M_ (P - Q)‖ + 2 * √2 * ε))
-    ≤
-     ⟪M P, M (P - Q)⟫ / (‖M P‖ * ‖M (P - Q)‖):= by
   sorry
 
 /--
