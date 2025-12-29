@@ -242,30 +242,25 @@ def flip_phi2 (p : Pose) : Pose := {
   α := -p.α,
 }
 
-theorem rupert_imp_flip_phi2_rupert (p : Pose) (r : RupertPose p nopert.hull) :
+theorem rupert_imp_flip_phi2_rupert2 (p : Pose) (r : RupertPose p nopert.hull) :
     RupertPose (flip_phi2 p) nopert.hull := by
-  simp_all only [RupertPose]
-  rw [Pose.inner_shadow_eq_RM, Pose.outer_shadow_eq_M, Pose.rotM₁, Pose.rotM₂, Pose.rotR] at r ⊢
-  simp only [flip_phi2]
-  have zz : flip_y '' (closure (((rotR p.α).comp (rotM p.θ₁ p.φ₁)) '' nopert.hull)) ⊆
-      flip_y '' (interior ((rotM p.θ₂ p.φ₂) '' nopert.hull)) := Set.image_mono r
-  have flip_closure_eq_closure_flip (S : Set ℝ²) : flip_y '' (closure S) = closure (flip_y '' S) :=
-    flip_y_equiv.toHomeomorph.image_closure S
-  have flip_interior_eq_interior_flip (S : Set ℝ²) : flip_y '' (interior S) = interior (flip_y '' S) :=
-    flip_y_equiv.toHomeomorph.image_interior S
-  rw [flip_closure_eq_closure_flip, flip_interior_eq_interior_flip] at zz
-  repeat rw [← Set.image_comp] at zz
-  change
-    closure (((flip_y ∘L (rotR p.α)) ∘L rotM p.θ₁ p.φ₁) '' nopert.hull) ⊆
-    interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' nopert.hull) at zz
-  rw [flip_rotR_swap_minus] at zz
-  change
-    closure ((rotR (-p.α) ∘ ((flip_y ∘L rotM p.θ₁ p.φ₁) : ℝ³ → ℝ²)) '' nopert.hull) ⊆
-    interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' nopert.hull) at zz
-  rw [Set.image_comp] at zz
-  rw [lemma7_3, lemma7_3] at zz
-  rw [← Set.image_comp] at zz
-  exact zz
+  simp_all only [RupertPose, Pose.inner_shadow_eq_RM, Pose.outer_shadow_eq_M,
+    Pose.rotM₁, Pose.rotM₂, Pose.rotR, flip_phi2]
+
+  calc closure ((rotR (-p.α) ∘ (rotM (p.θ₁ + π / 15) (π - p.φ₁))) '' nopert.hull)
+    _ = closure (rotR (-p.α) '' (rotM (p.θ₁ + π / 15) (π - p.φ₁) '' nopert.hull)) := by rw [Set.image_comp]
+    _ = closure (rotR (-p.α) '' ((flip_y ∘L rotM p.θ₁ p.φ₁) '' nopert.hull)) := by rw [lemma7_3]
+    _ = closure ((rotR (-p.α) ∘ (flip_y ∘L rotM p.θ₁ p.φ₁)) '' nopert.hull) := by rw [Set.image_comp]
+    _ = closure (((rotR (-p.α) ∘L flip_y) ∘L rotM p.θ₁ p.φ₁) '' nopert.hull) := by rfl
+    _ = closure (((flip_y ∘L rotR (p.α)) ∘L rotM p.θ₁ p.φ₁) '' nopert.hull) := by rw [flip_rotR_swap_minus]
+    _ = closure (((flip_y ∘ (rotR (p.α) ∘L rotM p.θ₁ p.φ₁))) '' nopert.hull) := by rfl
+    _ = closure (flip_y '' ((rotR (p.α) ∘L rotM p.θ₁ p.φ₁) '' nopert.hull)) := by rw [Set.image_comp]
+    _ = flip_y '' closure ((rotR (p.α) ∘L rotM p.θ₁ p.φ₁) '' nopert.hull) := flip_y_equiv.toHomeomorph.image_closure _ |>.symm
+    _ ⊆ flip_y '' interior ((rotM p.θ₂ p.φ₂ '' nopert.hull)) := Set.image_mono r
+    _ = interior (flip_y '' (rotM p.θ₂ p.φ₂ '' nopert.hull)) := flip_y_equiv.toHomeomorph.image_interior _
+    _ = interior ((flip_y ∘ rotM p.θ₂ p.φ₂) '' nopert.hull) := by rw [Set.image_comp]
+    _ = interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' nopert.hull) := by rfl
+    _ = interior ((rotM (p.θ₂ + π / 15) (π - p.φ₂)) '' nopert.hull) := by rw [lemma7_3]
 
 -- [SY25] §2.2, Corollary 8
 -- This is a piece that relies on symmetry of the Noperthedron
