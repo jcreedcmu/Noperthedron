@@ -27,7 +27,7 @@ def rot3_eq_rot3_mat_toEuclideanLin {d : Fin 3} {θ : ℝ}: rot3 d θ = (rot3_ma
 lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ico (-π) π ∧
     rot3 d α ∘L rot3 d' β =
-      u.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toContinuousLinearMap := by
+      u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
   sorry
 
 noncomputable abbrev tr := LinearMap.trace ℝ ℝ³
