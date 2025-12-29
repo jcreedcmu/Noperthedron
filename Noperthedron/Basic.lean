@@ -147,6 +147,31 @@ theorem RzC_periodic (z : ℤ) : RzC (2 * π * z) = RzC 0 := by
   simp only [RzC, RzL, Rz_mat, AddChar.coe_mk, hc, hs]
   simp
 
+@[simp]
+noncomputable
+def rot2_mat (α : ℝ) : Matrix (Fin 2) (Fin 2) ℝ :=
+  Matrix.of fun
+      | 0, 0 => Real.cos α
+      | 0, 1 => -Real.sin α
+      | 1, 0 => Real.sin α
+      | 1, 1 => Real.cos α
+
+@[simp]
+noncomputable
+def rot2 : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
+  toFun α := (rot2_mat α).toEuclideanLin.toContinuousLinearMap
+  map_zero_eq_one' := by
+    ext v i
+    fin_cases i <;> simp [Matrix.toEuclideanLin_apply, Matrix.mulVec]
+
+  map_add_eq_mul' := by
+    intro α β
+    ext v i
+    fin_cases i <;> {
+      simp [Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, rot2_mat, cos_add, sin_add]
+      ring_nf
+     }
+
 noncomputable
 def rot3_mat : Fin 3 → ℝ → Matrix (Fin 3) (Fin 3) ℝ
   | 0 => Rx_mat

@@ -1,6 +1,6 @@
 import Noperthedron.Basic
 import Noperthedron.Bounding.Lemma11
-import Noperthedron.Bounding.Lemma12
+import Noperthedron.Bounding.SmallConsecutiveRotations
 import Noperthedron.Bounding.OpNorm
 
 open scoped RealInnerProductSpace Real
