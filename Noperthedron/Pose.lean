@@ -92,4 +92,12 @@ variable (X Y : Type) [TopologicalSpace X] [TopologicalSpace Y] {s t : Set X}
 
 example : (s ⊆ closure s) := by exact subset_closure
 
+lemma inner_shadow_eq_RM (p : Pose) (S : Set ℝ³) :
+    innerShadow p S = (p.rotR ∘L p.rotM₁) '' S := by
+  sorry
+
+lemma outer_shadow_eq_M (p : Pose) (S : Set ℝ³) :
+    outerShadow p S = p.rotM₂ '' S := by
+  sorry
+
 end Pose

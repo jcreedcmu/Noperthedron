@@ -28,6 +28,17 @@ def flip_y_mat : Matrix (Fin 2) (Fin 2) ℝ :=
 noncomputable
 def flip_y : (ℝ² →L[ℝ] ℝ²) := flip_y_mat |>.toEuclideanLin.toContinuousLinearMap
 
+@[simp]
+noncomputable
+def flip_y_equiv : (ℝ² ≃L[ℝ] ℝ²) := {
+  toFun := flip_y,
+  map_add' := flip_y.map_add',
+  map_smul' := flip_y.map_smul',
+  invFun := flip_y,
+  left_inv := by intro v; ext i; fin_cases i <;> (simp [Matrix.vecHead, Matrix.vecTail])
+  right_inv := by intro v; ext i; fin_cases i <;> (simp [Matrix.vecHead, Matrix.vecTail])
+}
+
 -- dimension reduction with a rotation baked in
 @[simp]
 noncomputable
