@@ -7,11 +7,6 @@ open scoped RealInnerProductSpace Real
 
 namespace Bounding
 
-theorem norm_RxRy_minus_id_le {α β : ℝ} : ‖RxL α ∘L RyL β - 1‖ ≤ √(α ^ 2 + β ^ 2) := by
-  have := lemma12 (α := α) (β := β) zero_ne_one
-  simp only [rot3] at this
-  exact this
-
 /--
 First half of Lemma 13 from [SY25].
 -/
