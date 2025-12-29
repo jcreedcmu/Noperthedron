@@ -244,17 +244,16 @@ def flip_phi2 (p : Pose) : Pose := {
 
 theorem rupert_imp_flip_phi2_rupert2 (p : Pose) (r : RupertPose p nopert.hull) :
     RupertPose (flip_phi2 p) nopert.hull := by
-  simp_all only [RupertPose, Pose.inner_shadow_eq_RM, Pose.outer_shadow_eq_M,
-    Pose.rotM₁, Pose.rotM₂, Pose.rotR, flip_phi2]
-
-  calc closure ((rotR (-p.α) ∘ (rotM (p.θ₁ + π / 15) (π - p.φ₁))) '' nopert.hull)
+  simp_all only [RupertPose, Pose.inner_shadow_eq_RM, Pose.outer_shadow_eq_M]
+  let fh := flip_y_equiv.toHomeomorph
+  calc closure ((rotR (-p.α) ∘ rotM (p.θ₁ + π / 15) (π - p.φ₁)) '' nopert.hull)
     _ = closure (rotR (-p.α) '' ((flip_y ∘L p.rotM₁) '' nopert.hull)) := by rw [Set.image_comp, ← lemma7_3]; rfl
     _ = closure (((rotR (-p.α) ∘L flip_y) ∘L p.rotM₁) '' nopert.hull) := by rw [← Set.image_comp]; rfl
     _ = closure (((flip_y ∘ (p.rotR ∘L p.rotM₁))) '' nopert.hull) := by rw [← flip_rotR_swap_minus]; rfl
     _ = closure (flip_y '' ((p.rotR ∘L p.rotM₁) '' nopert.hull)) := by rw [Set.image_comp]
-    _ = flip_y '' closure ((p.rotR ∘L p.rotM₁) '' nopert.hull) := flip_y_equiv.toHomeomorph.image_closure _ |>.symm
-    _ ⊆ flip_y '' interior ((p.rotM₂ '' nopert.hull)) := Set.image_mono r
-    _ = interior (flip_y '' (p.rotM₂ '' nopert.hull)) := flip_y_equiv.toHomeomorph.image_interior _
+    _ = flip_y '' closure ((p.rotR ∘L p.rotM₁) '' nopert.hull) := fh.image_closure _ |>.symm
+    _ ⊆ flip_y '' interior (p.rotM₂ '' nopert.hull) := Set.image_mono r
+    _ = interior (flip_y '' (p.rotM₂ '' nopert.hull)) := fh.image_interior _
     _ = interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' nopert.hull) := by rw [← Set.image_comp]; rfl
     _ = interior ((rotM (p.θ₂ + π / 15) (π - p.φ₂)) '' nopert.hull) := by rw [lemma7_3]
 
