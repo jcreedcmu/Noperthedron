@@ -199,6 +199,13 @@ theorem lemma12 {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
 
 theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖ = √(α^2 + β^2) ↔ (α = 0 ∧ β = 0) := by
-  sorry
+  constructor
+  · sorry
+  · rintro ⟨hα, hβ⟩
+    rw [hα, hβ]
+    simp only [AddChar.map_zero_eq_one, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow,
+      add_zero, sqrt_zero, norm_eq_zero]
+    exact sub_self (ContinuousLinearMap.comp 1 1)
+
 
 end Bounding
