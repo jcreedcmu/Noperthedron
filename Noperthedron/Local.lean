@@ -104,6 +104,10 @@ def shape_of (S : Finset ℝ³) : Shape where
 -- TODO: Somehow separate out the "local theorem precondition"
 -- predicate in a way that is suitable for the computational step's
 -- tree check.
+
+/--
+  [SY25] Theorem 36
+-/
 theorem local_theorem (P Q : Triangle)
     (cong_tri : P.Congruent Q)
     (poly : Finset ℝ³) (ne : poly.Nonempty)
