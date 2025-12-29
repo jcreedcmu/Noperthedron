@@ -231,7 +231,7 @@ theorem lemma7_3 (θ φ : ℝ) :
   exact nopert_vertices_rotation_invariant 8
 
 lemma flip_rotR_swap_minus (α : ℝ) : flip_y ∘L rotR α = rotR (-α) ∘L flip_y := by
-  sorry
+  ext v i; fin_cases i <;> (simp; ring_nf)
 
 noncomputable
 def phi_flip_pose (p : Pose) : Pose := {
