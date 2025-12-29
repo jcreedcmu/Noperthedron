@@ -234,7 +234,7 @@ lemma flip_rotR_swap_minus (α : ℝ) : flip_y ∘L rotR α = rotR (-α) ∘L fl
   ext v i; fin_cases i <;> (simp; ring_nf)
 
 noncomputable
-def phi_flip_pose (p : Pose) : Pose := {
+def flip_phi2 (p : Pose) : Pose := {
   θ₁ := p.θ₁ + π/15,
   φ₁ := π - p.φ₁,
   θ₂ := p.θ₂ + π/15,
@@ -242,11 +242,11 @@ def phi_flip_pose (p : Pose) : Pose := {
   α := -p.α,
 }
 
-theorem rupert_phi_imp_pi_minus_phi (p : Pose) (r : RupertPose p nopert.hull) :
-    RupertPose (phi_flip_pose p) nopert.hull := by
+theorem rupert_imp_flip_phi2_rupert (p : Pose) (r : RupertPose p nopert.hull) :
+    RupertPose (flip_phi2 p) nopert.hull := by
   simp_all only [RupertPose]
   rw [Pose.inner_shadow_eq_RM, Pose.outer_shadow_eq_M, Pose.rotM₁, Pose.rotM₂, Pose.rotR] at r ⊢
-  simp only [phi_flip_pose]
+  simp only [flip_phi2]
   have zz : flip_y '' (closure (((rotR p.α).comp (rotM p.θ₁ p.φ₁)) '' nopert.hull)) ⊆
       flip_y '' (interior ((rotM p.θ₂ p.φ₂) '' nopert.hull)) := Set.image_mono r
   have flip_closure_eq_closure_flip (S : Set ℝ²) : flip_y '' (closure S) = closure (flip_y '' S) :=
