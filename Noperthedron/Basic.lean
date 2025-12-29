@@ -244,6 +244,12 @@ def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →L[ℝ] ℝ² :=
 /-
 Some nice identities as laid out in [SY25] §2.2
 -/
+
+lemma vecX_identity (θ φ : ℝ) :
+    vecX θ φ = (RzL θ ∘L RyL (-φ)) !₂[0, 0, 1] := by
+  ext i
+  fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail, vecX]
+
 lemma rotM_identity (θ φ : ℝ) : rotM θ φ = reduceL ∘L RyL φ ∘L RzL (-θ) := by
   ext v i
   fin_cases i <;> (simp [RzL, RyL, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; try ring_nf)

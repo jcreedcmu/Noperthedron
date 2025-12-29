@@ -79,6 +79,34 @@ theorem Ry_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
   simp only [ContinuousLinearMap.norm_def]
   simp_rw [ContinuousLinearMap.comp_apply, Ry_preserves_norm]
 
+theorem Ry_comp_right_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
+    ‖A ∘L (RyL α)‖ = ‖A‖ := by
+  simp only [ContinuousLinearMap.norm_def]
+  simp_rw [ContinuousLinearMap.comp_apply]
+  have h_sets_eq : {c : ℝ | 0 ≤ c ∧ ∀ x : Euc(3), ‖A (RyL α x)‖ ≤ c * ‖x‖} =
+                   {c : ℝ | 0 ≤ c ∧ ∀ x : Euc(3), ‖A x‖ ≤ c * ‖x‖} := by
+    have h_inv : ∀ x : Euc(3), ∃ y : Euc(3), RyL α y = x := by
+      have h_inv : Function.Bijective (RyL α) := by
+        have h_bijective : Function.Injective (RyL α) := by
+          intro x y hxy
+          have := Ry_preserves_norm α (x - y)
+          simp only [map_sub, sub_self, norm_zero, hxy] at this
+          exact sub_eq_zero.mp (norm_eq_zero.mp this.symm)
+        exact ⟨h_bijective, LinearMap.surjective_of_injective h_bijective⟩
+      exact h_inv.surjective
+    ext c
+    apply Iff.intro
+    · intro hc;
+      refine ⟨hc.1, fun x ↦ ?_⟩
+      obtain ⟨ y, rfl ⟩ := h_inv x
+      have := hc.2 y
+      nth_rw 2 [←Ry_preserves_norm α] at this
+      exact this
+    · intro hc
+      refine ⟨hc.1, fun x ↦ ?_⟩
+      simpa only [Ry_preserves_norm α] using hc.2 (RyL α x)
+  rw [h_sets_eq]
+
 theorem Rz_preserves_norm (α : ℝ) :
     ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ := by
   intro v
