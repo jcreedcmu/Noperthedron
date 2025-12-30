@@ -150,7 +150,11 @@ See \cite{polyhedron.without.rupert}, Lemma 32.
 \begin{lemma} \label{lem:coss}
   \lean{Local.coss}
   \leanok
-    Let $\epsilon>0$ and $\theta,\thetab, \phi, \phib \in \R$ with $|\theta - \overline{\theta}|, |\phi - \overline{\phi}| \leq \epsilon$. Define $M = M(\theta, \phi)$ and $\overline{M} = M(\thetab, \phib)$ and let $P, Q \in \R^3$ with $\|P\|, \|Q\| \leq 1$. Then:
+  Let $\epsilon>0$ and $\theta,\thetab, \phi, \phib \in \R$ with $|\theta - \overline{\theta}|, |\phi - \overline{\phi}| \leq \epsilon$. Define $M = M(\theta, \phi)$ and $\overline{M} = M(\thetab, \phib)$ and let $P, Q \in \R^3$ with $\|P\|, \|Q\| \leq 1$. Assume that
+    \[
+        \frac{\langle \overline{M} P,\overline{M} (P-Q)\rangle - 2 \epsilon \|P-Q\| \cdot  (\sqrt{2}+\varepsilon)}{ \big(\|\overline{M} P\|+\sqrt{2} \varepsilon \big) \cdot \big(\|\overline{M}(P-Q)\|+2 \sqrt{2} \varepsilon\big)} > 0.
+    \]
+  Then:
     \[
         \frac{\langle {M} P,{M} (P-Q)\rangle}{\|{M} P\| \cdot \|{M}(P-Q)\|} \geq
         \frac{\langle \overline{M} P,\overline{M} (P-Q)\rangle - 2 \epsilon \|P-Q\| \cdot  (\sqrt{2}+\varepsilon)}{ \big(\|\overline{M} P\|+\sqrt{2} \varepsilon \big) \cdot \big(\|\overline{M}(P-Q)\|+2 \sqrt{2} \varepsilon\big)}.
