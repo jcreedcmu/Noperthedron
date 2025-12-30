@@ -311,7 +311,9 @@ lemma rotRM_identity (θ φ α : ℝ) : proj_xyL ∘L rotRM θ φ α = rotprojRM
 
 lemma rotRM_mod_eq_rotRM {α θ φ : ℝ} :
     rotR (α + π) ∘ rotM (θ + π) (2 * π - φ) = rotR α ∘ rotM θ φ := by
-  sorry
+  ext v i
+  fin_cases i <;>
+  · simp [Matrix.vecHead, Matrix.vecTail, rotM, rotM_mat]; ring_nf
 
 noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
