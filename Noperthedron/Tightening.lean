@@ -257,7 +257,28 @@ theorem rupert_imp_flip_phi2_rupert2 {p : Pose} (r : RupertPose p nopert.hull) :
     _ = interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' nopert.hull) := by rw [← Set.image_comp]; rfl
     _ = interior ((rotM (p.θ₂ + π / 15) (π - p.φ₂)) '' nopert.hull) := by rw [lemma7_3]
 
-theorem rupert_tighten_φ₂ (p : Pose) (r : RupertPose p nopert.hull) :
+
+theorem rupert_tighten_φ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
+    ∃ θ₁', ∃ φ₁' ∈ Set.Icc 0 π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁', φ₂, α⟩ := by
+  sorry
+
+theorem rupert_tighten_φ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
+    ∃ θ₂', ∃ φ₂' ∈ Set.Icc 0 π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂', φ₁, φ₂', α⟩ := by
+  sorry
+
+theorem rupert_tighten_θ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
+    ∃ θ₁' ∈ Set.Icc 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁, φ₂, α⟩ := by
+  sorry
+
+theorem rupert_tighten_θ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
+    ∃ θ₂' ∈ Set.Icc 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂', φ₁, φ₂, α⟩ := by
+  sorry
+
+theorem rupert_tighten_α (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
+    ∃ α' ∈ Set.Icc (-π) π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂, φ₁, φ₂, α'⟩ := by
+  sorry
+
+theorem rupert_tighten_φ₂' (p : Pose) (r : RupertPose p nopert.hull) :
     ∃ p' : Pose, RupertPose p' nopert.hull ∧ p'.φ₂ ∈ Set.Icc 0 π := by
   sorry
 
@@ -270,7 +291,7 @@ theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
 -- This is a piece that relies on symmetry of the Noperthedron
 theorem rupert_tightening (p : Pose) (r : RupertPose p nopert.hull) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
-  have ⟨p₁, hrup, hφ₂⟩ := rupert_tighten_φ₂ p r
+  have ⟨p₁, hrup, hφ₂⟩ := rupert_tighten_φ₂' p r
   have : π > 0 := pi_pos
   have φ₂_range : p₁.φ₂ ∈ Set.Icc 0 π := hφ₂
   have ⟨p₂, p₂_rup, p₂_tight_φ₂⟩ :
