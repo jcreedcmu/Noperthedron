@@ -260,7 +260,6 @@ theorem rupert_imp_flip_phi2_rupert2 {p : Pose} (r : RupertPose p nopert.hull) :
 
 theorem rupert_tighten_φ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₁ : φ₁ ∈ Set.Icc 0 (2 * π)) :
     ∃ θ₁' α', ∃ φ₁' ∈ Set.Icc 0 π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁', φ₂, α'⟩ := by
-  have : π > 0 := pi_pos
   by_cases h : φ₁ < π
   · use θ₁, α, φ₁
     refine ⟨⟨ hφ₁.1, le_of_lt h⟩, ?_⟩
@@ -268,13 +267,22 @@ theorem rupert_tighten_φ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₁ : φ₁ 
   · use θ₁ + π, α + π, 2 * π - φ₁
     refine ⟨by grind, ?_⟩
     refine Pose.matrix_rm_eq_imp_pose_equiv ?_ ?_
-    · simp only [Pose.rotR, Pose.rotM₁]
-      rw [rotRM_mod_eq_rotRM]
+    · simp only [Pose.rotR, Pose.rotM₁, rotR_add_pi_eq_neg_rotR, rotM_mod_eq_neg_rotM]
+      ext; simp
     · simp only [Pose.rotM₂]
 
 theorem rupert_tighten_φ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₂ : φ₂ ∈ Set.Icc 0 (2 * π)) :
-    ∃ θ₂', ∃ φ₂' ∈ Set.Icc 0 π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂', φ₁, φ₂', α⟩ := by
-  sorry
+    ∃ θ₂' α', ∃ φ₂' ∈ Set.Icc 0 π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂', φ₁, φ₂', α'⟩ := by
+  by_cases h : φ₂ < π
+  · use θ₂, α, φ₂
+    refine ⟨⟨hφ₂.1, le_of_lt h⟩, ?_⟩
+    exact Pose.matrix_eq_imp_pose_equiv rfl rfl rfl
+  · use θ₂ + π, α + π, 2 * π - φ₂
+    refine ⟨by grind, ?_⟩
+    refine Pose.matrix_rm_eq_neg_imp_pose_equiv ?_ ?_
+    · simp only [Pose.rotR, Pose.rotM₁, rotR_add_pi_eq_neg_rotR]
+      ext; simp
+    · simp [Pose.rotM₂, rotM_mod_eq_neg_rotM]
 
 theorem rupert_tighten_θ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
     ∃ θ₁' ∈ Set.Icc 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁, φ₂, α⟩ := by

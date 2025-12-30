@@ -294,7 +294,8 @@ lemma rotprojRM_identity (θ φ α : ℝ) : rotprojRM θ φ α = reduceL ∘L Rz
   fin_cases i <;> (simp [RzL, RyL, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; try ring_nf)
 
 lemma projxy_rotRM_eq_rotprojRM (θ φ α : ℝ) : proj_xyL ∘ rotRM θ φ α = rotprojRM θ φ α := by
-  sorry
+  ext v i; fin_cases i <;>
+  · simp [rotprojRM, rotRM, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; ring_nf
 
 noncomputable
 def reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
@@ -309,11 +310,20 @@ lemma rotRM_identity (θ φ α : ℝ) : proj_xyL ∘L rotRM θ φ α = rotprojRM
   rw [reduce_identity]
   simp only [ ContinuousLinearMap.coe_comp', Function.comp_apply]
 
+lemma rotR_add_pi_eq_neg_rotR {α : ℝ} :
+    rotR (α + π) = -rotR α := by
+  ext v i; fin_cases i <;>
+  · simp [Matrix.vecHead, Matrix.vecTail, rotR, rotR_mat]; ring_nf
+
+lemma rotM_mod_eq_neg_rotM {θ φ : ℝ} :
+    rotM (θ + π) (2 * π - φ) = -rotM θ φ := by
+  ext v i; fin_cases i <;>
+  · simp [Matrix.vecHead, Matrix.vecTail, rotM, rotM_mat]; ring_nf
+
 lemma rotRM_mod_eq_rotRM {α θ φ : ℝ} :
     rotR (α + π) ∘ rotM (θ + π) (2 * π - φ) = rotR α ∘ rotM θ φ := by
-  ext v i
-  fin_cases i <;>
-  · simp [Matrix.vecHead, Matrix.vecTail, rotM, rotM_mat]; ring_nf
+  simp only [rotR_add_pi_eq_neg_rotR, rotM_mod_eq_neg_rotM]
+  ext; simp
 
 noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=

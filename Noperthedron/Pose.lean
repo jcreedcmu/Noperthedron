@@ -166,32 +166,37 @@ lemma matrix_rm_eq_imp_pose_equiv {p q : Pose} (rme : p.rotR ∘ p.rotM₁ = q.r
     change (p.rotM₂) v = (q.rotM₂) v
     rw [rm2]
 
-lemma matrix_eq_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
-    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = q.rotM₂) : equiv p q :=
-  matrix_rm_eq_imp_pose_equiv (by rw [re, rm1]) rm2
-
-lemma matrix_neg_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
-    (rm1 : p.rotM₁ = -q.rotM₁) (rm2 : p.rotM₂ = -q.rotM₂) : equiv p q := by
+lemma matrix_rm_eq_neg_imp_pose_equiv {p q : Pose} (rme : p.rotR ∘ p.rotM₁ = -(q.rotR ∘ q.rotM₁))
+    (rm2 : p.rotM₂ = -q.rotM₂) : equiv p q := by
   refine equiv.off_by_neg ?_
   constructor
   · simp only [inner, innerProj, PoseLike.inner]
     ext1 v
     simp only [AffineMap.coe_comp,
       LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
-    change (proj_xyL ∘ rotRM p.θ₁ p.φ₁ p.α) v = (-proj_xyL ∘ rotRM q.θ₁ q.φ₁ q.α) v
+    change (proj_xyL ∘ rotRM p.θ₁ p.φ₁ p.α) v = -(proj_xyL ∘ rotRM q.θ₁ q.φ₁ q.α) v
     rw [projxy_rotRM_eq_rotprojRM, projxy_rotRM_eq_rotprojRM]
     simp only [rotprojRM]
-    change (p.rotR ∘ p.rotM₁) v = (-q.rotR ∘ q.rotM₁) v
-    rw [re, rm1]
-    simp
+    change (p.rotR ∘ p.rotM₁) v = -(q.rotR ∘ q.rotM₁) v
+    rw [rme]
+    rfl
   · simp only [outer, outerProj, PoseLike.outer]
     ext1 v
     simp only [AffineMap.coe_comp,
       LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
-    change (proj_xyL ∘ rotRM p.θ₂ p.φ₂ 0) v = (-proj_xyL ∘ rotRM q.θ₂ q.φ₂ 0) v
+    change (proj_xyL ∘ rotRM p.θ₂ p.φ₂ 0) v = -(proj_xyL ∘ rotRM q.θ₂ q.φ₂ 0) v
     rw [projxy_rotRM_eq_rotprojRM, projxy_rotRM_eq_rotprojRM]
     simp only [rotprojRM, AddChar.map_zero_eq_one]
-    change (p.rotM₂) v = (-q.rotM₂) v
+    change (p.rotM₂) v = -(q.rotM₂) v
     rw [rm2]
+    rfl
+
+lemma matrix_eq_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
+    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = q.rotM₂) : equiv p q :=
+  matrix_rm_eq_imp_pose_equiv (by rw [re, rm1]) rm2
+
+lemma matrix_neg_imp_pose_equiv {p q : Pose} (re : p.rotR = -q.rotR)
+    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = -q.rotM₂) : equiv p q := by
+  exact matrix_rm_eq_neg_imp_pose_equiv (by rw [re, rm1]; ext; simp) rm2
 
 end Pose
