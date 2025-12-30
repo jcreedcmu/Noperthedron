@@ -344,10 +344,6 @@ theorem rupert_tighten_α (p : Pose) :
   refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
   · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂]
 
-theorem rupert_tighten_φ₂' (p : Pose) (r : RupertPose p nopert.hull) :
-    ∃ p' : Pose, RupertPose p' nopert.hull ∧ p'.φ₂ ∈ Set.Icc 0 π := by
-  sorry
-
 theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
      (hφ₂ : p.φ₂ ∈ Set.Icc 0 (π/2)) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
@@ -357,17 +353,19 @@ theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
 -- This is a piece that relies on symmetry of the Noperthedron
 theorem rupert_tightening (p : Pose) (r : RupertPose p nopert.hull) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
-  have ⟨φ₂, hp₁_2π, p_eq_p₁⟩ := rupert_tighten_φ₂ p
-
-  have ⟨p₁, hrup, hφ₂⟩ := rupert_tighten_φ₂' p r
+  have ⟨φ₂, hφ₂_2π, eq⟩ := rupert_tighten_φ₂ p
+  have r' : RupertPose {p with φ₂} nopert.hull := Pose.equiv_rupert_imp_rupert eq r
+  have ⟨θ₂, α, φ₂', φ₂'_π, eq'⟩ := rupert_tighten_φ₂_π {p with φ₂} (Set.Ico_subset_Icc_self hφ₂_2π)
+  let p₁ := {p with φ₂ := φ₂', θ₂, α}
+  have r'' : RupertPose p₁ nopert.hull := Pose.equiv_rupert_imp_rupert eq' r'
   have : π > 0 := pi_pos
-  have φ₂_range : p₁.φ₂ ∈ Set.Icc 0 π := hφ₂
+  have φ₂_range : p₁.φ₂ ∈ Set.Icc 0 π := φ₂'_π
   have ⟨p₂, p₂_rup, p₂_tight_φ₂⟩ :
       ∃ p₂ : Pose, RupertPose p₂ nopert.hull ∧ p₂.φ₂ ∈ Set.Icc 0 (π/2) := by
     by_cases h : p₁.φ₂ < π / 2
-    · exact Exists.intro p₁ ⟨hrup, ⟨φ₂_range.1, le_of_lt h⟩⟩
+    · exact Exists.intro p₁ ⟨r'', ⟨φ₂_range.1, le_of_lt h⟩⟩
     · replace h : p₁.φ₂ ≥ π / 2 := Std.not_lt.mp h
-      use flip_phi2 p₁, rupert_imp_flip_phi2_rupert2 hrup
+      use flip_phi2 p₁, rupert_imp_flip_phi2_rupert2 r''
       grind [flip_phi2]
   exact rupert_post_tightening p₂ p₂_rup p₂_tight_φ₂
 
