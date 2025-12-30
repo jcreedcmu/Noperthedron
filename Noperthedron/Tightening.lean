@@ -242,7 +242,7 @@ def flip_phi2 (p : Pose) : Pose := {
   α := -p.α,
 }
 
-theorem rupert_imp_flip_phi2_rupert2 (p : Pose) (r : RupertPose p nopert.hull) :
+theorem rupert_imp_flip_phi2_rupert2 {p : Pose} (r : RupertPose p nopert.hull) :
     RupertPose (flip_phi2 p) nopert.hull := by
   simp_all only [RupertPose, Pose.inner_shadow_eq_RM, Pose.outer_shadow_eq_M]
   let fh := flip_y_equiv.toHomeomorph
@@ -257,10 +257,29 @@ theorem rupert_imp_flip_phi2_rupert2 (p : Pose) (r : RupertPose p nopert.hull) :
     _ = interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' nopert.hull) := by rw [← Set.image_comp]; rfl
     _ = interior ((rotM (p.θ₂ + π / 15) (π - p.φ₂)) '' nopert.hull) := by rw [lemma7_3]
 
+theorem rupert_tighten_φ₂ (p : Pose) (r : RupertPose p nopert.hull) :
+    ∃ p' : Pose, RupertPose p' nopert.hull ∧ p'.φ₂ ∈ Set.Icc 0 π := by
+  sorry
+
+theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
+     (hφ₂ : p.φ₂ ∈ Set.Icc 0 π) :
+    ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
+  sorry
+
 -- [SY25] §2.2, Corollary 8
 -- This is a piece that relies on symmetry of the Noperthedron
 theorem rupert_tightening (p : Pose) (r : RupertPose p nopert.hull) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
-  sorry -- TODO(medium-hard)
+  have ⟨p₁, hrup, hφ₂⟩ := rupert_tighten_φ₂ p r
+  have : π > 0 := pi_pos
+  have φ₂_range : p₁.φ₂ ∈ Set.Icc 0 π := hφ₂
+  have ⟨p₂, p₂_rup, p₂_tight_φ₂⟩ :
+      ∃ p₂ : Pose, RupertPose p₂ nopert.hull ∧ p₂.φ₂ ∈ Set.Icc 0 π := by
+    by_cases h : p₁.φ₂ < π / 2
+    · exact Exists.intro p₁ ⟨hrup, φ₂_range⟩
+    · replace h : p₁.φ₂ ≥ π / 2 := Std.not_lt.mp h
+      use flip_phi2 p₁, rupert_imp_flip_phi2_rupert2 hrup
+      grind [flip_phi2]
+  exact rupert_post_tightening p₂ p₂_rup p₂_tight_φ₂
 
 end Tightening

@@ -23,6 +23,32 @@ structure PoseInterval : Type where
   min : Pose
   max : Pose
 
+/--
+The 5d box in parameter space that represents what constraints we can
+impose on angles merely from general considerations about rotations.
+-/
+noncomputable
+def mediumInterval : PoseInterval where
+  min := {
+    θ₁ := 0
+    θ₂ := 0
+    φ₁ := 0
+    φ₂ := 0
+    α := -π
+  }
+  max := {
+    θ₁ := 2 * π
+    θ₂ := 2 * π
+    φ₁ := π
+    φ₂ := π
+    α := π
+  }
+
+/--
+The 5d box in parameter space that represents what constraints we can
+impose on angles taking advantage of the particular symmetries of the
+Noperthedron.
+-/
 noncomputable
 def tightInterval : PoseInterval where
   min := {
@@ -69,6 +95,17 @@ def contains (iv : PoseInterval) (vp : Pose) : Prop :=
   (vp.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁) ∧
   (vp.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂) ∧
   (vp.α ∈ Set.Icc iv.min.α iv.max.α)
+
+def contains.θ₁Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
+    p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁ := c.1
+def contains.θ₂Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
+    p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂ := c.2.1
+def contains.φ₁Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
+    p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁ := c.2.2.1
+def contains.φ₂Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
+    p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂ := c.2.2.2.1
+def contains.αBound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
+    p.α ∈ Set.Icc iv.min.α iv.max.α := c.2.2.2.2
 
 def center (iv : PoseInterval) : Pose where
   θ₁ := (iv.min.θ₁ + iv.max.θ₁)
