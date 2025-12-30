@@ -27,7 +27,11 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
   apply div_le_div₀
   · sorry
   · -- use lemma 25
-    -- Local.abs_sub_inner_le
+    have h₁ := Local.abs_sub_inner_le M M_ P (P - Q)
+    grw [hP] at h₁
+    rw [one_mul] at h₁
+    grw [Bounding.norm_M_sub_lt hε hθ hφ] at h₁
+    rw [Bounding.rotM_norm_one, Bounding.rotM_norm_one] at h₁
     sorry
   · positivity
   · refine mul_le_mul_of_nonneg ?_ ?_ (by positivity) (by positivity)
