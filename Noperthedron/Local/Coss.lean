@@ -15,20 +15,21 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     let M := rotM θ φ
     let M_ := rotM θ_ φ_
-    ‖M P‖ * ‖M (P - Q)‖ ≠ 0 →
+    0 < (⟪M_ P, M_ (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)) /
+      ((‖M_ P‖ + √2 * ε) * (‖M_ (P - Q)‖ + 2 * √2 * ε)) →
      (⟪M_ P, M_ (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)) /
       ((‖M_ P‖ + √2 * ε) * (‖M_ (P - Q)‖ + 2 * √2 * ε))
      ≤
       ⟪M P, M (P - Q)⟫ / (‖M P‖ * ‖M (P - Q)‖) := by
-  intro M M_ hd
+  intro M M_ hp
+  have hp₁ : 0 < (‖M_ P‖ + √2 * ε) * (‖M_ (P - Q)‖ + 2 * √2 * ε) := by positivity
+  have hp₂ : 0 < ⟪M_ P, M_ (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε) :=
+    (div_pos_iff_of_pos_right hp₁).mp hp
   -- We will show that the numerator of the left-hand side is bigger
   -- than the one of the righthand side, and that the factors in the denominator
   -- are smaller.
-  apply div_le_div₀
-  · -- 0 ≤ ⟪M P, M (P - Q)⟫
-    -- do we need to add this as a hypothesis?
-    sorry
-  · -- use lemma 25
+  have hp₃ : ⟪M_ P, M_ (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε) ≤ ⟪M P, M (P - Q)⟫ := by
+    -- use lemma 25
     have h₁ := Local.abs_sub_inner_le M M_ P (P - Q)
     grw [hP] at h₁
     rw [one_mul] at h₁
@@ -39,7 +40,10 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
     rw [abs_sub_comm] at h₁
     grw [←le_abs_self] at h₁
     linarith only [h₁]
-  · positivity
+  have hp₄ : 0 < ⟪M P, M (P - Q)⟫ := by linarith only [hp₂, hp₃]
+  apply div_le_div₀ hp₄.le hp₃
+  · grw [←real_inner_le_norm]
+    exact hp₄
   · refine mul_le_mul_of_nonneg ?_ ?_ (by positivity) (by positivity)
     · have h₁ : ‖M P‖ - √2 * ε ≤ ‖M P‖ - ‖M - M_‖ * ‖P‖ := by
          -- use lemma 13
@@ -62,4 +66,3 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
         rw [ContinuousLinearMap.sub_apply]
         linarith only [norm_le_norm_add_norm_sub' (M (P - Q)) (M_ (P - Q))]
       linarith only [h₁, h₂]
-
