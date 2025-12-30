@@ -25,14 +25,20 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
   -- than the one of the righthand side, and that the factors in the denominator
   -- are smaller.
   apply div_le_div₀
-  · sorry
+  · -- 0 ≤ ⟪M P, M (P - Q)⟫
+    -- do we need to add this as a hypothesis?
+    sorry
   · -- use lemma 25
     have h₁ := Local.abs_sub_inner_le M M_ P (P - Q)
     grw [hP] at h₁
     rw [one_mul] at h₁
     grw [Bounding.norm_M_sub_lt hε hθ hφ] at h₁
     rw [Bounding.rotM_norm_one, Bounding.rotM_norm_one] at h₁
-    sorry
+    have h₂ : ‖P - Q‖ * (√2 * ε) * (1 + 1 + √2 * ε) = 2 * ε * ‖P - Q‖ * (√2 + ε) := by grind
+    rw [h₂] at h₁; clear h₂
+    rw [abs_sub_comm] at h₁
+    grw [←le_abs_self] at h₁
+    linarith only [h₁]
   · positivity
   · refine mul_le_mul_of_nonneg ?_ ?_ (by positivity) (by positivity)
     · have h₁ : ‖M P‖ - √2 * ε ≤ ‖M P‖ - ‖M - M_‖ * ‖P‖ := by
