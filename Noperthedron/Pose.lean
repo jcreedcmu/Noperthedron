@@ -46,6 +46,9 @@ def inner (p : Pose) : ℝ³ →ᵃ[ℝ] ℝ² := innerProj p
 noncomputable
 def outer (p : Pose) : ℝ³ →ᵃ[ℝ] ℝ² := outerProj p
 
+def equiv (p1 p2 : Pose) : Prop :=
+  p1.inner = p2.inner ∧ p1.outer = p2.outer
+
 def innerParams (p : Pose) : ℝ³ := WithLp.toLp 2 ![p.α, p.θ₁, p.φ₁]
 
 def outerParams (p : Pose) : ℝ² := WithLp.toLp 2 ![p.θ₂, p.φ₂]
@@ -99,5 +102,29 @@ lemma inner_shadow_eq_RM (p : Pose) (S : Set ℝ³) :
 lemma outer_shadow_eq_M (p : Pose) (S : Set ℝ³) :
     outerShadow p S = p.rotM₂ '' S := by
   sorry
+
+lemma poselike_inner_eq_proj_inner {v : ℝ³} (p : Pose) :
+    proj_xyL (PoseLike.inner p v) = p.inner v := by
+  ext i; fin_cases i <;>
+    simp [Matrix.vecHead, PoseLike.inner, Pose.inner, innerProj]
+
+lemma poselike_outer_eq_proj_outer {v : ℝ³} (p : Pose) :
+    proj_xyL (PoseLike.outer p v) = p.outer v := by
+  ext i; fin_cases i <;>
+    simp [Matrix.vecHead, PoseLike.outer, Pose.outer, outerProj]
+
+lemma equiv_rupert_imp_rupert {p1 p2 : Pose} {S : Set ℝ³} (e : equiv p1 p2) (r : RupertPose p1 S) :
+    RupertPose p2 S := by
+  simp only [RupertPose, innerShadow, outerShadow]
+  obtain ⟨e_inner, e_outer⟩ := e
+  conv =>
+    lhs; arg 1; arg 1; intro x; arg 1; intro v
+    rw [poselike_inner_eq_proj_inner p2, ← e_inner,
+      ← poselike_inner_eq_proj_inner p1]
+  conv =>
+    rhs; arg 1; arg 1; intro x; arg 1; intro v
+    rw [poselike_outer_eq_proj_outer p2, ← e_outer,
+      ← poselike_outer_eq_proj_outer p1]
+  exact r
 
 end Pose
