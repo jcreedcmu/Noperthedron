@@ -262,7 +262,7 @@ theorem rupert_tighten_φ₂ (p : Pose) (r : RupertPose p nopert.hull) :
   sorry
 
 theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
-     (hφ₂ : p.φ₂ ∈ Set.Icc 0 π) :
+     (hφ₂ : p.φ₂ ∈ Set.Icc 0 (π/2)) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
   sorry
 
@@ -274,9 +274,9 @@ theorem rupert_tightening (p : Pose) (r : RupertPose p nopert.hull) :
   have : π > 0 := pi_pos
   have φ₂_range : p₁.φ₂ ∈ Set.Icc 0 π := hφ₂
   have ⟨p₂, p₂_rup, p₂_tight_φ₂⟩ :
-      ∃ p₂ : Pose, RupertPose p₂ nopert.hull ∧ p₂.φ₂ ∈ Set.Icc 0 π := by
+      ∃ p₂ : Pose, RupertPose p₂ nopert.hull ∧ p₂.φ₂ ∈ Set.Icc 0 (π/2) := by
     by_cases h : p₁.φ₂ < π / 2
-    · exact Exists.intro p₁ ⟨hrup, φ₂_range⟩
+    · exact Exists.intro p₁ ⟨hrup, ⟨φ₂_range.1, le_of_lt h⟩⟩
     · replace h : p₁.φ₂ ≥ π / 2 := Std.not_lt.mp h
       use flip_phi2 p₁, rupert_imp_flip_phi2_rupert2 hrup
       grind [flip_phi2]
