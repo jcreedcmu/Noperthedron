@@ -330,6 +330,16 @@ lemma rotM_periodic_θ {θ φ : ℝ} {k : ℤ} :
   ext v i; fin_cases i <;>
   · simp [rotM, rotM_mat]
 
+lemma rotM_periodic_φ {θ φ : ℝ} {k : ℤ} :
+    rotM θ (φ + k * (2 * π)) = rotM θ φ := by
+  ext v i; fin_cases i <;>
+  · simp [rotM, rotM_mat]
+
+lemma rotR_periodic_α {α : ℝ} {k : ℤ} :
+    rotR (α + k * (2 * π)) = rotR α := by
+  ext v i; fin_cases i <;>
+  · simp [rotR, rotR_mat]
+
 noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
   (S.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)

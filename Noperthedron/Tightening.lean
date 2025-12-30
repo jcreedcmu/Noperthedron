@@ -258,7 +258,7 @@ theorem rupert_imp_flip_phi2_rupert2 {p : Pose} (r : RupertPose p nopert.hull) :
     _ = interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' nopert.hull) := by rw [← Set.image_comp]; rfl
     _ = interior ((rotM (p.θ₂ + π / 15) (π - p.φ₂)) '' nopert.hull) := by rw [lemma7_3]
 
-theorem rupert_tighten_φ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₁ : φ₁ ∈ Set.Icc 0 (2 * π)) :
+theorem rupert_tighten_φ₁_π (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₁ : φ₁ ∈ Set.Icc 0 (2 * π)) :
     ∃ θ₁' α', ∃ φ₁' ∈ Set.Icc 0 π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁', φ₂, α'⟩ := by
   by_cases h : φ₁ < π
   · use θ₁, α, φ₁
@@ -271,7 +271,7 @@ theorem rupert_tighten_φ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₁ : φ₁ 
       ext; simp
     · simp only [Pose.rotM₂]
 
-theorem rupert_tighten_φ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₂ : φ₂ ∈ Set.Icc 0 (2 * π)) :
+theorem rupert_tighten_φ₂_π (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₂ : φ₂ ∈ Set.Icc 0 (2 * π)) :
     ∃ θ₂' α', ∃ φ₂' ∈ Set.Icc 0 π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂', φ₁, φ₂', α'⟩ := by
   by_cases h : φ₂ < π
   · use θ₂, α, φ₂
@@ -283,6 +283,15 @@ theorem rupert_tighten_φ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₂ : φ₂ 
     · simp only [Pose.rotR, Pose.rotM₁, rotR_add_pi_eq_neg_rotR]
       ext; simp
     · simp [Pose.rotM₂, rotM_mod_eq_neg_rotM]
+
+theorem rupert_tighten_φ₂_π2 (p : Pose) (r : RupertPose p nopert.hull) (hφ₂ : p.φ₂ ∈ Set.Icc 0 π) :
+    ∃ q : Pose, q.φ₂ ∈ Set.Icc 0 (π/2) ∧ RupertPose q nopert.hull := by
+  by_cases h : p.φ₂ < π / 2
+  · exact ⟨p, ⟨hφ₂.1, le_of_lt h⟩, r⟩
+  · use flip_phi2 p
+    constructor
+    · simp only [flip_phi2, Set.mem_Icc, sub_nonneg, tsub_le_iff_right]; grind
+    · exact rupert_imp_flip_phi2_rupert2 r
 
 theorem rupert_tighten_θ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
     ∃ θ₁' ∈ Set.Ico 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁, φ₂, α⟩ := by
@@ -302,9 +311,38 @@ theorem rupert_tighten_θ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
   refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
   · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_θ]
 
+theorem rupert_tighten_φ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
+    ∃ φ₁' ∈ Set.Ico 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂, φ₁', φ₂, α⟩ := by
+  use Real.emod φ₁ (2 * π)
+  use Real.emod_in_interval two_pi_pos
+  obtain ⟨k, hk⟩ := Real.emod_exists_multiple φ₁ (2 * π) two_pi_pos
+  rw [hk]
+  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
+  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_φ]
+
+theorem rupert_tighten_φ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
+    ∃ φ₂' ∈ Set.Ico 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂, φ₁, φ₂', α⟩ := by
+  use Real.emod φ₂ (2 * π)
+  use Real.emod_in_interval two_pi_pos
+  obtain ⟨k, hk⟩ := Real.emod_exists_multiple φ₂ (2 * π) two_pi_pos
+  rw [hk]
+  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
+  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_φ]
+
 theorem rupert_tighten_α (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
-    ∃ α' ∈ Set.Icc (-π) π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂, φ₁, φ₂, α'⟩ := by
-  sorry
+    ∃ α' ∈ Set.Ico (-π) π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂, φ₁, φ₂, α'⟩ := by
+  use (Real.emod (α + π) (2 * π)) - π
+  have hα1 : (α + π).emod (2 * π) ∈ Set.Ico 0 (2 * π) :=
+    Real.emod_in_interval two_pi_pos
+  have hα2 : (α + π).emod (2 * π) - π ∈ Set.Ico (-π) π := by
+    grind
+  use hα2
+  obtain ⟨k, hk⟩ := Real.emod_exists_multiple (α + π) (2 * π) two_pi_pos
+  rw [hk]
+  convert_to Pose.equiv _ ({ θ₁, θ₂, φ₁, φ₂, α := α + ↑k * (2 * π)})
+  · ring_nf
+  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
+  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂]
 
 theorem rupert_tighten_φ₂' (p : Pose) (r : RupertPose p nopert.hull) :
     ∃ p' : Pose, RupertPose p' nopert.hull ∧ p'.φ₂ ∈ Set.Icc 0 π := by
