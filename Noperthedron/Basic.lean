@@ -296,7 +296,6 @@ lemma rotprojRM_identity (θ φ α : ℝ) : rotprojRM θ φ α = reduceL ∘L Rz
 lemma projxy_rotRM_eq_rotprojRM (θ φ α : ℝ) : proj_xyL ∘ rotRM θ φ α = rotprojRM θ φ α := by
   sorry
 
-
 noncomputable
 def reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
   ext v i
@@ -309,6 +308,10 @@ lemma rotRM_identity (θ φ α : ℝ) : proj_xyL ∘L rotRM θ φ α = rotprojRM
   ext1 v
   rw [reduce_identity]
   simp only [ ContinuousLinearMap.coe_comp', Function.comp_apply]
+
+lemma rotRM_mod_eq_rotRM {α θ φ : ℝ} :
+    rotR (α + π) ∘ rotM (θ + π) (2 * π - φ) = rotR α ∘ rotM θ φ := by
+  sorry
 
 noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=

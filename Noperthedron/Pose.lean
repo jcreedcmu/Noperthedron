@@ -143,8 +143,8 @@ lemma equiv_rupert_imp_rupert {p1 p2 : Pose} {S : Set ℝ³} (e : equiv p1 p2) (
       _ = interior (p2.outer '' S) := by congr; ext; simp
       _ = interior ((proj_xyL ∘ PoseLike.outer p2) '' S) := by rw [poselike_outer_eq_proj_outer p2]
 
-lemma matrix_eq_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
-    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = q.rotM₂) : equiv p q := by
+lemma matrix_rm_eq_imp_pose_equiv {p q : Pose} (rme : p.rotR ∘ p.rotM₁ = q.rotR ∘ q.rotM₁)
+    (rm2 : p.rotM₂ = q.rotM₂) : equiv p q := by
   refine equiv.on_the_nose ?_
   constructor
   · simp only [inner, innerProj, PoseLike.inner]
@@ -155,7 +155,7 @@ lemma matrix_eq_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
     rw [projxy_rotRM_eq_rotprojRM, projxy_rotRM_eq_rotprojRM]
     simp only [rotprojRM]
     change (p.rotR ∘ p.rotM₁) v = (q.rotR ∘ q.rotM₁) v
-    rw [re, rm1]
+    rw [rme]
   · simp only [outer, outerProj, PoseLike.outer]
     ext1 v
     simp only [AffineMap.coe_comp,
@@ -165,6 +165,10 @@ lemma matrix_eq_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
     simp only [rotprojRM, AddChar.map_zero_eq_one]
     change (p.rotM₂) v = (q.rotM₂) v
     rw [rm2]
+
+lemma matrix_eq_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
+    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = q.rotM₂) : equiv p q :=
+  matrix_rm_eq_imp_pose_equiv (by rw [re, rm1]) rm2
 
 lemma matrix_neg_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
     (rm1 : p.rotM₁ = -q.rotM₁) (rm2 : p.rotM₂ = -q.rotM₂) : equiv p q := by
