@@ -325,6 +325,11 @@ lemma rotRM_mod_eq_rotRM {α θ φ : ℝ} :
   simp only [rotR_add_pi_eq_neg_rotR, rotM_mod_eq_neg_rotM]
   ext; simp
 
+lemma rotM_periodic_θ {θ φ : ℝ} {k : ℤ} :
+    rotM (θ + k * (2 * π)) φ = rotM θ φ := by
+  ext v i; fin_cases i <;>
+  · simp [rotM, rotM_mat]
+
 noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
   (S.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)

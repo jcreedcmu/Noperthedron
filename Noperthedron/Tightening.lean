@@ -4,6 +4,7 @@ import Noperthedron.Basic
 import Noperthedron.Nopert
 import Noperthedron.ViewPose
 import Noperthedron.PoseInterval
+import Noperthedron.RealMod
 
 open Real
 namespace Tightening
@@ -257,7 +258,6 @@ theorem rupert_imp_flip_phi2_rupert2 {p : Pose} (r : RupertPose p nopert.hull) :
     _ = interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' nopert.hull) := by rw [← Set.image_comp]; rfl
     _ = interior ((rotM (p.θ₂ + π / 15) (π - p.φ₂)) '' nopert.hull) := by rw [lemma7_3]
 
-
 theorem rupert_tighten_φ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₁ : φ₁ ∈ Set.Icc 0 (2 * π)) :
     ∃ θ₁' α', ∃ φ₁' ∈ Set.Icc 0 π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁', φ₂, α'⟩ := by
   by_cases h : φ₁ < π
@@ -285,12 +285,22 @@ theorem rupert_tighten_φ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) (hφ₂ : φ₂ 
     · simp [Pose.rotM₂, rotM_mod_eq_neg_rotM]
 
 theorem rupert_tighten_θ₁ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
-    ∃ θ₁' ∈ Set.Icc 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁, φ₂, α⟩ := by
-  sorry
+    ∃ θ₁' ∈ Set.Ico 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁', θ₂, φ₁, φ₂, α⟩ := by
+  use Real.emod θ₁ (2 * π)
+  use Real.emod_in_interval two_pi_pos
+  obtain ⟨k, hk⟩ := Real.emod_exists_multiple θ₁ (2 * π) two_pi_pos
+  rw [hk]
+  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
+  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_θ]
 
 theorem rupert_tighten_θ₂ (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
-    ∃ θ₂' ∈ Set.Icc 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂', φ₁, φ₂, α⟩ := by
-  sorry
+    ∃ θ₂' ∈ Set.Ico 0 (2 * π), Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂', φ₁, φ₂, α⟩ := by
+  use Real.emod θ₂ (2 * π)
+  use Real.emod_in_interval two_pi_pos
+  obtain ⟨k, hk⟩ := Real.emod_exists_multiple θ₂ (2 * π) two_pi_pos
+  rw [hk]
+  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
+  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_θ]
 
 theorem rupert_tighten_α (θ₁ θ₂ φ₁ φ₂ α : ℝ) :
     ∃ α' ∈ Set.Icc (-π) π, Pose.equiv ⟨θ₁, θ₂, φ₁, φ₂, α⟩ ⟨θ₁, θ₂, φ₁, φ₂, α'⟩ := by
