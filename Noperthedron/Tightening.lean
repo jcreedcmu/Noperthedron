@@ -293,24 +293,6 @@ theorem tighten_φ₂_π2 (p : Pose) (r : RupertPose p nopert.hull) (hφ₂ : p.
     · simp only [flip_phi2, Set.mem_Icc, sub_nonneg, tsub_le_iff_right]; grind
     · exact rupert_imp_flip_phi2_rupert2 r
 
-theorem tighten_θ₁ (p : Pose) :
-    ∃ θ₁ ∈ Set.Ico 0 (2 * π), Pose.equiv p {p with θ₁} := by
-  use Real.emod p.θ₁ (2 * π)
-  use Real.emod_in_interval two_pi_pos
-  obtain ⟨k, hk⟩ := Real.emod_exists_multiple p.θ₁ (2 * π) two_pi_pos
-  rw [hk]
-  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
-  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_θ]
-
-theorem tighten_θ₂ (p : Pose) :
-    ∃ θ₂ ∈ Set.Ico 0 (2 * π), Pose.equiv p {p with θ₂} := by
-  use Real.emod p.θ₂ (2 * π)
-  use Real.emod_in_interval two_pi_pos
-  obtain ⟨k, hk⟩ := Real.emod_exists_multiple p.θ₂ (2 * π) two_pi_pos
-  rw [hk]
-  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
-  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_θ]
-
 theorem tighten_φ₁ (p : Pose) :
     ∃ φ₁ ∈ Set.Ico 0 (2 * π), Pose.equiv p {p with φ₁} := by
   use Real.emod p.φ₁ (2 * π)
@@ -329,21 +311,6 @@ theorem tighten_φ₂ (p : Pose) :
   refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
   · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_φ]
 
-theorem tighten_α (p : Pose) :
-    ∃ α ∈ Set.Ico (-π) π, Pose.equiv p {p with α} := by
-  use (Real.emod (p.α + π) (2 * π)) - π
-  have hα1 : (p.α + π).emod (2 * π) ∈ Set.Ico 0 (2 * π) :=
-    Real.emod_in_interval two_pi_pos
-  have hα2 : (p.α + π).emod (2 * π) - π ∈ Set.Ico (-π) π := by
-    grind
-  use hα2
-  obtain ⟨k, hk⟩ := Real.emod_exists_multiple (p.α + π) (2 * π) two_pi_pos
-  rw [hk]
-  convert_to Pose.equiv _ ({ p with α := p.α + k * (2 * π)})
-  · ring_nf
-  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
-  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂]
-
 theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
      (hφ₁ : p.φ₁ ∈ Set.Icc 0 π) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (π/2)) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
@@ -351,7 +318,7 @@ theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
 
 -- [SY25] §2.2, Corollary 8
 -- This is a piece that relies on symmetry of the Noperthedron
-theorem tightening (p : Pose) (r : RupertPose p nopert.hull) :
+theorem rupert_tightening (p : Pose) (r : RupertPose p nopert.hull) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
   obtain ⟨φ₂, hφ₂_2π, eq⟩ := tighten_φ₂ p
   have r1 : RupertPose {p with φ₂} nopert.hull := Pose.equiv_rupert_imp_rupert eq r
