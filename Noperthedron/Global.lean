@@ -485,7 +485,8 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
   replace hz := mul_le_mul_of_nonneg_right hz (ha := le_of_lt P_norm_pos)
   rw [add_mul] at hz
   rw [pc.fu_pose_eq_outer P, pc.fu_pose_eq_outer P] at hz
-  rw [partials_helper_outer pc, ← Pose.outer_eq_m2]
+  rw [partials_helper_outer pc]
+  rw [show pbar.rotM₂ P = pbar.outer P by rw [Pose.outer_eq_M]]
   conv => rhs; arg 1; arg 1; rw [real_inner_comm]
   ring_nf at hz ⊢
   nth_grw 2 [P_norm_le_one] at hz

@@ -69,9 +69,6 @@ lemma proj_rm_eq_m (θ φ : ℝ) (v : ℝ³) :
     try ring_nf
   }
 
-lemma outer_eq_m2 (p : Pose) (v : ℝ³) : p.outer v = p.rotM₂ v :=
-  proj_rm_eq_m p.θ₂ p.φ₂ v
-
 /--
 If we have a convex polyhedron with p being a pose witness of the
 rupert property, then in particular every vertex in the "inner"
@@ -96,13 +93,42 @@ variable (X Y : Type) [TopologicalSpace X] [TopologicalSpace Y] {s t : Set X}
 
 example : (s ⊆ closure s) := by exact subset_closure
 
+lemma inner_shadow_eq_img_inner (p : Pose) (S : Set ℝ³) :
+    innerShadow p S = p.inner '' S := by
+  rfl
+
+lemma outer_shadow_eq_img_outer (p : Pose) (S : Set ℝ³) :
+    outerShadow p S = p.outer '' S := by
+  rfl
+
+lemma inner_eq_RM (p : Pose)  :
+    p.inner = (p.rotR ∘ p.rotM₁) := by
+  ext1 v
+  simp only [Pose.inner, innerProj, PoseLike.inner]
+  simp only [ AffineMap.coe_comp,
+    LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
+  change (proj_xyL ∘ rotRM p.θ₁ p.φ₁ p.α) v = p.rotR (p.rotM₁ v)
+  rw [projxy_rotRM_eq_rotprojRM]
+  rfl
+
+lemma outer_eq_M (p : Pose) : p.outer = ⇑p.rotM₂ := by
+  ext1 v
+  exact proj_rm_eq_m p.θ₂ p.φ₂ v
+
 lemma inner_shadow_eq_RM (p : Pose) (S : Set ℝ³) :
     innerShadow p S = (p.rotR ∘L p.rotM₁) '' S := by
-  sorry
+  rw [inner_shadow_eq_img_inner]
+  refine Set.image_congr ?_
+  intro v _
+  rw [inner_eq_RM]
+  rfl
 
 lemma outer_shadow_eq_M (p : Pose) (S : Set ℝ³) :
     outerShadow p S = p.rotM₂ '' S := by
-  sorry
+  rw [outer_shadow_eq_img_outer]
+  refine Set.image_congr ?_
+  intro v _
+  rw [outer_eq_M]
 
 lemma poselike_inner_eq_proj_inner (p : Pose) :
     proj_xyL ∘ PoseLike.inner p = p.inner := by

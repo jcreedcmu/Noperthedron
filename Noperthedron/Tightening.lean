@@ -160,6 +160,10 @@ theorem lemma7_1 (θ φ : ℝ) :
     show π * (-2 / 15) = 2 * π * (-1:ℤ) / 15 by ring_nf,
     nopert_vertices_rotation_invariant]
 
+theorem lemma7_1_iterated {θ φ : ℝ} (k : ℤ) :
+    (rotM (θ + k * (2 * π / 15)) φ) '' nopert.hull = rotM θ φ '' nopert.hull := by
+  sorry
+
 theorem lemma7_2 (θ φ α : ℝ) :
     (rotR (α + π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull := by
   suffices h : (rotR (α + π) ∘L rotM θ φ) '' nopert.vertices = (rotR α ∘L rotM θ φ) '' nopert.vertices by
@@ -168,6 +172,10 @@ theorem lemma7_2 (θ φ α : ℝ) :
   repeat rw [Set.image_comp]
   exact rotR_add_pi_eq_if_pointsym (rotM θ φ '' nopert.vertices)
     (rotM_preserves_pointsymmetry nopert.vertices nopert_verts_pointsym)
+
+theorem lemma7_2_iterated {θ φ α : ℝ} (k : ℤ) :
+        (rotR (α + k * π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull := by
+  sorry
 
 lemma lemma7_3_calculation (θ φ : ℝ) (v : ℝ³) :
     flip_y (rotM θ φ v) = - rotM (θ + π / 15) (π - φ) (RzC (16 * π / 15) v) := by
@@ -310,6 +318,53 @@ theorem tighten_φ₂ (p : Pose) :
   rw [hk]
   refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
   · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_φ]
+
+def NopertEquiv (p q : Pose) : Prop :=
+  RupertPose p nopert.hull ↔ RupertPose q nopert.hull
+
+def inner_outer_imp_nopert_equiv {p q : Pose}
+    (hinner : p.inner '' nopert.hull = q.inner '' nopert.hull)
+    (houter : p.outer '' nopert.hull = q.outer '' nopert.hull) :
+    NopertEquiv p q := by
+  constructor <;>
+  · simp only [RupertPose]
+    repeat rw [Pose.inner_shadow_eq_img_inner, Pose.outer_shadow_eq_img_outer]
+    rw [hinner, houter]
+    tauto
+
+theorem tighten_θ (p : Pose) :
+    ∃ θ₁ ∈ Set.Ico 0 (2 * π / 15),
+    ∃ θ₂ ∈ Set.Ico 0 (2 * π / 15),
+    NopertEquiv p {p with θ₁, θ₂} := by
+  have two_pi_15_pos : 2 * π / 15 > 0 := by sorry
+  let θ₁ := Real.emod p.θ₁ (2 * π / 15)
+  let θ₂ := Real.emod p.θ₂ (2 * π / 15)
+  use θ₁, Real.emod_in_interval two_pi_15_pos,
+      θ₂, Real.emod_in_interval two_pi_15_pos
+  obtain ⟨k₁, hk₁⟩ := Real.emod_exists_multiple p.θ₁ (2 * π / 15) two_pi_15_pos
+  obtain ⟨k₂, hk₂⟩ := Real.emod_exists_multiple p.θ₂ (2 * π / 15) two_pi_15_pos
+  simp only [θ₁, θ₂]
+  rw [hk₁, hk₂]
+  let p1 := {p  with θ₁ := p.θ₁ + k₁ * (2 * π / 15) }
+  let p2 := {p1 with θ₂ := p.θ₂ + k₂ * (2 * π / 15) }
+  refine inner_outer_imp_nopert_equiv ?_ ?_
+  · calc p.inner '' nopert.hull
+    _ = (p.rotR ∘ p.rotM₁) '' nopert.hull := by rw [Pose.inner_eq_RM]
+    _ = p.rotR '' (p.rotM₁ '' nopert.hull) := by rw [Set.image_comp]
+    _ = p.rotR '' (rotM p.θ₁ p.φ₁ '' nopert.hull) := by rfl
+    _ = p.rotR '' (rotM (p.θ₁ + k₁ * (2 * π / 15)) p.φ₁ '' nopert.hull) := by
+        rw [← lemma7_1_iterated k₁]
+    _ = p.rotR '' (p2.rotM₁ '' nopert.hull) := by rfl
+    _ = (p.rotR ∘ p2.rotM₁) '' nopert.hull := by rw [Set.image_comp]
+    _ = (p2.rotR ∘ p2.rotM₁) '' nopert.hull := by rfl
+    _ = p2.inner '' nopert.hull := by rw [Pose.inner_eq_RM]
+  · calc p.outer '' nopert.hull
+    _ = p.rotM₂ '' nopert.hull := by rw [Pose.outer_eq_M]
+    _ = rotM p.θ₂ p.φ₂ '' nopert.hull := by rfl
+    _ = rotM (p.θ₂ + k₂ * (2 * π / 15)) p.φ₂ '' nopert.hull := by
+        rw [← lemma7_1_iterated k₂]
+    _ = p2.rotM₂ '' nopert.hull := by rfl
+    _ = p2.outer '' nopert.hull := by rw [Pose.outer_eq_M]
 
 theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
      (hφ₁ : p.φ₁ ∈ Set.Icc 0 π) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (π/2)) :
