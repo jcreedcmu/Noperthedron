@@ -1,8 +1,8 @@
 \chapter{Main Theorems}
 
 \begin{theorem}
-\label{thm:no_nopert_tight_view_pose}
-\lean{no_nopert_tight_view_pose}
+\label{thm:no_nopert_tight_pose}
+\lean{no_nopert_tight_pose}
 \uses{def:noperthedron}
 \leanok
 There does not in fact exist a noperthedron Rupert solution with
@@ -24,15 +24,15 @@ there is no Rupert solution in that interval.
 \end{proof}
 
 \begin{theorem}
-\label{thm:no_nopert_view_pose}
-\lean{no_nopert_view_pose}
+\label{thm:no_nopert_pose}
+\lean{no_nopert_pose}
 \leanok
 There is no view pose that makes the noperthedron have the Rupert property.
 \end{theorem}
 \begin{proof}
-\uses{thm:no_nopert_tight_view_pose, cor:rupert_tightening}
+\uses{thm:no_nopert_tight_pose, cor:rupert_tightening}
 \leanok
-Theorem~\ref{thm:no_nopert_tight_view_pose} says there is no tight view pose
+Theorem~\ref{thm:no_nopert_tight_pose} says there is no tight view pose
 that makes the noperthedron Rupert. Corollary~\ref{cor:rupert_tightening}
 says that this suffices for the general case.
 \end{proof}
@@ -45,17 +45,17 @@ says that this suffices for the general case.
 There is no purely rotational pose that makes the noperthedron have the Rupert property.
 \end{theorem}
 \begin{proof}
-\uses{thm:view_pose_of_pose, thm:no_nopert_view_pose}
+\uses{thm:view_pose_of_pose, thm:no_nopert_pose}
 \leanok
 Suppose there were a purely rotational pose. Then convert that to an equivalent view pose
 with Theorem~\ref{thm:view_pose_of_pose} and
-appeal to Theorem~\ref{thm:no_nopert_view_pose}.
+appeal to Theorem~\ref{thm:no_nopert_pose}.
 \end{proof}
 
 
 \begin{theorem}
-\label{thm:no_nopert_pose}
-\lean{no_nopert_pose}
+\label{thm:no_nopert_matrix_pose}
+\lean{no_nopert_matrix_pose}
 \leanok
 There is no pose that makes the noperthedron have the Rupert property.
 \end{theorem}
@@ -78,9 +78,9 @@ a contradiction, hence the noperthedron has no pose that makes it Rupert.
 The noperthedron is not a Rupert set.
 \end{theorem}
 \begin{proof}
-\uses{thm:no_nopert_pose}
+\uses{thm:no_nopert_matrix_pose}
 \leanok
-By Theorem~\ref{thm:no_nopert_pose}, there is no pose that makes the noperthedron a Rupert set.
+By Theorem~\ref{thm:no_nopert_matrix_pose}, there is no pose that makes the noperthedron a Rupert set.
 \end{proof}
 
 \begin{theorem}

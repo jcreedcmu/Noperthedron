@@ -11,21 +11,21 @@ import Noperthedron.ComputationalStep
 open scoped Matrix
 
 /--
-There is no tight view pose that makes the Noperthedron have the Rupert property
+There is no tight pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_tight_view_pose : ¬ ∃ v : Pose,
+theorem no_nopert_tight_pose : ¬ ∃ v : Pose,
     tightInterval.contains v ∧ RupertPose v nopert.hull := by
   rintro ⟨v, h1, h2⟩
   let ⟨tab, htab, row, hrow, tight⟩ := exists_solution_table
   exact Solution.Row.valid_imp_not_rupert tab htab row hrow ⟨v, tight v h1, h2⟩
 
 /--
-There is no view pose that makes the Noperthedron have the Rupert property
+There is no pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_view_pose : ¬ ∃ v : Pose, RupertPose v nopert.hull := by
+theorem no_nopert_pose : ¬ ∃ v : Pose, RupertPose v nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
-  exact no_nopert_tight_view_pose (Tightening.rupert_tightening p r)
+  exact no_nopert_tight_pose (Tightening.rupert_tightening p r)
 
 /--
 There is no purely rotational pose that makes the Noperthedron have the Rupert property
@@ -34,7 +34,7 @@ theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, RupertPose p.zeroOffset nope
   intro r
   obtain ⟨p, r⟩ := r
   let ⟨v, e⟩ := view_pose_of_pose p
-  refine no_nopert_view_pose ⟨v, ?_⟩
+  refine no_nopert_pose ⟨v, ?_⟩
   apply (converted_pose_rupert_iff v nopert.hull).mpr
   rw [e]
   exact r
@@ -42,7 +42,7 @@ theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, RupertPose p.zeroOffset nope
 /--
 There is no pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_pose : ¬ ∃ p : MatrixPose, RupertPose p nopert.hull := by
+theorem no_nopert_matrix_pose : ¬ ∃ p : MatrixPose, RupertPose p nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
   have hconvex : Convex ℝ nopert.hull := by
@@ -70,7 +70,7 @@ lemma rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
 The Noperthedron (as a subset of ℝ³) is not Rupert
 -/
 theorem nopert_not_rupert_set : ¬ IsRupertSet nopert.hull := fun r =>
-  no_nopert_pose (rupert_set_implies_pose_rupert r)
+  no_nopert_matrix_pose (rupert_set_implies_pose_rupert r)
 
 /--
 FIXME: `sortedVerts` and the lemma `mem_iff_symm_mem` are a temporary
