@@ -158,13 +158,17 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
   grw [ContinuousLinearMap.opNorm_comp_le, reduceL_norm, one_mul]
   rw [←Rz_preserves_op_norm (-α_), ContinuousLinearMap.comp_sub]
   rw [←Rz_comp_right_preserves_op_norm θ, ContinuousLinearMap.sub_comp]
-  have h₂ : ((RzL (-α_)).comp ((RzL α).comp ((RyL φ).comp (RzL (-θ))))).comp (RzL θ) -
-        ((RzL (-α_)).comp ((RzL α_).comp ((RyL φ_).comp (RzL (-θ_))))).comp (RzL θ) =
-      RzL (-α_) ∘L RzL α ∘L RyL φ ∘L RzL (-θ) ∘L RzL θ -
+  have h₃ : ((RzL (-α_)).comp ((RzL α).comp ((RyL φ).comp (RzL (-θ))))).comp (RzL θ) =
+      RzL (-α_) ∘L RzL α ∘L RyL φ ∘L RzL (-θ) ∘L RzL θ := by
+    rw [←ContinuousLinearMap.comp_assoc, ←ContinuousLinearMap.comp_assoc]
+    rw [←ContinuousLinearMap.comp_assoc, ←ContinuousLinearMap.comp_assoc]
+    rw [←ContinuousLinearMap.comp_assoc]
+  have h₄ : ((RzL (-α_)).comp ((RzL α_).comp ((RyL φ_).comp (RzL (-θ_))))).comp (RzL θ) =
         (RzL (-α_) ∘L RzL α_) ∘L RyL φ_ ∘L RzL (-θ_) ∘L RzL θ
        := by
-    sorry
-  rw [h₂, RzL_neg_compose_RzL, RzL_neg_compose_RzL]
-  clear h₂
+    rw [←ContinuousLinearMap.comp_assoc, ←ContinuousLinearMap.comp_assoc]
+    rw [←ContinuousLinearMap.comp_assoc, ←ContinuousLinearMap.comp_assoc]
+  rw [h₃, h₄, RzL_neg_compose_RzL, RzL_neg_compose_RzL]
+  clear h₃ h₄
   simp only [ContinuousLinearMap.comp_id, ContinuousLinearMap.id_comp]
   sorry
