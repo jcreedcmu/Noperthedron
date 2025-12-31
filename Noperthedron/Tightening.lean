@@ -2,7 +2,6 @@ import Noperthedron.Rupert.Basic
 import Noperthedron.PoseClasses
 import Noperthedron.Basic
 import Noperthedron.Nopert
-import Noperthedron.ViewPose
 import Noperthedron.PoseInterval
 import Noperthedron.RealMod
 

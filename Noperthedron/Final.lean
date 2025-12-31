@@ -1,7 +1,6 @@
 import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
 import Noperthedron.Basic
 import Noperthedron.Nopert
-import Noperthedron.ViewPose
 import Noperthedron.PoseInterval
 import Noperthedron.Tightening
 import Noperthedron.ConvertPose

@@ -1,20 +1,10 @@
 import Noperthedron.Rupert.Basic
 import Noperthedron.PoseClasses
 import Noperthedron.Basic
-import Noperthedron.ViewPose
 import Noperthedron.Pose
 
 open scoped Matrix
 open scoped Real
-
-instance : Coe ViewPose Pose where
-  coe vp := {
-    θ₁ := vp.θ₁,
-    θ₂ := vp.θ₂,
-    φ₁ := vp.φ₁,
-    φ₂ := vp.φ₂,
-    α := vp.α,
-  }
 
 /--
 Represents a closed 5d box in parameter space.
