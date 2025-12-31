@@ -162,11 +162,23 @@ theorem lemma7_1 (θ φ : ℝ) :
 
 theorem lemma7_1_iterated {θ φ : ℝ} (k : ℤ) :
     (rotM (θ + k * (2 * π / 15)) φ) '' nopert.hull = rotM θ φ '' nopert.hull := by
-  sorry
+  induction k using Int.induction_on with
+  | zero => simp
+  | succ n hn =>
+    rw [← hn]; push_cast
+    have := lemma7_1 (θ + n * (2 * π / 15)) φ
+    ring_nf at this ⊢
+    rw [← this]
+  | pred n hn =>
+    rw [← hn]; push_cast
+    have := lemma7_1 (θ + (-1 - n) * (2 * π / 15)) φ
+    ring_nf at this ⊢
+    rw [← this]
 
 theorem lemma7_2 (θ φ α : ℝ) :
-    (rotR (α + π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull := by
+    (rotR (α + π) ∘ rotM θ φ) '' nopert.hull = (rotR α ∘ rotM θ φ) '' nopert.hull := by
   suffices h : (rotR (α + π) ∘L rotM θ φ) '' nopert.vertices = (rotR α ∘L rotM θ φ) '' nopert.vertices by
+    change (rotR (α + π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull
     rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
   push_cast
   repeat rw [Set.image_comp]
@@ -175,7 +187,18 @@ theorem lemma7_2 (θ φ α : ℝ) :
 
 theorem lemma7_2_iterated {θ φ α : ℝ} (k : ℤ) :
         (rotR (α + k * π) ∘L rotM θ φ) '' nopert.hull = (rotR α ∘L rotM θ φ) '' nopert.hull := by
-  sorry
+  induction k using Int.induction_on with
+  | zero => simp
+  | succ n hn =>
+    rw [← hn]; push_cast
+    have := lemma7_2 θ φ (α + n * π)
+    ring_nf at this ⊢
+    rw [← this]
+  | pred n hn =>
+    rw [← hn]; push_cast
+    have := lemma7_2 θ φ  (α + (-1 - n) * π)
+    ring_nf at this ⊢
+    rw [← this]
 
 lemma lemma7_3_calculation (θ φ : ℝ) (v : ℝ³) :
     flip_y (rotM θ φ v) = - rotM (θ + π / 15) (π - φ) (RzC (16 * π / 15) v) := by
