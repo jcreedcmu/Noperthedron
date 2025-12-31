@@ -10,8 +10,7 @@ namespace Bounding
 lemma RyL_neg_compose_RyL {α : ℝ} : RyL (-α) ∘L RyL α = ContinuousLinearMap.id _ _ := by
   have h₄ : (RyL (-α)).comp (RyL α) = RyL (-α + α) := by
     rw [show RyL = RyC from rfl]
-    have : (RyC (-α)).comp (RyC α) = (RyC (-α)) * (RyC α) := by rfl
-    rw [this, ←AddChar.map_add_eq_mul]
+    rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
   rw [h₄]
   rw [show RyL = RyC from rfl]
   simp [ContinuousLinearMap.one_def]
@@ -19,8 +18,7 @@ lemma RyL_neg_compose_RyL {α : ℝ} : RyL (-α) ∘L RyL α = ContinuousLinearM
 lemma RzL_neg_compose_RzL {α : ℝ} : RzL (-α) ∘L RzL α = ContinuousLinearMap.id _ _ := by
   have h₄ : (RzL (-α)).comp (RzL α) = RzL (-α + α) := by
     rw [show RzL = RzC from rfl]
-    have : (RzC (-α)).comp (RzC α) = (RzC (-α)) * (RzC α) := by rfl
-    rw [this, ←AddChar.map_add_eq_mul]
+    rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
   rw [h₄]
   rw [show RzL = RzC from rfl]
   simp [ContinuousLinearMap.one_def]
@@ -171,4 +169,24 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
   rw [h₃, h₄, RzL_neg_compose_RzL, RzL_neg_compose_RzL]
   clear h₃ h₄
   simp only [ContinuousLinearMap.comp_id, ContinuousLinearMap.id_comp]
+  let Φ := (φ * |θ - θ_| + φ_ * |α - α_|) / (|α - α_| + |θ - θ_|)
+  have h₅ : ((RzL (-θ_)).comp (RzL θ)) = RzL (θ - θ_) := by
+    rw [show RzL = RzC from rfl]
+    rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
+    rw [show -θ_ + θ = θ - θ_ by ring]
+  rw [h₅]; clear h₅
+  rw [←ContinuousLinearMap.comp_assoc]
+  have h₅ : ((RzL (-α_)).comp (RzL α)) = RzL (α - α_) := by
+    rw [show RzL = RzC from rfl]
+    rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
+    ring_nf
+  rw [h₅]; clear h₅
+  have h₆ :
+      ‖(RzL (α - α_)).comp (RyL φ) - RyL Φ‖ + ‖ RyL Φ - (RyL φ_).comp (RzL (θ - θ_))‖
+      ≥ ‖(RzL (α - α_)).comp (RyL φ) - (RyL φ_).comp (RzL (θ - θ_))‖ := by
+    have :=
+      ContinuousLinearMap.opNorm_add_le ((RzL (α - α_)).comp (RyL φ) - RyL Φ)
+        (RyL Φ - (RyL φ_).comp (RzL (θ - θ_)))
+    rwa [sub_add_sub_cancel] at this
+  grw [←h₆]; clear h₆
   sorry
