@@ -372,7 +372,24 @@ theorem tighten_θ (p : Pose) :
 theorem tighten_α (p : Pose) :
     ∃ α ∈ Set.Icc (-(π/2)) (π/2),
     NopertEquiv p {p with α} := by
-  sorry
+  use Real.emod (p.α + π/2) π - π/2
+  have hα1 : (p.α + π/2).emod π ∈ Set.Ico 0 π :=
+    Real.emod_in_interval pi_pos
+  have hα2 : (p.α + π / 2).emod π - π / 2 ∈ Set.Icc (-(π / 2)) (π / 2) := by
+    grind
+  use hα2
+  obtain ⟨k, hk⟩ := Real.emod_exists_multiple (p.α + π/2) π pi_pos
+  rw [hk]
+  let p1 : Pose := {p with α := p.α + k * π}
+  refine inner_outer_imp_nopert_equiv ?_ rfl
+  convert_to _ = ({ p with α := p.α + k * π} : Pose).inner '' nopert.hull
+  · ring_nf
+  calc p.inner '' nopert.hull
+  _ = (p.rotR ∘ p.rotM₁) '' nopert.hull := by rw [Pose.inner_eq_RM]
+  _ = (rotR (p.α) ∘L rotM p.θ₁ p.φ₁) '' nopert.hull := by rfl
+  _ = (rotR (p.α + k * π) ∘L rotM p.θ₁ p.φ₁) '' nopert.hull := by rw [lemma7_2_iterated k]
+  _ = (p1.rotR ∘ p1.rotM₁) '' nopert.hull := by rfl
+  _ = p1.inner '' nopert.hull := by rw [Pose.inner_eq_RM]
 
 theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
      (hφ₁ : p.φ₁ ∈ Set.Icc 0 π) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (π/2)) :
