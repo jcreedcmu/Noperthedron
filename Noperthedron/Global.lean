@@ -258,7 +258,8 @@ lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose) : rotproj_inner S
              Matrix.cons_val_zero, Matrix.cons_val, AffineMap.coe_comp,
              LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
   change _ = ⟪(proj_xyL ∘L rotRM p.θ₁ p.φ₁ p.α) S, w⟫
-  rw [← rotRM_identity]
+  rw [← projxy_rotRM_eq_rotprojRM]
+  rfl
 
 /--
 This is the function that Theorem 17's proof calls `f`.

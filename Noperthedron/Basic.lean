@@ -303,14 +303,6 @@ def reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
   simp only [RzL]
   fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
 
--- Delete me in favor of  projxy_rotRM_eq_rotprojRM
-lemma rotRM_identity (θ φ α : ℝ) : proj_xyL ∘L rotRM θ φ α = rotprojRM θ φ α := by
-  rw [rotprojRM_identity θ φ α]
-  simp only [rotRM]
-  ext1 v
-  rw [reduce_identity]
-  simp only [ ContinuousLinearMap.coe_comp', Function.comp_apply]
-
 lemma rotR_add_pi_eq_neg_rotR {α : ℝ} :
     rotR (α + π) = -rotR α := by
   ext v i; fin_cases i <;>
