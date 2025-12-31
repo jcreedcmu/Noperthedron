@@ -1,5 +1,4 @@
 import Noperthedron.MatrixPose
-import Noperthedron.ViewPose
 import Noperthedron.Pose
 
 def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
@@ -22,5 +21,5 @@ theorem converted_pose_rupert_iff (v : Pose) (S : Set ℝ³) :
     rw [converted_pose_inner_shadow_eq, converted_pose_outer_shadow_eq]
     exact id
 
-theorem view_pose_of_pose (p : MatrixPose) : ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
+theorem pose_of_matrix_pose (p : MatrixPose) : ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
   sorry -- TODO(easy)

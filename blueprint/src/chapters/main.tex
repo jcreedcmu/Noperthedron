@@ -27,12 +27,12 @@ there is no Rupert solution in that interval.
 \label{thm:no_nopert_pose}
 \lean{no_nopert_pose}
 \leanok
-There is no view pose that makes the noperthedron have the Rupert property.
+There is no 5-parameter pose that makes the noperthedron have the Rupert property.
 \end{theorem}
 \begin{proof}
 \uses{thm:no_nopert_tight_pose, cor:rupert_tightening}
 \leanok
-Theorem~\ref{thm:no_nopert_tight_pose} says there is no tight view pose
+Theorem~\ref{thm:no_nopert_tight_pose} says there is no tight pose
 that makes the noperthedron Rupert. Corollary~\ref{cor:rupert_tightening}
 says that this suffices for the general case.
 \end{proof}
@@ -45,10 +45,10 @@ says that this suffices for the general case.
 There is no purely rotational pose that makes the noperthedron have the Rupert property.
 \end{theorem}
 \begin{proof}
-\uses{thm:view_pose_of_pose, thm:no_nopert_pose}
+\uses{thm:pose_of_matrix_pose, thm:no_nopert_pose}
 \leanok
-Suppose there were a purely rotational pose. Then convert that to an equivalent view pose
-with Theorem~\ref{thm:view_pose_of_pose} and
+Suppose there were a purely rotational pose. Then convert that to an equivalent 5-parameter pose
+with Theorem~\ref{thm:pose_of_matrix_pose} and
 appeal to Theorem~\ref{thm:no_nopert_pose}.
 \end{proof}
 

@@ -33,7 +33,7 @@ There is no purely rotational pose that makes the Noperthedron have the Rupert p
 theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, RupertPose p.zeroOffset nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
-  let ⟨v, e⟩ := view_pose_of_pose p
+  let ⟨v, e⟩ := pose_of_matrix_pose p
   refine no_nopert_pose ⟨v, ?_⟩
   apply (converted_pose_rupert_iff v nopert.hull).mpr
   rw [e]
