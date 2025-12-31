@@ -336,7 +336,10 @@ theorem tighten_θ (p : Pose) :
     ∃ θ₁ ∈ Set.Ico 0 (2 * π / 15),
     ∃ θ₂ ∈ Set.Ico 0 (2 * π / 15),
     NopertEquiv p {p with θ₁, θ₂} := by
-  have two_pi_15_pos : 2 * π / 15 > 0 := by sorry
+
+  have two_pi_15_pos : 2 * π / 15 > 0 :=
+    div_pos (two_pi_pos) (by norm_num)
+
   let θ₁ := Real.emod p.θ₁ (2 * π / 15)
   let θ₂ := Real.emod p.θ₂ (2 * π / 15)
   use θ₁, Real.emod_in_interval two_pi_15_pos,
@@ -366,10 +369,21 @@ theorem tighten_θ (p : Pose) :
     _ = p2.rotM₂ '' nopert.hull := by rfl
     _ = p2.outer '' nopert.hull := by rw [Pose.outer_eq_M]
 
+theorem tighten_α (p : Pose) :
+    ∃ α ∈ Set.Icc (-(π/2)) (π/2),
+    NopertEquiv p {p with α} := by
+  sorry
+
 theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
      (hφ₁ : p.φ₁ ∈ Set.Icc 0 π) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (π/2)) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
-  sorry
+  obtain ⟨θ₁, hθ₁, θ₂, hθ₂, eq⟩ := tighten_θ p
+  let p2 := {p with θ₁, θ₂}
+  obtain ⟨α, hα, eq2⟩ := tighten_α p2
+  use {p2 with α}
+  use ⟨Set.Ico_subset_Icc_self hθ₁, Set.Ico_subset_Icc_self hθ₂,
+       hφ₁, hφ₂, hα⟩
+  exact  eq2.mp (eq.mp r)
 
 -- [SY25] §2.2, Corollary 8
 -- This is a piece that relies on symmetry of the Noperthedron
