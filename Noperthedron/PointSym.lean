@@ -1,5 +1,4 @@
 import Noperthedron.Rupert.Basic
-import Noperthedron.Rupert.Equivalences.Util
 
 def PointSym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
  ∀ x ∈ A, -x ∈ A
@@ -78,15 +77,16 @@ theorem interior_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin
 /--
 Rotation preserves the property of being pointsymmetric.
 -/
-theorem rotation_preserves_point_sym {S : Set ℝ³} (s_sym : PointSym S) (rot : SO3) :
-    PointSym (rot.1.toEuclideanLin  '' S) := by
+theorem rotation_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
+    (s_sym : PointSym S) (rot : Matrix.specialOrthogonalGroup (Fin n) ℝ) :
+    PointSym (rot.1.toEuclideanLin '' S) := by
   intro a ⟨y, hy, e⟩
   aesop
 
 /--
 If S is a pointsymmetric set, then the flip of S is equal to S.
 -/
-lemma pointsym_imp_flip_pres {S : Set ℝ³} (s_psym : PointSym S) :
+lemma pointsym_imp_flip_pres {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))} (s_psym : PointSym S) :
     S = pointSymLinEquiv '' S := by
   ext x
   constructor
@@ -98,7 +98,8 @@ lemma pointsym_imp_flip_pres {S : Set ℝ³} (s_psym : PointSym S) :
 /--
 Taking the convex hull preserves point symmetry.
 -/
-lemma hull_preserves_pointsym {S : Set ℝ³} (s_psym : PointSym S) : PointSym (convexHull ℝ S) := by
+lemma hull_preserves_pointsym {S : Set (EuclideanSpace ℝ (Fin 3))} (s_psym : PointSym S) :
+    PointSym (convexHull ℝ S) := by
   intro a ha
   apply mem_convexHull_iff.mpr
   intro T ht hc
