@@ -152,6 +152,10 @@ theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} {P : ℝ³}
 theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) (hα : |α - α_| ≤ ε) :
     ‖rotprojRM θ φ α - rotprojRM θ_ φ_ α_‖ < √5 * ε := by
+  by_cases h₁ : θ = θ_ ∧ φ = φ_ ∧ α = α_
+  · have h₂ : ‖rotprojRM θ φ α - rotprojRM θ_ φ_ α_‖ = 0 := by simp [h₁]
+    rw [h₂]
+    positivity
   simp only [rotprojRM_identity, ←ContinuousLinearMap.comp_sub]
   grw [ContinuousLinearMap.opNorm_comp_le, reduceL_norm, one_mul]
   rw [←Rz_preserves_op_norm (-α_), ContinuousLinearMap.comp_sub]
@@ -169,7 +173,6 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
   rw [h₃, h₄, RzL_neg_compose_RzL, RzL_neg_compose_RzL]
   clear h₃ h₄
   simp only [ContinuousLinearMap.comp_id, ContinuousLinearMap.id_comp]
-  let Φ := (φ * |θ - θ_| + φ_ * |α - α_|) / (|α - α_| + |θ - θ_|)
   have h₅ : ((RzL (-θ_)).comp (RzL θ)) = RzL (θ - θ_) := by
     rw [show RzL = RzC from rfl]
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
@@ -181,6 +184,7 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
     ring_nf
   rw [h₅]; clear h₅
+  let Φ := (φ * |θ - θ_| + φ_ * |α - α_|) / (|α - α_| + |θ - θ_|)
   have h₆ :
       ‖(RzL (α - α_)).comp (RyL φ) - RyL Φ‖ + ‖ RyL Φ - (RyL φ_).comp (RzL (θ - θ_))‖
       ≥ ‖(RzL (α - α_)).comp (RyL φ) - (RyL φ_).comp (RzL (θ - θ_))‖ := by
@@ -209,7 +213,9 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     ring_nf
   rw [h₉]; clear h₉
   have h₈ := lemma12 (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
+  have h₉ := lemma12 (d := 1) (d' := 2) (α := φ_ - Φ) (β := θ - θ_) (by decide)
   have h₈' := lemma12_equality_iff (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
-  rw [show RyL = RyC from rfl, show RzL = RzC from rfl]
-  simp only [rot3] at h₈
+  have h₉':= lemma12_equality_iff (d := 1) (d' := 2) (α := φ_ - Φ) (β := θ - θ_) (by decide)
+  simp only [rot3] at h₈ h₉ h₈' h₉'
+  --grw [h₈, h₉]
   sorry
