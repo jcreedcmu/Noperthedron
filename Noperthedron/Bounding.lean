@@ -245,7 +245,29 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     linarith only [this, h₁₀]
   have h₁₁ : √((α - α_) ^ 2 + (φ - Φ) ^ 2) + √((φ_ - Φ) ^ 2 + (θ - θ_) ^ 2) =
       √((|α - α_| + |θ - θ_|)^2 + |φ - φ_|^2) := by
-    sorry
+    have h₁₄ : 0 < |α - α_| + |θ - θ_| := by
+      obtain h₁ | h₁ : θ ≠ θ_ ∨ α ≠ α_ := Decidable.not_and_iff_or_not.mp h₁ <;>
+        have := abs_sub_pos.mpr h₁ <;> positivity
+    have h_subst : φ - Φ = (φ - φ_) * |α - α_| / (|α - α_| + |θ - θ_|) ∧
+                   φ_ - Φ = (φ_ - φ) * |θ - θ_| / (|α - α_| + |θ - θ_|) := by grind
+    rw [h_subst.1, h_subst.2]; clear h_subst
+    have h₁₅ : (α - α_) ^ 2 + ((φ - φ_) * |α - α_| / (|α - α_| + |θ - θ_|)) ^ 2 =
+               ((α - α_) ^ 2 * (|α - α_| + |θ - θ_|) ^ 2 + (φ - φ_) ^ 2 * |α - α_| ^ 2) /
+                (|α - α_| + |θ - θ_|) ^ 2 := by field_simp
+    have h₁₆: ((φ_ - φ) * |θ - θ_| / (|α - α_| + |θ - θ_|)) ^ 2 + (θ - θ_) ^ 2 =
+              (|θ - θ_| ^ 2 * (φ_ - φ) ^ 2 + (θ - θ_) ^ 2 * (|α - α_| + |θ - θ_|) ^ 2) /
+               (|α - α_| + |θ - θ_|) ^ 2 := by field_simp
+    rw [h₁₅, h₁₆]; clear h₁₅ h₁₆
+    rw [Real.sqrt_div (by positivity), Real.sqrt_div (by positivity)]
+    rw [← add_div, div_eq_iff (by simp [h₁₄.le, h₁₄.ne'])]
+    simp only [sq_abs, h₁₄.le, Real.sqrt_sq]
+    rw [show (α - α_) ^ 2 * (|α - α_| + |θ - θ_|) ^ 2 + (φ - φ_) ^ 2 * (α - α_) ^ 2 =
+             ((|α - α_| + |θ - θ_|) ^ 2 + (φ - φ_) ^ 2) * (α - α_) ^ 2 by ring,
+        show (θ - θ_) ^ 2 * (φ_ - φ) ^ 2 + (θ - θ_) ^ 2 * (|α - α_| + |θ - θ_|) ^ 2 =
+             ((|α - α_| + |θ - θ_|) ^ 2 + (φ - φ_) ^ 2 ) * (θ - θ_) ^ 2 by ring,
+        Real.sqrt_mul (by positivity), Real.sqrt_mul (by positivity),
+        Real.sqrt_sq_eq_abs, Real.sqrt_sq_eq_abs]
+    ring_nf
   rw [h₁₁]; clear h₁₁
   grw [hθ, hφ, hα]
   rw [show (ε + ε) ^ 2 + ε ^ 2 = 5 * ε ^ 2 by ring]
