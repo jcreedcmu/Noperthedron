@@ -50,7 +50,7 @@ theorem zero_offset_elim (p : MatrixPose) :
   change p.zeroOffset.innerOffsetPart (p.innerRot.val.toEuclideanLin v) = _
   rw [zero_offset_id]
 
-noncomputable def shift (p : MatrixPose) : ℝ² ≃ₜ ℝ² := translationHomeo p.innerOffset
+noncomputable def shift (p : MatrixPose) : ℝ² ≃ₜ ℝ² := Homeomorph.addRight p.innerOffset
 
 /--
 We can massage innerShadow p S into the form of the standard Rupert definition

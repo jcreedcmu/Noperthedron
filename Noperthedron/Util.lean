@@ -4,19 +4,6 @@ import Noperthedron.Rupert.Equivalences.Util
 open scoped Matrix
 
 /--
-Translation as a homeomorphism ℝⁿ → ℝⁿ
--/
-noncomputable def translationHomeo {n : ℕ} (v : EuclideanSpace ℝ (Fin n)) :
-    Homeomorph (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin n)) :=
-{ toFun := fun x ↦ x + v,
-  invFun := fun x ↦ x - v,
-  left_inv := leftInverse_sub_add_left v
-  right_inv := by intro; simp,
-  continuous_toFun := continuous_add_right v
-  continuous_invFun := continuous_sub_right v
-}
-
-/--
 Translation AffineEquiv ℝⁿ → ℝⁿ
 -/
 noncomputable def translationAffineEquiv {n : ℕ} (v : EuclideanSpace ℝ (Fin n)) :
