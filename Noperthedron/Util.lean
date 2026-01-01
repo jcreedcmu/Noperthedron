@@ -165,15 +165,3 @@ Injecting ℝ² into ℝ³ commutes as expected with projection and sum
 -/
 theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy (v + inject_xy t) := by
  ext i; fin_cases i <;> simp [proj_xy, inject_xy]
-
-lemma pointsym_imp_neg_image_eq {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) (hA : PointSym A) :
-    (-·) '' A = A := by
-  ext x
-  constructor
-  · intro hx
-    simp only [Set.image_neg_eq_neg] at hx
-    have := hA (-x) hx
-    simpa using this
-  · intro hx
-    simp only [Set.image_neg_eq_neg, Set.mem_neg]
-    refine hA x hx

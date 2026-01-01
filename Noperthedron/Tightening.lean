@@ -22,11 +22,17 @@ lemma rotR_preserves_pointsymmetry {α : ℝ} (X : Set ℝ²) (hX : PointSym X) 
   obtain ⟨y, hy, hy2⟩ := hx
   exact ⟨-y, hX y hy, by rw [← hy2, (rotR α).map_neg]⟩
 
-lemma neg_image_eq_if_pointsym (X : Set ℝ²) (hX : PointSym X) : (-·) '' X = X := by
-  simp only [Set.image_neg_eq_neg]; ext x
+lemma neg_image_eq_if_pointsym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) (hA : PointSym A) :
+    (-·) '' A = A := by
+  ext x
   constructor
-  · simp only [Set.mem_neg]; intro hx; specialize hX (-x) hx; simpa [neg_neg] using hX
-  · simp only [Set.mem_neg]; intro hx; specialize hX x hx; exact hX
+  · intro hx
+    simp only [Set.image_neg_eq_neg] at hx
+    have := hA (-x) hx
+    simpa using this
+  · intro hx
+    simp only [Set.image_neg_eq_neg, Set.mem_neg]
+    refine hA x hx
 
 lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
     rotR (α + π) '' X = rotR α '' X := by
@@ -253,7 +259,7 @@ theorem lemma7_3 (θ φ : ℝ) :
       (-rotM (θ + π / 15) (π - φ)) '' ↑nopert.vertices := by
     rw [neg_lin_eq_lin_neg (rotM (θ + π / 15) (π - φ)), Set.image_comp]
     congr
-    rw [pointsym_imp_neg_image_eq]
+    rw [neg_image_eq_if_pointsym]
     exact nopert_verts_pointsym
   rw [h2, h1, Set.image_comp]
   congr
