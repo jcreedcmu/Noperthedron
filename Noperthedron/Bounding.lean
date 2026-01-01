@@ -195,4 +195,21 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
   have h₇ := RyL_neg_compose_RyL (α := -Φ)
   rw [neg_neg] at h₇
   rw [h₇]
+  simp only [←ContinuousLinearMap.one_def]
+  rw [norm_sub_rev 1]
+  rw [ContinuousLinearMap.comp_assoc]
+  have h₉ : ((RyL φ).comp (RyL (-Φ))) = RyL (φ - Φ) := by
+    rw [show RyL = RyC from rfl]
+    rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul, ←Ring.sub_eq_add_neg]
+  rw [h₉]; clear h₉
+  rw [←ContinuousLinearMap.comp_assoc]
+  have h₉ : ((RyL (-Φ)).comp (RyL φ_)) = RyL (φ_ - Φ) := by
+    rw [show RyL = RyC from rfl]
+    rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
+    ring_nf
+  rw [h₉]; clear h₉
+  have h₈ := lemma12 (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
+  have h₈' := lemma12_equality_iff (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
+  rw [show RyL = RyC from rfl, show RzL = RzC from rfl]
+  simp only [rot3] at h₈
   sorry
