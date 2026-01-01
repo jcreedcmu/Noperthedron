@@ -204,7 +204,7 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
   rw [ContinuousLinearMap.comp_sub, ContinuousLinearMap.sub_comp, RyL_neg_compose_RyL]
   have h₇ := RyL_neg_compose_RyL (α := -Φ)
   rw [neg_neg] at h₇
-  rw [h₇]
+  rw [h₇]; clear h₇
   simp only [←ContinuousLinearMap.one_def]
   rw [norm_sub_rev 1]
   rw [ContinuousLinearMap.comp_assoc]
@@ -218,10 +218,35 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
     ring_nf
   rw [h₉]; clear h₉
-  have h₈ := lemma12 (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
-  have h₉ := lemma12 (d := 1) (d' := 2) (α := φ_ - Φ) (β := θ - θ_) (by decide)
-  have h₈' := lemma12_equality_iff (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
-  have h₉':= lemma12_equality_iff (d := 1) (d' := 2) (α := φ_ - Φ) (β := θ - θ_) (by decide)
-  simp only [rot3] at h₈ h₉ h₈' h₉'
-  --grw [h₈, h₉]
-  sorry
+  rw [show RyL = RyC from rfl, show RzL = RzC from rfl]
+  have h₁₀ : ‖(RzC (α - α_)).comp (RyC (φ - Φ)) - 1‖ + ‖(RyC (φ_ - Φ)).comp (RzC (θ - θ_)) - 1‖
+      < √((α - α_) ^ 2 + (φ - Φ) ^ 2) + √((φ_ - Φ) ^ 2 + (θ - θ_) ^ 2) := by
+    have h₈ := lemma12 (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
+    have h₉ := lemma12 (d := 1) (d' := 2) (α := φ_ - Φ) (β := θ - θ_) (by decide)
+    have h₈' := lemma12_equality_iff (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
+    have h₉':= lemma12_equality_iff (d := 1) (d' := 2) (α := φ_ - Φ) (β := θ - θ_) (by decide)
+    simp only [rot3] at h₈ h₉ h₈' h₉'
+    obtain h₁ | h₁ : θ ≠ θ_ ∨ α ≠ α_ := Decidable.not_and_iff_or_not.mp h₁
+    · have h₁₂ : ¬ (φ_ - Φ = 0 ∧ θ - θ_ = 0) := by
+        push_neg
+        intro _ H
+        have : θ = θ_ := by linarith only [H]
+        contradiction
+      have := lt_of_le_of_ne h₉ (h₉'.not.mpr h₁₂)
+      linarith
+    · have h₁₂ : ¬(α - α_ = 0 ∧ φ - Φ = 0) := by
+        push_neg
+        intro H
+        have : α = α_ := by linarith only [H]
+        contradiction
+      have := lt_of_le_of_ne h₈ (h₈'.not.mpr h₁₂)
+      linarith
+  suffices √((α - α_) ^ 2 + (φ - Φ) ^ 2) + √((φ_ - Φ) ^ 2 + (θ - θ_) ^ 2) ≤ √5 * ε by
+    linarith only [this, h₁₀]
+  have h₁₁ : √((α - α_) ^ 2 + (φ - Φ) ^ 2) + √((φ_ - Φ) ^ 2 + (θ - θ_) ^ 2) =
+      √((|α - α_| + |θ - θ_|)^2 + |φ - φ_|^2) := by
+    sorry
+  rw [h₁₁]; clear h₁₁
+  grw [hθ, hφ, hα]
+  rw [show (ε + ε) ^ 2 + ε ^ 2 = 5 * ε ^ 2 by ring]
+  simp [Real.sqrt_sq hε.le]
