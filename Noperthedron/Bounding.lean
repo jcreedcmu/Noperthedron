@@ -189,7 +189,10 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
         (RyL Φ - (RyL φ_).comp (RzL (θ - θ_)))
     rwa [sub_add_sub_cancel] at this
   grw [←h₆]; clear h₆
-  nth_rw 1 [←Rz_comp_right_preserves_op_norm (-Φ)]
+  nth_rw 1 [←Ry_comp_right_preserves_op_norm (-Φ)]
   nth_rw 2 [←Ry_preserves_op_norm (-Φ)]
   rw [ContinuousLinearMap.comp_sub, ContinuousLinearMap.sub_comp, RyL_neg_compose_RyL]
+  have h₇ := RyL_neg_compose_RyL (α := -Φ)
+  rw [neg_neg] at h₇
+  rw [h₇]
   sorry
