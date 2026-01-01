@@ -81,8 +81,7 @@ theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
     ext i
     simp [Vm, Matrix.mulVec, dotProduct]
     ring_nf
-    have : Y.ofLp i = (∑ x, Yco x • V x).ofLp i :=
-      congrFun (congrArg WithLp.ofLp Ysum) i
+    have : Y.ofLp i = (∑ x, Yco x • V x).ofLp i := congr(WithLp.ofLp $Ysum i)
     simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
       smul_eq_mul] at this
     conv at this => rhs; arg 2; intro x; rw [mul_comm]; skip
@@ -92,8 +91,7 @@ theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
     ext i
     simp [Vm, Matrix.mulVec, dotProduct]
     ring_nf
-    have : Z.ofLp i = (∑ x, Zco x • V x).ofLp i :=
-      congrFun (congrArg WithLp.ofLp Zsum) i
+    have : Z.ofLp i = (∑ x, Zco x • V x).ofLp i := congr(WithLp.ofLp $Zsum i)
     simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
       smul_eq_mul] at this
     conv at this => rhs; arg 2; intro x; rw [mul_comm]; skip
