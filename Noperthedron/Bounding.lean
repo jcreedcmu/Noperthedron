@@ -152,10 +152,6 @@ theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} {P : ℝ³}
 theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) (hα : |α - α_| ≤ ε) :
     ‖rotprojRM θ φ α - rotprojRM θ_ φ_ α_‖ < √5 * ε := by
-  by_cases h₁ : θ = θ_ ∧ φ = φ_ ∧ α = α_
-  · have h₂ : ‖rotprojRM θ φ α - rotprojRM θ_ φ_ α_‖ = 0 := by simp [h₁]
-    rw [h₂]
-    positivity
   simp only [rotprojRM_identity, ←ContinuousLinearMap.comp_sub]
   grw [ContinuousLinearMap.opNorm_comp_le, reduceL_norm, one_mul]
   rw [←Rz_preserves_op_norm (-α_), ContinuousLinearMap.comp_sub]
@@ -184,6 +180,16 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
     ring_nf
   rw [h₅]; clear h₅
+  by_cases h₁ : θ = θ_ ∧ α = α_
+  · rw [show RzL = RzC from rfl]
+    simp only [h₁, sub_self, AddChar.map_zero_eq_one]
+    simp only [ContinuousLinearMap.one_def, ContinuousLinearMap.id_comp, ContinuousLinearMap.comp_id]
+    rw [norm_RyL_sub_RyL_eq]
+    have := norm_rotR_sub_rotR_lt hε hφ
+    have h₅ : (1:ℝ) ≤ √5 := by norm_num
+    grw [←h₅]
+    rw [one_mul]
+    exact this
   let Φ := (φ * |θ - θ_| + φ_ * |α - α_|) / (|α - α_| + |θ - θ_|)
   have h₆ :
       ‖(RzL (α - α_)).comp (RyL φ) - RyL Φ‖ + ‖ RyL Φ - (RyL φ_).comp (RzL (θ - θ_))‖
