@@ -3,6 +3,7 @@ import Noperthedron.PoseClasses
 import Noperthedron.Basic
 import Noperthedron.Nopert
 import Noperthedron.PoseInterval
+import Noperthedron.PointSym
 import Noperthedron.RealMod
 
 open Real
@@ -21,18 +22,6 @@ lemma rotR_preserves_pointsymmetry {α : ℝ} (X : Set ℝ²) (hX : PointSym X) 
   simp only [Set.mem_image] at hx ⊢
   obtain ⟨y, hy, hy2⟩ := hx
   exact ⟨-y, hX y hy, by rw [← hy2, (rotR α).map_neg]⟩
-
-lemma neg_image_eq_if_pointsym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) (hA : PointSym A) :
-    (-·) '' A = A := by
-  ext x
-  constructor
-  · intro hx
-    simp only [Set.image_neg_eq_neg] at hx
-    have := hA (-x) hx
-    simpa using this
-  · intro hx
-    simp only [Set.image_neg_eq_neg, Set.mem_neg]
-    refine hA x hx
 
 lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
     rotR (α + π) '' X = rotR α '' X := by

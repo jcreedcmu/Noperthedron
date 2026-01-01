@@ -3,6 +3,7 @@ import Noperthedron.Rupert.Set
 import Noperthedron.Util
 import Noperthedron.MatrixPose
 import Noperthedron.PoseClasses
+import Noperthedron.PointSym
 
 /-
 This file more or less captures Proposition 2 from
@@ -52,23 +53,23 @@ theorem shadow_outer_pres_convex {S : Set ℝ³} (s_conv : Convex ℝ S) (p : Ma
   change Convex ℝ (proj_xyL ∘ PoseLike.outer p '' S)
   rw [Set.image_comp]
   rw [← proj_xy_eq_proj_xyL]
-  exact proj_pres_convex (rotation_pres_convex s_conv p.outerRot)
+  exact proj_preserves_convex (rotation_preserves_convex s_conv p.outerRot)
 
 theorem shadow_outer_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
   PointSym (outerShadow p S) := by
   change PointSym (proj_xyL ∘ PoseLike.outer p '' S)
   rw [Set.image_comp]
   rw [← proj_xy_eq_proj_xyL]
-  exact proj_pres_point_sym (rotation_pres_point_sym (s_psym) p.outerRot)
+  exact proj_preserves_point_sym (rotation_preserves_point_sym (s_psym) p.outerRot)
 
 theorem shadow_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
   PointSym (innerShadow p.zeroOffset S) := by
   change PointSym (proj_xyL ∘ PoseLike.inner p.zeroOffset '' S)
   rw [Set.image_comp]
   rw [← proj_xy_eq_proj_xyL]
-  refine proj_pres_point_sym ?_
+  refine proj_preserves_point_sym ?_
   simp only [MatrixPose.zero_offset_elim]
-  exact rotation_pres_point_sym s_psym p.innerRot
+  exact rotation_preserves_point_sym s_psym p.innerRot
 
 /--
 We can pull out the shift baked into innerShadow all the way outside
@@ -94,8 +95,8 @@ being purely rotationally rupert.
 theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex : Convex ℝ S)
     (p : MatrixPose) (r : RupertPose p S) : RupertPose (p.zeroOffset) S := by
   refine common_center ?_ ?_ ?_ p.innerOffset ?_
-  · exact closure_pres_point_sym (shadow_inner_pres_psym s_sym p)
-  · exact interior_pres_point_sym (shadow_outer_pres_psym s_sym p)
+  · exact closure_preserves_point_sym (shadow_inner_pres_psym s_sym p)
+  · exact interior_preserves_point_sym (shadow_outer_pres_psym s_sym p)
   · exact Convex.interior (shadow_outer_pres_convex s_convex p)
   · change p.shift '' _ ⊆ _
     rw [shadows_eq]

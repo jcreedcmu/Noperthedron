@@ -1,6 +1,6 @@
 import Noperthedron.Basic
-import Noperthedron.Util
 import Noperthedron.Bounding
+import Noperthedron.PointSym
 
 /-
 This file covers [SY25] §2.1.
@@ -197,7 +197,7 @@ theorem nopert_verts_pointsym : PointSym nopertVertSet :=
 The noperthedron is pointsymmetric.
 -/
 theorem nopert_point_symmetric : PointSym nopert.hull := by
-  exact hull_pres_pointsym nopert_verts_pointsym
+  exact hull_preserves_pointsym nopert_verts_pointsym
 
 /--
 The point C1R is in the half-noperthedron
