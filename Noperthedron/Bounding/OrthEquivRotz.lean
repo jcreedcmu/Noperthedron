@@ -242,9 +242,36 @@ lemma Matrix.orthogonalGroup.to_linear_equiv_apply {n : ℕ} (A : Matrix.orthogo
     Matrix.OrthogonalGroup.toLinearEquiv A x = A.1.mulVec x := by
   rfl
 
+lemma to_euc_mul {a b c : ℕ}
+    (u : Euc(a) →ₗ[ℝ] Euc(b)) (v : Euc(b) →ₗ[ℝ] Euc(c)) :
+    Matrix.toEuclideanLin.symm v * Matrix.toEuclideanLin.symm u =
+    Matrix.toEuclideanLin.symm (v ∘ₗ u) := by
+  sorry
+
+lemma to_euc_id {n : ℕ} : LinearMap.id (M := Euc(n)) = Matrix.toEuclideanLin 1 := by
+  sorry
+
+noncomputable
+instance {n : ℕ} (u : Euc(n) ≃ₗ[ℝ] Euc(n)) :
+    Invertible (Matrix.toEuclideanLin.symm u.toLinearMap) where
+  invOf := Matrix.toEuclideanLin.symm u.symm.toLinearMap
+  invOf_mul_self := by
+    simp only [to_euc_mul, LinearEquiv.comp_coe, LinearEquiv.self_trans_symm, LinearEquiv.refl_toLinearMap]
+    exact (LinearEquiv.symm_apply_eq Matrix.toEuclideanLin).mpr to_euc_id
+  mul_invOf_self := by
+    simp only [to_euc_mul, LinearEquiv.comp_coe, LinearEquiv.symm_trans_self, LinearEquiv.refl_toLinearMap]
+    refine (LinearEquiv.symm_apply_eq Matrix.toEuclideanLin).mpr to_euc_id
+
 lemma inv_euclidean_eq_euclidean_symm (u : Euc(3) ≃ₗ[ℝ] Euc(3)) :
     (Matrix.toEuclideanLin.symm u.toLinearMap)⁻¹ = Matrix.toEuclideanLin.symm u.symm.toLinearMap := by
-  sorry
+  let inst : Invertible (Matrix.toEuclideanLin.symm u.toLinearMap) := inferInstance
+  have h : 1 = (Matrix.toEuclideanLin.symm u.toLinearMap) * (Matrix.toEuclideanLin.symm u.symm.toLinearMap)  :=
+    inst.mul_invOf_self |>.symm
+  have : (Matrix.toEuclideanLin.symm u.toLinearMap)⁻¹ * 1 =
+      (Matrix.toEuclideanLin.symm u.toLinearMap)⁻¹ * ((Matrix.toEuclideanLin.symm u.toLinearMap) * (Matrix.toEuclideanLin.symm u.symm.toLinearMap))  := by
+    congr
+  simp at this
+  exact this
 
 lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3)) (U : Matrix (Fin 3) (Fin 3) ℝ)
     (hu : U = Matrix.toEuclideanLin.symm u.toLinearMap) :
