@@ -150,7 +150,7 @@ theorem dist_rot2_le_dist {α α' : ℝ} : ‖rot2 α - rot2 α'‖ ≤ ‖α - 
     _ ≤ |α - α'| := by apply two_mul_abs_sin_half_le
 
 def rot3_eq_rot3_mat_toEuclideanLin {d : Fin 3} {θ : ℝ}: rot3 d θ = (rot3_mat d θ).toEuclideanLin := by
-  fin_cases d <;> simp [rot3, rot3_mat]
+  fin_cases d <;> simp [RxL, RyL, RzL, rot3, rot3_mat]
 
 -- requires matrix form of Euler's rotation theorem
 -- which in turn requires Schur decomposition

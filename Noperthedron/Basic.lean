@@ -82,7 +82,6 @@ def Rx_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
      0, cos θ, -sin θ;
      0, sin θ,  cos θ]
 
-@[simp]
 noncomputable
 def RxL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rx_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
@@ -91,7 +90,7 @@ noncomputable
 def RxC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
   toFun α := RxL α
   map_zero_eq_one' := by
-    ext v i; fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+    ext v i; fin_cases i <;> simp [RxL, Matrix.vecHead, Matrix.vecTail]
   map_add_eq_mul' α β := by
     ext v i
     fin_cases i <;> (simp [RxL, Matrix.vecHead, Matrix.vecTail, cos_add, sin_add]; try ring)
@@ -103,7 +102,6 @@ def Ry_mat (θ : ℝ) : (Matrix (Fin 3) (Fin 3) ℝ) :=
      0,     1,      0;
      sin θ, 0,  cos θ]
 
-@[simp]
 noncomputable
 def RyL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Ry_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
@@ -112,7 +110,7 @@ noncomputable
 def RyC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
   toFun α := RyL α
   map_zero_eq_one' := by
-    ext v i; fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+    ext v i; fin_cases i <;> simp [RyL,  Matrix.vecHead, Matrix.vecTail]
   map_add_eq_mul' α β := by
     ext v i
     fin_cases i <;> (simp [RyL, Matrix.vecHead, Matrix.vecTail, cos_add, sin_add]; try ring)
@@ -125,7 +123,6 @@ def Rz_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
      sin θ,  cos θ, 0;
      0,      0,     1]
 
-@[simp]
 noncomputable
 def RzL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rz_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
@@ -135,11 +132,11 @@ def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
   toFun α := RzL α
   map_zero_eq_one' := by
     ext v i
-    fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+    fin_cases i <;> simp [RzL, Matrix.vecHead, Matrix.vecTail]
   map_add_eq_mul' a b := by
     ext v i
     fin_cases i <;> {
-      simp [Fin.sum_univ_succ, Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
+      simp [RzL, Fin.sum_univ_succ, Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
       try ring_nf
     }
 
@@ -282,7 +279,7 @@ Some nice identities as laid out in [SY25] §2.2
 lemma vecX_identity (θ φ : ℝ) :
     vecX θ φ = (RzL θ ∘L RyL (-φ)) !₂[0, 0, 1] := by
   ext i
-  fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail, vecX]
+  fin_cases i <;> simp [RyL, RzL, Matrix.vecHead, Matrix.vecTail, vecX]
 
 lemma rotM_identity (θ φ : ℝ) : rotM θ φ = reduceL ∘L RyL φ ∘L RzL (-θ) := by
   ext v i
@@ -295,7 +292,7 @@ lemma rotprojRM_identity (θ φ α : ℝ) : rotprojRM θ φ α = reduceL ∘L Rz
 
 lemma projxy_rotRM_eq_rotprojRM (θ φ α : ℝ) : proj_xyL ∘ rotRM θ φ α = rotprojRM θ φ α := by
   ext v i; fin_cases i <;>
-  · simp [rotprojRM, rotRM, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; ring_nf
+  · simp [RyL, RzL, rotprojRM, rotRM, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; ring_nf
 
 noncomputable
 def reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
