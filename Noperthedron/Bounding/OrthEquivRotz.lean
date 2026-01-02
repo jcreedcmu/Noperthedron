@@ -238,15 +238,25 @@ def Matrix.OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (
     Matrix.UnitaryGroup.toLinearEquiv A ≪≫ₗ
     (WithLp.linearEquiv 2 ℝ (Fin n → ℝ)).symm
 
-
 lemma Matrix.orthogonalGroup.to_linear_equiv_apply {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
     Matrix.OrthogonalGroup.toLinearEquiv A x = A.1.mulVec x := by
   rfl
 
-lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗᵢ[ℝ] Euc(3)) (U : Matrix (Fin 3) (Fin 3) ℝ)
-    (hu : ∀ (x : ℝ³), (u x).ofLp = U.mulVec x.ofLp) :
-    u.symm v = WithLp.toLp 2 (U⁻¹.mulVec v) := by
+lemma inv_euclidean_eq_euclidean_symm (u : Euc(3) ≃ₗ[ℝ] Euc(3)) :
+    (Matrix.toEuclideanLin.symm u.toLinearMap)⁻¹ = Matrix.toEuclideanLin.symm u.symm.toLinearMap := by
   sorry
+
+lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3)) (U : Matrix (Fin 3) (Fin 3) ℝ)
+    (hu : U = Matrix.toEuclideanLin.symm u.toLinearMap) :
+    u.symm v = WithLp.toLp 2 (U⁻¹.mulVec v) := by
+  rw [hu, inv_euclidean_eq_euclidean_symm]
+  have (qq : Euc(3) ≃ₗ[ℝ] Euc(3)) : ((Matrix.toEuclideanLin.symm (qq.toLinearMap)).toEuclideanLin v) =
+      (Matrix.toEuclideanLin.symm (qq.toLinearMap)).mulVec v := by rfl
+  simp only [LinearEquiv.apply_symm_apply, LinearEquiv.coe_coe] at this
+  specialize this u.symm
+  have xx : WithLp.toLp 2 ((u.symm v).ofLp) = WithLp.toLp 2 ((Matrix.toEuclideanLin.symm ↑u.symm).mulVec v.ofLp) := by
+    congr
+  simpa using xx
 
 lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ico (-π) π ∧
@@ -273,8 +283,15 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
         simp
       convert congr_fun ( h_expand ( rot3_mat d α ) ( rot3_mat d' β ) x ) ‹_› using 1;
       fin_cases d <;> fin_cases d' <;> rfl;
-    · rw [show ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) from
-        fun x => euclidean_linear_equiv_inverse x u U hu]
+    · have : U = Matrix.toEuclideanLin.symm u.toLinearMap := by
+        suffices h : Matrix.toEuclideanLin U = u.toLinearMap from
+          (LinearEquiv.eq_symm_apply Matrix.toEuclideanLin).mpr h
+        ext1 x
+        specialize hu x
+        rw [show U.mulVec x.ofLp = (Matrix.toEuclideanLin U) x by simp] at hu
+        exact WithLp.ofLp_injective 2 hu |>.symm
+      rw [show ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) from
+        fun x => euclidean_linear_equiv_inverse x u U this]
       simp [ Matrix.mulVec, dotProduct, Fin.sum_univ_three ]
       unfold RzL; simp [  dotProduct, Fin.sum_univ_three ]
       simp [ Matrix.mul_apply ]
