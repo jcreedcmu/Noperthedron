@@ -294,8 +294,7 @@ lemma projxy_rotRM_eq_rotprojRM (θ φ α : ℝ) : proj_xyL ∘ rotRM θ φ α =
   ext v i; fin_cases i <;>
   · simp [RyL, RzL, rotprojRM, rotRM, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; ring_nf
 
-noncomputable
-def reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
+lemma reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
   ext v i
   simp only [RzL]
   fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
