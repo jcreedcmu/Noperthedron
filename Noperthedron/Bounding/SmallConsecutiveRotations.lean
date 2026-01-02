@@ -160,6 +160,53 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
       u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
   sorry
 
+/-
+Alternatively, here's an idea for how to approach proving
+rot3_rot3_orth_equiv_rotz without the full generality of Schur decomposition:
+
+With sagemath code like
+```
+def rx(theta):
+    return Matrix([[1, 0, 0], [0, cos(theta), -sin(theta)], [0, sin(theta), cos(theta)]])
+def ry(theta):
+    return Matrix([[cos(theta), 0, -sin(theta)], [0, 1, 0], [sin(theta), 0, cos(theta)]])
+var('α β')
+(rx(α) * ry(β) - 1).right_kernel().basis()
+```
+we can get an explicit formula for the eigenvector of eigenvalue 1 of the composite rotation.
+-/
+
+noncomputable
+def RxRy_axis (α β : ℝ) : ℝ³ :=
+
+  WithLp.toLp 2 ![
+    sin β * (cos α - 1),
+    cos β * sin α * (cos β - 1) + sin α * (sin β)^2,
+    (cos β - 1) * (cos α - 1)
+  ]
+
+/-
+...and prove it really is invariant
+-/
+lemma RxRy_axis_invariant  {α β : ℝ} :
+    RxL α (RyL β (RxRy_axis α β)) = RxRy_axis α β := by
+  ext i; fin_cases i
+  · simp [RxL, RyL, Rx_mat, Ry_mat, RxRy_axis, Matrix.vecHead, Matrix.vecTail]
+    ring_nf
+  · simp [RxL, RyL, Rx_mat, Ry_mat, RxRy_axis, Matrix.vecHead, Matrix.vecTail]
+    ring_nf
+  · simp [RxL, RyL, Rx_mat, Ry_mat, RxRy_axis, Matrix.vecHead, Matrix.vecTail]
+    ring_nf
+    let unit (x : ℝ) := (sin x) ^ 2 + (cos x)^2
+    have unit_eq_1 (x : ℝ) : unit x = 1 := by simp only [sin_sq_add_cos_sq, unit]
+    let lhs := unit α * unit β - cos α * unit β - cos β * unit α + cos α * cos β
+    convert_to lhs = _
+    · simp only [lhs, unit]; ring_nf
+    simp only [unit_eq_1, mul_one, lhs]
+    ring_nf
+
+/- Maybe we could analyze the rest of its behavior manually like this? -/
+
 noncomputable abbrev tr := LinearMap.trace ℝ ℝ³
 noncomputable abbrev tr' := LinearMap.trace ℝ (Fin 3 → ℝ)
 
