@@ -234,8 +234,11 @@ end AristotleLemmas
 
 lemma orthogonal_group_euclidean_linear_equiv (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.orthogonalGroup (Fin 3) ℝ) :
     ∃ u : Euc(3) ≃ₗ[ℝ] Euc(3), ∀ x : Euc(3), u x = A.mulVec x := by
-  have z : (Fin 3 → ℝ) ≃ₗ[ℝ] (Fin 3 → ℝ) := Matrix.UnitaryGroup.toLinearEquiv ⟨A, hA⟩
-  sorry
+  use WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ) ≪≫ₗ
+    Matrix.UnitaryGroup.toLinearEquiv ⟨A, hA⟩ ≪≫ₗ
+    (WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ)).symm
+  intro x
+  rfl
 
 lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗᵢ[ℝ] Euc(3)) (U : Matrix (Fin 3) (Fin 3) ℝ)
     (hu : ∀ (x : ℝ³), (u x).ofLp = U.mulVec x.ofLp) :
