@@ -232,12 +232,15 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
 
 end AristotleLemmas
 
-lemma orthogonal_group_euclidean_linear_equiv (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.orthogonalGroup (Fin 3) ℝ) :
-    ∃ u : Euc(3) ≃ₗ[ℝ] Euc(3), ∀ x : Euc(3), u x = A.mulVec x := by
-  use WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ) ≪≫ₗ
-    Matrix.UnitaryGroup.toLinearEquiv ⟨A, hA⟩ ≪≫ₗ
-    (WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ)).symm
-  intro x
+def Matrix.OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
+    : Euc(n) ≃ₗ[ℝ] Euc(n) :=
+  WithLp.linearEquiv 2 ℝ (Fin n → ℝ) ≪≫ₗ
+    Matrix.UnitaryGroup.toLinearEquiv A ≪≫ₗ
+    (WithLp.linearEquiv 2 ℝ (Fin n → ℝ)).symm
+
+
+lemma Matrix.orthogonalGroup.to_linear_equiv_apply {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
+    Matrix.OrthogonalGroup.toLinearEquiv A x = A.1.mulVec x := by
   rfl
 
 lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗᵢ[ℝ] Euc(3)) (U : Matrix (Fin 3) (Fin 3) ℝ)
@@ -255,9 +258,9 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     obtain ⟨u, hu⟩ : ∃ u : Euc(3) ≃ₗᵢ[ℝ] Euc(3), ∀ x : Euc(3), u x = U.mulVec x := by
       have hU_orthogonal : U.transpose * U = 1 := by
         exact hU.1;
-      obtain ⟨ u, hu ⟩ := orthogonal_group_euclidean_linear_equiv U hU;
-      refine' ⟨ { u with norm_map' := _ }, hu ⟩;
-      simp_all +decide [ EuclideanSpace.norm_eq, Fin.sum_univ_three ];
+      refine' ⟨ { Matrix.OrthogonalGroup.toLinearEquiv ⟨U, hU⟩ with norm_map' := _ },
+                  Matrix.orthogonalGroup.to_linear_equiv_apply ⟨U, hU⟩ ⟩;
+      simp_all  [ EuclideanSpace.norm_eq, Fin.sum_univ_three ];
       -- Since $U$ is orthogonal, we have $U^T U = I$, which implies that $U$ preserves the dot product.
       have hU_dot : ∀ x y : Euc(3), dotProduct (U.mulVec x) (U.mulVec y) = dotProduct x y := by
         simp_all +decide [ Matrix.mul_assoc, Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec ];
