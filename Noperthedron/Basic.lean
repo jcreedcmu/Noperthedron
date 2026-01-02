@@ -95,6 +95,8 @@ def RxC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
     ext v i
     fin_cases i <;> (simp [RxL, Matrix.vecHead, Matrix.vecTail, cos_add, sin_add]; try ring)
 
+lemma RxC_coe : RxC = RxL := rfl
+
 @[simp]
 noncomputable
 def Ry_mat (θ : ℝ) : (Matrix (Fin 3) (Fin 3) ℝ) :=
@@ -114,6 +116,8 @@ def RyC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
   map_add_eq_mul' α β := by
     ext v i
     fin_cases i <;> (simp [RyL, Matrix.vecHead, Matrix.vecTail, cos_add, sin_add]; try ring)
+
+lemma RyC_coe : RyC = RyL := rfl
 
 -- rotation about z-axis by θ
 @[simp]
@@ -139,6 +143,8 @@ def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
       simp [RzL, Fin.sum_univ_succ, Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
       try ring_nf
     }
+
+lemma RzC_coe : RzC = RzL := rfl
 
 theorem RzC_periodic (z : ℤ) : RzC (2 * π * z) = RzC 0 := by
   have hc : cos (2 * π * z) = 1 := by

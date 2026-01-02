@@ -8,19 +8,17 @@ open scoped RealInnerProductSpace Real
 namespace Bounding
 
 lemma RyL_neg_compose_RyL {α : ℝ} : RyL (-α) ∘L RyL α = ContinuousLinearMap.id _ _ := by
-  have h₄ : (RyL (-α)).comp (RyL α) = RyL (-α + α) := by
-    rw [show RyL = RyC from rfl]
+  have h₄ : (RyL (-α)).comp (RyL α) = RyC (-α + α) := by
+    simp only [← RyC_coe]
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
   rw [h₄]
-  rw [show RyL = RyC from rfl]
   simp [ContinuousLinearMap.one_def]
 
 lemma RzL_neg_compose_RzL {α : ℝ} : RzL (-α) ∘L RzL α = ContinuousLinearMap.id _ _ := by
-  have h₄ : (RzL (-α)).comp (RzL α) = RzL (-α + α) := by
-    rw [show RzL = RzC from rfl]
+  have h₄ : (RzL (-α)).comp (RzL α) = RzC (-α + α) := by
+    simp only [← RzC_coe]
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
   rw [h₄]
-  rw [show RzL = RzC from rfl]
   simp [ContinuousLinearMap.one_def]
 
 /--
@@ -48,7 +46,7 @@ theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
     rw [←ContinuousLinearMap.comp_assoc, ←ContinuousLinearMap.comp_assoc]
   rw [h₆]
   clear h₂ h₆
-  rw [show RyL = RyC from rfl, show RzL = RzC from rfl]
+  simp only [←RyC_coe, ←RzC_coe]
   rw [show (RzC (-θ_)).comp (RzC θ) = (RzC (-θ_)) * (RzC θ) from rfl]
   rw [show (RyC (-φ)).comp (RyC φ_) = (RyC (-φ)) * (RyC φ_) from rfl]
   simp only [←AddChar.map_add_eq_mul]
@@ -95,7 +93,7 @@ theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
     rw [←ContinuousLinearMap.comp_assoc, ←ContinuousLinearMap.comp_assoc]
   rw [h₆]
   clear h₂ h₆
-  rw [show RyL = RyC from rfl, show RzL = RzC from rfl]
+  simp only [←RyC_coe, ← RzC_coe]
   rw [show (RyC (-φ_)).comp (RyC φ) = (RyC (-φ_)) * (RyC φ) from rfl]
   rw [show (RzC (-θ)).comp (RzC θ_) = (RzC (-θ)) * (RzC θ_) from rfl]
   simp only [←AddChar.map_add_eq_mul]
@@ -170,7 +168,7 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
   clear h₃ h₄
   simp only [ContinuousLinearMap.comp_id, ContinuousLinearMap.id_comp]
   have h₅ : ((RzL (-θ_)).comp (RzL θ)) = RzL (θ - θ_) := by
-    rw [show RzL = RzC from rfl]
+    rw [←RzC_coe]
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
     rw [show -θ_ + θ = θ - θ_ by ring]
   rw [h₅]; clear h₅
@@ -181,7 +179,7 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     ring_nf
   rw [h₅]; clear h₅
   by_cases h₁ : θ = θ_ ∧ α = α_
-  · rw [show RzL = RzC from rfl]
+  · rw [←RzC_coe]
     simp only [h₁, sub_self, AddChar.map_zero_eq_one]
     simp only [ContinuousLinearMap.one_def, ContinuousLinearMap.id_comp, ContinuousLinearMap.comp_id]
     rw [norm_RyL_sub_RyL_eq]
@@ -209,16 +207,16 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
   rw [norm_sub_rev 1]
   rw [ContinuousLinearMap.comp_assoc]
   have h₉ : ((RyL φ).comp (RyL (-Φ))) = RyL (φ - Φ) := by
-    rw [show RyL = RyC from rfl]
+    rw [←RyC_coe]
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul, ←Ring.sub_eq_add_neg]
   rw [h₉]; clear h₉
   rw [←ContinuousLinearMap.comp_assoc]
   have h₉ : ((RyL (-Φ)).comp (RyL φ_)) = RyL (φ_ - Φ) := by
-    rw [show RyL = RyC from rfl]
+    rw [←RyC_coe]
     rw [←ContinuousLinearMap.mul_def, ←AddChar.map_add_eq_mul]
     ring_nf
   rw [h₉]; clear h₉
-  rw [show RyL = RyC from rfl, show RzL = RzC from rfl]
+  rw [←RyC_coe, ←RzC_coe]
   have h₁₀ : ‖(RzC (α - α_)).comp (RyC (φ - Φ)) - 1‖ + ‖(RyC (φ_ - Φ)).comp (RzC (θ - θ_)) - 1‖
       < √((α - α_) ^ 2 + (φ - Φ) ^ 2) + √((φ_ - Φ) ^ 2 + (θ - θ_) ^ 2) := by
     have h₈ := lemma12 (d := 2) (d' := 1) (α := α - α_) (β := φ - Φ) (by decide)
