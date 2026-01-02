@@ -196,14 +196,7 @@ lemma RxRy_axis_invariant  {α β : ℝ} :
   · simp [RxL, RyL, Rx_mat, Ry_mat, RxRy_axis, Matrix.vecHead, Matrix.vecTail]
     ring_nf
   · simp [RxL, RyL, Rx_mat, Ry_mat, RxRy_axis, Matrix.vecHead, Matrix.vecTail]
-    ring_nf
-    let unit (x : ℝ) := (sin x) ^ 2 + (cos x)^2
-    have unit_eq_1 (x : ℝ) : unit x = 1 := by simp only [sin_sq_add_cos_sq, unit]
-    let lhs := unit α * unit β - cos α * unit β - cos β * unit α + cos α * cos β
-    convert_to lhs = _
-    · simp only [lhs, unit]; ring_nf
-    simp only [unit_eq_1, mul_one, lhs]
-    ring_nf
+    ring_nf; simp only [sin_sq]; ring_nf
 
 /- Maybe we could analyze the rest of its behavior manually like this? -/
 
