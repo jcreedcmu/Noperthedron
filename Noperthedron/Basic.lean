@@ -146,18 +146,13 @@ def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
 
 lemma RzC_coe : RzC = RzL := rfl
 
-theorem RzC_periodic (z : ℤ) : RzC (2 * π * z) = RzC 0 := by
-  have hc : cos (2 * π * z) = 1 := by
-    convert_to cos (z * ↑(2 * π)) = 1
-    · ring_nf
-    rw [Real.cos_int_mul_two_pi]
-  have hs : sin (2 * π * z) = 0 := by
-    convert_to sin (↑(2 * z) * π) = 0
-    · push_cast; ring_nf
-    rw [Real.sin_int_mul_pi]
-  ext v i
-  simp only [RzC, RzL, Rz_mat, AddChar.coe_mk, hc, hs]
-  simp
+@[simp]
+theorem Rz_mat_add_int_mul_two_pi (z : ℤ) (x : ℝ) : Rz_mat (x + z * (2 * π)) = Rz_mat x := by
+  ext i j; fin_cases i <;> fin_cases j <;> simp
+
+theorem RzC_two_pi (z : ℤ) : RzC (2 * π * z) = RzC 0 := by
+  simp only [show 2 * π * z = 0 + z * (2 * π) by ring_nf, RzC, RzL, AddChar.coe_mk]
+  simp only [Rz_mat_add_int_mul_two_pi]
 
 @[simp]
 noncomputable

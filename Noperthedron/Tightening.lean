@@ -55,7 +55,7 @@ lemma rotation_preserves_c15_vertices {x y : ℝ³} (hx : x ∈ (Nopert.C15 y)) 
       2 * π * (↑apk : ℝ) / 15 - 2 * π * (15 * (↑(apk / 15) : ℝ)) / 15 =
       2 * π * (↑apk : ℝ) / 15 + 2 * π * ((↑(-(apk / 15)) : ℝ)) := by
     push_cast; ring_nf
-  rw [this, AddChar.map_add_eq_mul, RzC_periodic (-↑(apk / 15))]
+  rw [this, AddChar.map_add_eq_mul, RzC_two_pi (-↑(apk / 15))]
   simp
 
 lemma rotation_preserves_pointsym_c15_vertices {x y : ℝ³} (hx : x ∈ pointsymmetrize (Nopert.C15 y)) (k : ℤ) :

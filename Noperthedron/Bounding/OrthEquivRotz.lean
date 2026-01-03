@@ -19,6 +19,7 @@ import Noperthedron.Bounding.OpNorm
 import Noperthedron.Bounding.RaRa
 import Noperthedron.Bounding.Lemma11
 import Noperthedron.Bounding.BoundingUtil
+import Noperthedron.RealMod
 
 /-!
 
@@ -141,9 +142,8 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
           nlinarith [Real.sin_sq_add_cos_sq ϕ, Real.sin_sq_add_cos_sq θ]
       · ext i; fin_cases i <;> norm_num [ hθϕ, Matrix.mulVec ] <;> ring
 
-lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
-    ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ),
-      γ ∈ Set.Ioc (-π) π ∧ A = U * Rz_mat γ * U⁻¹ := by
+lemma SO3_is_conj_Rz_unbounded (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
+    ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ), A = U * Rz_mat γ * U⁻¹ := by
         -- Let $v$ be an eigenvector of $A$ corresponding to the eigenvalue $1$.
         obtain ⟨v, hv⟩ : ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v ∧ ‖v‖ = 1 := by
           obtain ⟨v, hv⟩ := SO3_has_eigenvalue_one A hA
@@ -176,13 +176,30 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
           apply SO3_fixing_z_is_Rz B hB.left
           · obtain ⟨_, hB'⟩ := hB
             convert hB'; simp
-        refine ⟨ U, ?_, γ, hγ.1, ?_⟩
+        refine ⟨ U, ?_, γ, ?_⟩
         · exact hU.1.1
         · simp +zetaDelta at *
           rw [← hγ.2]
           simp only [← mul_assoc]
           exact hU.1.1 |> fun h => by simp_all [Matrix.mem_specialOrthogonalGroup_iff]
 
+lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_mat γ' := by
+  use π - Real.emod (π - γ) (2 * π)
+  refine ⟨?_, ?_⟩
+  · have := Real.emod_in_interval (a := π - γ) (b := 2 * π) two_pi_pos
+    grind
+  · obtain ⟨k, hk⟩ := Real.emod_exists_multiple (π - γ) (2 * π) two_pi_pos
+    rw [hk]
+    convert_to Rz_mat γ = Rz_mat (γ + (↑(-k) : ℝ) * (2 * π))
+    · push_cast; ring_nf
+    rw [Rz_mat_add_int_mul_two_pi (-k) γ]
+
+lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
+    ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ),
+      γ ∈ Set.Ioc (-π) π ∧ A = U * Rz_mat γ * U⁻¹ := by
+  obtain ⟨U, U_SO, γ, hγ⟩ := SO3_is_conj_Rz_unbounded A hA
+  obtain ⟨γ', γ'_in, hγ'⟩ := Rz_mod_two_pi γ
+  use U, U_SO, γ', γ'_in, hγ'▸hγ
 
 end AristotleLemmas
 
