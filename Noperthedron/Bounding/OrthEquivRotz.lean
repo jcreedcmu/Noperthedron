@@ -36,35 +36,25 @@ section AristotleLemmas
 open scoped Matrix
 open Bounding
 
+lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
+    rot3_mat d θ ∈ Matrix.orthogonalGroup (Fin 3) ℝ := by
+  unfold rot3_mat
+  fin_cases d <;>
+  · constructor <;>
+    · ext i j
+      fin_cases i <;>
+      · fin_cases j <;>
+        · try simp [Matrix.mul_apply, Fin.sum_univ_succ]
+          try ring_nf
+          try simp [Real.sin_sq]
+
 lemma rot3_mat_mem_SO3 (d : Fin 3) (θ : ℝ) :
     rot3_mat d θ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
   rw [Matrix.mem_specialOrthogonalGroup_iff]
-  fin_cases d
-  · unfold rot3_mat
-    constructor
-    · constructor <;> norm_num [Matrix.mul_apply, Fin.sum_univ_three]
-      · ext i j; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf
-        · exact Real.cos_sq_add_sin_sq θ
-        · exact Real.sin_sq_add_cos_sq θ
-      · ext i j
-        fin_cases i <;> fin_cases j <;> simp [ Matrix.vecMul ] <;> ring_nf <;> simp [Real.sin_sq, Real.cos_sq]
-    · simp [Rx_mat, Matrix.det_fin_three, ←sq]
-  · constructor <;> norm_num [ Matrix.det_fin_three ]
-    · -- The transpose of rot3_mat 1 θ is equal to its inverse, so it is in the unitary group.
-      simp [rot3_mat]
-      constructor <;> ext i j <;> fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf <;> norm_num [ Real.sin_sq, Real.cos_sq ]
-    · simp [rot3_mat, Ry_mat, ←sq]
-  · unfold rot3_mat
-    constructor
-    · constructor <;> norm_num [ ← Matrix.ext_iff, Fin.forall_fin_succ ];
-      · norm_num [Matrix.mul_apply, Fin.sum_univ_succ]
-        simp [← sq, Real.sin_sq, Real.cos_sq ]
-        ring_nf
-        simp
-      · simp [Matrix.vecMul, dotProduct]
-        simp [Fin.sum_univ_succ]
-        ring_nf; simp
-    · simp [Matrix.det_fin_three, ←sq]
+  fin_cases d <;>
+  · constructor
+    · apply rot3_mat_mem_O3
+    · simp [rot3_mat, Rx_mat, Ry_mat, Rz_mat, Matrix.det_fin_three, ←sq]
 
 lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v := by
