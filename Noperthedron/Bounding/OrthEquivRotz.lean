@@ -87,47 +87,38 @@ lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix
 
 lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (hAz : A.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1]) :
-    ∃ γ, γ ∈ Set.Ico (-π) π ∧ A = Rz_mat γ := by
-      rcases hA with ⟨ hA₁, hA₂ ⟩
-      simp_all [ Matrix.mem_unitaryGroup_iff ]
-      -- Since $A$ is in $SO(3)$ and fixes the $z$-axis, its matrix representation must be of the form $\begin{pmatrix} \cos \gamma & -\sin \gamma & 0 \\ \sin \gamma & \cos \gamma & 0 \\ 0 & 0 & 1 \end{pmatrix}$ for some $\gamma$.
-      have hA_form : ∃ γ : ℝ, A = !![Real.cos γ, -Real.sin γ, 0; Real.sin γ, Real.cos γ, 0; 0, 0, 1] := by
-        -- Since A is in SO(3) and fixes the z-axis, the third row and column must be [0, 0, 1]. Therefore, A can be written as [[a, b, 0], [c, d, 0], [0, 0, 1]].
-        obtain ⟨a, b, c, d, hA⟩ : ∃ a b c d : ℝ, A = !![a, b, 0; c, d, 0; 0, 0, 1] := by
-          -- Since A fixes the z-axis, the third column of A must be [0, 0, 1].
-          have h_third_col : A 0 2 = 0 ∧ A 1 2 = 0 ∧ A 2 2 = 1 := by
-            -- By definition of matrix multiplication, the third column of A is the image of the vector (0,0,1) under A.
-            have h_third_col : A.mulVec ![0, 0, 1] = ![0, 0, 1] := by
-              convert hAz
-            simp [ ← List.ofFn_inj, Matrix.mulVec ] at h_third_col
-            aesop
-          simp_all [ ← Matrix.ext_iff, Fin.forall_fin_succ ]
-          simp_all [ Matrix.mul_apply, Fin.sum_univ_three ]
-          exact mul_self_add_mul_self_eq_zero.mp hA₁.2.2.2.2
-        -- Since A is in SO(3), we have a^2 + b^2 = 1 and c^2 + d^2 = 1, and ad - bc = 1.
-        have h_conditions : a^2 + b^2 = 1 ∧ c^2 + d^2 = 1 ∧ a * d - b * c = 1 := by
-          simp_all [← Matrix.ext_iff, Fin.forall_fin_succ]
-          simp_all [Matrix.vecMul, Matrix.det_fin_three]
-          exact ⟨by linarith, by linarith⟩
-        -- Since $a^2 + b^2 = 1$ and $c^2 + d^2 = 1$, we can write $a = \cos \gamma$ and $b = -\sin \gamma$ for some $\gamma$.
-        obtain ⟨γ, hγ⟩ : ∃ γ : ℝ, a = Real.cos γ ∧ b = -Real.sin γ := by
-          -- Since $a^2 + b^2 = 1$, we can use the fact that there exists an angle $\gamma$ such that $a = \cos \gamma$ and $b = \sin \gamma$.
-          obtain ⟨γ, hγ⟩ : ∃ γ : ℝ, a = Real.cos γ ∧ b = Real.sin γ := by
-            use Complex.arg (a + b * Complex.I)
-            rw [ Complex.cos_arg, Complex.sin_arg ] <;> norm_num [ Complex.ext_iff, h_conditions ];
-            · simp [Complex.normSq, Complex.norm_def, ← sq, h_conditions]
-            · aesop
-          exact ⟨-γ, by simp [hγ]⟩
-        -- Since $c = \sin \gamma$ and $d = \cos \gamma$, we can substitute these into the matrix.
-        have h_cd : c = Real.sin γ ∧ d = Real.cos γ := by grind
-        aesop
-      obtain ⟨γ, rfl⟩ := hA_form
-      refine ⟨γ - 2 * Real.pi * ⌊(γ + Real.pi) / (2 * Real.pi)⌋, ⟨?_, ?_⟩, ?_⟩
-      · nlinarith only [Int.floor_le ( ( γ + Real.pi ) / (2 * Real.pi)), Real.pi_pos,
-                        mul_div_cancel₀ (γ + Real.pi) (by positivity : 2 * Real.pi ≠ 0)]
-      · nlinarith only [Int.lt_floor_add_one ((γ + Real.pi) / (2 * Real.pi)), Real.pi_pos,
-                        mul_div_cancel₀ (γ + Real.pi) (by positivity : 2 * Real.pi ≠ 0)]
-      · simp [mul_comm (2 * Real.pi)]
+    ∃ γ, γ ∈ Set.Ioc (-π) π ∧ A = Rz_mat γ := by
+  rcases hA with ⟨hA₁, hA₂⟩
+  simp_all [Matrix.mem_unitaryGroup_iff]
+  -- Since $A$ is in $SO(3)$ and fixes the $z$-axis, its matrix representation must be of the form $\begin{pmatrix} \cos \gamma & -\sin \gamma & 0 \\ \sin \gamma & \cos \gamma & 0 \\ 0 & 0 & 1 \end{pmatrix}$ for some $\gamma$.
+  -- Since A is in SO(3) and fixes the z-axis, the third row and column must be [0, 0, 1]. Therefore, A can be written as [[a, b, 0], [c, d, 0], [0, 0, 1]].
+  obtain ⟨a, b, c, d, hA⟩ : ∃ a b c d : ℝ, A = !![a, b, 0; c, d, 0; 0, 0, 1] := by
+    -- Since A fixes the z-axis, the third column of A must be [0, 0, 1].
+    have h_third_col : A 0 2 = 0 ∧ A 1 2 = 0 ∧ A 2 2 = 1 := by
+      -- By definition of matrix multiplication, the third column of A is the image of the vector (0,0,1) under A.
+      have h_third_col : A.mulVec ![0, 0, 1] = ![0, 0, 1] := by
+        convert hAz
+      simp [ ← List.ofFn_inj, Matrix.mulVec ] at h_third_col
+      aesop
+    simp_all [ ← Matrix.ext_iff, Fin.forall_fin_succ ]
+    simp_all [ Matrix.mul_apply, Fin.sum_univ_three ]
+    exact mul_self_add_mul_self_eq_zero.mp hA₁.2.2.2.2
+  -- Since A is in SO(3), we have a^2 + b^2 = 1 and c^2 + d^2 = 1, and ad - bc = 1.
+  have h_conditions : a^2 + b^2 = 1 ∧ c^2 + d^2 = 1 ∧ a * d - b * c = 1 := by
+    simp_all [← Matrix.ext_iff, Fin.forall_fin_succ]
+    simp_all [Matrix.vecMul, Matrix.det_fin_three]
+    exact ⟨by linarith, by linarith⟩
+  -- Since $a^2 + b^2 = 1$ and $c^2 + d^2 = 1$, we can write $a = \cos \gamma$ and $b = -\sin \gamma$ for some $\gamma$.
+  obtain ⟨γ, hγ, hγa, hγb⟩ : ∃ γ : ℝ, γ ∈ Set.Ioc (-π) π ∧
+      a = Real.cos γ ∧ b = -Real.sin γ := by
+    refine ⟨Complex.arg (a + (-b) * Complex.I), Complex.arg_mem_Ioc _, ?_⟩
+    rw [Complex.cos_arg, Complex.sin_arg] <;> simp [Complex.ext_iff]
+    · simp [Complex.normSq, Complex.norm_def, ← sq, h_conditions]
+    · aesop
+  -- Since $c = \sin \gamma$ and $d = \cos \gamma$, we can substitute these into the matrix.
+  have ⟨hc, hd⟩ : c = Real.sin γ ∧ d = Real.cos γ := by grind
+  use γ, hγ
+  simp_all
 
 lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
     ∃ U : Matrix (Fin 3) (Fin 3) ℝ, U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
@@ -170,7 +161,7 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
 
 lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ),
-      γ ∈ Set.Ico (-π) π ∧ A = U * Rz_mat γ * U⁻¹ := by
+      γ ∈ Set.Ioc (-π) π ∧ A = U * Rz_mat γ * U⁻¹ := by
         -- Let $v$ be an eigenvector of $A$ corresponding to the eigenvalue $1$.
         obtain ⟨v, hv⟩ : ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v ∧ ‖v‖ = 1 := by
           obtain ⟨v, hv⟩ := SO3_has_eigenvalue_one A hA
@@ -198,7 +189,7 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
               · have q : U.det = 1 := hU.1.2
                 simp [q, isUnit_iff_ne_zero, ne_eq]
         -- Since $B$ fixes the z-axis, there exists $\gamma \in [-\pi, \pi)$ such that $B = R_z(\gamma)$.
-        obtain ⟨γ, hγ⟩ : ∃ γ ∈ Set.Ico (-Real.pi) Real.pi, B = Rz_mat γ := by
+        obtain ⟨γ, hγ⟩ : ∃ γ ∈ Set.Ioc (-Real.pi) Real.pi, B = Rz_mat γ := by
           -- Since $B$ fixes the z-axis, there exists $\gamma \in [-\pi, \pi)$ such that $B = Rz_mat \gamma$ by the properties of SO(3).
           apply SO3_fixing_z_is_Rz B hB.left
           · obtain ⟨_, hB'⟩ := hB
@@ -262,7 +253,7 @@ lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3))
   simpa using xx
 
 lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
-    ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ico (-π) π ∧
+    ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
     rot3 d α ∘L rot3 d' β =
       u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
   have := Bounding.SO3_is_conj_Rz ( rot3_mat d α * rot3_mat d' β ) ?_

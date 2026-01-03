@@ -50,7 +50,7 @@ theorem norm_RxRy_minus_id_le_wlog {d d' : Fin 3} {α β : ℝ} :
       · by_cases γ_sign : 0 ≤ γ
         · rw [abs_of_nonneg] at h <;> linarith
         · rw [abs_of_neg, cos_neg] at h <;> linarith
-      · simp only [Set.mem_Ico, Set.mem_Icc, sqrt_nonneg, true_and] at ⊢ γ_in
+      · simp only [Set.mem_Ioc, Set.mem_Icc, sqrt_nonneg, true_and] at ⊢ γ_in
         apply sqrt_le_iff.mpr
         constructor
         · positivity
@@ -193,7 +193,7 @@ The squared norm of the difference between the composition of two rotations and 
 theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖^2 = 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) := by
       -- Use `rot3_rot3_orth_equiv_rotz` to write the composition as `U RzL(γ) U⁻¹`.
-      obtain ⟨u, γ, hγ, h_comp⟩ : ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ico (-π) π ∧
+      obtain ⟨u, γ, hγ, h_comp⟩ : ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
         rot3 d α ∘L rot3 d' β =
           u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
             exact rot3_rot3_orth_equiv_rotz;
