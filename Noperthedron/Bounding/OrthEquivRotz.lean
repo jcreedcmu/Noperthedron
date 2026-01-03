@@ -50,10 +50,8 @@ lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
 lemma rot3_mat_mem_SO3 (d : Fin 3) (θ : ℝ) :
     rot3_mat d θ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
   rw [Matrix.mem_specialOrthogonalGroup_iff]
-  fin_cases d <;>
-  · constructor
-    · apply rot3_mat_mem_O3
-    · simp [rot3_mat, Rx_mat, Ry_mat, Rz_mat, Matrix.det_fin_three, ←sq]
+  refine ⟨rot3_mat_mem_O3 d θ, ?_⟩
+  fin_cases d <;> simp [rot3_mat, Rx_mat, Ry_mat, Rz_mat, Matrix.det_fin_three, ←sq]
 
 lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v := by
