@@ -31,9 +31,8 @@ namespace Bounding
 open Real
 open scoped Real
 
-noncomputable section AristotleLemmas
+section AristotleLemmas
 
-open Real
 open scoped Matrix
 open Bounding
 
@@ -75,24 +74,22 @@ lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix
           -- Since $A$ is in the special orthogonal group, by definition, its determinant is 1.
           apply hA.2;
         have h_det : Matrix.det (A - 1) = Matrix.det (A.transpose - 1) := by
-          rw [ ← Matrix.det_transpose ];
-          rw [ Matrix.transpose_sub, Matrix.transpose_one ];
+          rw [← Matrix.det_transpose]
+          rw [Matrix.transpose_sub, Matrix.transpose_one]
         have h_det : Matrix.det (A.transpose - 1) = Matrix.det (-A.transpose * (A - 1)) := by
-          simp_all +decide [ Matrix.mul_sub ];
-          simp_all +decide [ Matrix.mem_specialOrthogonalGroup_iff ];
-          simp_all +decide [ Matrix.mem_orthogonalGroup_iff ];
-          rw [ Matrix.mul_eq_one_comm.mp hA ];
-        norm_num [ Matrix.det_neg, Matrix.det_mul, ‹A.det = 1› ] at h_det ⊢ ; linarith;
-      obtain ⟨ v, hv ⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr h_singular;
+          simp_all [Matrix.mul_sub, Matrix.mem_specialOrthogonalGroup_iff]
+          rw [Matrix.mem_orthogonalGroup_iff] at hA
+          rw [Matrix.mul_eq_one_comm.mp hA]
+        norm_num [ Matrix.det_neg, Matrix.det_mul, ‹A.det = 1› ] at h_det ⊢
+        linarith
+      obtain ⟨v, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr h_singular
       exact ⟨ WithLp.toLp 2 v, by simp; exact hv.1, by simpa [ sub_eq_zero, Matrix.sub_mulVec ] using hv.2 ⟩
 
-
-
 lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
-    (hAz : A.toEuclideanLin (mkVec3 ![0, 0, 1]) = mkVec3 ![0, 0, 1]) :
+    (hAz : A.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1]) :
     ∃ γ, γ ∈ Set.Ico (-π) π ∧ A = Rz_mat γ := by
-      rcases hA with ⟨ hA₁, hA₂ ⟩;
-      simp_all +decide [ Matrix.mem_unitaryGroup_iff ];
+      rcases hA with ⟨ hA₁, hA₂ ⟩
+      simp_all [ Matrix.mem_unitaryGroup_iff ]
       -- Since $A$ is in $SO(3)$ and fixes the $z$-axis, its matrix representation must be of the form $\begin{pmatrix} \cos \gamma & -\sin \gamma & 0 \\ \sin \gamma & \cos \gamma & 0 \\ 0 & 0 & 1 \end{pmatrix}$ for some $\gamma$.
       have hA_form : ∃ γ : ℝ, A = !![Real.cos γ, -Real.sin γ, 0; Real.sin γ, Real.cos γ, 0; 0, 0, 1] := by
         -- Since A is in SO(3) and fixes the z-axis, the third row and column must be [0, 0, 1]. Therefore, A can be written as [[a, b, 0], [c, d, 0], [0, 0, 1]].
@@ -102,32 +99,30 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
             -- By definition of matrix multiplication, the third column of A is the image of the vector (0,0,1) under A.
             have h_third_col : A.mulVec ![0, 0, 1] = ![0, 0, 1] := by
               convert hAz
-              · simp only [Nat.succ_eq_add_one, Nat.reduceAdd, mkVec3, Matrix.toEuclideanLin_toLp,
-                Matrix.toLin'_apply, WithLp.toLp.injEq]
             norm_num [ ← List.ofFn_inj, Matrix.mulVec ] at h_third_col; aesop;
-          simp_all +decide [ ← Matrix.ext_iff, Fin.forall_fin_succ ];
-          simp_all +decide [ Matrix.mul_apply, Fin.sum_univ_three ];
-          constructor <;> nlinarith only [ hA₁.2.2 ];
+          simp_all [ ← Matrix.ext_iff, Fin.forall_fin_succ ]
+          simp_all [ Matrix.mul_apply, Fin.sum_univ_three ]
+          constructor <;> nlinarith only [ hA₁.2.2 ]
         -- Since A is in SO(3), we have a^2 + b^2 = 1 and c^2 + d^2 = 1, and ad - bc = 1.
         have h_conditions : a^2 + b^2 = 1 ∧ c^2 + d^2 = 1 ∧ a * d - b * c = 1 := by
-          simp_all +decide [ ← Matrix.ext_iff, Fin.forall_fin_succ ];
-          simp_all +decide [ Matrix.vecMul, Matrix.det_fin_three ];
-          exact ⟨ by linarith, by linarith ⟩;
+          simp_all [← Matrix.ext_iff, Fin.forall_fin_succ]
+          simp_all [Matrix.vecMul, Matrix.det_fin_three]
+          exact ⟨by linarith, by linarith⟩
         -- Since $a^2 + b^2 = 1$ and $c^2 + d^2 = 1$, we can write $a = \cos \gamma$ and $b = -\sin \gamma$ for some $\gamma$.
         obtain ⟨γ, hγ⟩ : ∃ γ : ℝ, a = Real.cos γ ∧ b = -Real.sin γ := by
           -- Since $a^2 + b^2 = 1$, we can use the fact that there exists an angle $\gamma$ such that $a = \cos \gamma$ and $b = \sin \gamma$.
           obtain ⟨γ, hγ⟩ : ∃ γ : ℝ, a = Real.cos γ ∧ b = Real.sin γ := by
-            use ( Complex.arg ( a + b * Complex.I ) );
+            use Complex.arg (a + b * Complex.I)
             rw [ Complex.cos_arg, Complex.sin_arg ] <;> norm_num [ Complex.ext_iff, h_conditions ];
-            · norm_num [ Complex.normSq, Complex.norm_def, ← sq, h_conditions ];
-            · aesop;
-          exact ⟨ -γ, by simp +decide [ hγ ] ⟩;
+            · simp [Complex.normSq, Complex.norm_def, ← sq, h_conditions]
+            · aesop
+          exact ⟨-γ, by simp [hγ]⟩
         -- Since $c = \sin \gamma$ and $d = \cos \gamma$, we can substitute these into the matrix.
-        have h_cd : c = Real.sin γ ∧ d = Real.cos γ := by
-          grind;
-        aesop;
-      obtain ⟨ γ, rfl ⟩ := hA_form;
-      exact ⟨ γ - 2 * Real.pi * ⌊ ( γ + Real.pi ) / ( 2 * Real.pi ) ⌋, ⟨ by nlinarith [ Int.floor_le ( ( γ + Real.pi ) / ( 2 * Real.pi ) ), Real.pi_pos, mul_div_cancel₀ ( γ + Real.pi ) ( by positivity : ( 2 * Real.pi ) ≠ 0 ) ], by nlinarith [ Int.lt_floor_add_one ( ( γ + Real.pi ) / ( 2 * Real.pi ) ), Real.pi_pos, mul_div_cancel₀ ( γ + Real.pi ) ( by positivity : ( 2 * Real.pi ) ≠ 0 ) ] ⟩, by simp +decide [ mul_comm ( 2 * Real.pi ) ] ⟩
+        have h_cd : c = Real.sin γ ∧ d = Real.cos γ := by grind
+        aesop
+      obtain ⟨γ, rfl⟩ := hA_form
+      exact ⟨γ - 2 * Real.pi * ⌊ ( γ + Real.pi ) / ( 2 * Real.pi ) ⌋,
+             ⟨by nlinarith [ Int.floor_le ( ( γ + Real.pi ) / ( 2 * Real.pi ) ), Real.pi_pos, mul_div_cancel₀ ( γ + Real.pi ) ( by positivity : ( 2 * Real.pi ) ≠ 0 ) ], by nlinarith [ Int.lt_floor_add_one ( ( γ + Real.pi ) / ( 2 * Real.pi ) ), Real.pi_pos, mul_div_cancel₀ ( γ + Real.pi ) ( by positivity : ( 2 * Real.pi ) ≠ 0 ) ] ⟩, by simp [ mul_comm ( 2 * Real.pi ) ] ⟩
 
 open Real
 open scoped Matrix
@@ -137,8 +132,8 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
     ∃ U : Matrix (Fin 3) (Fin 3) ℝ, U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
       -- Let $U$ be a rotation matrix such that $U \cdot \mathbf{e}_3 = v$. Since $v$ is a unit vector, we can construct such a matrix using the Rodrigues' rotation formula. We'll use the fact that any unit vector in $\mathbb{R}^3$ can be written as $v = \cos \theta \mathbf{e}_3 + \sin \theta (\cos \phi \mathbf{e}_1 + \sin \phi \mathbf{e}_2)$ for some $\theta$ and $\phi$.
       obtain ⟨θ, ϕ, hθϕ⟩ : ∃ θ ϕ : ℝ, v = ![Real.sin θ * Real.cos ϕ, Real.sin θ * Real.sin ϕ, Real.cos θ] := by
-        norm_num [ EuclideanSpace.norm_eq, Fin.sum_univ_three ] at hv ⊢;
-        use Real.arccos ( v 2 ), Complex.arg ( v 0 + v 1 * Complex.I );
+        simp [ EuclideanSpace.norm_eq, Fin.sum_univ_three ] at hv ⊢
+        use Real.arccos ( v 2 ), Complex.arg ( v 0 + v 1 * Complex.I )
         -- By definition of arccos and argument, we can express v 0, v 1, and v 2 in terms of θ and ϕ.
         have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧ Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
           rw [ Real.cos_arccos, Real.sin_arccos ] <;> try nlinarith;
@@ -150,10 +145,11 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
           norm_num [ ← sq, mul_div_cancel₀ _ ( show Real.sqrt ( v 0 ^ 2 + v 1 ^ 2 ) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by nlinarith [ mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by norm_num [ Complex.ext_iff, sq ] ; constructor <;> nlinarith ] ) ];
           ext i; fin_cases i <;> rfl;
       -- Let $U$ be the rotation matrix that rotates the $z$-axis to $v$. We can construct such a matrix using the Rodrigues' rotation formula.
-      use !![Real.cos ϕ, -Real.sin ϕ, 0; Real.sin ϕ, Real.cos ϕ, 0; 0, 0, 1] * !![Real.cos θ, 0, Real.sin θ; 0, 1, 0; -Real.sin θ, 0, Real.cos θ];
-      constructor;
-      · constructor;
-        · constructor;
+      use !![Real.cos ϕ, -Real.sin ϕ, 0; Real.sin ϕ, Real.cos ϕ, 0; 0, 0, 1] *
+          !![Real.cos θ, 0, Real.sin θ; 0, 1, 0; -Real.sin θ, 0, Real.cos θ]
+      constructor
+      · constructor
+        · constructor
           · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf;
             · rw [ Real.sin_sq, Real.sin_sq ] ; ring;
             · rw [ Real.sin_sq ] ; ring;
@@ -161,14 +157,14 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
             · rw [ Real.sin_sq ] ; ring;
             · nlinarith [ Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq ϕ ];
           · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf;
-            · rw [ Real.sin_sq, Real.sin_sq ] ; ring;
-            · rw [ Real.sin_sq ] ; ring;
-            · rw [ Real.sin_sq ] ; ring;
-            · rw [ Real.sin_sq, Real.sin_sq ] ; ring;
-            · norm_num;
+            · rw [ Real.sin_sq, Real.sin_sq ]; ring
+            · rw [ Real.sin_sq ]; ring
+            · rw [ Real.sin_sq ]; ring
+            · rw [ Real.sin_sq, Real.sin_sq ]; ring
+            · simp
         · -- The determinant of the product of two matrices is the product of their determinants.
-          simp [Matrix.det_fin_three];
-          nlinarith [ Real.sin_sq_add_cos_sq ϕ, Real.sin_sq_add_cos_sq θ ];
+          simp [Matrix.det_fin_three]
+          nlinarith [Real.sin_sq_add_cos_sq ϕ, Real.sin_sq_add_cos_sq θ]
       · ext i; fin_cases i <;> norm_num [ hθϕ, Matrix.mulVec ] <;> ring
 
 open Real
@@ -180,11 +176,11 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
       γ ∈ Set.Ico (-π) π ∧ A = U * Rz_mat γ * U⁻¹ := by
         -- Let $v$ be an eigenvector of $A$ corresponding to the eigenvalue $1$.
         obtain ⟨v, hv⟩ : ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v ∧ ‖v‖ = 1 := by
-          obtain ⟨ v, hv ⟩ := SO3_has_eigenvalue_one A hA;
-          refine' ⟨ ‖v‖⁻¹ • v, _, _, _ ⟩ <;> simp_all +decide [ norm_smul ];
+          obtain ⟨ v, hv ⟩ := SO3_has_eigenvalue_one A hA
+          refine ⟨ ‖v‖⁻¹ • v, ?_, ?_, ?_ ⟩ <;> simp_all [norm_smul]
         -- Let $U$ be an element of $SO(3)$ that maps $v$ to the z-axis.
         obtain ⟨U, hU⟩ : ∃ U : Matrix (Fin 3) (Fin 3) ℝ, U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
-          convert exists_SO3_mulVec_ez_eq v hv.2.2 using 1;
+          convert exists_SO3_mulVec_ez_eq v hv.2.2 using 1
         -- Let $B = U^{-1} A U$. Then $B$ is also in $SO(3)$ and fixes the z-axis.
         set B : Matrix (Fin 3) (Fin 3) ℝ := U⁻¹ * A * U
         have hB : B ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ B.mulVec ![0, 0, 1] = ![0, 0, 1] := by
@@ -218,14 +214,14 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
         -- Since $B$ fixes the z-axis, there exists $\gamma \in [-\pi, \pi)$ such that $B = R_z(\gamma)$.
         obtain ⟨γ, hγ⟩ : ∃ γ ∈ Set.Ico (-Real.pi) Real.pi, B = Rz_mat γ := by
           -- Since $B$ fixes the z-axis, there exists $\gamma \in [-\pi, \pi)$ such that $B = Rz_mat \gamma$ by the properties of SO(3).
-          apply SO3_fixing_z_is_Rz B hB.left ;
+          apply SO3_fixing_z_is_Rz B hB.left
           · obtain ⟨_, hB'⟩ := hB
-            convert hB'; simp [mkVec3]
-        refine' ⟨ U, _, γ, hγ.1, _ ⟩;
-        · exact hU.1.1;
-        · simp +zetaDelta at *;
-          rw [ ← hγ.2, Matrix.mul_assoc ];
-          simp +decide [ ← mul_assoc];
+            convert hB'; simp
+        refine ⟨ U, ?_, γ, hγ.1, ?_⟩
+        · exact hU.1.1
+        · simp +zetaDelta at *
+          rw [← hγ.2]
+          simp only [← mul_assoc]
           exact hU.1.1 |> fun h => by simp_all +decide [ Matrix.mem_specialOrthogonalGroup_iff ] ;
 
 
@@ -262,8 +258,8 @@ lemma to_euc_one {n : ℕ} : Matrix.toEuclideanLin.symm (LinearMap.id (M := Euc(
 
 lemma inv_euclidean_eq_euclidean_symm (u : Euc(3) ≃ₗ[ℝ] Euc(3)) :
     (Matrix.toEuclideanLin.symm u.toLinearMap)⁻¹ = Matrix.toEuclideanLin.symm u.symm.toLinearMap := by
-  rw [ Matrix.inv_eq_right_inv ];
-  rw [ to_euc_mul u.symm.toLinearMap u.toLinearMap ];
+  rw [Matrix.inv_eq_right_inv]
+  rw [to_euc_mul u.symm.toLinearMap u.toLinearMap]
   simp only [LinearEquiv.comp_coe, LinearEquiv.symm_trans_self, LinearEquiv.refl_toLinearMap]
   exact to_euc_one
 
@@ -283,26 +279,28 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ico (-π) π ∧
     rot3 d α ∘L rot3 d' β =
       u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
-  have := @Bounding.SO3_is_conj_Rz ( rot3_mat d α * rot3_mat d' β ) ?_;
-  · obtain ⟨ U, hU, γ, hγ, h ⟩ := this;
+  have := Bounding.SO3_is_conj_Rz ( rot3_mat d α * rot3_mat d' β ) ?_
+  · obtain ⟨ U, hU, γ, hγ, h ⟩ := this
     -- Let $u$ be the linear isometry equivalence corresponding to $U$.
     obtain ⟨u, hu⟩ : ∃ u : Euc(3) ≃ₗᵢ[ℝ] Euc(3), ∀ x : Euc(3), u x = U.mulVec x := by
-      have hU_orthogonal : U.transpose * U = 1 := by
-        exact hU.1;
-      refine' ⟨ { Matrix.OrthogonalGroup.toLinearEquiv ⟨U, hU⟩ with norm_map' := _ },
-                  Matrix.orthogonalGroup.to_linear_equiv_apply ⟨U, hU⟩ ⟩;
-      simp_all  [ EuclideanSpace.norm_eq, Fin.sum_univ_three ];
+      have hU_orthogonal : U.transpose * U = 1 := hU.1
+      refine ⟨ { Matrix.OrthogonalGroup.toLinearEquiv ⟨U, hU⟩ with norm_map' := ?_ },
+                 Matrix.orthogonalGroup.to_linear_equiv_apply ⟨U, hU⟩ ⟩
+      simp_all [EuclideanSpace.norm_eq, Fin.sum_univ_three]
       -- Since $U$ is orthogonal, we have $U^T U = I$, which implies that $U$ preserves the dot product.
       have hU_dot : ∀ x y : Euc(3), dotProduct (U.mulVec x) (U.mulVec y) = dotProduct x y := by
-        simp_all +decide [ Matrix.mul_assoc, Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec ];
-      simp_all +decide [ dotProduct, Fin.sum_univ_three ];
-      exact fun x => congr_arg Real.sqrt ( by simpa only [ sq ] using hU_dot x x );
-    refine' ⟨ u, γ, hγ, _ ⟩;
-    ext x i; simp +decide [ hu, Matrix.mulVec ] ;
-    convert congr_fun ( congr_arg ( fun m => m.mulVec x ) h ) ‹_› using 1;
-    · have h_expand : ∀ (A B : Matrix (Fin 3) (Fin 3) ℝ) (x : Euc(3)), (A.toEuclideanLin (B.toEuclideanLin x)) = (A * B).mulVec x := by
+        simp_all [Matrix.mul_assoc, Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec]
+      simp_all only [dotProduct, Fin.sum_univ_three, Fin.isValue]
+      intro x
+      exact congr_arg Real.sqrt ( by simpa only [ sq ] using hU_dot x x )
+    refine ⟨u, γ, hγ, ?_⟩
+    ext x i
+    simp [hu, Matrix.mulVec]
+    convert congr_fun ( congr_arg ( fun m => m.mulVec x ) h ) ‹_› using 1
+    · have h_expand : ∀ (A B : Matrix (Fin 3) (Fin 3) ℝ) (x : Euc(3)),
+                        (A.toEuclideanLin (B.toEuclideanLin x)) = (A * B).mulVec x := by
         simp
-      convert congr_fun ( h_expand ( rot3_mat d α ) ( rot3_mat d' β ) x ) ‹_› using 1;
+      convert congr_fun (h_expand ( rot3_mat d α ) ( rot3_mat d' β ) x) ‹_› using 1
       fin_cases d <;> fin_cases d' <;> rfl;
     · have : U = Matrix.toEuclideanLin.symm u.toLinearMap := by
         suffices h : Matrix.toEuclideanLin U = u.toLinearMap from
@@ -313,9 +311,8 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
         exact WithLp.ofLp_injective 2 hu |>.symm
       rw [show ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) from
         fun x => euclidean_linear_equiv_inverse x u U this]
-      simp [ Matrix.mulVec, dotProduct, Fin.sum_univ_three ]
-      unfold RzL; simp [  dotProduct, Fin.sum_univ_three ]
-      simp [ Matrix.mul_apply ]
-      simp [ Fin.sum_univ_three, Matrix.vecHead, Matrix.vecTail, Matrix.vecMul ]
+      simp [RzL, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+      simp [Matrix.mul_apply]
+      simp [Fin.sum_univ_three, Matrix.vecHead, Matrix.vecTail, Matrix.vecMul]
       ring_nf
   · exact Submonoid.mul_mem _ (Bounding.rot3_mat_mem_SO3 d α) (Bounding.rot3_mat_mem_SO3 d' β)
