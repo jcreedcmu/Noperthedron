@@ -99,10 +99,11 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
             -- By definition of matrix multiplication, the third column of A is the image of the vector (0,0,1) under A.
             have h_third_col : A.mulVec ![0, 0, 1] = ![0, 0, 1] := by
               convert hAz
-            norm_num [ ← List.ofFn_inj, Matrix.mulVec ] at h_third_col; aesop;
+            simp [ ← List.ofFn_inj, Matrix.mulVec ] at h_third_col
+            aesop
           simp_all [ ← Matrix.ext_iff, Fin.forall_fin_succ ]
           simp_all [ Matrix.mul_apply, Fin.sum_univ_three ]
-          constructor <;> nlinarith only [ hA₁.2.2 ]
+          exact mul_self_add_mul_self_eq_zero.mp hA₁.2.2.2.2
         -- Since A is in SO(3), we have a^2 + b^2 = 1 and c^2 + d^2 = 1, and ad - bc = 1.
         have h_conditions : a^2 + b^2 = 1 ∧ c^2 + d^2 = 1 ∧ a * d - b * c = 1 := by
           simp_all [← Matrix.ext_iff, Fin.forall_fin_succ]
@@ -121,8 +122,12 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
         have h_cd : c = Real.sin γ ∧ d = Real.cos γ := by grind
         aesop
       obtain ⟨γ, rfl⟩ := hA_form
-      exact ⟨γ - 2 * Real.pi * ⌊ ( γ + Real.pi ) / ( 2 * Real.pi ) ⌋,
-             ⟨by nlinarith [ Int.floor_le ( ( γ + Real.pi ) / ( 2 * Real.pi ) ), Real.pi_pos, mul_div_cancel₀ ( γ + Real.pi ) ( by positivity : ( 2 * Real.pi ) ≠ 0 ) ], by nlinarith [ Int.lt_floor_add_one ( ( γ + Real.pi ) / ( 2 * Real.pi ) ), Real.pi_pos, mul_div_cancel₀ ( γ + Real.pi ) ( by positivity : ( 2 * Real.pi ) ≠ 0 ) ] ⟩, by simp [ mul_comm ( 2 * Real.pi ) ] ⟩
+      refine ⟨γ - 2 * Real.pi * ⌊(γ + Real.pi) / (2 * Real.pi)⌋, ⟨?_, ?_⟩, ?_⟩
+      · nlinarith only [Int.floor_le ( ( γ + Real.pi ) / (2 * Real.pi)), Real.pi_pos,
+                        mul_div_cancel₀ (γ + Real.pi) (by positivity : 2 * Real.pi ≠ 0)]
+      · nlinarith only [Int.lt_floor_add_one ((γ + Real.pi) / (2 * Real.pi)), Real.pi_pos,
+                        mul_div_cancel₀ (γ + Real.pi) (by positivity : 2 * Real.pi ≠ 0)]
+      · simp [mul_comm (2 * Real.pi)]
 
 lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
     ∃ U : Matrix (Fin 3) (Fin 3) ℝ, U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
@@ -133,13 +138,13 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
         -- By definition of arccos and argument, we can express v 0, v 1, and v 2 in terms of θ and ϕ.
         have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧ Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
           rw [ Real.cos_arccos, Real.sin_arccos ] <;> try nlinarith
-          exact ⟨ rfl, congrArg Real.sqrt <| by linarith ⟩
+          exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv.symm⟩
         by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
         · simp_all [ Complex.ext_iff ]
           ext i; fin_cases i <;> tauto
-        · norm_num [ Complex.normSq, Complex.norm_def ] at *;
-          norm_num [ ← sq, mul_div_cancel₀ _ ( show Real.sqrt ( v 0 ^ 2 + v 1 ^ 2 ) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by nlinarith [ mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by norm_num [ Complex.ext_iff, sq ] ; constructor <;> nlinarith ] ) ];
-          ext i; fin_cases i <;> rfl;
+        · simp [Complex.normSq, Complex.norm_def] at *
+          norm_num [← sq, mul_div_cancel₀ _ (show √( v 0 ^ 2 + v 1 ^ 2 ) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by nlinarith [ mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by norm_num [ Complex.ext_iff, sq ] ; constructor <;> nlinarith ] ) ]
+          ext i; fin_cases i <;> rfl
       -- Let $U$ be the rotation matrix that rotates the $z$-axis to $v$. We can construct such a matrix using the Rodrigues' rotation formula.
       use !![Real.cos ϕ, -Real.sin ϕ, 0; Real.sin ϕ, Real.cos ϕ, 0; 0, 0, 1] *
           !![Real.cos θ, 0, Real.sin θ; 0, 1, 0; -Real.sin θ, 0, Real.cos θ]
