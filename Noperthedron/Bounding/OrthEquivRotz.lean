@@ -42,11 +42,10 @@ lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
   fin_cases d <;>
   · constructor <;>
     · ext i j
-      fin_cases i <;>
-      · fin_cases j <;>
-        · try simp [Matrix.mul_apply, Fin.sum_univ_succ]
-          try ring_nf
-          try simp [Real.sin_sq]
+      fin_cases i <;> fin_cases j <;>
+      · try simp [Matrix.mul_apply, Fin.sum_univ_succ]
+        try ring_nf
+        try simp [Real.sin_sq]
 
 lemma rot3_mat_mem_SO3 (d : Fin 3) (θ : ℝ) :
     rot3_mat d θ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
@@ -58,22 +57,17 @@ lemma rot3_mat_mem_SO3 (d : Fin 3) (θ : ℝ) :
 
 lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v := by
-      -- Since $A$ is in the special orthogonal group, it has determinant 1. Therefore, the matrix $A - I$ is singular, which means there exists a non-zero vector $v$ such that $(A - I)v = 0$.
-      have h_singular : Matrix.det (A - 1) = 0 := by
-        have h_det₁ : Matrix.det A = 1 := by
-          -- Since $A$ is in the special orthogonal group, by definition, its determinant is 1.
-          apply hA.2;
-        have h_det : Matrix.det (A - 1) = Matrix.det (A.transpose - 1) := by
-          rw [← Matrix.det_transpose]
-          rw [Matrix.transpose_sub, Matrix.transpose_one]
-        have h_det : Matrix.det (A.transpose - 1) = Matrix.det (-A.transpose * (A - 1)) := by
-          simp_all [Matrix.mul_sub, Matrix.mem_specialOrthogonalGroup_iff]
-          rw [Matrix.mem_orthogonalGroup_iff] at hA
-          rw [Matrix.mul_eq_one_comm.mp hA]
-        simp [ Matrix.det_neg, Matrix.det_mul, h_det₁ ] at h_det ⊢
-        linarith
-      obtain ⟨v, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr h_singular
-      exact ⟨ WithLp.toLp 2 v, by simp; exact hv.1, by simpa [ sub_eq_zero, Matrix.sub_mulVec ] using hv.2 ⟩
+      rw [Matrix.mem_specialOrthogonalGroup_iff] at hA
+      obtain ⟨A_in_O3, A_det_eq_one⟩ := hA
+      rw [Matrix.mem_orthogonalGroup_iff] at A_in_O3
+      have h_flip : (A - 1).det = -(A - 1).det :=
+        calc (A - 1).det
+        _ = ((A - 1) * Aᵀ).det := by simp [A_det_eq_one]
+        _ = (1 - A)ᵀ.det := by simp [Matrix.sub_mul, A_in_O3]
+        _ = (-(A - 1)).det := by rw [Matrix.det_transpose, neg_sub]
+        _ = -(A - 1).det := by rw [Matrix.det_neg]; norm_num
+      obtain ⟨v, v_nz, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr (show (A - 1).det = 0 by linarith)
+      exact ⟨WithLp.toLp 2 v, by simpa using v_nz, by simpa [sub_eq_zero, Matrix.sub_mulVec] using hv⟩
 
 lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (hAz : A.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1]) :
