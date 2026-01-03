@@ -232,7 +232,7 @@ theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     have h_eq_norm_sq : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) =
                         α^2 + β^2 := by
       rw [←norm_rot3_comp_rot3_sq d_ne_d', h_eq, Real.sq_sqrt (by positivity)]
-    have h_eq_cos_sq : 2 * (1 - Real.cos α) = α^2 ∧ 2 * (1 - Real.cos β) = β^2 := by
+    have ⟨hα, hβ⟩ : 2 * (1 - Real.cos α) = α^2 ∧ 2 * (1 - Real.cos β) = β^2 := by
       have h_eq_cos_sq : 2 * (1 - Real.cos α) ≤ α^2 ∧ 2 * (1 - Real.cos β) ≤ β^2 := by
         have h_cos_ineq (x : ℝ) : 2 * (1 - Real.cos x) ≤ x^2 := by
           have h_trig (x : ℝ) : 2 * (1 - Real.cos x) = 4 * Real.sin (x / 2) ^ 2 := by
@@ -255,7 +255,7 @@ theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
             exact fun y a ↦ sin_sq_lt_sq a
           exact h_sin_sq _ ( div_ne_zero hx_zero two_ne_zero );
         nlinarith [ mul_self_pos.mpr hx_zero ];
-    exact ⟨ h_eq_cos_sq α ( by linarith ), h_eq_cos_sq β ( by linarith ) ⟩
+    exact ⟨h_eq_cos_sq α hα, h_eq_cos_sq β hβ⟩
   · rintro ⟨hα, hβ⟩
     rw [hα, hβ]
     simp only [AddChar.map_zero_eq_one, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow,
