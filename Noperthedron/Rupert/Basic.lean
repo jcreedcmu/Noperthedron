@@ -9,12 +9,6 @@ Convenience conversions from raw vectors to Lₚ space elements.
 Could have made these Coe instances?
 -/
 
-def mkVec3 (v : Fin 3 → ℝ) : ℝ³ :=
-  WithLp.toLp 2 v
-
-def mkVec2 (v : Fin 2 → ℝ) : ℝ² :=
-  WithLp.toLp 2 v
-
 abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
 abbrev SO3 := Matrix.specialOrthogonalGroup (Fin 3) ℝ
