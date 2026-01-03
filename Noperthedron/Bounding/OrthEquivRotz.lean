@@ -70,7 +70,7 @@ lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix
 
 lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (hAz : A.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1]) :
-    ∃ γ, γ ∈ Set.Ioc (-π) π ∧ A = Rz_mat γ := by
+    ∃ γ, A = Rz_mat γ := by
   rcases hA with ⟨hA₁, hA₂⟩
   simp_all [Matrix.mem_unitaryGroup_iff]
   -- Since $A$ is in $SO(3)$ and fixes the $z$-axis, its matrix representation must be of the form $\begin{pmatrix} \cos \gamma & -\sin \gamma & 0 \\ \sin \gamma & \cos \gamma & 0 \\ 0 & 0 & 1 \end{pmatrix}$ for some $\gamma$.
@@ -92,15 +92,15 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
     simp_all [Matrix.vecMul, Matrix.det_fin_three]
     exact ⟨by linarith, by linarith⟩
   -- Since $a^2 + b^2 = 1$ and $c^2 + d^2 = 1$, we can write $a = \cos \gamma$ and $b = -\sin \gamma$ for some $\gamma$.
-  obtain ⟨γ, hγ, hγa, hγb⟩ : ∃ γ : ℝ, γ ∈ Set.Ioc (-π) π ∧
+  obtain ⟨γ, hγ, hγa, hγb⟩ : ∃ γ : ℝ,
       a = Real.cos γ ∧ b = -Real.sin γ := by
-    refine ⟨Complex.arg (a + (-b) * Complex.I), Complex.arg_mem_Ioc _, ?_⟩
+    refine ⟨Complex.arg (a + (-b) * Complex.I), ?_⟩
     rw [Complex.cos_arg, Complex.sin_arg] <;> simp [Complex.ext_iff]
     · simp [Complex.normSq, Complex.norm_def, ← sq, h_conditions]
     · aesop
   -- Since $c = \sin \gamma$ and $d = \cos \gamma$, we can substitute these into the matrix.
   have ⟨hc, hd⟩ : c = Real.sin γ ∧ d = Real.cos γ := by grind
-  use γ, hγ
+  use γ
   simp_all
 
 lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
@@ -142,46 +142,40 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
           nlinarith [Real.sin_sq_add_cos_sq ϕ, Real.sin_sq_add_cos_sq θ]
       · ext i; fin_cases i <;> norm_num [ hθϕ, Matrix.mulVec ] <;> ring
 
-lemma SO3_is_conj_Rz_unbounded (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
+lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ), A = U * Rz_mat γ * U⁻¹ := by
-        -- Let $v$ be an eigenvector of $A$ corresponding to the eigenvalue $1$.
-        obtain ⟨v, hv⟩ : ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v ∧ ‖v‖ = 1 := by
-          obtain ⟨v, hv⟩ := SO3_has_eigenvalue_one A hA
-          refine ⟨‖v‖⁻¹ • v, ?_, ?_, ?_⟩ <;> simp_all [norm_smul]
-        -- Let $U$ be an element of $SO(3)$ that maps $v$ to the z-axis.
-        obtain ⟨U, hU⟩ := exists_SO3_mulVec_ez_eq v hv.2.2
-        -- Let $B = U^{-1} A U$. Then $B$ is also in $SO(3)$ and fixes the z-axis.
-        set B : Matrix (Fin 3) (Fin 3) ℝ := U⁻¹ * A * U
-        have hB : B ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ B.mulVec ![0, 0, 1] = ![0, 0, 1] := by
-          apply And.intro
-          · simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
+        obtain ⟨w, _⟩ := SO3_has_eigenvalue_one A hA
+        let v := ‖w‖⁻¹ • w
+        have A_fixes_v : A *ᵥ v = v := by
+          have : (A.toEuclideanLin v).ofLp = v.ofLp := by simp_all [v]
+          simpa [Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply]
+
+        obtain ⟨U, U_SO3, U_z_eq_v⟩ := exists_SO3_mulVec_ez_eq v (by simp_all [v, norm_smul])
+
+        let B := U⁻¹ * A * U
+        have B_in_SO3 : B ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
+            simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
             simp +zetaDelta at *
-            simp_all [ Matrix.mul_assoc, Matrix.inv_eq_right_inv hU.1.1 ]
-            simp_all [ ← Matrix.mul_assoc, Matrix.mul_eq_one_comm.mp hU.1.1 ]
-          · have hB : A.mulVec v = v := by
-              obtain ⟨_, hv', _⟩ := hv
-              convert hv'
-              · rw [WithLp.toLp.injEq]; simp
-            have hB : U⁻¹.mulVec (A.mulVec (U.mulVec ![0, 0, 1])) = U⁻¹.mulVec (U.mulVec ![0, 0, 1]) := by
-              aesop;
-            convert hB using 1 <;> simp
-            · rw [← Matrix.mul_assoc]
-            · rw [Matrix.nonsing_inv_mul _]
-              · simp
-              · have q : U.det = 1 := hU.1.2
-                simp [q, isUnit_iff_ne_zero, ne_eq]
-        -- Since $B$ fixes the z-axis, there exists $\gamma \in [-\pi, \pi)$ such that $B = R_z(\gamma)$.
-        obtain ⟨γ, hγ⟩ : ∃ γ ∈ Set.Ioc (-Real.pi) Real.pi, B = Rz_mat γ := by
-          -- Since $B$ fixes the z-axis, there exists $\gamma \in [-\pi, \pi)$ such that $B = Rz_mat \gamma$ by the properties of SO(3).
-          apply SO3_fixing_z_is_Rz B hB.left
-          · obtain ⟨_, hB'⟩ := hB
-            convert hB'; simp
-        refine ⟨ U, ?_, γ, ?_⟩
-        · exact hU.1.1
-        · simp +zetaDelta at *
-          rw [← hγ.2]
-          simp only [← mul_assoc]
-          exact hU.1.1 |> fun h => by simp_all [Matrix.mem_specialOrthogonalGroup_iff]
+            simp_all [ Matrix.mul_assoc, Matrix.inv_eq_right_inv U_SO3.1 ]
+            simp_all [ ← Matrix.mul_assoc, Matrix.mul_eq_one_comm.mp U_SO3.1 ]
+
+        have U_det_unit : IsUnit U.det := by
+          simp only [isUnit_iff_ne_zero, ne_eq]
+          simp_all [Matrix.mem_specialOrthogonalGroup_iff]
+
+        have B_fixes_z :=
+          calc B *ᵥ ![0, 0, 1]
+          _ = U⁻¹ *ᵥ A *ᵥ (U *ᵥ ![0, 0, 1]) := by simp [B, Matrix.mul_assoc]
+          _ = U⁻¹ *ᵥ (U *ᵥ ![0, 0, 1]) := by rw [U_z_eq_v, A_fixes_v]
+          _ = (U⁻¹ * U) *ᵥ ![0, 0, 1] := by simp only [Matrix.mulVec_mulVec]
+          _ = ![0, 0, 1] := by rw [Matrix.nonsing_inv_mul _ U_det_unit]; simp
+
+        obtain ⟨γ, γb⟩ := SO3_fixing_z_is_Rz B B_in_SO3 (by convert B_fixes_z; simp)
+        refine ⟨U, U_SO3.1, γ, ?_⟩
+        simp +zetaDelta at *
+        rw [← γb]
+        simp only [← mul_assoc]
+        exact U_SO3.1 |> fun h => by simp_all [Matrix.mem_specialOrthogonalGroup_iff]
 
 lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_mat γ' := by
   use π - Real.emod (π - γ) (2 * π)
@@ -194,10 +188,10 @@ lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_ma
     · push_cast; ring_nf
     rw [Rz_mat_add_int_mul_two_pi (-k) γ]
 
-lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
+lemma SO3_is_conj_Rz_within_pi (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ),
       γ ∈ Set.Ioc (-π) π ∧ A = U * Rz_mat γ * U⁻¹ := by
-  obtain ⟨U, U_SO, γ, hγ⟩ := SO3_is_conj_Rz_unbounded A hA
+  obtain ⟨U, U_SO, γ, hγ⟩ := SO3_is_conj_Rz A hA
   obtain ⟨γ', γ'_in, hγ'⟩ := Rz_mod_two_pi γ
   use U, U_SO, γ', γ'_in, hγ'▸hγ
 
@@ -247,7 +241,8 @@ lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3))
       (Matrix.toEuclideanLin.symm (qq.toLinearMap)).mulVec v := by rfl
   simp only [LinearEquiv.apply_symm_apply, LinearEquiv.coe_coe] at this
   specialize this u.symm
-  have xx : WithLp.toLp 2 ((u.symm v).ofLp) = WithLp.toLp 2 ((Matrix.toEuclideanLin.symm ↑u.symm).mulVec v.ofLp) := by
+  have xx : WithLp.toLp 2 ((u.symm v).ofLp) =
+      WithLp.toLp 2 ((Matrix.toEuclideanLin.symm ↑u.symm).mulVec v.ofLp) := by
     congr
   simpa using xx
 
@@ -255,40 +250,41 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
     rot3 d α ∘L rot3 d' β =
       u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
-  have := Bounding.SO3_is_conj_Rz ( rot3_mat d α * rot3_mat d' β ) ?_
-  · obtain ⟨ U, hU, γ, hγ, h ⟩ := this
-    -- Let $u$ be the linear isometry equivalence corresponding to $U$.
-    obtain ⟨u, hu⟩ : ∃ u : Euc(3) ≃ₗᵢ[ℝ] Euc(3), ∀ x : Euc(3), u x = U.mulVec x := by
-      have hU_orthogonal : U.transpose * U = 1 := hU.1
-      refine ⟨ { Matrix.OrthogonalGroup.toLinearEquiv ⟨U, hU⟩ with norm_map' := ?_ },
-                 Matrix.orthogonalGroup.to_linear_equiv_apply ⟨U, hU⟩ ⟩
-      simp_all [EuclideanSpace.norm_eq, Fin.sum_univ_three]
-      -- Since $U$ is orthogonal, we have $U^T U = I$, which implies that $U$ preserves the dot product.
-      have hU_dot : ∀ x y : Euc(3), dotProduct (U.mulVec x) (U.mulVec y) = dotProduct x y := by
-        simp_all [Matrix.mul_assoc, Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec]
-      simp_all only [dotProduct, Fin.sum_univ_three, Fin.isValue]
-      intro x
-      exact congr_arg Real.sqrt ( by simpa only [ sq ] using hU_dot x x )
-    refine ⟨u, γ, hγ, ?_⟩
-    ext x i
-    simp [hu, Matrix.mulVec]
-    convert congr_fun ( congr_arg ( fun m => m.mulVec x ) h ) ‹_› using 1
-    · have h_expand : ∀ (A B : Matrix (Fin 3) (Fin 3) ℝ) (x : Euc(3)),
-                        (A.toEuclideanLin (B.toEuclideanLin x)) = (A * B).mulVec x := by
-        simp
-      convert congr_fun (h_expand ( rot3_mat d α ) ( rot3_mat d' β ) x) ‹_› using 1
-      fin_cases d <;> fin_cases d' <;> rfl;
-    · have : U = Matrix.toEuclideanLin.symm u.toLinearMap := by
-        suffices h : Matrix.toEuclideanLin U = u.toLinearMap from
-          (LinearEquiv.eq_symm_apply Matrix.toEuclideanLin).mpr h
-        ext1 x
-        specialize hu x
-        rw [show U.mulVec x.ofLp = (Matrix.toEuclideanLin U) x by simp] at hu
-        exact WithLp.ofLp_injective 2 hu |>.symm
-      rw [show ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) from
-        fun x => euclidean_linear_equiv_inverse x u U this]
-      simp [RzL, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-      simp [Matrix.mul_apply]
-      simp [Fin.sum_univ_three, Matrix.vecHead, Matrix.vecTail, Matrix.vecMul]
-      ring_nf
-  · exact Submonoid.mul_mem _ (Bounding.rot3_mat_mem_SO3 d α) (Bounding.rot3_mat_mem_SO3 d' β)
+  have dd'_so3 : rot3_mat d α * rot3_mat d' β ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+    Submonoid.mul_mem _ (Bounding.rot3_mat_mem_SO3 d α) (Bounding.rot3_mat_mem_SO3 d' β)
+
+  obtain ⟨ U, hU, γ, hγ, h ⟩ := SO3_is_conj_Rz_within_pi ( rot3_mat d α * rot3_mat d' β ) dd'_so3
+  -- Let $u$ be the linear isometry equivalence corresponding to $U$.
+  obtain ⟨u, hu⟩ : ∃ u : Euc(3) ≃ₗᵢ[ℝ] Euc(3), ∀ x : Euc(3), u x = U.mulVec x := by
+    have hU_orthogonal : U.transpose * U = 1 := hU.1
+    refine ⟨ { Matrix.OrthogonalGroup.toLinearEquiv ⟨U, hU⟩ with norm_map' := ?_ },
+               Matrix.orthogonalGroup.to_linear_equiv_apply ⟨U, hU⟩ ⟩
+    simp_all [EuclideanSpace.norm_eq, Fin.sum_univ_three]
+    -- Since $U$ is orthogonal, we have $U^T U = I$, which implies that $U$ preserves the dot product.
+    have hU_dot : ∀ x y : Euc(3), dotProduct (U.mulVec x) (U.mulVec y) = dotProduct x y := by
+      simp_all [Matrix.mul_assoc, Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec]
+    simp_all only [dotProduct, Fin.sum_univ_three, Fin.isValue]
+    intro x
+    exact congr_arg Real.sqrt ( by simpa only [ sq ] using hU_dot x x )
+  refine ⟨u, γ, hγ, ?_⟩
+  ext x i
+  simp [hu, Matrix.mulVec]
+  convert congr_fun ( congr_arg ( fun m => m.mulVec x ) h ) ‹_› using 1
+  · have h_expand : ∀ (A B : Matrix (Fin 3) (Fin 3) ℝ) (x : Euc(3)),
+                      (A.toEuclideanLin (B.toEuclideanLin x)) = (A * B).mulVec x := by
+      simp
+    convert congr_fun (h_expand ( rot3_mat d α ) ( rot3_mat d' β ) x) ‹_› using 1
+    fin_cases d <;> fin_cases d' <;> rfl;
+  · have : U = Matrix.toEuclideanLin.symm u.toLinearMap := by
+      suffices h : Matrix.toEuclideanLin U = u.toLinearMap from
+        (LinearEquiv.eq_symm_apply Matrix.toEuclideanLin).mpr h
+      ext1 x
+      specialize hu x
+      rw [show U.mulVec x.ofLp = (Matrix.toEuclideanLin U) x by simp] at hu
+      exact WithLp.ofLp_injective 2 hu |>.symm
+    rw [show ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) from
+      fun x => euclidean_linear_equiv_inverse x u U this]
+    simp [RzL, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+    simp [Matrix.mul_apply]
+    simp [Fin.sum_univ_three, Matrix.vecHead, Matrix.vecTail, Matrix.vecMul]
+    ring_nf
