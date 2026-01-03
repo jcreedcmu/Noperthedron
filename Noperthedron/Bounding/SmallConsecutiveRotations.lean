@@ -234,16 +234,15 @@ theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
       rw [←norm_rot3_comp_rot3_sq d_ne_d', h_eq, Real.sq_sqrt (by positivity)]
     have h_eq_cos_sq : 2 * (1 - Real.cos α) = α^2 ∧ 2 * (1 - Real.cos β) = β^2 := by
       have h_eq_cos_sq : 2 * (1 - Real.cos α) ≤ α^2 ∧ 2 * (1 - Real.cos β) ≤ β^2 := by
-        have h_cos_ineq : ∀ x : ℝ, 2 * (1 - Real.cos x) ≤ x^2 := by
-          have h_trig : ∀ x : ℝ, 2 * (1 - Real.cos x) = 4 * Real.sin (x / 2) ^ 2 := by
-            intro x
+        have h_cos_ineq (x : ℝ) : 2 * (1 - Real.cos x) ≤ x^2 := by
+          have h_trig (x : ℝ) : 2 * (1 - Real.cos x) = 4 * Real.sin (x / 2) ^ 2 := by
             rw [Real.sin_sq, Real.cos_sq]
             ring_nf
-          intro x
-          rw [h_trig x]
-          nlinarith only [abs_le.mp (abs_sin_le_abs (x := x/ 2)),
-                          abs_mul_abs_self ( x / 2 )]
-        exact ⟨h_cos_ineq α, h_cos_ineq β ⟩
+          rw [h_trig x, ←sq_abs]
+          grw [abs_sin_le_abs]
+          rw [sq_abs]
+          linarith only
+        exact ⟨h_cos_ineq α, h_cos_ineq β⟩
       constructor <;> nlinarith [sq_nonneg ( Real.cos α - 1 ), sq_nonneg ( Real.cos β - 1 ), Real.cos_sq' α, Real.cos_sq' β ]
     have h_eq_cos_sq : ∀ x : ℝ, 2 * (1 - Real.cos x) = x^2 → x = 0 := by
       intros x hx
