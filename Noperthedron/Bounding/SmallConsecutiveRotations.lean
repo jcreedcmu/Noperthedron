@@ -185,15 +185,82 @@ theorem lemma12 {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
         _ ≤ 2 ^ (Nat.clog 2 ⌈max |α| |β|⌉₊) * 2 := by simp
     }
 
+section AristotleLemmas
+
+/-
+The squared norm of the difference between the composition of two rotations and the identity is related to the trace of the composition.
+-/
+theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
+    ‖rot3 d α ∘L rot3 d' β - 1‖^2 = 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) := by
+      -- Use `rot3_rot3_orth_equiv_rotz` to write the composition as `U RzL(γ) U⁻¹`.
+      obtain ⟨u, γ, hγ, h_comp⟩ : ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ico (-π) π ∧
+        rot3 d α ∘L rot3 d' β =
+          u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
+            exact rot3_rot3_orth_equiv_rotz;
+      -- The norm is invariant under unitary conjugation, so ‖rot3 ... - 1‖ = ‖RzL γ - 1‖.
+      have h_norm_inv : ‖(u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap) - 1‖ = ‖RzL γ - 1‖ := by
+        have h_norm_inv : ∀ (A : EuclideanSpace ℝ (Fin 3) →L[ℝ] EuclideanSpace ℝ (Fin 3)), ‖u.toLinearIsometry.toContinuousLinearMap ∘L A ∘L u.symm.toLinearIsometry.toContinuousLinearMap‖ = ‖A‖ := by
+          intro A;
+          refine' le_antisymm _ _ <;> refine' ContinuousLinearMap.opNorm_le_bound _ _ _ <;> norm_num
+          · intro x
+            simpa [u.norm_map, u.symm.norm_map] using A.le_opNorm (u.symm x)
+          · intro x
+            have := ContinuousLinearMap.le_opNorm ( u.toLinearIsometry.toContinuousLinearMap.comp ( A.comp u.symm.toLinearIsometry.toContinuousLinearMap ) ) ( u x ) ; aesop;
+        convert h_norm_inv ( RzL γ - 1 ) using 2 ; ext ; simp +decide [ sub_eq_add_neg ];
+      -- We know ‖RzL γ - 1‖ = 2 |sin(γ/2)|, so ‖...‖^2 = 4 sin^2(γ/2) = 2(1 - cos γ).
+      have h_norm_sq : ‖RzL γ - 1‖^2 = 2 * (1 - Real.cos γ) := by
+        have h_norm_sq : ‖RzL γ - 1‖ = 2 * |Real.sin (γ / 2)| := by
+          have := @Bounding.dist_rot3 2 γ 0; aesop;
+        rw [h_norm_sq, mul_pow, sq_abs, Real.sin_sq, Real.cos_sq]
+        ring_nf
+      -- Also `tr (rot3 ...) = tr (RzL γ) = 1 + 2 cos γ`.
+      have h_trace : tr (rot3 d α ∘L rot3 d' β) = 1 + 2 * Real.cos γ := by
+        convert tr_RzL using 1
+        convert LinearMap.trace_conj' _ _ using 2; aesop
+      rw [ h_comp, h_norm_inv, h_norm_sq ]
+      -- Substitute the trace into the equation.
+      have h_subst : tr (rot3 d α ∘L rot3 d' β) = Real.cos α + Real.cos β + Real.cos α * Real.cos β := by
+        exact tr_rot3_rot3 h
+      linarith
+
+end AristotleLemmas
+
 theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖ = √(α^2 + β^2) ↔ (α = 0 ∧ β = 0) := by
   constructor
-  · sorry
+  · intro h_eq
+    have h_eq_norm_sq : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) =
+                        α^2 + β^2 := by
+      rw [←norm_rot3_comp_rot3_sq d_ne_d', h_eq, Real.sq_sqrt (by positivity)]
+    have h_eq_cos_sq : 2 * (1 - Real.cos α) = α^2 ∧ 2 * (1 - Real.cos β) = β^2 := by
+      have h_eq_cos_sq : 2 * (1 - Real.cos α) ≤ α^2 ∧ 2 * (1 - Real.cos β) ≤ β^2 := by
+        have h_cos_ineq : ∀ x : ℝ, 2 * (1 - Real.cos x) ≤ x^2 := by
+          have h_trig : ∀ x : ℝ, 2 * (1 - Real.cos x) = 4 * Real.sin (x / 2) ^ 2 := by
+            intro x
+            rw [Real.sin_sq, Real.cos_sq]
+            ring_nf
+          intro x
+          rw [h_trig x]
+          nlinarith only [abs_le.mp (abs_sin_le_abs (x := x/ 2)),
+                          abs_mul_abs_self ( x / 2 )]
+        exact ⟨h_cos_ineq α, h_cos_ineq β ⟩
+      constructor <;> nlinarith [sq_nonneg ( Real.cos α - 1 ), sq_nonneg ( Real.cos β - 1 ), Real.cos_sq' α, Real.cos_sq' β ]
+    have h_eq_cos_sq : ∀ x : ℝ, 2 * (1 - Real.cos x) = x^2 → x = 0 := by
+      intros x hx
+      have h_cos_sq : 1 - Real.cos x = 2 * Real.sin (x / 2) ^ 2 := by
+        simpa only [Real.sin_sq, Real.cos_sq] using by ring_nf
+      by_cases hx_zero : x = 0
+      · exact hx_zero
+      · have h_sin_sq : Real.sin (x / 2) ^ 2 < (x / 2) ^ 2 := by
+          have h_sin_sq : ∀ y : ℝ, y ≠ 0 → Real.sin y ^ 2 < y ^ 2 := by
+            exact fun y a ↦ sin_sq_lt_sq a
+          exact h_sin_sq _ ( div_ne_zero hx_zero two_ne_zero );
+        nlinarith [ mul_self_pos.mpr hx_zero ];
+    exact ⟨ h_eq_cos_sq α ( by linarith ), h_eq_cos_sq β ( by linarith ) ⟩
   · rintro ⟨hα, hβ⟩
     rw [hα, hβ]
     simp only [AddChar.map_zero_eq_one, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow,
       add_zero, sqrt_zero, norm_eq_zero]
     exact sub_self (ContinuousLinearMap.comp 1 1)
-
 
 end Bounding
