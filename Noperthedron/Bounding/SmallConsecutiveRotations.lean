@@ -225,6 +225,26 @@ theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
 
 end AristotleLemmas
 
+lemma two_mul_one_sub_cos_le (x : ℝ) : 2 * (1 - Real.cos x) ≤ x^2 := by
+  have h_trig (x : ℝ) : 2 * (1 - Real.cos x) = 4 * Real.sin (x / 2) ^ 2 := by
+    rw [Real.sin_sq, Real.cos_sq]
+    ring_nf
+  rw [h_trig x, ←sq_abs]
+  grw [abs_sin_le_abs]
+  rw [sq_abs]
+  linarith only
+
+lemma two_mul_one_sub_cos_eq_imp {x : ℝ} (hx : 2 * (1 - Real.cos x) = x^2) : x = 0 := by
+  have h_cos_sq : 1 - Real.cos x = 2 * Real.sin (x / 2) ^ 2 := by
+    simpa only [Real.sin_sq, Real.cos_sq] using by ring_nf
+  by_cases hx_zero : x = 0
+  · exact hx_zero
+  · have h_sin_sq : Real.sin (x / 2) ^ 2 < (x / 2) ^ 2 := by
+      have h_sin_sq : ∀ y : ℝ, y ≠ 0 → Real.sin y ^ 2 < y ^ 2 := by
+        exact fun y a ↦ sin_sq_lt_sq a
+      exact h_sin_sq _ ( div_ne_zero hx_zero two_ne_zero );
+    nlinarith [ mul_self_pos.mpr hx_zero ];
+
 theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖ = √(α^2 + β^2) ↔ (α = 0 ∧ β = 0) := by
   constructor
@@ -234,28 +254,10 @@ theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
       rw [←norm_rot3_comp_rot3_sq d_ne_d', h_eq, Real.sq_sqrt (by positivity)]
     have ⟨hα, hβ⟩ : 2 * (1 - Real.cos α) = α^2 ∧ 2 * (1 - Real.cos β) = β^2 := by
       have h_eq_cos_sq : 2 * (1 - Real.cos α) ≤ α^2 ∧ 2 * (1 - Real.cos β) ≤ β^2 := by
-        have h_cos_ineq (x : ℝ) : 2 * (1 - Real.cos x) ≤ x^2 := by
-          have h_trig (x : ℝ) : 2 * (1 - Real.cos x) = 4 * Real.sin (x / 2) ^ 2 := by
-            rw [Real.sin_sq, Real.cos_sq]
-            ring_nf
-          rw [h_trig x, ←sq_abs]
-          grw [abs_sin_le_abs]
-          rw [sq_abs]
-          linarith only
-        exact ⟨h_cos_ineq α, h_cos_ineq β⟩
-      constructor <;> nlinarith [sq_nonneg ( Real.cos α - 1 ), sq_nonneg ( Real.cos β - 1 ), Real.cos_sq' α, Real.cos_sq' β ]
-    have h_eq_cos_sq : ∀ x : ℝ, 2 * (1 - Real.cos x) = x^2 → x = 0 := by
-      intros x hx
-      have h_cos_sq : 1 - Real.cos x = 2 * Real.sin (x / 2) ^ 2 := by
-        simpa only [Real.sin_sq, Real.cos_sq] using by ring_nf
-      by_cases hx_zero : x = 0
-      · exact hx_zero
-      · have h_sin_sq : Real.sin (x / 2) ^ 2 < (x / 2) ^ 2 := by
-          have h_sin_sq : ∀ y : ℝ, y ≠ 0 → Real.sin y ^ 2 < y ^ 2 := by
-            exact fun y a ↦ sin_sq_lt_sq a
-          exact h_sin_sq _ ( div_ne_zero hx_zero two_ne_zero );
-        nlinarith [ mul_self_pos.mpr hx_zero ];
-    exact ⟨h_eq_cos_sq α hα, h_eq_cos_sq β hβ⟩
+        exact ⟨two_mul_one_sub_cos_le α, two_mul_one_sub_cos_le β⟩
+      constructor <;> nlinarith [sq_nonneg ( Real.cos α - 1 ),
+        sq_nonneg ( Real.cos β - 1 ), Real.cos_sq' α, Real.cos_sq' β ]
+    exact ⟨two_mul_one_sub_cos_eq_imp hα, two_mul_one_sub_cos_eq_imp hβ⟩
   · rintro ⟨hα, hβ⟩
     rw [hα, hβ]
     simp only [AddChar.map_zero_eq_one, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow,
