@@ -70,7 +70,7 @@ lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix
     ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v := by
       -- Since $A$ is in the special orthogonal group, it has determinant 1. Therefore, the matrix $A - I$ is singular, which means there exists a non-zero vector $v$ such that $(A - I)v = 0$.
       have h_singular : Matrix.det (A - 1) = 0 := by
-        have h_det : Matrix.det A = 1 := by
+        have h_det₁ : Matrix.det A = 1 := by
           -- Since $A$ is in the special orthogonal group, by definition, its determinant is 1.
           apply hA.2;
         have h_det : Matrix.det (A - 1) = Matrix.det (A.transpose - 1) := by
@@ -80,7 +80,7 @@ lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix
           simp_all [Matrix.mul_sub, Matrix.mem_specialOrthogonalGroup_iff]
           rw [Matrix.mem_orthogonalGroup_iff] at hA
           rw [Matrix.mul_eq_one_comm.mp hA]
-        norm_num [ Matrix.det_neg, Matrix.det_mul, ‹A.det = 1› ] at h_det ⊢
+        simp [ Matrix.det_neg, Matrix.det_mul, h_det₁ ] at h_det ⊢
         linarith
       obtain ⟨v, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr h_singular
       exact ⟨ WithLp.toLp 2 v, by simp; exact hv.1, by simpa [ sub_eq_zero, Matrix.sub_mulVec ] using hv.2 ⟩
@@ -124,23 +124,19 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
       exact ⟨γ - 2 * Real.pi * ⌊ ( γ + Real.pi ) / ( 2 * Real.pi ) ⌋,
              ⟨by nlinarith [ Int.floor_le ( ( γ + Real.pi ) / ( 2 * Real.pi ) ), Real.pi_pos, mul_div_cancel₀ ( γ + Real.pi ) ( by positivity : ( 2 * Real.pi ) ≠ 0 ) ], by nlinarith [ Int.lt_floor_add_one ( ( γ + Real.pi ) / ( 2 * Real.pi ) ), Real.pi_pos, mul_div_cancel₀ ( γ + Real.pi ) ( by positivity : ( 2 * Real.pi ) ≠ 0 ) ] ⟩, by simp [ mul_comm ( 2 * Real.pi ) ] ⟩
 
-open Real
-open scoped Matrix
-open Bounding
-
 lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
     ∃ U : Matrix (Fin 3) (Fin 3) ℝ, U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
       -- Let $U$ be a rotation matrix such that $U \cdot \mathbf{e}_3 = v$. Since $v$ is a unit vector, we can construct such a matrix using the Rodrigues' rotation formula. We'll use the fact that any unit vector in $\mathbb{R}^3$ can be written as $v = \cos \theta \mathbf{e}_3 + \sin \theta (\cos \phi \mathbf{e}_1 + \sin \phi \mathbf{e}_2)$ for some $\theta$ and $\phi$.
       obtain ⟨θ, ϕ, hθϕ⟩ : ∃ θ ϕ : ℝ, v = ![Real.sin θ * Real.cos ϕ, Real.sin θ * Real.sin ϕ, Real.cos θ] := by
-        simp [ EuclideanSpace.norm_eq, Fin.sum_univ_three ] at hv ⊢
-        use Real.arccos ( v 2 ), Complex.arg ( v 0 + v 1 * Complex.I )
+        simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv ⊢
+        use Real.arccos ( v 2 ), Complex.arg (v 0 + v 1 * Complex.I)
         -- By definition of arccos and argument, we can express v 0, v 1, and v 2 in terms of θ and ϕ.
         have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧ Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
-          rw [ Real.cos_arccos, Real.sin_arccos ] <;> try nlinarith;
-          exact ⟨ rfl, congrArg Real.sqrt <| by linarith ⟩;
-        by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all +decide [ Complex.cos_arg, Complex.sin_arg ];
-        · simp_all +decide [ Complex.ext_iff ];
-          ext i; fin_cases i <;> tauto;
+          rw [ Real.cos_arccos, Real.sin_arccos ] <;> try nlinarith
+          exact ⟨ rfl, congrArg Real.sqrt <| by linarith ⟩
+        by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
+        · simp_all [ Complex.ext_iff ]
+          ext i; fin_cases i <;> tauto
         · norm_num [ Complex.normSq, Complex.norm_def ] at *;
           norm_num [ ← sq, mul_div_cancel₀ _ ( show Real.sqrt ( v 0 ^ 2 + v 1 ^ 2 ) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by nlinarith [ mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by norm_num [ Complex.ext_iff, sq ] ; constructor <;> nlinarith ] ) ];
           ext i; fin_cases i <;> rfl;
@@ -151,11 +147,11 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
       · constructor
         · constructor
           · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf;
-            · rw [ Real.sin_sq, Real.sin_sq ] ; ring;
-            · rw [ Real.sin_sq ] ; ring;
-            · norm_num;
-            · rw [ Real.sin_sq ] ; ring;
-            · nlinarith [ Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq ϕ ];
+            · rw [Real.sin_sq, Real.sin_sq]; ring
+            · rw [Real.sin_sq]; ring
+            · norm_num
+            · rw [Real.sin_sq]; ring
+            · simp only [Real.sin_sq]; ring
           · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf;
             · rw [ Real.sin_sq, Real.sin_sq ]; ring
             · rw [ Real.sin_sq ]; ring
@@ -167,50 +163,35 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
           nlinarith [Real.sin_sq_add_cos_sq ϕ, Real.sin_sq_add_cos_sq θ]
       · ext i; fin_cases i <;> norm_num [ hθϕ, Matrix.mulVec ] <;> ring
 
-open Real
-open scoped Matrix
-open Bounding
-
 lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ),
       γ ∈ Set.Ico (-π) π ∧ A = U * Rz_mat γ * U⁻¹ := by
         -- Let $v$ be an eigenvector of $A$ corresponding to the eigenvalue $1$.
         obtain ⟨v, hv⟩ : ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v ∧ ‖v‖ = 1 := by
-          obtain ⟨ v, hv ⟩ := SO3_has_eigenvalue_one A hA
-          refine ⟨ ‖v‖⁻¹ • v, ?_, ?_, ?_ ⟩ <;> simp_all [norm_smul]
+          obtain ⟨v, hv⟩ := SO3_has_eigenvalue_one A hA
+          refine ⟨‖v‖⁻¹ • v, ?_, ?_, ?_⟩ <;> simp_all [norm_smul]
         -- Let $U$ be an element of $SO(3)$ that maps $v$ to the z-axis.
-        obtain ⟨U, hU⟩ : ∃ U : Matrix (Fin 3) (Fin 3) ℝ, U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
-          convert exists_SO3_mulVec_ez_eq v hv.2.2 using 1
+        obtain ⟨U, hU⟩ := exists_SO3_mulVec_ez_eq v hv.2.2
         -- Let $B = U^{-1} A U$. Then $B$ is also in $SO(3)$ and fixes the z-axis.
         set B : Matrix (Fin 3) (Fin 3) ℝ := U⁻¹ * A * U
         have hB : B ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ B.mulVec ![0, 0, 1] = ![0, 0, 1] := by
-          apply And.intro;
-          · simp_all only [Matrix.mem_specialOrthogonalGroup_iff, ne_eq];
-            simp_all  [ Matrix.mem_orthogonalGroup_iff ];
-            simp +zetaDelta at *;
-            simp_all  [ Matrix.mul_assoc, Matrix.inv_eq_right_inv hU.1.1 ];
-            simp_all  [ ← Matrix.mul_assoc, Matrix.mul_eq_one_comm.mp hU.1.1 ];
+          apply And.intro
+          · simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
+            simp +zetaDelta at *
+            simp_all [ Matrix.mul_assoc, Matrix.inv_eq_right_inv hU.1.1 ]
+            simp_all [ ← Matrix.mul_assoc, Matrix.mul_eq_one_comm.mp hU.1.1 ]
           · have hB : A.mulVec v = v := by
               obtain ⟨_, hv', _⟩ := hv
               convert hv'
               · rw [WithLp.toLp.injEq]; simp
             have hB : U⁻¹.mulVec (A.mulVec (U.mulVec ![0, 0, 1])) = U⁻¹.mulVec (U.mulVec ![0, 0, 1]) := by
               aesop;
-            convert hB using 1 <;> norm_num [ Matrix.mul_assoc ];
-            · rw [ ← Matrix.mul_assoc ];
-            · rw [ Matrix.nonsing_inv_mul _ ] ;
+            convert hB using 1 <;> simp
+            · rw [← Matrix.mul_assoc]
+            · rw [Matrix.nonsing_inv_mul _]
               · simp
-              · have q : 1 = U.det := hU.1.2.symm
-                simp only [isUnit_iff_ne_zero, ne_eq]
-                simp_all only [ne_eq]
-
-                intro a
-                simp_all only [one_ne_zero]
-
-              -- -- Since $U$ is in the special orthogonal group, its determinant is 1.
-              -- have h_det : U.det = 1 := by
-              --   exact hU.1.2;
-              -- exact h_det.symm ▸ isUnit_one;
+              · have q : U.det = 1 := hU.1.2
+                simp [q, isUnit_iff_ne_zero, ne_eq]
         -- Since $B$ fixes the z-axis, there exists $\gamma \in [-\pi, \pi)$ such that $B = R_z(\gamma)$.
         obtain ⟨γ, hγ⟩ : ∃ γ ∈ Set.Ico (-Real.pi) Real.pi, B = Rz_mat γ := by
           -- Since $B$ fixes the z-axis, there exists $\gamma \in [-\pi, \pi)$ such that $B = Rz_mat \gamma$ by the properties of SO(3).
@@ -222,7 +203,7 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
         · simp +zetaDelta at *
           rw [← hγ.2]
           simp only [← mul_assoc]
-          exact hU.1.1 |> fun h => by simp_all +decide [ Matrix.mem_specialOrthogonalGroup_iff ] ;
+          exact hU.1.1 |> fun h => by simp_all [Matrix.mem_specialOrthogonalGroup_iff]
 
 
 end AristotleLemmas
