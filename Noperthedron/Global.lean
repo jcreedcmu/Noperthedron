@@ -123,25 +123,21 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   have deriv_g'_eq_g'' : deriv g' = g'' := by
     sorry
 
-  have g''_eq_sub (t : ℝ) : (∫ (s : ℝ) in 0..t, g'' s) = g' t - g' 0 := by
-    sorry
+  have int_g'_eq_sub (t : ℝ) : (∫ (s : ℝ) in 0..t, g' s) = g t - g 0 := by
+    exact intervalIntegral.integral_deriv_eq_sub' g deriv_g_eq_g' (by fun_prop) (by fun_prop)
 
-  have dst_eq_src_add_int (t : ℝ) : g' t = g' 0 + ∫ (s : ℝ) in 0..t, g'' s := by
-    suffices h : ∫ (s : ℝ) in 0..t, g'' s = g' t - g' 0 by
-      replace h := h.symm; push_lefta h
+  have int_g''_eq_sub (t : ℝ) : (∫ (s : ℝ) in 0..t, g'' s) = g' t - g' 0 := by
     exact intervalIntegral.integral_deriv_eq_sub' g' deriv_g'_eq_g'' (by fun_prop) (by fun_prop)
 
   -- "and observe that"
   have hobs := by calc g 1 - g 0
-      _ = ∫ (y : ℝ) in 0..1, g' y :=
-        intervalIntegral.integral_deriv_eq_sub' g deriv_g_eq_g'
-          (by fun_prop) (by fun_prop) |>.symm
+      _ = ∫ (t : ℝ) in 0..1, g' t := by rw [int_g'_eq_sub]
       _ = ∫ (t : ℝ) in 0..1, g' 0 + ∫ (s : ℝ) in 0..t, g'' s := by
-        conv => arg 2; arg 1; intro t; rw [← dst_eq_src_add_int]
+        conv => arg 2; arg 1; intro t; rw [int_g''_eq_sub]; simp
       _ = (∫ (t : ℝ) in 0..1, g' 0) + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s := by
         rw [intervalIntegral.integral_add]
         · exact intervalIntegrable_const
-        · conv => arg 1; intro t; rw [g''_eq_sub t]
+        · conv => arg 1; intro t; rw [int_g''_eq_sub t]
           exact Continuous.intervalIntegrable (by fun_prop) 0 1
       _ = g' 0 + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s := by
         rw [intervalIntegral.integral_const]; simp
