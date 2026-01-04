@@ -142,7 +142,36 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
       _ = g' 0 + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s := by
         rw [intervalIntegral.integral_const]; simp
 
-  sorry
+  --- "the chain rule imples that..."
+  have bound1 : |g' 0| ≤ ε * ∑ i, |nth_partial i f x|  := by
+    sorry
+
+  -- "For the second derivative of g(t) we also get wit hthe chain rule"
+  have bound2 : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ (n^2 / 2) * ε^2 := by
+    sorry
+
+  have abs_int_le_int_abs {t : ℝ} (ht : 0 ≤ t) :
+      |∫ (s : ℝ) in 0..t, g'' s| ≤ ∫ (s : ℝ) in 0..t, |g'' s| :=
+    intervalIntegral.abs_integral_le_integral_abs ht
+
+  -- This should be by monotonicity of integration applied to abs_int_le_int_abs
+  have int_abs_int_le_int_int_abs : ∫ (t : ℝ) in 0..1, |∫ (s : ℝ) in 0..t, g'' s|
+      ≤ ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| := by
+    sorry
+
+  -- "Altogether one obtains"
+  calc |f x - f y|
+  _ = |g 0 - g 1| := by
+    rw [show g 0 = f x by simp[g, g₀]]
+    rw [show g 1 = f y by simp[g, g₀]]
+  _ = |g 1 - g 0| := by rw [abs_sub_comm]
+  _ = |g' 0 + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s| := by rw [hobs]
+  _ ≤ |g' 0| + |∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s| := abs_add_le _ _
+  _ ≤ |g' 0| + ∫ (t : ℝ) in 0..1, |∫ (s : ℝ) in 0..t, g'' s| := by
+    grw [intervalIntegral.abs_integral_le_integral_abs (by norm_num)]
+  _ ≤ |g' 0| + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| := by
+    grw [int_abs_int_le_int_int_abs]
+  _ ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by grw[bound1, bound2]
 
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
