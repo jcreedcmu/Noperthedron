@@ -11,35 +11,66 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
+private noncomputable
+def interpolator {n : ℕ} (x y : E n) (t : ℝ) : E n :=
+  (1 - t) • x + t • y
+
+private noncomputable
+def interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) : ℝ → ℝ  :=
+  f ∘ interpolator x y
+
+private noncomputable
+def Differentiable.interpolator {n : ℕ} (x y : E n) :
+    Differentiable ℝ (interpolator x y)  := by
+  unfold GlobalTheorem.interpolator
+  fun_prop
+
+private noncomputable
+def Differentiable.interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
+    Differentiable ℝ (interpolated x y f)  := by
+  have := Differentiable.interpolator x y
+  have := fc.differentiable (by norm_num)
+  unfold GlobalTheorem.interpolated
+  fun_prop
+
+private noncomputable
+def interpolated_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) : ℝ :=
+  ∑ i, (y i - x i) * nth_partial i f ((1 - t) • x + t • y)
+
+private noncomputable
+def interpolated_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) : ℝ :=
+  ∑ i, ∑ j, (y i - x i) * (y j - x j) * (nth_partial i <| nth_partial j f) ((1 - t) • x + t • y)
+
+def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) :
+    deriv (interpolated x y f) = interpolated_deriv x y f := by
+  sorry
+
+def deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) :
+    deriv (interpolated_deriv x y f) = interpolated_deriv2 x y f := by
+  sorry
+
 theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
     (fc : ContDiff ℝ 2 f) (x y : E n)
     (ε : ℝ) (hε : ε > 0) (hdiff : (i : Fin n) → |x i - y i| ≤ ε)
     (mpb : mixed_partials_bounded f x) :
     |f x - f y| ≤ ε * ∑ i, |nth_partial i f x| + (n^2 / 2) * ε^2 := by
-  let g₀ : ℝ → E n := fun t => (1 - t) • x + t • y
-  let g := f ∘ g₀
+  let g₀ := interpolator x y
+  let g := interpolated x y f
 
-  let g' (t : ℝ) : ℝ := ∑ i, (y i - x i) * nth_partial i f ((1 - t) • x + t • y)
-  let g'' (t : ℝ) : ℝ := ∑ i, ∑ j, (y i - x i) * (y j - x j) * (nth_partial i <| nth_partial j f) ((1 - t) • x + t • y)
+  let g' := interpolated_deriv x y f
+  let g'' := interpolated_deriv2 x y f
 
-  have g₀_diff : Differentiable ℝ g₀ := by fun_prop
   have f_diff : Differentiable ℝ f := fc.differentiable (by norm_num)
-  have g_diff : Differentiable ℝ g := by fun_prop
+  have g₀_diff : Differentiable ℝ g₀ := Differentiable.interpolator x y
+  have g_diff : Differentiable ℝ g := Differentiable.interpolated x y f fc
   have g'_diff : Differentiable ℝ g' := by sorry
   have g'_cont : Continuous g' := by fun_prop
   have g''_cont : Continuous g'' := by sorry
 
   have deriv_g_eq_g' : deriv g = g' := by
-    ext x
-    change fderiv ℝ g x 1 = g' x
-    have fdc : fderiv ℝ (f ∘ g₀) x = (fderiv ℝ f (g₀ x)) ∘L (fderiv ℝ g₀ x) :=
-      fderiv_comp x (by fun_prop) (by fun_prop)
-    simp only [g, fdc,
-      ContinuousLinearMap.coe_comp', Function.comp_apply, fderiv_eq_smul_deriv, one_smul]
-    sorry
-
+    unfold g g'; exact deriv_interpolated x y f
   have deriv_g'_eq_g'' : deriv g' = g'' := by
-    sorry
+    unfold g' g''; exact deriv_interpolated2 x y f
 
   have int_g'_eq_sub (t : ℝ) : (∫ (s : ℝ) in 0..t, g' s) = g t - g 0 := by
     exact intervalIntegral.integral_deriv_eq_sub' g deriv_g_eq_g' (by fun_prop) (by fun_prop)
@@ -80,8 +111,8 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   -- "Altogether one obtains"
   calc |f x - f y|
   _ = |g 0 - g 1| := by
-    rw [show g 0 = f x by simp[g, g₀]]
-    rw [show g 1 = f y by simp[g, g₀]]
+    rw [show g 0 = f x by simp[g, interpolated, interpolator]]
+    rw [show g 1 = f y by simp[g, interpolated, interpolator]]
   _ = |g 1 - g 0| := by rw [abs_sub_comm]
   _ = |g' 0 + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s| := by rw [hobs]
   _ ≤ |g' 0| + |∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s| := abs_add_le _ _
