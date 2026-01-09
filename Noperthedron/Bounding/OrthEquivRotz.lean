@@ -157,7 +157,7 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
             simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
             simp +zetaDelta at *
             simp_all [ Matrix.mul_assoc, Matrix.inv_eq_right_inv U_SO3.1 ]
-            simp_all [ ← Matrix.mul_assoc, Matrix.mul_eq_one_comm.mp U_SO3.1 ]
+            simp_all [ ← Matrix.mul_assoc, mul_eq_one_comm.mp U_SO3.1 ]
 
         have U_det_unit : IsUnit U.det := by
           simp only [isUnit_iff_ne_zero, ne_eq]
