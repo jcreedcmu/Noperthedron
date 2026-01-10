@@ -125,6 +125,19 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
   · simp only [rot3_mat]
     ext i; fin_cases i <;> simp [hθϕ, Matrix.mulVec] <;> ring
 
+-- TODO something like this really ought to exist in mathlib.
+lemma specialOrthogonalGroup_mem_inv {n : ℕ} {U : Matrix (Fin n) (Fin n) ℝ}
+    (U_SO3 : U ∈ Matrix.specialOrthogonalGroup (Fin n) ℝ) :
+    U⁻¹ ∈ Matrix.specialOrthogonalGroup (Fin n) ℝ := by
+  have h_inv : U * U.transpose = 1 ∧ U.transpose * U = 1 := by
+    have h_ortho : U * U.transpose = 1 := U_SO3.1.2
+    have h_ortho' : U.transpose * U = 1 := by rw [← mul_eq_one_comm, h_ortho]
+    exact ⟨h_ortho, h_ortho'⟩
+  have h_inv : U⁻¹ = U.transpose := by
+    rw [Matrix.inv_eq_right_inv h_inv.1]
+  simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.det_transpose, and_true]
+  constructor <;> aesop
+
 lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ), A = U * Rz_mat γ * U⁻¹ := by
   obtain ⟨w, _⟩ := SO3_has_eigenvalue_one A hA
@@ -135,10 +148,8 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
   obtain ⟨U, U_SO3, U_z_eq_v⟩ := exists_SO3_mulVec_ez_eq v (by simp_all [v, norm_smul])
   let B := U⁻¹ * A * U
   have B_in_SO3 : B ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-      simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
-      simp +zetaDelta at *
-      simp_all [ Matrix.mul_assoc, Matrix.inv_eq_right_inv U_SO3.1 ]
-      simp_all [ ← Matrix.mul_assoc, mul_eq_one_comm.mp U_SO3.1 ]
+    refine Submonoid.mul_mem _ (Submonoid.mul_mem _ ?_ hA) U_SO3
+    exact specialOrthogonalGroup_mem_inv U_SO3
   have U_det_unit : IsUnit U.det := by
     simp only [isUnit_iff_ne_zero, ne_eq]
     simp_all [Matrix.mem_specialOrthogonalGroup_iff]
