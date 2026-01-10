@@ -41,6 +41,14 @@ private noncomputable
 def interpolated_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) : ℝ :=
   ∑ i, ∑ j, (y i - x i) * (y j - x j) * (nth_partial i <| nth_partial j f) ((1 - t) • x + t • y)
 
+lemma c2_imp_partials_differentiable {n : ℕ} {f : E n → ℝ} {i : Fin n} (fc : ContDiff ℝ 2 f) :
+      Differentiable ℝ (nth_partial i f) := by
+  sorry
+
+lemma c2_imp_mixed_partials_continuous {n : ℕ} {f : E n → ℝ} {i j : Fin n} (fc : ContDiff ℝ 2 f) :
+      Continuous (nth_partial i (nth_partial j f)) := by
+  sorry
+
 def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) :
     deriv (interpolated x y f) = interpolated_deriv x y f := by
   sorry
@@ -49,22 +57,23 @@ def deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) :
     deriv (interpolated_deriv x y f) = interpolated_deriv2 x y f := by
   sorry
 
-def differentiable_deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) :
+def differentiable_deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     Differentiable ℝ (interpolated_deriv x y f) := by
-  sorry
-
-lemma c2_imp_mixed_partials_continuous {n : ℕ} {f : E n → ℝ} {i j : Fin n} (fc : ContDiff ℝ 2 f) :
-      Continuous (nth_partial i (nth_partial j f)) := by
-  sorry
+  unfold interpolated_deriv
+  refine Differentiable.fun_sum ?_; intro i hi
+  refine Differentiable.mul (by fun_prop) ?_
+  change Differentiable ℝ ((fun v ↦ nth_partial i f v) ∘ (fun t ↦ (1 - t) • x + t • y))
+  refine Differentiable.comp ?_ (by fun_prop)
+  exact c2_imp_partials_differentiable fc
 
 def continuous_deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     Continuous (interpolated_deriv2 x y f) := by
   unfold interpolated_deriv2
   refine continuous_finset_sum Finset.univ ?_; intro i hi
   refine continuous_finset_sum Finset.univ ?_; intro j hj
-  refine Continuous.mul (by continuity) ?_
+  refine Continuous.mul (by fun_prop) ?_
   change Continuous ((fun v ↦ nth_partial i (nth_partial j f) v) ∘ (fun t ↦ (1 - t) • x + t • y))
-  refine Continuous.comp ?_ (by continuity)
+  refine Continuous.comp ?_ (by fun_prop)
   exact c2_imp_mixed_partials_continuous fc
 
 theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
@@ -81,7 +90,7 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   have f_diff : Differentiable ℝ f := fc.differentiable (by norm_num)
   have g₀_diff : Differentiable ℝ g₀ := Differentiable.interpolator x y
   have g_diff : Differentiable ℝ g := Differentiable.interpolated x y f fc
-  have g'_diff : Differentiable ℝ g' := differentiable_deriv_interpolated x y f
+  have g'_diff : Differentiable ℝ g' := differentiable_deriv_interpolated x y f fc
   have g'_cont : Continuous g' := by fun_prop
   have g''_cont : Continuous g'' := continuous_deriv_interpolated2 x y f fc
 
