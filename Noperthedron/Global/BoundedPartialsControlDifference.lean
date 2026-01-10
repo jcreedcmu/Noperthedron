@@ -16,6 +16,15 @@ def interpolator {n : ℕ} (x y : E n) (t : ℝ) : E n :=
   (1 - t) • x + t • y
 
 private noncomputable
+def interpolator' {n : ℕ} (x y : E n) : ℝ →L[ℝ] E n :=
+  ContinuousLinearMap.toSpanSingleton ℝ (y - x)
+
+private noncomputable
+def interpolator_has_deriv {n : ℕ} (x y : E n) (t : ℝ) :
+    HasFDerivAt (interpolator x y) (interpolator' x y) t := by
+  sorry
+
+private noncomputable
 def interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) : ℝ → ℝ  :=
   f ∘ interpolator x y
 
@@ -49,13 +58,53 @@ lemma c2_imp_mixed_partials_continuous {n : ℕ} {f : E n → ℝ} {i j : Fin n}
       Continuous (nth_partial i (nth_partial j f)) := by
   sorry
 
-def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) :
-    deriv (interpolated x y f) = interpolated_deriv x y f := by
+-- FIXME: the fact that I can't find exactly this lemma with loogle on "sum" and EuclideanSpace.single
+-- makes me think there's probably some nearby lemma that uses different tools, maybe?
+lemma vector_rep {n : ℕ} (v : E n) : v = ∑ x, v.ofLp x • EuclideanSpace.single x 1 := by
+  ext i; simp [Finset.sum_apply, Pi.single_apply]
+
+lemma nth_partial_def {n : ℕ} (f : E n → ℝ) (v w : E n) :
+    fderiv ℝ f w v = ∑ i, v i * nth_partial i f w := by
+  unfold nth_partial
+  rw [show ∑ i, v.ofLp i * (fderiv ℝ f w) (EuclideanSpace.single i 1)
+         = (fderiv ℝ f w) (∑ x, v.ofLp x • EuclideanSpace.single x 1)
+      by simp]
+  congr
+  exact vector_rep v
+
+open ContinuousLinearMap in
+def interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
+    HasDerivAt (interpolated x y f) (interpolated_deriv x y f t) t := by
+  unfold interpolated interpolated_deriv
+  rw [hasDerivAt_iff_hasFDerivAt]
+  have hfd : HasFDerivAt f (fderiv ℝ f (interpolator x y t)) (interpolator x y t) :=
+    fc.differentiable (by norm_num) |>.differentiableAt.hasFDerivAt
+
+  have : (toSpanSingleton ℝ (∑ i, (y.ofLp i - x.ofLp i) * nth_partial i f ((1 - t) • x + t • y)))
+      = ((fderiv ℝ f (interpolator x y t)).comp (interpolator' x y)) := by
+    unfold interpolator' interpolator
+    ext
+    simp only [toSpanSingleton_apply, smul_eq_mul, one_mul, coe_comp', Function.comp_apply,
+      one_smul]
+    rw [nth_partial_def f]
+    congr
+  rw [this]
+  exact HasFDerivAt.comp t hfd (interpolator_has_deriv x y t)
+
+def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) :
+    HasDerivAt (interpolated_deriv x y f) (interpolated_deriv2 x y f t) t := by
+  unfold interpolated_deriv interpolated_deriv2
   sorry
+
+def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f):
+    deriv (interpolated x y f) = interpolated_deriv x y f := by
+  ext t
+  exact (interpolated_has_deriv x y f fc t).deriv
 
 def deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) :
     deriv (interpolated_deriv x y f) = interpolated_deriv2 x y f := by
-  sorry
+  ext t
+  exact (interpolated_has_deriv2 x y f t).deriv
 
 def differentiable_deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     Differentiable ℝ (interpolated_deriv x y f) := by
@@ -95,7 +144,7 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   have g''_cont : Continuous g'' := continuous_deriv_interpolated2 x y f fc
 
   have deriv_g_eq_g' : deriv g = g' := by
-    unfold g g'; exact deriv_interpolated x y f
+    unfold g g'; exact deriv_interpolated x y f fc
   have deriv_g'_eq_g'' : deriv g' = g'' := by
     unfold g' g''; exact deriv_interpolated2 x y f
 
