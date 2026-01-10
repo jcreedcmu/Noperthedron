@@ -92,8 +92,7 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
     simp_all [Matrix.vecMul, Matrix.det_fin_three]
     exact ⟨by linarith, by linarith⟩
   -- Since $a^2 + b^2 = 1$ and $c^2 + d^2 = 1$, we can write $a = \cos \gamma$ and $b = -\sin \gamma$ for some $\gamma$.
-  obtain ⟨γ, hγ, hγa, hγb⟩ : ∃ γ : ℝ,
-      a = Real.cos γ ∧ b = -Real.sin γ := by
+  obtain ⟨γ, hγ, hγa, hγb⟩ : ∃ γ : ℝ, a = Real.cos γ ∧ b = -Real.sin γ := by
     refine ⟨Complex.arg (a + (-b) * Complex.I), ?_⟩
     rw [Complex.cos_arg, Complex.sin_arg] <;> simp [Complex.ext_iff]
     · simp [Complex.normSq, Complex.norm_def, ← sq, h_conditions]
@@ -125,23 +124,11 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
       !![Real.cos θ, 0, Real.sin θ; 0, 1, 0; -Real.sin θ, 0, Real.cos θ]
   constructor
   · constructor
-    · constructor
-      · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf;
-        · rw [Real.sin_sq, Real.sin_sq]; ring
-        · rw [Real.sin_sq]; ring
-        · norm_num
-        · rw [Real.sin_sq]; ring
-        · simp only [Real.sin_sq]; ring
-      · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf
-        · rw [ Real.sin_sq, Real.sin_sq ]; ring
-        · rw [ Real.sin_sq ]; ring
-        · rw [ Real.sin_sq ]; ring
-        · rw [ Real.sin_sq, Real.sin_sq ]; ring
-        · simp
-    · -- The determinant of the product of two matrices is the product of their determinants.
-      simp [Matrix.det_fin_three]
-      nlinarith [Real.sin_sq_add_cos_sq ϕ, Real.sin_sq_add_cos_sq θ]
-  · ext i; fin_cases i <;> norm_num [ hθϕ, Matrix.mulVec ] <;> ring
+    · constructor <;>
+      · ext i j; fin_cases i <;> fin_cases j <;> simp [Matrix.mul_apply, Fin.sum_univ_three] <;> ring_nf <;> simp only [Real.sin_sq] <;> ring
+    · simp [Matrix.det_fin_three]
+      ring_nf; simp only [Real.sin_sq]; ring
+  · ext i; fin_cases i <;> simp [hθϕ, Matrix.mulVec] <;> ring
 
 lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ), A = U * Rz_mat γ * U⁻¹ := by
