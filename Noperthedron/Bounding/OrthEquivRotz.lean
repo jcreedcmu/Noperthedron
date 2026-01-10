@@ -56,17 +56,17 @@ lemma rot3_mat_mem_SO3 (d : Fin 3) (θ : ℝ) :
 
 lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ v : EuclideanSpace ℝ (Fin 3), v ≠ 0 ∧ A.toEuclideanLin v = v := by
-      rw [Matrix.mem_specialOrthogonalGroup_iff] at hA
-      obtain ⟨A_in_O3, A_det_eq_one⟩ := hA
-      rw [Matrix.mem_orthogonalGroup_iff] at A_in_O3
-      have h_flip : (A - 1).det = -(A - 1).det :=
-        calc (A - 1).det
-        _ = ((A - 1) * Aᵀ).det := by simp [A_det_eq_one]
-        _ = (1 - A)ᵀ.det := by simp [Matrix.sub_mul, A_in_O3]
-        _ = (-(A - 1)).det := by rw [Matrix.det_transpose, neg_sub]
-        _ = -(A - 1).det := by rw [Matrix.det_neg]; norm_num
-      obtain ⟨v, v_nz, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr (show (A - 1).det = 0 by linarith)
-      exact ⟨WithLp.toLp 2 v, by simpa using v_nz, by simpa [sub_eq_zero, Matrix.sub_mulVec] using hv⟩
+  rw [Matrix.mem_specialOrthogonalGroup_iff] at hA
+  obtain ⟨A_in_O3, A_det_eq_one⟩ := hA
+  rw [Matrix.mem_orthogonalGroup_iff] at A_in_O3
+  have h_flip : (A - 1).det = -(A - 1).det :=
+    calc (A - 1).det
+    _ = ((A - 1) * Aᵀ).det := by simp [A_det_eq_one]
+    _ = (1 - A)ᵀ.det := by simp [Matrix.sub_mul, A_in_O3]
+    _ = (-(A - 1)).det := by rw [Matrix.det_transpose, neg_sub]
+    _ = -(A - 1).det := by rw [Matrix.det_neg]; norm_num
+  obtain ⟨v, v_nz, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr (self_eq_neg.mp h_flip)
+  exact ⟨WithLp.toLp 2 v, by simpa using v_nz, by simpa [sub_eq_zero, Matrix.sub_mulVec] using hv⟩
 
 lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (hAz : A.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1]) :
