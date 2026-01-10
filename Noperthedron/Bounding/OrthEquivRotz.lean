@@ -161,10 +161,8 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
     _ = ![0, 0, 1] := by rw [Matrix.nonsing_inv_mul _ U_det_unit]; simp
   obtain ⟨γ, γb⟩ := SO3_fixing_z_is_Rz B B_in_SO3 (by convert B_fixes_z; simp)
   refine ⟨U, U_SO3.1, γ, ?_⟩
-  simp +zetaDelta at *
-  rw [← γb]
-  simp only [← mul_assoc]
-  exact U_SO3.1 |> fun h => by simp_all [Matrix.mem_specialOrthogonalGroup_iff]
+  simp only [← γb, B, ← mul_assoc, Matrix.mul_nonsing_inv U U_det_unit, one_mul]
+  rw [mul_assoc, Matrix.mul_nonsing_inv U U_det_unit, mul_one]
 
 lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_mat γ' := by
   use π - Real.emod (π - γ) (2 * π)
