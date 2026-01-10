@@ -105,77 +105,73 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
 
 lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
     ∃ U : Matrix (Fin 3) (Fin 3) ℝ, U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
-      -- Let $U$ be a rotation matrix such that $U \cdot \mathbf{e}_3 = v$. Since $v$ is a unit vector, we can construct such a matrix using the Rodrigues' rotation formula. We'll use the fact that any unit vector in $\mathbb{R}^3$ can be written as $v = \cos \theta \mathbf{e}_3 + \sin \theta (\cos \phi \mathbf{e}_1 + \sin \phi \mathbf{e}_2)$ for some $\theta$ and $\phi$.
-      obtain ⟨θ, ϕ, hθϕ⟩ : ∃ θ ϕ : ℝ, v = ![Real.sin θ * Real.cos ϕ, Real.sin θ * Real.sin ϕ, Real.cos θ] := by
-        simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv ⊢
-        use Real.arccos ( v 2 ), Complex.arg (v 0 + v 1 * Complex.I)
-        -- By definition of arccos and argument, we can express v 0, v 1, and v 2 in terms of θ and ϕ.
-        have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧ Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
-          rw [ Real.cos_arccos, Real.sin_arccos ] <;> try nlinarith
-          exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv.symm⟩
-        by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
-        · simp_all [ Complex.ext_iff ]
-          ext i; fin_cases i <;> tauto
-        · simp [Complex.normSq, Complex.norm_def] at *
-          norm_num [← sq, mul_div_cancel₀ _ (show √( v 0 ^ 2 + v 1 ^ 2 ) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by nlinarith [ mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by norm_num [ Complex.ext_iff, sq ] ; constructor <;> nlinarith ] ) ]
-          ext i; fin_cases i <;> rfl
-      -- Let $U$ be the rotation matrix that rotates the $z$-axis to $v$. We can construct such a matrix using the Rodrigues' rotation formula.
-      use !![Real.cos ϕ, -Real.sin ϕ, 0; Real.sin ϕ, Real.cos ϕ, 0; 0, 0, 1] *
-          !![Real.cos θ, 0, Real.sin θ; 0, 1, 0; -Real.sin θ, 0, Real.cos θ]
-      constructor
-      · constructor
-        · constructor
-          · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf;
-            · rw [Real.sin_sq, Real.sin_sq]; ring
-            · rw [Real.sin_sq]; ring
-            · norm_num
-            · rw [Real.sin_sq]; ring
-            · simp only [Real.sin_sq]; ring
-          · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf;
-            · rw [ Real.sin_sq, Real.sin_sq ]; ring
-            · rw [ Real.sin_sq ]; ring
-            · rw [ Real.sin_sq ]; ring
-            · rw [ Real.sin_sq, Real.sin_sq ]; ring
-            · simp
-        · -- The determinant of the product of two matrices is the product of their determinants.
-          simp [Matrix.det_fin_three]
-          nlinarith [Real.sin_sq_add_cos_sq ϕ, Real.sin_sq_add_cos_sq θ]
-      · ext i; fin_cases i <;> norm_num [ hθϕ, Matrix.mulVec ] <;> ring
+  -- Let $U$ be a rotation matrix such that $U \cdot \mathbf{e}_3 = v$. Since $v$ is a unit vector, we can construct such a matrix using the Rodrigues' rotation formula. We'll use the fact that any unit vector in $\mathbb{R}^3$ can be written as $v = \cos \theta \mathbf{e}_3 + \sin \theta (\cos \phi \mathbf{e}_1 + \sin \phi \mathbf{e}_2)$ for some $\theta$ and $\phi$.
+  obtain ⟨θ, ϕ, hθϕ⟩ : ∃ θ ϕ : ℝ, v = ![Real.sin θ * Real.cos ϕ, Real.sin θ * Real.sin ϕ, Real.cos θ] := by
+    simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv ⊢
+    use Real.arccos ( v 2 ), Complex.arg (v 0 + v 1 * Complex.I)
+    -- By definition of arccos and argument, we can express v 0, v 1, and v 2 in terms of θ and ϕ.
+    have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧ Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
+      rw [ Real.cos_arccos, Real.sin_arccos ] <;> try nlinarith
+      exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv.symm⟩
+    by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
+    · simp_all [Complex.ext_iff]
+      ext i
+      fin_cases i <;> tauto
+    · simp [Complex.normSq, Complex.norm_def] at *
+      simp [← sq, mul_div_cancel₀ _ (show √( v 0 ^ 2 + v 1 ^ 2 ) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by nlinarith [ mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by norm_num [ Complex.ext_iff, sq ] ; constructor <;> nlinarith ] ) ]
+      ext i; fin_cases i <;> rfl
+  -- Let $U$ be the rotation matrix that rotates the $z$-axis to $v$. We can construct such a matrix using the Rodrigues' rotation formula.
+  use !![Real.cos ϕ, -Real.sin ϕ, 0; Real.sin ϕ, Real.cos ϕ, 0; 0, 0, 1] *
+      !![Real.cos θ, 0, Real.sin θ; 0, 1, 0; -Real.sin θ, 0, Real.cos θ]
+  constructor
+  · constructor
+    · constructor
+      · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf;
+        · rw [Real.sin_sq, Real.sin_sq]; ring
+        · rw [Real.sin_sq]; ring
+        · norm_num
+        · rw [Real.sin_sq]; ring
+        · simp only [Real.sin_sq]; ring
+      · ext i j ; fin_cases i <;> fin_cases j <;> norm_num [ Matrix.mul_apply, Fin.sum_univ_succ ] <;> ring_nf
+        · rw [ Real.sin_sq, Real.sin_sq ]; ring
+        · rw [ Real.sin_sq ]; ring
+        · rw [ Real.sin_sq ]; ring
+        · rw [ Real.sin_sq, Real.sin_sq ]; ring
+        · simp
+    · -- The determinant of the product of two matrices is the product of their determinants.
+      simp [Matrix.det_fin_three]
+      nlinarith [Real.sin_sq_add_cos_sq ϕ, Real.sin_sq_add_cos_sq θ]
+  · ext i; fin_cases i <;> norm_num [ hθϕ, Matrix.mulVec ] <;> ring
 
 lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ), A = U * Rz_mat γ * U⁻¹ := by
-        obtain ⟨w, _⟩ := SO3_has_eigenvalue_one A hA
-        let v := ‖w‖⁻¹ • w
-        have A_fixes_v : A *ᵥ v = v := by
-          have : (A.toEuclideanLin v).ofLp = v.ofLp := by simp_all [v]
-          simpa [Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply]
-
-        obtain ⟨U, U_SO3, U_z_eq_v⟩ := exists_SO3_mulVec_ez_eq v (by simp_all [v, norm_smul])
-
-        let B := U⁻¹ * A * U
-        have B_in_SO3 : B ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-            simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
-            simp +zetaDelta at *
-            simp_all [ Matrix.mul_assoc, Matrix.inv_eq_right_inv U_SO3.1 ]
-            simp_all [ ← Matrix.mul_assoc, mul_eq_one_comm.mp U_SO3.1 ]
-
-        have U_det_unit : IsUnit U.det := by
-          simp only [isUnit_iff_ne_zero, ne_eq]
-          simp_all [Matrix.mem_specialOrthogonalGroup_iff]
-
-        have B_fixes_z :=
-          calc B *ᵥ ![0, 0, 1]
-          _ = U⁻¹ *ᵥ A *ᵥ (U *ᵥ ![0, 0, 1]) := by simp [B, Matrix.mul_assoc]
-          _ = U⁻¹ *ᵥ (U *ᵥ ![0, 0, 1]) := by rw [U_z_eq_v, A_fixes_v]
-          _ = (U⁻¹ * U) *ᵥ ![0, 0, 1] := by simp only [Matrix.mulVec_mulVec]
-          _ = ![0, 0, 1] := by rw [Matrix.nonsing_inv_mul _ U_det_unit]; simp
-
-        obtain ⟨γ, γb⟩ := SO3_fixing_z_is_Rz B B_in_SO3 (by convert B_fixes_z; simp)
-        refine ⟨U, U_SO3.1, γ, ?_⟩
-        simp +zetaDelta at *
-        rw [← γb]
-        simp only [← mul_assoc]
-        exact U_SO3.1 |> fun h => by simp_all [Matrix.mem_specialOrthogonalGroup_iff]
+  obtain ⟨w, _⟩ := SO3_has_eigenvalue_one A hA
+  let v := ‖w‖⁻¹ • w
+  have A_fixes_v : A *ᵥ v = v := by
+    have : (A.toEuclideanLin v).ofLp = v.ofLp := by simp_all [v]
+    simpa [Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply]
+  obtain ⟨U, U_SO3, U_z_eq_v⟩ := exists_SO3_mulVec_ez_eq v (by simp_all [v, norm_smul])
+  let B := U⁻¹ * A * U
+  have B_in_SO3 : B ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
+      simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
+      simp +zetaDelta at *
+      simp_all [ Matrix.mul_assoc, Matrix.inv_eq_right_inv U_SO3.1 ]
+      simp_all [ ← Matrix.mul_assoc, mul_eq_one_comm.mp U_SO3.1 ]
+  have U_det_unit : IsUnit U.det := by
+    simp only [isUnit_iff_ne_zero, ne_eq]
+    simp_all [Matrix.mem_specialOrthogonalGroup_iff]
+  have B_fixes_z :=
+    calc B *ᵥ ![0, 0, 1]
+    _ = U⁻¹ *ᵥ A *ᵥ (U *ᵥ ![0, 0, 1]) := by simp [B, Matrix.mul_assoc]
+    _ = U⁻¹ *ᵥ (U *ᵥ ![0, 0, 1]) := by rw [U_z_eq_v, A_fixes_v]
+    _ = (U⁻¹ * U) *ᵥ ![0, 0, 1] := by simp only [Matrix.mulVec_mulVec]
+    _ = ![0, 0, 1] := by rw [Matrix.nonsing_inv_mul _ U_det_unit]; simp
+  obtain ⟨γ, γb⟩ := SO3_fixing_z_is_Rz B B_in_SO3 (by convert B_fixes_z; simp)
+  refine ⟨U, U_SO3.1, γ, ?_⟩
+  simp +zetaDelta at *
+  rw [← γb]
+  simp only [← mul_assoc]
+  exact U_SO3.1 |> fun h => by simp_all [Matrix.mem_specialOrthogonalGroup_iff]
 
 lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_mat γ' := by
   use π - Real.emod (π - γ) (2 * π)
