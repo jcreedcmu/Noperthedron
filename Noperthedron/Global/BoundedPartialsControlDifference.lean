@@ -102,7 +102,9 @@ lemma interpolated_deriv2_bound {n : ℕ} (x y : E n) {f : E n → ℝ}
 
 lemma c2_imp_partials_differentiable {n : ℕ} {f : E n → ℝ} {i : Fin n} (fc : ContDiff ℝ 2 f) :
       Differentiable ℝ (nth_partial i f) := by
-  sorry
+  have h_deriv : Differentiable ℝ (fderiv ℝ f) :=
+    ContDiff.differentiable (n := 1) (by fun_prop) one_ne_zero
+  exact h_deriv.clm_apply (differentiable_const _)
 
 lemma c2_imp_mixed_partials_continuous {n : ℕ} {f : E n → ℝ} {i j : Fin n} (fc : ContDiff ℝ 2 f) :
       Continuous (nth_partial i (nth_partial j f)) := by
