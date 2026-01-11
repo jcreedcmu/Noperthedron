@@ -110,10 +110,8 @@ lemma c2_imp_mixed_partials_continuous {n : ℕ} {f : E n → ℝ} {i j : Fin n}
       Continuous (nth_partial i (nth_partial j f)) := by
   -- Since $f$ is $C^2$, its first derivatives are $C^1$, and thus the second derivatives are continuous.
   have h_cont_diff : ContDiff ℝ 1 (nth_partial j f) := by
-    apply ContDiff.fderiv_apply (g := id)
+    refine ContDiff.fderiv_apply (m := 2) (g := id) ?_ contDiff_fun_id contDiff_const ?_
     · fun_prop
-    · exact contDiff_fun_id
-    · exact contDiff_const
     · norm_num
   -- Since the first derivative is C^1, its derivative (the second derivative) is continuous.
   have h_cont_diff : ContDiff ℝ 0 (nth_partial i (nth_partial j f)) := by
