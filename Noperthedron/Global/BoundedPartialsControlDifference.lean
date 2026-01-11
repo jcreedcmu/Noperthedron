@@ -8,8 +8,8 @@ import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 
 open scoped RealInnerProductSpace
 
-def int_triangle_eq_half : ∫ (t : ℝ) in 0..1, ∫ (_ : ℝ) in 0..t, (1 : ℝ) = 1/2 := by
-  simp [show ∀ t, ∫ (s : ℝ) in 0..t, (1 : ℝ) = t by simp]
+
+
 
 namespace GlobalTheorem
 
@@ -227,23 +227,21 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
       ≤ ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| := by
     sorry
 
-  have (f g : ℝ → ℝ) (t : ℝ) (ht : 0 ≤ t) (hf : IntervalIntegrable f MeasureTheory.volume 0 t)
-       (hg : IntervalIntegrable g MeasureTheory.volume 0 t)
-       (hle : (s : ℝ) → f s ≤ g s)  : ∫ (s : ℝ) in 0..t, f s ≤ ∫ (s : ℝ) in 0..t, g s :=
-    intervalIntegral.integral_mono ht hf hg hle
-
-  have bound2b : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, n^2 * ε^2 := by
+  have bound2 : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ (n^2 / 2) * ε^2 := by
+    suffices h : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤
+        ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, n^2 * ε^2 by
+      grw [h]
+      refine le_of_eq ?_
+      simp only [intervalIntegral.integral_const_mul, intervalIntegral.integral_const, sub_zero,
+        smul_eq_mul, intervalIntegral.integral_mul_const, integral_id, one_pow, ne_eq,
+        OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, one_div]
+      ring_nf
     have : ∀ t ∈ Set.Icc 0 1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ ∫ (s : ℝ) in 0..t, n^2 * ε^2 := by
       intro t ⟨ht, _⟩
       refine intervalIntegral.integral_mono ht ?_ ?_ (interpolated_deriv2_bound x y mpb hε hdiff) <;>
       · exact Continuous.intervalIntegrable (by fun_prop) 0 t
     refine intervalIntegral.integral_mono_on (by norm_num) ?_ ?_ this <;>
       · exact Continuous.intervalIntegrable (by fun_prop) 0 1
-
-  have bound2 : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ (n^2 / 2) * ε^2 := by
-    grw [bound2b]
-    -- the essential reasoning here is: "the integral over the triangle (0,0)--(1,0)--(1,1) is 1/2"
-    sorry
 
   -- "Altogether one obtains"
   calc |f x - f y|
