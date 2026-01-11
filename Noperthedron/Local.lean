@@ -45,11 +45,11 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
      rotM θ₂ φ₂ Q ∈ Metric.ball T (√5 * ε + δ)) := by
   intro T hT
   simp only [mem_ball_iff_norm]
+  have h₀ (v : Euc(2)) : v = ((1:ℝ) / 2) • v + ((1:ℝ) / 2) • v := by
+    rw [←smul_add, ←two_nsmul]
+    aesop
   constructor
   · grw [norm_sub_le_norm_sub_add_norm_sub _ (rotR α_ (rotM θ₁_ φ₁_ P)) _]
-    have h₀ (v : Euc(2)) : v = ((1:ℝ) / 2) • v + ((1:ℝ) / 2) • v := by
-      rw [←smul_add, ←two_nsmul]
-      aesop
     have h₂ : rotR α_ (rotM θ₁_ φ₁_ P) - T = T - rotM θ₂_ φ₂_ Q := by
       rw [h₀ (rotR α_ (rotM θ₁_ φ₁_ P)), h₀ (rotM θ₂_ φ₂_ Q)]
       simp [T]
@@ -61,7 +61,14 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
     gcongr 1
     grw [mul_le_of_le_one_right (norm_nonneg _) hP]
     exact Bounding.norm_RM_sub_RM_le hε hθ₁ hφ₁ hα
-  · sorry
+  · grw [norm_sub_le_norm_sub_add_norm_sub _ (rotM θ₂_ φ₂_ Q) _]
+    rw [norm_sub_rev _ T]
+    grw [hT]
+    rw [←ContinuousLinearMap.sub_apply]
+    grw [ContinuousLinearMap.le_opNorm]
+    grw [mul_le_of_le_one_right (norm_nonneg _) hQ, Bounding.norm_M_sub_lt hε hθ₂ hφ₂]
+    gcongr 2
+    norm_num
 
 /-- The intersection of the δ-disc centered at Q with the interior of P -/
 def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) := Metric.ball Q δ ∩ interior P
