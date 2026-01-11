@@ -138,17 +138,15 @@ def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDi
     HasDerivAt (interpolated_deriv x y f) (interpolated_deriv2 x y f t) t := by
   unfold interpolated_deriv interpolated_deriv2
   rw [hasDerivAt_iff_hasFDerivAt]
-
-  have h1 (i : Fin n) : HasFDerivAt (nth_partial i f) (fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y)) ((1 - t) • x + t • y) :=
-    DifferentiableAt.hasFDerivAt (ContDiff.differentiable_one (c2_imp_partials_c1 fc) ((1 - t) • x + t • y))
-  have ha (i : Fin n) : HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y) (y - x)) t := by
-    convert HasFDerivAt.comp_hasDerivAt t (h1 i) (interpolator_has_deriv x y t) using 1;
-  have h2 : ∀ i, HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (∑ j, (y j - x j) * nth_partial j (nth_partial i f) ((1 - t) • x + t • y)) t := by
-    intro i;
-    convert ha i
+  have hd (i : Fin n) : HasDerivAt (fun t => nth_partial i f (interpolator x y t))
+      (∑ j, (y j - x j) * nth_partial j (nth_partial i f) (interpolator x y t)) t := by
+    have : HasFDerivAt (nth_partial i f) (fderiv ℝ (nth_partial i f) (interpolator x y t)) (interpolator x y t) :=
+      DifferentiableAt.hasFDerivAt (ContDiff.differentiable_one (c2_imp_partials_c1 fc) _)
+    convert HasFDerivAt.comp_hasDerivAt t this (interpolator_has_deriv x y t)
     rw [nth_partial_def]
     rfl
-  convert HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (h2 i))) using 1
+  convert HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (hd i)))
+  all_goals try unfold interpolator
   · rw [Finset.sum_fn]
   · ext; simp only [toSpanSingleton_apply, smul_eq_mul, Finset.mul_sum, one_mul, coe_sum', Finset.sum_apply]
     rw [Finset.sum_comm]
