@@ -8,9 +8,6 @@ import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 
 open scoped RealInnerProductSpace
 
-
-
-
 namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
@@ -137,7 +134,29 @@ def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDi
     HasDerivAt (interpolated_deriv x y f) (interpolated_deriv2 x y f t) t := by
   unfold interpolated_deriv interpolated_deriv2
   rw [hasDerivAt_iff_hasFDerivAt]
-  sorry
+  -- Apply the chain rule to compute the derivative.
+  have h_chain (i : Fin n) : ContDiff ℝ 1 (nth_partial i f) := by
+    apply ContDiff.fderiv_apply <;> try fun_prop
+    norm_num
+  have h_chain4 (i : Fin n) : HasFDerivAt (nth_partial i f) (fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y)) ((1 - t) • x + t • y) :=
+    DifferentiableAt.hasFDerivAt (ContDiff.differentiable_one (h_chain i) ((1 - t) • x + t • y))
+  have h_chain3 (i : Fin n) : HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y) (y - x)) t := by
+    convert HasFDerivAt.comp_hasDerivAt t (h_chain4 i) (interpolator_has_deriv x y t) using 1;
+  have h_deriv_def (i : Fin n) : fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y) (y - x) = ∑ j, (y j - x j) * (nth_partial j (nth_partial i f) ((1 - t) • x + t • y)) := by
+    rw [ nth_partial_def ];
+    rfl;
+  have h_chain2 : ∀ i, HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (∑ j, (y j - x j) * nth_partial j (nth_partial i f) ((1 - t) • x + t • y)) t := by
+    intro i;
+    simp_all only [map_sub]
+  have h_chain : ∀ i, HasDerivAt (fun t => (y i - x i) * nth_partial i f ((1 - t) • x + t • y))
+      ((y i - x i) * ∑ j, (y j - x j) * nth_partial j (nth_partial i f) ((1 - t) • x + t • y))
+      t := by
+    exact fun i => HasDerivAt.const_mul _ ( h_chain2 i );
+  convert HasFDerivAt.sum fun i _ => h_chain i |> HasDerivAt.hasFDerivAt using 1
+  · rw [Finset.sum_fn]
+  · ext;
+    simp +decide [ mul_assoc, Finset.mul_sum  ] ; ring_nf;
+    rw [Finset.sum_comm]; congr; ext; congr; ext; ring_nf
 
 def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     deriv (interpolated x y f) = interpolated_deriv x y f := by
