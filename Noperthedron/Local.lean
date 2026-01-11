@@ -38,19 +38,22 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
     (hθ₁ : |θ₁ - θ₁_| ≤ ε) (hφ₁ : |φ₁ - φ₁_| ≤ ε)
     (hθ₂ : |θ₂ - θ₂_| ≤ ε) (hφ₂ : |φ₂ - φ₂_| ≤ ε)
     (hα : |α - α_| ≤ ε) :
-    let T : Euc(2) := (1/2) • (rotR α_ (rotM θ₁_ φ₁_ P) + rotM θ₂_ φ₂_ Q)
+    let T : Euc(2) := ((1:ℝ)/2) • (rotR α_ (rotM θ₁_ φ₁_ P) + rotM θ₂_ φ₂_ Q)
     ‖T - rotM θ₂_ φ₂_ Q‖ ≤ δ →
-    (rotR α (rotM θ₁ φ₁ P) ∈ Metric.ball T (δ + √5 * ε) ∧
-     rotM θ₂ φ₂ Q ∈ Metric.ball T (δ + √5 * ε)) := by
+    (rotR α (rotM θ₁ φ₁ P) ∈ Metric.ball T (√5 * ε + δ) ∧
+     rotM θ₂ φ₂ Q ∈ Metric.ball T (√5 * ε + δ)) := by
   intro T hT
   simp only [mem_ball_iff_norm]
   constructor
   · grw [norm_sub_le_norm_sub_add_norm_sub _ (rotR α_ (rotM θ₁_ φ₁_ P)) _]
-    have h₁ : (rotR α_) ((rotM θ₁_ φ₁_) P) - T = T - (rotM θ₂_ φ₂_) Q := by
-      unfold T
-      simp
-      sorry
-    rw [h₁]
+    have h₀ (v : Euc(2)) : v = ((1:ℝ) / 2) • v + ((1:ℝ) / 2) • v := by
+      rw [←smul_add, ←two_nsmul]
+      aesop
+    have h₂ : rotR α_ (rotM θ₁_ φ₁_ P) - T = T - rotM θ₂_ φ₂_ Q := by
+      rw [h₀ (rotR α_ (rotM θ₁_ φ₁_ P)), h₀ (rotM θ₂_ φ₂_ Q)]
+      simp [T]
+    rw [h₂]
+    grw [hT]
     sorry
   · sorry
 
