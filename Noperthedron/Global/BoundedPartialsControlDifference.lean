@@ -140,9 +140,8 @@ def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDi
   rw [hasDerivAt_iff_hasFDerivAt]
   have hd (i : Fin n) : HasDerivAt (fun t => nth_partial i f (interpolator x y t))
       (∑ j, (y j - x j) * nth_partial j (nth_partial i f) (interpolator x y t)) t := by
-    have : HasFDerivAt (nth_partial i f) (fderiv ℝ (nth_partial i f) (interpolator x y t)) (interpolator x y t) :=
-      DifferentiableAt.hasFDerivAt (ContDiff.differentiable_one (c2_imp_partials_c1 fc) _)
-    convert HasFDerivAt.comp_hasDerivAt t this (interpolator_has_deriv x y t)
+    convert HasFDerivAt.comp_hasDerivAt t (c2_imp_partials_c1 fc |>.differentiable_one _ |>.hasFDerivAt)
+      (interpolator_has_deriv x y t)
     rw [nth_partial_def]
     rfl
   convert HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (hd i)))
