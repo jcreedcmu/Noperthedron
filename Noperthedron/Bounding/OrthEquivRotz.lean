@@ -255,13 +255,15 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     exact congr_arg Real.sqrt ( by simpa only [ sq ] using hU_dot x x )
   refine ⟨u, γ, hγ, ?_⟩
   ext x i
-  simp [hu, Matrix.mulVec]
-  convert congr_fun ( congr_arg ( fun m => m.mulVec x ) h ) i using 1
+  simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
+    LinearIsometry.coe_toContinuousLinearMap, LinearIsometryEquiv.coe_toLinearIsometry, hu,
+    Matrix.mulVec]
+  convert congr(Matrix.mulVec $h x i) using 1
   · have h_expand : ∀ (A B : Matrix (Fin 3) (Fin 3) ℝ) (x : Euc(3)),
                       (A.toEuclideanLin (B.toEuclideanLin x)) = (A * B).mulVec x := by
       simp
-    convert congr_fun (h_expand ( rot3_mat d α ) ( rot3_mat d' β ) x) i using 1
-    fin_cases d <;> fin_cases d' <;> rfl;
+    rw [←h_expand]
+    fin_cases d <;> fin_cases d' <;> rfl
   · have : U = Matrix.toEuclideanLin.symm u.toLinearMap := by
       suffices h : Matrix.toEuclideanLin U = u.toLinearMap from
         (LinearEquiv.eq_symm_apply Matrix.toEuclideanLin).mpr h
