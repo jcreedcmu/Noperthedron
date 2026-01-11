@@ -70,8 +70,9 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
     gcongr 2
     norm_num
 
-/-- The intersection of the δ-disc centered at Q with the interior of P -/
-def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) := Metric.ball Q δ ∩ interior P
+/-- The intersection of the δ-disc centered at Q with the interior of the convex hull of P -/
+def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) :=
+  Metric.ball Q δ ∩ interior (convexHull ℝ P)
 
 /--
 [SY25] Definition 31
