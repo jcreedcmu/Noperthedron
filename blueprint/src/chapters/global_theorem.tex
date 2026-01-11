@@ -51,15 +51,16 @@ See \cite{polyhedron.without.rupert}, Lemma 19.
     Let $f:\R^n\to \R$ be a $C^2$-function and $x_1,\dots,x_n,y_1,\dots,y_n \in \R$ such that $|x_1-y_1|,\dots,|x_n-y_n|\leq \varepsilon$.
     If
     \(
-        \left|\partial_{x_i}\partial_{x_j}f(x_1,\dots,x_n)\right| \leq 1
+        \left|\partial_{x_i}\partial_{x_j}f(v)\right| \leq 1
     \)
-    for all $i,j \in \{1,\dots,n\}$ then
+    for all $i,j \in \{1,\dots,n\}$ and all $v \in \R^n$, then
     \[
     |f(x_1,\dots,x_n)-f(y_1,\dots,y_n)|\leq \varepsilon \sum_{i=1}^n |\partial_{x_i} f(x_1,\dots,x_n)| + \frac{n^2}{2}\varepsilon^2.
     \]
 \end{lemma}
 
 \begin{proof}
+\leanok
 See \cite{polyhedron.without.rupert}, Lemma 20.
 \end{proof}
 
