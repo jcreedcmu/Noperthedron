@@ -103,10 +103,13 @@ lemma c2_imp_partials_differentiable {n : ℕ} {f : E n → ℝ} {i : Fin n} (fc
     ContDiff.differentiable (n := 1) (by fun_prop) one_ne_zero
   exact h_deriv.clm_apply (differentiable_const _)
 
+lemma c2_imp_partials_c1 {n : ℕ} {f : E n → ℝ} {j : Fin n} (fc : ContDiff ℝ 2 f) :
+    ContDiff ℝ 1 (nth_partial j f) := by
+  (apply ContDiff.fderiv_apply <;> try fun_prop); norm_num
+
 lemma c2_imp_mixed_partials_continuous {n : ℕ} {f : E n → ℝ} {i j : Fin n} (fc : ContDiff ℝ 2 f) :
       Continuous (nth_partial i (nth_partial j f)) := by
-  have h1 : ContDiff ℝ 1 (nth_partial j f) := by
-    (apply ContDiff.fderiv_apply <;> try fun_prop); norm_num
+  have h1 : ContDiff ℝ 1 (nth_partial j f) := c2_imp_partials_c1 fc
   have h0 : ContDiff ℝ 0 (nth_partial i (nth_partial j f)) := by
     (apply ContDiff.fderiv_apply <;> try fun_prop); norm_num
   exact h0.continuous
@@ -135,21 +138,17 @@ def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDi
     HasDerivAt (interpolated_deriv x y f) (interpolated_deriv2 x y f t) t := by
   unfold interpolated_deriv interpolated_deriv2
   rw [hasDerivAt_iff_hasFDerivAt]
-  -- Apply the chain rule to compute the derivative.
-  have h_chain (i : Fin n) : ContDiff ℝ 1 (nth_partial i f) := by
-    apply ContDiff.fderiv_apply <;> try fun_prop
-    norm_num
-  have h_chain4 (i : Fin n) : HasFDerivAt (nth_partial i f) (fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y)) ((1 - t) • x + t • y) :=
-    DifferentiableAt.hasFDerivAt (ContDiff.differentiable_one (h_chain i) ((1 - t) • x + t • y))
-  have h_chain3 (i : Fin n) : HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y) (y - x)) t := by
-    convert HasFDerivAt.comp_hasDerivAt t (h_chain4 i) (interpolator_has_deriv x y t) using 1;
-  have h_deriv_def (i : Fin n) : fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y) (y - x) = ∑ j, (y j - x j) * (nth_partial j (nth_partial i f) ((1 - t) • x + t • y)) := by
-    rw [ nth_partial_def ];
-    rfl;
-  have h_chain2 : ∀ i, HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (∑ j, (y j - x j) * nth_partial j (nth_partial i f) ((1 - t) • x + t • y)) t := by
+
+  have h1 (i : Fin n) : HasFDerivAt (nth_partial i f) (fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y)) ((1 - t) • x + t • y) :=
+    DifferentiableAt.hasFDerivAt (ContDiff.differentiable_one (c2_imp_partials_c1 fc) ((1 - t) • x + t • y))
+  have ha (i : Fin n) : HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (fderiv ℝ (nth_partial i f) ((1 - t) • x + t • y) (y - x)) t := by
+    convert HasFDerivAt.comp_hasDerivAt t (h1 i) (interpolator_has_deriv x y t) using 1;
+  have h2 : ∀ i, HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (∑ j, (y j - x j) * nth_partial j (nth_partial i f) ((1 - t) • x + t • y)) t := by
     intro i;
-    simp_all only [map_sub]
-  convert HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (h_chain2 i ))) using 1
+    convert ha i
+    rw [nth_partial_def]
+    rfl
+  convert HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (h2 i))) using 1
   · rw [Finset.sum_fn]
   · ext; simp only [toSpanSingleton_apply, smul_eq_mul, Finset.mul_sum, one_mul, coe_sum', Finset.sum_apply]
     rw [Finset.sum_comm]
