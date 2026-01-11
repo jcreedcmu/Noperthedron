@@ -204,7 +204,6 @@ def rotR'_mat (α : ℝ) : Matrix (Fin 2) (Fin 2) ℝ :=
      Real.cos α,  -Real.sin α]
 
 -- [SY25] § 1.1 Definition 2
-@[simp]
 noncomputable
 def rotR : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
   toFun α := (rotR_mat α).toEuclideanLin.toContinuousLinearMap
@@ -289,11 +288,14 @@ lemma rotM_identity (θ φ : ℝ) : rotM θ φ = reduceL ∘L RyL φ ∘L RzL (-
 lemma rotprojRM_identity (θ φ α : ℝ) : rotprojRM θ φ α = reduceL ∘L RzL α ∘L RyL φ ∘L RzL (-θ) := by
   simp only [rotprojRM]
   ext v i
-  fin_cases i <;> (simp [RzL, RyL, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; try ring_nf)
+  fin_cases i <;>
+  · simp [RzL, RyL, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+    ring_nf
 
 lemma projxy_rotRM_eq_rotprojRM (θ φ α : ℝ) : proj_xyL ∘ rotRM θ φ α = rotprojRM θ φ α := by
   ext v i; fin_cases i <;>
-  · simp [RyL, RzL, rotprojRM, rotRM, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; ring_nf
+  · simp [RyL, RzL, rotprojRM, rotRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+    ring_nf
 
 lemma reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
   ext v i

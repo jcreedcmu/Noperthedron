@@ -26,7 +26,7 @@ lemma rotR_preserves_pointsymmetry {α : ℝ} (X : Set ℝ²) (hX : PointSym X) 
 lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
     rotR (α + π) '' X = rotR α '' X := by
   have : rotR (α + π) = (-·) ∘ rotR α := by
-    ext x i; fin_cases i <;> (simp [Matrix.vecHead, Matrix.vecTail]; ring_nf)
+    ext x i; fin_cases i <;> (simp [rotR, Matrix.vecHead, Matrix.vecTail]; ring_nf)
   rw [this, Set.image_comp]
   exact neg_image_eq_if_pointsym (rotR α '' X) (rotR_preserves_pointsymmetry X hX)
 
@@ -257,7 +257,7 @@ theorem lemma7_3 (θ φ : ℝ) :
   exact nopert_vertices_rotation_invariant 8
 
 lemma flip_rotR_swap_minus (α : ℝ) : flip_y ∘L rotR α = rotR (-α) ∘L flip_y := by
-  ext v i; fin_cases i <;> (simp; ring_nf)
+  ext v i; fin_cases i <;> (simp [rotR]; ring_nf)
 
 noncomputable
 def flip_phi2 (p : Pose) : Pose := {

@@ -42,7 +42,17 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
     ‖T - rotM θ₂_ φ₂_ Q‖ ≤ δ →
     (rotR α (rotM θ₁ φ₁ P) ∈ Metric.ball T (δ + √5 * ε) ∧
      rotM θ₂ φ₂ Q ∈ Metric.ball T (δ + √5 * ε)) := by
-  sorry
+  intro T hT
+  simp only [mem_ball_iff_norm]
+  constructor
+  · grw [norm_sub_le_norm_sub_add_norm_sub _ (rotR α_ (rotM θ₁_ φ₁_ P)) _]
+    have h₁ : (rotR α_) ((rotM θ₁_ φ₁_) P) - T = T - (rotM θ₂_ φ₂_) Q := by
+      unfold T
+      simp
+      sorry
+    rw [h₁]
+    sorry
+  · sorry
 
 /-- The intersection of the δ-disc centered at Q with the interior of P -/
 def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) := Metric.ball Q δ ∩ interior P

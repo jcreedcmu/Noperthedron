@@ -71,7 +71,7 @@ def rotproj_outer_unit (S : ℝ³) (w : ℝ²) (x : ℝ²) : ℝ :=
 lemma rotation_partials_exist {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} :
     ContDiff ℝ 2 (rotproj_inner_unit S w) := by
   refine ContDiff.div ?_ contDiff_const (fun x ↦ (ne_of_lt S_nonzero).symm)
-  simp [inner, rotprojRM, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+  simp [inner, rotprojRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
   fun_prop
 
 lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} :
