@@ -130,6 +130,7 @@ def interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDif
   rw [this]
   exact HasFDerivAt.comp t hfd (interpolator_has_deriv x y t)
 
+open ContinuousLinearMap in
 def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
     HasDerivAt (interpolated_deriv x y f) (interpolated_deriv2 x y f t) t := by
   unfold interpolated_deriv interpolated_deriv2
@@ -148,15 +149,13 @@ def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDi
   have h_chain2 : ∀ i, HasDerivAt (fun t => nth_partial i f ((1 - t) • x + t • y)) (∑ j, (y j - x j) * nth_partial j (nth_partial i f) ((1 - t) • x + t • y)) t := by
     intro i;
     simp_all only [map_sub]
-  have h_chain : ∀ i, HasDerivAt (fun t => (y i - x i) * nth_partial i f ((1 - t) • x + t • y))
-      ((y i - x i) * ∑ j, (y j - x j) * nth_partial j (nth_partial i f) ((1 - t) • x + t • y))
-      t := by
-    exact fun i => HasDerivAt.const_mul _ ( h_chain2 i );
-  convert HasFDerivAt.sum fun i _ => h_chain i |> HasDerivAt.hasFDerivAt using 1
+  convert HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (h_chain2 i ))) using 1
   · rw [Finset.sum_fn]
-  · ext;
-    simp +decide [ mul_assoc, Finset.mul_sum  ] ; ring_nf;
-    rw [Finset.sum_comm]; congr; ext; congr; ext; ring_nf
+  · ext; simp only [toSpanSingleton_apply, smul_eq_mul, Finset.mul_sum, one_mul, coe_sum', Finset.sum_apply]
+    rw [Finset.sum_comm]
+    apply Finset.sum_congr rfl; intro i hi
+    apply Finset.sum_congr rfl; intro j hj
+    ring_nf
 
 def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     deriv (interpolated x y f) = interpolated_deriv x y f := by
