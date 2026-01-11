@@ -108,7 +108,23 @@ lemma c2_imp_partials_differentiable {n : ℕ} {f : E n → ℝ} {i : Fin n} (fc
 
 lemma c2_imp_mixed_partials_continuous {n : ℕ} {f : E n → ℝ} {i j : Fin n} (fc : ContDiff ℝ 2 f) :
       Continuous (nth_partial i (nth_partial j f)) := by
-  sorry
+  -- Since $f$ is $C^2$, its first derivatives are $C^1$, and thus the second derivatives are continuous.
+  have h_cont_diff : ContDiff ℝ 1 (nth_partial j f) := by
+    apply ContDiff.fderiv_apply (g := id)
+    · fun_prop
+    · exact contDiff_fun_id
+    · exact contDiff_const
+    · norm_num
+  -- Since the first derivative is C^1, its derivative (the second derivative) is continuous.
+  have h_cont_diff : ContDiff ℝ 0 (nth_partial i (nth_partial j f)) := by
+    apply_rules [ContDiff.fderiv_apply, h_cont_diff]
+    any_goals exact le_rfl
+    · fun_prop
+    · exact contDiff_snd
+    · exact contDiff_const
+    · exact contDiff_id
+    · exact contDiff_const
+  exact h_cont_diff.continuous
 
 open ContinuousLinearMap in
 def interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
