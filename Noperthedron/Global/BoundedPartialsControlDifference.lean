@@ -100,20 +100,21 @@ def interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDif
   rw [this]
   exact HasFDerivAt.comp t hfd (interpolator_has_deriv x y t)
 
-def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) :
+def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
     HasDerivAt (interpolated_deriv x y f) (interpolated_deriv2 x y f t) t := by
   unfold interpolated_deriv interpolated_deriv2
+  rw [hasDerivAt_iff_hasFDerivAt]
   sorry
 
-def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f):
+def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     deriv (interpolated x y f) = interpolated_deriv x y f := by
   ext t
   exact (interpolated_has_deriv x y f fc t).deriv
 
-def deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) :
+def deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     deriv (interpolated_deriv x y f) = interpolated_deriv2 x y f := by
   ext t
-  exact (interpolated_has_deriv2 x y f t).deriv
+  exact (interpolated_has_deriv2 x y f fc t).deriv
 
 def differentiable_deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     Differentiable ℝ (interpolated_deriv x y f) := by
@@ -155,7 +156,7 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   have deriv_g_eq_g' : deriv g = g' := by
     unfold g g'; exact deriv_interpolated x y f fc
   have deriv_g'_eq_g'' : deriv g' = g'' := by
-    unfold g' g''; exact deriv_interpolated2 x y f
+    unfold g' g''; exact deriv_interpolated2 x y f fc
 
   have int_g'_eq_sub (t : ℝ) : (∫ (s : ℝ) in 0..t, g' s) = g t - g 0 := by
     exact intervalIntegral.integral_deriv_eq_sub' g deriv_g_eq_g' (by fun_prop) (by fun_prop)
@@ -176,9 +177,18 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
       _ = g' 0 + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s := by
         rw [intervalIntegral.integral_const]; simp
 
-  --- "the chain rule imples that..."
+  --- "thus at t = 0 we find..."
   have bound1 : |g' 0| ≤ ε * ∑ i, |nth_partial i f x|  := by
-    sorry
+    calc |g' 0|
+    _ = |∑ i, (y i - x i) * nth_partial i f x| := by simp [g', interpolated_deriv]
+    _ ≤ ∑ i, |(y i - x i) * nth_partial i f x| := by apply Finset.abs_sum_le_sum_abs
+    _ = ∑ i, |(y i - x i)| * |nth_partial i f x| := by
+      conv => arg 1; arg 2; intro i; rw [abs_mul]
+    _ = ∑ i, |(x i - y i)| * |nth_partial i f x| := by
+      conv => arg 1; arg 2; intro i; arg 1; rw [abs_sub_comm]
+    _ ≤ ∑ i, ε * |nth_partial i f x| := by
+      refine Finset.sum_le_sum ?_; intro i hi; grw [hdiff i]
+    _ = ε * ∑ i, |nth_partial i f x| := by rw [Finset.mul_sum]
 
   -- "For the second derivative of g(t) we also get wit hthe chain rule"
   have bound2 : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ (n^2 / 2) * ε^2 := by
