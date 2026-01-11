@@ -34,6 +34,7 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
 
 /-- [SY25] Lemma 30 -/
 theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_: ℝ} {P Q : Euc(3)}
+    (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
     (hε : 0 < ε)
     (hθ₁ : |θ₁ - θ₁_| ≤ ε) (hφ₁ : |φ₁ - φ₁_| ≤ ε)
     (hθ₂ : |θ₂ - θ₂_| ≤ ε) (hφ₂ : |φ₂ - φ₂_| ≤ ε)
@@ -54,7 +55,12 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
       simp [T]
     rw [h₂]
     grw [hT]
-    sorry
+    rw [←ContinuousLinearMap.comp_apply, ←ContinuousLinearMap.comp_apply,
+        ←ContinuousLinearMap.sub_apply]
+    grw [ContinuousLinearMap.le_opNorm]
+    gcongr 1
+    grw [mul_le_of_le_one_right (norm_nonneg _) hP]
+    exact Bounding.norm_RM_sub_RM_le hε hθ₁ hφ₁ hα
   · sorry
 
 /-- The intersection of the δ-disc centered at Q with the interior of P -/
