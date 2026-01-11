@@ -73,6 +73,29 @@ private noncomputable
 def interpolated_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) : ℝ :=
   ∑ i, ∑ j, (y i - x i) * (y j - x j) * (nth_partial i <| nth_partial j f) ((1 - t) • x + t • y)
 
+private
+lemma interpolated_deriv2_bound {n : ℕ} (x y : E n) {f : E n → ℝ}
+    (mpb : (x : E n) → mixed_partials_bounded f x) {ε : ℝ} (hε : 0 < ε) (hdiff : (i : Fin n) → |x i - y i| ≤ ε)
+    (t : ℝ) :
+    |interpolated_deriv2 x y f t| ≤ n^2 * ε^2 := by
+  calc |interpolated_deriv2 x y f t|
+  _ ≤ ∑ i, |∑ j, (y i - x i) * (y j - x j) * nth_partial i (nth_partial j f) ((1 - t) • x + t • y)| := by
+    apply Finset.abs_sum_le_sum_abs
+  _ ≤ ∑ i, ∑ j, |(y i - x i) * (y j - x j) * nth_partial i (nth_partial j f) ((1 - t) • x + t • y)| := by
+    refine Finset.sum_le_sum ?_; intro i hi;
+    apply Finset.abs_sum_le_sum_abs
+  _ = ∑ i, ∑ j, |(y i - x i)| * |(y j - x j)| * |nth_partial i (nth_partial j f) ((1 - t) • x + t • y)| := by
+    conv => arg 1; arg 2; intro i; arg 2; intro j; repeat rw [abs_mul];
+  _ ≤ ∑ i, ∑ j, ε * ε * 1 := by
+    refine Finset.sum_le_sum ?_; intro i hi;
+    refine Finset.sum_le_sum ?_; intro j hj;
+    rw [abs_sub_comm]; grw [hdiff i]
+    rw [abs_sub_comm]; grw [hdiff j]
+    unfold mixed_partials_bounded at mpb; grw [mpb]
+  _ = n^2 * ε^2 := by
+    simp only [mul_one, Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+    ring_nf
+
 lemma c2_imp_partials_differentiable {n : ℕ} {f : E n → ℝ} {i : Fin n} (fc : ContDiff ℝ 2 f) :
       Differentiable ℝ (nth_partial i f) := by
   sorry
@@ -190,10 +213,7 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
       refine Finset.sum_le_sum ?_; intro i hi; grw [hdiff i]
     _ = ε * ∑ i, |nth_partial i f x| := by rw [Finset.mul_sum]
 
-  -- "For the second derivative of g(t) we also get wit hthe chain rule"
-  have bound2 : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ (n^2 / 2) * ε^2 := by
-    sorry
-
+  -- "For the second derivative of g(t) we also get with the chain rule"
   have abs_int_le_int_abs {t : ℝ} (ht : 0 ≤ t) :
       |∫ (s : ℝ) in 0..t, g'' s| ≤ ∫ (s : ℝ) in 0..t, |g'' s| :=
     intervalIntegral.abs_integral_le_integral_abs ht
@@ -201,6 +221,24 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   -- This should be by monotonicity of integration applied to abs_int_le_int_abs
   have int_abs_int_le_int_int_abs : ∫ (t : ℝ) in 0..1, |∫ (s : ℝ) in 0..t, g'' s|
       ≤ ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| := by
+    sorry
+
+  have (f g : ℝ → ℝ) (t : ℝ) (ht : 0 ≤ t) (hf : IntervalIntegrable f MeasureTheory.volume 0 t)
+       (hg : IntervalIntegrable g MeasureTheory.volume 0 t)
+       (hle : (s : ℝ) → f s ≤ g s)  : ∫ (s : ℝ) in 0..t, f s ≤ ∫ (s : ℝ) in 0..t, g s :=
+    intervalIntegral.integral_mono ht hf hg hle
+
+  have bound2b : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, n^2 * ε^2 := by
+    have : ∀ t ∈ Set.Icc 0 1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ ∫ (s : ℝ) in 0..t, n^2 * ε^2 := by
+      intro t ⟨ht, _⟩
+      refine intervalIntegral.integral_mono ht ?_ ?_ (interpolated_deriv2_bound x y mpb hε hdiff) <;>
+      · exact Continuous.intervalIntegrable (by fun_prop) 0 t
+    refine intervalIntegral.integral_mono_on (by norm_num) ?_ ?_ this <;>
+      · exact Continuous.intervalIntegrable (by fun_prop) 0 1
+
+  have bound2 : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ (n^2 / 2) * ε^2 := by
+    grw [bound2b]
+    -- the essential reasoning here is: "the integral over the triangle (0,0)--(1,0)--(1,1) is 1/2"
     sorry
 
   -- "Altogether one obtains"
