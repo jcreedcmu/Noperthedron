@@ -79,13 +79,10 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
     -- Since A fixes the z-axis, the third column of A must be [0, 0, 1].
     have h_third_col : A 0 2 = 0 ∧ A 1 2 = 0 ∧ A 2 2 = 1 := by
       -- By definition of matrix multiplication, the third column of A is the image of the vector (0,0,1) under A.
-      have h_third_col : A.mulVec ![0, 0, 1] = ![0, 0, 1] := by
-        convert hAz
-      simp [ ← List.ofFn_inj, Matrix.mulVec ] at h_third_col
+      simp [ ← List.ofFn_inj, Matrix.mulVec ] at hAz
       aesop
-    simp_all [ ← Matrix.ext_iff, Fin.forall_fin_succ ]
-    simp_all [ Matrix.mul_apply, Fin.sum_univ_three ]
-    exact mul_self_add_mul_self_eq_zero.mp hA₁.2.2.2.2
+    simp_all [← Matrix.ext_iff, Fin.forall_fin_succ, Matrix.mul_apply, Fin.sum_univ_three,
+              mul_self_add_mul_self_eq_zero ]
   -- Since A is in SO(3), we have a^2 + b^2 = 1 and c^2 + d^2 = 1, and ad - bc = 1.
   have h_conditions : a^2 + b^2 = 1 ∧ c^2 + d^2 = 1 ∧ a * d - b * c = 1 := by
     simp_all [← Matrix.ext_iff, Fin.forall_fin_succ]
