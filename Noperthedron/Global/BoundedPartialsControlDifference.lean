@@ -11,6 +11,20 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
+-- FIXME: the fact that I can't find exactly this lemma with loogle on "sum" and EuclideanSpace.single
+-- makes me think there's probably some nearby lemma that uses different tools, maybe?
+lemma vector_rep {n : ℕ} (v : E n) : v = ∑ x, v.ofLp x • EuclideanSpace.single x 1 := by
+  ext i; simp [Finset.sum_apply, Pi.single_apply]
+
+lemma nth_partial_def {n : ℕ} (f : E n → ℝ) (v w : E n) :
+    fderiv ℝ f w v = ∑ i, v i * nth_partial i f w := by
+  unfold nth_partial
+  rw [show ∑ i, v.ofLp i * (fderiv ℝ f w) (EuclideanSpace.single i 1)
+         = (fderiv ℝ f w) (∑ x, v.ofLp x • EuclideanSpace.single x 1)
+      by simp]
+  congr
+  exact vector_rep v
+
 private noncomputable
 def interpolator {n : ℕ} (x y : E n) (t : ℝ) : E n :=
   (1 - t) • x + t • y
@@ -22,7 +36,16 @@ def interpolator' {n : ℕ} (x y : E n) : ℝ →L[ℝ] E n :=
 private noncomputable
 def interpolator_has_deriv {n : ℕ} (x y : E n) (t : ℝ) :
     HasFDerivAt (interpolator x y) (interpolator' x y) t := by
-  sorry
+  unfold interpolator'
+  rw [← hasDerivAt_iff_hasFDerivAt]
+  unfold interpolator
+  -- I don't really like this proof, I'd prefer something that more incrementally
+  -- "discovers" the derivative of interpolator instead of building it all up and then
+  -- `convert`ing it to the desired form.
+  convert ((hasDerivAt_id t).const_sub 1).smul_const x |>.add ((hasDerivAt_id t).smul_const y) using 1
+  ext i
+  simp only [PiLp.sub_apply, neg_smul, one_smul, PiLp.add_apply, PiLp.neg_apply]
+  ring_nf
 
 private noncomputable
 def interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) : ℝ → ℝ  :=
@@ -57,20 +80,6 @@ lemma c2_imp_partials_differentiable {n : ℕ} {f : E n → ℝ} {i : Fin n} (fc
 lemma c2_imp_mixed_partials_continuous {n : ℕ} {f : E n → ℝ} {i j : Fin n} (fc : ContDiff ℝ 2 f) :
       Continuous (nth_partial i (nth_partial j f)) := by
   sorry
-
--- FIXME: the fact that I can't find exactly this lemma with loogle on "sum" and EuclideanSpace.single
--- makes me think there's probably some nearby lemma that uses different tools, maybe?
-lemma vector_rep {n : ℕ} (v : E n) : v = ∑ x, v.ofLp x • EuclideanSpace.single x 1 := by
-  ext i; simp [Finset.sum_apply, Pi.single_apply]
-
-lemma nth_partial_def {n : ℕ} (f : E n → ℝ) (v w : E n) :
-    fderiv ℝ f w v = ∑ i, v i * nth_partial i f w := by
-  unfold nth_partial
-  rw [show ∑ i, v.ofLp i * (fderiv ℝ f w) (EuclideanSpace.single i 1)
-         = (fderiv ℝ f w) (∑ x, v.ofLp x • EuclideanSpace.single x 1)
-      by simp]
-  congr
-  exact vector_rep v
 
 open ContinuousLinearMap in
 def interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
