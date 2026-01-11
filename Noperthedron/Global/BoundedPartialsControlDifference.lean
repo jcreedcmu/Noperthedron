@@ -222,10 +222,15 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
       |∫ (s : ℝ) in 0..t, g'' s| ≤ ∫ (s : ℝ) in 0..t, |g'' s| :=
     intervalIntegral.abs_integral_le_integral_abs ht
 
-  -- This should be by monotonicity of integration applied to abs_int_le_int_abs
   have int_abs_int_le_int_int_abs : ∫ (t : ℝ) in 0..1, |∫ (s : ℝ) in 0..t, g'' s|
       ≤ ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| := by
-    sorry
+    refine intervalIntegral.integral_mono_on ?_ ?_ ?_ ?_
+    · norm_num
+    · exact Continuous.intervalIntegrable (by fun_prop) 0 1
+    · exact Continuous.intervalIntegrable (by fun_prop) 0 1
+    · intro t ⟨ht₁, ht₂⟩
+      apply intervalIntegral.abs_integral_le_integral_abs
+      exact ht₁
 
   have bound2 : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ (n^2 / 2) * ε^2 := by
     suffices h : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤
