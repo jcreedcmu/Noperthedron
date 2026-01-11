@@ -204,7 +204,7 @@ inductive RewritableEntry : Type where
   | msin : RewritableEntry
   | mcos : RewritableEntry
 
-def DistLtKappaEntry := RewritableEntry × RewritableEntry
+def DistLeKappaEntry := RewritableEntry × RewritableEntry
 
 noncomputable
 def RewritableEntry.actual (z : ℚ) : RewritableEntry → ℝ
@@ -217,7 +217,7 @@ def RewritableEntry.actual (z : ℚ) : RewritableEntry → ℝ
 | .mcos => -Real.cos z
 
 noncomputable
-def DistLtKappaEntry.actual (dlke : DistLtKappaEntry) (x y : ℚ) :=
+def DistLeKappaEntry.actual (dlke : DistLeKappaEntry) (x y : ℚ) :=
   dlke.fst.actual x * dlke.snd.actual y
 
 noncomputable
@@ -231,15 +231,15 @@ def RewritableEntry.approx (z : ℚ) : RewritableEntry → ℝ
 | .mcos => -cosℚ z
 
 noncomputable
-def DistLtKappaEntry.approx (dlke : DistLtKappaEntry) (x y : ℚ) :=
+def DistLeKappaEntry.approx (dlke : DistLeKappaEntry) (x y : ℚ) :=
   dlke.fst.approx x * dlke.snd.approx y
 
 noncomputable
-def matrixActual {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : ℚ) : E n →L[ℝ] E m :=
+def matrixActual {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℚ) : E n →L[ℝ] E m :=
    A.map (·.actual x y) |>.toEuclideanLin.toContinuousLinearMap
 
 noncomputable
-def matrixApprox {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : ℚ) : E n →L[ℝ] E m :=
+def matrixApprox {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℚ) : E n →L[ℝ] E m :=
    A.map (·.approx x y) |>.toEuclideanLin.toContinuousLinearMap
 
 section AristotleLemmas
@@ -248,7 +248,7 @@ section AristotleLemmas
 The actual value of any `RewritableEntry` (which can be 0, 1, -1, sin(z), cos(z), -sin(z), -cos(z))
 is bounded by 1 in absolute value.
 -/
-theorem rewritable_entry_bound (e : RationalApprox.RewritableEntry) (z : ℚ) :
+theorem rewritable_entry_bound (e : RewritableEntry) (z : ℚ) :
     |e.actual z| ≤ 1 := by
   cases e <;> simp [RewritableEntry.actual, Real.abs_sin_le_one, Real.abs_cos_le_one]
 
@@ -274,7 +274,7 @@ theorem rewritable_entry_error (e : RationalApprox.RewritableEntry) (z : ℚ)
 /-
 The error of the product of two `RewritableEntry` approximations is bounded by `2 * κ / 7 + κ^2 / 49`.
 -/
-theorem dist_lt_kappa_entry_error (d : RationalApprox.DistLtKappaEntry) (x y : ℚ)
+theorem dist_le_kappa_entry_error (d : RationalApprox.DistLeKappaEntry) (x y : ℚ)
     (hx : x ∈ Set.Icc (-4 : ℚ) 4) (hy : y ∈ Set.Icc (-4 : ℚ) 4) :
     |d.actual x y - d.approx x y| ≤ 2 * κ / 7 + κ^2 / 49 := by
   -- Using the triangle inequality for the absolute value and the bounds from
@@ -327,16 +327,16 @@ theorem kappa_bound_aux : 3 * (2 * κ / 7 + κ^2 / 49) ≤ κ := by norm_num [κ
 end AristotleLemmas
 
 theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
-    (A : Matrix (Fin m) (Fin n) DistLtKappaEntry) (x y : Set.Icc (-4 : ℚ) 4) :
+    (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : Set.Icc (-4 : ℚ) 4) :
     ‖matrixActual A x y - matrixApprox A x y‖ ≤ κ := by
-  -- Let's choose δ as the upper bound from `dist_lt_kappa_entry_error`.
+  -- Let's choose δ as the upper bound from `dist_le_kappa_entry_error`.
   set δ := 2 * κ / 7 + κ^2 / 49 with hδ_def
   have hδ_pos : 0 < δ := by
     norm_num [ hδ_def, RationalApprox.κ ]
   have hδ_bound : ∀ i j, |(A.map (fun d => d.actual (x.val) (y.val)) i j) -
                           (A.map (fun d => d.approx (x.val) (y.val)) i j)| ≤ δ := by
     intro i j
-    apply RationalApprox.dist_lt_kappa_entry_error
+    apply RationalApprox.dist_le_kappa_entry_error
     · exact x.prop
     · exact y.prop
   have h_sqrt_bound : Real.sqrt (m.val * n.val) ≤ 3 := by

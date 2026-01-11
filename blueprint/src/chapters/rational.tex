@@ -58,7 +58,7 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
     using the Cauchy-Schwarz inequality. Dividing by $\|v\|$ and taking the square root proves the claim.
 \end{proof}
 
-\begin{lemma}\label{lem:dist_lt_kappa}
+\begin{lemma}\label{lem:dist_le_kappa}
 \leanok
 \lean{RationalApprox.norm_matrix_actual_approx_le_kappa}
     Let $A(x,y)$ be an $m\times n$ matrix with $1 \leq m,n\leq 3$ such that every entry is of the form $a_1(x)\cdot a_2(y)$ where
@@ -97,8 +97,8 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
 \end{corollary}
 
 \begin{proof}
-\uses{lem:dist_lt_kappa,lem:RaRalpha}
-    The first statement is a direct application of \cref{lem:dist_lt_kappa} and the second statement follows immediately after using \cref{lem:RaRalpha} and the triangle inequality.
+\uses{lem:dist_le_kappa,lem:RaRalpha}
+    The first statement is a direct application of \cref{lem:dist_le_kappa} and the second statement follows immediately after using \cref{lem:RaRalpha} and the triangle inequality.
 \end{proof}
 
 \begin{lemma} \label{lem:A1AnB1Bn}
