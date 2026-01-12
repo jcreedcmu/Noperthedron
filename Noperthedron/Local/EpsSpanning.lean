@@ -64,11 +64,38 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
     clear h₃ h₄
     have hd : 0 < 2 * ε * (√2 + ε) := by positivity
     exact triangle_ineq_aux hd hlt h₂
-  sorry
 
-
-/-
-  |⟪((rotR (π / 2)).comp (rotM θ φ)) (P i), (rotM θ φ) (P (i + 1))⟫ -
-        ⟪((rotR (π / 2)).comp (rotM θ_ φ_)) (P i), (rotM θ_ φ_) (P (i + 1))⟫| ≤
-    ‖rotM θ φ - rotM θ_ φ_‖ + ‖rotM θ φ - rotM θ_ φ_‖ + ‖rotM θ φ - rotM θ_ φ_‖ * ‖rotM θ φ - rotM θ_ φ_‖
--/
+  -- apply lemma 26
+  obtain ⟨a, b, c, ha, hb, hc, habc⟩ := Local.origin_in_triangle (h₁ 0) (h₁ 1) (h₁ 2)
+  let S := a • (P 0) + b • (P 1) + c • (P 2)
+  -- both S and vecX θ φ are in the kernel of rotM θ φ
+  -- therefore S = λ * vecX θ φ for some λ.
+  have h₂ : ∃ lam : ℝ, S = lam • vecX θ φ := by
+    sorry
+  obtain ⟨lam, hlam⟩ := h₂
+  have h₄ : 0 < lam := by
+    have h₃ : lam = ⟪vecX θ φ, lam • vecX θ φ⟫ := by
+      rw [real_inner_smul_self_right]
+      simp [vecX_norm_one]
+    rw [← hlam] at h₃
+    unfold S at h₃
+    simp only [inner_add_right, real_inner_smul_right] at h₃
+    rw [h₃]
+    have hX0 := hX 0
+    have hX1 := hX 1
+    have hX2 := hX 2
+    nlinarith only [ha, hb, hc, hX0, hX1, hX2]
+  have h₅ : vecX θ φ = lam⁻¹ • S := by
+    rw [hlam]
+    rw [smul_smul]
+    field_simp
+    simp
+  simp only [Spanp, Set.mem_setOf_eq]
+  use fun i ↦ match i with
+              | 0 => lam⁻¹ * a
+              | 1 => lam⁻¹ * b
+              | 2 => lam⁻¹ * c
+  constructor
+  · intro i
+    fin_cases i <;> simp <;> positivity
+  · simp [Fin.sum_univ_three, h₅, S, smul_smul]

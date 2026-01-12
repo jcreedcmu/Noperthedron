@@ -281,6 +281,15 @@ lemma vecX_identity (θ φ : ℝ) :
   ext i
   fin_cases i <;> simp [RyL, RzL, Matrix.vecHead, Matrix.vecTail, vecX]
 
+lemma vecX_norm_one (θ φ : ℝ) : ‖vecX θ φ‖ = 1 := by
+  simp only [vecX, ENNReal.toReal_ofNat, Nat.ofNat_pos, PiLp.norm_eq_sum, norm_eq_abs,
+    rpow_ofNat, sq_abs, Fin.sum_univ_three, Fin.isValue, Matrix.cons_val_zero,
+    Matrix.cons_val_one, Matrix.cons_val, one_div]
+  ring_nf
+  simp only [Real.sin_sq]
+  ring_nf
+  simp
+
 lemma rotM_identity (θ φ : ℝ) : rotM θ φ = reduceL ∘L RyL φ ∘L RzL (-θ) := by
   ext v i
   fin_cases i <;> (simp [RzL, RyL, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; try ring_nf)
