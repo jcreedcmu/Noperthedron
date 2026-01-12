@@ -6,7 +6,7 @@ import Noperthedron.PoseInterval
 import Noperthedron.Local.Coss
 import Noperthedron.Local.Prelims
 import Noperthedron.Local.OriginInTriangle
-import Noperthedron.Local.Lemma23
+import Noperthedron.Local.Spanp
 
 namespace Local
 
