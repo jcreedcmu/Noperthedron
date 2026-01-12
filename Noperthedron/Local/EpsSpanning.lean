@@ -77,15 +77,11 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
       unfold S
       simpa
    -- Since $S$ is orthogonal to the plane spanned by $rotM θ φ$, it must be parallel to $vecX θ φ$.
-    have hS_orthogonal₁ : ⟪vecX θ φ, S⟫ ≠ 0 := by
-      rw [ inner_add_right, inner_add_right, inner_smul_right, inner_smul_right, inner_smul_right ] ; nlinarith [ hX 0, hX 1, hX 2 ];
-    have hS_orthogonal : ⟪rotM θ φ S, rotM θ φ S⟫ = 0 := by
-      aesop;
     have hS_orthogonal : ⟪S, S⟫ = ⟪vecX θ φ, S⟫ ^ 2 := by
       have hS_orthogonal : ‖rotM θ φ S‖ ^ 2 = ‖S‖ ^ 2 - ⟪vecX θ φ, S⟫ ^ 2 := by
         exact pythagoras S
-      simp_all [ inner_self_eq_norm_sq_to_K ]
-      linarith;
+      simp_all [inner_self_eq_norm_sq_to_K]
+      linarith
     simp only [inner_self_eq_norm_sq_to_K, Real.ringHom_apply] at hS_orthogonal
     rw [sq_eq_sq_iff_abs_eq_abs, abs_norm, ← Real.norm_eq_abs] at hS_orthogonal
     rw [←one_mul ‖S‖, ← vecX_norm_one θ φ] at hS_orthogonal
