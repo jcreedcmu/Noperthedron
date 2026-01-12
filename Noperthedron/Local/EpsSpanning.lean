@@ -107,9 +107,7 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
     have hX2 := hX 2
     nlinarith only [ha, hb, hc, hX0, hX1, hX2]
   have h₅ : vecX θ φ = lam⁻¹ • S := by
-    rw [hlam]
-    rw [smul_smul]
-    field_simp
+    rw [hlam, smul_smul, inv_eq_one_div, one_div_mul_cancel h₄.ne.symm]
     simp
   simp only [Spanp, Set.mem_setOf_eq]
   use fun i ↦ match i with
