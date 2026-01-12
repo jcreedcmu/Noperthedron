@@ -5,6 +5,7 @@ import Noperthedron.Basic
 import Noperthedron.PoseInterval
 import Noperthedron.Local.Coss
 import Noperthedron.Local.EpsSpanning
+import Noperthedron.Local.LocallyMaximallyDistant
 import Noperthedron.Local.Prelims
 import Noperthedron.Local.OriginInTriangle
 import Noperthedron.Local.Spanp
@@ -46,25 +47,6 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
     grw [mul_le_of_le_one_right (norm_nonneg _) hQ, Bounding.norm_M_sub_lt hε hθ₂ hφ₂]
     gcongr 2
     norm_num
-
-/-- The intersection of the δ-disc centered at Q with the interior of the convex hull of P -/
-def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) :=
-  Metric.ball Q δ ∩ interior (convexHull ℝ P)
-
-/--
-[SY25] Definition 31
--/
-def LocallyMaximallyDistant (δ : ℝ) (Q Q_ : Euc(2)) (P : Finset Euc(2)) : Prop :=
-  ∀ A ∈ sect δ Q_ P, ‖A‖ < ‖Q‖
-
-/--
-[SY25] Lemma 32
--/
-theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
-    (hQ : Q ∈ P) (hQ_ : ‖Q - Q_‖ < δ) (hr : 0 < r) (hrQ : r < ‖Q‖)
-    (hle : ∀ Pᵢ ∈ P \ {Q}, δ / r ≤ ⟪Q, Q - Pᵢ⟫ / (‖Q‖ * ‖Q - Pᵢ‖)) :
-    LocallyMaximallyDistant δ Q Q_ P := by
-  sorry
 
 /--
 Condition A_ε from [SY25] Theorem 36
