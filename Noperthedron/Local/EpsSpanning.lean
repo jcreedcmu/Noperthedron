@@ -110,10 +110,7 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
     rw [hlam, smul_smul, inv_eq_one_div, one_div_mul_cancel h₄.ne.symm]
     simp
   simp only [Spanp, Set.mem_setOf_eq]
-  use fun i ↦ match i with
-              | 0 => lam⁻¹ * a
-              | 1 => lam⁻¹ * b
-              | 2 => lam⁻¹ * c
+  use ![lam⁻¹ * a, lam⁻¹ * b, lam⁻¹ * c]
   constructor
   · intro i
     fin_cases i <;> simp <;> positivity
