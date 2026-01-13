@@ -34,4 +34,4 @@ theorem HasDerivAt_rotR_mat (α : ℝ) (v : ℝ²) :
 
 theorem HasDerivAt_rotR (α : ℝ) (v : ℝ²) :
     HasDerivAt (rotR · v) (rotR' α v) α := by
-  simp [Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, HasDerivAt_rotR_mat α v]
+  simpa [Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, rotR] using HasDerivAt_rotR_mat α v

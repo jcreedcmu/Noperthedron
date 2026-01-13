@@ -5,5 +5,6 @@ import Noperthedron.RationalLocal
 import Noperthedron.SolutionTable
 import Noperthedron.ComputationalStep
 import Noperthedron.Global
+import Noperthedron.RotationDerivs
 import Noperthedron.Local
 import Noperthedron.Final
