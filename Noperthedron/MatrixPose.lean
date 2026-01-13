@@ -19,14 +19,14 @@ def zeroOffset (p : MatrixPose) : MatrixPose :=
   { p with innerOffset := 0 }
 
 noncomputable def innerOffsetPart (p : MatrixPose) : ℝ³ → ℝ³ :=
-  translationAffineEquiv (inject_xy p.innerOffset)
+  AffineEquiv.vaddConst ℝ (inject_xy p.innerOffset)
 noncomputable def innerRotPart (p : MatrixPose) : ℝ³ → ℝ³ := p.innerRot.val.toEuclideanLin
 
 end MatrixPose
 
 noncomputable
 instance : PoseLike MatrixPose where
-  inner p := (translationAffineEquiv (inject_xy p.innerOffset)).toAffineMap.comp
+  inner p := (AffineEquiv.vaddConst ℝ (inject_xy p.innerOffset)).toAffineMap.comp
       (p.innerRot.val.toEuclideanLin.toAffineMap)
   outer p := p.outerRot.val.toEuclideanLin.toAffineMap
 
@@ -37,11 +37,9 @@ If we zero out the offset, then the offset part of the inner
 action is the identity.
 -/
 theorem zero_offset_id (p : MatrixPose) (v : ℝ³) : p.zeroOffset.innerOffsetPart v = v := by
-  ext i; fin_cases i
-  all_goals
-    change (translationAffineEquiv 0) v _ = v _
-    unfold translationAffineEquiv;
-    simp
+  ext i
+  fin_cases i <;>
+    simp [MatrixPose.innerOffsetPart, inject_xy, MatrixPose.zeroOffset]
 
 @[simp]
 theorem zero_offset_elim (p : MatrixPose) :

@@ -4,19 +4,6 @@ import Noperthedron.Rupert.Equivalences.Util
 open scoped Matrix
 
 /--
-Translation AffineEquiv ℝⁿ → ℝⁿ
--/
-noncomputable def translationAffineEquiv {n : ℕ} (v : EuclideanSpace ℝ (Fin n)) :
-    EuclideanSpace ℝ (Fin n) ≃ᵃ[ℝ] EuclideanSpace ℝ (Fin n) :=
-{ toFun x := x + v,
-  invFun x := x - v,
-  linear := by rfl,
-  map_vadd' m x := add_assoc x m v,
-  right_inv := by grind only [= Function.RightInverse.eq_1, = Function.LeftInverse.eq_1],
-  left_inv := leftInverse_sub_add_left v
-  }
-
-/--
 Projection preserves convexity
 -/
 theorem proj_preserves_convex {S : Set ℝ³} (s_convex : Convex ℝ S) :
