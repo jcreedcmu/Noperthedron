@@ -23,6 +23,7 @@ theorem sum_abs_sq_le_sum_abs_sq_mul {n : ℕ} (v : Fin n → ℝ) :
     Finset.sum_mul_sq_le_sq_mul_sq Finset.univ (fun j => |v j|) (fun _ => 1)
   simpa using h
 
+/-- [SY25] Lemma 39 -/
 theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : Matrix (Fin m) (Fin n) ℝ)
     (hδ : 0 < δ) (hle : ∀ i j, |A i j| ≤ δ) :
     ‖A.toEuclideanLin.toContinuousLinearMap‖ ≤ δ * √(m * n) := by

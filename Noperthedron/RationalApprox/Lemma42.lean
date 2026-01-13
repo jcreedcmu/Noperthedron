@@ -1,8 +1,8 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
-namespace RationalApprox
+import Noperthedron.EuclideanSpaceNotation
 
-notation "Euc(" n:arg ")" => EuclideanSpace ℝ (Fin n)
+namespace RationalApprox
 
 inductive MatVec : (n m : ℕ) → Type where
   | nil : {n : ℕ} → MatVec n n
@@ -66,6 +66,7 @@ lemma MatVec.maxNormList_non_neg {m n : ℕ} (mv : MatVec n m) :
       mul_one, lt_sup_iff, zero_lt_one, or_true, mul_nonneg_iff_of_pos_right]
     exact tl.maxNormList_non_neg
 
+/-- [SY25] Lemma 42 -/
 def norm_sub_le_prod {n m : ℕ} (mv : MatVec n m)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ) :
     ‖mv.compA - mv.compB‖ ≤ mv.size * κ * mv.maxNormList.prod := by

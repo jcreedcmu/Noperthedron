@@ -8,8 +8,8 @@ import Mathlib.Data.Real.StarOrdered
 
 import Mathlib.Tactic.NormNum.NatFactorial
 import Mathlib.Tactic.Cases
-import Noperthedron.Lemma39
-import Noperthedron.Lemma42
+import Noperthedron.RationalApprox.Lemma39
+import Noperthedron.RationalApprox.Lemma42
 import Noperthedron.Basic
 
 namespace RationalApprox
