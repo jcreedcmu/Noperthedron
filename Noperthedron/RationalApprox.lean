@@ -326,6 +326,7 @@ theorem kappa_bound_aux : 3 * (2 * κ / 7 + κ^2 / 49) ≤ κ := by norm_num [κ
 
 end AristotleLemmas
 
+/-- [SY25] Lemma 40 -/
 theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
     (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : Set.Icc (-4 : ℚ) 4) :
     ‖matrixActual A x y - matrixApprox A x y‖ ≤ κ := by
