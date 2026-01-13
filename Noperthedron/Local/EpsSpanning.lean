@@ -15,9 +15,13 @@ open scoped Matrix
 
 def Triangle : Type := Fin 3 → ℝ³
 
-/-- The triangle P is congruent to Q in the usual geometric sense -/
-def Triangle.Congruent (P Q : Triangle) : Prop := by
-  sorry
+/--
+[SY25] Definition 34. Note that the standard definition of "congruent"
+would allow `L` to be any isometry, but here we restrict to rotations
+and reflections.
+-/
+def Triangle.Congruent (P Q : Triangle) : Prop :=
+  ∃ L ∈ Matrix.orthogonalGroup (Fin 3) ℝ, ∀ i, P i = L *ᵥ (Q i)
 
 /-- [SY25] Definition 27. Note that the "+ 1" at the type Fin 3 wraps. -/
 structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where
