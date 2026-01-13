@@ -3,24 +3,24 @@ import Noperthedron.PoseInterval
 
 namespace Solution
 
+inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
+deriving BEq
+
+structure Interval where
+  min : Param → ℕ
+  max : Param → ℕ
+
 /--
 A `Solution.Row` aims to closely model of exactly the data in Steininger and Yurkevich's big CSV file.
 IDs start from zero. See [SY25] §7.1 for the meaning of all these fields.
 -/
 structure Row : Type where
    ID : ℕ
-   nodeType : Finset.Icc 1 3
+   nodeType : ℕ
    nrChildren : ℕ
    IDfirstChild : ℕ
-   split : Finset.Icc 1 6
-   T1_min : ℕ
-   T1_max : ℕ
-   V1_min : ℕ
-   V1_max : ℕ
-   T2_min : ℕ
-   T2_max : ℕ
-   V2_min : ℕ
-   V2_max : ℕ
+   split : ℕ
+   interval : Interval
    A_max : ℤ
    A_min : ℤ
    S_index : Fin 30
@@ -44,13 +44,42 @@ computational program returning Bool?
 -/
 
 def Row.ValidGlobal (tab : Table) (row : Row) : Prop :=
-  (row.nodeType = (1 : ℕ)) ∧ sorry
+  row.nodeType = 1 ∧ sorry
 
 def Row.ValidLocal (tab : Table) (row : Row) : Prop :=
-  (row.nodeType = (2 : ℕ)) ∧ sorry
+  row.nodeType = 2 ∧ sorry
+
+def Interval.lower_half (interval : Interval) (param : Param) : Interval := {
+  min := interval.min
+  max := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.max p
+}
+
+def Interval.upper_half (interval : Interval) (param : Param) : Interval := {
+  min := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.min p
+  max := interval.max
+}
+
+structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
+  split : row.split = 1
+  bound1 : row.IDfirstChild < Array.size tab
+  bound2 : row.IDfirstChild + 1< Array.size tab
+  first_child_good : tab[row.IDfirstChild].interval = row.interval.lower_half param
+  second_child_good : tab[row.IDfirstChild + 1].interval = row.interval.upper_half param
+
+def Row.ValidBinarySplit (tab : Table) (row : Row) : Prop :=
+  row.nrChildren = 2 ∧
+    ((row.split = 1 ∧ row.ValidSplitParam tab .θ₁) ∨
+     (row.split = 2 ∧ row.ValidSplitParam tab .φ₁) ∨
+     (row.split = 3 ∧ row.ValidSplitParam tab .θ₂) ∨
+     (row.split = 4 ∧ row.ValidSplitParam tab .φ₂) ∨
+     (row.split = 5 ∧ row.ValidSplitParam tab .α))
+
+def Row.ValidFullSplit (tab : Table) (row : Row) : Prop :=
+  row.nrChildren = 32 ∧ row.split = 6 ∧
+    sorry
 
 def Row.ValidSplit (tab : Table) (row : Row) : Prop :=
-  (row.nodeType = (3 : ℕ)) ∧ sorry
+  (row.nodeType = (3 : ℕ)) ∧ row.ValidBinarySplit tab ∨ row.ValidFullSplit tab
 
 inductive Row.Valid (tab : Table) (row : Row) : Prop where
   | asSplit : row.ValidSplit tab → Row.Valid tab row
@@ -71,13 +100,13 @@ def N : ℕ := 15360000
 
 noncomputable
 def Row.toPoseInterval (row : Row) : PoseInterval where
-  min := { θ₁ := row.T1_min / N
-           θ₂ := row.T2_min / N
-           φ₁ := row.V1_min / N
-           φ₂ := row.V2_min / N
+  min := { θ₁ := row.interval.min .θ₁ / N
+           θ₂ := row.interval.min .θ₂ / N
+           φ₁ := row.interval.min .φ₁ / N
+           φ₂ := row.interval.min .φ₂ / N
            α := row.A_min / N}
-  max := { θ₁ := row.T1_max / N
-           θ₂ := row.T2_max / N
-           φ₁ := row.V1_max / N
-           φ₂ := row.V2_max / N
+  max := { θ₁ := row.interval.max .θ₁ / N
+           θ₂ := row.interval.max .θ₂ / N
+           φ₁ := row.interval.max .φ₁ / N
+           φ₂ := row.interval.max .φ₂ / N
            α := row.A_max / N}
