@@ -4,11 +4,18 @@ import Noperthedron.PoseInterval
 namespace Solution
 
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
-deriving BEq
+deriving BEq, Repr
 
 structure Interval where
   min : Param → ℕ
   max : Param → ℕ
+
+instance : Repr Interval where
+  reprPrec i _ :=
+    let params := [Param.θ₁, Param.φ₁, Param.θ₂, Param.φ₂, Param.α]
+    let entries := params.map fun p =>
+      s!"{repr p}: [{i.min p}, {i.max p}]"
+    "{" ++ String.intercalate ",\n" entries ++ "}"
 
 /--
 A `Solution.Row` aims to closely model of exactly the data in Steininger and Yurkevich's big CSV file.
@@ -49,12 +56,12 @@ def Row.ValidGlobal (tab : Table) (row : Row) : Prop :=
 def Row.ValidLocal (tab : Table) (row : Row) : Prop :=
   row.nodeType = 2 ∧ sorry
 
-def Interval.lower_half (interval : Interval) (param : Param) : Interval := {
+def Interval.lower_half (param : Param) (interval : Interval) : Interval := {
   min := interval.min
   max := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.max p
 }
 
-def Interval.upper_half (interval : Interval) (param : Param) : Interval := {
+def Interval.upper_half (param : Param) (interval : Interval) : Interval := {
   min := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.min p
   max := interval.max
 }
@@ -74,9 +81,75 @@ def Row.ValidBinarySplit (tab : Table) (row : Row) : Prop :=
      (row.split = 4 ∧ row.ValidSplitParam tab .φ₂) ∨
      (row.split = 5 ∧ row.ValidSplitParam tab .α))
 
+/--
+`cubeFold fs b as`, takes a list of functions `fs` and a starting value `b` and a list of
+coordinates `as` and returns a list of length `|fs|^|as|` consisting of all the ways
+of folding the initial value `b` through some sequence of functions in `fs`, using values from `as`.
+-/
+def cubeFold {α β : Type} (fs : List (α → β → β)) (b : β) : List α → List β
+| [] => [b]
+| (h :: tl) => fs.flatMap (fun f => cubeFold fs (f h b) tl)
+
+/-
+Equivalently I probably could have done
+
+def cubeFold {α β : Type} (fs : List (α → β → β)) (b : β) : List α → List β
+| [] => pure b
+| (h :: tl) => do  cubeFold fs ((← fs) h b) tl
+
+but I imagine it might be less annoying to do reasoning on the expanded-out nonmonadic version.
+-/
+section Test
+
+def example_interval : Interval := {
+  min := fun
+  | .θ₁ => 100
+  | .θ₂ => 200
+  | .φ₁ => 300
+  | .φ₂ => 400
+  | .α => 16
+  max := fun
+  | .θ₁ => 116
+  | .θ₂ => 216
+  | .φ₁ => 316
+  | .φ₂ => 416
+  | .α => 32
+}
+
+/--
+info: [{Solution.Param.θ₁: [100, 108],
+ Solution.Param.φ₁: [300, 316],
+ Solution.Param.θ₂: [200, 208],
+ Solution.Param.φ₂: [400, 416],
+ Solution.Param.α: [16, 32]},
+ {Solution.Param.θ₁: [100, 108],
+ Solution.Param.φ₁: [300, 316],
+ Solution.Param.θ₂: [208, 216],
+ Solution.Param.φ₂: [400, 416],
+ Solution.Param.α: [16, 32]},
+ {Solution.Param.θ₁: [108, 116],
+ Solution.Param.φ₁: [300, 316],
+ Solution.Param.θ₂: [200, 208],
+ Solution.Param.φ₂: [400, 416],
+ Solution.Param.α: [16, 32]},
+ {Solution.Param.θ₁: [108, 116],
+ Solution.Param.φ₁: [300, 316],
+ Solution.Param.θ₂: [208, 216],
+ Solution.Param.φ₂: [400, 416],
+ Solution.Param.α: [16, 32]}]
+-/
+#guard_msgs in
+#eval cubeFold (α := Param) (β := Interval) [Interval.lower_half, Interval.upper_half] example_interval [.θ₁, .θ₂]
+
+end Test
+
+def Table.HasIntervals (tab : Table) (start : ℕ) (intervals : List Interval) : Prop :=
+  ∀ i : Fin intervals.length,
+    ∃ (h : start + i.val < tab.size), tab[start + i.val].interval = intervals[i]
+
 def Row.ValidFullSplit (tab : Table) (row : Row) : Prop :=
   row.nrChildren = 32 ∧ row.split = 6 ∧
-    sorry
+  tab.HasIntervals row.IDfirstChild (cubeFold [Interval.lower_half, Interval.upper_half] row.interval [.θ₁, .φ₁, .θ₂, .φ₂, .α])
 
 def Row.ValidSplit (tab : Table) (row : Row) : Prop :=
   (row.nodeType = (3 : ℕ)) ∧ row.ValidBinarySplit tab ∨ row.ValidFullSplit tab
