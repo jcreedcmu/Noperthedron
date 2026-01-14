@@ -236,3 +236,6 @@ def Interval.toPoseInterval (iv : Interval) : PoseInterval where
 noncomputable
 def Row.toPoseInterval (row : Row) : PoseInterval :=
   row.interval.toPoseInterval
+
+instance : Coe Interval (Set Pose) where
+  coe iv := { q : Pose | q ∈ iv.toPoseInterval }
