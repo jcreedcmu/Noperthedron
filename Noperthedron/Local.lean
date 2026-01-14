@@ -103,6 +103,8 @@ theorem local_theorem (P Q : Triangle)
     (span₂ : Q.Spanning p.θ₂ p.φ₂ ε)
     (be : Q.Bε p ε δ r)
     : ¬∃ q ∈ p.closed_ball ε, RupertPose q (shape_of poly |>.hull) := by
-  intro H
+  rintro ⟨⟨θ₁, θ₂, φ₁, φ₂, α⟩, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL₁, hL₂⟩ := cong_tri
+  let Y := vecX θ₁ φ₁
+  --let Z := K • vecX θ₂ φ₂
   sorry
