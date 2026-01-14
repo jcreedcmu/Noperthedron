@@ -105,6 +105,11 @@ theorem local_theorem (P Q : Triangle)
     : ¬∃ q ∈ p.closed_ball ε, RupertPose q (shape_of poly |>.hull) := by
   rintro ⟨⟨θ₁, θ₂, φ₁, φ₂, α⟩, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL₁, hL₂⟩ := cong_tri
+  obtain ⟨σP, hσP⟩ := ae₁
+  obtain ⟨σQ, hσQ⟩ := ae₂
   let Y := vecX θ₁ φ₁
-  --let Z := K • vecX θ₂ φ₂
+  let K := (-1 : ℝ)^(σP + σQ) • L
+  let Z := K *ᵥ (vecX θ₂ φ₂)
+  have hY : ‖Y‖ = 1 := by simp [Y, vecX_norm_one]
+  --have hZ : ‖Z‖ = 1 := by simp [Z, vecX_norm_one]; sorry
   sorry
