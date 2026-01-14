@@ -4,7 +4,7 @@
 \lean{exists_solution_table}
 \leanok
 \label{thm:exists_solution_table}
-There exists a valid solution table with some row that covers
+There exists a valid solution table whose zeroth row covers
 \begin{align*}
 \theta_1,\theta_2&\in[0,2\pi/15] \subset [0,0.42], \\
 \varphi_1&\in [0,\pi] \subset [0,3.15],\\
@@ -17,20 +17,61 @@ There exists a valid solution table with some row that covers
 By exhibiting the table and running the validity checking algorithm.
 \end{proof}
 
+\begin{theorem}
+\label{thm:solution_global}
+If a global node in the solution tree is valid, then there is no Rupert solution for its interval.
+\leanok
+\lean{Solution.valid_global_imp_no_rupert}
+\end{theorem}
+
+\begin{proof}
+\uses{thm:global_rational}
+\end{proof}
 
 \begin{theorem}
+\label{thm:solution_local}
+If a local node in the solution tree is valid, then there is no Rupert solution for its interval.
+\leanok
+\lean{Solution.valid_local_imp_no_rupert}
+\end{theorem}
+
+\begin{proof}
+\uses{thm:local_rational,lem:radius_noperthedron_one}
+\end{proof}
+
+
+\begin{theorem}
+\leanok
+\lean{Solution.Row.valid_imp_not_rupert_ix,
+Solution.valid_split_imp_no_rupert,
+Solution.valid_binary_split_imp_no_rupert,
+Solution.valid_full_split_imp_no_rupert,
+Solution.valid_param_split_imp_no_rupert
+}
+\label{thm:row_valid_imp_not_rupert_ix}
+\uses{def:noperthedron}
+If we have a valid solution table, and in particular its $i$th row is valid,
+then there is no Rupert solution of the interval of its $i$th row.
+\end{theorem}
+
+\begin{proof}
+\uses{thm:solution_global, thm:solution_local}
+By a mutual induction on the number of rows left in the table following the $i$th. This
+is because validity constrains each row to only refer to later entries.
+Appeal inductively to this same theorem if the row splits into other nodes in
+the tree, or appeal to Theorem~\ref{thm:solution_global} or Theorem~\ref{thm:solution_local}) at the leaves.
+\end{proof}
+
+\begin{corollary}
 \leanok
 \lean{Solution.Row.valid_imp_not_rupert}
 \label{thm:row_valid_imp_not_rupert}
 \uses{def:noperthedron}
-For any valid row in a valid solution table, there can be no Rupert solution
-in the pose interval of that row.
-\end{theorem}
+If we have a valid solution table, then there is no Rupert solution of the interval of its zeroth row.
+\end{corollary}
 
 \begin{proof}
-\uses{thm:global_rational, thm:local_rational, lem:radius_noperthedron_one}
-Either appeal recursively to this same theorem if the row splits into other nodes in
-the tree, or appeal to the rational global theorem
-(Theorem~\ref{thm:global_rational}) or the rational local theorem
-(Theorem~\ref{thm:local_rational}) at the leaves.
+\leanok
+\uses{thm:row_valid_imp_not_rupert_ix}
+Immediate special case of \cref{thm:row_valid_imp_not_rupert_ix}.
 \end{proof}
