@@ -240,9 +240,23 @@ def Row.toPoseInterval (row : Row) : PoseInterval :=
 instance : Coe Interval (Set Pose) where
   coe iv := { q : Pose | q ∈ iv.toPoseInterval }
 
-lemma cube_fold_nonempty {α β : Type} (fs : List (α → β → β)) (b : β) (as : List α) :
-   1 ≤ (cubeFold fs b as).length := by
-  sorry
+lemma cube_fold_nonempty_aux {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :
+   0 < (cubeFold fs b as).length := by
+  match as with
+  | [] => simp [cubeFold]
+  | h :: tl =>
+    simp only [cubeFold, List.length_flatMap]
+    have (f : α → β → β) : 0 < (cubeFold fs (f h b) tl).length := by
+      exact cube_fold_nonempty_aux hfs (f h b) tl
+    refine List.sum_pos _ ?_ (by simpa using hfs)
+    intro x hx
+    simp only [List.mem_map] at hx
+    obtain ⟨f, hf1, hf2⟩ := hx
+    rw [← hf2]
+    exact this f
+
+lemma cube_fold_nonempty {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :
+   1 ≤ (cubeFold fs b as).length := cube_fold_nonempty_aux hfs b as
 
 lemma cube_fold_halves (h : Param) (tl : List Param) (iv : Interval)
     (lower : Param → Interval → Interval)
@@ -260,4 +274,38 @@ lemma has_intervals_start_in_table (tab : Table) (n : ℕ) (ivs : List Interval)
 lemma has_intervals_concat (tab : Table) (start : ℕ) (ivs1 ivs2 : List Interval) :
     tab.HasIntervals start (ivs1 ++ ivs2) ↔
     tab.HasIntervals start ivs1 ∧ tab.HasIntervals (start + ivs1.length) ivs2 := by
-  sorry
+  constructor
+  · intro hi
+    constructor
+    · unfold Table.HasIntervals at hi ⊢
+      intro i; simpa using hi (Fin.castLE (by simp) i)
+    · unfold Table.HasIntervals at hi ⊢
+      intro i
+      specialize hi ⟨ivs1.length + i, by simp⟩
+      simp at hi
+      obtain ⟨h, p⟩ := hi
+      replace h : start + ivs1.length + (↑i : ℕ) < Array.size tab :=
+        by ring_nf at h ⊢; exact h
+      use h; ring_nf at p ⊢; exact p
+  · rintro ⟨h1, h2⟩
+    unfold Table.HasIntervals at h1 h2 ⊢
+    intro i
+    if h : i < ivs1.length then
+      specialize h1 ⟨i, h⟩
+      simp only [Fin.getElem_fin] at h1 ⊢
+      obtain ⟨h1a, h1b⟩ := h1
+      use h1a
+      rw [h1b]
+      exact List.getElem_append_left' h ivs2
+    else
+      replace h := Nat.le_of_not_lt h
+      have : (i : ℕ) - ivs1.length < ivs2.length := by grind
+      specialize h2 ⟨(i : ℕ) - ivs1.length, this⟩
+      simp only [Fin.getElem_fin] at h2 ⊢
+      obtain ⟨h2a, h2b⟩ := h2
+      have : ivs1.length + (↑i - ivs1.length) = i := Nat.add_sub_of_le h
+      conv at h2a => lhs; rw [add_assoc, this]
+      conv at h2b => lhs; arg 1; arg 2; rw [add_assoc, this]
+      use h2a
+      rw [h2b]
+      rw [List.getElem_append_right h]

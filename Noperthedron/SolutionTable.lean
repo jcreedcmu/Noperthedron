@@ -90,9 +90,12 @@ termination_by (tab.size - n, 4, params.length)
 decreasing_by
   · right; left; norm_num
   · right; right; simp only [List.length_cons, lt_add_iff_pos_right, zero_lt_one]
-  · left; gcongr;
-    · refine has_intervals_start_in_table tab n _ ?_ h1; apply cube_fold_nonempty
-    · grw [← cube_fold_nonempty]; exact lt_add_one n
+  · left;
+    gcongr;
+    · refine has_intervals_start_in_table tab n _ ?_ h1
+      apply cube_fold_nonempty (hfs := by simp)
+    · grw [← cube_fold_nonempty (hfs := by simp)];
+      exact lt_add_one n
 
 theorem Row.valid_imp_not_rupert_ix
    (tab : Solution.Table) (i : ℕ) (tab_valid : tab.Valid)
