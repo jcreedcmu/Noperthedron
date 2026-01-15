@@ -174,7 +174,7 @@ def Table.HasIntervals (tab : Table) (start : ℕ) (intervals : List Interval) :
 deriving Decidable
 
 def Row.ValidFullSplit (tab : Table) (row : Row) : Prop :=
-  row.nrChildren = 32 ∧ row.split = 6 ∧
+  row.nrChildren = 32 ∧ row.split = 6 ∧ row.IDfirstChild > row.ID ∧
   tab.HasIntervals row.IDfirstChild (cubeFold [Interval.lower_half, Interval.upper_half] row.interval [.θ₁, .φ₁, .θ₂, .φ₂, .α])
 deriving Decidable
 
@@ -201,7 +201,7 @@ instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) := by
       | Row.Valid.asLocal h => Or.inr (Or.inr h)
 
 def Row.ValidIx (tab : Table) (i : ℕ) (row : Row) : Prop :=
-  row.ID = i ∧ row.Valid tab
+  row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size
 deriving Decidable
 
 def Table.Valid (tab : Table) : Prop :=

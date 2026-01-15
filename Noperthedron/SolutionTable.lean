@@ -50,26 +50,47 @@ lemma interval_sub_union_halves (iv : Interval) (p : Param) :
   simp only [Set.mem_setOf_eq, Set.mem_union]
   exact mem_interval_imp_mem_union_halves q iv p
 
+/-
+This is a decently big mutual induction over several predicates establishing the validity of our interval checking.
+-/
 mutual
+
+theorem has_intervals_imp_no_rupert (tab : Table) (htab : tab.Valid) (n : ℕ)
+    (interval : Interval) (params : List Param)
+    (hi : tab.HasIntervals n
+      (cubeFold [Interval.lower_half, Interval.upper_half] interval params)) :
+    ¬ ∃ q ∈ interval.toPoseInterval, RupertPose q nopert.hull := by
+  match params with
+  | [] =>
+    simp only [cubeFold, Table.HasIntervals] at hi
+    specialize hi ⟨0, by simp⟩
+    simp only [add_zero, List.length_cons, List.length_nil, Nat.reduceAdd, Fin.zero_eta,
+      Fin.isValue, Fin.getElem_fin, Fin.val_eq_zero, List.getElem_cons_zero] at hi
+    obtain ⟨hn, he⟩ := hi
+    change ¬∃ q ∈ interval.toPoseInterval, RupertPose q nopert.hull
+    rw [← he]
+    exact tab[n].valid_imp_not_rupert_ix tab n htab (Table.Valid.valid_at htab hn)
+  | h::tl => sorry
+termination_by (tab.size - n, 4)
 
 theorem Row.valid_imp_not_rupert_ix
    (tab : Solution.Table) (i : ℕ) (tab_valid : tab.Valid)
    (row : Solution.Row) (row_valid : row.ValidIx tab i) :
     ¬ ∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull :=
-  let ⟨rv1, rv2⟩ := row_valid
+  let ⟨rv1, rv2, rv3⟩ := row_valid
   match rv2 with
-  | .asSplit y => valid_split_imp_no_rupert tab row tab_valid y
+  | .asSplit y => valid_split_imp_no_rupert tab row tab_valid y rv3
   | .asGlobal y => valid_global_imp_no_rupert tab row y
   | .asLocal y=> valid_local_imp_no_rupert tab row y
 termination_by (tab.size - i, 3)
 decreasing_by rw [rv1]; grind
 
 theorem valid_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
-    (hr : row.ValidSplit tab) : ¬ ∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull := by
+    (hr : row.ValidSplit tab) (hlt : row.ID < tab.size) : ¬ ∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull := by
   obtain ⟨_, hr⟩ := hr
-  rcases hr with hr' | ⟨_, _, hr'⟩
+  rcases hr with hr' | ⟨_, _, hgt, hr'⟩
   · exact valid_binary_split_imp_no_rupert tab row htab hr'
-  · exact valid_full_split_imp_no_rupert tab row htab hr'
+  · exact valid_full_split_imp_no_rupert tab row htab hgt hlt hr'
 termination_by (tab.size - row.ID, 2)
 
 theorem valid_binary_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
@@ -80,12 +101,15 @@ theorem valid_binary_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.V
 termination_by (tab.size - row.ID, 1)
 
 theorem valid_full_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
-    (hr' : tab.HasIntervals row.IDfirstChild
+    (hgt : row.ID < row.IDfirstChild)
+    (hlt : row.ID < tab.size)
+    (hi : tab.HasIntervals row.IDfirstChild
       (cubeFold [Interval.lower_half, Interval.upper_half]
        row.interval [Param.θ₁, Param.φ₁, Param.θ₂, Param.φ₂, Param.α])) :
     ¬ ∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull := by
-  sorry
+  exact has_intervals_imp_no_rupert tab htab row.IDfirstChild row.interval _ hi
 termination_by (tab.size - row.ID, 1)
+decreasing_by left; exact Nat.sub_lt_sub_left hlt hgt
 
 theorem valid_param_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
     (p : Param) (h : Row.ValidSplitParam tab row p) :
