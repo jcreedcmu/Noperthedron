@@ -239,3 +239,25 @@ def Row.toPoseInterval (row : Row) : PoseInterval :=
 
 instance : Coe Interval (Set Pose) where
   coe iv := { q : Pose | q ∈ iv.toPoseInterval }
+
+lemma cube_fold_nonempty {α β : Type} (fs : List (α → β → β)) (b : β) (as : List α) :
+   1 ≤ (cubeFold fs b as).length := by
+  sorry
+
+lemma cube_fold_halves (h : Param) (tl : List Param) (iv : Interval)
+    (lower : Param → Interval → Interval)
+    (upper : Param → Interval → Interval) :
+    cubeFold [lower, upper] iv (h :: tl) =
+      cubeFold [lower, upper] (lower h iv) tl ++
+      cubeFold [lower, upper] (upper h iv) tl := by
+  simp [cubeFold]
+
+lemma has_intervals_start_in_table (tab : Table) (n : ℕ) (ivs : List Interval) (hivs : 1 ≤ ivs.length)
+    (hi : tab.HasIntervals n ivs) : n < tab.size := by
+  unfold Table.HasIntervals at hi
+  simpa using (hi ⟨0, Nat.zero_lt_of_lt hivs⟩).1
+
+lemma has_intervals_concat (tab : Table) (start : ℕ) (ivs1 ivs2 : List Interval) :
+    tab.HasIntervals start (ivs1 ++ ivs2) ↔
+    tab.HasIntervals start ivs1 ∧ tab.HasIntervals (start + ivs1.length) ivs2 := by
+  sorry
