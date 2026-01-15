@@ -54,16 +54,11 @@ lemma non_rupert_halves_imp_non_rupert {p : Param} {iv : Interval}
     (q1 : ¬∃ q ∈ (Interval.lower_half p iv).toPoseInterval, RupertPose q nopert.hull)
     (q2 : ¬∃ q ∈ (Interval.upper_half p iv).toPoseInterval, RupertPose q nopert.hull) :
     ¬∃ q ∈ iv.toPoseInterval, RupertPose q nopert.hull := by
-  sorry
-  -- rintro ⟨q, hq1, hq2⟩
-  -- change q ∈ row.interval.toPoseInterval at hq1
-  -- replace hq1 := mem_interval_imp_mem_union_halves q row.interval p hq1
-  -- rcases hq1 with h | h
-  -- · refine m1 ⟨q, ?_, hq2⟩
-  --   change q ∈ tab[row.IDfirstChild].interval.toPoseInterval; rw [iv1]; exact h
-  -- · refine m2 ⟨q, ?_, hq2⟩
-  --   change q ∈ tab[row.IDfirstChild+1].interval.toPoseInterval; rw [iv2]; exact h
-
+  rintro ⟨q, hq1, hq2⟩
+  replace hq1 := mem_interval_imp_mem_union_halves q iv p hq1
+  rcases hq1 with h | h
+  · exact q1 ⟨q, h, hq2⟩
+  · exact q2 ⟨q, h, hq2⟩
 
 /-
 This is a decently big mutual induction over several predicates establishing the validity of our interval checking.
