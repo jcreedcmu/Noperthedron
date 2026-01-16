@@ -175,8 +175,10 @@ theorem local_theorem (P Q : Triangle)
       have h₆ : vecX p.θ₂ p.φ₂ ∈ Spanp Q_ := by
         refine vecX_spanning Q_ hθ₂ hφ₂ ?_ hQ_ h₅
         exact spanning_neg σQ span₂
-      unfold Z
-      sorry
+      simp only [Spanp, Set.mem_setOf_eq, Z] at h₆ ⊢
+      obtain ⟨c, hc₁, hc₂⟩ := h₆
+      use c, hc₁
+      simp [hc₂, map_sum, map_smul, ←hPQ_]
   have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
     sorry
   have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
