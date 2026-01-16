@@ -52,7 +52,7 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
 Condition A_ε from [SY25] Theorem 36
 -/
 def Triangle.Aε (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > ε * √2
+  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > √2 * ε
 
 noncomputable
 def Triangle.Bε.lhs (i j : Fin 3) (Q : Triangle) (p : Pose) (ε : ℝ) : ℝ :=
@@ -118,8 +118,8 @@ theorem local_theorem (P Q : Triangle)
   obtain ⟨L, hL₁, hL₂⟩ := cong_tri
   let Ll := L.toEuclideanLin.toContinuousLinearMap
   have hL₂' (i) : P i = Ll (Q i) := hL₂ i
-  obtain ⟨σP, hσP⟩ := ae₁
-  obtain ⟨σQ, hσQ⟩ := ae₂
+  obtain ⟨σP, hσP₁, hσP₂⟩ := ae₁
+  obtain ⟨σQ, hσQ₁, hσQ₂⟩ := ae₂
   let Y := vecX θ₁ φ₁
   let K := (-1 : ℝ)^(σP + σQ) • Ll
   let Z := K (vecX θ₂ φ₂)
@@ -138,7 +138,16 @@ theorem local_theorem (P Q : Triangle)
     norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
     constructor
-    · sorry
+    · have h₄ (i) : 0 < ⟪vecX θ₁ φ₁, P_ i⟫ := by
+        specialize hσP₂ i
+        rw [←real_inner_smul_right] at hσP₂
+        apply Bounding.XPgt0 _ hε _ _ hσP₂
+        · rw [norm_smul, Real.norm_eq_abs]
+          grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
+          simp [radius_one, mul_one]
+        · sorry
+        · sorry
+      sorry
     · sorry
   have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
     sorry
