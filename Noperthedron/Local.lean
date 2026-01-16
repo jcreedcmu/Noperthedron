@@ -137,38 +137,45 @@ theorem local_theorem (P Q : Triangle)
     rw [zpow_add₀ (show (-1:ℝ) ≠ 0 by norm_num), mul_comm σQ, zpow_mul]
     norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
-    have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := by
-      have := closed_ball_imp_inner_params_near hΨ₁ 1
-      simp [Pose.innerParams] at this
-      rwa [abs_sub_comm]
-    have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := by
-      have := closed_ball_imp_inner_params_near hΨ₁ 2
-      simp [Pose.innerParams] at this
-      rwa [abs_sub_comm]
-    have hP_ (i) : ‖P_ i‖ ≤ 1 := by
-      rw [norm_smul, Real.norm_eq_abs]
-      grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
-      simp [radius_one, mul_one]
     constructor
-    · have h₄ (i) : 0 < ⟪vecX p.θ₁ p.φ₁, P_ i⟫ := by
+    · have hP_ (i) : ‖P_ i‖ ≤ 1 := by
+        rw [norm_smul, Real.norm_eq_abs]
+        grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
+        simp [radius_one, mul_one]
+      have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := by
+        have := closed_ball_imp_inner_params_near hΨ₁ 1
+        simp [Pose.innerParams] at this
+        rwa [abs_sub_comm]
+      have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := by
+        have := closed_ball_imp_inner_params_near hΨ₁ 2
+        simp [Pose.innerParams] at this
+        rwa [abs_sub_comm]
+      have h₄ (i) : 0 < ⟪vecX p.θ₁ p.φ₁, P_ i⟫ := by
         specialize hσP₂ i
         rw [←real_inner_smul_right] at hσP₂
         exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ hσP₂
       refine vecX_spanning P_ hθ₁ hφ₁ ?_ hP_ h₄
       exact spanning_neg σP span₁
-    · have h₅ (i) : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
+    · have hQ_ (i) : ‖Q_ i‖ ≤ 1 := by
+        rw [norm_smul, Real.norm_eq_abs]
+        grw [polyhedron_vertex_norm_le_radius poly ne (hQ i)]
+        simp [radius_one, mul_one]
+      have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := by
+        have := closed_ball_imp_outer_params_near hΨ₁ 0
+        simp [Pose.outerParams] at this
+        rwa [abs_sub_comm]
+      have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := by
+        have := closed_ball_imp_outer_params_near hΨ₁ 1
+        simp [Pose.outerParams] at this
+        rwa [abs_sub_comm]
+      have h₅ (i) : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
         specialize hσQ₂ i
         rw [←real_inner_smul_right] at hσQ₂
-        apply Bounding.XPgt0 _ hε _ _ hσQ₂
-        · rw [norm_smul, Real.norm_eq_abs]
-          grw [polyhedron_vertex_norm_le_radius poly ne (hQ i)]
-          simp [radius_one, mul_one]
-        · have := closed_ball_imp_outer_params_near hΨ₁ 0
-          simp [Pose.outerParams] at this
-          rwa [abs_sub_comm]
-        · have := closed_ball_imp_outer_params_near hΨ₁ 1
-          simp [Pose.outerParams] at this
-          rwa [abs_sub_comm]
+        exact Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂ hσQ₂
+      have h₆ : vecX p.θ₂ p.φ₂ ∈ Spanp Q_ := by
+        refine vecX_spanning Q_ hθ₂ hφ₂ ?_ hQ_ h₅
+        exact spanning_neg σQ span₂
+      unfold Z
       sorry
   have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
     sorry
