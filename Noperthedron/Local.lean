@@ -125,4 +125,24 @@ theorem local_theorem (P Q : Triangle)
   have hY : ‖Y‖ = 1 := by simp [Y, vecX_norm_one]
   have hZ : ‖Z‖ = 1 := by
     simp [Z, K, Ll, norm_smul, orthogonal_preserves_norm hL₁, vecX_norm_one]
-  sorry
+  let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
+  let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
+  have hPQ_ (i) : P_ i = K (Q_ i) := by
+    simp [P_, Q_, K, Ll]
+    sorry
+  have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
+    constructor
+    · sorry
+    · sorry
+  have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
+    sorry
+  have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
+  have h₃ := langles hYZ h₁.1 h₁.2
+  simp only [real_inner_comm Y, real_inner_comm Z] at h₃
+  obtain h₃ | h₃ | h₃ := h₃
+  · specialize h₂ 0
+    exact lt_iff_not_ge.mp h₂ h₃
+  · specialize h₂ 1
+    exact lt_iff_not_ge.mp h₂ h₃
+  · specialize h₂ 2
+    exact lt_iff_not_ge.mp h₂ h₃
