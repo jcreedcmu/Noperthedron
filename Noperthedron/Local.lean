@@ -158,8 +158,12 @@ theorem local_theorem (P Q : Triangle)
         · rw [norm_smul, Real.norm_eq_abs]
           grw [polyhedron_vertex_norm_le_radius poly ne (hQ i)]
           simp [radius_one, mul_one]
-        · sorry
-        · sorry
+        · have := closed_ball_imp_outer_params_near hΨ₁ 0
+          simp [Pose.outerParams] at this
+          rwa [abs_sub_comm]
+        · have := closed_ball_imp_outer_params_near hΨ₁ 1
+          simp [Pose.outerParams] at this
+          rwa [abs_sub_comm]
       sorry
     · sorry
   have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
