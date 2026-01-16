@@ -145,6 +145,19 @@ theorem local_theorem (P Q : Triangle)
         · rw [norm_smul, Real.norm_eq_abs]
           grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
           simp [radius_one, mul_one]
+        · have := closed_ball_imp_inner_params_near hΨ₁ 1
+          simp [Pose.innerParams] at this
+          rwa [abs_sub_comm]
+        · have := closed_ball_imp_inner_params_near hΨ₁ 2
+          simp [Pose.innerParams] at this
+          rwa [abs_sub_comm]
+      have h₅ (i) : 0 < ⟪vecX θ₂ φ₂, Q_ i⟫ := by
+        specialize hσQ₂ i
+        rw [←real_inner_smul_right] at hσQ₂
+        apply Bounding.XPgt0 _ hε _ _ hσQ₂
+        · rw [norm_smul, Real.norm_eq_abs]
+          grw [polyhedron_vertex_norm_le_radius poly ne (hQ i)]
+          simp [radius_one, mul_one]
         · sorry
         · sorry
       sorry
