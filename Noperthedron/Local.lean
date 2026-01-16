@@ -52,7 +52,7 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
 Condition A_ε from [SY25] Theorem 36
 -/
 def Triangle.Aε (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℝ), ∀ i : Fin 3, ⟪X, P i⟫ > ε * √2
+  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > ε * √2
 
 noncomputable
 def Triangle.Bε.lhs (i j : Fin 3) (Q : Triangle) (p : Pose) (ε : ℝ) : ℝ :=
@@ -82,6 +82,17 @@ noncomputable
 def shape_of (S : Finset ℝ³) : Shape where
   vertices := S
 
+lemma orthogonal_preserves_norm {L : Matrix (Fin 3) (Fin 3) ℝ} (hL₁ : L ∈ Matrix.orthogonalGroup (Fin 3) ℝ)
+    (x : Euc(3)) : ‖L.toEuclideanLin x‖ = ‖x‖ := by
+  have hL_orthogonal : L.transpose * L = 1 := hL₁.1
+  have h_norm_preserved : ∀ x : Euc(3), ∑ i, (L.mulVec x) i ^ 2 = ∑ i, x i ^ 2 := by
+    intro x
+    have h_norm_preserved : (L.mulVec x) ⬝ᵥ (L.mulVec x) = x ⬝ᵥ x := by
+      simp [ Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec, hL_orthogonal ]
+    simpa only [sq, dotProduct] using h_norm_preserved
+  simp [ EuclideanSpace.norm_eq ]
+  exact congrArg Real.sqrt ( h_norm_preserved x )
+
 -- TODO: Somehow separate out the "local theorem precondition"
 -- predicate in a way that is suitable for the computational step's
 -- tree check.
@@ -105,11 +116,13 @@ theorem local_theorem (P Q : Triangle)
     : ¬∃ q ∈ p.closed_ball ε, RupertPose q (shape_of poly |>.hull) := by
   rintro ⟨⟨θ₁, θ₂, φ₁, φ₂, α⟩, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL₁, hL₂⟩ := cong_tri
+  let Ll := L.toEuclideanLin.toContinuousLinearMap
   obtain ⟨σP, hσP⟩ := ae₁
   obtain ⟨σQ, hσQ⟩ := ae₂
   let Y := vecX θ₁ φ₁
-  let K := (-1 : ℝ)^(σP + σQ) • L
-  let Z := K *ᵥ (vecX θ₂ φ₂)
+  let K := (-1 : ℝ)^(σP + σQ) • Ll
+  let Z := K (vecX θ₂ φ₂)
   have hY : ‖Y‖ = 1 := by simp [Y, vecX_norm_one]
-  --have hZ : ‖Z‖ = 1 := by simp [Z, vecX_norm_one]; sorry
+  have hZ : ‖Z‖ = 1 := by
+    simp [Z, K, Ll, norm_smul, orthogonal_preserves_norm hL₁, vecX_norm_one]
   sorry
