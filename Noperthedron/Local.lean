@@ -105,24 +105,24 @@ theorem local_theorem (P Q : Triangle)
     (poly : Finset ℝ³) (ne : poly.Nonempty)
     (hP : P ∈ poly) (hQ : Q ∈ poly)
     (radius_one : polyhedronRadius poly ne = 1)
-    (p : Pose)
+    (p_ : Pose)
     (ε δ r : ℝ) (hε : ε > 0) (hr : r > 0)
-    (hr₁ : BoundR r ε p Q)
-    (hδ : BoundDelta δ p P Q)
-    (ae₁ : P.Aε p.vecX₁ ε) (ae₂ : Q.Aε p.vecX₂ ε)
-    (span₁ : P.Spanning p.θ₁ p.φ₁ ε)
-    (span₂ : Q.Spanning p.θ₂ p.φ₂ ε)
-    (be : Q.Bε p ε δ r)
-    : ¬∃ q ∈ p.closed_ball ε, RupertPose q (shape_of poly |>.hull) := by
-  rintro ⟨⟨θ₁, θ₂, φ₁, φ₂, α⟩, hΨ₁, hΨ₂⟩
+    (hr₁ : BoundR r ε p_ Q)
+    (hδ : BoundDelta δ p_ P Q)
+    (ae₁ : P.Aε p_.vecX₁ ε) (ae₂ : Q.Aε p_.vecX₂ ε)
+    (span₁ : P.Spanning p_.θ₁ p_.φ₁ ε)
+    (span₂ : Q.Spanning p_.θ₂ p_.φ₂ ε)
+    (be : Q.Bε p_ ε δ r)
+    : ¬∃ p ∈ p_.closed_ball ε, RupertPose p (shape_of poly |>.hull) := by
+  rintro ⟨p, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL₁, hL₂⟩ := cong_tri
   let Ll := L.toEuclideanLin.toContinuousLinearMap
   have hL₂' (i) : P i = Ll (Q i) := hL₂ i
   obtain ⟨σP, hσP₁, hσP₂⟩ := ae₁
   obtain ⟨σQ, hσQ₁, hσQ₂⟩ := ae₂
-  let Y := vecX θ₁ φ₁
+  let Y := vecX p.θ₁ p.φ₁
   let K := (-1 : ℝ)^(σP + σQ) • Ll
-  let Z := K (vecX θ₂ φ₂)
+  let Z := K (vecX p.θ₂ p.φ₂)
   have hY : ‖Y‖ = 1 := by simp [Y, vecX_norm_one]
   have hZ : ‖Z‖ = 1 := by
     simp [Z, K, Ll, norm_smul, orthogonal_preserves_norm hL₁, vecX_norm_one]
@@ -137,21 +137,26 @@ theorem local_theorem (P Q : Triangle)
     rw [zpow_add₀ (show (-1:ℝ) ≠ 0 by norm_num), mul_comm σQ, zpow_mul]
     norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
+    have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := by
+      have := closed_ball_imp_inner_params_near hΨ₁ 1
+      simp [Pose.innerParams] at this
+      rwa [abs_sub_comm]
+    have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := by
+      have := closed_ball_imp_inner_params_near hΨ₁ 2
+      simp [Pose.innerParams] at this
+      rwa [abs_sub_comm]
+    have hP_ (i) : ‖P_ i‖ ≤ 1 := by
+      rw [norm_smul, Real.norm_eq_abs]
+      grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
+      simp [radius_one, mul_one]
     constructor
-    · have h₄ (i) : 0 < ⟪vecX θ₁ φ₁, P_ i⟫ := by
+    · have h₄ (i) : 0 < ⟪vecX p.θ₁ p.φ₁, P_ i⟫ := by
         specialize hσP₂ i
         rw [←real_inner_smul_right] at hσP₂
-        apply Bounding.XPgt0 _ hε _ _ hσP₂
-        · rw [norm_smul, Real.norm_eq_abs]
-          grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
-          simp [radius_one, mul_one]
-        · have := closed_ball_imp_inner_params_near hΨ₁ 1
-          simp [Pose.innerParams] at this
-          rwa [abs_sub_comm]
-        · have := closed_ball_imp_inner_params_near hΨ₁ 2
-          simp [Pose.innerParams] at this
-          rwa [abs_sub_comm]
-      have h₅ (i) : 0 < ⟪vecX θ₂ φ₂, Q_ i⟫ := by
+        exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ hσP₂
+      refine vecX_spanning P_ hθ₁ hφ₁ ?_ hP_ h₄
+      exact spanning_neg σP span₁
+    · have h₅ (i) : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
         specialize hσQ₂ i
         rw [←real_inner_smul_right] at hσQ₂
         apply Bounding.XPgt0 _ hε _ _ hσQ₂
@@ -165,7 +170,6 @@ theorem local_theorem (P Q : Triangle)
           simp [Pose.outerParams] at this
           rwa [abs_sub_comm]
       sorry
-    · sorry
   have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
     sorry
   have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
