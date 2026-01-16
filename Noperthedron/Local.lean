@@ -117,6 +117,7 @@ theorem local_theorem (P Q : Triangle)
   rintro ⟨⟨θ₁, θ₂, φ₁, φ₂, α⟩, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL₁, hL₂⟩ := cong_tri
   let Ll := L.toEuclideanLin.toContinuousLinearMap
+  have hL₂' (i) : P i = Ll (Q i) := hL₂ i
   obtain ⟨σP, hσP⟩ := ae₁
   obtain ⟨σQ, hσQ⟩ := ae₂
   let Y := vecX θ₁ φ₁
@@ -128,8 +129,13 @@ theorem local_theorem (P Q : Triangle)
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
   have hPQ_ (i) : P_ i = K (Q_ i) := by
-    simp [P_, Q_, K, Ll]
-    sorry
+    simp [P_, Q_, K]
+    rw [←hL₂', smul_smul]
+    congr 1
+    rw [←zpow_add₀ (show (-1:ℝ) ≠ 0 by norm_num)]
+    ring_nf
+    rw [zpow_add₀ (show (-1:ℝ) ≠ 0 by norm_num), mul_comm σQ, zpow_mul]
+    norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
     constructor
     · sorry

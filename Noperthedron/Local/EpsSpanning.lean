@@ -21,7 +21,7 @@ would allow `L` to be any isometry, but here we restrict to rotations
 and reflections.
 -/
 def Triangle.Congruent (P Q : Triangle) : Prop :=
-  ∃ L ∈ Matrix.orthogonalGroup (Fin 3) ℝ, ∀ i, P i = L *ᵥ (Q i)
+  ∃ L ∈ Matrix.orthogonalGroup (Fin 3) ℝ, ∀ i, P i = L.toEuclideanLin (Q i)
 
 /-- [SY25] Definition 27. Note that the "+ 1" at the type Fin 3 wraps. -/
 structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where
