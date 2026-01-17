@@ -90,9 +90,38 @@ lemma pointsymmetrize'_union_finset (ι : Type*) (j : Finset ι) (S : ι → Set
 lemma pointsymmetrize_finset (S : Finset ℝ³) : pointsymmetrize S = pointsymmetrize' S := by
   simp [pointsymmetrize, pointsymmetrize']
 
+lemma Finset.image_eq_biUnion {α β : Type} [DecidableEq β] (f : α → β) (s : Finset α) :
+    s.image f = s.biUnion (fun i => {f i}) := by
+  ext b
+  simp only [Finset.mem_image, Finset.mem_biUnion, Finset.mem_singleton]
+  tauto
+
+lemma nopert_pt_eq_c15 (i : Fin 3) :
+    ⋃ k ∈ Finset.range 15, {nopertPt k 0 i} = C15 (Cpt i) := by
+  simp only [C15]
+  rw [Finset.image_eq_biUnion]
+  simp only [Finset.coe_biUnion,   Finset.coe_singleton]
+  change ⋃ k ∈ Finset.range 15, {nopertPt k 0 i} = ⋃ x ∈ (Finset.range 15), {(RzL (2 * π * ↑x / 15)) (Cpt i)}
+  apply Set.iUnion_congr
+  intro n
+  ext v
+  simp only [Finset.mem_range, Set.mem_iUnion, Set.mem_singleton_iff, exists_prop,
+    and_congr_right_iff]
+  intro hn
+  suffices h : nopertPt n 0 i = (RzL (2 * π * ↑n / 15)) (Cpt i) by
+    rw [h]
+  simp [nopertPt]
+
 lemma monadic_half_eq_half_nopert_verts :
     ↑halfNopertVerts = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, {nopertPt k 0 i} := by
-  sorry
+  simp only [ Set.mem_insert_iff, Set.mem_singleton_iff,
+    Set.iUnion_iUnion_eq_or_left, Set.iUnion_iUnion_eq_left]
+  change (↑halfNopertVerts : Set ℝ³) =
+    (⋃ k ∈ Finset.range 15, {nopertPt k 0 0}) ∪
+    ((⋃ k ∈ Finset.range 15, {nopertPt k 0 1}) ∪
+     (⋃ k ∈ Finset.range 15, {nopertPt k 0 2}))
+  repeat rw [nopert_pt_eq_c15]
+  simp [halfNopertVerts, Cpt]
 
 lemma monadic_nopert_verts_eq_nopert_verts :
     nopertVerts = monadicNopertVerts := by
@@ -115,3 +144,13 @@ lemma monadic_nopert_verts_eq_nopert_verts :
        rw [← pointsymmetrize'_union];
   rw [pointsymmetrize_finset, this]; congr 1
   exact monadic_half_eq_half_nopert_verts
+
+/-
+This is the main result of this file.
+-/
+theorem nopert_list_eq_nopert_verts :
+    nopertList.toFinset = nopertVerts := by
+  have : nopertList.toFinset = (↑(nopertVerts) : Set ℝ³):= by
+     rw [nopert_list_eq_monadic_nopert_verts,
+         monadic_nopert_verts_eq_nopert_verts]
+  exact Finset.coe_inj.mp this
