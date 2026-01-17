@@ -30,6 +30,13 @@ def monadicNopertVerts : Finset ℝ³ :=
   ⋃ᶠ k ∈ Finset.range 15,
   {nopertPt k ℓ i}
 
+noncomputable
+def monadicNopertVerts' : Set ℝ³ :=
+  ⋃ ℓ ∈ Finset.range 2,
+  ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)),
+  ⋃ k ∈ Finset.range 15,
+  {nopertPt k ℓ i}
+
 lemma nopert_list_length : nopertList.length = 90 := by
   simp [nopertList]
 
@@ -53,13 +60,34 @@ lemma flat_map_finset {α β : Type} [DecidableEq α] [DecidableEq β] (xss : Li
     simp only [List.flatMap_cons, List.toFinset_append, List.toFinset_cons, Finset.biUnion_insert];
     congr; rw [flat_map_finset]
 
+lemma flat_map_finset' {α β : Type} [DecidableEq α] [DecidableEq β] (xss : List α) (f : α → List β) :
+    (xss.flatMap f).toFinset = ⋃ i ∈ xss, (↑(f i).toFinset : Set β) := by
+  match xss with
+  | [] => simp
+  | h::tl =>
+    simp only [List.flatMap_cons, List.toFinset_append, Finset.coe_union,
+       List.mem_cons, Set.iUnion_iUnion_eq_or_left]
+    congr; rw [flat_map_finset']
+
 lemma nopert_list_eq_monadic_nopert_verts :
     nopertList.toFinset = monadicNopertVerts := by
   simp only [nopertList, List.pure_def, List.bind_eq_flatMap, flat_map_finset]
   repeat rw [List.toFinset_range]
   simp [monadicNopertVerts]
 
+lemma union_two {α : Type} [DecidableEq α] (g : ℕ → α) : ⋃ ℓ ∈ Finset.range 2, {g ℓ} = {g 0, g 1}  := by
+  simp [Finset.range_add_one]
+
 lemma monadic_nopert_verts_eq_nopert_verts :
-    nopertVerts = monadicNopertVerts := by
-  unfold nopertVerts monadicNopertVerts
+    nopertVerts = monadicNopertVerts' := by
+  unfold nopertVerts monadicNopertVerts'
+  have :=
+    calc ⋃ ℓ ∈ Finset.range 2, ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, {nopertPt k ℓ i}
+    _ = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ ℓ ∈ Finset.range 2, ⋃ k ∈ Finset.range 15, {nopertPt k ℓ i} := by
+      rw [Set.iUnion₂_comm]
+    _ = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, ⋃ ℓ ∈ Finset.range 2, {nopertPt k ℓ i} := by
+       conv => enter [1, 1, i, 1, h]; rw [Set.iUnion₂_comm]
+    _ = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, {nopertPt k 0 i, nopertPt k 1 i} := by
+       conv => enter [1, 1, i, 1, _, 1, k, 1, _]; rw [union_two (nopertPt k · i)]
+
   sorry
