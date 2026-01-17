@@ -20,6 +20,13 @@ def nopertList : List ℝ³ := do
   let k ← List.range 15
   pure (nopertPt k ℓ i)
 
+noncomputable
+def monadicNopertVerts : Finset ℝ³ :=
+  Finset.biUnion (Finset.range 2) (fun ℓ =>
+  Finset.biUnion {0, 1, 2} (fun i =>
+  Finset.biUnion (Finset.range 15) (fun k =>
+  {nopertPt k ℓ i})))
+
 lemma nopert_list_length : nopertList.length = 90 := by
   simp [nopertList]
 
@@ -35,25 +42,16 @@ lemma nopert_list_test_17 : nopertList[17] = nopertPt 2 0 1 := by
 lemma nopert_list_test_62 : nopertList[62] = nopertPt 2 1 1 := by
   simp [nopertList, List.range, List.range.loop]
 
-def bigUnion {α : Type} [DecidableEq α] (ℓ : List (Finset α)) : Finset α :=
-  ℓ.foldl (fun s t => s ∪ t) ∅
+lemma flat_map_finset {α β : Type} [DecidableEq α] [DecidableEq β] (xss : List α) (f : α → List β) :
+    (xss.flatMap f).toFinset = (xss.toFinset).biUnion  (f · |>.toFinset) := by
+  match xss with
+  | [] => simp
+  | h::tl =>
+    simp only [List.flatMap_cons, List.toFinset_append, List.toFinset_cons, Finset.biUnion_insert];
+    congr; rw [flat_map_finset]
 
-lemma flat_map_finset {α β : Type} [DecidableEq β] (xss : List α) (f : α → List β) :
-    (xss.flatMap f).toFinset = bigUnion (xss.map (fun x => (f x).toFinset)) := by
-    sorry
-
-lemma nopert_list_eq_nopert_verts (v : ℝ³) :
-    nopertList.toFinset = nopertVerts := by
-  simp only [nopertList, List.pure_def, List.bind_eq_flatMap]
-  simp only [flat_map_finset]
-  simp [bigUnion, List.foldl_map]
-  change List.foldl
-      (fun s ℓ ↦
-        s ∪
-          (List.foldl (fun s k ↦ insert (nopertPt k ℓ 0) s) ∅ (List.range 15) ∪
-            (List.foldl (fun s k ↦ insert (nopertPt k ℓ 1) s) ∅ (List.range 15) ∪
-              List.foldl (fun s k ↦ insert (nopertPt k ℓ 2) s) ∅ (List.range 15))))
-      ∅ (List.range 2) =
-    nopertVerts
-
-  sorry
+lemma nopert_list_eq_monadic_nopert_verts :
+    nopertList.toFinset = monadicNopertVerts := by
+  simp only [nopertList, List.pure_def, List.bind_eq_flatMap, flat_map_finset]
+  repeat rw [List.toFinset_range]
+  simp [monadicNopertVerts]
