@@ -24,14 +24,7 @@ def nopertList : List ℝ³ := do
   pure (nopertPt k ℓ i)
 
 noncomputable
-def monadicNopertVerts : Finset ℝ³ :=
-  ⋃ᶠ ℓ ∈ Finset.range 2,
-  ⋃ᶠ i ∈ {0, 1, 2},
-  ⋃ᶠ k ∈ Finset.range 15,
-  {nopertPt k ℓ i}
-
-noncomputable
-def monadicNopertVerts' : Set ℝ³ :=
+def monadicNopertVerts : Set ℝ³ :=
   ⋃ ℓ ∈ Finset.range 2,
   ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)),
   ⋃ k ∈ Finset.range 15,
@@ -53,34 +46,25 @@ lemma nopert_list_test_62 : nopertList[62] = nopertPt 2 1 1 := by
   simp [nopertList, List.range, List.range.loop]
 
 lemma flat_map_finset {α β : Type} [DecidableEq α] [DecidableEq β] (xss : List α) (f : α → List β) :
-    (xss.flatMap f).toFinset = (xss.toFinset).biUnion  (f · |>.toFinset) := by
-  match xss with
-  | [] => simp
-  | h::tl =>
-    simp only [List.flatMap_cons, List.toFinset_append, List.toFinset_cons, Finset.biUnion_insert];
-    congr; rw [flat_map_finset]
-
-lemma flat_map_finset' {α β : Type} [DecidableEq α] [DecidableEq β] (xss : List α) (f : α → List β) :
     (xss.flatMap f).toFinset = ⋃ i ∈ xss, (↑(f i).toFinset : Set β) := by
   match xss with
   | [] => simp
   | h::tl =>
     simp only [List.flatMap_cons, List.toFinset_append, Finset.coe_union,
        List.mem_cons, Set.iUnion_iUnion_eq_or_left]
-    congr; rw [flat_map_finset']
+    congr; rw [flat_map_finset]
 
 lemma nopert_list_eq_monadic_nopert_verts :
     nopertList.toFinset = monadicNopertVerts := by
-  simp only [nopertList, List.pure_def, List.bind_eq_flatMap, flat_map_finset]
-  repeat rw [List.toFinset_range]
-  simp [monadicNopertVerts]
+  simp only [nopertList, List.bind_eq_flatMap, flat_map_finset, monadicNopertVerts]
+  simp
 
 lemma union_two {α : Type} [DecidableEq α] (g : ℕ → α) : ⋃ ℓ ∈ Finset.range 2, {g ℓ} = {g 0, g 1}  := by
   simp [Finset.range_add_one]
 
 lemma monadic_nopert_verts_eq_nopert_verts :
-    nopertVerts = monadicNopertVerts' := by
-  unfold nopertVerts monadicNopertVerts'
+    nopertVerts = monadicNopertVerts := by
+  unfold nopertVerts monadicNopertVerts
   have :=
     calc ⋃ ℓ ∈ Finset.range 2, ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, {nopertPt k ℓ i}
     _ = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ ℓ ∈ Finset.range 2, ⋃ k ∈ Finset.range 15, {nopertPt k ℓ i} := by
