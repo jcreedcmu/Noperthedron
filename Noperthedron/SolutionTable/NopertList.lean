@@ -3,6 +3,9 @@ import Noperthedron.Nopert
 namespace Nopert
 open Real
 
+local macro "⋃ᶠ " x:ident " ∈ " s:term ", " f:term : term =>
+  `(Finset.biUnion $s (fun $x => $f))
+
 noncomputable
 def Cpt : Fin 3 → ℝ³
 | 0 => C1R
@@ -22,10 +25,10 @@ def nopertList : List ℝ³ := do
 
 noncomputable
 def monadicNopertVerts : Finset ℝ³ :=
-  Finset.biUnion (Finset.range 2) (fun ℓ =>
-  Finset.biUnion {0, 1, 2} (fun i =>
-  Finset.biUnion (Finset.range 15) (fun k =>
-  {nopertPt k ℓ i})))
+  ⋃ᶠ ℓ ∈ Finset.range 2,
+  ⋃ᶠ i ∈ {0, 1, 2},
+  ⋃ᶠ k ∈ Finset.range 15,
+  {nopertPt k ℓ i}
 
 lemma nopert_list_length : nopertList.length = 90 := by
   simp [nopertList]
@@ -55,3 +58,8 @@ lemma nopert_list_eq_monadic_nopert_verts :
   simp only [nopertList, List.pure_def, List.bind_eq_flatMap, flat_map_finset]
   repeat rw [List.toFinset_range]
   simp [monadicNopertVerts]
+
+lemma monadic_nopert_verts_eq_nopert_verts :
+    nopertVerts = monadicNopertVerts := by
+  unfold nopertVerts monadicNopertVerts
+  sorry
