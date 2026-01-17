@@ -16,12 +16,13 @@ open scoped Matrix
 def Triangle : Type := Fin 3 → ℝ³
 
 /--
-[SY25] Definition 34. Note that the standard definition of "congruent"
-would allow `L` to be any isometry, but here we restrict to rotations
-and reflections.
+[SY25] Definition 34.
+We define "congruent" to mean "there exists a linear isometry". Note that this is
+stronger than "there exists an *affine* isometry", which might be the definition
+you usually think of.
 -/
 def Triangle.Congruent (P Q : Triangle) : Prop :=
-  ∃ L ∈ Matrix.orthogonalGroup (Fin 3) ℝ, ∀ i, P i = L.toEuclideanLin (Q i)
+  ∃ L : Euc(3) →ₗᵢ[ℝ] Euc(3), ∀ i, P i = L (Q i)
 
 /-- [SY25] Definition 27. Note that the "+ 1" at the type Fin 3 wraps. -/
 structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where

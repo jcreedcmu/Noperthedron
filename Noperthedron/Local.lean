@@ -82,17 +82,6 @@ noncomputable
 def shape_of (S : Finset ℝ³) : Shape where
   vertices := S
 
-lemma orthogonal_preserves_norm {L : Matrix (Fin 3) (Fin 3) ℝ} (hL₁ : L ∈ Matrix.orthogonalGroup (Fin 3) ℝ)
-    (x : Euc(3)) : ‖L.toEuclideanLin x‖ = ‖x‖ := by
-  have hL_orthogonal : L.transpose * L = 1 := hL₁.1
-  have h_norm_preserved : ∀ x : Euc(3), ∑ i, (L.mulVec x) i ^ 2 = ∑ i, x i ^ 2 := by
-    intro x
-    have h_norm_preserved : (L.mulVec x) ⬝ᵥ (L.mulVec x) = x ⬝ᵥ x := by
-      simp [ Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec, hL_orthogonal ]
-    simpa only [sq, dotProduct] using h_norm_preserved
-  simp [ EuclideanSpace.norm_eq ]
-  exact congrArg Real.sqrt ( h_norm_preserved x )
-
 -- TODO: Somehow separate out the "local theorem precondition"
 -- predicate in a way that is suitable for the computational step's
 -- tree check.
@@ -115,22 +104,19 @@ theorem local_theorem (P Q : Triangle)
     (be : Q.Bε p_ ε δ r)
     : ¬∃ p ∈ p_.closed_ball ε, RupertPose p (shape_of poly |>.hull) := by
   rintro ⟨p, hΨ₁, hΨ₂⟩
-  obtain ⟨L, hL₁, hL₂⟩ := cong_tri
-  let Ll := L.toEuclideanLin.toContinuousLinearMap
-  have hL₂' (i) : P i = Ll (Q i) := hL₂ i
+  obtain ⟨L, hL⟩ := cong_tri
   obtain ⟨σP, hσP₁, hσP₂⟩ := ae₁
   obtain ⟨σQ, hσQ₁, hσQ₂⟩ := ae₂
   let Y := vecX p.θ₁ p.φ₁
-  let K := (-1 : ℝ)^(σP + σQ) • Ll
+  let K := (-1 : ℝ)^(σP + σQ) • L.toContinuousLinearMap
   let Z := K (vecX p.θ₂ p.φ₂)
   have hY : ‖Y‖ = 1 := by simp [Y, vecX_norm_one]
-  have hZ : ‖Z‖ = 1 := by
-    simp [Z, K, Ll, norm_smul, orthogonal_preserves_norm hL₁, vecX_norm_one]
+  have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, vecX_norm_one]
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
   have hPQ_ (i) : P_ i = K (Q_ i) := by
     simp [P_, Q_, K]
-    rw [←hL₂', smul_smul]
+    rw [smul_smul, hL]
     congr 1
     rw [←zpow_add₀ (show (-1:ℝ) ≠ 0 by norm_num)]
     ring_nf
