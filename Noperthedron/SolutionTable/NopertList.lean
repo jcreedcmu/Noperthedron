@@ -62,6 +62,38 @@ lemma nopert_list_eq_monadic_nopert_verts :
 lemma union_two {α : Type} [DecidableEq α] (g : ℕ → α) : ⋃ ℓ ∈ Finset.range 2, {g ℓ} = {g 0, g 1}  := by
   simp [Finset.range_add_one]
 
+lemma ell_flips_sign (k : ℕ) (i : Fin 3) : nopertPt k 1 i = -nopertPt k 0 i := by
+  simp [nopertPt]
+
+def pointsymmetrize' (vs : Set ℝ³) : Set ℝ³ := vs ∪ vs.image (-·)
+
+lemma pointsymmetrize'_singleton (v : ℝ³) : pointsymmetrize' {v} = {v, -v} := by
+  simp [pointsymmetrize']
+  rw [Set.pair_comm]
+
+lemma pointsymmetrize'_union (ι : Type*) (j : Set ι) (S : ι → Set ℝ³) :
+    pointsymmetrize' (⋃ i ∈ j, S i) = ⋃ i ∈ j, pointsymmetrize' (S i) := by
+  simp [pointsymmetrize']
+  ext x
+  constructor
+  · intro hx; simp_all; rcases hx with h | h
+    · obtain ⟨i, hi, hi2⟩ := h; use i, hi; left; exact hi2
+    · obtain ⟨i, hi, hi2⟩ := h; use i, hi; right; exact hi2
+  · intro hx; simp_all; obtain ⟨i, hi, hi2⟩ := hx; rcases hi2 with h | h
+    · left; use i, hi
+    · right; use i, hi
+
+lemma pointsymmetrize'_union_finset (ι : Type*) (j : Finset ι) (S : ι → Set ℝ³) :
+    pointsymmetrize' (⋃ i ∈ j, S i) = ⋃ i ∈ j, pointsymmetrize' (S i) := by
+  exact pointsymmetrize'_union ι j S
+
+lemma pointsymmetrize_finset (S : Finset ℝ³) : pointsymmetrize S = pointsymmetrize' S := by
+  simp [pointsymmetrize, pointsymmetrize']
+
+lemma monadic_half_eq_half_nopert_verts :
+    ↑halfNopertVerts = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, {nopertPt k 0 i} := by
+  sorry
+
 lemma monadic_nopert_verts_eq_nopert_verts :
     nopertVerts = monadicNopertVerts := by
   unfold nopertVerts monadicNopertVerts
@@ -73,5 +105,13 @@ lemma monadic_nopert_verts_eq_nopert_verts :
        conv => enter [1, 1, i, 1, h]; rw [Set.iUnion₂_comm]
     _ = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, {nopertPt k 0 i, nopertPt k 1 i} := by
        conv => enter [1, 1, i, 1, _, 1, k, 1, _]; rw [union_two (nopertPt k · i)]
-
-  sorry
+    _ = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, {nopertPt k 0 i, -nopertPt k 0 i} := by
+       conv => enter [1, 1, i, 1, _, 1, k, 1, _]; rw [ell_flips_sign]
+    _ = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15, pointsymmetrize' {nopertPt k 0 i} := by
+       conv => enter [1, 1, i, 1, _, 1, k, 1, _]; rw [← pointsymmetrize'_singleton];
+    _ = ⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), pointsymmetrize' (⋃ k ∈ Finset.range 15,  {nopertPt k 0 i}) := by
+       conv => enter [1, 1, i, 1, _]; rw [← pointsymmetrize'_union_finset];
+    _ = pointsymmetrize' (⋃ i ∈ ({0, 1, 2} : Set (Fin 3)), ⋃ k ∈ Finset.range 15,  {nopertPt k 0 i}) := by
+       rw [← pointsymmetrize'_union];
+  rw [pointsymmetrize_finset, this]; congr 1
+  exact monadic_half_eq_half_nopert_verts
