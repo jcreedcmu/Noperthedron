@@ -19,4 +19,12 @@ if [ -n "$matches" ]; then
     exit 1
 fi
 
+matches=$(ag -G 'lean$' '#min_imports')
+
+if [ -n "$matches" ]; then
+    echo "❌ Commit blocked: Found #min_imports"
+    echo "$matches"
+    exit 1
+fi
+
 exit 0
