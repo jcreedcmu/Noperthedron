@@ -1,17 +1,12 @@
-import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.Calculus.Taylor
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Mathlib.Data.Int.Star
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Data.Real.StarOrdered
-
-import Mathlib.Tactic.NormNum.NatFactorial
-import Mathlib.Tactic.Cases
+import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.Lemma39
 import Noperthedron.RationalApprox.Lemma42
-import Noperthedron.Basic
-import Noperthedron.RationalApprox.Basic
+import Noperthedron.RationalApprox.RationalLocal
 
 namespace RationalApprox
 
@@ -316,3 +311,5 @@ theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
   · simp_all [matrixActual, matrixApprox]
   · refine le_trans ( mul_le_mul_of_nonneg_left h_sqrt_bound <| by positivity ) ?_
     linarith [kappa_bound_aux]
+
+#min_imports
