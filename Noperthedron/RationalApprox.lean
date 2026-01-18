@@ -311,5 +311,3 @@ theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
   · simp_all [matrixActual, matrixApprox]
   · refine le_trans ( mul_le_mul_of_nonneg_left h_sqrt_bound <| by positivity ) ?_
     linarith [kappa_bound_aux]
-
-#min_imports
