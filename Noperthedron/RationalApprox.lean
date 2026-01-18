@@ -111,29 +111,25 @@ theorem cos_approx_aux (x : ℝ) (n : ℕ) :
       abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
     exact Real.abs_cos_le_one c
 
-theorem sin_psum_approx (x : ℚ) (n : ℕ) : |Real.sin x - sin_psum (k := ℚ) n x| ≤ |x|^(2 * n + 1) / (2 * n + 1)! := by
+theorem sin_psum_approx (x : ℝ) (n : ℕ) : |Real.sin x - sin_psum n x| ≤ |x|^(2 * n + 1) / (2 * n + 1)! := by
   have := RationalApprox.sin_approx_aux x n
-  simp only [Rat.cast_abs, ge_iff_le]
+  simp only [ge_iff_le]
   convert this using 3
-  norm_cast
-  refine Finset.sum_congr rfl fun _ _ => ?_
-  simp
 
-theorem cos_psum_approx (x : ℚ) (n : ℕ) : |Real.cos x - cos_psum (k := ℚ) n x| ≤ |x|^(2 * n) / (2 * n)! := by
+theorem cos_psum_approx (x : ℝ) (n : ℕ) : |Real.cos x - cos_psum n x| ≤ |x|^(2 * n) / (2 * n)! := by
   have := RationalApprox.cos_approx_aux x n
-  simp only [Rat.cast_abs, ge_iff_le]
+  simp only [ge_iff_le]
   convert this using 3
-  norm_cast
   refine Finset.sum_congr rfl fun _ _ => ?_
   simp [field]
 
-theorem sinℚ_approx (x : ℚ) : |Real.sin x - sinℚ (k := ℚ) x| ≤ |x|^27 / 27! :=
+theorem sinℚ_approx (x : ℝ) : |Real.sin x - sinℚ x| ≤ |x|^27 / 27! :=
   sin_psum_approx x 13
 
-theorem cosℚ_approx (x : ℚ) : |Real.cos x - cosℚ (k := ℚ) x| ≤ |x|^26 / 26! :=
+theorem cosℚ_approx (x : ℝ) : |Real.cos x - cosℚ x| ≤ |x|^26 / 26! :=
   cos_psum_approx x 13
 
-theorem sinℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.sin x - sinℚ (k := ℚ) x| ≤ κ / 7 := by
+theorem sinℚ_approx' (x : ℝ) (hx : x ∈ Set.Icc (-4) 4) : |Real.sin x - sinℚ x| ≤ κ / 7 := by
   have hx' : |x| ≤ 4 := abs_le.mpr hx
   have z := sinℚ_approx x
   grw [hx'] at z
@@ -142,7 +138,7 @@ theorem sinℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.sin x - sin
   grw [← this]
   exact z
 
-theorem cosℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cosℚ (k := ℚ) x| ≤ κ / 7 := by
+theorem cosℚ_approx' (x : ℝ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cosℚ x| ≤ κ / 7 := by
   have hx' : |x| ≤ 4 := abs_le.mpr hx
   have z := cosℚ_approx x
   grw [hx'] at z
@@ -163,7 +159,7 @@ inductive RewritableEntry : Type where
 def DistLeKappaEntry := RewritableEntry × RewritableEntry
 
 noncomputable
-def RewritableEntry.actual (z : ℚ) : RewritableEntry → ℝ
+def RewritableEntry.actual (z : ℝ) : RewritableEntry → ℝ
 | .zero => 0
 | .one => 1
 | .minus_one => -1
@@ -173,29 +169,29 @@ def RewritableEntry.actual (z : ℚ) : RewritableEntry → ℝ
 | .mcos => -Real.cos z
 
 noncomputable
-def DistLeKappaEntry.actual (dlke : DistLeKappaEntry) (x y : ℚ) :=
+def DistLeKappaEntry.actual (dlke : DistLeKappaEntry) (x y : ℝ) :=
   dlke.fst.actual x * dlke.snd.actual y
 
 noncomputable
-def RewritableEntry.approx (z : ℚ) : RewritableEntry → ℝ
+def RewritableEntry.approx (z : ℝ) : RewritableEntry → ℝ
 | .zero => 0
 | .one => 1
 | .minus_one => -1
-| .sin => sinℚ (k := ℚ) z
-| .cos => cosℚ (k := ℚ) z
-| .msin => -sinℚ (k := ℚ) z
-| .mcos => -cosℚ (k := ℚ) z
+| .sin => sinℚ z
+| .cos => cosℚ z
+| .msin => -sinℚ z
+| .mcos => -cosℚ z
 
 noncomputable
-def DistLeKappaEntry.approx (dlke : DistLeKappaEntry) (x y : ℚ) :=
+def DistLeKappaEntry.approx (dlke : DistLeKappaEntry) (x y : ℝ) :=
   dlke.fst.approx x * dlke.snd.approx y
 
 noncomputable
-def matrixActual {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℚ) : E n →L[ℝ] E m :=
+def matrixActual {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℝ) : E n →L[ℝ] E m :=
    A.map (·.actual x y) |>.toEuclideanLin.toContinuousLinearMap
 
 noncomputable
-def matrixApprox {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℚ) : E n →L[ℝ] E m :=
+def matrixApprox {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℝ) : E n →L[ℝ] E m :=
    A.map (·.approx x y) |>.toEuclideanLin.toContinuousLinearMap
 
 section AristotleLemmas
@@ -204,7 +200,7 @@ section AristotleLemmas
 The actual value of any `RewritableEntry` (which can be 0, 1, -1, sin(z), cos(z), -sin(z), -cos(z))
 is bounded by 1 in absolute value.
 -/
-theorem rewritable_entry_bound (e : RewritableEntry) (z : ℚ) :
+theorem rewritable_entry_bound (e : RewritableEntry) (z : ℝ) :
     |e.actual z| ≤ 1 := by
   cases e <;> simp [RewritableEntry.actual, Real.abs_sin_le_one, Real.abs_cos_le_one]
 
@@ -212,8 +208,8 @@ theorem rewritable_entry_bound (e : RewritableEntry) (z : ℚ) :
 The error between the actual value and the rational approximation for any `RewritableEntry` is at
 most `κ / 7` for inputs in `[-4, 4]`.
 -/
-theorem rewritable_entry_error (e : RationalApprox.RewritableEntry) (z : ℚ)
-    (hz : z ∈ Set.Icc (-4 : ℚ) 4) : |e.actual z - e.approx z| ≤ κ / 7 := by
+theorem rewritable_entry_error (e : RationalApprox.RewritableEntry) (z : ℝ)
+    (hz : z ∈ Set.Icc (-4 : ℝ) 4) : |e.actual z - e.approx z| ≤ κ / 7 := by
   rcases e with ( _ | _ | _ | _ | _ | _ | _ )
   all_goals
     simp [RewritableEntry.actual, RewritableEntry.approx]
@@ -230,21 +226,21 @@ theorem rewritable_entry_error (e : RationalApprox.RewritableEntry) (z : ℚ)
 /-
 The error of the product of two `RewritableEntry` approximations is bounded by `2 * κ / 7 + κ^2 / 49`.
 -/
-theorem dist_le_kappa_entry_error (d : RationalApprox.DistLeKappaEntry) (x y : ℚ)
-    (hx : x ∈ Set.Icc (-4 : ℚ) 4) (hy : y ∈ Set.Icc (-4 : ℚ) 4) :
+theorem dist_le_kappa_entry_error (d : RationalApprox.DistLeKappaEntry) (x y : ℝ)
+    (hx : x ∈ Set.Icc (-4 : ℝ) 4) (hy : y ∈ Set.Icc (-4 : ℝ) 4) :
     |d.actual x y - d.approx x y| ≤ 2 * κ / 7 + κ^2 / 49 := by
   -- Using the triangle inequality for the absolute value and the bounds from
   -- `rewritable_entry_bound` and `rewritable_entry_error`, we get:
-  have h_abs (e1 e2 : RationalApprox.RewritableEntry) (x y : ℚ)
-        (hx : x ∈ Set.Icc (-4 : ℚ) 4) (hy : y ∈ Set.Icc (-4 : ℚ) 4) :
+  have h_abs (e1 e2 : RationalApprox.RewritableEntry) (x y : ℝ)
+        (hx : x ∈ Set.Icc (-4 : ℝ) 4) (hy : y ∈ Set.Icc (-4 : ℝ) 4) :
         |e1.actual x * e2.actual y - e1.approx x * e2.approx y| ≤
         |e1.actual x| * |e2.actual y - e2.approx y| +
         |e1.actual x - e1.approx x| * |e2.approx y| := by
       rw [← abs_mul, ← abs_mul, mul_sub, sub_mul]
       exact abs_sub_le _ _ _
   -- Applying the bounds from `rewritable_entry_bound` and `rewritable_entry_error`, we get:
-  have h_bound (e1 e2 : RationalApprox.RewritableEntry) (x y : ℚ)
-        (hx : x ∈ Set.Icc (-4 : ℚ) 4) (hy : y ∈ Set.Icc (-4 : ℚ) 4) :
+  have h_bound (e1 e2 : RationalApprox.RewritableEntry) (x y : ℝ)
+        (hx : x ∈ Set.Icc (-4 : ℝ) 4) (hy : y ∈ Set.Icc (-4 : ℝ) 4) :
         |e1.actual x| ≤ 1 ∧ |e2.actual y| ≤ 1 ∧ |e1.approx x| ≤ 1 + κ / 7 ∧
         |e2.approx y| ≤ 1 + RationalApprox.κ / 7 := by
       have h_bound_e1 : |e1.actual x| ≤ 1 := rewritable_entry_bound e1 x
@@ -259,8 +255,8 @@ theorem dist_le_kappa_entry_error (d : RationalApprox.DistLeKappaEntry) (x y : �
         · linarith [ abs_le.mp h_bound_e2, abs_le.mp ( rewritable_entry_error e2 y hy ) ]
       exact ⟨h_bound_e1, h_bound_e2, h_bound_e1_approx, h_bound_e2_approx⟩
   -- Applying the bounds from `rewritable_entry_error`, we get:
-  have h_error (e1 e2 : RewritableEntry) (x y : ℚ)
-      (hx : x ∈ Set.Icc (-4 : ℚ) 4) (hy : y ∈ Set.Icc (-4 : ℚ) 4) :
+  have h_error (e1 e2 : RewritableEntry) (x y : ℝ)
+      (hx : x ∈ Set.Icc (-4 : ℝ) 4) (hy : y ∈ Set.Icc (-4 : ℝ) 4) :
       |e1.actual x - e1.approx x| ≤ RationalApprox.κ / 7 ∧
       |e2.actual y - e2.approx y| ≤ RationalApprox.κ / 7 := by
     exact ⟨rewritable_entry_error e1 x hx, rewritable_entry_error e2 y hy⟩
@@ -284,7 +280,7 @@ end AristotleLemmas
 
 /-- [SY25] Lemma 40 -/
 theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
-    (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : Set.Icc (-4 : ℚ) 4) :
+    (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : Set.Icc (-4 : ℝ) 4) :
     ‖matrixActual A x y - matrixApprox A x y‖ ≤ κ := by
   -- Let's choose δ as the upper bound from `dist_le_kappa_entry_error`.
   set δ := 2 * κ / 7 + κ^2 / 49 with hδ_def
