@@ -60,20 +60,20 @@ def rotMℚ_mat (θ : ℚ) (φ : ℚ) : Matrix (Fin 2) (Fin 3) ℚ :=
   !![-sinℚ θ, cosℚ θ, 0; -cosℚ θ * cosℚ φ, -sinℚ θ * cosℚ φ, sinℚ φ]
 
 /--
-This is just a copy of Mathlib's `Matrix.toEuclideanLin2` which relaxes RCLike k to
+This is just a copy of Mathlib's `Matrix.toEuclideanLin` which relaxes RCLike k to
 Field k. Also I replaced the blackboard bold k with normal k because emacs lsp-mode
 gets confused by unicode codepoints too large for single UTF16 encodings.
 -/
-def _root_.Matrix.toEuclideanLin2 {k m n : Type} [Field k] [Fintype n] [DecidableEq n] :
+def _root_.Matrix.toEuclideanLin' {k m n : Type} [Field k] [Fintype n] [DecidableEq n] :
   Matrix m n k ≃ₗ[k] EuclideanSpace k n →ₗ[k] EuclideanSpace k m :=
   Matrix.toLin' ≪≫ₗ
     LinearEquiv.arrowCongr (WithLp.linearEquiv _ k (n → k)).symm
       (WithLp.linearEquiv _ k (m → k)).symm
 
 /--
-This is merely linear instead of continuous-linear because
+These are merely linear instead of continuous-linear because
 .toContinuousLinearMap only works on Cauchy-complete spaces.
 -/
 noncomputable
 def rotMℚ (θ φ : ℚ) : ℚ³ →ₗ[ℚ] ℚ² :=
-  rotMℚ_mat θ φ |>.toEuclideanLin2
+  rotMℚ_mat θ φ |>.toEuclideanLin'
