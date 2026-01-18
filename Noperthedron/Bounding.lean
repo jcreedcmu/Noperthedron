@@ -22,7 +22,7 @@ lemma RzL_neg_compose_RzL {α : ℝ} : RzL (-α) ∘L RzL α = ContinuousLinearM
   simp [ContinuousLinearMap.one_def]
 
 /--
-First half of Lemma 13 from [SY25].
+First half of [SY25] Lemma 13.
 -/
 theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
@@ -66,7 +66,7 @@ theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
   gcongr
 
 /--
-Second half of Lemma 13 from [SY25].
+Second half of [SY25] Lemma 13.
 -/
 theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖vecX θ φ - vecX θ_ φ_‖ < √2 * ε := by

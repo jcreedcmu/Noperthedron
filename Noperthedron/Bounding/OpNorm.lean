@@ -47,6 +47,8 @@ theorem Rx_preserves_norm (α : ℝ) :
   · ring_nf
   simp
 
+/- [SY25] Lemma 9 -/
+
 theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 :=
   norm_one_of_preserves_norm (Rx_preserves_norm α)
 

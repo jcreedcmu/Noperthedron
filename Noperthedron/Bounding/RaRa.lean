@@ -4,8 +4,9 @@ import Noperthedron.Basic
 
 open scoped RealInnerProductSpace Real
 
-namespace Bounding
+/- [SY25] Lemma 10 -/
 
+namespace Bounding
 
 theorem norm_sub_rotR_le (α β : ℝ) : ‖rotR α - rotR β‖ ≤ 2 * |Real.sin ((α - β) / 2)| := by
   refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_

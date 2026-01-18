@@ -138,6 +138,8 @@ lemma nopert_vertices_rotation_invariant (k : ℤ) :
 lemma app_hull_eq_hull_app (s : Shape) (f : ℝ³ →L[ℝ] ℝ²) : f '' s.hull = convexHull ℝ (f '' s.vertices) :=
   f.image_convexHull s.vertices
 
+/- [SY25] Lemma 7 -/
+
 theorem lemma7_1 (θ φ : ℝ) :
     (rotM (θ + 2/15*π) φ) '' nopert.hull = rotM θ φ '' nopert.hull := by
   suffices h : (rotM (θ + 2/15*π) φ) '' nopert.vertices = rotM θ φ '' nopert.vertices by
@@ -419,7 +421,7 @@ theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
        hφ₁, hφ₂, hα⟩
   exact  eq2.mp (eq.mp r)
 
--- [SY25] §2.2, Corollary 8
+-- [SY25] Corollary 8 (§2.2)
 -- This is a piece that relies on symmetry of the Noperthedron
 theorem rupert_tightening (p : Pose) (r : RupertPose p nopert.hull) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
