@@ -11,50 +11,11 @@ import Mathlib.Tactic.Cases
 import Noperthedron.RationalApprox.Lemma39
 import Noperthedron.RationalApprox.Lemma42
 import Noperthedron.Basic
+import Noperthedron.RationalApprox.Basic
 
 namespace RationalApprox
 
-open scoped Nat -- for ! notation
-
-noncomputable section
-
-/--
-Sine partial sum $x - x^3/3! + x^5/5! - ⋯$ up to and including the degree $2n-1$ term.
--/
-def sin_psum (n : ℕ) (x : ℚ) : ℚ :=
-  ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!)
-
-/--
-Cosine partial sum $1 - x^2/2! + x^4/4! - ⋯$ up to and including the degree $2n-2$ degree term.
--/
-def cos_psum (n : ℕ) (x : ℚ) : ℚ :=
-  ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i) / (2 * i)!)
-
-/--
-Sine partial sum $x - x^3/3! + x^5/5! - ⋯ + x^{25}/25!$
--/
-def sinℚ := sin_psum 13
-
-/--
-Cosine partial sum $1 - x^2/2! + x^4/4! - ⋯ + x^{24}/24!$
--/
-def cosℚ := cos_psum 13
-
-/--
-Frequently used constant for controlling the degree of approximation
-of rational versions to real counterparts.
--/
-def κ : ℝ := 1 / 10^10
-
-def κApproxMat {m n : ℕ}
-    (A : Matrix (Fin m) (Fin n) ℝ)
-    (A' : Matrix (Fin m) (Fin n) ℚ) : Prop :=
-  ‖(A - A'.map (fun x => (↑x : ℝ))).toEuclideanLin.toContinuousLinearMap‖ ≤ κ
-
-def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
-  ‖(A - A').toEuclideanLin.toContinuousLinearMap‖ ≤ κ
-
-end
+open scoped Nat
 
 theorem finset_sum_range_even_odd {n : ℕ} {f : ℕ → ℝ}
     : ∑ i ∈ Finset.range (2 * n + 1), f i =
