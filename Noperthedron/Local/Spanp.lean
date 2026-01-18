@@ -84,7 +84,7 @@ theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
     have : Y.ofLp i = (∑ x, Yco x • V x).ofLp i := congr(WithLp.ofLp $Ysum i)
     simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
       smul_eq_mul] at this
-    conv at this => rhs; arg 2; intro x; rw [mul_comm]; skip
+    conv at this => enter [2, 2, x]; rw [mul_comm]; skip
     exact this
 
   have Zvec : Z = Vm *ᵥ Zco := by
@@ -94,7 +94,7 @@ theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
     have : Z.ofLp i = (∑ x, Zco x • V x).ofLp i := congr(WithLp.ofLp $Zsum i)
     simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
       smul_eq_mul] at this
-    conv at this => rhs; arg 2; intro x; rw [mul_comm]; skip
+    conv at this => enter [2, 2, x]; rw [mul_comm]; skip
     exact this
 
   have helper (co : Fin 3 → ℝ) (i : Fin 3) : (Vmᵀ * Vm * matOfVec co) i 0 = (Vmᵀ *ᵥ Vm *ᵥ co) i := by

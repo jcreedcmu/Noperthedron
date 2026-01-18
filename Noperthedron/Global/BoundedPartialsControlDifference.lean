@@ -86,7 +86,7 @@ lemma interpolated_deriv2_bound {n : ℕ} (x y : E n) {f : E n → ℝ}
     refine Finset.sum_le_sum ?_; intro i hi;
     apply Finset.abs_sum_le_sum_abs
   _ = ∑ i, ∑ j, |(y i - x i)| * |(y j - x j)| * |nth_partial i (nth_partial j f) ((1 - t) • x + t • y)| := by
-    conv => arg 1; arg 2; intro i; arg 2; intro j; repeat rw [abs_mul];
+    conv => enter [1, 2, i, 2, j]; repeat rw [abs_mul];
   _ ≤ ∑ i, ∑ j, ε * ε * 1 := by
     refine Finset.sum_le_sum ?_; intro i hi;
     refine Finset.sum_le_sum ?_; intro j hj;
@@ -215,11 +215,11 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   have hobs := by calc g 1 - g 0
       _ = ∫ (t : ℝ) in 0..1, g' t := by rw [int_g'_eq_sub]
       _ = ∫ (t : ℝ) in 0..1, g' 0 + ∫ (s : ℝ) in 0..t, g'' s := by
-        conv => arg 2; arg 1; intro t; rw [int_g''_eq_sub]; simp
+        conv => enter [2, 1, t]; rw [int_g''_eq_sub]; simp
       _ = (∫ (t : ℝ) in 0..1, g' 0) + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s := by
         rw [intervalIntegral.integral_add]
         · exact intervalIntegrable_const
-        · conv => arg 1; intro t; rw [int_g''_eq_sub t]
+        · conv => enter [1, t]; rw [int_g''_eq_sub t]
           exact Continuous.intervalIntegrable (by fun_prop) 0 1
       _ = g' 0 + ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, g'' s := by
         rw [intervalIntegral.integral_const]; simp
@@ -230,9 +230,9 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
     _ = |∑ i, (y i - x i) * nth_partial i f x| := by simp [g', interpolated_deriv]
     _ ≤ ∑ i, |(y i - x i) * nth_partial i f x| := by apply Finset.abs_sum_le_sum_abs
     _ = ∑ i, |(y i - x i)| * |nth_partial i f x| := by
-      conv => arg 1; arg 2; intro i; rw [abs_mul]
+      conv => enter [1, 2, i]; rw [abs_mul]
     _ = ∑ i, |(x i - y i)| * |nth_partial i f x| := by
-      conv => arg 1; arg 2; intro i; arg 1; rw [abs_sub_comm]
+      conv => enter [1, 2, i, 1]; rw [abs_sub_comm]
     _ ≤ ∑ i, ε * |nth_partial i f x| := by
       refine Finset.sum_le_sum ?_; intro i hi; grw [hdiff i]
     _ = ε * ∑ i, |nth_partial i f x| := by rw [Finset.mul_sum]
