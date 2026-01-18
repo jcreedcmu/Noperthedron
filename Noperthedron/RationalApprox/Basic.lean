@@ -16,6 +16,8 @@ def Triangle : Type := Fin 3 → ℚ³
 
 noncomputable section
 
+/- The below definitions are [SY25] Definition 37 -/
+
 open scoped Nat -- for ! notation
 /--
 Sine partial sum $x - x^3/3! + x^5/5! - ⋯$ up to and including the degree $2n-1$ term.

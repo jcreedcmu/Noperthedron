@@ -129,6 +129,7 @@ theorem sinℚ_approx (x : ℝ) : |Real.sin x - sinℚ x| ≤ |x|^27 / 27! :=
 theorem cosℚ_approx (x : ℝ) : |Real.cos x - cosℚ x| ≤ |x|^26 / 26! :=
   cos_psum_approx x 13
 
+/- The below are [SY25] Lemma 38 -/
 theorem sinℚ_approx' (x : ℝ) (hx : x ∈ Set.Icc (-4) 4) : |Real.sin x - sinℚ x| ≤ κ / 7 := by
   have hx' : |x| ≤ 4 := abs_le.mpr hx
   have z := sinℚ_approx x
