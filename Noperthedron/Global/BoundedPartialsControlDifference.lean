@@ -6,6 +6,8 @@ import Noperthedron.PoseInterval
 import Noperthedron.Global.Basic
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 
+/- [SY25] Lemma 20 -/
+
 open scoped RealInnerProductSpace
 
 namespace GlobalTheorem

@@ -51,6 +51,7 @@ theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty)
     _       = (∑ x ∈ V, w x) * ((Finset.image f V).max' Vine) := by rw [← Finset.sum_mul]
     _       = (Finset.image f V).max' (by simp [Finset.image_nonempty]; exact Vne) := by rw [hw2]; simp
 
+/- [SY25] Lemma 18 -/
 theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (w : E n) :
     ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) (by simp [Finset.image_nonempty]; exact Vne) := by
@@ -80,6 +81,7 @@ lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : �
   simp [inner, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
   fun_prop
 
+/- [SY25] Lemma 19 -/
 theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     mixed_partials_bounded (rotproj_inner_unit S w) := by
   sorry
