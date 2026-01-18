@@ -111,7 +111,7 @@ theorem cos_approx_aux (x : ℝ) (n : ℕ) :
       abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
     exact Real.abs_cos_le_one c
 
-theorem sin_psum_approx (x : ℚ) (n : ℕ) : |Real.sin x - sin_psum n x| ≤ |x|^(2 * n + 1) / (2 * n + 1)! := by
+theorem sin_psum_approx (x : ℚ) (n : ℕ) : |Real.sin x - sin_psum (k := ℚ) n x| ≤ |x|^(2 * n + 1) / (2 * n + 1)! := by
   have := RationalApprox.sin_approx_aux x n
   simp only [Rat.cast_abs, ge_iff_le]
   convert this using 3
@@ -119,7 +119,7 @@ theorem sin_psum_approx (x : ℚ) (n : ℕ) : |Real.sin x - sin_psum n x| ≤ |x
   refine Finset.sum_congr rfl fun _ _ => ?_
   simp
 
-theorem cos_psum_approx (x : ℚ) (n : ℕ) : |Real.cos x - cos_psum n x| ≤ |x|^(2 * n) / (2 * n)! := by
+theorem cos_psum_approx (x : ℚ) (n : ℕ) : |Real.cos x - cos_psum (k := ℚ) n x| ≤ |x|^(2 * n) / (2 * n)! := by
   have := RationalApprox.cos_approx_aux x n
   simp only [Rat.cast_abs, ge_iff_le]
   convert this using 3
@@ -127,13 +127,13 @@ theorem cos_psum_approx (x : ℚ) (n : ℕ) : |Real.cos x - cos_psum n x| ≤ |x
   refine Finset.sum_congr rfl fun _ _ => ?_
   simp [field]
 
-theorem sinℚ_approx (x : ℚ) : |Real.sin x - sinℚ x| ≤ |x|^27 / 27! :=
+theorem sinℚ_approx (x : ℚ) : |Real.sin x - sinℚ (k := ℚ) x| ≤ |x|^27 / 27! :=
   sin_psum_approx x 13
 
-theorem cosℚ_approx (x : ℚ) : |Real.cos x - cosℚ x| ≤ |x|^26 / 26! :=
+theorem cosℚ_approx (x : ℚ) : |Real.cos x - cosℚ (k := ℚ) x| ≤ |x|^26 / 26! :=
   cos_psum_approx x 13
 
-theorem sinℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.sin x - sinℚ x| ≤ κ / 7 := by
+theorem sinℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.sin x - sinℚ (k := ℚ) x| ≤ κ / 7 := by
   have hx' : |x| ≤ 4 := abs_le.mpr hx
   have z := sinℚ_approx x
   grw [hx'] at z
@@ -142,7 +142,7 @@ theorem sinℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.sin x - sin
   grw [← this]
   exact z
 
-theorem cosℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cosℚ x| ≤ κ / 7 := by
+theorem cosℚ_approx' (x : ℚ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cosℚ (k := ℚ) x| ≤ κ / 7 := by
   have hx' : |x| ≤ 4 := abs_le.mpr hx
   have z := cosℚ_approx x
   grw [hx'] at z
@@ -181,10 +181,10 @@ def RewritableEntry.approx (z : ℚ) : RewritableEntry → ℝ
 | .zero => 0
 | .one => 1
 | .minus_one => -1
-| .sin => sinℚ z
-| .cos => cosℚ z
-| .msin => -sinℚ z
-| .mcos => -cosℚ z
+| .sin => sinℚ (k := ℚ) z
+| .cos => cosℚ (k := ℚ) z
+| .msin => -sinℚ (k := ℚ) z
+| .mcos => -cosℚ (k := ℚ) z
 
 noncomputable
 def DistLeKappaEntry.approx (dlke : DistLeKappaEntry) (x y : ℚ) :=

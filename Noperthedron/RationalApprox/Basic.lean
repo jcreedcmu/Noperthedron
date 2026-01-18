@@ -20,24 +20,30 @@ open scoped Nat -- for ! notation
 /--
 Sine partial sum $x - x^3/3! + x^5/5! - ⋯$ up to and including the degree $2n-1$ term.
 -/
-def sin_psum (n : ℕ) (x : ℚ) : ℚ :=
+def sin_psum {k : Type} [Field k] (n : ℕ) (x : k) : k :=
   ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i + 1) / (2 * i + 1)!)
 
 /--
 Cosine partial sum $1 - x^2/2! + x^4/4! - ⋯$ up to and including the degree $2n-2$ degree term.
 -/
-def cos_psum (n : ℕ) (x : ℚ) : ℚ :=
+def cos_psum {k : Type} [Field k] (n : ℕ) (x : k) : k :=
   ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i) / (2 * i)!)
 
 /--
 Sine partial sum $x - x^3/3! + x^5/5! - ⋯ + x^{25}/25!$
 -/
-def sinℚ := sin_psum 13
+def sinℚ {k : Type} [Field k] := sin_psum (k := k) 13
+
+lemma sinℚ_match (x : ℚ) : sinℚ (k := ℚ) x = sinℚ (k := ℝ) x := by
+  unfold sinℚ sin_psum; push_cast; rfl
 
 /--
 Cosine partial sum $1 - x^2/2! + x^4/4! - ⋯ + x^{24}/24!$
 -/
-def cosℚ := cos_psum 13
+def cosℚ {k : Type} [Field k] := cos_psum (k := k) 13
+
+lemma cosℚ_match (x : ℚ) : cosℚ (k := ℚ) x = cosℚ (k := ℝ) x := by
+  unfold cosℚ cos_psum; push_cast; rfl
 
 /--
 Frequently used constant for controlling the degree of approximation
@@ -56,24 +62,13 @@ def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
 end
 
 noncomputable
-def rotMℚ_mat (θ : ℚ) (φ : ℚ) : Matrix (Fin 2) (Fin 3) ℚ :=
+def rotMℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
   !![-sinℚ θ, cosℚ θ, 0; -cosℚ θ * cosℚ φ, -sinℚ θ * cosℚ φ, sinℚ φ]
-
-/--
-This is just a copy of Mathlib's `Matrix.toEuclideanLin` which relaxes RCLike k to
-Field k. Also I replaced the blackboard bold k with normal k because emacs lsp-mode
-gets confused by unicode codepoints too large for single UTF16 encodings.
--/
-def _root_.Matrix.toEuclideanLin' {k m n : Type} [Field k] [Fintype n] [DecidableEq n] :
-  Matrix m n k ≃ₗ[k] EuclideanSpace k n →ₗ[k] EuclideanSpace k m :=
-  Matrix.toLin' ≪≫ₗ
-    LinearEquiv.arrowCongr (WithLp.linearEquiv _ k (n → k)).symm
-      (WithLp.linearEquiv _ k (m → k)).symm
 
 /--
 These are merely linear instead of continuous-linear because
 .toContinuousLinearMap only works on Cauchy-complete spaces.
 -/
 noncomputable
-def rotMℚ (θ φ : ℚ) : ℚ³ →ₗ[ℚ] ℚ² :=
-  rotMℚ_mat θ φ |>.toEuclideanLin'
+def rotMℚ (θ φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  rotMℚ_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
