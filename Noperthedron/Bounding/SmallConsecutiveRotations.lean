@@ -223,15 +223,10 @@ lemma two_mul_one_sub_cos_le (x : ℝ) : 2 * (1 - Real.cos x) ≤ x^2 := by
   linarith only
 
 lemma two_mul_one_sub_cos_eq_imp {x : ℝ} (hx : 2 * (1 - Real.cos x) = x^2) : x = 0 := by
+  by_contra hx_zero
   have h_cos_sq : 1 - Real.cos x = 2 * Real.sin (x / 2) ^ 2 := by
-    simpa only [Real.sin_sq, Real.cos_sq] using by ring_nf
-  by_cases hx_zero : x = 0
-  · exact hx_zero
-  · have h_sin_sq : Real.sin (x / 2) ^ 2 < (x / 2) ^ 2 := by
-      have h_sin_sq : ∀ y : ℝ, y ≠ 0 → Real.sin y ^ 2 < y ^ 2 := by
-        exact fun y a ↦ sin_sq_lt_sq a
-      exact h_sin_sq _ ( div_ne_zero hx_zero two_ne_zero );
-    nlinarith [ mul_self_pos.mpr hx_zero ];
+    rw [Real.sin_sq, Real.cos_sq]; ring_nf
+  linarith [sin_sq_lt_sq (div_ne_zero hx_zero two_ne_zero)]
 
 theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖ = √(α^2 + β^2) ↔ (α = 0 ∧ β = 0) := by
