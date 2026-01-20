@@ -230,21 +230,16 @@ lemma two_mul_one_sub_cos_eq_imp {x : ℝ} (hx : 2 * (1 - Real.cos x) = x^2) : x
 
 theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖ = √(α^2 + β^2) ↔ (α = 0 ∧ β = 0) := by
-  constructor
-  · intro h_eq
-    have h_eq_norm_sq : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) =
-                        α^2 + β^2 := by
+  refine ⟨fun h_eq ↦ ?_, fun ⟨hα, hβ⟩ ↦ ?_⟩
+  · have h1 : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) = α^2 + β^2 := by
       rw [←norm_rot3_comp_rot3_sq d_ne_d', h_eq, Real.sq_sqrt (by positivity)]
-    have ⟨hα, hβ⟩ : 2 * (1 - Real.cos α) = α^2 ∧ 2 * (1 - Real.cos β) = β^2 := by
-      have h_eq_cos_sq : 2 * (1 - Real.cos α) ≤ α^2 ∧ 2 * (1 - Real.cos β) ≤ β^2 := by
-        exact ⟨two_mul_one_sub_cos_le α, two_mul_one_sub_cos_le β⟩
-      constructor <;> nlinarith [sq_nonneg ( Real.cos α - 1 ),
-        sq_nonneg ( Real.cos β - 1 ), Real.cos_sq' α, Real.cos_sq' β ]
-    exact ⟨two_mul_one_sub_cos_eq_imp hα, two_mul_one_sub_cos_eq_imp hβ⟩
-  · rintro ⟨hα, hβ⟩
-    rw [hα, hβ]
-    simp only [AddChar.map_zero_eq_one, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow,
-      add_zero, sqrt_zero, norm_eq_zero]
+    have h2 : 0 ≤ (1 - Real.cos α) * (1 - Real.cos β) :=
+      mul_nonneg (by linarith [Real.cos_le_one α]) (by linarith [Real.cos_le_one β])
+    have h3 : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) =
+        2 * (1 - Real.cos α) + 2 * (1 - Real.cos β) - (1 - Real.cos α) * (1 - Real.cos β) := by ring
+    constructor <;> apply two_mul_one_sub_cos_eq_imp <;>
+      linarith [two_mul_one_sub_cos_le α, two_mul_one_sub_cos_le β]
+  · simp only [hα, hβ, AddChar.map_zero_eq_one, sq, mul_zero, add_zero, sqrt_zero, norm_eq_zero]
     exact sub_self (ContinuousLinearMap.comp 1 1)
 
 end Bounding
