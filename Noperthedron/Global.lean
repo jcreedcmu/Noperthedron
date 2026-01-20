@@ -248,7 +248,9 @@ theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose} {ε : ℝ} {p
 lemma Differentiable.rotprojRM (S : ℝ³) :
     Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
   unfold _root_.rotprojRM
-  sorry
+  rw [differentiable_piLp]
+  intro i
+  fin_cases i <;> simp [rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
 
 @[fun_prop]
 lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_inner S w) :=
