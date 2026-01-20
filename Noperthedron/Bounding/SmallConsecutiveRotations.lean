@@ -192,36 +192,24 @@ The squared norm of the difference between the composition of two rotations and 
 -/
 theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖^2 = 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) := by
-      -- Use `rot3_rot3_orth_equiv_rotz` to write the composition as `U RzL(γ) U⁻¹`.
-      obtain ⟨u, γ, hγ, h_comp⟩ : ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
-        rot3 d α ∘L rot3 d' β =
-          u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
-            exact rot3_rot3_orth_equiv_rotz;
-      -- The norm is invariant under unitary conjugation, so ‖rot3 ... - 1‖ = ‖RzL γ - 1‖.
-      have h_norm_inv : ‖(u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap) - 1‖ = ‖RzL γ - 1‖ := by
-        have h_norm_inv : ∀ (A : EuclideanSpace ℝ (Fin 3) →L[ℝ] EuclideanSpace ℝ (Fin 3)), ‖u.toLinearIsometry.toContinuousLinearMap ∘L A ∘L u.symm.toLinearIsometry.toContinuousLinearMap‖ = ‖A‖ := by
-          intro A;
-          refine' le_antisymm _ _ <;> refine' ContinuousLinearMap.opNorm_le_bound _ _ _ <;> norm_num
-          · intro x
-            simpa [u.norm_map, u.symm.norm_map] using A.le_opNorm (u.symm x)
-          · intro x
-            have := ContinuousLinearMap.le_opNorm ( u.toLinearIsometry.toContinuousLinearMap.comp ( A.comp u.symm.toLinearIsometry.toContinuousLinearMap ) ) ( u x ) ; aesop;
-        convert h_norm_inv ( RzL γ - 1 ) using 2 ; ext ; simp +decide [ sub_eq_add_neg ];
-      -- We know ‖RzL γ - 1‖ = 2 |sin(γ/2)|, so ‖...‖^2 = 4 sin^2(γ/2) = 2(1 - cos γ).
-      have h_norm_sq : ‖RzL γ - 1‖^2 = 2 * (1 - Real.cos γ) := by
-        have h_norm_sq : ‖RzL γ - 1‖ = 2 * |Real.sin (γ / 2)| := by
-          have := @Bounding.dist_rot3 2 γ 0; aesop;
-        rw [h_norm_sq, mul_pow, sq_abs, Real.sin_sq, Real.cos_sq]
-        ring_nf
-      -- Also `tr (rot3 ...) = tr (RzL γ) = 1 + 2 cos γ`.
-      have h_trace : tr (rot3 d α ∘L rot3 d' β) = 1 + 2 * Real.cos γ := by
-        convert tr_RzL using 1
-        convert LinearMap.trace_conj' _ _ using 2; aesop
-      rw [ h_comp, h_norm_inv, h_norm_sq ]
-      -- Substitute the trace into the equation.
-      have h_subst : tr (rot3 d α ∘L rot3 d' β) = Real.cos α + Real.cos β + Real.cos α * Real.cos β := by
-        exact tr_rot3_rot3 h
-      linarith
+  obtain ⟨u, γ, _, h_comp⟩ := rot3_rot3_orth_equiv_rotz (α := α) (β := β) (d := d) (d' := d')
+  have h_norm_conj (A : Euc(3) →L[ℝ] Euc(3)) :
+      ‖u.toLinearIsometry.toContinuousLinearMap ∘L A ∘L
+       u.symm.toLinearIsometry.toContinuousLinearMap‖ = ‖A‖ := by
+    rw [LinearIsometry.norm_toContinuousLinearMap_comp,
+        ContinuousLinearMap.opNorm_comp_linearIsometryEquiv]
+  have h_norm_eq : ‖(u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L
+      u.symm.toLinearIsometry.toContinuousLinearMap) - 1‖ = ‖RzL γ - 1‖ := by
+    convert h_norm_conj (RzL γ - 1) using 2; ext; simp [sub_eq_add_neg]
+  have h_norm_sq : ‖RzL γ - 1‖^2 = 2 * (1 - Real.cos γ) := by
+    have h_norm : ‖RzL γ - 1‖ = 2 * |Real.sin (γ / 2)| := by
+      have := @Bounding.dist_rot3 2 γ 0; aesop
+    rw [h_norm, mul_pow, sq_abs, Real.sin_sq, Real.cos_sq]; ring_nf
+  have h_trace : tr (rot3 d α ∘L rot3 d' β) = 1 + 2 * Real.cos γ := by
+    convert tr_RzL using 1
+    convert LinearMap.trace_conj' _ _ using 2; aesop
+  rw [h_comp, h_norm_eq, h_norm_sq]
+  linarith [tr_rot3_rot3 (α := α) (β := β) h, h_trace]
 
 end AristotleLemmas
 
