@@ -33,6 +33,14 @@ def MatVec.compB {n m : ℕ} (mv : MatVec n m) : Euc(m) →L[ℝ] Euc(n) :=
   | cons tl _ B => tl.compB ∘L B
 
 @[simp]
+noncomputable
+def MatVec.valA (mv : MatVec 1 1) : ℝ :=  mv.compA (EuclideanSpace.single 0 1) 0
+
+@[simp]
+noncomputable
+def MatVec.valB (mv : MatVec 1 1) : ℝ :=  mv.compB (EuclideanSpace.single 0 1) 0
+
+@[simp]
 def MatVec.size {n m : ℕ} (mv : MatVec n m) : ℕ :=
   match mv with
   | nil  => 0
@@ -104,5 +112,22 @@ def norm_sub_le_prod {n m : ℕ} (mv : MatVec n m)
          ring_nf
          apply le_refl
     simp [le_refl]
+
+def norm_sub_le_prod1 (mv : MatVec 1 1)
+    (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ) :
+    |mv.valA - mv.valB| ≤ mv.size * κ * mv.maxNormList.prod := by
+  simp only [MatVec.valA, Fin.isValue, MatVec.valB]
+  have (v w : Euc(1)) : ‖v - w‖ = |v 0 - w 0| := by
+    rw [PiLp.norm_eq_of_L2]
+    simp only [Finset.univ_unique, Fin.default_eq_zero, Fin.isValue, PiLp.sub_apply,
+      Real.norm_eq_abs, sq_abs, Finset.sum_singleton]
+    exact Real.sqrt_sq_eq_abs (v.ofLp 0 - w.ofLp 0)
+  rw [← this]
+  calc ‖mv.compA (EuclideanSpace.single 0 1) - mv.compB (EuclideanSpace.single 0 1)‖
+  _ = ‖(mv.compA - mv.compB) (EuclideanSpace.single 0 1)‖ := by rfl
+  _ ≤ ‖(mv.compA - mv.compB)‖ * ‖EuclideanSpace.single 0 1‖ :=
+    (mv.compA - mv.compB).le_opNorm _
+  _ ≤ ‖(mv.compA - mv.compB)‖ := by simp
+  _ ≤ ↑mv.size * κ * mv.maxNormList.prod := norm_sub_le_prod mv κ κ_pos hκ
 
 end RationalApprox
