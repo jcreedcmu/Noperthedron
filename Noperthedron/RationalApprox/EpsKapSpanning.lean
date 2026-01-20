@@ -1,6 +1,7 @@
-import Noperthedron.Basic
-import Noperthedron.RationalApprox.Basic
+import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Noperthedron.Local.EpsSpanning
+import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.Lemma42
 
 namespace RationalApprox
@@ -24,6 +25,38 @@ structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where
 def κApproxTri (A : Local.Triangle) (A' : RationalApprox.Triangle) : Prop :=
   ∀ i, ‖A i - (↑(A' i) : ℝ³)‖ ≤ κ
 
+@[simp]
+lemma norm_transpose_euc_lin {n m : ℕ} (M : Matrix (Fin n) (Fin m) ℝ) :
+    ‖Mᵀ.toEuclideanLin.toContinuousLinearMap‖ = ‖M.toEuclideanLin.toContinuousLinearMap‖ := by
+  calc ‖Mᵀ.toEuclideanLin.toContinuousLinearMap‖
+  _ = ‖Mᴴ.toEuclideanLin.toContinuousLinearMap‖ := by rw [Matrix.conjTranspose_eq_transpose_of_trivial]
+  _ = ‖M.toEuclideanLin.adjoint.toContinuousLinearMap‖ := by rw [Matrix.toEuclideanLin_conjTranspose_eq_adjoint]
+  _ = ‖M.toEuclideanLin.toContinuousLinearMap.adjoint‖ := rfl
+  _ = ‖M.toEuclideanLin.toContinuousLinearMap‖ := LinearIsometryEquiv.norm_map ContinuousLinearMap.adjoint _
+
+def matOfVec {n : ℕ} (v : Euc(n)) : Matrix (Fin 1) (Fin n) ℝ := fun _ii jj => v jj
+def matOfCovec {n : ℕ} (v : Euc(n)) : Matrix (Fin n) (Fin 1) ℝ := fun ii _jj => v ii
+
+noncomputable
+def mapOfVec {n : ℕ} (v : Euc(n)) : Euc(n) →L[ℝ] Euc(1) := matOfVec v |>.toEuclideanLin.toContinuousLinearMap
+noncomputable
+def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) := matOfCovec v |>.toEuclideanLin.toContinuousLinearMap
+
+@[simp]
+lemma norm_map_vec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfVec v‖ = ‖v‖ := by
+  sorry
+
+@[simp]
+lemma norm_map_covec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfCovec v‖ = ‖v‖ := by
+  sorry
+
+lemma bound_rotM (θ φ : ℝ) : ‖rotM θ φ‖ ≤ 1 + κ := by
+  norm_num [Bounding.rotM_norm_one, κ]
+
+lemma bound_rotMℚ (θ φ : ℝ) : ‖rotMℚ θ φ‖ ≤ 1 + κ := by sorry
+
+lemma bound_rotR (α : ℝ) : ‖rotR α‖ ≤ 1 := by exact le_of_eq (Bounding.rotR_norm_one α)
+
 /- [SY25 Lemma 46] -/
 theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Triangle)
     (hk : κApproxTri P P') (θ φ ε : ℝ) (hspan : P'.Spanning θ φ ε) : P.Spanning θ φ ε := by
@@ -38,14 +71,47 @@ theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Tri
         sub_le_of_abs_sub_le_left h
       _ > 2 * ε * (√2 + ε) := lt_tsub_of_add_lt_right (hspan.lt i)
 
-    let mv : MatVec 1 1 := sorry -- (A) P (i + 1)ᵀ ∘ (rotM θ φ)ᵀ ∘ rotR (π / 2) ∘ rotM θ φ ∘ P i
-                                 -- (B) P' (i + 1)ᵀ ∘ (rotMℚ θ φ)ᵀ ∘ rotR (π / 2) ∘ rotMℚ θ φ ∘ P' i
-    have hmvs : mv.size = 5 := by sorry
-    have hnlp : mv.maxNormList.prod = (1 + κ)^4 := by sorry
-    have hva : ⟪(rotR (π / 2)) ((rotM θ φ) (P i)), (rotM θ φ) (P (i + 1))⟫ = mv.valA := by sorry
-    have hvb : ⟪(rotR (π / 2)) (rotMℚ θ φ (P' i)), rotMℚ θ φ (P' (i + 1))⟫ = mv.valB := by sorry
-    have hdbb : mv.DiffBoundedBy κ := by sorry
+    -- (A) P (i + 1)ᵀ ∘ (rotM θ φ)ᵀ ∘ rotR (π / 2) ∘ rotM θ φ ∘ P i
+    -- (B) P' (i + 1)ᵀ ∘ (rotMℚ θ φ)ᵀ ∘ rotR (π / 2) ∘ rotMℚ θ φ ∘ P' i
+    let mv := ⟦
+      mapOfVec (P i),
+      mapOfVec (P' i),
+      (rotM_mat θ φ)ᵀ.toEuclideanLin.toContinuousLinearMap,
+      (rotMℚ_mat θ φ)ᵀ.toEuclideanLin.toContinuousLinearMap,
+      rotR (π / 2), rotR (π / 2),
+      rotM θ φ,
+      rotMℚ θ φ,
+      mapOfCovec (P i),
+      mapOfCovec (P' i)
+    ⟧
+
+    have bound_P (i : Fin 3) : ‖P i‖ ≤ 1 + κ := by
+      sorry
+    have bound_P' (i : Fin 3) : ‖WithLp.toLp 2 fun x ↦ ↑((P' i).ofLp x)‖ ≤ 1 + κ := by
+      sorry
+    have hmvs : mv.size = 5 := by simp [mv]
+    have hanb : MatVec.allNormsBelow mv [1 + κ, 1 + κ, 1, 1 + κ, 1 + κ] := by
+      simp only [MatVec.allNormsBelow, List.reverse_cons, List.reverse_nil, List.nil_append,
+        List.cons_append, MatVec.allNormsBelow.go, true_and, and_self, mv, norm_transpose_euc_lin,
+        norm_map_vec_eq_norm_vec, norm_map_covec_eq_norm_vec]
+      exact ⟨⟨⟨⟨⟨bound_P' i, bound_P i⟩, ⟨bound_rotMℚ θ φ, bound_rotM θ φ⟩⟩, bound_rotR (π / 2)⟩,
+        ⟨bound_rotMℚ θ φ, bound_rotM θ φ⟩⟩, ⟨bound_P' i, bound_P i⟩⟩
+    have hva : ⟪(rotR (π / 2)) ((rotM θ φ) (P i)), (rotM θ φ) (P (i + 1))⟫ = mv.valA := by
+      simp [MatVec.valA, mv, MatVec.compA]
+      sorry
+    have hvb : ⟪(rotR (π / 2)) (rotMℚ θ φ (P' i)), rotMℚ θ φ (P' (i + 1))⟫ = mv.valB := by
+      simp [MatVec.valB, mv, MatVec.compB]
+      sorry
+    have hdbb : mv.DiffBoundedBy κ := by
+      simp [MatVec.DiffBoundedBy, mv]
+      clear hvb hva hanb hmvs mv
+      split_ands
+      · sorry
+      · sorry
+      · sorry
+      · sorry
+      · sorry
     suffices h : |mv.valA - mv.valB| ≤ 6 * κ by simpa [hva, hvb] using h
-    grw [norm_sub_le_prod1 mv κ (by norm_num [κ]) hdbb]
-    rw [hmvs, hnlp]
+    grw [norm_sub_le_bound1 mv κ (by norm_num [κ]) hdbb hanb]
+    rw [hmvs]
     norm_num [κ]

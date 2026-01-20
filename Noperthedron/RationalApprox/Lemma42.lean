@@ -15,6 +15,15 @@ def MatVec.maxNormList {n m : ℕ} (mv : MatVec n m) : List ℝ := match mv with
   | .cons tl A B => tl.maxNormList ++ [max (max ‖A‖ ‖B‖) 1]
 
 @[simp]
+noncomputable
+def MatVec.allNormsBelow {n m : ℕ} (mv : MatVec n m) (bs : List ℝ) : Prop := go mv bs.reverse where
+  go : {n m : ℕ} → MatVec n m → List ℝ → Prop := fun
+  | .nil, [] => True
+  | .cons tl A B, b::bsr => go tl bsr ∧ ‖A‖ ≤ b ∧ ‖B‖ ≤ b
+  | .nil, _::_ => False
+  | .cons _ _ _, [] => False
+
+@[simp]
 def MatVec.DiffBoundedBy {n m : ℕ} (mv : MatVec n m) (κ : ℝ) : Prop :=
   match mv with
   | .nil => True
@@ -75,7 +84,7 @@ lemma MatVec.maxNormList_non_neg {m n : ℕ} (mv : MatVec n m) :
     exact tl.maxNormList_non_neg
 
 /-- [SY25] Lemma 42 -/
-def norm_sub_le_prod {n m : ℕ} (mv : MatVec n m)
+lemma norm_sub_le_prod {n m : ℕ} (mv : MatVec n m)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ) :
     ‖mv.compA - mv.compB‖ ≤ mv.size * κ * mv.maxNormList.prod := by
   induction mv with
@@ -113,7 +122,19 @@ def norm_sub_le_prod {n m : ℕ} (mv : MatVec n m)
          apply le_refl
     simp [le_refl]
 
-def norm_sub_le_prod1 (mv : MatVec 1 1)
+lemma allNormsBelow_def {n m : ℕ} (mv : MatVec n m)
+    (κ : ℝ) (κ_pos : κ > 0)
+    {bs : List ℝ} (hb : mv.allNormsBelow bs) :
+    mv.maxNormList.prod ≤ bs.prod := by
+  sorry
+
+lemma norm_sub_le_bound {n m : ℕ} (mv : MatVec n m)
+    (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ)
+    {bs : List ℝ} (hb : mv.allNormsBelow bs) :
+    ‖mv.compA - mv.compB‖ ≤ mv.size * κ * bs.prod := by
+  grw [norm_sub_le_prod mv κ κ_pos hκ, allNormsBelow_def mv κ κ_pos hb]
+
+lemma norm_sub_le_prod1 (mv : MatVec 1 1)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ) :
     |mv.valA - mv.valB| ≤ mv.size * κ * mv.maxNormList.prod := by
   simp only [MatVec.valA, Fin.isValue, MatVec.valB]
@@ -130,4 +151,24 @@ def norm_sub_le_prod1 (mv : MatVec 1 1)
   _ ≤ ‖(mv.compA - mv.compB)‖ := by simp
   _ ≤ ↑mv.size * κ * mv.maxNormList.prod := norm_sub_le_prod mv κ κ_pos hκ
 
+lemma norm_sub_le_bound1 (mv : MatVec 1 1)
+    (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ)
+    {bs : List ℝ} (hb : mv.allNormsBelow bs) :
+    |mv.valA - mv.valB| ≤ mv.size * κ * bs.prod := by
+  grw [norm_sub_le_prod1 mv κ κ_pos hκ, allNormsBelow_def mv κ κ_pos hb]
+
 end RationalApprox
+
+syntax "⟦" term,* "⟧" : term
+
+def buildMatVec (ps : List (List (Lean.Syntax))) : Lean.MacroM (Lean.Syntax) :=
+    match ps with
+    | [] => ``(RationalApprox.MatVec.nil)
+    | [a, b] :: rest => do
+      let tail ← buildMatVec rest
+      ``(RationalApprox.MatVec.cons $(⟨tail⟩) $(⟨a⟩) $(⟨b⟩))
+    | _ => Lean.Macro.throwError s!"MatVec list should have an even number of elements"
+
+macro_rules
+  | `(⟦$rest,*⟧) =>
+    buildMatVec (rest.getElems.toList.reverse.toChunks 2)
