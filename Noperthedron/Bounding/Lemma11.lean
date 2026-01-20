@@ -39,22 +39,11 @@ noncomputable
 def sin_sub_mul_cos (x : ℝ) : ℝ := sin x - x * cos x
 
 lemma sin_sub_mul_cos_monotone_on : MonotoneOn sin_sub_mul_cos (Set.Icc 0 π) := by
-  apply monotoneOn_of_deriv_nonneg
-  · apply convex_Icc
-  · apply Continuous.continuousOn
-    unfold sin_sub_mul_cos
-    continuity
-  · unfold sin_sub_mul_cos
-    fun_prop
-  simp only [interior_Icc, Set.mem_Ioo]
-  intro x x_in
+  refine monotoneOn_of_deriv_nonneg (convex_Icc 0 π)
+    (by unfold sin_sub_mul_cos; fun_prop) (by unfold sin_sub_mul_cos; fun_prop) fun x hx => ?_
+  simp only [interior_Icc, Set.mem_Ioo] at hx
   unfold sin_sub_mul_cos
-  simp only [differentiableAt_sin, differentiableAt_fun_id, differentiableAt_cos,
-    DifferentiableAt.fun_mul, deriv_fun_sub, Real.deriv_sin, deriv_fun_mul, deriv_id'', one_mul,
-    deriv_cos', mul_neg, sub_add_cancel_left, neg_neg]
-  have := sin_pos_of_mem_Ioo x_in
-  rcases x_in with ⟨x_pos, x_lt⟩
-  positivity
+  simp [mul_nonneg hx.1.le (sin_pos_of_mem_Ioo hx).le]
 
 lemma sin_sub_mul_cos_nonneg (x : ℝ) : x ∈ Set.Icc 0 π → 0 ≤ sin_sub_mul_cos x := by
   simp only [Set.mem_Icc, and_imp]
