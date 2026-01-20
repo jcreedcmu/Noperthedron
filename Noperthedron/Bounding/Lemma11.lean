@@ -28,28 +28,13 @@ lemma cosx_cosy_pos (a b : ℝ) (a_nonneg : 0 ≤ a) (a_le : a ≤ 2) (b_nonneg 
 
 lemma cos_sqrt_pos (a b : ℝ) (a_nonneg : 0 ≤ a) (a_le : a ≤ 2) (b_nonneg : 0 ≤ b) (b_le : b ≤ 2) :
     0 ≤ cos √((a/2) ^ 2 + (b/2) ^ 2) := by
-  have : 3 < π := pi_gt_three
   apply cos_nonneg_of_mem_Icc
-  constructor
-  · calc
-      -(π/2) ≤ 0 := by linarith
-      _ = √0 := by simp
-      _ ≤ √((a/2) ^ 2 + (b/2) ^ 2) := by
-        apply sqrt_monotone
-        positivity
-  · field_simp
-    rw [sqrt_div, sqrt_sq]
-    · field_simp
-      apply le_of_lt
-      calc
-        √(a^2 + b^2) ≤ √(2^2 + 2^2) := by
-          apply sqrt_monotone
-          apply add_le_add <;> apply sq_le_sq.mpr <;> simpa [abs_of_nonneg, a_nonneg, b_nonneg]
-      _ = √8 := by ring_nf
-      _ ≤ 3 := by simp only [sqrt_le_iff, Nat.ofNat_nonneg, true_and]; norm_num
-      _ < π := by assumption
-    · norm_num
-    positivity
+  refine ⟨by linarith [pi_pos, sqrt_nonneg ((a/2) ^ 2 + (b/2) ^ 2)], le_of_lt ?_⟩
+  have h1 : (a / 2) ^ 2 ≤ 1 := (sq_le_one_iff₀ (by linarith)).mpr (by linarith)
+  have h2 : (b / 2) ^ 2 ≤ 1 := (sq_le_one_iff₀ (by linarith)).mpr (by linarith)
+  calc √((a / 2) ^ 2 + (b / 2) ^ 2) ≤ √2 := sqrt_le_sqrt (by linarith)
+    _ < 3 / 2 := sqrt_two_lt_three_halves
+    _ < π / 2 := by linarith [pi_gt_three]
 
 noncomputable
 def sin_sub_mul_cos (x : ℝ) : ℝ := sin x - x * cos x
