@@ -11,10 +11,8 @@ open Real
 lemma one_add_cos_eq (a : ℝ) : 1 + cos a = 2 * cos (a / 2) ^ 2 := by
   rw [cos_sq]; field_simp
 
-lemma lemma11_1_1 (a b : ℝ) : cos (√(a ^ 2 + b ^ 2) / 2) ^ 2 = cos (√((-a) ^ 2 + b ^ 2) / 2) ^ 2 := by simp
-lemma lemma11_1_2 (a b : ℝ) : cos (√(a ^ 2 + b ^ 2) / 2) ^ 2 = cos (√(a ^ 2 + (-b) ^ 2) / 2) ^ 2 := by simp
-lemma lemma11_1_3 (a b : ℝ) : cos (a / 2) ^ 2 * cos (b / 2) ^ 2 = cos ((-a) / 2) ^ 2 * cos (b / 2) ^ 2 := by simp only [neg_div, cos_neg]
-lemma lemma11_1_4 (a b : ℝ) : cos (a / 2) ^ 2 * cos (b / 2) ^ 2 = cos (a / 2) ^ 2 * cos ((-b) / 2) ^ 2 := by simp only [neg_div, cos_neg]
+private lemma cos_half_abs (x : ℝ) : cos (x / 2) = cos (|x| / 2) := by
+  rw [← cos_abs, abs_div, abs_of_pos (by norm_num : (0:ℝ) < 2)]
 
 lemma cosx_cosy_pos (a b : ℝ) (a_nonneg : 0 ≤ a) (a_le : a ≤ 2) (b_nonneg : 0 ≤ b) (b_le : b ≤ 2) :
     0 ≤ cos (a / 2) * cos (b / 2) := by
@@ -188,21 +186,11 @@ theorem one_plus_cos_mul_one_plus_cos_ge' {a b : ℝ} (a_nonneg : 0 ≤ a) (a_le
 
 theorem one_plus_cos_mul_one_plus_cos_ge {a b : ℝ} (ha : |a| ≤ 2) (hb : |b| ≤ 2) :
     2 + 2 * Real.cos √(a ^ 2 + b ^ 2) ≤ (1 + Real.cos a) * (1 + Real.cos b) := by
-  repeat rw [one_add_cos_eq]
-  field_simp
-  rw [one_add_cos_eq]
-  field_simp
-  change  cos (√(a ^ 2 + b ^ 2) / 2) ^ 2 ≤ cos (a / 2) ^ 2 * cos (b / 2) ^ 2
-  revert ha hb
-  simp only [abs_le, and_imp]
-  intro le_a a_le le_b b_le
-  by_cases a_sign : 0 ≤ a <;> by_cases b_sign : 0 ≤ b
-  · exact one_plus_cos_mul_one_plus_cos_ge' a_sign a_le b_sign b_le
-  · rw [lemma11_1_2, lemma11_1_4]
-    apply one_plus_cos_mul_one_plus_cos_ge' <;> linarith
-  · rw [lemma11_1_1, lemma11_1_3]
-    apply one_plus_cos_mul_one_plus_cos_ge' <;> linarith
-  · rw [lemma11_1_1, lemma11_1_2, lemma11_1_3, lemma11_1_4]
-    apply one_plus_cos_mul_one_plus_cos_ge' <;> linarith
+  have h := one_plus_cos_mul_one_plus_cos_ge' (abs_nonneg a) ha (abs_nonneg b) hb
+  simp only [sq_abs, ← cos_half_abs] at h
+  calc 2 + 2 * cos √(a ^ 2 + b ^ 2)
+      = 4 * cos (√(a ^ 2 + b ^ 2) / 2) ^ 2 := by linarith [one_add_cos_eq (√(a ^ 2 + b ^ 2))]
+    _ ≤ 4 * (cos (a / 2) ^ 2 * cos (b / 2) ^ 2) := by linarith
+    _ = (1 + cos a) * (1 + cos b) := by simp only [one_add_cos_eq]; ring
 
 end Bounding
