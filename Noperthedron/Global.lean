@@ -69,6 +69,10 @@ noncomputable
 def rotproj_outer_unit (S : ℝ³) (w : ℝ²) (x : ℝ²) : ℝ :=
   ⟪rotM (x 0) (x 1) S, w⟫ / ‖S‖
 
+noncomputable
+def rotprojRM' (x : ℝ³) (S : ℝ³) : ℝ³ →L[ℝ] ℝ² :=
+  fderiv ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) x
+
 lemma rotation_partials_exist {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} :
     ContDiff ℝ 2 (rotproj_inner_unit S w) := by
   refine ContDiff.div ?_ contDiff_const (fun x ↦ (ne_of_lt S_nonzero).symm)
@@ -95,7 +99,10 @@ A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
 def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
-  ⟪p.inner S, w⟫ - (ε * (|⟪p.rotR' (p.rotM₁ S), w⟫| + |⟪p.rotR (p.rotM₁θ S), w⟫| + |⟪p.rotR (p.rotM₁φ S), w⟫|)
+  ⟪p.inner S, w⟫ - (ε *
+    (|⟪(rotprojRM' p.innerParams S) (EuclideanSpace.single 0 1), w⟫| +
+     |⟪(rotprojRM' p.innerParams S) (EuclideanSpace.single 1 1), w⟫| +
+     |⟪(rotprojRM' p.innerParams S) (EuclideanSpace.single 2 1), w⟫|)
   + 9 * ε^2 / 2)
 
 /--
@@ -261,26 +268,23 @@ An explicit formula for the full derivative of rotproj_inner as a function ℝ³
 -/
 noncomputable
 def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :=
-  let grad : Fin 3 → ℝ := ![
-    ⟪pbar.rotR' (pbar.rotM₁ S), w⟫,
-    ⟪pbar.rotR (pbar.rotM₁θ S), w⟫,
-    ⟪pbar.rotR (pbar.rotM₁φ S), w⟫
-  ]
-  EuclideanSpace.basisFun (Fin 3) ℝ |>.toBasis.constr ℝ grad |>.toContinuousLinearMap
-
-def rotprojRM' (S : ℝ³) : ℝ³ →L[ℝ] ℝ² := sorry
+  (fderivInnerCLM ℝ
+        ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
+    ((rotprojRM' pbar.innerParams S).prod 0)
 
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
 
-  have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' S) pbar.innerParams := by
-    sorry
+  have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S)
+      (rotprojRM' pbar.innerParams S) pbar.innerParams := by
+    simpa [rotprojRM'] using
+      (Differentiable.rotprojRM S).differentiableAt.hasFDerivAt
 
   have step :
     (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
             ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
-        ((rotprojRM' S).prod 0)) := by
-    sorry
+        ((rotprojRM' pbar.innerParams S).prod 0)) := by
+    simp [rotproj_inner']
 
   rw [step]
   exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.innerParams)
@@ -297,14 +301,14 @@ lemma fderiv_rotproj_inner_unit (pbar : Pose) (S : ℝ³) (w : ℝ²) :
 lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 0 1) =
-    ‖pc.S‖⁻¹ * ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫  := by
+    ‖pc.S‖⁻¹ * ⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 0 1), pc.w⟫  := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
-  simp [rotproj_inner']
+  simp [rotproj_inner', fderivInnerCLM_apply, ContinuousLinearMap.prod_apply]
 
 lemma partials_helper0 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 0 pc.fu pbar.innerParams =
-    ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ := by
+    ⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 0 1), pc.w⟫ := by
   have := pc.norm_S_ne_zero
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper0a]
   field_simp
@@ -312,14 +316,14 @@ lemma partials_helper0 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
 lemma partials_helper1a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 1 1) =
-    ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫  := by
+    ‖pc.S‖⁻¹ * ⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 1 1), pc.w⟫  := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
-  simp [rotproj_inner']
+  simp [rotproj_inner', fderivInnerCLM_apply, ContinuousLinearMap.prod_apply]
 
 lemma partials_helper1 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 1 pc.fu pbar.innerParams =
-    ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫ := by
+    ⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 1 1), pc.w⟫ := by
   have := pc.norm_S_ne_zero
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper1a]
   field_simp
@@ -327,14 +331,14 @@ lemma partials_helper1 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
 lemma partials_helper2a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 2 1) =
-    ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫  := by
+    ‖pc.S‖⁻¹ * ⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 2 1), pc.w⟫  := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
-  simp [rotproj_inner']
+  simp [rotproj_inner', fderivInnerCLM_apply, ContinuousLinearMap.prod_apply]
 
 lemma partials_helper2 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 2 pc.fu pbar.innerParams =
-    ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫ := by
+    ⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 2 1), pc.w⟫ := by
   have := pc.norm_S_ne_zero
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper2a]
   field_simp
@@ -353,8 +357,10 @@ lemma partials_helper4 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
 
 lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
-    |⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫| + |⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫| +
-      |⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫| = (‖pc.S‖ * ∑ i, |nth_partial i pc.fu pbar.innerParams|) := by
+    |⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 0 1), pc.w⟫| +
+      |⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 1 1), pc.w⟫| +
+      |⟪(rotprojRM' pbar.innerParams pc.S) (EuclideanSpace.single 2 1), pc.w⟫| =
+      (‖pc.S‖ * ∑ i, |nth_partial i pc.fu pbar.innerParams|) := by
   rw [Finset.mul_sum, Fin.sum_univ_three, ← abs_norm, ← abs_mul, ← abs_mul, ← abs_mul,
     partials_helper0, partials_helper1, partials_helper2]
 
