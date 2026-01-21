@@ -324,11 +324,20 @@ lemma partials_helper1 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper1a]
   field_simp
 
+lemma partials_helper2a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) :
+    (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 2 1) =
+    ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫  := by
+  rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
+  simp [rotproj_inner']
+
 lemma partials_helper2 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 2 pc.fu pbar.innerParams =
     ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫ := by
-  sorry
+  have := pc.norm_S_ne_zero
+  simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper2a]
+  field_simp
 
 lemma partials_helper3 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
