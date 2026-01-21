@@ -75,7 +75,7 @@ def BoundDelta (δ : ℝ) (p : Pose) (P Q : Triangle) : Prop :=
 
 /-- The condition on r in the Local Theorem -/
 def BoundR (r ε : ℝ) (p : Pose) (Q : Triangle): Prop :=
-  ∀ i : Fin 3, ‖p.rotM₂ (Q i)‖ > r + ε * √2
+  ∀ i : Fin 3, ‖p.rotM₂ (Q i)‖ > r + √2 * ε
 
 --- XXX: this is a leftover shim that should be cleaned up
 noncomputable
@@ -166,6 +166,31 @@ theorem local_theorem (P Q : Triangle)
       use c, hc₁
       simp [hc₂, map_sum, map_smul, ←hPQ_]
   have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
+    -- apply lemma 15
+    have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := by
+      apply Bounding.norm_M_apply_gt _ hε _ _ (hr₁ i)
+      · rw [polyhedron_radius_iff] at radius_one
+        exact radius_one.2 _ (hQ i)
+      · have := closed_ball_imp_outer_params_near hΨ₁ 0
+        simp only [Fin.isValue, Pose.outerParams, Matrix.cons_val_zero] at this
+        rwa [abs_sub_comm]
+      · have := closed_ball_imp_outer_params_near hΨ₁ 1
+        simp only [Fin.isValue, Pose.outerParams] at this
+        rwa [abs_sub_comm]
+    let T : Euc(2) := ((1:ℝ)/2) • (p_.rotR (p_.rotM₁ (P i)) + p_.rotM₂ (Q i))
+    have hT : ‖T - p_.rotM₂ (Q i)‖ ≤ δ := by
+      unfold T
+      nth_rw 2 [show p_.rotM₂ (Q i) = (1:ℝ) • p_.rotM₂ (Q i) by simp]
+      nth_rw 2 [show (1:ℝ) = ((1:ℝ) / 2) * 2 by norm_num]
+      rw [mul_smul, ←smul_sub]
+      nth_rw 2 [show (2:ℝ) = 1 + 1 by norm_num]
+      rw [add_smul, one_smul]
+      simp only [add_sub_add_right_eq_sub]
+      rw [norm_smul, Real.norm_eq_abs, show |(1:ℝ)/2| = (1:ℝ)/2 by norm_num]
+      specialize hδ i
+      linarith
+    -- apply lemma 30
+    have := @inCirc
     sorry
   have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
   have h₃ := langles hYZ h₁.1 h₁.2
