@@ -104,10 +104,7 @@ theorem converted_pose_outer_shadow_eq (v : Pose) (S : Set ℝ³) :
 
 theorem converted_pose_rupert_iff (v : Pose) (S : Set ℝ³) :
     RupertPose v S ↔ RupertPose (v.matrixPoseOfPose) S := by
-  constructor; all_goals
-  · unfold RupertPose
-    rw [converted_pose_inner_shadow_eq, converted_pose_outer_shadow_eq]
-    exact id
+  simp [RupertPose, converted_pose_inner_shadow_eq, converted_pose_outer_shadow_eq]
 
 /-- For any unit vector v, there exist angles α, β such that Rz(α) * Ry(β) is in SO3
 and maps e₃ to v. Uses spherical coordinates: θ = arccos(v₂), ϕ = arg(v₀ + v₁·i).
