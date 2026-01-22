@@ -125,11 +125,11 @@ theorem local_theorem (P Q : Triangle)
   have hP_ (i) : ‖P_ i‖ ≤ 1 := by
     rw [norm_smul, Real.norm_eq_abs]
     grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
-    simp [radius_one, mul_one]
+    simp [radius_one]
   have hQ_ (i) : ‖Q_ i‖ ≤ 1 := by
     rw [norm_smul, Real.norm_eq_abs]
     grw [polyhedron_vertex_norm_le_radius poly ne (hQ i)]
-    simp [radius_one, mul_one]
+    simp [radius_one]
   have hPQ_ (i) : P_ i = K (Q_ i) := by
     simp [P_, Q_, K]
     rw [smul_smul, hL]
@@ -161,13 +161,7 @@ theorem local_theorem (P Q : Triangle)
     have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
     have h₃ := langles hYZ h₁.1 h₁.2
     simp only [real_inner_comm Y, real_inner_comm Z] at h₃
-    obtain h₃ | h₃ | h₃ := h₃
-    · specialize h₂ 0
-      exact lt_iff_not_ge.mp h₂ h₃
-    · specialize h₂ 1
-      exact lt_iff_not_ge.mp h₂ h₃
-    · specialize h₂ 2
-      exact lt_iff_not_ge.mp h₂ h₃
+    obtain h₃ | h₃ | h₃ := h₃ <;> exact lt_iff_not_ge.mp (h₂ _) h₃
   intro i
   rw [polyhedron_radius_iff] at radius_one
   have hQ₁ := radius_one.2 _ (hQ i)
@@ -265,7 +259,7 @@ theorem local_theorem (P Q : Triangle)
   have hZQ_sign : 0 < (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by simp only [Q_, real_inner_smul_right] at hZQ_pos; exact hZQ_pos
   have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := by rw [← h_YP]; exact hYP_pos
   calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ = |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := (abs_of_pos hZQ_sign).symm
-    _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
-    _ < |⟪Y, P i⟫| := by nlinarith [sq_abs ⟪vecX p.θ₂ p.φ₂, Q i⟫, sq_abs ⟪Y, P i⟫, abs_nonneg ⟪vecX p.θ₂ p.φ₂, Q i⟫, abs_nonneg ⟪Y, P i⟫]
-    _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
+    _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_neg_one_zpow, one_mul]
+    _ < |⟪Y, P i⟫| := sq_lt_sq.mp h_inner_sq
+    _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_neg_one_zpow, one_mul]
     _ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := abs_of_pos hYP_sign
