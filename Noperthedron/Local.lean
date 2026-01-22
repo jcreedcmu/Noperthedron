@@ -115,6 +115,11 @@ theorem local_theorem (P Q : Triangle)
     specialize hδ 0; linarith only [hδ, norm_nonneg (p_.rotR (p_.rotM₁ (P 0)) - p_.rotM₂ (Q 0))]
   have hY : ‖Y‖ = 1 := by simp [Y, vecX_norm_one]
   have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, vecX_norm_one]
+  have hα : |p.α - p_.α| ≤ ε := mem_closed_ball_abs_sub_α hΨ₁
+  have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closed_ball_abs_sub_θ₁ hΨ₁
+  have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closed_ball_abs_sub_φ₁ hΨ₁
+  have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := mem_closed_ball_abs_sub_θ₂ hΨ₁
+  have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := mem_closed_ball_abs_sub_φ₂ hΨ₁
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
   have hP_ (i) : ‖P_ i‖ ≤ 1 := by
@@ -135,17 +140,13 @@ theorem local_theorem (P Q : Triangle)
     norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
     constructor
-    · have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closed_ball_abs_sub_θ₁ hΨ₁
-      have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closed_ball_abs_sub_φ₁ hΨ₁
-      have h₄ (i) : 0 < ⟪vecX p.θ₁ p.φ₁, P_ i⟫ := by
+    · have h₄ (i) : 0 < ⟪vecX p.θ₁ p.φ₁, P_ i⟫ := by
         specialize hσP₂ i
         rw [←real_inner_smul_right] at hσP₂
         exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ hσP₂
       refine vecX_spanning P_ hθ₁ hφ₁ ?_ hP_ h₄
       exact spanning_neg σP span₁
-    · have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := mem_closed_ball_abs_sub_θ₂ hΨ₁
-      have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := mem_closed_ball_abs_sub_φ₂ hΨ₁
-      have h₅ (i) : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
+    · have h₅ (i) : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
         specialize hσQ₂ i
         rw [←real_inner_smul_right] at hσQ₂
         exact Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂ hσQ₂
@@ -156,125 +157,121 @@ theorem local_theorem (P Q : Triangle)
       obtain ⟨c, hc₁, hc₂⟩ := h₆
       use c, hc₁
       simp [hc₂, map_sum, map_smul, ←hPQ_]
-  have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
-    rw [polyhedron_radius_iff] at radius_one
-    have hQ₁ := radius_one.2 _ (hQ i)
-    have hα : |p.α - p_.α| ≤ ε := mem_closed_ball_abs_sub_α hΨ₁
-    have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closed_ball_abs_sub_θ₁ hΨ₁
-    have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closed_ball_abs_sub_φ₁ hΨ₁
-    have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := mem_closed_ball_abs_sub_θ₂ hΨ₁
-    have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := mem_closed_ball_abs_sub_φ₂ hΨ₁
-    -- apply lemma 15
-    have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
-    let T (i) : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
-    have hT : ‖T i - p_.rotM₂ (Q i)‖ ≤ δ := by
-      simp only [T, midpoint_sub_right, invOf_eq_inv]
-      rw [norm_smul, Real.norm_eq_abs, show |(2:ℝ)⁻¹| = 2⁻¹ by norm_num]
-      specialize hδ i
+  suffices h₂ : ∀ i, ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ by
+    have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
+    have h₃ := langles hYZ h₁.1 h₁.2
+    simp only [real_inner_comm Y, real_inner_comm Z] at h₃
+    obtain h₃ | h₃ | h₃ := h₃
+    · specialize h₂ 0
+      exact lt_iff_not_ge.mp h₂ h₃
+    · specialize h₂ 1
+      exact lt_iff_not_ge.mp h₂ h₃
+    · specialize h₂ 2
+      exact lt_iff_not_ge.mp h₂ h₃
+  intro i
+  rw [polyhedron_radius_iff] at radius_one
+  have hQ₁ := radius_one.2 _ (hQ i)
+  -- apply lemma 15
+  have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
+  let T (i) : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
+  have hT : ‖T i - p_.rotM₂ (Q i)‖ ≤ δ := by
+    simp only [T, midpoint_sub_right, invOf_eq_inv]
+    rw [norm_smul, Real.norm_eq_abs, show |(2:ℝ)⁻¹| = 2⁻¹ by norm_num]
+    specialize hδ i
+    linarith
+  -- apply lemma 30
+  have hP₁ := radius_one.2 _ (hP i)
+  obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
+  -- apply lemma 33
+  have h₅ (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :=
+    coss (Q := Qⱼ) hQ₁ (radius_one.2 _ hQⱼ₁) hε hθ₂ hφ₂ ?pos
+  case pos =>
+    have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
+    unfold Triangle.Bε.lhs at h₆
+    have h₇ : 0 < (δ + √5 * ε) / r := by positivity
+    unfold Pose.rotM₂ at h₆
+    exact h₇.trans h₆
+  have h₅' (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :
+      (δ + √5 * ε) / r <
+        ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - Qⱼ)⟫ /
+        (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - Qⱼ)‖) := by
+    have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
+    unfold Triangle.Bε.lhs Pose.rotM₂ at h₆
+    specialize h₅ Qⱼ hQⱼ₁ hQⱼ₂
+    linarith only [h₅, h₆]
+  -- apply lemma 32
+  let pm : Finset Euc(2) := Finset.image (rotM p.θ₂ p.φ₂) poly
+  have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) (T i) pm := by
+    refine inner_ge_implies_LMD (r := r) ?_ ?_ hr h₃ ?_
+    · simp only [Finset.mem_image, pm]
+      exact ⟨Q i, hQ i, rfl⟩
+    · simp only [T, Pose.rotR, Pose.rotM₁, Pose.rotM₂]
+      rw [Metric.mem_ball, dist_eq_norm, norm_sub_rev] at hd₂
+      rw [add_comm, norm_sub_rev]
+      exact hd₂
+    · intro Pᵢ hPᵢ hPᵢQ
+      simp only [Finset.mem_image, pm] at hPᵢ
+      obtain ⟨q, hq₁, hq₂⟩ := hPᵢ
+      have hqQ : q ≠ Q i := by
+        intro heq
+        rw [heq] at hq₂
+        exact hPᵢQ hq₂.symm
+      have := h₅' q hq₁ hqQ
+      rw [← hq₂, ← map_sub]
       linarith
-    -- apply lemma 30
-    have hP₁ := radius_one.2 _ (hP i)
-    obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
-    -- apply lemma 33
-    have h₅ (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :=
-      coss (Q := Qⱼ) hQ₁ (radius_one.2 _ hQⱼ₁) hε hθ₂ hφ₂ ?pos
-    case pos =>
-      have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
-      unfold Triangle.Bε.lhs at h₆
-      have h₇ : 0 < (δ + √5 * ε) / r := by positivity
-      unfold Pose.rotM₂ at h₆
-      exact h₇.trans h₆
-    have h₅' (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :
-        (δ + √5 * ε) / r <
-          ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - Qⱼ)⟫ /
-          (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - Qⱼ)‖) := by
-      have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
-      unfold Triangle.Bε.lhs Pose.rotM₂ at h₆
-      specialize h₅ Qⱼ hQⱼ₁ hQⱼ₂
-      linarith only [h₅, h₆]
-    -- apply lemma 32
-    let pm : Finset Euc(2) := Finset.image (rotM p.θ₂ p.φ₂) poly
-    have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) (T i) pm := by
-      refine inner_ge_implies_LMD (r := r) ?_ ?_ hr h₃ ?_
-      · simp only [Finset.mem_image, pm]
-        exact ⟨Q i, hQ i, rfl⟩
-      · simp only [T, Pose.rotR, Pose.rotM₁, Pose.rotM₂]
-        rw [Metric.mem_ball, dist_eq_norm, norm_sub_rev] at hd₂
-        rw [add_comm, norm_sub_rev]
-        exact hd₂
-      · intro Pᵢ hPᵢ hPᵢQ
-        simp only [Finset.mem_image, pm] at hPᵢ
-        obtain ⟨q, hq₁, hq₂⟩ := hPᵢ
-        have hqQ : q ≠ Q i := by
-          intro heq
-          rw [heq] at hq₂
-          exact hPᵢQ hq₂.symm
-        have := h₅' q hq₁ hqQ
-        rw [← hq₂, ← map_sub]
-        linarith
-    -- Step 1: Show rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (interior of pm)
-    have h_in_interior_outer : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ interior (convexHull ℝ (↑pm : Set ℝ²)) := by
-      have h_inner_in_closure : p.inner (P i) ∈ closure (innerShadow p (shape_of poly).hull) := by
-        rw [Pose.inner_shadow_eq_img_inner]
-        exact subset_closure (Set.mem_image_of_mem _ (subset_convexHull ℝ _ (hP i)))
-      have h_outer_eq : outerShadow p (shape_of poly).hull = convexHull ℝ (↑pm : Set ℝ²) := by
-        rw [Pose.outer_shadow_eq_M]
-        have hpm : (↑pm : Set ℝ²) = p.rotM₂ '' ↑poly := by simp only [pm, Finset.coe_image, Pose.rotM₂]
-        rw [hpm]
-        exact AffineMap.image_convexHull p.rotM₂.toAffineMap (↑poly)
-      have h_inner_eq : p.inner (P i) = rotR p.α (rotM p.θ₁ p.φ₁ (P i)) := by
-        simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
-      rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
-    -- Step 2: Combine with hd₁ to get sect membership, apply LMD for norm bound
-    have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (δ + √5 * ε) (T i) pm :=
-      ⟨by rw [add_comm]; exact hd₁, h_in_interior_outer⟩
-    have h_norm_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := by
-      rw [← Bounding.rotR_preserves_norm p.α]; exact h₈ _ h_sect
-    -- Step 3: Apply pythagoras to convert norm bounds to inner product bounds
-    have h_inner_sq : ⟪vecX p.θ₂ p.φ₂, Q i⟫^2 < ⟪Y, P i⟫^2 := by
-      have h_pyth₁ := Local.pythagoras (θ := p.θ₁) (φ := p.φ₁) (P i)
-      have h_pyth₂ := Local.pythagoras (θ := p.θ₂) (φ := p.φ₂) (Q i)
-      have h_norm_eq : ‖P i‖ = ‖Q i‖ := by rw [hL i]; exact LinearIsometry.norm_map L (Q i)
-      have h_sq_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖^2 < ‖rotM p.θ₂ p.φ₂ (Q i)‖^2 := by
-        have h1 : 0 ≤ ‖rotM p.θ₁ p.φ₁ (P i)‖ := norm_nonneg _
-        have h2 : 0 ≤ ‖rotM p.θ₂ p.φ₂ (Q i)‖ := norm_nonneg _
-        nlinarith [sq_nonneg (‖rotM p.θ₂ p.φ₂ (Q i)‖ - ‖rotM p.θ₁ p.φ₁ (P i)‖)]
-      -- pythagoras gives: ‖rotM θ φ P‖² = ‖P‖² - ⟪vecX θ φ, P⟫²
-      -- So: ‖P‖² - ⟪Y, P i⟫² < ‖Q‖² - ⟪vecX θ₂ φ₂, Q i⟫² with ‖P‖ = ‖Q‖
-      nlinarith [sq_nonneg ⟪Y, P i⟫, sq_nonneg ⟪vecX p.θ₂ p.φ₂, Q i⟫]
-    -- Step 4: Handle sign conventions using |(-1)^σ * x| = |x|
-    have hYP_pos : 0 < ⟪Y, P_ i⟫ := by
-      have h_eq : ⟪vecX p_.θ₁ p_.φ₁, P_ i⟫ = (-1 : ℝ)^σP * ⟪p_.vecX₁, P i⟫ := by simp only [P_, real_inner_smul_right, Pose.vecX₁]
-      exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ (by rw [h_eq]; exact hσP₂ i)
-    have hZQ_pos : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
-      have h_eq : ⟪vecX p_.θ₂ p_.φ₂, Q_ i⟫ = (-1 : ℝ)^σQ * ⟪p_.vecX₂, Q i⟫ := by simp only [Q_, real_inner_smul_right, Pose.vecX₂]
-      exact Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂ (by rw [h_eq]; exact hσQ₂ i)
-    -- ⟪Z, P_ i⟫ = (-1)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ and ⟪Y, P_ i⟫ = (-1)^σP * ⟪Y, P i⟫
-    have h_ZP : ⟪Z, P_ i⟫ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
-      simp only [Z, K, P_, ContinuousLinearMap.coe_smul', Pi.smul_apply,
-        LinearIsometry.coe_toContinuousLinearMap, inner_smul_left, real_inner_smul_right, RCLike.conj_to_real]
-      rw [hL i, L.inner_map_map]
-      have h_exp : (-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP = (-1 : ℝ)^σQ := by
-        rw [← zpow_add₀ (by norm_num : (-1 : ℝ) ≠ 0), show σP + σQ + σP = 2 * σP + σQ by ring,
-            zpow_add₀ (by norm_num), zpow_mul]; norm_num
-      rw [←mul_assoc, h_exp]
-    have h_YP : ⟪Y, P_ i⟫ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := by simp only [P_, real_inner_smul_right]
-    rw [h_ZP, h_YP]
-    -- Both sides positive after sign, compare via absolute values
-    have hZQ_sign : 0 < (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by simp only [Q_, real_inner_smul_right] at hZQ_pos; exact hZQ_pos
-    have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := by rw [← h_YP]; exact hYP_pos
-    calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ = |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := (abs_of_pos hZQ_sign).symm
-      _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
-      _ < |⟪Y, P i⟫| := by nlinarith [sq_abs ⟪vecX p.θ₂ p.φ₂, Q i⟫, sq_abs ⟪Y, P i⟫, abs_nonneg ⟪vecX p.θ₂ p.φ₂, Q i⟫, abs_nonneg ⟪Y, P i⟫]
-      _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
-      _ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := abs_of_pos hYP_sign
-  have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
-  have h₃ := langles hYZ h₁.1 h₁.2
-  simp only [real_inner_comm Y, real_inner_comm Z] at h₃
-  obtain h₃ | h₃ | h₃ := h₃
-  · specialize h₂ 0
-    exact lt_iff_not_ge.mp h₂ h₃
-  · specialize h₂ 1
-    exact lt_iff_not_ge.mp h₂ h₃
-  · specialize h₂ 2
-    exact lt_iff_not_ge.mp h₂ h₃
+  -- Step 1: Show rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (interior of pm)
+  have h_in_interior_outer : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ interior (convexHull ℝ (↑pm : Set ℝ²)) := by
+    have h_inner_in_closure : p.inner (P i) ∈ closure (innerShadow p (shape_of poly).hull) := by
+      rw [Pose.inner_shadow_eq_img_inner]
+      exact subset_closure (Set.mem_image_of_mem _ (subset_convexHull ℝ _ (hP i)))
+    have h_outer_eq : outerShadow p (shape_of poly).hull = convexHull ℝ (↑pm : Set ℝ²) := by
+      rw [Pose.outer_shadow_eq_M]
+      have hpm : (↑pm : Set ℝ²) = p.rotM₂ '' ↑poly := by simp only [pm, Finset.coe_image, Pose.rotM₂]
+      rw [hpm]
+      exact AffineMap.image_convexHull p.rotM₂.toAffineMap (↑poly)
+    have h_inner_eq : p.inner (P i) = rotR p.α (rotM p.θ₁ p.φ₁ (P i)) := by
+      simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
+    rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
+  -- Step 2: Combine with hd₁ to get sect membership, apply LMD for norm bound
+  have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (δ + √5 * ε) (T i) pm :=
+    ⟨by rw [add_comm]; exact hd₁, h_in_interior_outer⟩
+  have h_norm_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := by
+    rw [← Bounding.rotR_preserves_norm p.α]; exact h₈ _ h_sect
+  -- Step 3: Apply pythagoras to convert norm bounds to inner product bounds
+  have h_inner_sq : ⟪vecX p.θ₂ p.φ₂, Q i⟫^2 < ⟪Y, P i⟫^2 := by
+    have h_pyth₁ := Local.pythagoras (θ := p.θ₁) (φ := p.φ₁) (P i)
+    have h_pyth₂ := Local.pythagoras (θ := p.θ₂) (φ := p.φ₂) (Q i)
+    have h_norm_eq : ‖P i‖ = ‖Q i‖ := by rw [hL i]; exact LinearIsometry.norm_map L (Q i)
+    have h_sq_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖^2 < ‖rotM p.θ₂ p.φ₂ (Q i)‖^2 := by
+      have h1 : 0 ≤ ‖rotM p.θ₁ p.φ₁ (P i)‖ := norm_nonneg _
+      have h2 : 0 ≤ ‖rotM p.θ₂ p.φ₂ (Q i)‖ := norm_nonneg _
+      nlinarith [sq_nonneg (‖rotM p.θ₂ p.φ₂ (Q i)‖ - ‖rotM p.θ₁ p.φ₁ (P i)‖)]
+    -- pythagoras gives: ‖rotM θ φ P‖² = ‖P‖² - ⟪vecX θ φ, P⟫²
+    -- So: ‖P‖² - ⟪Y, P i⟫² < ‖Q‖² - ⟪vecX θ₂ φ₂, Q i⟫² with ‖P‖ = ‖Q‖
+    nlinarith [sq_nonneg ⟪Y, P i⟫, sq_nonneg ⟪vecX p.θ₂ p.φ₂, Q i⟫]
+  -- Step 4: Handle sign conventions using |(-1)^σ * x| = |x|
+  have hYP_pos : 0 < ⟪Y, P_ i⟫ := by
+    have h_eq : ⟪vecX p_.θ₁ p_.φ₁, P_ i⟫ = (-1 : ℝ)^σP * ⟪p_.vecX₁, P i⟫ := by simp only [P_, real_inner_smul_right, Pose.vecX₁]
+    exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ (by rw [h_eq]; exact hσP₂ i)
+  have hZQ_pos : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
+    have h_eq : ⟪vecX p_.θ₂ p_.φ₂, Q_ i⟫ = (-1 : ℝ)^σQ * ⟪p_.vecX₂, Q i⟫ := by simp only [Q_, real_inner_smul_right, Pose.vecX₂]
+    exact Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂ (by rw [h_eq]; exact hσQ₂ i)
+  -- ⟪Z, P_ i⟫ = (-1)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ and ⟪Y, P_ i⟫ = (-1)^σP * ⟪Y, P i⟫
+  have h_ZP : ⟪Z, P_ i⟫ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
+    simp only [Z, K, P_, ContinuousLinearMap.coe_smul', Pi.smul_apply,
+      LinearIsometry.coe_toContinuousLinearMap, inner_smul_left, real_inner_smul_right, RCLike.conj_to_real]
+    rw [hL i, L.inner_map_map]
+    have h_exp : (-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP = (-1 : ℝ)^σQ := by
+      rw [← zpow_add₀ (by norm_num : (-1 : ℝ) ≠ 0), show σP + σQ + σP = 2 * σP + σQ by ring,
+          zpow_add₀ (by norm_num), zpow_mul]; norm_num
+    rw [←mul_assoc, h_exp]
+  have h_YP : ⟪Y, P_ i⟫ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := by simp only [P_, real_inner_smul_right]
+  rw [h_ZP, h_YP]
+  -- Both sides positive after sign, compare via absolute values
+  have hZQ_sign : 0 < (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by simp only [Q_, real_inner_smul_right] at hZQ_pos; exact hZQ_pos
+  have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := by rw [← h_YP]; exact hYP_pos
+  calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ = |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := (abs_of_pos hZQ_sign).symm
+    _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
+    _ < |⟪Y, P i⟫| := by nlinarith [sq_abs ⟪vecX p.θ₂ p.φ₂, Q i⟫, sq_abs ⟪Y, P i⟫, abs_nonneg ⟪vecX p.θ₂ p.φ₂, Q i⟫, abs_nonneg ⟪Y, P i⟫]
+    _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
+    _ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := abs_of_pos hYP_sign
