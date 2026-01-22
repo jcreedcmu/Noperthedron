@@ -238,11 +238,10 @@ theorem local_theorem (P Q : Triangle)
     have h_pyth₁ := Local.pythagoras (θ := p.θ₁) (φ := p.φ₁) (P i)
     have h_pyth₂ := Local.pythagoras (θ := p.θ₂) (φ := p.φ₂) (Q i)
     have h_norm_eq : ‖P i‖ = ‖Q i‖ := by rw [hL i]; exact LinearIsometry.norm_map L (Q i)
-    have h_sq_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖^2 < ‖rotM p.θ₂ p.φ₂ (Q i)‖^2 :=
-      (sq_lt_sq₀ (norm_nonneg _) (norm_nonneg _)).mpr h_norm_bound
+    rw [←sq_lt_sq₀ (norm_nonneg _) (norm_nonneg _)] at h_norm_bound
     -- pythagoras gives: ‖rotM θ φ P‖² = ‖P‖² - ⟪vecX θ φ, P⟫²
     -- So: ‖P‖² - ⟪Y, P i⟫² < ‖Q‖² - ⟪vecX θ₂ φ₂, Q i⟫² with ‖P‖ = ‖Q‖
-    simp only [h_pyth₁, h_pyth₂, h_norm_eq] at h_sq_bound
+    simp only [h_pyth₁, h_pyth₂, h_norm_eq] at h_norm_bound
     linarith
   -- Step 4: Handle sign conventions using |(-1)^σ * x| = |x|
   have hYP_pos : 0 < ⟪Y, P_ i⟫ := by
