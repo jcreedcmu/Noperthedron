@@ -230,6 +230,14 @@ noncomputable
 def vecX (θ : ℝ) (φ : ℝ) : ℝ³ :=
   !₂[ cos θ * sin φ, sin θ * sin φ, cos φ ]
 
+noncomputable
+def vecX_mat (θ : ℝ) (φ : ℝ) : Matrix (Fin 3) (Fin 1) ℝ :=
+  !![ cos θ * sin φ; sin θ * sin φ; cos φ ]
+
+noncomputable
+def vecXL (θ : ℝ) (φ : ℝ) : Euc(1) →L[ℝ] ℝ³ :=
+  vecX_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
+
 -- [SY25] § 1.1 Definition 2
 noncomputable
 def rotM_mat (θ : ℝ) (φ : ℝ) : Matrix (Fin 2) (Fin 3) ℝ :=

@@ -85,6 +85,10 @@ def rotR'ℚ_mat {k : Type} [Field k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
   !![-sinℚ α, -cosℚ α;
      cosℚ α,  -sinℚ α]
 
+noncomputable
+def vecXℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 3) (Fin 1) k :=
+  !![ cosℚ θ * sinℚ φ; sinℚ θ * sinℚ φ; cosℚ φ ]
+
 /--
 These are merely linear instead of continuous-linear because
 .toContinuousLinearMap only works on Cauchy-complete spaces.
@@ -108,3 +112,7 @@ def rotRℚ (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
 noncomputable
 def rotR'ℚ (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
   rotR'ℚ_mat α |>.toEuclideanLin.toContinuousLinearMap
+
+noncomputable
+def vecXLℚ (θ φ : ℝ) : Euc(1) →L[ℝ] ℝ³ :=
+  vecXℚ_mat θ φ |>.toEuclideanLin.toContinuousLinearMap

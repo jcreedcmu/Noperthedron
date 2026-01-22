@@ -337,6 +337,9 @@ def rotMφ_approx : Matrix (Fin 2) (Fin 3) DistLeKappaEntry :=
   !![(.msin, .zero), (.cos, .zero), (.zero, .zero);
      (.mcos, .msin), (.msin, .msin), (.one, .cos)]
 
+def vecX_approx : Matrix (Fin 3) (Fin 1) DistLeKappaEntry :=
+  !![ (.cos, .sin); (.sin, .sin); (.one, .cos) ]
+
 /-- Proof of [SY25] Lemma 41 -/
 theorem R_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR α - rotRℚ α‖ ≤ κ := by
   let z_ : Set.Icc (-4 : ℝ) 4 := ⟨0, by norm_num⟩
@@ -430,3 +433,23 @@ theorem Mφ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
 
   exact norm_matrix_actual_approx_le_kappa (m := ⟨2, by norm_num⟩) (n := ⟨3, by norm_num⟩)
     rotMφ_approx θ_ φ_
+
+theorem X_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
+    (hφ : φ ∈ Set.Icc (-4) 4) : ‖vecXL θ φ - vecXLℚ θ φ‖ ≤ κ := by
+  let θ_ : Set.Icc (-4 : ℝ) 4 := ⟨θ, hθ⟩
+  let φ_ : Set.Icc (-4 : ℝ) 4 := ⟨φ, hφ⟩
+
+  have h : vecXL θ φ = clinActual vecX_approx θ_ φ_ := by
+    simp only [vecXL, vecX_mat, clinActual, vecX_approx,  θ_, φ_,
+        EmbeddingLike.apply_eq_iff_eq,]
+    ext i j; fin_cases i <;> fin_cases j <;> simp
+  rw [h]
+
+  have h : vecXLℚ θ φ = clinApprox vecX_approx θ_ φ_ := by
+    simp only [vecXLℚ, vecXℚ_mat, clinApprox, vecX_approx, θ_, φ_,
+        EmbeddingLike.apply_eq_iff_eq,]
+    ext i j; fin_cases i <;> fin_cases j <;> simp
+  rw [h]
+
+  exact norm_matrix_actual_approx_le_kappa (m := ⟨3, by norm_num⟩) (n := ⟨1, by norm_num⟩)
+    vecX_approx θ_ φ_
