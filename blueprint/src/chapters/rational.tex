@@ -84,6 +84,16 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
 
 
 \begin{corollary} \label{corr:kappa1kappa}
+\leanok
+\lean{
+RationalApprox.R_difference_norm_bounded,
+RationalApprox.R'_difference_norm_bounded,
+RationalApprox.M_difference_norm_bounded,
+RationalApprox.Mθ_difference_norm_bounded,
+RationalApprox.Mφ_difference_norm_bounded,
+RationalApprox.X_difference_norm_bounded,
+RationalApprox.Rℚ_norm_bounded,
+RationalApprox.Mℚ_norm_bounded }
     Let $\alpha,\theta,\phi\in [-4,4]$. Then it holds that
     \begin{align*}
         \|R(\alpha)-R_{\Q}(\alpha)\|, \|R'(\alpha)-R_{\Q}'(\alpha)\|,\|X(\theta,\phi)-X_{\Q}(\theta, \phi)\|, \|M(\theta, \phi)-M_{\Q}(\theta, \phi)\|, \\
@@ -91,14 +101,23 @@ Let $A = (a_{i,j})_{1 \leq i \leq m,\ 1 \leq j \leq n} \in \R^{m \times n}$ and 
         \|M^\phi(\theta,\phi) - M_{\Q}^\phi(\theta,\phi)\|\leq \kappa.
     \end{align*}
     Moreover,
+    %% \[
+    %%     \|R_{\Q}(\alpha)\|, \|R'_{\Q}(\alpha)\|, \|X_{\Q}(\theta, \phi)\|, \|M_{\Q}(\theta, \phi)\|, \|M_{\Q}^{\theta}(\theta,\varphi)\|, \|M_{\Q}^{\phi}(\theta,\varphi)\| \leq 1+\kappa
+    %% \]
     \[
-        \|R_{\Q}(\alpha)\|, \|R'_{\Q}(\alpha)\|, \|X_{\Q}(\theta, \phi)\|, \|M_{\Q}(\theta, \phi)\|, \|M_{\Q}^{\theta}(\theta,\varphi)\|, \|M_{\Q}^{\phi}(\theta,\varphi)\| \leq 1+\kappa
+        \|R_{\Q}(\alpha)\|,  \|M_{\Q}(\theta, \phi)\| \leq 1+\kappa
     \]
 \end{corollary}
 
 \begin{proof}
+\leanok
 \uses{lem:dist_le_kappa,lem:RaRalpha}
     The first statement is a direct application of \cref{lem:dist_le_kappa} and the second statement follows immediately after using \cref{lem:RaRalpha} and the triangle inequality.
+
+Note: the original paper's Corollary 41 makes a stronger claim that the norms of the derivatives of the rotation matrices are
+bounded by $1 + \kappa$ as well. This doesn't directly follow from \cref{lem:RaRalpha} as currently
+stated. If we need these other bounds, we should strengthen \cref{lem:RaRalpha} to
+assert that the derivatives' operator norms are at most 1.
 \end{proof}
 
 \begin{lemma} \label{lem:A1AnB1Bn}
