@@ -3,6 +3,7 @@ import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Noperthedron.Local.EpsSpanning
 import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.Lemma42
+import Noperthedron.RationalApprox.MatrixBounds
 
 namespace RationalApprox
 
@@ -53,13 +54,13 @@ lemma norm_map_covec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfCovec v‖ = �
 lemma bound_rotM (θ φ : ℝ) : ‖rotM θ φ‖ ≤ 1 + κ := by
   norm_num [Bounding.rotM_norm_one, κ]
 
-lemma bound_rotMℚ (θ φ : ℝ) : ‖rotMℚ θ φ‖ ≤ 1 + κ := by sorry
-
 lemma bound_rotR (α : ℝ) : ‖rotR α‖ ≤ 1 := by exact le_of_eq (Bounding.rotR_norm_one α)
 
 /- [SY25 Lemma 46] -/
 theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Triangle)
-    (hk : κApproxTri P P') (θ φ ε : ℝ) (hspan : P'.Spanning θ φ ε) : P.Spanning θ φ ε := by
+    (hk : κApproxTri P P') {θ φ ε : ℝ}
+    (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4)
+    (hspan : P'.Spanning θ φ ε) : P.Spanning θ φ ε := by
   constructor
   · exact hspan.pos
   · have lt := hspan.lt
@@ -94,8 +95,10 @@ theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Tri
       simp only [MatVec.allNormsBelow, List.reverse_cons, List.reverse_nil, List.nil_append,
         List.cons_append, MatVec.allNormsBelow.go, true_and, and_self, mv, norm_transpose_euc_lin,
         norm_map_vec_eq_norm_vec, norm_map_covec_eq_norm_vec]
-      exact ⟨⟨⟨⟨⟨bound_P' i, bound_P i⟩, ⟨bound_rotMℚ θ φ, bound_rotM θ φ⟩⟩, bound_rotR (π / 2)⟩,
-        ⟨bound_rotMℚ θ φ, bound_rotM θ φ⟩⟩, ⟨bound_P' i, bound_P i⟩⟩
+      exact ⟨⟨⟨⟨
+        ⟨bound_P' i, bound_P i⟩,
+        ⟨Mℚ_norm_bounded hθ hφ, bound_rotM θ φ⟩⟩, bound_rotR (π / 2)⟩,
+        ⟨Mℚ_norm_bounded hθ hφ, bound_rotM θ φ⟩⟩, ⟨bound_P' i, bound_P i⟩⟩
     have hva : ⟪(rotR (π / 2)) ((rotM θ φ) (P i)), (rotM θ φ) (P (i + 1))⟫ = mv.valA := by
       simp [MatVec.valA, mv, MatVec.compA]
       sorry

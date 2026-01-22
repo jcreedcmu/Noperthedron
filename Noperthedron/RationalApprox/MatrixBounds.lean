@@ -145,7 +145,7 @@ theorem Rℚ_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotRℚ 
   _ = 1        + ‖rotR α - rotRℚ α‖ := by rw [Bounding.rotR_norm_one]
   _ ≤ 1 + κ := by grw [R_difference_norm_bounded α hα]
 
-theorem Mℚ_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotMℚ θ φ‖ ≤ 1 + κ := by
+theorem Mℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotMℚ θ φ‖ ≤ 1 + κ := by
   calc ‖rotMℚ θ φ‖
   _ ≤ ‖rotM θ φ‖ + ‖rotM θ φ - rotMℚ θ φ‖ := norm_le_insert (rotM θ φ) (rotMℚ θ φ)
   _ = 1        + ‖rotM θ φ - rotMℚ θ φ‖ := by rw [Bounding.rotM_norm_one]
