@@ -20,19 +20,70 @@ def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) :=
 def LocallyMaximallyDistant (δ : ℝ) (Q Q_ : Euc(2)) (P : Finset Euc(2)) : Prop :=
   ∀ A ∈ sect δ Q_ P, ‖A‖ < ‖Q‖
 
-/-- A vertex of a finite set cannot be in the interior of its convex hull.
-    Proof sketch: If Q ∈ interior(convexHull P), then there exists ε > 0 such that
-    B(Q, ε) ⊆ convexHull P. But since Q ∈ P, we can find a direction v (normal to a
-    supporting hyperplane at Q) such that Q + δv ∉ convexHull P for any δ > 0.
-    This contradicts Q being in the interior.
+/--
+If all other vertices Pᵢ satisfy ⟪Q, Q - Pᵢ⟫ > 0 (i.e., they're in a strict half-space),
+then Q cannot be in the interior of convexHull P.
 
-    TODO: Formalize using either:
-    - The fact that Q is an extreme point of convexHull P (via extremePoints_convexHull_subset)
-    - Direct argument about supporting hyperplanes
-    - Characterization of interior via relative interior -/
-private lemma vertex_not_in_interior_convexHull {P : Finset Euc(2)} {Q : Euc(2)} (hQ : Q ∈ P) :
+Proof: The condition implies P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}, so convexHull P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}.
+But Q is on the boundary of this half-space, so Q ∉ interior(convexHull P).
+-/
+private lemma angle_condition_implies_not_interior {P : Finset Euc(2)} {Q : Euc(2)}
+    (_hQ : Q ∈ P) (hQ_ne_zero : Q ≠ 0)
+    (h_angle : ∀ Pᵢ ∈ P, Pᵢ ≠ Q → ⟪Q, Q - Pᵢ⟫ > 0) :
     Q ∉ interior (convexHull ℝ (P : Set Euc(2))) := by
-  sorry
+  intro hQ_int
+  -- From h_angle: all Pᵢ ≠ Q satisfy ⟪Q, Pᵢ⟫ < ‖Q‖²
+  have h_halfspace : ∀ Pᵢ ∈ P, ⟪Q, Pᵢ⟫ ≤ ‖Q‖^2 := by
+    intro Pᵢ hPᵢ
+    by_cases heq : Pᵢ = Q
+    · simp [heq, inner_self_eq_norm_sq_to_K]
+    · have h1 := h_angle Pᵢ hPᵢ heq
+      simp only [inner_sub_right] at h1
+      have h2 : ⟪Q, Q⟫ = ‖Q‖^2 := inner_self_eq_norm_sq_to_K Q
+      linarith
+  -- convexHull P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}
+  have h_hull_in_halfspace : convexHull ℝ (P : Set Euc(2)) ⊆ {x : Euc(2) | ⟪Q, x⟫ ≤ ‖Q‖^2} := by
+    apply convexHull_min
+    · intro x hx
+      simp only [Set.mem_setOf_eq]
+      exact h_halfspace x hx
+    · -- The half-space {x : ⟪Q, x⟫ ≤ c} is convex
+      intro x hx y hy a b ha hb hab
+      simp only [Set.mem_setOf_eq] at hx hy ⊢
+      calc ⟪Q, a • x + b • y⟫ = a * ⟪Q, x⟫ + b * ⟪Q, y⟫ := by
+              simp [inner_add_right, inner_smul_right]
+        _ ≤ a * ‖Q‖^2 + b * ‖Q‖^2 := by nlinarith
+        _ = (a + b) * ‖Q‖^2 := by ring
+        _ = ‖Q‖^2 := by rw [hab, one_mul]
+  -- Q ∈ interior(convexHull P) means there's an open set U with Q ∈ U ⊆ convexHull P
+  rw [mem_interior] at hQ_int
+  obtain ⟨U, hU_sub, hU_open, hQ_in_U⟩ := hQ_int
+  -- Since U is open and Q ∈ U, there exists ε > 0 such that B(Q, ε) ⊆ U
+  rw [Metric.isOpen_iff] at hU_open
+  obtain ⟨ε, hε_pos, hball_sub_U⟩ := hU_open Q hQ_in_U
+  -- Consider Q + (ε/2) * (Q / ‖Q‖) - this is in B(Q, ε) ⊆ U ⊆ convexHull P
+  have hQ_pos : 0 < ‖Q‖ := norm_pos_iff.mpr hQ_ne_zero
+  let v := (ε / (2 * ‖Q‖)) • Q  -- direction scaled to have norm ε/2
+  have hv_norm : ‖v‖ = ε / 2 := by
+    simp only [v, norm_smul, Real.norm_of_nonneg (by positivity : 0 ≤ ε / (2 * ‖Q‖))]
+    field_simp
+  have hQv_in_ball : Q + v ∈ Metric.ball Q ε := by
+    simp only [Metric.mem_ball, dist_eq_norm, add_sub_cancel_left, hv_norm]
+    linarith
+  have hQv_in_hull : Q + v ∈ convexHull ℝ (P : Set Euc(2)) :=
+    hU_sub (hball_sub_U hQv_in_ball)
+  -- But ⟪Q, Q + v⟫ > ‖Q‖², contradicting Q + v ∈ convexHull P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}
+  have hQv_inner : ⟪Q, Q + v⟫ = ‖Q‖^2 + (ε / 2) * ‖Q‖ := by
+    simp only [v, inner_add_right, inner_smul_right]
+    have h_inner_Q : ⟪Q, Q⟫ = ‖Q‖^2 := inner_self_eq_norm_sq_to_K Q
+    rw [h_inner_Q]
+    field_simp
+  have hQv_gt : ⟪Q, Q + v⟫ > ‖Q‖^2 := by
+    rw [hQv_inner]
+    have : (ε / 2) * ‖Q‖ > 0 := by positivity
+    linarith
+  have hQv_le : ⟪Q, Q + v⟫ ≤ ‖Q‖^2 := h_hull_in_halfspace hQv_in_hull
+  linarith
 
 /--
 Key algebraic identity: ‖A‖² - ‖Q‖² = 2⟪Q, A - Q⟫ + ‖A - Q‖²
@@ -190,10 +241,18 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
         rw [← sub_eq_zero]
         exact (norm_eq_zero (E := Euc(2))).mp hAQ_zero
       rw [hAQ_eq] at hA_interior
-      -- Q ∈ P means Q is a vertex, so Q ∉ interior (convexHull ℝ P)
-      -- This requires proving that vertices are extreme points and extreme points
-      -- are not interior points. For now we use sorry.
-      exact absurd hA_interior (vertex_not_in_interior_convexHull hQ)
+      -- The angle condition implies ⟪Q, Q - Pᵢ⟫ > 0 for all Pᵢ ≠ Q
+      have h_angle : ∀ Pᵢ ∈ P, Pᵢ ≠ Q → ⟪Q, Q - Pᵢ⟫ > 0 := by
+        intro Pᵢ hPᵢ hne
+        have h := hle Pᵢ hPᵢ hne
+        have hQPᵢ_pos : 0 < ‖Q - Pᵢ‖ := norm_sub_pos_iff.mpr hne.symm
+        have hdenom_pos : 0 < ‖Q‖ * ‖Q - Pᵢ‖ := mul_pos hQ_pos hQPᵢ_pos
+        have h' := (le_div_iff₀ hdenom_pos).mp h
+        have hδr_pos : 0 < δ / r := div_pos hδ_pos hr
+        calc ⟪Q, Q - Pᵢ⟫ ≥ δ / r * (‖Q‖ * ‖Q - Pᵢ‖) := h'
+          _ > 0 := by positivity
+      have hQ_ne_zero : Q ≠ 0 := norm_pos_iff.mp hQ_pos
+      exact absurd hA_interior (angle_condition_implies_not_interior hQ hQ_ne_zero h_angle)
     · -- If ‖A - Q‖ > 0
       have h_AQ_pos : 0 < ‖A - Q‖ := lt_of_le_of_ne h_AQ_nonneg (Ne.symm hAQ_zero)
       -- Use the bound
