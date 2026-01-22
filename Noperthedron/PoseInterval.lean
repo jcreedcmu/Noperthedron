@@ -132,6 +132,24 @@ lemma closed_ball_imp_inner_params_near {p q : Pose} {ε : ℝ}
   obtain ⟨⟨_, _⟩, _, ⟨_, _⟩, _, ⟨_, _⟩⟩ := hq
   fin_cases i <;> (simp [Pose.innerParams, abs_sub_le_iff]; grind)
 
+lemma mem_closed_ball_abs_sub_α {p q : Pose} {ε : ℝ}
+    (hq : p ∈ q.closed_ball ε) : |p.α - q.α| ≤ ε := by
+  have := closed_ball_imp_inner_params_near hq 0
+  rw [abs_sub_comm] at this
+  simpa [Pose.innerParams] using this
+
+lemma mem_closed_ball_abs_sub_θ₁ {p q : Pose} {ε : ℝ}
+    (hq : p ∈ q.closed_ball ε) : |p.θ₁ - q.θ₁| ≤ ε := by
+  have := closed_ball_imp_inner_params_near hq 1
+  rw [abs_sub_comm] at this
+  simpa [Pose.innerParams] using this
+
+lemma mem_closed_ball_abs_sub_φ₁ {p q : Pose} {ε : ℝ}
+    (hq : p ∈ q.closed_ball ε) : |p.φ₁ - q.φ₁| ≤ ε := by
+  have := closed_ball_imp_inner_params_near hq 2
+  rw [abs_sub_comm] at this
+  simpa [Pose.innerParams] using this
+
 lemma closed_ball_imp_outer_params_near {p q : Pose} {ε : ℝ}
     (hq : q ∈ p.closed_ball ε) :
     ∀ i, |p.outerParams.ofLp i - q.outerParams.ofLp i| ≤ ε := by
@@ -139,3 +157,15 @@ lemma closed_ball_imp_outer_params_near {p q : Pose} {ε : ℝ}
   simp [Pose.closed_ball, Membership.mem, PoseInterval.contains] at hq
   obtain ⟨_, ⟨_, _⟩, _, ⟨_, _⟩, _⟩ := hq
   fin_cases i <;> (simp [Pose.outerParams, abs_sub_le_iff]; grind)
+
+lemma mem_closed_ball_abs_sub_θ₂ {p q : Pose} {ε : ℝ}
+    (hq : p ∈ q.closed_ball ε) : |p.θ₂ - q.θ₂| ≤ ε := by
+  have := closed_ball_imp_outer_params_near hq 0
+  rw [abs_sub_comm] at this
+  simpa [Pose.innerParams] using this
+
+lemma mem_closed_ball_abs_sub_φ₂ {p q : Pose} {ε : ℝ}
+    (hq : p ∈ q.closed_ball ε) : |p.φ₂ - q.φ₂| ≤ ε := by
+  have := closed_ball_imp_outer_params_near hq 1
+  rw [abs_sub_comm] at this
+  simpa [Pose.innerParams] using this

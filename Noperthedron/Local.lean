@@ -135,28 +135,16 @@ theorem local_theorem (P Q : Triangle)
     norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
     constructor
-    · have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := by
-        have := closed_ball_imp_inner_params_near hΨ₁ 1
-        simp [Pose.innerParams] at this
-        rwa [abs_sub_comm]
-      have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := by
-        have := closed_ball_imp_inner_params_near hΨ₁ 2
-        simp [Pose.innerParams] at this
-        rwa [abs_sub_comm]
+    · have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closed_ball_abs_sub_θ₁ hΨ₁
+      have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closed_ball_abs_sub_φ₁ hΨ₁
       have h₄ (i) : 0 < ⟪vecX p.θ₁ p.φ₁, P_ i⟫ := by
         specialize hσP₂ i
         rw [←real_inner_smul_right] at hσP₂
         exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ hσP₂
       refine vecX_spanning P_ hθ₁ hφ₁ ?_ hP_ h₄
       exact spanning_neg σP span₁
-    · have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := by
-        have := closed_ball_imp_outer_params_near hΨ₁ 0
-        simp [Pose.outerParams] at this
-        rwa [abs_sub_comm]
-      have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := by
-        have := closed_ball_imp_outer_params_near hΨ₁ 1
-        simp [Pose.outerParams] at this
-        rwa [abs_sub_comm]
+    · have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := mem_closed_ball_abs_sub_θ₂ hΨ₁
+      have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := mem_closed_ball_abs_sub_φ₂ hΨ₁
       have h₅ (i) : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
         specialize hσQ₂ i
         rw [←real_inner_smul_right] at hσQ₂
@@ -171,26 +159,11 @@ theorem local_theorem (P Q : Triangle)
   have h₂ (i) : ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ := by
     rw [polyhedron_radius_iff] at radius_one
     have hQ₁ := radius_one.2 _ (hQ i)
-    have hα : |p.α - p_.α| ≤ ε := by
-      have := closed_ball_imp_inner_params_near hΨ₁ 0
-      simp only [Fin.isValue, Pose.innerParams] at this
-      rwa [abs_sub_comm]
-    have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := by
-      have := closed_ball_imp_inner_params_near hΨ₁ 1
-      simp only [Fin.isValue, Pose.innerParams] at this
-      rwa [abs_sub_comm]
-    have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := by
-      have := closed_ball_imp_inner_params_near hΨ₁ 2
-      simp only [Fin.isValue, Pose.innerParams] at this
-      rwa [abs_sub_comm]
-    have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := by
-      have := closed_ball_imp_outer_params_near hΨ₁ 0
-      simp only [Fin.isValue, Pose.outerParams, Matrix.cons_val_zero] at this
-      rwa [abs_sub_comm]
-    have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := by
-      have := closed_ball_imp_outer_params_near hΨ₁ 1
-      simp only [Fin.isValue, Pose.outerParams] at this
-      rwa [abs_sub_comm]
+    have hα : |p.α - p_.α| ≤ ε := mem_closed_ball_abs_sub_α hΨ₁
+    have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closed_ball_abs_sub_θ₁ hΨ₁
+    have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closed_ball_abs_sub_φ₁ hΨ₁
+    have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := mem_closed_ball_abs_sub_θ₂ hΨ₁
+    have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := mem_closed_ball_abs_sub_φ₂ hΨ₁
     -- apply lemma 15
     have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
     let T (i) : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
