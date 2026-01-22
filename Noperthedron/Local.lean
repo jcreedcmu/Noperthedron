@@ -117,6 +117,14 @@ theorem local_theorem (P Q : Triangle)
   have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, vecX_norm_one]
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
+  have hP_ (i) : ‖P_ i‖ ≤ 1 := by
+    rw [norm_smul, Real.norm_eq_abs]
+    grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
+    simp [radius_one, mul_one]
+  have hQ_ (i) : ‖Q_ i‖ ≤ 1 := by
+    rw [norm_smul, Real.norm_eq_abs]
+    grw [polyhedron_vertex_norm_le_radius poly ne (hQ i)]
+    simp [radius_one, mul_one]
   have hPQ_ (i) : P_ i = K (Q_ i) := by
     simp [P_, Q_, K]
     rw [smul_smul, hL]
@@ -127,11 +135,7 @@ theorem local_theorem (P Q : Triangle)
     norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
     constructor
-    · have hP_ (i) : ‖P_ i‖ ≤ 1 := by
-        rw [norm_smul, Real.norm_eq_abs]
-        grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
-        simp [radius_one, mul_one]
-      have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := by
+    · have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := by
         have := closed_ball_imp_inner_params_near hΨ₁ 1
         simp [Pose.innerParams] at this
         rwa [abs_sub_comm]
@@ -145,11 +149,7 @@ theorem local_theorem (P Q : Triangle)
         exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ hσP₂
       refine vecX_spanning P_ hθ₁ hφ₁ ?_ hP_ h₄
       exact spanning_neg σP span₁
-    · have hQ_ (i) : ‖Q_ i‖ ≤ 1 := by
-        rw [norm_smul, Real.norm_eq_abs]
-        grw [polyhedron_vertex_norm_le_radius poly ne (hQ i)]
-        simp [radius_one, mul_one]
-      have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := by
+    · have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := by
         have := closed_ball_imp_outer_params_near hΨ₁ 0
         simp [Pose.outerParams] at this
         rwa [abs_sub_comm]
@@ -271,13 +271,11 @@ theorem local_theorem (P Q : Triangle)
       nlinarith [sq_nonneg ⟪Y, P i⟫, sq_nonneg ⟪vecX p.θ₂ p.φ₂, Q i⟫]
     -- Step 4: Handle sign conventions using |(-1)^σ * x| = |x|
     have hYP_pos : 0 < ⟪Y, P_ i⟫ := by
-      have hP_norm : ‖P_ i‖ ≤ 1 := by simp only [P_, norm_smul, Real.norm_eq_abs, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]; exact radius_one.2 _ (hP i)
       have h_eq : ⟪vecX p_.θ₁ p_.φ₁, P_ i⟫ = (-1 : ℝ)^σP * ⟪p_.vecX₁, P i⟫ := by simp only [P_, real_inner_smul_right, Pose.vecX₁]
-      exact Bounding.XPgt0 hP_norm hε hθ₁ hφ₁ (by rw [h_eq]; exact hσP₂ i)
+      exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ (by rw [h_eq]; exact hσP₂ i)
     have hZQ_pos : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
-      have hQ_norm : ‖Q_ i‖ ≤ 1 := by simp only [Q_, norm_smul, Real.norm_eq_abs, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]; exact radius_one.2 _ (hQ i)
       have h_eq : ⟪vecX p_.θ₂ p_.φ₂, Q_ i⟫ = (-1 : ℝ)^σQ * ⟪p_.vecX₂, Q i⟫ := by simp only [Q_, real_inner_smul_right, Pose.vecX₂]
-      exact Bounding.XPgt0 hQ_norm hε hθ₂ hφ₂ (by rw [h_eq]; exact hσQ₂ i)
+      exact Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂ (by rw [h_eq]; exact hσQ₂ i)
     -- ⟪Z, P_ i⟫ = (-1)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ and ⟪Y, P_ i⟫ = (-1)^σP * ⟪Y, P i⟫
     have h_ZP : ⟪Z, P_ i⟫ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
       simp only [Z, K, P_, ContinuousLinearMap.coe_smul', Pi.smul_apply,
