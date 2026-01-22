@@ -171,26 +171,32 @@ lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
   exact ⟨α, β, γ, hA_eq⟩
 
 /--
-Given a MatrixPose with zero offset, there exists a 5-parameter Pose that produces
-the same rotations. This follows from the ZYZ Euler angle decomposition.
+**FALSE AS STATED**: This theorem claims that every MatrixPose with zero offset can be
+converted to a 5-parameter Pose. However, this is impossible due to degree-of-freedom mismatch:
 
-Note: This requires showing that any SO3 matrix can be written in the form
-`Rz(α - π/2) * Ry(φ) * Rz(-θ)` which is what `rotRM_mat θ φ α` expands to.
-For the outer rotation (where α = 0), this means `Rz(-π/2) * Ry(φ) * Rz(-θ)`,
-which is a 2-parameter family. The full SO3 has 3 parameters, so additional
-argument is needed to show every SO3 matrix can be represented this way
-(e.g., via the freedom in ZYZ angle selection).
+- **Inner rotation**: `rotRM_mat θ φ α` has 3 DOF (θ, φ, α), which can match any SO3 matrix
+  via ZYZ Euler angles: set α = α₁ + π/2, φ = β₁, θ = -γ₁ for A = Rz(α₁) * Ry(β₁) * Rz(γ₁).
+
+- **Outer rotation**: `rotRM_mat θ φ 0 = Rz(-π/2) * Ry(φ) * Rz(-θ)` has only 2 DOF (θ, φ).
+  The first Euler angle is fixed at -π/2. A general SO3 matrix A = Rz(α) * Ry(β) * Rz(γ)
+  can only be matched if α ≡ -π/2 (mod 2π), which is not always the case.
+
+**Consequence**: A 5-parameter Pose (with rotations θ₁, φ₁, θ₂, φ₂, α) has effectively
+5 DOF for rotations, but a MatrixPose has 6 DOF (3 for inner + 3 for outer).
+
+**To make this provable**, add the assumption:
+  `∃ θ φ, p.outerRot.val = rotRM_mat θ φ 0`
+
+This would require updating `no_nopert_rot_pose` in Final.lean, which currently depends on
+this theorem to convert arbitrary zero-offset MatrixPoses to Poses.
 -/
 theorem pose_of_matrix_pose (p : MatrixPose) : ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
-  -- The ZYZ decomposition gives p.innerRot = Rz(α₁) * Ry(β₁) * Rz(γ₁)
-  -- We need rotRM_mat θ₁ φ₁ α = Rz(α - π/2) * Ry(φ) * Rz(-θ) to equal this
-  -- Solution for inner: α = α₁ + π/2, φ₁ = β₁, θ₁ = -γ₁
+  -- Inner rotation: solvable via ZYZ Euler angles
+  obtain ⟨α₁, β₁, γ₁, h_inner⟩ := SO3_euler_ZYZ p.innerRot.val p.innerRot.property
+  -- For inner: rotRM_mat θ φ α = Rz(α - π/2) * Ry(φ) * Rz(-θ)
+  -- Matching: α - π/2 = α₁, φ = β₁, -θ = γ₁  ⟹  α = α₁ + π/2, φ = β₁, θ = -γ₁
   --
-  -- For outer: rotRM_mat θ₂ φ₂ 0 = Rz(-π/2) * Ry(φ₂) * Rz(-θ₂)
-  -- This is the form Rz(-π/2) * Ry(β₂) * Rz(γ₂) where we identify φ₂ = β₂, θ₂ = -γ₂
-  -- But we need to show p.outerRot can be written as Rz(-π/2) * Ry(β) * Rz(γ)
-  -- This requires α₂ = -π/2 (mod 2π) in the ZYZ decomposition.
-  --
-  -- TODO: This may require a different approach - perhaps showing that any SO3
-  -- matrix can be decomposed with a specific first angle via alternative decompositions.
+  -- Outer rotation: BLOCKER - rotRM_mat θ φ 0 = Rz(-π/2) * Ry(φ) * Rz(-θ)
+  -- This requires the first Euler angle to be exactly -π/2, which is not true for all SO3.
+  -- The theorem is false without an additional assumption on p.outerRot.
   sorry
