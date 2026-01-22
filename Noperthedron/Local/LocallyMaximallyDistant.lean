@@ -83,15 +83,18 @@ private lemma inner_convex_combination {P : Finset Euc(2)} {Q A : Euc(2)}
     (hA : A ∈ convexHull ℝ (P : Set Euc(2))) :
     ∃ w : Euc(2) → ℝ, (∀ y ∈ P, 0 ≤ w y) ∧ (∑ y ∈ P, w y = 1) ∧
       (∑ y ∈ P, w y • y = A) ∧
+      (A - Q = ∑ y ∈ P, w y • (y - Q)) ∧
       ⟪Q, A - Q⟫ = ∑ y ∈ P, w y * ⟪Q, y - Q⟫ := by
   rw [Finset.mem_convexHull'] at hA
   obtain ⟨w, hw_nonneg, hw_sum, hw_eq⟩ := hA
-  refine ⟨w, hw_nonneg, hw_sum, hw_eq, ?_⟩
-  calc ⟪Q, A - Q⟫ = ⟪Q, ∑ y ∈ P, w y • y - Q⟫ := by rw [hw_eq]
-    _ = ⟪Q, ∑ y ∈ P, w y • y - (∑ y ∈ P, w y) • Q⟫ := by rw [hw_sum, one_smul]
-    _ = ⟪Q, ∑ y ∈ P, w y • y - ∑ y ∈ P, w y • Q⟫ := by rw [Finset.sum_smul]
-    _ = ⟪Q, ∑ y ∈ P, (w y • y - w y • Q)⟫ := by rw [← Finset.sum_sub_distrib]
-    _ = ⟪Q, ∑ y ∈ P, w y • (y - Q)⟫ := by simp_rw [← smul_sub]
+  have hAQ_eq : A - Q = ∑ y ∈ P, w y • (y - Q) := by
+    calc A - Q = ∑ y ∈ P, w y • y - Q := by rw [hw_eq]
+      _ = ∑ y ∈ P, w y • y - (∑ y ∈ P, w y) • Q := by rw [hw_sum, one_smul]
+      _ = ∑ y ∈ P, w y • y - ∑ y ∈ P, w y • Q := by rw [Finset.sum_smul]
+      _ = ∑ y ∈ P, (w y • y - w y • Q) := by rw [← Finset.sum_sub_distrib]
+      _ = ∑ y ∈ P, w y • (y - Q) := by simp_rw [← smul_sub]
+  refine ⟨w, hw_nonneg, hw_sum, hw_eq, hAQ_eq, ?_⟩
+  calc ⟪Q, A - Q⟫ = ⟪Q, ∑ y ∈ P, w y • (y - Q)⟫ := by rw [hAQ_eq]
     _ = ∑ y ∈ P, ⟪Q, w y • (y - Q)⟫ := inner_sum P (fun y ↦ w y • (y - Q)) Q
     _ = ∑ y ∈ P, w y * ⟪Q, y - Q⟫ := by simp_rw [real_inner_smul_right]
 
@@ -135,7 +138,7 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
   -- A is in the interior, so it's in the convex hull
   have hA_hull : A ∈ convexHull ℝ (P : Set Euc(2)) := interior_subset hA_interior
   -- Get convex combination representation and the inner product identity
-  obtain ⟨w, hw_nonneg, hw_sum, hw_eq, hw_inner⟩ := inner_convex_combination hA_hull
+  obtain ⟨w, hw_nonneg, hw_sum, hw_eq, hAQ_eq, hw_inner⟩ := inner_convex_combination hA_hull
   -- Key bound: ⟪Q, A - Q⟫ ≤ -(δ/r) * ‖Q‖ * ‖A - Q‖
   -- First bound the inner product using angle conditions on each vertex
   have h_inner_bound : ⟪Q, A - Q⟫ ≤ -(δ / r) * ‖Q‖ * ∑ y ∈ P, w y * ‖y - Q‖ := by
@@ -169,13 +172,6 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
       _ = -(δ / r) * ‖Q‖ * ∑ y ∈ P, w y * ‖y - Q‖ := by rw [h_sum_extend]
   -- Triangle inequality for convex combination: ‖A - Q‖ ≤ ∑ wᵢ ‖yᵢ - Q‖
   have h_norm_bound : ‖A - Q‖ ≤ ∑ y ∈ P, w y * ‖y - Q‖ := by
-    -- A - Q = ∑ wᵢ (yᵢ - Q) because A = ∑ wᵢ yᵢ and ∑ wᵢ = 1
-    have hAQ_eq : A - Q = ∑ y ∈ P, w y • (y - Q) := by
-      calc A - Q = ∑ y ∈ P, w y • y - Q := by rw [hw_eq]
-        _ = ∑ y ∈ P, w y • y - (∑ y ∈ P, w y) • Q := by rw [hw_sum, one_smul]
-        _ = ∑ y ∈ P, w y • y - ∑ y ∈ P, w y • Q := by rw [Finset.sum_smul]
-        _ = ∑ y ∈ P, (w y • y - w y • Q) := by rw [← Finset.sum_sub_distrib]
-        _ = ∑ y ∈ P, w y • (y - Q) := by simp_rw [← smul_sub]
     rw [hAQ_eq]
     calc ‖∑ y ∈ P, w y • (y - Q)‖
         ≤ ∑ y ∈ P, ‖w y • (y - Q)‖ := norm_sum_le P (fun y ↦ w y • (y - Q))
