@@ -64,7 +64,7 @@ Condition B_ε from [SY25] Theorem 36
 -/
 def Triangle.Bε (Q : Triangle) (poly : Finset Euc(3)) (p : Pose) (ε δ r : ℝ) : Prop :=
   ∀ i : Fin 3, ∀ v ∈ poly, v ≠ Q i →
-    (δ + ε * √5) / r < Triangle.Bε.lhs (Q i) v p ε
+    (δ + √5 * ε) / r < Triangle.Bε.lhs (Q i) v p ε
 
 --instance : Membership Triangle (Finset ℝ³) where
 --  mem set tri := ∀ i : Fin 3, (tri i) ∈ set
@@ -207,11 +207,11 @@ theorem local_theorem (P Q : Triangle)
     case pos =>
       have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
       unfold Triangle.Bε.lhs at h₆
-      have h₇ : 0 < (δ + ε * √5) / r := by positivity
+      have h₇ : 0 < (δ + √5 * ε) / r := by positivity
       unfold Pose.rotM₂ at h₆
       exact h₇.trans h₆
     have h₅' (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :
-        (δ + ε * √5) / r <
+        (δ + √5 * ε) / r <
           ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - Qⱼ)⟫ /
           (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - Qⱼ)‖) := by
       have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
@@ -222,8 +222,7 @@ theorem local_theorem (P Q : Triangle)
     -- apply lemma 32
     let pm : Finset Euc(2) := Finset.image (fun x ↦ rotM p.θ₂ p.φ₂ x) poly
     have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) (T i) pm := by
-      apply inner_ge_implies_LMD
-      · sorry
+      apply inner_ge_implies_LMD (r := r)
       · sorry
       · sorry
       · sorry
