@@ -105,11 +105,8 @@ private lemma inner_toward_vertex_neg {Q : Euc(2)} {δ r : ℝ}
   have hQ_pos : 0 < ‖Q‖ := lt_trans hr hrQ
   have hQPᵢ_pos : 0 < ‖Q - Pᵢ‖ := norm_sub_pos_iff.mpr hne.symm
   have hdenom_pos : 0 < ‖Q‖ * ‖Q - Pᵢ‖ := mul_pos hQ_pos hQPᵢ_pos
-  have h1 : δ / r * (‖Q‖ * ‖Q - Pᵢ‖) ≤ ⟪Q, Q - Pᵢ⟫ := by
-    have h := (le_div_iff₀ hdenom_pos).mp hle
-    linarith
-  have h2 : ⟪Q, Pᵢ - Q⟫ = -⟪Q, Q - Pᵢ⟫ := by simp [inner_sub_right]
-  linarith
+  simp only [inner_sub_right, real_inner_self_eq_norm_sq] at hle ⊢
+  nlinarith [(le_div_iff₀ hdenom_pos).mp hle]
 
 /--
 [SY25] Lemma 32
