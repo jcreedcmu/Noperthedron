@@ -62,7 +62,8 @@ lemma p_outer_eq_outer_shadow (p : Pose) (S : Set ℝ³) : p.outer '' S  = outer
 lemma proj_rm_eq_m (θ φ : ℝ) (v : ℝ³) :
     proj_xyL (rotRM θ φ 0 v) = rotM θ φ v := by
   ext i
-  simp [RyL, RzL, proj_xyL, rotRM, rotM, Matrix.vecHead, Matrix.vecTail, rotM_mat]
+  simp [proj_xyL, proj_xy_mat, RyL, RzL, rotRM, rotM,
+        Matrix.vecHead, Matrix.vecTail, rotM_mat]
   fin_cases i <;> {
     simp only [Fin.isValue, Fin.zero_eta, Fin.isValue, Fin.mk_one,
                Matrix.cons_val_one, Matrix.cons_val_fin_one, Matrix.cons_val_zero]
@@ -133,12 +134,12 @@ lemma outer_shadow_eq_M (p : Pose) (S : Set ℝ³) :
 lemma poselike_inner_eq_proj_inner (p : Pose) :
     proj_xyL ∘ PoseLike.inner p = p.inner := by
   ext v i; fin_cases i <;>
-    simp [Matrix.vecHead, PoseLike.inner, Pose.inner, innerProj]
+    simp [proj_xyL, proj_xy_mat, Matrix.vecHead, PoseLike.inner, Pose.inner, innerProj]
 
 lemma poselike_outer_eq_proj_outer (p : Pose) :
     proj_xyL ∘ PoseLike.outer p = p.outer := by
   ext v i; fin_cases i <;>
-    simp [Matrix.vecHead, PoseLike.outer, Pose.outer, outerProj]
+    simp [proj_xyL, proj_xy_mat, Matrix.vecHead, PoseLike.outer, Pose.outer, outerProj]
 
 lemma equiv_rupert_imp_rupert {p1 p2 : Pose} {S : Set ℝ³} (e : equiv p1 p2) (r : RupertPose p1 S) :
     RupertPose p2 S := by

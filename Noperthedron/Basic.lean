@@ -48,12 +48,10 @@ def reduce_mat : Matrix (Fin 2) (Fin 3) ℝ :=
 noncomputable
 def reduceL : (ℝ³ →L[ℝ] ℝ²) := reduce_mat |>.toEuclideanLin.toContinuousLinearMap
 
-@[simp]
 noncomputable
 def proj_xy_mat : Matrix (Fin 2) (Fin 3) ℝ :=
   !![1, 0, 0; 0, 1, 0]
 
-@[simp]
 noncomputable
 def proj_xyL : (ℝ³ →L[ℝ] ℝ²) := proj_xy_mat |>.toEuclideanLin.toContinuousLinearMap
 
@@ -311,12 +309,12 @@ lemma rotprojRM_identity (θ φ α : ℝ) : rotprojRM θ φ α = reduceL ∘L Rz
 
 lemma projxy_rotRM_eq_rotprojRM (θ φ α : ℝ) : proj_xyL ∘ rotRM θ φ α = rotprojRM θ φ α := by
   ext v i; fin_cases i <;>
-  · simp [RyL, RzL, rotprojRM, rotRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+  · simp [proj_xyL, proj_xy_mat, RyL, RzL, rotprojRM, rotRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
     ring_nf
 
 lemma reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
   ext v i
-  simp only [RzL]
+  simp only [RzL, proj_xyL, proj_xy_mat]
   fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
 
 lemma rotR_add_pi_eq_neg_rotR {α : ℝ} :
