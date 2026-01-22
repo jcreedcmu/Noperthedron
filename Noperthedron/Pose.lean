@@ -46,6 +46,11 @@ def inner (p : Pose) : ℝ³ →ᵃ[ℝ] ℝ² := innerProj p
 noncomputable
 def outer (p : Pose) : ℝ³ →ᵃ[ℝ] ℝ² := outerProj p
 
+
+inductive plequiv {α : Type} [PoseLike α] (p1 p2 : α) : Prop where
+  | on_the_nose : PoseLike.inner p1 = PoseLike.inner p2 ∧ PoseLike.outer p1 = PoseLike.outer p2 → plequiv p1 p2
+  | off_by_neg : PoseLike.inner p1 = -PoseLike.inner p2 ∧ PoseLike.outer p1 = -PoseLike.outer p2 → plequiv p1 p2
+
 inductive equiv (p1 p2 : Pose) : Prop where
   | on_the_nose : p1.inner = p2.inner ∧ p1.outer = p2.outer → equiv p1 p2
   | off_by_neg : p1.inner = -p2.inner ∧ p1.outer = -p2.outer → equiv p1 p2
@@ -169,6 +174,39 @@ lemma equiv_rupert_imp_rupert {p1 p2 : Pose} {S : Set ℝ³} (e : equiv p1 p2) (
       _ = interior (-(-p2.outer) '' S) := by rw [e_outer]
       _ = interior (p2.outer '' S) := by congr; ext; simp
       _ = interior ((proj_xyL ∘ PoseLike.outer p2) '' S) := by rw [poselike_outer_eq_proj_outer p2]
+
+lemma plequiv_rupert_imp_rupert {P : Type} [PoseLike P] {p1 p2 : P} {S : Set ℝ³} (e : plequiv p1 p2) (r : RupertPose p1 S) :
+    RupertPose p2 S := by
+  match e with
+  | .on_the_nose e =>
+    simp only [RupertPose, innerShadow, outerShadow]
+    obtain ⟨e_inner, e_outer⟩ := e
+    calc
+      closure ((proj_xyL ∘ PoseLike.inner p2) '' S)
+      _ = closure ((proj_xyL ∘ PoseLike.inner p1) '' S) := by rw [e_inner]
+      _ ⊆ interior (outerShadow p1 S) := r
+      _ = interior ((proj_xyL ∘ PoseLike.outer p1) '' S) := by rfl
+      _ = interior ((proj_xyL ∘ PoseLike.outer p2) '' S) := by rw [e_outer]
+  | .off_by_neg e =>
+    simp only [RupertPose, innerShadow, outerShadow]
+    obtain ⟨e_inner, e_outer⟩ := e
+    calc
+      closure ((proj_xyL ∘ PoseLike.inner p2) '' S)
+      _ = closure ((proj_xyL ∘ (-(PoseLike.inner p1))) '' S) := by
+        rw [e_inner]; simp only [AffineMap.coe_neg]; congr; ext; simp
+      _ = closure (-(proj_xyL ∘ ((PoseLike.inner p1))) '' S) := by
+          congr; ext; simp only [AffineMap.coe_neg, Function.comp_apply, Pi.neg_apply, map_neg,
+            Set.mem_image, Set.mem_neg]
+          conv => enter [1, 1, x]; rw [neg_eq_iff_eq_neg]
+      _ = -closure ((proj_xyL ∘ ((PoseLike.inner p1))) '' S) := by rw [neg_closure]
+      _ ⊆ -interior ((proj_xyL ∘ ((PoseLike.outer p1))) '' S) := by rw [Set.neg_subset_neg]; exact r
+      _ = interior (-(proj_xyL ∘ ((PoseLike.outer p1))) '' S) := (Homeomorph.neg ℝ²).preimage_interior _
+      _ = interior ((proj_xyL ∘ (-(PoseLike.outer p1))) '' S) := by
+          congr; ext; simp only [AffineMap.coe_neg, Function.comp_apply, Pi.neg_apply, map_neg,
+            Set.mem_image, Set.mem_neg]
+          conv => enter [2, 1, x]; rw [neg_eq_iff_eq_neg]
+      _ = interior ((proj_xyL ∘ (-(-(PoseLike.outer p2)))) '' S) := by rw [e_outer]
+      _ = interior ((proj_xyL ∘ (PoseLike.outer p2)) '' S) := by simp
 
 lemma matrix_rm_eq_imp_pose_equiv {p q : Pose} (rme : p.rotR ∘ p.rotM₁ = q.rotR ∘ q.rotM₁)
     (rm2 : p.rotM₂ = q.rotM₂) : equiv p q := by
