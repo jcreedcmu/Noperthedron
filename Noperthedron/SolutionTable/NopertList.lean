@@ -90,16 +90,10 @@ lemma pointsymmetrize'_union_finset (ι : Type*) (j : Finset ι) (S : ι → Set
 lemma pointsymmetrize_finset (S : Finset ℝ³) : pointsymmetrize S = pointsymmetrize' S := by
   simp [pointsymmetrize, pointsymmetrize']
 
-lemma Finset.image_eq_biUnion {α β : Type} [DecidableEq β] (f : α → β) (s : Finset α) :
-    s.image f = s.biUnion (fun i => {f i}) := by
-  ext b
-  simp only [Finset.mem_image, Finset.mem_biUnion, Finset.mem_singleton]
-  tauto
-
 lemma nopert_pt_eq_c15 (i : Fin 3) :
     ⋃ k ∈ Finset.range 15, {nopertPt k 0 i} = C15 (Cpt i) := by
   simp only [C15]
-  rw [Finset.image_eq_biUnion]
+  rw [←Finset.biUnion_singleton]
   simp only [Finset.coe_biUnion,   Finset.coe_singleton]
   change ⋃ k ∈ Finset.range 15, {nopertPt k 0 i} = ⋃ x ∈ (Finset.range 15), {(RzL (2 * π * ↑x / 15)) (Cpt i)}
   apply Set.iUnion_congr
