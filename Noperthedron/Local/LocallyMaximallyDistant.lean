@@ -162,7 +162,7 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
     -- Extend back to sum over P (Q term is 0)
     have h_sum_extend : ∑ y ∈ P.erase Q, w y * ‖y - Q‖ = ∑ y ∈ P, w y * ‖y - Q‖ := by
       rw [← Finset.add_sum_erase P (fun y ↦ w y * ‖y - Q‖) hQ]
-      simp only [sub_self, norm_zero, mul_zero, zero_add]
+      simp [sub_self, norm_zero, mul_zero, zero_add]
     calc ∑ y ∈ P.erase Q, w y * ⟪Q, y - Q⟫
         ≤ ∑ y ∈ P.erase Q, w y * (-(δ / r) * ‖Q‖ * ‖y - Q‖) := Finset.sum_le_sum h_term_bound
       _ = -(δ / r) * ‖Q‖ * ∑ y ∈ P.erase Q, w y * ‖y - Q‖ := h_sum_factor
