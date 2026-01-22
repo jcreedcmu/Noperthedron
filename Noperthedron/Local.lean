@@ -284,9 +284,7 @@ theorem local_theorem (P Q : Triangle)
       have h_exp : (-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP = (-1 : ℝ)^σQ := by
         rw [← zpow_add₀ (by norm_num : (-1 : ℝ) ≠ 0), show σP + σQ + σP = 2 * σP + σQ by ring,
             zpow_add₀ (by norm_num), zpow_mul]; norm_num
-      calc (-1 : ℝ)^(σP + σQ) * ((-1 : ℝ)^σP * ⟪vecX p.θ₂ p.φ₂, Q i⟫)
-        = ((-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP) * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by ring
-        _ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by rw [h_exp]
+      rw [←mul_assoc, h_exp]
     have h_YP : ⟪Y, P_ i⟫ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := by simp only [P_, real_inner_smul_right]
     rw [h_ZP, h_YP]
     -- Both sides positive after sign, compare via absolute values
