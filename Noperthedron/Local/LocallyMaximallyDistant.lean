@@ -212,9 +212,7 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
     · -- If A = Q, then A is a vertex in the interior of the convex hull.
       -- This is impossible: vertices of a finite set are extreme points of the hull,
       -- and extreme points cannot be interior points.
-      have hAQ_eq : A = Q := by
-        rw [← sub_eq_zero]
-        exact (norm_eq_zero (E := Euc(2))).mp hAQ_zero
+      have hAQ_eq : A = Q := by rwa [norm_eq_zero, sub_eq_zero] at hAQ_zero
       rw [hAQ_eq] at hA_interior
       -- The angle condition implies ⟪Q, Q - Pᵢ⟫ > 0 for all Pᵢ ≠ Q
       have h_angle : ∀ Pᵢ ∈ P, Pᵢ ≠ Q → ⟪Q, Q - Pᵢ⟫ > 0 := by
