@@ -100,16 +100,32 @@ theorem converted_pose_rupert_iff (v : Pose) (S : Set ℝ³) :
     exact id
 
 /-- For any unit vector v, there exist angles α, β such that Rz(α) * Ry(β) is in SO3
-and maps e₃ to v. This is a repackaging of exists_SO3_mulVec_ez_eq. -/
+and maps e₃ to v. Uses spherical coordinates: θ = arccos(v₂), ϕ = arg(v₀ + v₁·i).
+This is the same construction as exists_SO3_mulVec_ez_eq but exposing the angles. -/
 lemma exists_SO3_mulVec_ez_eq_ZY (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
     ∃ α β : ℝ, let U := Rz_mat α * Ry_mat β
       U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
-  -- Use exists_SO3_mulVec_ez_eq and observe that its construction gives Rz * Ry form
-  -- The construction is: U = rot3_mat 2 ϕ * rot3_mat 1 (-θ) = Rz_mat ϕ * Ry_mat (-θ)
-  obtain ⟨U, hU_SO3, hU_ez⟩ := Bounding.exists_SO3_mulVec_ez_eq v hv
-  -- For now, we use sorry since extracting the exact angles from the existential
-  -- requires repeating the construction or modifying exists_SO3_mulVec_ez_eq
-  sorry
+  -- Copy of exists_SO3_mulVec_ez_eq proof, adapted to return (α, β)
+  simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv
+  obtain ⟨θ, ϕ, hθϕ⟩ : ∃ θ ϕ : ℝ, v = ![sin θ * cos ϕ, sin θ * sin ϕ, cos θ] := by
+    use Real.arccos (v 2), Complex.arg (v 0 + v 1 * Complex.I)
+    have h_cos_sin : cos (Real.arccos (v 2)) = v 2 ∧ sin (Real.arccos (v 2)) = √(v 0 ^ 2 + v 1 ^ 2) := by
+      rw [Real.cos_arccos, Real.sin_arccos] <;> try nlinarith
+      exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv.symm⟩
+    by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
+    · simp_all [Complex.ext_iff]
+      ext i; fin_cases i <;> tauto
+    · simp [Complex.normSq, Complex.norm_def] at *
+      simp [← sq, mul_div_cancel₀ _ (show √(v 0 ^ 2 + v 1 ^ 2) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <|
+        by nlinarith [mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from
+          fun h' => h <| by norm_num [Complex.ext_iff, sq]; constructor <;> nlinarith])]
+      ext i; fin_cases i <;> rfl
+  use ϕ, -θ
+  constructor
+  · exact Submonoid.mul_mem _ (Bounding.rot3_mat_mem_SO3 2 ϕ) (Bounding.rot3_mat_mem_SO3 1 (-θ))
+  · simp only [Rz_mat, Ry_mat]
+    ext i; fin_cases i <;> simp [hθϕ, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+      Matrix.mul_apply, Matrix.cons_val_zero, Matrix.cons_val_one] <;> ring
 
 /-- Any SO3 matrix can be written in ZYZ Euler form: Rz(α) * Ry(β) * Rz(γ).
 Strategy: extract third column v, find Rz(α) * Ry(β) mapping e₃ to v, then the
