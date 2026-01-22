@@ -55,16 +55,16 @@ def Triangle.Aε (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
   ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > √2 * ε
 
 noncomputable
-def Triangle.Bε.lhs (i j : Fin 3) (Q : Triangle) (p : Pose) (ε : ℝ) : ℝ :=
-   (⟪p.rotM₂ (Q i), p.rotM₂ (Q i - Q j)⟫ - 2 * ε * ‖Q i - Q j‖ * (ε + √2))
-   / ((‖p.rotM₂ (Q i)‖ + ε * √2) * (‖p.rotM₂ (Q i - Q j)‖ + 2 * ε * √2))
+def Triangle.Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) : ℝ :=
+   (⟪p.rotM₂ v₁, p.rotM₂ (v₁ - v₂)⟫ - 2 * ε * ‖v₁ - v₂‖ * (√2 + ε))
+   / ((‖p.rotM₂ v₁‖ + √2 * ε) * (‖p.rotM₂ (v₁ - v₂)‖ + 2 * √2 * ε))
 
 /--
 Condition B_ε from [SY25] Theorem 36
 -/
 def Triangle.Bε (Q : Triangle) (p : Pose) (ε δ r : ℝ) : Prop :=
   ∀ i j : Fin 3, i ≠ j →
-  Triangle.Bε.lhs i j Q p ε > (δ + ε * √5) / r
+    (δ + ε * √5) / r < Triangle.Bε.lhs (Q i) (Q j) p ε
 
 instance : Membership Triangle (Finset ℝ³) where
   mem set tri := ∀ i : Fin 3, (tri i) ∈ set
@@ -95,7 +95,7 @@ theorem local_theorem (P Q : Triangle)
     (hP : P ∈ poly) (hQ : Q ∈ poly)
     (radius_one : polyhedronRadius poly ne = 1)
     (p_ : Pose)
-    (ε δ r : ℝ) (hε : ε > 0) (hr : r > 0)
+    (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (hr₁ : BoundR r ε p_ Q)
     (hδ : BoundDelta δ p_ P Q)
     (ae₁ : P.Aε p_.vecX₁ ε) (ae₂ : Q.Aε p_.vecX₂ ε)
@@ -110,6 +110,8 @@ theorem local_theorem (P Q : Triangle)
   let Y := vecX p.θ₁ p.φ₁
   let K := (-1 : ℝ)^(σP + σQ) • L.toContinuousLinearMap
   let Z := K (vecX p.θ₂ p.φ₂)
+  have hδnn : 0 ≤ δ := by
+    specialize hδ 0; linarith only [hδ, norm_nonneg (p_.rotR (p_.rotM₁ (P 0)) - p_.rotM₂ (Q 0))]
   have hY : ‖Y‖ = 1 := by simp [Y, vecX_norm_one]
   have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, vecX_norm_one]
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
@@ -200,7 +202,13 @@ theorem local_theorem (P Q : Triangle)
     have hP₁ := radius_one.2 _ (hP i)
     obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
     --apply lemma 33
-    --have := coss hP₁ hQ₁ hε
+    have h₅ (j) (h : i ≠ j) := coss hQ₁ (radius_one.2 _ (hQ j)) hε hθ₂ hφ₂ ?pos
+    case pos =>
+      have h₆ := be i j h
+      unfold Triangle.Bε.lhs at h₆
+      have h₇ : 0 < (δ + ε * √5) / r := by positivity
+      unfold Pose.rotM₂ at h₆
+      exact h₇.trans h₆
     sorry
   have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
   have h₃ := langles hYZ h₁.1 h₁.2
