@@ -119,14 +119,11 @@ lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
   let v : EuclideanSpace ℝ (Fin 3) := WithLp.toLp 2 fun i => A i 2
   have hv_norm : ‖v‖ = 1 := by
     simp only [EuclideanSpace.norm_eq, v]
-    have hATA := hA.1.1  -- A^T * A = 1
-    have h22 := congrFun (congrFun hATA 2) 2
+    have h22 := congrFun (congrFun hA.1.1 2) 2
     simp only [Matrix.mul_apply, Matrix.one_apply_eq, Fin.sum_univ_three,
       Matrix.star_apply, star_trivial] at h22
-    rw [Real.sqrt_eq_one, Fin.sum_univ_three, Real.norm_eq_abs, Real.norm_eq_abs,
-      Real.norm_eq_abs, sq_abs, sq_abs, sq_abs]
-    convert h22 using 1
-    ring
+    simp only [Real.sqrt_eq_one, Fin.sum_univ_three, Real.norm_eq_abs, sq_abs]
+    linarith
   -- Find α, β such that U := Rz(α) * Ry(β) maps e₃ to v (third column of A)
   obtain ⟨α, β, hU_SO3, hU_ez⟩ := exists_SO3_mulVec_ez_eq_ZY v hv_norm
   let U := Rz_mat α * Ry_mat β
@@ -143,11 +140,7 @@ lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
   have hB_SO3 : U⁻¹ * A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
     Submonoid.mul_mem _ (Bounding.specialOrthogonalGroup_mem_inv hU_SO3) hA
   obtain ⟨γ, hγ⟩ := Bounding.SO3_fixing_z_is_Rz (U⁻¹ * A) hB_SO3 (by convert hB_fixes_ez; simp)
-  -- A = U * Rz(γ) = Rz(α) * Ry(β) * Rz(γ)
-  have hA_eq : A = U * Rz_mat γ := by
-    calc A = U * (U⁻¹ * A) := by rw [← Matrix.mul_assoc, Matrix.mul_nonsing_inv _ hU_det, Matrix.one_mul]
-      _ = U * Rz_mat γ := by rw [hγ]
-  exact ⟨α, β, γ, hA_eq⟩
+  exact ⟨α, β, γ, by rw [← hγ, ← Matrix.mul_assoc, Matrix.mul_nonsing_inv _ hU_det, Matrix.one_mul]⟩
 
 /--
 Given a MatrixPose with zero offset whose outer rotation is in the image of `rotRM_mat _ _ 0`,
