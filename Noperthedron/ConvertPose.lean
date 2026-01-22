@@ -59,20 +59,8 @@ theorem converted_pose_inner_shadow_eq (v : Pose) (S : Set ℝ³) :
   unfold innerShadow
   congr 1
   ext x
-  constructor
-  · rintro ⟨y, hy, rfl⟩
-    refine ⟨y, hy, ?_⟩
-    congr 1
-    simp only [PoseLike.inner, Pose.matrixPoseOfPose]
-    simp only [AffineEquiv.coe_toAffineMap, AffineMap.coe_comp, Function.comp_apply,
-      AffineEquiv.vaddConst_apply, LinearMap.coe_toAffineMap]
-    rw [rotRM_eq_rotRM_mat]
-    simp only [Matrix.toEuclideanLin_apply, inject_xy]
-    ext i
-    fin_cases i <;> simp [vadd_eq_add]
-  · rintro ⟨y, hy, rfl⟩
-    refine ⟨y, hy, ?_⟩
-    congr 1
+  constructor <;> (rintro ⟨y, hy, rfl⟩; refine ⟨y, hy, ?_⟩; congr 1)
+  all_goals
     simp only [PoseLike.inner, Pose.matrixPoseOfPose]
     simp only [AffineEquiv.coe_toAffineMap, AffineMap.coe_comp, Function.comp_apply,
       AffineEquiv.vaddConst_apply, LinearMap.coe_toAffineMap]
@@ -86,21 +74,10 @@ theorem converted_pose_outer_shadow_eq (v : Pose) (S : Set ℝ³) :
   unfold outerShadow
   congr 1
   ext x
-  constructor
-  · rintro ⟨y, hy, rfl⟩
-    refine ⟨y, hy, ?_⟩
-    congr 1
-    simp only [PoseLike.outer, Pose.matrixPoseOfPose]
-    simp only [LinearMap.coe_toAffineMap]
-    rw [rotRM_eq_rotRM_mat]
-    rfl
-  · rintro ⟨y, hy, rfl⟩
-    refine ⟨y, hy, ?_⟩
-    congr 1
-    simp only [PoseLike.outer, Pose.matrixPoseOfPose]
-    simp only [LinearMap.coe_toAffineMap]
-    rw [rotRM_eq_rotRM_mat]
-    rfl
+  constructor <;> (rintro ⟨y, hy, rfl⟩; refine ⟨y, hy, ?_⟩; congr 1)
+  all_goals
+    simp only [PoseLike.outer, Pose.matrixPoseOfPose, LinearMap.coe_toAffineMap]
+    rw [rotRM_eq_rotRM_mat]; rfl
 
 theorem converted_pose_rupert_iff (v : Pose) (S : Set ℝ³) :
     RupertPose v S ↔ RupertPose (v.matrixPoseOfPose) S := by
