@@ -36,10 +36,9 @@ private lemma angle_condition_implies_not_interior {P : Finset Euc(2)} {Q : Euc(
   have h_halfspace : ∀ Pᵢ ∈ P, ⟪Q, Pᵢ⟫ ≤ ‖Q‖^2 := by
     intro Pᵢ hPᵢ
     by_cases heq : Pᵢ = Q
-    · simp [heq, inner_self_eq_norm_sq_to_K]
+    · simp [heq]
     · have h1 := h_angle Pᵢ hPᵢ heq
-      simp only [inner_sub_right] at h1
-      have h2 : ⟪Q, Q⟫ = ‖Q‖^2 := inner_self_eq_norm_sq_to_K Q
+      simp only [inner_sub_right, real_inner_self_eq_norm_sq] at h1
       linarith
   -- convexHull P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}
   have h_hull_in_halfspace : convexHull ℝ (P : Set Euc(2)) ⊆ {x : Euc(2) | ⟪Q, x⟫ ≤ ‖Q‖^2} := by
