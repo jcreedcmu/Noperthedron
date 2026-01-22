@@ -35,6 +35,16 @@ lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
     LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
   rw [Matrix.mulVec_mulVec, Matrix.mulVec_mulVec, Matrix.mulVec_mulVec]
 
+/-- Rz matrices multiply by adding angles. -/
+lemma Rz_mat_mul (a b : ℝ) : Rz_mat a * Rz_mat b = Rz_mat (a + b) := by
+  ext i j; fin_cases i <;> fin_cases j <;> simp [Rz_mat, cos_add, sin_add] <;> ring
+
+/-- Collapse leading Rz terms: `rotRM_mat θ φ α = Rz(α - π/2) * Ry(φ) * Rz(-θ)`. -/
+lemma rotRM_mat_eq (θ φ α : ℝ) :
+    rotRM_mat θ φ α = Rz_mat (α - π / 2) * Ry_mat φ * Rz_mat (-θ) := by
+  simp only [rotRM_mat, Rz_mat_mul, sub_eq_add_neg]
+  ring_nf
+
 noncomputable
 def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
   innerRot := ⟨rotRM_mat p.θ₁ p.φ₁ p.α, rotRM_mat_mem_SO3 p.θ₁ p.φ₁ p.α⟩
@@ -171,64 +181,28 @@ lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
   exact ⟨α, β, γ, hA_eq⟩
 
 /--
-**FALSE AS STATED**: This theorem claims that every MatrixPose with zero offset can be
-converted to a 5-parameter Pose. However, this is impossible due to degree-of-freedom mismatch:
+Given a MatrixPose with zero offset whose outer rotation is in the image of `rotRM_mat _ _ 0`,
+there exists a 5-parameter Pose that produces the same MatrixPose.
 
-- **Inner rotation**: `rotRM_mat θ φ α` has 3 DOF (θ, φ, α), which can match any SO3 matrix
-  via ZYZ Euler angles: set α = α₁ + π/2, φ = β₁, θ = -γ₁ for A = Rz(α₁) * Ry(β₁) * Rz(γ₁).
-
-- **Outer rotation**: `rotRM_mat θ φ 0 = Rz(-π/2) * Ry(φ) * Rz(-θ)` has only 2 DOF (θ, φ).
-  The first Euler angle is fixed at -π/2. A general SO3 matrix A = Rz(α) * Ry(β) * Rz(γ)
-  can only be matched if α ≡ -π/2 (mod 2π), which is not always the case.
-
-**Consequence**: A 5-parameter Pose (with rotations θ₁, φ₁, θ₂, φ₂, α) has effectively
-5 DOF for rotations, but a MatrixPose has 6 DOF (3 for inner + 3 for outer).
-
-**To make this provable**, add the assumption:
-  `∃ θ φ, p.outerRot.val = rotRM_mat θ φ 0`
-
-This would require updating `no_nopert_rot_pose` in Final.lean, which currently depends on
-this theorem to convert arbitrary zero-offset MatrixPoses to Poses.
+Note: The assumption `h_outer` is necessary because `rotRM_mat θ φ 0 = Rz(-π/2) * Ry(φ) * Rz(-θ)`
+has only 2 DOF (the first Euler angle is fixed at -π/2), while a general SO3 matrix has 3 DOF.
 -/
-theorem pose_of_matrix_pose (p : MatrixPose) : ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
-  -- Inner rotation: solvable via ZYZ Euler angles
+theorem pose_of_matrix_pose (p : MatrixPose)
+    (h_outer : ∃ θ φ, p.outerRot.val = rotRM_mat θ φ 0) :
+    ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
   obtain ⟨α₁, β₁, γ₁, h_inner⟩ := SO3_euler_ZYZ p.innerRot.val p.innerRot.property
-  -- Outer rotation: ZYZ decomposition
-  obtain ⟨α₂, β₂, γ₂, h_outer⟩ := SO3_euler_ZYZ p.outerRot.val p.outerRot.property
-  -- Construct the Pose:
-  -- For inner: rotRM_mat θ φ α = Rz(-π/2) * Rz(α) * Ry(φ) * Rz(-θ)
-  --   Matching Rz(α₁) * Ry(β₁) * Rz(γ₁): set α = α₁ + π/2, φ = β₁, θ = -γ₁
-  -- For outer: rotRM_mat θ φ 0 = Rz(-π/2) * Ry(φ) * Rz(-θ)
-  --   This requires the first Euler angle to be -π/2, which is NOT always true!
-  let pp : Pose := {
-    θ₁ := -γ₁
-    φ₁ := β₁
-    α := α₁ + π / 2
-    θ₂ := -γ₂
-    φ₂ := β₂
-  }
-  use pp
-  simp only [Pose.matrixPoseOfPose, MatrixPose.zeroOffset]
+  obtain ⟨θ₂, φ₂, h_outer⟩ := h_outer
+  let pp : Pose := { θ₁ := -γ₁, φ₁ := β₁, α := α₁ + π / 2, θ₂ := θ₂, φ₂ := φ₂ }
+  refine ⟨pp, ?_⟩
+  simp only [Pose.matrixPoseOfPose, MatrixPose.zeroOffset, pp]
   congr 1
-  · -- innerRot: provable
+  · -- innerRot: use rotRM_mat_eq to simplify
     apply Subtype.ext
-    simp only [rotRM_mat]
-    -- Need: Rz(-π/2) * Rz(α₁ + π/2) * Ry(β₁) * Rz(γ₁) = Rz(α₁) * Ry(β₁) * Rz(γ₁)
-    rw [h_inner]
-    -- Unfold pp's fields: pp.θ₁ = -γ₁, pp.φ₁ = β₁, pp.α = α₁ + π/2
-    simp only [pp]
-    ext i j
-    fin_cases i <;> fin_cases j <;> simp [Rz_mat, Ry_mat, Matrix.mul_apply,
-      Fin.sum_univ_three, neg_neg, cos_neg, sin_neg, cos_add_pi_div_two, sin_add_pi_div_two]
-  · -- outerRot: STUCK - requires α₂ = -π/2 but α₂ can be any angle
+    calc rotRM_mat (-γ₁) β₁ (α₁ + π / 2)
+        = Rz_mat α₁ * Ry_mat β₁ * Rz_mat γ₁ := by
+          simp only [rotRM_mat_eq, neg_neg]
+          ring_nf
+      _ = p.innerRot.val := h_inner.symm
+  · -- outerRot: direct from h_outer
     apply Subtype.ext
-    simp only [rotRM_mat, pp]
-    rw [h_outer]
-    -- Goal: Rz(-π/2) * Rz(0) * Ry(β₂) * Rz(γ₂) = Rz(α₂) * Ry(β₂) * Rz(γ₂)
-    -- Since Rz(0) = I, this simplifies to:
-    --   Rz(-π/2) * Ry(β₂) * Rz(γ₂) = Rz(α₂) * Ry(β₂) * Rz(γ₂)
-    -- Since Ry(β₂) * Rz(γ₂) is invertible (as an SO3 matrix), this requires:
-    --   Rz(-π/2) = Rz(α₂), i.e., α₂ = -π/2 (mod 2π)
-    -- But α₂ is an ARBITRARY Euler angle determined by p.outerRot, so this is FALSE in general.
-    -- COUNTEREXAMPLE: Any MatrixPose whose outer rotation has first ZYZ Euler angle ≠ -π/2.
-    sorry
+    exact h_outer.symm
