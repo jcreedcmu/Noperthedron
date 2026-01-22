@@ -109,10 +109,56 @@ Strategy: Given A ∈ SO3,
 3. Then U⁻¹ * A fixes e₃, so by SO3_fixing_z_is_Rz it equals Rz(γ)
 4. Therefore A = U * Rz(γ) = Rz(ϕ) * Ry(-θ) * Rz(γ)
 -/
+-- Any SO3 matrix that maps e₃ to v can be written as Rz(α) * Ry(β) for some α, β.
+-- This follows from the spherical coordinate representation.
+lemma SO3_maps_ez_to_v_is_ZY (U : Matrix (Fin 3) (Fin 3) ℝ)
+    (hU : U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
+    (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1)
+    (hUv : U.mulVec ![0, 0, 1] = v.ofLp) :
+    ∃ α β : ℝ, U = Rz_mat α * Ry_mat β := by
+  sorry -- TODO: Derive from spherical coordinates
+
 lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
     (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ α β γ : ℝ, A = Rz_mat α * Ry_mat β * Rz_mat γ := by
-  sorry -- TODO: Complete using exists_SO3_mulVec_ez_eq and SO3_fixing_z_is_Rz
+  -- The third column of A is a unit vector
+  let v : EuclideanSpace ℝ (Fin 3) := WithLp.toLp 2 fun i => A i 2
+  have hv_norm : ‖v‖ = 1 := by
+    simp only [EuclideanSpace.norm_eq, v]
+    have hATA := hA.1.1  -- A^T * A = 1
+    have h22 := congrFun (congrFun hATA 2) 2
+    simp only [Matrix.mul_apply, Matrix.one_apply_eq, Fin.sum_univ_three,
+      Matrix.star_apply, star_trivial] at h22
+    rw [Real.sqrt_eq_one, Fin.sum_univ_three, Real.norm_eq_abs, Real.norm_eq_abs,
+      Real.norm_eq_abs, sq_abs, sq_abs, sq_abs]
+    convert h22 using 1
+    ring
+  -- Find U with U * e₃ = v (third column of A)
+  obtain ⟨U, hU_SO3, hU_ez⟩ := Bounding.exists_SO3_mulVec_ez_eq v hv_norm
+  -- U⁻¹ * A fixes e₃
+  have hU_det : IsUnit U.det := by
+    simp only [isUnit_iff_ne_zero, ne_eq]
+    simp_all [Matrix.mem_specialOrthogonalGroup_iff]
+  have hAe3 : A.mulVec ![0, 0, 1] = v.ofLp := by
+    ext i
+    simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, v,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Fin.isValue]
+    fin_cases i <;> simp
+  have hB_fixes_ez : (U⁻¹ * A).mulVec ![0, 0, 1] = ![0, 0, 1] := by
+    rw [← Matrix.mulVec_mulVec, hAe3, ← hU_ez]
+    rw [Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ hU_det, Matrix.one_mulVec]
+  -- U⁻¹ * A ∈ SO3 and fixes e₃, so it's Rz(γ)
+  have hB_SO3 : U⁻¹ * A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+    Submonoid.mul_mem _ (Bounding.specialOrthogonalGroup_mem_inv hU_SO3) hA
+  obtain ⟨γ, hγ⟩ := Bounding.SO3_fixing_z_is_Rz (U⁻¹ * A) hB_SO3 (by convert hB_fixes_ez; simp)
+  -- A = U * Rz(γ)
+  have hA_eq : A = U * Rz_mat γ := by
+    calc A = U * (U⁻¹ * A) := by rw [← Matrix.mul_assoc, Matrix.mul_nonsing_inv _ hU_det, Matrix.one_mul]
+      _ = U * Rz_mat γ := by rw [hγ]
+  -- U = Rz(α) * Ry(β) by SO3_maps_ez_to_v_is_ZY
+  obtain ⟨α, β, hU_eq⟩ := SO3_maps_ez_to_v_is_ZY U hU_SO3 v hv_norm hU_ez
+  -- Therefore A = Rz(α) * Ry(β) * Rz(γ)
+  exact ⟨α, β, γ, by rw [hA_eq, hU_eq]⟩
 
 /--
 Given a MatrixPose with zero offset, there exists a 5-parameter Pose that produces
