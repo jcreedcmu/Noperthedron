@@ -62,12 +62,12 @@ def Triangle.Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) : ℝ :=
 /--
 Condition B_ε from [SY25] Theorem 36
 -/
-def Triangle.Bε (Q : Triangle) (p : Pose) (ε δ r : ℝ) : Prop :=
-  ∀ i j : Fin 3, i ≠ j →
-    (δ + ε * √5) / r < Triangle.Bε.lhs (Q i) (Q j) p ε
+def Triangle.Bε (Q : Triangle) (poly : Finset Euc(3)) (p : Pose) (ε δ r : ℝ) : Prop :=
+  ∀ i : Fin 3, ∀ v ∈ poly, v ≠ Q i →
+    (δ + ε * √5) / r < Triangle.Bε.lhs (Q i) v p ε
 
-instance : Membership Triangle (Finset ℝ³) where
-  mem set tri := ∀ i : Fin 3, (tri i) ∈ set
+--instance : Membership Triangle (Finset ℝ³) where
+--  mem set tri := ∀ i : Fin 3, (tri i) ∈ set
 
 /-- The condition on δ in the Local Theorem -/
 def BoundDelta (δ : ℝ) (p : Pose) (P Q : Triangle) : Prop :=
@@ -92,7 +92,7 @@ def shape_of (S : Finset ℝ³) : Shape where
 theorem local_theorem (P Q : Triangle)
     (cong_tri : P.Congruent Q)
     (poly : Finset ℝ³) (ne : poly.Nonempty)
-    (hP : P ∈ poly) (hQ : Q ∈ poly)
+    (hP : ∀ i, P i ∈ poly) (hQ : ∀ i, Q i ∈ poly)
     (radius_one : polyhedronRadius poly ne = 1)
     (p_ : Pose)
     (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
@@ -101,7 +101,7 @@ theorem local_theorem (P Q : Triangle)
     (ae₁ : P.Aε p_.vecX₁ ε) (ae₂ : Q.Aε p_.vecX₂ ε)
     (span₁ : P.Spanning p_.θ₁ p_.φ₁ ε)
     (span₂ : Q.Spanning p_.θ₂ p_.φ₂ ε)
-    (be : Q.Bε p_ ε δ r)
+    (be : Q.Bε poly p_ ε δ r)
     : ¬∃ p ∈ p_.closed_ball ε, RupertPose p (shape_of poly |>.hull) := by
   rintro ⟨p, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL⟩ := cong_tri
@@ -202,21 +202,22 @@ theorem local_theorem (P Q : Triangle)
     have hP₁ := radius_one.2 _ (hP i)
     obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
     -- apply lemma 33
-    have h₅ (j) (h : i ≠ j) := coss hQ₁ (radius_one.2 _ (hQ j)) hε hθ₂ hφ₂ ?pos
+    have h₅ (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :=
+      coss (Q := Qⱼ) hQ₁ (radius_one.2 _ hQⱼ₁) hε hθ₂ hφ₂ ?pos
     case pos =>
-      have h₆ := be i j h
+      have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
       unfold Triangle.Bε.lhs at h₆
       have h₇ : 0 < (δ + ε * √5) / r := by positivity
       unfold Pose.rotM₂ at h₆
       exact h₇.trans h₆
-    have h₅' : ∀ (j : Fin 3), i ≠ j →
+    have h₅' (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :
         (δ + ε * √5) / r <
-          ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - Q j)⟫ /
-          (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - Q j)‖) := fun j hij ↦ by
-      have h₆ := be i j hij
+          ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - Qⱼ)⟫ /
+          (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - Qⱼ)‖) := by
+      have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
       unfold Triangle.Bε.lhs at h₆
       unfold Pose.rotM₂ at h₆
-      specialize h₅ j hij
+      specialize h₅ Qⱼ hQⱼ₁ hQⱼ₂
       linarith only [h₅, h₆]
     -- apply lemma 32
     let pm : Finset Euc(2) := Finset.image (fun x ↦ rotM p.θ₂ p.φ₂ x) poly
