@@ -42,8 +42,7 @@ lemma Rz_mat_mul (a b : ℝ) : Rz_mat a * Rz_mat b = Rz_mat (a + b) := by
 /-- Collapse leading Rz terms: `rotRM_mat θ φ α = Rz(α - π/2) * Ry(φ) * Rz(-θ)`. -/
 lemma rotRM_mat_eq (θ φ α : ℝ) :
     rotRM_mat θ φ α = Rz_mat (α - π / 2) * Ry_mat φ * Rz_mat (-θ) := by
-  simp only [rotRM_mat, Rz_mat_mul, sub_eq_add_neg]
-  ring_nf
+  simp only [rotRM_mat, Rz_mat_mul, sub_eq_add_neg, add_comm]
 
 noncomputable
 def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
