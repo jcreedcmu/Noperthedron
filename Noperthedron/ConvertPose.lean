@@ -136,10 +136,7 @@ lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
     simp only [isUnit_iff_ne_zero, ne_eq, U]
     simp_all [Matrix.mem_specialOrthogonalGroup_iff]
   have hAe3 : A.mulVec ![0, 0, 1] = v.ofLp := by
-    ext i
-    simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, v,
-      Matrix.cons_val_zero, Matrix.cons_val_one, Fin.isValue]
-    fin_cases i <;> simp
+    ext i; fin_cases i <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three, v]
   have hB_fixes_ez : (U⁻¹ * A).mulVec ![0, 0, 1] = ![0, 0, 1] := by
     rw [← Matrix.mulVec_mulVec, hAe3, ← hU_ez]
     rw [Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ hU_det, Matrix.one_mulVec]
