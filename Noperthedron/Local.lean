@@ -230,8 +230,14 @@ theorem local_theorem (P Q : Triangle)
         exact hd₂
       · intro Pᵢ hPᵢ hPᵢQ
         simp only [Finset.mem_image, pm] at hPᵢ
-        obtain ⟨q, hq⟩ := hPᵢ
-        sorry
+        obtain ⟨q, hq₁, hq₂⟩ := hPᵢ
+        have hqQ : q ≠ Q i := by
+          intro heq
+          rw [heq] at hq₂
+          exact hPᵢQ hq₂.symm
+        have := h₅' q hq₁ hqQ
+        rw [← hq₂, ← map_sub]
+        linarith
     clear h₅ h₅'
     simp only [RupertPose, innerShadow, outerShadow] at hΨ₂
     have h10 : rotM p.θ₁ p.φ₁ (P i) ∈ interior (convexHull ℝ pm) := by
