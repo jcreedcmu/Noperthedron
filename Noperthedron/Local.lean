@@ -2,6 +2,7 @@ import Mathlib.Data.Real.CompleteField
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import Noperthedron.Basic
+import Noperthedron.Bounding.OpNorm
 import Noperthedron.PoseInterval
 import Noperthedron.Local.Coss
 import Noperthedron.Local.EpsSpanning
@@ -255,19 +256,7 @@ theorem local_theorem (P Q : Triangle)
     have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (δ + √5 * ε) (T i) pm :=
       ⟨by rw [add_comm]; exact hd₁, h_in_interior_outer⟩
     have h_norm_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := by
-      have h_rotR_sq : ‖rotR p.α (rotM p.θ₁ p.φ₁ (P i))‖^2 = ‖rotM p.θ₁ p.φ₁ (P i)‖^2 := by
-        simp only [rotR, rotR_mat, PiLp.norm_sq_eq_of_L2, AddChar.coe_mk,
-          LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
-          Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.cons_val',
-          Matrix.cons_val_fin_one, Matrix.vec2_dotProduct, Fin.isValue, Matrix.cons_val_zero,
-          Matrix.cons_val_one, Real.norm_eq_abs, sq_abs, Fin.sum_univ_two, neg_mul]
-        have hcs : Real.cos p.α ^ 2 + Real.sin p.α ^ 2 = 1 := Real.cos_sq_add_sin_sq p.α
-        nlinarith [sq_nonneg ((rotM p.θ₁ p.φ₁ (P i)) 0), sq_nonneg ((rotM p.θ₁ p.φ₁ (P i)) 1),
-                   sq_nonneg (Real.cos p.α), sq_nonneg (Real.sin p.α)]
-      calc ‖rotM p.θ₁ p.φ₁ (P i)‖ = Real.sqrt (‖rotM p.θ₁ p.φ₁ (P i)‖^2) := (Real.sqrt_sq (norm_nonneg _)).symm
-        _ = Real.sqrt (‖rotR p.α (rotM p.θ₁ p.φ₁ (P i))‖^2) := by rw [h_rotR_sq]
-        _ = ‖rotR p.α (rotM p.θ₁ p.φ₁ (P i))‖ := Real.sqrt_sq (norm_nonneg _)
-        _ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := h₈ _ h_sect
+      rw [← Bounding.rotR_preserves_norm p.α]; exact h₈ _ h_sect
     -- Step 3: Apply pythagoras to convert norm bounds to inner product bounds
     have h_inner_sq : ⟪vecX p.θ₂ p.φ₂, Q i⟫^2 < ⟪Y, P i⟫^2 := by
       have h_pyth₁ := Local.pythagoras (θ := p.θ₁) (φ := p.φ₁) (P i)

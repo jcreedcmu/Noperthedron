@@ -18,9 +18,10 @@ theorem norm_one_of_preserves_sq_norm {n m : ℕ} [NeZero n] {f : E n →L[ℝ] 
   suffices h : ‖f v‖^2 = ‖v‖^2 by simp_all
   exact hf v
 
-theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
-  refine norm_one_of_preserves_sq_norm ?_
+theorem rotR_preserves_norm (α : ℝ) :
+    ∀ (v : E 2), ‖rotR α v‖ = ‖v‖ := by
   intro v
+  suffices h : ‖rotR α v‖^2 = ‖v‖^2 by simp_all
   simp only [rotR, rotR_mat, PiLp.norm_sq_eq_of_L2]
   simp only [AddChar.coe_mk, LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
     Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_fin_one,
@@ -30,6 +31,9 @@ theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 := by
   convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) = _
   · ring_nf
   simp
+
+theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 :=
+  norm_one_of_preserves_norm (rotR_preserves_norm α)
 
 theorem Rx_preserves_norm (α : ℝ) :
     ∀ (v : E 3), ‖(RxL α) v‖ = ‖v‖ := by
