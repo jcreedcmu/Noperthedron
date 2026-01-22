@@ -32,7 +32,13 @@ There is no purely rotational pose that makes the Noperthedron have the Rupert p
 theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, RupertPose p.zeroOffset nopert.hull := by
   intro r
   obtain ⟨p, r⟩ := r
-  let ⟨v, e⟩ := pose_of_matrix_pose p
+  -- TODO: Need to prove that p.outerRot is in the image of rotRM_mat _ _ 0.
+  -- This requires either:
+  -- (1) Showing RupertPose implies the outer rotation has this form, or
+  -- (2) Proving RupertPose is invariant under left-multiplying rotations by Rz(δ),
+  --     then picking δ so the first Euler angle becomes -π/2.
+  have h_outer : ∃ θ φ, p.outerRot.val = rotRM_mat θ φ 0 := by sorry
+  let ⟨v, e⟩ := pose_of_matrix_pose p h_outer
   refine no_nopert_pose ⟨v, ?_⟩
   apply (converted_pose_rupert_iff v nopert.hull).mpr
   rw [e]
