@@ -41,19 +41,8 @@ private lemma angle_condition_implies_not_interior {P : Finset Euc(2)} {Q : Euc(
       simp only [inner_sub_right, real_inner_self_eq_norm_sq] at h1
       linarith
   -- convexHull P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}
-  have h_hull_in_halfspace : convexHull ℝ (P : Set Euc(2)) ⊆ {x : Euc(2) | ⟪Q, x⟫ ≤ ‖Q‖^2} := by
-    apply convexHull_min
-    · intro x hx
-      simp only [Set.mem_setOf_eq]
-      exact h_halfspace x hx
-    · -- The half-space {x : ⟪Q, x⟫ ≤ c} is convex
-      intro x hx y hy a b ha hb hab
-      simp only [Set.mem_setOf_eq] at hx hy ⊢
-      calc ⟪Q, a • x + b • y⟫ = a * ⟪Q, x⟫ + b * ⟪Q, y⟫ := by
-              simp [inner_add_right, inner_smul_right]
-        _ ≤ a * ‖Q‖^2 + b * ‖Q‖^2 := by nlinarith
-        _ = (a + b) * ‖Q‖^2 := by ring
-        _ = ‖Q‖^2 := by rw [hab, one_mul]
+  have h_hull_in_halfspace : convexHull ℝ (P : Set Euc(2)) ⊆ {x : Euc(2) | ⟪Q, x⟫ ≤ ‖Q‖^2} :=
+    convexHull_min h_halfspace (convex_halfSpace_le (innerSL ℝ Q).toLinearMap.isLinear _)
   -- Q ∈ interior(convexHull P) means there's an open set U with Q ∈ U ⊆ convexHull P
   rw [mem_interior] at hQ_int
   obtain ⟨U, hU_sub, hU_open, hQ_in_U⟩ := hQ_int
