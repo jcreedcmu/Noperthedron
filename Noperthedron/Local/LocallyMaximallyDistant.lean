@@ -241,6 +241,5 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
         _ = ‖A - Q‖ * (‖A - Q‖ - 2 * δ * ‖Q‖ / r) := h_rhs
         _ < 0 := mul_neg_of_pos_of_neg h_AQ_pos h_factor
   -- From ‖A‖² < ‖Q‖², conclude ‖A‖ < ‖Q‖
-  have h_nonneg_A : 0 ≤ ‖A‖ := norm_nonneg A
-  have h_nonneg_Q : 0 ≤ ‖Q‖ := norm_nonneg Q
-  nlinarith [sq_nonneg ‖A‖, sq_nonneg ‖Q‖, sq_nonneg (‖A‖ - ‖Q‖), sq_nonneg (‖A‖ + ‖Q‖)]
+  have h_sq_lt : ‖A‖^2 < ‖Q‖^2 := by linarith
+  rwa [sq_lt_sq, abs_of_nonneg (norm_nonneg A), abs_of_nonneg (norm_nonneg Q)] at h_sq_lt
