@@ -96,8 +96,7 @@ lemma exists_SO3_mulVec_ez_eq_ZY (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ 
       rw [Real.cos_arccos, Real.sin_arccos] <;> try nlinarith
       exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv.symm⟩
     by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
-    · simp_all [Complex.ext_iff]
-      ext i; fin_cases i <;> tauto
+    · ext i; simp_all [Complex.ext_iff]; fin_cases i <;> tauto
     · simp [Complex.normSq, Complex.norm_def] at *
       simp [← sq, mul_div_cancel₀ _ (show √(v 0 ^ 2 + v 1 ^ 2) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <|
         by nlinarith [mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from
