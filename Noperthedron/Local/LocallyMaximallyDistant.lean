@@ -57,9 +57,7 @@ private lemma angle_condition_implies_not_interior {P : Finset Euc(2)} {Q : Euc(
   have hQv_in_hull : Q + v ∈ convexHull ℝ (P : Set Euc(2)) := hball_sub_hull hQv_in_ball
   -- But ⟪Q, Q + v⟫ > ‖Q‖², contradicting Q + v ∈ convexHull P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}
   have hQv_inner : ⟪Q, Q + v⟫ = ‖Q‖^2 + (ε / 2) * ‖Q‖ := by
-    simp only [v, inner_add_right, inner_smul_right]
-    have h_inner_Q : ⟪Q, Q⟫ = ‖Q‖^2 := inner_self_eq_norm_sq_to_K Q
-    rw [h_inner_Q]
+    simp only [v, inner_add_right, inner_smul_right, real_inner_self_eq_norm_sq]
     field_simp
   have hQv_gt : ⟪Q, Q + v⟫ > ‖Q‖^2 := by
     rw [hQv_inner]
