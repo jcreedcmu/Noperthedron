@@ -212,13 +212,9 @@ theorem local_theorem (P Q : Triangle)
     · intro Pᵢ hPᵢ hPᵢQ
       simp only [Finset.mem_image, pm] at hPᵢ
       obtain ⟨q, hq₁, hq₂⟩ := hPᵢ
-      have hqQ : q ≠ Q i := by
-        intro heq
-        rw [heq] at hq₂
-        exact hPᵢQ hq₂.symm
-      have := h₅' q hq₁ hqQ
+      have hqQ : q ≠ Q i := by grind
       rw [← hq₂, ← map_sub]
-      linarith
+      linarith [h₅' q hq₁ hqQ]
   -- Step 1: Show rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (interior of pm)
   have h_in_interior_outer : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ interior (convexHull ℝ (↑pm : Set ℝ²)) := by
     have h_inner_in_closure : p.inner (P i) ∈ closure (innerShadow p (shape_of poly).hull) := by
