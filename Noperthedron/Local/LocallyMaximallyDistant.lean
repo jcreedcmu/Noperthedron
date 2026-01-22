@@ -187,10 +187,7 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
   -- Combine: ⟪Q, A - Q⟫ ≤ -(δ/r) * ‖Q‖ * ‖A - Q‖
   -- First we need δ > 0 (since ‖Q - Q_‖ < δ and norms are ≥ 0)
   have hδ_pos : 0 < δ := lt_of_le_of_lt (norm_nonneg _) hQ_
-  have h_coeff_neg : -(δ / r) * ‖Q‖ ≤ 0 := by
-    apply mul_nonpos_of_nonpos_of_nonneg
-    · linarith [div_pos hδ_pos hr]
-    · exact le_of_lt hQ_pos
+  have h_coeff_neg : -(δ / r) * ‖Q‖ ≤ 0 := by nlinarith [div_pos hδ_pos hr]
   have h_inner_final : ⟪Q, A - Q⟫ ≤ -(δ / r) * ‖Q‖ * ‖A - Q‖ := by
     calc ⟪Q, A - Q⟫ ≤ -(δ / r) * ‖Q‖ * ∑ y ∈ P, w y * ‖y - Q‖ := h_inner_bound
       _ ≤ -(δ / r) * ‖Q‖ * ‖A - Q‖ := mul_le_mul_of_nonpos_left h_norm_bound h_coeff_neg
