@@ -238,11 +238,78 @@ theorem local_theorem (P Q : Triangle)
         have := h₅' q hq₁ hqQ
         rw [← hq₂, ← map_sub]
         linarith
-    clear h₅ h₅'
-    simp only [RupertPose, innerShadow, outerShadow] at hΨ₂
-    have h10 : rotM p.θ₁ p.φ₁ (P i) ∈ interior (convexHull ℝ pm) := by
-      sorry
-    sorry
+    -- Step 1: Show rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (interior of pm)
+    have h_in_interior_outer : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ interior (convexHull ℝ (↑pm : Set ℝ²)) := by
+      have h_inner_in_closure : p.inner (P i) ∈ closure (innerShadow p (shape_of poly).hull) := by
+        rw [Pose.inner_shadow_eq_img_inner]
+        exact subset_closure (Set.mem_image_of_mem _ (subset_convexHull ℝ _ (hP i)))
+      have h_outer_eq : outerShadow p (shape_of poly).hull = convexHull ℝ (↑pm : Set ℝ²) := by
+        rw [Pose.outer_shadow_eq_M]
+        have hpm : (↑pm : Set ℝ²) = p.rotM₂ '' ↑poly := by simp only [pm, Finset.coe_image, Pose.rotM₂]
+        rw [hpm]
+        exact AffineMap.image_convexHull p.rotM₂.toAffineMap (↑poly)
+      have h_inner_eq : p.inner (P i) = rotR p.α (rotM p.θ₁ p.φ₁ (P i)) := by
+        simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
+      rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
+    -- Step 2: Combine with hd₁ to get sect membership, apply LMD for norm bound
+    have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (δ + √5 * ε) (T i) pm :=
+      ⟨by rw [add_comm]; exact hd₁, h_in_interior_outer⟩
+    have h_norm_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := by
+      have h_rotR_sq : ‖rotR p.α (rotM p.θ₁ p.φ₁ (P i))‖^2 = ‖rotM p.θ₁ p.φ₁ (P i)‖^2 := by
+        simp only [rotR, rotR_mat, PiLp.norm_sq_eq_of_L2, AddChar.coe_mk,
+          LinearMap.coe_toContinuousLinearMap', Matrix.piLp_ofLp_toEuclideanLin,
+          Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.cons_val',
+          Matrix.cons_val_fin_one, Matrix.vec2_dotProduct, Fin.isValue, Matrix.cons_val_zero,
+          Matrix.cons_val_one, Real.norm_eq_abs, sq_abs, Fin.sum_univ_two, neg_mul]
+        have hcs : Real.cos p.α ^ 2 + Real.sin p.α ^ 2 = 1 := Real.cos_sq_add_sin_sq p.α
+        nlinarith [sq_nonneg ((rotM p.θ₁ p.φ₁ (P i)) 0), sq_nonneg ((rotM p.θ₁ p.φ₁ (P i)) 1),
+                   sq_nonneg (Real.cos p.α), sq_nonneg (Real.sin p.α)]
+      calc ‖rotM p.θ₁ p.φ₁ (P i)‖ = Real.sqrt (‖rotM p.θ₁ p.φ₁ (P i)‖^2) := (Real.sqrt_sq (norm_nonneg _)).symm
+        _ = Real.sqrt (‖rotR p.α (rotM p.θ₁ p.φ₁ (P i))‖^2) := by rw [h_rotR_sq]
+        _ = ‖rotR p.α (rotM p.θ₁ p.φ₁ (P i))‖ := Real.sqrt_sq (norm_nonneg _)
+        _ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := h₈ _ h_sect
+    -- Step 3: Apply pythagoras to convert norm bounds to inner product bounds
+    have h_inner_sq : ⟪vecX p.θ₂ p.φ₂, Q i⟫^2 < ⟪Y, P i⟫^2 := by
+      have h_pyth₁ := Local.pythagoras (θ := p.θ₁) (φ := p.φ₁) (P i)
+      have h_pyth₂ := Local.pythagoras (θ := p.θ₂) (φ := p.φ₂) (Q i)
+      have h_norm_eq : ‖P i‖ = ‖Q i‖ := by rw [hL i]; exact LinearIsometry.norm_map L (Q i)
+      have h_sq_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖^2 < ‖rotM p.θ₂ p.φ₂ (Q i)‖^2 := by
+        have h1 : 0 ≤ ‖rotM p.θ₁ p.φ₁ (P i)‖ := norm_nonneg _
+        have h2 : 0 ≤ ‖rotM p.θ₂ p.φ₂ (Q i)‖ := norm_nonneg _
+        nlinarith [sq_nonneg (‖rotM p.θ₂ p.φ₂ (Q i)‖ - ‖rotM p.θ₁ p.φ₁ (P i)‖)]
+      -- pythagoras gives: ‖rotM θ φ P‖² = ‖P‖² - ⟪vecX θ φ, P⟫²
+      -- So: ‖P‖² - ⟪Y, P i⟫² < ‖Q‖² - ⟪vecX θ₂ φ₂, Q i⟫² with ‖P‖ = ‖Q‖
+      nlinarith [sq_nonneg ⟪Y, P i⟫, sq_nonneg ⟪vecX p.θ₂ p.φ₂, Q i⟫]
+    -- Step 4: Handle sign conventions using |(-1)^σ * x| = |x|
+    have hYP_pos : 0 < ⟪Y, P_ i⟫ := by
+      have hP_norm : ‖P_ i‖ ≤ 1 := by simp only [P_, norm_smul, Real.norm_eq_abs, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]; exact radius_one.2 _ (hP i)
+      have h_eq : ⟪vecX p_.θ₁ p_.φ₁, P_ i⟫ = (-1 : ℝ)^σP * ⟪p_.vecX₁, P i⟫ := by simp only [P_, real_inner_smul_right, Pose.vecX₁]
+      exact Bounding.XPgt0 hP_norm hε hθ₁ hφ₁ (by rw [h_eq]; exact hσP₂ i)
+    have hZQ_pos : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
+      have hQ_norm : ‖Q_ i‖ ≤ 1 := by simp only [Q_, norm_smul, Real.norm_eq_abs, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]; exact radius_one.2 _ (hQ i)
+      have h_eq : ⟪vecX p_.θ₂ p_.φ₂, Q_ i⟫ = (-1 : ℝ)^σQ * ⟪p_.vecX₂, Q i⟫ := by simp only [Q_, real_inner_smul_right, Pose.vecX₂]
+      exact Bounding.XPgt0 hQ_norm hε hθ₂ hφ₂ (by rw [h_eq]; exact hσQ₂ i)
+    -- ⟪Z, P_ i⟫ = (-1)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ and ⟪Y, P_ i⟫ = (-1)^σP * ⟪Y, P i⟫
+    have h_ZP : ⟪Z, P_ i⟫ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
+      simp only [Z, K, P_, ContinuousLinearMap.coe_smul', Pi.smul_apply,
+        LinearIsometry.coe_toContinuousLinearMap, inner_smul_left, real_inner_smul_right, RCLike.conj_to_real]
+      rw [hL i, L.inner_map_map]
+      have h_exp : (-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP = (-1 : ℝ)^σQ := by
+        rw [← zpow_add₀ (by norm_num : (-1 : ℝ) ≠ 0), show σP + σQ + σP = 2 * σP + σQ by ring,
+            zpow_add₀ (by norm_num), zpow_mul]; norm_num
+      calc (-1 : ℝ)^(σP + σQ) * ((-1 : ℝ)^σP * ⟪vecX p.θ₂ p.φ₂, Q i⟫)
+        = ((-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP) * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by ring
+        _ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by rw [h_exp]
+    have h_YP : ⟪Y, P_ i⟫ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := by simp only [P_, real_inner_smul_right]
+    rw [h_ZP, h_YP]
+    -- Both sides positive after sign, compare via absolute values
+    have hZQ_sign : 0 < (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by simp only [Q_, real_inner_smul_right] at hZQ_pos; exact hZQ_pos
+    have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := by rw [← h_YP]; exact hYP_pos
+    calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ = |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := (abs_of_pos hZQ_sign).symm
+      _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
+      _ < |⟪Y, P i⟫| := by nlinarith [sq_abs ⟪vecX p.θ₂ p.φ₂, Q i⟫, sq_abs ⟪Y, P i⟫, abs_nonneg ⟪vecX p.θ₂ p.φ₂, Q i⟫, abs_nonneg ⟪Y, P i⟫]
+      _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
+      _ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := abs_of_pos hYP_sign
   have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
   have h₃ := langles hYZ h₁.1 h₁.2
   simp only [real_inner_comm Y, real_inner_comm Z] at h₃
