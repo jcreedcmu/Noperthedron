@@ -10,6 +10,9 @@ import Noperthedron.RationalApprox.RationalLocal
 
 namespace RationalApprox
 
+-- We confine this open scoped Nat to a section because we need it for !
+-- but it also clobbers φ
+section
 open scoped Nat
 
 theorem finset_sum_range_even_odd {n : ℕ} {f : ℕ → ℝ}
@@ -148,6 +151,8 @@ theorem cosℚ_approx' (x : ℝ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cos
   grw [← this]
   exact z
 
+end
+
 inductive RewritableEntry : Type where
   | zero : RewritableEntry
   | one : RewritableEntry
@@ -159,6 +164,7 @@ inductive RewritableEntry : Type where
 
 def DistLeKappaEntry := RewritableEntry × RewritableEntry
 
+@[simp]
 noncomputable
 def RewritableEntry.actual (z : ℝ) : RewritableEntry → ℝ
 | .zero => 0
@@ -169,10 +175,12 @@ def RewritableEntry.actual (z : ℝ) : RewritableEntry → ℝ
 | .msin => -Real.sin z
 | .mcos => -Real.cos z
 
+@[simp]
 noncomputable
 def DistLeKappaEntry.actual (dlke : DistLeKappaEntry) (x y : ℝ) :=
   dlke.fst.actual x * dlke.snd.actual y
 
+@[simp]
 noncomputable
 def RewritableEntry.approx (z : ℝ) : RewritableEntry → ℝ
 | .zero => 0
@@ -183,16 +191,17 @@ def RewritableEntry.approx (z : ℝ) : RewritableEntry → ℝ
 | .msin => -sinℚ z
 | .mcos => -cosℚ z
 
+@[simp]
 noncomputable
 def DistLeKappaEntry.approx (dlke : DistLeKappaEntry) (x y : ℝ) :=
   dlke.fst.approx x * dlke.snd.approx y
 
 noncomputable
-def matrixActual {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℝ) : E n →L[ℝ] E m :=
+def clinActual {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℝ) : E n →L[ℝ] E m :=
    A.map (·.actual x y) |>.toEuclideanLin.toContinuousLinearMap
 
 noncomputable
-def matrixApprox {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℝ) : E n →L[ℝ] E m :=
+def clinApprox {m n : ℕ} (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : ℝ) : E n →L[ℝ] E m :=
    A.map (·.approx x y) |>.toEuclideanLin.toContinuousLinearMap
 
 section AristotleLemmas
@@ -282,7 +291,7 @@ end AristotleLemmas
 /-- [SY25] Lemma 40 -/
 theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
     (A : Matrix (Fin m) (Fin n) DistLeKappaEntry) (x y : Set.Icc (-4 : ℝ) 4) :
-    ‖matrixActual A x y - matrixApprox A x y‖ ≤ κ := by
+    ‖clinActual A x y - clinApprox A x y‖ ≤ κ := by
   -- Let's choose δ as the upper bound from `dist_le_kappa_entry_error`.
   set δ := 2 * κ / 7 + κ^2 / 49 with hδ_def
   have hδ_pos : 0 < δ := by
@@ -305,6 +314,73 @@ theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
       δ * Real.sqrt (m.val * n.val) := by
     convert norm_le_delta_sqrt_dims _ hδ_pos hδ_bound using 1
   refine le_trans ?_ ( norm_le_delta_sqrt_dims_applied.trans ?_)
-  · simp_all [matrixActual, matrixApprox]
+  · simp_all [clinActual, clinApprox]
   · refine le_trans ( mul_le_mul_of_nonneg_left h_sqrt_bound <| by positivity ) ?_
     linarith [kappa_bound_aux]
+
+/-- Material for [SY25] Lemma 41 -/
+def rotR_approx : Matrix (Fin 2) (Fin 2) DistLeKappaEntry :=
+  !![(.one, .cos), (.one, .msin); (.one, .sin), (.one, .cos)]
+
+def rotR'_approx : Matrix (Fin 2) (Fin 2) DistLeKappaEntry :=
+  !![(.one, .msin), (.one, .mcos); (.one, .cos), (.one, .msin)]
+
+def rotM_approx : Matrix (Fin 2) (Fin 3) DistLeKappaEntry :=
+  !![(.msin, .one), (.cos, .one), (.zero, .zero);
+     (.mcos, .cos), (.msin, .cos), (.one, .sin)]
+
+/-- Proof of [SY25] Lemma 41 -/
+theorem R_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR α - rotRℚ α‖ ≤ κ := by
+  let z_ : Set.Icc (-4 : ℝ) 4 := ⟨0, by norm_num⟩
+  let α_ : Set.Icc (-4 : ℝ) 4 := ⟨α, hα⟩
+
+  have h : rotR α = clinActual rotR_approx z_ α_ := by
+    simp only [rotR, rotR_mat, AddChar.coe_mk, clinActual, rotR_approx,
+       EmbeddingLike.apply_eq_iff_eq, α_]
+    ext i j; fin_cases i <;> fin_cases j <;> simp
+  rw [h]
+
+  have h : rotRℚ α = clinApprox rotR_approx z_ α_ := by
+    simp [rotRℚ, rotRℚ_mat, clinApprox, rotR_approx, α_]
+    ext i j; fin_cases i <;> fin_cases j <;> simp
+  rw [h]
+
+  exact norm_matrix_actual_approx_le_kappa (m := ⟨2, by norm_num⟩) (n := ⟨2, by norm_num⟩)
+    rotR_approx z_ α_
+
+theorem R'_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR' α - rotR'ℚ α‖ ≤ κ := by
+  let z_ : Set.Icc (-4 : ℝ) 4 := ⟨0, by norm_num⟩
+  let α_ : Set.Icc (-4 : ℝ) 4 := ⟨α, hα⟩
+
+  have h : rotR' α = clinActual rotR'_approx z_ α_ := by
+    simp only [rotR', rotR'_mat, clinActual, rotR'_approx,
+       EmbeddingLike.apply_eq_iff_eq, α_]
+    ext i j; fin_cases i <;> fin_cases j <;> simp
+  rw [h]
+
+  have h : rotR'ℚ α = clinApprox rotR'_approx z_ α_ := by
+    simp [rotR'ℚ, rotR'ℚ_mat, clinApprox, rotR'_approx, α_]
+    ext i j; fin_cases i <;> fin_cases j <;> simp
+  rw [h]
+
+  exact norm_matrix_actual_approx_le_kappa (m := ⟨2, by norm_num⟩) (n := ⟨2, by norm_num⟩)
+    rotR'_approx z_ α_
+
+theorem M_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
+    (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotM θ φ - rotMℚ θ φ‖ ≤ κ := by
+  let θ_ : Set.Icc (-4 : ℝ) 4 := ⟨θ, hθ⟩
+  let φ_ : Set.Icc (-4 : ℝ) 4 := ⟨φ, hφ⟩
+
+  have h : rotM θ φ = clinActual rotM_approx θ_ φ_ := by
+    simp only [rotM, rotM_mat, clinActual, rotM_approx,
+       EmbeddingLike.apply_eq_iff_eq, θ_, φ_]
+    ext i j; fin_cases i <;> fin_cases j <;> simp
+  rw [h]
+
+  have h : rotMℚ θ φ = clinApprox rotM_approx θ_ φ_ := by
+    simp [rotMℚ, rotMℚ_mat, clinApprox, rotM_approx, θ_, φ_]
+    ext i j; fin_cases i <;> fin_cases j <;> simp
+  rw [h]
+
+  exact norm_matrix_actual_approx_le_kappa (m := ⟨2, by norm_num⟩) (n := ⟨3, by norm_num⟩)
+    rotM_approx θ_ φ_
