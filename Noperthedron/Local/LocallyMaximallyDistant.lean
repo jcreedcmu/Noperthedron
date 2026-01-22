@@ -228,12 +228,9 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
       exact absurd hA_interior (angle_condition_implies_not_interior hQ hQ_ne_zero h_angle)
     · -- If ‖A - Q‖ > 0
       have h_AQ_pos : 0 < ‖A - Q‖ := lt_of_le_of_ne h_AQ_nonneg (Ne.symm hAQ_zero)
-      -- Use the bound
-      have h_bound : 2 * ⟪Q, A - Q⟫ ≤ 2 * (-(δ / r) * ‖Q‖ * ‖A - Q‖) := by linarith [h_inner_final]
-      have h_rhs : 2 * (-(δ / r) * ‖Q‖ * ‖A - Q‖) + ‖A - Q‖^2 =
-          ‖A - Q‖ * (‖A - Q‖ - 2 * δ * ‖Q‖ / r) := by ring
-      calc 2 * ⟪Q, A - Q⟫ + ‖A - Q‖^2 ≤ 2 * (-(δ / r) * ‖Q‖ * ‖A - Q‖) + ‖A - Q‖^2 := by linarith
-        _ = ‖A - Q‖ * (‖A - Q‖ - 2 * δ * ‖Q‖ / r) := h_rhs
+      calc 2 * ⟪Q, A - Q⟫ + ‖A - Q‖^2
+          ≤ 2 * (-(δ / r) * ‖Q‖ * ‖A - Q‖) + ‖A - Q‖^2 := by linarith [h_inner_final]
+        _ = ‖A - Q‖ * (‖A - Q‖ - 2 * δ * ‖Q‖ / r) := by ring
         _ < 0 := mul_neg_of_pos_of_neg h_AQ_pos h_factor
   -- From ‖A‖² < ‖Q‖², conclude ‖A‖ < ‖Q‖
   have h_sq_lt : ‖A‖^2 < ‖Q‖^2 := by linarith
