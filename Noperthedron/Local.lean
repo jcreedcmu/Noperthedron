@@ -192,8 +192,8 @@ theorem local_theorem (P Q : Triangle)
       rwa [abs_sub_comm]
     -- apply lemma 15
     have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
-    let T : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
-    have hT : ‖T - p_.rotM₂ (Q i)‖ ≤ δ := by
+    let T (i) : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
+    have hT : ‖T i - p_.rotM₂ (Q i)‖ ≤ δ := by
       simp only [T, midpoint_sub_right, invOf_eq_inv]
       rw [norm_smul, Real.norm_eq_abs, show |(2:ℝ)⁻¹| = 2⁻¹ by norm_num]
       specialize hδ i
@@ -201,7 +201,7 @@ theorem local_theorem (P Q : Triangle)
     -- apply lemma 30
     have hP₁ := radius_one.2 _ (hP i)
     obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
-    --apply lemma 33
+    -- apply lemma 33
     have h₅ (j) (h : i ≠ j) := coss hQ₁ (radius_one.2 _ (hQ j)) hε hθ₂ hφ₂ ?pos
     case pos =>
       have h₆ := be i j h
@@ -209,6 +209,25 @@ theorem local_theorem (P Q : Triangle)
       have h₇ : 0 < (δ + ε * √5) / r := by positivity
       unfold Pose.rotM₂ at h₆
       exact h₇.trans h₆
+    have h₅' : ∀ (j : Fin 3), i ≠ j →
+        (δ + ε * √5) / r <
+          ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - Q j)⟫ /
+          (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - Q j)‖) := fun j hij ↦ by
+      have h₆ := be i j hij
+      unfold Triangle.Bε.lhs at h₆
+      unfold Pose.rotM₂ at h₆
+      specialize h₅ j hij
+      linarith only [h₅, h₆]
+    -- apply lemma 32
+    let pm : Finset Euc(2) := Finset.image (fun x ↦ rotM p.θ₂ p.φ₂ x) poly
+    have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) (T i) pm := by
+      apply inner_ge_implies_LMD
+      · sorry
+      · sorry
+      · sorry
+      · sorry
+      · sorry
+      · sorry
     sorry
   have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
   have h₃ := langles hYZ h₁.1 h₁.2

@@ -15,6 +15,7 @@ def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) :=
 
 /--
 [SY25] Definition 31
+"Q is δ-locally maximally distant with respect to Q_" or "Q is δ-LMD(Q_)".
 -/
 def LocallyMaximallyDistant (δ : ℝ) (Q Q_ : Euc(2)) (P : Finset Euc(2)) : Prop :=
   ∀ A ∈ sect δ Q_ P, ‖A‖ < ‖Q‖
