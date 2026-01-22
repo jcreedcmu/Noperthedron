@@ -43,13 +43,9 @@ private lemma angle_condition_implies_not_interior {P : Finset Euc(2)} {Q : Euc(
   -- convexHull P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}
   have h_hull_in_halfspace : convexHull ℝ (P : Set Euc(2)) ⊆ {x : Euc(2) | ⟪Q, x⟫ ≤ ‖Q‖^2} :=
     convexHull_min h_halfspace (convex_halfSpace_le (innerSL ℝ Q).toLinearMap.isLinear _)
-  -- Q ∈ interior(convexHull P) means there's an open set U with Q ∈ U ⊆ convexHull P
-  rw [mem_interior] at hQ_int
-  obtain ⟨U, hU_sub, hU_open, hQ_in_U⟩ := hQ_int
-  -- Since U is open and Q ∈ U, there exists ε > 0 such that B(Q, ε) ⊆ U
-  rw [Metric.isOpen_iff] at hU_open
-  obtain ⟨ε, hε_pos, hball_sub_U⟩ := hU_open Q hQ_in_U
-  -- Consider Q + (ε/2) * (Q / ‖Q‖) - this is in B(Q, ε) ⊆ U ⊆ convexHull P
+  -- Q ∈ interior(convexHull P) gives a ball around Q contained in convexHull P
+  rw [mem_interior_iff_mem_nhds, Metric.mem_nhds_iff] at hQ_int
+  obtain ⟨ε, hε_pos, hball_sub_hull⟩ := hQ_int
   have hQ_pos : 0 < ‖Q‖ := norm_pos_iff.mpr hQ_ne_zero
   let v := (ε / (2 * ‖Q‖)) • Q  -- direction scaled to have norm ε/2
   have hv_norm : ‖v‖ = ε / 2 := by
@@ -58,8 +54,7 @@ private lemma angle_condition_implies_not_interior {P : Finset Euc(2)} {Q : Euc(
   have hQv_in_ball : Q + v ∈ Metric.ball Q ε := by
     simp only [Metric.mem_ball, dist_eq_norm, add_sub_cancel_left, hv_norm]
     linarith
-  have hQv_in_hull : Q + v ∈ convexHull ℝ (P : Set Euc(2)) :=
-    hU_sub (hball_sub_U hQv_in_ball)
+  have hQv_in_hull : Q + v ∈ convexHull ℝ (P : Set Euc(2)) := hball_sub_hull hQv_in_ball
   -- But ⟪Q, Q + v⟫ > ‖Q‖², contradicting Q + v ∈ convexHull P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}
   have hQv_inner : ⟪Q, Q + v⟫ = ‖Q‖^2 + (ε / 2) * ‖Q‖ := by
     simp only [v, inner_add_right, inner_smul_right]
