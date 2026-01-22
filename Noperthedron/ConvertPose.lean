@@ -193,10 +193,42 @@ this theorem to convert arbitrary zero-offset MatrixPoses to Poses.
 theorem pose_of_matrix_pose (p : MatrixPose) : ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
   -- Inner rotation: solvable via ZYZ Euler angles
   obtain ⟨α₁, β₁, γ₁, h_inner⟩ := SO3_euler_ZYZ p.innerRot.val p.innerRot.property
-  -- For inner: rotRM_mat θ φ α = Rz(α - π/2) * Ry(φ) * Rz(-θ)
-  -- Matching: α - π/2 = α₁, φ = β₁, -θ = γ₁  ⟹  α = α₁ + π/2, φ = β₁, θ = -γ₁
-  --
-  -- Outer rotation: BLOCKER - rotRM_mat θ φ 0 = Rz(-π/2) * Ry(φ) * Rz(-θ)
-  -- This requires the first Euler angle to be exactly -π/2, which is not true for all SO3.
-  -- The theorem is false without an additional assumption on p.outerRot.
-  sorry
+  -- Outer rotation: ZYZ decomposition
+  obtain ⟨α₂, β₂, γ₂, h_outer⟩ := SO3_euler_ZYZ p.outerRot.val p.outerRot.property
+  -- Construct the Pose:
+  -- For inner: rotRM_mat θ φ α = Rz(-π/2) * Rz(α) * Ry(φ) * Rz(-θ)
+  --   Matching Rz(α₁) * Ry(β₁) * Rz(γ₁): set α = α₁ + π/2, φ = β₁, θ = -γ₁
+  -- For outer: rotRM_mat θ φ 0 = Rz(-π/2) * Ry(φ) * Rz(-θ)
+  --   This requires the first Euler angle to be -π/2, which is NOT always true!
+  let pp : Pose := {
+    θ₁ := -γ₁
+    φ₁ := β₁
+    α := α₁ + π / 2
+    θ₂ := -γ₂
+    φ₂ := β₂
+  }
+  use pp
+  simp only [Pose.matrixPoseOfPose, MatrixPose.zeroOffset]
+  congr 1
+  · -- innerRot: provable
+    apply Subtype.ext
+    simp only [rotRM_mat]
+    -- Need: Rz(-π/2) * Rz(α₁ + π/2) * Ry(β₁) * Rz(γ₁) = Rz(α₁) * Ry(β₁) * Rz(γ₁)
+    rw [h_inner]
+    -- Unfold pp's fields: pp.θ₁ = -γ₁, pp.φ₁ = β₁, pp.α = α₁ + π/2
+    simp only [pp]
+    ext i j
+    fin_cases i <;> fin_cases j <;> simp [Rz_mat, Ry_mat, Matrix.mul_apply,
+      Fin.sum_univ_three, neg_neg, cos_neg, sin_neg, cos_add_pi_div_two, sin_add_pi_div_two]
+  · -- outerRot: STUCK - requires α₂ = -π/2 but α₂ can be any angle
+    apply Subtype.ext
+    simp only [rotRM_mat, pp]
+    rw [h_outer]
+    -- Goal: Rz(-π/2) * Rz(0) * Ry(β₂) * Rz(γ₂) = Rz(α₂) * Ry(β₂) * Rz(γ₂)
+    -- Since Rz(0) = I, this simplifies to:
+    --   Rz(-π/2) * Ry(β₂) * Rz(γ₂) = Rz(α₂) * Ry(β₂) * Rz(γ₂)
+    -- Since Ry(β₂) * Rz(γ₂) is invertible (as an SO3 matrix), this requires:
+    --   Rz(-π/2) = Rz(α₂), i.e., α₂ = -π/2 (mod 2π)
+    -- But α₂ is an ARBITRARY Euler angle determined by p.outerRot, so this is FALSE in general.
+    -- COUNTEREXAMPLE: Any MatrixPose whose outer rotation has first ZYZ Euler angle ≠ -π/2.
+    sorry
