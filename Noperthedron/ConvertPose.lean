@@ -131,15 +131,14 @@ lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
   have hU_det : IsUnit U.det := by
     simp only [isUnit_iff_ne_zero, ne_eq, U]
     simp_all [Matrix.mem_specialOrthogonalGroup_iff]
-  have hAe3 : A.mulVec ![0, 0, 1] = v.ofLp := by
-    ext i; fin_cases i <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three, v]
   have hB_fixes_ez : (U⁻¹ * A).mulVec ![0, 0, 1] = ![0, 0, 1] := by
-    rw [← Matrix.mulVec_mulVec, hAe3, ← hU_ez]
-    rw [Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ hU_det, Matrix.one_mulVec]
-  -- U⁻¹ * A ∈ SO3 and fixes e₃, so it's Rz(γ)
-  have hB_SO3 : U⁻¹ * A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
-    Submonoid.mul_mem _ (Bounding.specialOrthogonalGroup_mem_inv hU_SO3) hA
-  obtain ⟨γ, hγ⟩ := Bounding.SO3_fixing_z_is_Rz (U⁻¹ * A) hB_SO3 (by convert hB_fixes_ez; simp)
+    have hAe3 : A.mulVec ![0, 0, 1] = v.ofLp := by
+      ext i; fin_cases i <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three, v]
+    rw [← Matrix.mulVec_mulVec, hAe3, ← hU_ez,
+      Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ hU_det, Matrix.one_mulVec]
+  obtain ⟨γ, hγ⟩ := Bounding.SO3_fixing_z_is_Rz (U⁻¹ * A)
+    (Submonoid.mul_mem _ (Bounding.specialOrthogonalGroup_mem_inv hU_SO3) hA)
+    (by convert hB_fixes_ez; simp)
   exact ⟨α, β, γ, by rw [← hγ, ← Matrix.mul_assoc, Matrix.mul_nonsing_inv _ hU_det, Matrix.one_mul]⟩
 
 /--
