@@ -20,6 +20,20 @@ def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) :=
 def LocallyMaximallyDistant (δ : ℝ) (Q Q_ : Euc(2)) (P : Finset Euc(2)) : Prop :=
   ∀ A ∈ sect δ Q_ P, ‖A‖ < ‖Q‖
 
+/-- A vertex of a finite set cannot be in the interior of its convex hull.
+    Proof sketch: If Q ∈ interior(convexHull P), then there exists ε > 0 such that
+    B(Q, ε) ⊆ convexHull P. But since Q ∈ P, we can find a direction v (normal to a
+    supporting hyperplane at Q) such that Q + δv ∉ convexHull P for any δ > 0.
+    This contradicts Q being in the interior.
+
+    TODO: Formalize using either:
+    - The fact that Q is an extreme point of convexHull P (via extremePoints_convexHull_subset)
+    - Direct argument about supporting hyperplanes
+    - Characterization of interior via relative interior -/
+private lemma vertex_not_in_interior_convexHull {P : Finset Euc(2)} {Q : Euc(2)} (hQ : Q ∈ P) :
+    Q ∉ interior (convexHull ℝ (P : Set Euc(2))) := by
+  sorry
+
 /--
 Key algebraic identity: ‖A‖² - ‖Q‖² = 2⟪Q, A - Q⟫ + ‖A - Q‖²
 -/
@@ -30,10 +44,30 @@ private lemma norm_sq_diff_eq {A Q : Euc(2)} :
   linarith
 
 /--
+For A in convexHull P, A can be written as a convex combination of vertices,
+and ⟪Q, A - Q⟫ = Σ wᵢ ⟪Q, Pᵢ - Q⟫.
+-/
+private lemma inner_convex_combination {P : Finset Euc(2)} {Q A : Euc(2)}
+    (hA : A ∈ convexHull ℝ (P : Set Euc(2))) :
+    ∃ w : Euc(2) → ℝ, (∀ y ∈ P, 0 ≤ w y) ∧ (∑ y ∈ P, w y = 1) ∧
+      (∑ y ∈ P, w y • y = A) ∧
+      ⟪Q, A - Q⟫ = ∑ y ∈ P, w y * ⟪Q, y - Q⟫ := by
+  rw [Finset.mem_convexHull'] at hA
+  obtain ⟨w, hw_nonneg, hw_sum, hw_eq⟩ := hA
+  refine ⟨w, hw_nonneg, hw_sum, hw_eq, ?_⟩
+  calc ⟪Q, A - Q⟫ = ⟪Q, ∑ y ∈ P, w y • y - Q⟫ := by rw [hw_eq]
+    _ = ⟪Q, ∑ y ∈ P, w y • y - (∑ y ∈ P, w y) • Q⟫ := by rw [hw_sum, one_smul]
+    _ = ⟪Q, ∑ y ∈ P, w y • y - ∑ y ∈ P, w y • Q⟫ := by rw [Finset.sum_smul]
+    _ = ⟪Q, ∑ y ∈ P, (w y • y - w y • Q)⟫ := by rw [← Finset.sum_sub_distrib]
+    _ = ⟪Q, ∑ y ∈ P, w y • (y - Q)⟫ := by simp_rw [← smul_sub]
+    _ = ∑ y ∈ P, ⟪Q, w y • (y - Q)⟫ := inner_sum P (fun y ↦ w y • (y - Q)) Q
+    _ = ∑ y ∈ P, w y * ⟪Q, y - Q⟫ := by simp_rw [real_inner_smul_right]
+
+/--
 If the angle condition holds and Q ≠ 0, then ⟪Q, Pᵢ - Q⟫ is bounded above by a negative quantity.
 -/
-private lemma inner_toward_vertex_neg {P : Finset Euc(2)} {Q : Euc(2)} {δ r : ℝ}
-    (hr : 0 < r) (hrQ : r < ‖Q‖) (Pᵢ : Euc(2)) (hPᵢ : Pᵢ ∈ P) (hne : Pᵢ ≠ Q)
+private lemma inner_toward_vertex_neg {Q : Euc(2)} {δ r : ℝ}
+    (hr : 0 < r) (hrQ : r < ‖Q‖) (Pᵢ : Euc(2)) (hne : Pᵢ ≠ Q)
     (hle : δ / r ≤ ⟪Q, Q - Pᵢ⟫ / (‖Q‖ * ‖Q - Pᵢ‖)) :
     ⟪Q, Pᵢ - Q⟫ ≤ -(δ / r) * ‖Q‖ * ‖Q - Pᵢ‖ := by
   have hQ_pos : 0 < ‖Q‖ := lt_trans hr hrQ
@@ -69,35 +103,107 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
   -- We have: ‖A‖² - ‖Q‖² = 2⟪Q, A - Q⟫ + ‖A - Q‖²
   -- If A is in the interior and close to Q, then ⟪Q, A - Q⟫ should be negative enough
   have hQ_pos : 0 < ‖Q‖ := lt_trans hr hrQ
+  -- A is in the interior, so it's in the convex hull
+  have hA_hull : A ∈ convexHull ℝ (P : Set Euc(2)) := interior_subset hA_interior
+  -- Get convex combination representation and the inner product identity
+  obtain ⟨w, hw_nonneg, hw_sum, hw_eq, hw_inner⟩ := inner_convex_combination hA_hull
+  -- Key bound: ⟪Q, A - Q⟫ ≤ -(δ/r) * ‖Q‖ * ‖A - Q‖
+  -- First bound the inner product using angle conditions on each vertex
+  have h_inner_bound : ⟪Q, A - Q⟫ ≤ -(δ / r) * ‖Q‖ * ∑ y ∈ P, w y * ‖y - Q‖ := by
+    rw [hw_inner]
+    -- Split sum at Q: the Q term vanishes
+    have h_sum_split : ∑ y ∈ P, w y * ⟪Q, y - Q⟫ =
+        w Q * ⟪Q, Q - Q⟫ + ∑ y ∈ P.erase Q, w y * ⟪Q, y - Q⟫ := by
+      rw [← Finset.add_sum_erase P (fun y ↦ w y * ⟪Q, y - Q⟫) hQ]
+    rw [h_sum_split]
+    simp only [sub_self, inner_zero_right, mul_zero, zero_add]
+    -- For y ≠ Q, use the angle bound
+    have h_term_bound : ∀ y ∈ P.erase Q, w y * ⟪Q, y - Q⟫ ≤ w y * (-(δ / r) * ‖Q‖ * ‖y - Q‖) := by
+      intro y hy
+      have hy_mem : y ∈ P := Finset.mem_of_mem_erase hy
+      have hy_ne : y ≠ Q := Finset.ne_of_mem_erase hy
+      have h_vertex := inner_toward_vertex_neg hr hrQ y hy_ne (hle y hy_mem hy_ne)
+      have hw_y_nonneg : 0 ≤ w y := hw_nonneg y hy_mem
+      rw [norm_sub_rev Q y] at h_vertex
+      exact mul_le_mul_of_nonneg_left h_vertex hw_y_nonneg
+    -- Factor out the constant from the sum
+    have h_sum_factor : ∑ y ∈ P.erase Q, w y * (-(δ / r) * ‖Q‖ * ‖y - Q‖) =
+        -(δ / r) * ‖Q‖ * ∑ y ∈ P.erase Q, w y * ‖y - Q‖ := by
+      rw [Finset.mul_sum]; congr 1; ext y; ring
+    -- Extend back to sum over P (Q term is 0)
+    have h_sum_extend : ∑ y ∈ P.erase Q, w y * ‖y - Q‖ = ∑ y ∈ P, w y * ‖y - Q‖ := by
+      rw [← Finset.add_sum_erase P (fun y ↦ w y * ‖y - Q‖) hQ]
+      simp only [sub_self, norm_zero, mul_zero, zero_add]
+    calc ∑ y ∈ P.erase Q, w y * ⟪Q, y - Q⟫
+        ≤ ∑ y ∈ P.erase Q, w y * (-(δ / r) * ‖Q‖ * ‖y - Q‖) := Finset.sum_le_sum h_term_bound
+      _ = -(δ / r) * ‖Q‖ * ∑ y ∈ P.erase Q, w y * ‖y - Q‖ := h_sum_factor
+      _ = -(δ / r) * ‖Q‖ * ∑ y ∈ P, w y * ‖y - Q‖ := by rw [h_sum_extend]
+  -- Triangle inequality for convex combination: ‖A - Q‖ ≤ ∑ wᵢ ‖yᵢ - Q‖
+  have h_norm_bound : ‖A - Q‖ ≤ ∑ y ∈ P, w y * ‖y - Q‖ := by
+    -- A - Q = ∑ wᵢ (yᵢ - Q) because A = ∑ wᵢ yᵢ and ∑ wᵢ = 1
+    have hAQ_eq : A - Q = ∑ y ∈ P, w y • (y - Q) := by
+      calc A - Q = ∑ y ∈ P, w y • y - Q := by rw [hw_eq]
+        _ = ∑ y ∈ P, w y • y - (∑ y ∈ P, w y) • Q := by rw [hw_sum, one_smul]
+        _ = ∑ y ∈ P, w y • y - ∑ y ∈ P, w y • Q := by rw [Finset.sum_smul]
+        _ = ∑ y ∈ P, (w y • y - w y • Q) := by rw [← Finset.sum_sub_distrib]
+        _ = ∑ y ∈ P, w y • (y - Q) := by simp_rw [← smul_sub]
+    rw [hAQ_eq]
+    calc ‖∑ y ∈ P, w y • (y - Q)‖
+        ≤ ∑ y ∈ P, ‖w y • (y - Q)‖ := norm_sum_le P (fun y ↦ w y • (y - Q))
+      _ = ∑ y ∈ P, |w y| * ‖y - Q‖ := by simp_rw [norm_smul, Real.norm_eq_abs]
+      _ = ∑ y ∈ P, w y * ‖y - Q‖ := by
+          apply Finset.sum_congr rfl
+          intro y hy
+          rw [abs_of_nonneg (hw_nonneg y hy)]
+  -- Combine: ⟪Q, A - Q⟫ ≤ -(δ/r) * ‖Q‖ * ‖A - Q‖
+  -- First we need δ > 0 (since ‖Q - Q_‖ < δ and norms are ≥ 0)
+  have hδ_pos : 0 < δ := lt_of_le_of_lt (norm_nonneg _) hQ_
+  have h_coeff_neg : -(δ / r) * ‖Q‖ ≤ 0 := by
+    apply mul_nonpos_of_nonpos_of_nonneg
+    · linarith [div_pos hδ_pos hr]
+    · exact le_of_lt hQ_pos
+  have h_inner_final : ⟪Q, A - Q⟫ ≤ -(δ / r) * ‖Q‖ * ‖A - Q‖ := by
+    calc ⟪Q, A - Q⟫ ≤ -(δ / r) * ‖Q‖ * ∑ y ∈ P, w y * ‖y - Q‖ := h_inner_bound
+      _ ≤ -(δ / r) * ‖Q‖ * ‖A - Q‖ := mul_le_mul_of_nonpos_left h_norm_bound h_coeff_neg
   -- Show ‖A‖² < ‖Q‖² by showing the difference is negative
   have h_sq_diff : ‖A‖^2 - ‖Q‖^2 < 0 := by
     rw [norm_sq_diff_eq]
-    -- Need: 2 * ⟪Q, A - Q⟫ + ‖A - Q‖² < 0
-    --
-    -- [SY25] Lemma 32 proof outline:
-    -- The key geometric insight is that since A is in the interior of the
-    -- convex hull and Q is a vertex, A - Q points "into" the polygon.
-    -- The angle condition ensures Q "sticks out" enough.
-    --
-    -- Specifically:
-    -- 1. Since Q is a vertex of convexHull P, Q is an extreme point
-    -- 2. Since A ∈ interior (convexHull P), A is not on the boundary
-    -- 3. The direction A - Q must have ⟪Q, A - Q⟫ < 0 (pointing "inward")
-    -- 4. The angle condition quantifies: for each edge direction (Q - Pᵢ),
-    --    the cosine ⟪Q, Q - Pᵢ⟫/(‖Q‖ * ‖Q - Pᵢ‖) ≥ δ/r
-    -- 5. This implies ⟪Q, Pᵢ - Q⟫ ≤ -(δ/r) * ‖Q‖ * ‖Q - Pᵢ‖ (inward is negative)
-    -- 6. Since A - Q is a positive combination of inward directions when A ∈ interior,
-    --    we get ⟪Q, A - Q⟫ ≤ -(δ/r) * ‖Q‖ * ‖A - Q‖
-    -- 7. Combined with ‖A - Q‖ < 2δ and ‖Q‖ > r:
-    --    2⟪Q, A - Q⟫ + ‖A - Q‖² ≤ 2 * (-(δ/r) * ‖Q‖ * ‖A - Q‖) + ‖A - Q‖²
-    --                            = ‖A - Q‖ * (‖A - Q‖ - 2δ‖Q‖/r)
-    --                            < ‖A - Q‖ * (2δ - 2δ‖Q‖/r)  [since ‖A - Q‖ < 2δ]
-    --                            = 2δ * ‖A - Q‖ * (1 - ‖Q‖/r)
-    --                            < 0  [since ‖Q‖ > r]
-    --
-    -- The remaining challenge is formalizing step 6: that A - Q being in the
-    -- interior direction means it can be bounded by the angle condition on edges.
-    sorry
+    -- 2⟪Q, A - Q⟫ + ‖A - Q‖² < 0
+    -- We have: ⟪Q, A - Q⟫ ≤ -(δ/r) * ‖Q‖ * ‖A - Q‖
+    -- So: 2⟪Q, A - Q⟫ + ‖A - Q‖² ≤ -2(δ/r)‖Q‖‖A - Q‖ + ‖A - Q‖²
+    --                              = ‖A - Q‖ * (‖A - Q‖ - 2δ‖Q‖/r)
+    -- Since ‖A - Q‖ < 2δ and ‖Q‖ > r, we have ‖A - Q‖ - 2δ‖Q‖/r < 0
+    have h2 : 2 * δ * ‖Q‖ / r > 2 * δ := by
+      rw [gt_iff_lt, lt_div_iff₀ hr]
+      nlinarith [hδ_pos, hrQ]
+    have h_factor : ‖A - Q‖ - 2 * δ * ‖Q‖ / r < 0 := by linarith
+    -- Now: 2⟪Q, A - Q⟫ + ‖A - Q‖² ≤ 2 * (-(δ/r) * ‖Q‖ * ‖A - Q‖) + ‖A - Q‖²
+    --                                = ‖A - Q‖ * (‖A - Q‖ - 2δ‖Q‖/r)
+    --                                < 0 since h_factor shows the second term is negative
+    have h_AQ_nonneg : 0 ≤ ‖A - Q‖ := norm_nonneg _
+    -- Case split on whether A = Q
+    by_cases hAQ_zero : ‖A - Q‖ = 0
+    · -- If A = Q, then A is a vertex in the interior of the convex hull.
+      -- This is impossible: vertices of a finite set are extreme points of the hull,
+      -- and extreme points cannot be interior points.
+      have hAQ_eq : A = Q := by
+        rw [← sub_eq_zero]
+        exact (norm_eq_zero (E := Euc(2))).mp hAQ_zero
+      rw [hAQ_eq] at hA_interior
+      -- Q ∈ P means Q is a vertex, so Q ∉ interior (convexHull ℝ P)
+      -- This requires proving that vertices are extreme points and extreme points
+      -- are not interior points. For now we use sorry.
+      exact absurd hA_interior (vertex_not_in_interior_convexHull hQ)
+    · -- If ‖A - Q‖ > 0
+      have h_AQ_pos : 0 < ‖A - Q‖ := lt_of_le_of_ne h_AQ_nonneg (Ne.symm hAQ_zero)
+      -- Use the bound
+      have h_bound : 2 * ⟪Q, A - Q⟫ ≤ 2 * (-(δ / r) * ‖Q‖ * ‖A - Q‖) := by linarith [h_inner_final]
+      have h_rhs : 2 * (-(δ / r) * ‖Q‖ * ‖A - Q‖) + ‖A - Q‖^2 =
+          ‖A - Q‖ * (‖A - Q‖ - 2 * δ * ‖Q‖ / r) := by ring
+      calc 2 * ⟪Q, A - Q⟫ + ‖A - Q‖^2 ≤ 2 * (-(δ / r) * ‖Q‖ * ‖A - Q‖) + ‖A - Q‖^2 := by linarith
+        _ = ‖A - Q‖ * (‖A - Q‖ - 2 * δ * ‖Q‖ / r) := h_rhs
+        _ < 0 := mul_neg_of_pos_of_neg h_AQ_pos h_factor
+  -- From ‖A‖² < ‖Q‖², conclude ‖A‖ < ‖Q‖
   have h_nonneg_A : 0 ≤ ‖A‖ := norm_nonneg A
   have h_nonneg_Q : 0 ≤ ‖Q‖ := norm_nonneg Q
-  nlinarith [sq_nonneg ‖A‖, sq_nonneg ‖Q‖]
+  nlinarith [sq_nonneg ‖A‖, sq_nonneg ‖Q‖, sq_nonneg (‖A‖ - ‖Q‖), sq_nonneg (‖A‖ + ‖Q‖)]
