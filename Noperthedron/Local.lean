@@ -224,7 +224,10 @@ theorem local_theorem (P Q : Triangle)
       refine inner_ge_implies_LMD (r := r) ?_ ?_ hr h₃ ?_
       · simp only [Finset.mem_image, pm]
         exact ⟨Q i, hQ i, rfl⟩
-      · sorry
+      · simp only [T, Pose.rotR, Pose.rotM₁, Pose.rotM₂]
+        rw [Metric.mem_ball, dist_eq_norm, norm_sub_rev] at hd₂
+        rw [add_comm, norm_sub_rev]
+        exact hd₂
       · intro Pᵢ hPᵢ hPᵢQ
         simp only [Finset.mem_image, pm] at hPᵢ
         obtain ⟨q, hq⟩ := hPᵢ
