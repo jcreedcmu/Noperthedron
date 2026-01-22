@@ -104,11 +104,11 @@ and maps e₃ to v. This is a repackaging of exists_SO3_mulVec_ez_eq. -/
 lemma exists_SO3_mulVec_ez_eq_ZY (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
     ∃ α β : ℝ, let U := Rz_mat α * Ry_mat β
       U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
-  -- The proof of exists_SO3_mulVec_ez_eq constructs U = rot3_mat 2 ϕ * rot3_mat 1 (-θ)
-  -- where rot3_mat 2 = Rz_mat and rot3_mat 1 = Ry_mat
+  -- Use exists_SO3_mulVec_ez_eq and observe that its construction gives Rz * Ry form
+  -- The construction is: U = rot3_mat 2 ϕ * rot3_mat 1 (-θ) = Rz_mat ϕ * Ry_mat (-θ)
   obtain ⟨U, hU_SO3, hU_ez⟩ := Bounding.exists_SO3_mulVec_ez_eq v hv
-  -- The construction gives U = Rz_mat ϕ * Ry_mat (-θ) for specific ϕ, θ
-  -- We need to extract these angles. Since this is for existence, we use sorry for now.
+  -- For now, we use sorry since extracting the exact angles from the existential
+  -- requires repeating the construction or modifying exists_SO3_mulVec_ez_eq
   sorry
 
 /-- Any SO3 matrix can be written in ZYZ Euler form: Rz(α) * Ry(β) * Rz(γ).
@@ -157,12 +157,24 @@ lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
 /--
 Given a MatrixPose with zero offset, there exists a 5-parameter Pose that produces
 the same rotations. This follows from the ZYZ Euler angle decomposition.
+
+Note: This requires showing that any SO3 matrix can be written in the form
+`Rz(α - π/2) * Ry(φ) * Rz(-θ)` which is what `rotRM_mat θ φ α` expands to.
+For the outer rotation (where α = 0), this means `Rz(-π/2) * Ry(φ) * Rz(-θ)`,
+which is a 2-parameter family. The full SO3 has 3 parameters, so additional
+argument is needed to show every SO3 matrix can be represented this way
+(e.g., via the freedom in ZYZ angle selection).
 -/
 theorem pose_of_matrix_pose (p : MatrixPose) : ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
-  -- Decompose each SO3 matrix into Euler angles
-  obtain ⟨α₁, β₁, γ₁, h_inner⟩ := SO3_euler_ZYZ p.innerRot.val p.innerRot.property
-  obtain ⟨α₂, β₂, γ₂, h_outer⟩ := SO3_euler_ZYZ p.outerRot.val p.outerRot.property
-  -- rotRM_mat θ φ α = Rz(-(π/2)) * Rz(α) * Ry(φ) * Rz(-θ) = Rz(α - π/2) * Ry(φ) * Rz(-θ)
-  -- Match: Rz(α₁) * Ry(β₁) * Rz(γ₁) = Rz(α' - π/2) * Ry(φ') * Rz(-θ')
-  -- Solution: α' = α₁ + π/2, φ' = β₁, θ' = -γ₁
-  sorry -- TODO: Construct pose and prove equality using h_inner, h_outer
+  -- The ZYZ decomposition gives p.innerRot = Rz(α₁) * Ry(β₁) * Rz(γ₁)
+  -- We need rotRM_mat θ₁ φ₁ α = Rz(α - π/2) * Ry(φ) * Rz(-θ) to equal this
+  -- Solution for inner: α = α₁ + π/2, φ₁ = β₁, θ₁ = -γ₁
+  --
+  -- For outer: rotRM_mat θ₂ φ₂ 0 = Rz(-π/2) * Ry(φ₂) * Rz(-θ₂)
+  -- This is the form Rz(-π/2) * Ry(β₂) * Rz(γ₂) where we identify φ₂ = β₂, θ₂ = -γ₂
+  -- But we need to show p.outerRot can be written as Rz(-π/2) * Ry(β) * Rz(γ)
+  -- This requires α₂ = -π/2 (mod 2π) in the ZYZ decomposition.
+  --
+  -- TODO: This may require a different approach - perhaps showing that any SO3
+  -- matrix can be decomposed with a specific first angle via alternative decompositions.
+  sorry
