@@ -68,6 +68,14 @@ def rotMℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) 
   !![-sinℚ θ, cosℚ θ, 0; -cosℚ θ * cosℚ φ, -sinℚ θ * cosℚ φ, sinℚ φ]
 
 noncomputable
+def rotMθℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
+  !![-cosℚ θ, -sinℚ θ, 0; sinℚ θ * cosℚ φ, -cosℚ θ * cosℚ φ, 0]
+
+noncomputable
+def rotMφℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
+  !![0, 0, 0; cosℚ θ * sinℚ φ, sinℚ θ * sinℚ φ, cosℚ φ]
+
+noncomputable
 def rotRℚ_mat {k : Type} [Field k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
   !![cosℚ α, -sinℚ α;
      sinℚ α,  cosℚ α]
@@ -84,6 +92,14 @@ These are merely linear instead of continuous-linear because
 noncomputable
 def rotMℚ (θ φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   rotMℚ_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
+
+noncomputable
+def rotMθℚ (θ φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  rotMθℚ_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
+
+noncomputable
+def rotMφℚ (θ φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  rotMφℚ_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
 
 noncomputable
 def rotRℚ (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
