@@ -215,19 +215,24 @@ theorem local_theorem (P Q : Triangle)
           ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - Qⱼ)⟫ /
           (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - Qⱼ)‖) := by
       have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
-      unfold Triangle.Bε.lhs at h₆
-      unfold Pose.rotM₂ at h₆
+      unfold Triangle.Bε.lhs Pose.rotM₂ at h₆
       specialize h₅ Qⱼ hQⱼ₁ hQⱼ₂
       linarith only [h₅, h₆]
     -- apply lemma 32
-    let pm : Finset Euc(2) := Finset.image (fun x ↦ rotM p.θ₂ p.φ₂ x) poly
+    let pm : Finset Euc(2) := Finset.image (rotM p.θ₂ p.φ₂) poly
     have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) (T i) pm := by
-      apply inner_ge_implies_LMD (r := r)
+      refine inner_ge_implies_LMD (r := r) ?_ ?_ hr h₃ ?_
+      · simp only [Finset.mem_image, pm]
+        exact ⟨Q i, hQ i, rfl⟩
       · sorry
-      · sorry
-      · sorry
-      · sorry
-      · sorry
+      · intro Pᵢ hPᵢ hPᵢQ
+        simp only [Finset.mem_image, pm] at hPᵢ
+        obtain ⟨q, hq⟩ := hPᵢ
+        sorry
+    clear h₅ h₅'
+    simp only [RupertPose, innerShadow, outerShadow] at hΨ₂
+    have h10 : rotM p.θ₁ p.φ₁ (P i) ∈ interior (convexHull ℝ pm) := by
+      sorry
     sorry
   have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
   have h₃ := langles hYZ h₁.1 h₁.2
