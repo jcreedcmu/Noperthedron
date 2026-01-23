@@ -75,9 +75,6 @@ theorem inner_shadow_lemma (p : MatrixPose) (S : Set ℝ³) :
   nth_rw 2 [add_comm]
   rw [← proj_xy_eq_proj_xyL, proj_offset_commute p.innerOffset v]
 
-/-- RzL as a matrix multiplication is the same as matrix-vector multiplication. -/
-lemma RzL_eq_matmul (δ : ℝ) (v : ℝ³) : RzL δ v = (Rz_mat δ).toEuclideanLin v := rfl
-
 /-- Matrix multiplication yields RzL composition. -/
 lemma Rz_mul_toEuclideanLin (δ : ℝ) (M : Matrix (Fin 3) (Fin 3) ℝ) (v : ℝ³) :
     (Rz_mat δ * M).toEuclideanLin v = RzL δ (M.toEuclideanLin v) := by
@@ -91,17 +88,14 @@ theorem outerShadow_rotateBy (p : MatrixPose) (δ : ℝ) (S : Set ℝ³) :
   simp only [outerShadow, Set.mem_setOf_eq, Set.mem_image]
   constructor
   · rintro ⟨v, hv, rfl⟩
-    use proj_xyL (p.outerRot.val.toEuclideanLin v)
-    refine ⟨⟨v, hv, rfl⟩, ?_⟩
-    simp only [rotateBy, PoseLike.outer, LinearMap.coe_toAffineMap]
-    rw [Rz_mul_toEuclideanLin]
-    rw [← ContinuousLinearMap.comp_apply (rotR δ) proj_xyL, ← proj_xyL_comp_RzL δ]
+    refine ⟨proj_xyL (p.outerRot.val.toEuclideanLin v), ⟨v, hv, rfl⟩, ?_⟩
+    simp only [rotateBy, PoseLike.outer, LinearMap.coe_toAffineMap, Rz_mul_toEuclideanLin]
+    rw [← ContinuousLinearMap.comp_apply proj_xyL (RzL δ), proj_xyL_comp_RzL]
     rfl
   · rintro ⟨w', ⟨v, hv, rfl⟩, rfl⟩
-    use v, hv
-    simp only [rotateBy, PoseLike.outer, LinearMap.coe_toAffineMap]
-    rw [Rz_mul_toEuclideanLin]
-    rw [← ContinuousLinearMap.comp_apply (rotR δ) proj_xyL, ← proj_xyL_comp_RzL δ]
+    refine ⟨v, hv, ?_⟩
+    simp only [rotateBy, PoseLike.outer, LinearMap.coe_toAffineMap, Rz_mul_toEuclideanLin]
+    rw [← ContinuousLinearMap.comp_apply proj_xyL (RzL δ), proj_xyL_comp_RzL]
     rfl
 
 /-- inject_xy of rotR is RzL of inject_xy. -/
@@ -173,20 +167,9 @@ theorem rotR_homeomorph_apply (δ : ℝ) (v : ℝ²) : rotR_homeomorph δ v = ro
 /-- RupertPose is invariant under rotation by Rz(δ). -/
 theorem RupertPose_rotateBy_iff (p : MatrixPose) (δ : ℝ) (S : Set ℝ³) :
     RupertPose (p.rotateBy δ) S ↔ RupertPose p S := by
-  simp only [RupertPose, innerShadow_rotateBy, outerShadow_rotateBy]
-  -- Convert rotR δ to rotR_homeomorph δ
-  have h_eq : (fun a => rotR δ a) = rotR_homeomorph δ := rfl
-  rw [h_eq]
-  -- Use that closure (f '' S) = f '' closure S and interior (f '' S) = f '' interior S for homeomorphisms
-  rw [← Homeomorph.image_closure (rotR_homeomorph δ) (innerShadow p S)]
-  rw [← Homeomorph.image_interior (rotR_homeomorph δ) (outerShadow p S)]
-  -- Now we need: rotR_homeomorph δ '' closure (innerShadow p S) ⊆ rotR_homeomorph δ '' interior (outerShadow p S)
-  -- iff closure (innerShadow p S) ⊆ interior (outerShadow p S)
-  constructor
-  · intro h
-    have hbij : Function.Bijective (rotR_homeomorph δ) := (rotR_homeomorph δ).bijective
-    exact Set.image_subset_image_iff hbij.injective |>.mp h
-  · intro h
-    exact Set.image_mono h
+  simp only [RupertPose, innerShadow_rotateBy, outerShadow_rotateBy,
+    show (fun a => rotR δ a) = rotR_homeomorph δ from rfl]
+  rw [← Homeomorph.image_closure (rotR_homeomorph δ), ← Homeomorph.image_interior (rotR_homeomorph δ)]
+  exact Set.image_subset_image_iff (rotR_homeomorph δ).injective
 
 end MatrixPose
