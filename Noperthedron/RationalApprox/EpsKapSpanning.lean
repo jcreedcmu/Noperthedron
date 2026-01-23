@@ -46,36 +46,20 @@ def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) := matOfCovec v 
 private lemma matOfCovec_transpose {n : ℕ} (v : Euc(n)) : (matOfCovec v)ᵀ = matOfVec v := by
   ext i j; simp [matOfVec, matOfCovec]
 
-private lemma mapOfCovec_apply' {n : ℕ} (v : Euc(n)) (c : Euc(1)) : mapOfCovec v c = c 0 • v := by
-  unfold mapOfCovec
-  ext i : 1
-  simp only [LinearMap.coe_toContinuousLinearMap']
-  rw [Matrix.toEuclideanLin_apply]
-  simp only [PiLp.smul_apply, smul_eq_mul]
-  rw [WithLp.ofLp_toLp]
-  simp only [Matrix.mulVec, dotProduct, matOfCovec, Finset.univ_unique, Fin.default_eq_zero,
-    Finset.sum_singleton]
-  ring
+private lemma mapOfCovec_apply {n : ℕ} (v : Euc(n)) (c : Euc(1)) : mapOfCovec v c = c 0 • v := by
+  ext i
+  simp only [mapOfCovec, matOfCovec, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+    WithLp.ofLp_toLp, Matrix.mulVec, dotProduct, Finset.univ_unique, Fin.default_eq_zero,
+    Finset.sum_singleton, PiLp.smul_apply, smul_eq_mul, mul_comm]
 
-private lemma Euc1_norm_eq {c : Euc(1)} : ‖c‖ = |c 0| := by
-  rw [EuclideanSpace.norm_eq]
-  simp only [Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Real.norm_eq_abs]
-  rw [Real.sqrt_sq_eq_abs, abs_abs]
+private lemma Euc1_norm_eq (c : Euc(1)) : ‖c‖ = |c 0| := by
+  simp [EuclideanSpace.norm_eq, Real.sqrt_sq_eq_abs]
 
 @[simp]
 lemma norm_map_covec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfCovec v‖ = ‖v‖ := by
-  apply ContinuousLinearMap.opNorm_eq_of_bounds (norm_nonneg v)
-  · intro c
-    rw [mapOfCovec_apply', norm_smul, mul_comm]
-    apply mul_le_mul_of_nonneg_left
-    · rw [Euc1_norm_eq, Real.norm_eq_abs]
-    · exact norm_nonneg v
-  · intro N _ hbound
-    have h := hbound (EuclideanSpace.single 0 1)
-    rw [mapOfCovec_apply'] at h
-    simp only [EuclideanSpace.single_apply, if_true] at h
-    rw [one_smul, EuclideanSpace.norm_single, norm_one, mul_one] at h
-    exact h
+  refine ContinuousLinearMap.opNorm_eq_of_bounds (norm_nonneg v) (fun c ↦ ?_) (fun N _ hN ↦ ?_)
+  · rw [mapOfCovec_apply, norm_smul, Euc1_norm_eq, Real.norm_eq_abs, mul_comm]
+  · simpa [mapOfCovec_apply, EuclideanSpace.norm_single] using hN (EuclideanSpace.single 0 1)
 
 @[simp]
 lemma norm_map_vec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfVec v‖ = ‖v‖ := by
