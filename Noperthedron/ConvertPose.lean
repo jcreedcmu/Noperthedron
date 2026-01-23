@@ -65,14 +65,8 @@ lemma SO3_to_rotRM_params (M : Matrix (Fin 3) (Fin 3) ℝ)
     ∃ θ φ α, M = rotRM_mat θ φ α := by
   obtain ⟨a, b, c, h_decomp⟩ := SO3_ZYZ_decomposition M hM
   use -c, b, a + π / 2
-  simp only [rotRM_mat]
-  rw [h_decomp, neg_neg]
-  have h_rz : Rz_mat (-(π / 2)) * Rz_mat (a + π / 2) = Rz_mat a := by
-    rw [Rz_mat_mul_Rz_mat]
-    ring_nf
-  calc Rz_mat a * Ry_mat b * Rz_mat c
-      = (Rz_mat (-(π / 2)) * Rz_mat (a + π / 2)) * Ry_mat b * Rz_mat c := by rw [h_rz]
-    _ = Rz_mat (-(π / 2)) * Rz_mat (a + π / 2) * Ry_mat b * Rz_mat c := by ring
+  simp only [rotRM_mat, h_decomp, neg_neg, Rz_mat_mul_Rz_mat]
+  ring_nf
 
 /-- For a zeroOffset MatrixPose whose outer rotation is in rotRM form, we can construct
 an equivalent Pose. -/
@@ -83,9 +77,7 @@ lemma pose_of_matrix_pose_with_outer_form (p : MatrixPose)
   obtain ⟨θ₁, φ₁, α, h_in⟩ := SO3_to_rotRM_params p.innerRot.val p.innerRot.property
   use { θ₁ := θ₁, θ₂ := θ₂, φ₁ := φ₁, φ₂ := φ₂, α := α }
   simp only [Pose.matrixPoseOfPose, MatrixPose.zeroOffset]
-  congr 1
-  · ext : 1; exact h_in.symm
-  · ext : 1; exact h_out.symm
+  congr 1 <;> apply Subtype.ext <;> simp [h_in.symm, h_out.symm]
 
 /-- zeroOffset is idempotent when rotateBy preserves zero offset. -/
 lemma zeroOffset_rotateBy_zeroOffset (p : MatrixPose) (δ : ℝ) :
