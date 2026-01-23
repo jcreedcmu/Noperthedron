@@ -43,13 +43,48 @@ def mapOfVec {n : ℕ} (v : Euc(n)) : Euc(n) →L[ℝ] Euc(1) := matOfVec v |>.t
 noncomputable
 def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) := matOfCovec v |>.toEuclideanLin.toContinuousLinearMap
 
-@[simp]
-lemma norm_map_vec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfVec v‖ = ‖v‖ := by
-  sorry
+private lemma matOfCovec_transpose {n : ℕ} (v : Euc(n)) : (matOfCovec v)ᵀ = matOfVec v := by
+  ext i j; simp [matOfVec, matOfCovec]
+
+private lemma mapOfCovec_apply' {n : ℕ} (v : Euc(n)) (c : Euc(1)) : mapOfCovec v c = c 0 • v := by
+  unfold mapOfCovec
+  ext i : 1
+  simp only [LinearMap.coe_toContinuousLinearMap']
+  rw [Matrix.toEuclideanLin_apply]
+  simp only [PiLp.smul_apply, smul_eq_mul]
+  rw [WithLp.ofLp_toLp]
+  simp only [Matrix.mulVec, dotProduct, matOfCovec, Finset.univ_unique, Fin.default_eq_zero,
+    Finset.sum_singleton]
+  ring
+
+private lemma Euc1_norm_eq {c : Euc(1)} : ‖c‖ = |c 0| := by
+  rw [EuclideanSpace.norm_eq]
+  simp only [Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Real.norm_eq_abs]
+  rw [Real.sqrt_sq_eq_abs, abs_abs]
 
 @[simp]
 lemma norm_map_covec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfCovec v‖ = ‖v‖ := by
-  sorry
+  apply ContinuousLinearMap.opNorm_eq_of_bounds (norm_nonneg v)
+  · intro c
+    rw [mapOfCovec_apply', norm_smul, mul_comm]
+    apply mul_le_mul_of_nonneg_left
+    · rw [Euc1_norm_eq, Real.norm_eq_abs]
+    · exact norm_nonneg v
+  · intro N _ hbound
+    have h := hbound (EuclideanSpace.single 0 1)
+    rw [mapOfCovec_apply'] at h
+    simp only [EuclideanSpace.single_apply, if_true] at h
+    rw [one_smul, EuclideanSpace.norm_single, norm_one, mul_one] at h
+    exact h
+
+@[simp]
+lemma norm_map_vec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfVec v‖ = ‖v‖ := by
+  calc ‖mapOfVec v‖
+  _ = ‖(matOfVec v).toEuclideanLin.toContinuousLinearMap‖ := rfl
+  _ = ‖(matOfCovec v)ᵀ.toEuclideanLin.toContinuousLinearMap‖ := by rw [matOfCovec_transpose]
+  _ = ‖(matOfCovec v).toEuclideanLin.toContinuousLinearMap‖ := norm_transpose_euc_lin _
+  _ = ‖mapOfCovec v‖ := rfl
+  _ = ‖v‖ := norm_map_covec_eq_norm_vec v
 
 lemma bound_rotM (θ φ : ℝ) : ‖rotM θ φ‖ ≤ 1 + κ := by
   norm_num [Bounding.rotM_norm_one, κ]
