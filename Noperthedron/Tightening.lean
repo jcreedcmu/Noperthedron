@@ -286,7 +286,7 @@ theorem rupert_imp_flip_phi2_rupert2 {p : Pose} (r : RupertPose p nopert.hull) :
     _ = interior ((rotM (p.θ₂ + π / 15) (π - p.φ₂)) '' nopert.hull) := by rw [lemma7_3]
 
 theorem tighten_φ₁_π (p : Pose) (hφ₁ : p.φ₁ ∈ Set.Icc 0 (2 * π)) :
-    ∃ θ₁ α, ∃ φ₁ ∈ Set.Icc 0 π, Pose.equiv p {p with θ₁, φ₁, α} := by
+    ∃ θ₁ α, ∃ φ₁ ∈ Set.Icc 0 π, Pose.plequiv p {p with θ₁, φ₁, α} := by
   by_cases h : p.φ₁ < π
   · use p.θ₁, p.α, p.φ₁
     refine ⟨⟨ hφ₁.1, le_of_lt h⟩, ?_⟩
@@ -299,7 +299,7 @@ theorem tighten_φ₁_π (p : Pose) (hφ₁ : p.φ₁ ∈ Set.Icc 0 (2 * π)) :
     · simp only [Pose.rotM₂]
 
 theorem tighten_φ₂_π (p : Pose) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (2 * π)) :
-    ∃ θ₂ α, ∃ φ₂ ∈ Set.Icc 0 π, Pose.equiv p {p with θ₂, φ₂, α} := by
+    ∃ θ₂ α, ∃ φ₂ ∈ Set.Icc 0 π, Pose.plequiv p {p with θ₂, φ₂, α} := by
   by_cases h : p.φ₂ < π
   · use p.θ₂, p.α, p.φ₂
     refine ⟨⟨hφ₂.1, le_of_lt h⟩, ?_⟩
@@ -321,7 +321,7 @@ theorem tighten_φ₂_π2 (p : Pose) (r : RupertPose p nopert.hull) (hφ₂ : p.
     · exact rupert_imp_flip_phi2_rupert2 r
 
 theorem tighten_φ₁ (p : Pose) :
-    ∃ φ₁ ∈ Set.Ico 0 (2 * π), Pose.equiv p {p with φ₁} := by
+    ∃ φ₁ ∈ Set.Ico 0 (2 * π), Pose.plequiv p {p with φ₁} := by
   use Real.emod p.φ₁ (2 * π)
   use Real.emod_in_interval two_pi_pos
   obtain ⟨k, hk⟩ := Real.emod_exists_multiple p.φ₁ (2 * π) two_pi_pos
@@ -330,7 +330,7 @@ theorem tighten_φ₁ (p : Pose) :
   · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_φ]
 
 theorem tighten_φ₂ (p : Pose) :
-    ∃ φ₂ ∈ Set.Ico 0 (2 * π), Pose.equiv p {p with φ₂} := by
+    ∃ φ₂ ∈ Set.Ico 0 (2 * π), Pose.plequiv p {p with φ₂} := by
   use Real.emod p.φ₂ (2 * π)
   use Real.emod_in_interval two_pi_pos
   obtain ⟨k, hk⟩ := Real.emod_exists_multiple p.φ₂ (2 * π) two_pi_pos
@@ -426,14 +426,14 @@ theorem rupert_post_tightening (p : Pose) (r : RupertPose p nopert.hull)
 theorem rupert_tightening (p : Pose) (r : RupertPose p nopert.hull) :
     ∃ p' : Pose, tightInterval.contains p' ∧ RupertPose p' nopert.hull := by
   obtain ⟨φ₂, hφ₂_2π, eq⟩ := tighten_φ₂ p
-  have r1 : RupertPose {p with φ₂} nopert.hull := Pose.equiv_rupert_imp_rupert eq r
+  have r1 : RupertPose {p with φ₂} nopert.hull := Pose.plequiv_rupert_imp_rupert eq r
   obtain ⟨θ₂, α, φ₂', φ₂'_π, eq'⟩ := tighten_φ₂_π {p with φ₂} (Set.Ico_subset_Icc_self hφ₂_2π)
-  have r2 : RupertPose _ nopert.hull := Pose.equiv_rupert_imp_rupert eq' r1
+  have r2 : RupertPose _ nopert.hull := Pose.plequiv_rupert_imp_rupert eq' r1
   obtain ⟨q, hqφ₂, r2a⟩ := tighten_φ₂_π2 _ r2 φ₂'_π
   obtain ⟨φ₁, hφ₁, eq2⟩ := tighten_φ₁ q
-  have r3 := Pose.equiv_rupert_imp_rupert eq2 r2a
+  have r3 := Pose.plequiv_rupert_imp_rupert eq2 r2a
   obtain ⟨θ₁, α, φ₁', hφ₁', eq3⟩ := tighten_φ₁_π {q with φ₁} (Set.Ico_subset_Icc_self hφ₁)
-  have r4 := Pose.equiv_rupert_imp_rupert eq3 r3
+  have r4 := Pose.plequiv_rupert_imp_rupert eq3 r3
   simp only at r4
   clear eq eq'
   exact rupert_post_tightening _ r4 hφ₁' hqφ₂

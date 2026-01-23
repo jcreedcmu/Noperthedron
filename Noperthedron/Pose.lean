@@ -51,9 +51,6 @@ inductive plequiv {α : Type} [PoseLike α] (p1 p2 : α) : Prop where
   | on_the_nose : innerShadow p1 = innerShadow p2 ∧ outerShadow p1 = outerShadow p2 → plequiv p1 p2
   | off_by_neg : innerShadow p1 = -innerShadow p2 ∧ outerShadow p1 = -outerShadow p2 → plequiv p1 p2
 
-inductive equiv (p1 p2 : Pose) : Prop where
-  | on_the_nose : p1.inner = p2.inner ∧ p1.outer = p2.outer → equiv p1 p2
-  | off_by_neg : p1.inner = -p2.inner ∧ p1.outer = -p2.outer → equiv p1 p2
 
 def innerParams (p : Pose) : ℝ³ := WithLp.toLp 2 ![p.α, p.θ₁, p.φ₁]
 
@@ -107,6 +104,16 @@ lemma outer_shadow_eq_img_outer (p : Pose) (S : Set ℝ³) :
     outerShadow p S = p.outer '' S := by
   rfl
 
+lemma pose_on_the_nose {p1 p2 : Pose} : p1.inner = p2.inner ∧ p1.outer = p2.outer → plequiv p1 p2 := by
+  rintro ⟨h1, h2⟩
+  refine .on_the_nose ⟨?_, ?_⟩ <;>
+  · ext1 S; simp [inner_shadow_eq_img_inner, outer_shadow_eq_img_outer, h1, h2]
+
+lemma pose_off_by_neg {p1 p2 : Pose} : p1.inner = -p2.inner ∧ p1.outer = -p2.outer → plequiv p1 p2 := by
+  rintro ⟨h1, h2⟩
+  refine .off_by_neg ⟨?_, ?_⟩ <;>
+  · ext1 S; simp [inner_shadow_eq_img_inner, outer_shadow_eq_img_outer, h1, h2]; aesop
+
 lemma inner_eq_RM (p : Pose)  :
     p.inner = (p.rotR ∘ p.rotM₁) := by
   ext1 v
@@ -146,35 +153,6 @@ lemma poselike_outer_eq_proj_outer (p : Pose) :
   ext v i; fin_cases i <;>
     simp [proj_xyL, proj_xy_mat, Matrix.vecHead, PoseLike.outer, Pose.outer, outerProj]
 
-lemma equiv_rupert_imp_rupert {p1 p2 : Pose} {S : Set ℝ³} (e : equiv p1 p2) (r : RupertPose p1 S) :
-    RupertPose p2 S := by
-  match e with
-  | .on_the_nose e =>
-    simp only [RupertPose, innerShadow, outerShadow]
-    obtain ⟨e_inner, e_outer⟩ := e
-    calc
-      closure ((proj_xyL ∘ PoseLike.inner p2) '' S)
-      _ = closure (p2.inner '' S) := by rw [poselike_inner_eq_proj_inner p2]
-      _ = closure (p1.inner '' S) := by rw [e_inner]
-      _ ⊆ interior (p1.outer '' S) := r
-      _ = interior (p2.outer '' S) := by rw [e_outer]
-      _ = interior ((proj_xyL ∘ PoseLike.outer p2) '' S) := by rw [poselike_outer_eq_proj_outer p2]
-  | .off_by_neg e =>
-    simp only [RupertPose, innerShadow, outerShadow]
-    obtain ⟨e_inner, e_outer⟩ := e
-    calc
-      closure ((proj_xyL ∘ PoseLike.inner p2) '' S)
-      _ = closure (p2.inner '' S) := by rw [poselike_inner_eq_proj_inner p2]
-      _ = closure (-p1.inner '' S) := by
-        rw [e_inner]; simp only [AffineMap.coe_neg, Pi.neg_apply];
-        congr; ext; simp only [Set.mem_neg, Set.mem_image, neg_inj]
-      _ = -closure (p1.inner '' S) := Eq.symm (neg_closure (p1.inner '' S))
-      _ ⊆ -(interior (p1.outer '' S)) := by rw [Set.neg_subset_neg]; exact r
-      _ = interior (-(p1.outer '' S)) := (Homeomorph.neg ℝ²).preimage_interior (p1.outer '' S)
-      _ = interior (-(-p2.outer) '' S) := by rw [e_outer]
-      _ = interior (p2.outer '' S) := by congr; ext; simp
-      _ = interior ((proj_xyL ∘ PoseLike.outer p2) '' S) := by rw [poselike_outer_eq_proj_outer p2]
-
 lemma plequiv_rupert_imp_rupert {P : Type} [PoseLike P] {p1 p2 : P} {S : Set ℝ³} (e : plequiv p1 p2) (r : RupertPose p1 S) :
     RupertPose p2 S := by
   match e with
@@ -200,8 +178,8 @@ lemma plequiv_rupert_imp_rupert {P : Type} [PoseLike P] {p1 p2 : P} {S : Set ℝ
       _ = interior (((outerShadow p2) S)) := by simp
 
 lemma matrix_rm_eq_imp_pose_equiv {p q : Pose} (rme : p.rotR ∘ p.rotM₁ = q.rotR ∘ q.rotM₁)
-    (rm2 : p.rotM₂ = q.rotM₂) : equiv p q := by
-  refine equiv.on_the_nose ?_
+    (rm2 : p.rotM₂ = q.rotM₂) : plequiv p q := by
+  refine pose_on_the_nose ?_
   constructor
   · simp only [inner, innerProj, PoseLike.inner]
     ext1 v
@@ -223,8 +201,8 @@ lemma matrix_rm_eq_imp_pose_equiv {p q : Pose} (rme : p.rotR ∘ p.rotM₁ = q.r
     rw [rm2]
 
 lemma matrix_rm_eq_neg_imp_pose_equiv {p q : Pose} (rme : p.rotR ∘ p.rotM₁ = -(q.rotR ∘ q.rotM₁))
-    (rm2 : p.rotM₂ = -q.rotM₂) : equiv p q := by
-  refine equiv.off_by_neg ?_
+    (rm2 : p.rotM₂ = -q.rotM₂) : plequiv p q := by
+  refine pose_off_by_neg ?_
   constructor
   · simp only [inner, innerProj, PoseLike.inner]
     ext1 v
@@ -248,11 +226,11 @@ lemma matrix_rm_eq_neg_imp_pose_equiv {p q : Pose} (rme : p.rotR ∘ p.rotM₁ =
     rfl
 
 lemma matrix_eq_imp_pose_equiv {p q : Pose} (re : p.rotR = q.rotR)
-    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = q.rotM₂) : equiv p q :=
+    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = q.rotM₂) : plequiv p q :=
   matrix_rm_eq_imp_pose_equiv (by rw [re, rm1]) rm2
 
 lemma matrix_neg_imp_pose_equiv {p q : Pose} (re : p.rotR = -q.rotR)
-    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = -q.rotM₂) : equiv p q := by
+    (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = -q.rotM₂) : plequiv p q := by
   exact matrix_rm_eq_neg_imp_pose_equiv (by rw [re, rm1]; ext; simp) rm2
 
 end Pose
