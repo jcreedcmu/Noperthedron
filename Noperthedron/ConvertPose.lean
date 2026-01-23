@@ -65,6 +65,7 @@ lemma pose_of_matrix_pose_with_outer_form (p : MatrixPose)
   congr 1 <;> apply Subtype.ext <;> simp [h_in.symm, h_out.symm]
 
 /-- zeroOffset is idempotent when rotateBy preserves zero offset. -/
+@[simp]
 lemma zeroOffset_rotateBy_zeroOffset (p : MatrixPose) (δ : ℝ) :
     (p.zeroOffset.rotateBy δ).zeroOffset = p.zeroOffset.rotateBy δ := by
   simp [MatrixPose.zeroOffset, MatrixPose.rotateBy, map_zero]
@@ -79,6 +80,4 @@ theorem pose_of_matrix_pose (p : MatrixPose) :
     use θ, φ
     simp only [MatrixPose.rotateBy, MatrixPose.zeroOffset]
     exact h_form
-  have h := pose_of_matrix_pose_with_outer_form (p.zeroOffset.rotateBy δ) h_outer
-  rw [zeroOffset_rotateBy_zeroOffset] at h
-  exact h
+  simpa using pose_of_matrix_pose_with_outer_form (p.zeroOffset.rotateBy δ) h_outer
