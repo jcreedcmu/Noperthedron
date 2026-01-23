@@ -2,6 +2,7 @@ import Noperthedron.Basic
 import Noperthedron.Rupert.Basic
 import Noperthedron.PoseClasses
 import Noperthedron.Util
+import Noperthedron.Bounding.OrthEquivRotz
 
 open scoped Matrix
 
@@ -17,6 +18,16 @@ def IsRot (p : MatrixPose) : Prop :=
 
 def zeroOffset (p : MatrixPose) : MatrixPose :=
   { p with innerOffset := 0 }
+
+/-- Helper: Rz_mat is in SO3 -/
+lemma Rz_mat_mem_SO3 (δ : ℝ) : Rz_mat δ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+  Bounding.rot3_mat_mem_SO3 2 δ
+
+/-- Rotate a MatrixPose by applying Rz(δ) to both rotations and the offset. -/
+noncomputable def rotateBy (p : MatrixPose) (δ : ℝ) : MatrixPose where
+  innerRot := ⟨Rz_mat δ * p.innerRot.val, Submonoid.mul_mem _ (Rz_mat_mem_SO3 δ) p.innerRot.property⟩
+  outerRot := ⟨Rz_mat δ * p.outerRot.val, Submonoid.mul_mem _ (Rz_mat_mem_SO3 δ) p.outerRot.property⟩
+  innerOffset := rotR δ p.innerOffset
 
 noncomputable def innerOffsetPart (p : MatrixPose) : ℝ³ → ℝ³ :=
   AffineEquiv.vaddConst ℝ (inject_xy p.innerOffset)
