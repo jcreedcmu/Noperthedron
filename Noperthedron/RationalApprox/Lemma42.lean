@@ -144,10 +144,7 @@ lemma allNormsBelow_def {n m : ℕ} (mv : MatVec n m)
     | cons b bsr =>
       simp only [hbsr, MatVec.allNormsBelow.go] at hb
       obtain ⟨htl, hA, hB⟩ := hb
-      -- htl : go tl bsr, so tl.allNormsBelow bsr.reverse
-      have htl' : tl.allNormsBelow bsr.reverse := by
-        simp only [MatVec.allNormsBelow, List.reverse_reverse]
-        exact htl
+      have htl' : tl.allNormsBelow bsr.reverse := by simpa [MatVec.allNormsBelow]
       -- Elements of bsr.reverse are in bs, so they're ≥ 1
       have hbsr1 : ∀ x ∈ bsr.reverse, 1 ≤ x := fun x hx ↦ by
         apply hbs1
@@ -155,32 +152,12 @@ lemma allNormsBelow_def {n m : ℕ} (mv : MatVec n m)
         have hbsr_sub : bsr ⊆ bs.reverse := by simp [hbsr]
         exact List.mem_reverse.mp (hbsr_sub this)
       have ih_bound := ih hbsr1 htl'
-      -- bs = bsr.reverse ++ [b]
-      have hbs : bs = bsr.reverse ++ [b] := by
-        have := congrArg List.reverse hbsr
-        simp at this
-        exact this
-      -- b is in bs, so b ≥ 1
-      have hb1 : 1 ≤ b := by
-        apply hbs1
-        rw [hbs]
-        exact List.mem_append_right _ (List.mem_singleton_self b)
+      have hbs : bs = bsr.reverse ++ [b] := by simpa using congrArg List.reverse hbsr
+      have hb1 : 1 ≤ b := hbs1 b (by simp [hbs])
       rw [hbs, List.prod_append, List.prod_singleton, List.prod_append, List.prod_singleton]
-      -- Goal: tl.maxNormList.prod * max (max ‖A‖ ‖B‖) 1 ≤ bsr.reverse.prod * b
-      have h_max_le : max (max ‖A‖ ‖B‖) 1 ≤ b := by
-        rw [max_le_iff]
-        exact ⟨max_le hA hB, hb1⟩
-      have h_prod_nonneg : 0 ≤ tl.maxNormList.prod := tl.maxNormList_non_neg
-      have h_max_pos : 0 < max (max ‖A‖ ‖B‖) 1 := lt_max_of_lt_right one_pos
-      have h_bsr_nonneg : 0 ≤ bsr.reverse.prod := by
-        calc bsr.reverse.prod
-          _ ≥ tl.maxNormList.prod := ih_bound
-          _ ≥ 0 := h_prod_nonneg
-      calc tl.maxNormList.prod * max (max ‖A‖ ‖B‖) 1
-        _ ≤ bsr.reverse.prod * max (max ‖A‖ ‖B‖) 1 := by
-            exact mul_le_mul_of_nonneg_right ih_bound (le_of_lt h_max_pos)
-        _ ≤ bsr.reverse.prod * b := by
-            exact mul_le_mul_of_nonneg_left h_max_le h_bsr_nonneg
+      have h_max_le : max (max ‖A‖ ‖B‖) 1 ≤ b := max_le_iff.mpr ⟨max_le hA hB, hb1⟩
+      have h_bsr_nonneg : 0 ≤ bsr.reverse.prod := le_trans tl.maxNormList_non_neg ih_bound
+      exact mul_le_mul ih_bound h_max_le (le_of_lt (lt_max_of_lt_right one_pos)) h_bsr_nonneg
 
 lemma norm_sub_le_bound {n m : ℕ} (mv : MatVec n m)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ)
