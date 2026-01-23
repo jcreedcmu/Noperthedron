@@ -326,6 +326,28 @@ lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
        _ = Rz_mat α * (Ry_mat (-β) * Rz_mat γ) := by rw [h2]
        _ = Rz_mat α * Ry_mat (-β) * Rz_mat γ := by rw [Matrix.mul_assoc]
 
+/-- Rz(0) = 1. -/
+lemma Rz_mat_zero : Rz_mat 0 = 1 := by
+  ext i j
+  fin_cases i <;> fin_cases j <;> simp [Rz_mat]
+
+/-- rotRM_mat θ φ 0 simplifies to Rz(-π/2) * Ry(φ) * Rz(-θ). -/
+lemma rotRM_mat_zero_alpha (θ φ : ℝ) : rotRM_mat θ φ 0 = Rz_mat (-(π / 2)) * Ry_mat φ * Rz_mat (-θ) := by
+  simp only [rotRM_mat]
+  rw [Rz_mat_zero, Matrix.mul_one]
+
+/-- For any SO3 matrix, there exists δ such that Rz(δ) * M has the form rotRM_mat θ φ 0. -/
+lemma exists_Rz_to_rotRM_form (M : SO3) :
+    ∃ δ θ φ, Rz_mat δ * M.val = rotRM_mat θ φ 0 := by
+  obtain ⟨α, β, γ, h_decomp⟩ := SO3_ZYZ_decomposition M.val M.property
+  use -(π / 2) - α, -γ, β
+  rw [rotRM_mat_zero_alpha, h_decomp]
+  rw [← Matrix.mul_assoc, ← Matrix.mul_assoc]
+  congr 1
+  · rw [Rz_mat_mul_Rz_mat]
+    ring_nf
+  · rw [neg_neg]
+
 -- TODO something like this really ought to exist in mathlib.
 lemma specialOrthogonalGroup_mem_inv {n : ℕ} {U : Matrix (Fin n) (Fin n) ℝ}
     (U_SO3 : U ∈ Matrix.specialOrthogonalGroup (Fin n) ℝ) :
