@@ -44,31 +44,27 @@ noncomputable
 def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) := matOfCovec v |>.toEuclideanLin.toContinuousLinearMap
 
 private lemma matOfCovec_transpose {n : ℕ} (v : Euc(n)) : (matOfCovec v)ᵀ = matOfVec v := by
-  ext i j; simp [matOfVec, matOfCovec]
+  ext i j
+  simp [matOfVec, matOfCovec]
 
 private lemma mapOfCovec_apply {n : ℕ} (v : Euc(n)) (c : Euc(1)) : mapOfCovec v c = c 0 • v := by
   ext i
-  simp only [mapOfCovec, matOfCovec, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-    WithLp.ofLp_toLp, Matrix.mulVec, dotProduct, Finset.univ_unique, Fin.default_eq_zero,
-    Finset.sum_singleton, PiLp.smul_apply, smul_eq_mul, mul_comm]
+  simp [mapOfCovec, matOfCovec, Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct, mul_comm]
 
 private lemma Euc1_norm_eq (c : Euc(1)) : ‖c‖ = |c 0| := by
-  simp [EuclideanSpace.norm_eq, Real.sqrt_sq_eq_abs]
+  simpa [EuclideanSpace.norm_eq] using Real.sqrt_sq_eq_abs _
 
 @[simp]
 lemma norm_map_covec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfCovec v‖ = ‖v‖ := by
   refine ContinuousLinearMap.opNorm_eq_of_bounds (norm_nonneg v) (fun c ↦ ?_) (fun N _ hN ↦ ?_)
-  · rw [mapOfCovec_apply, norm_smul, Euc1_norm_eq, Real.norm_eq_abs, mul_comm]
+  · simp [mapOfCovec_apply, norm_smul, Euc1_norm_eq, mul_comm]
   · simpa [mapOfCovec_apply, EuclideanSpace.norm_single] using hN (EuclideanSpace.single 0 1)
 
 @[simp]
 lemma norm_map_vec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfVec v‖ = ‖v‖ := by
-  calc ‖mapOfVec v‖
-  _ = ‖(matOfVec v).toEuclideanLin.toContinuousLinearMap‖ := rfl
-  _ = ‖(matOfCovec v)ᵀ.toEuclideanLin.toContinuousLinearMap‖ := by rw [matOfCovec_transpose]
-  _ = ‖(matOfCovec v).toEuclideanLin.toContinuousLinearMap‖ := norm_transpose_euc_lin _
-  _ = ‖mapOfCovec v‖ := rfl
-  _ = ‖v‖ := norm_map_covec_eq_norm_vec v
+  change ‖(matOfCovec v)ᵀ.toEuclideanLin.toContinuousLinearMap‖ = ‖v‖
+  rw [norm_transpose_euc_lin]
+  exact norm_map_covec_eq_norm_vec v
 
 lemma bound_rotM (θ φ : ℝ) : ‖rotM θ φ‖ ≤ 1 + κ := by
   norm_num [Bounding.rotM_norm_one, κ]
