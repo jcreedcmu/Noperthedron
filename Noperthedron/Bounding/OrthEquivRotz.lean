@@ -157,6 +157,22 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
   · simp only [rot3_mat]
     ext i; fin_cases i <;> simp [hθϕ, Matrix.mulVec] <;> ring
 
+/-- Rz(-α) applied to spherical vector removes azimuthal angle. -/
+lemma Rz_neg_mulVec_spherical (α β : ℝ) :
+    Rz_mat (-α) *ᵥ ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] =
+    ![Real.sin β, 0, Real.cos β] := by
+  ext i; fin_cases i <;> simp [Rz_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+    Real.cos_neg, Real.sin_neg]
+  · have h := Real.cos_sq_add_sin_sq α; ring_nf; linear_combination Real.sin β * h
+  · ring
+
+/-- Ry(β) applied to xz-plane vector brings it to z-axis. -/
+lemma Ry_mulVec_to_z (β : ℝ) :
+    Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] = ![(0:ℝ), 0, 1] := by
+  ext i; fin_cases i <;> simp [Ry_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+  · ring
+  · linear_combination Real.sin_sq_add_cos_sq β
+
 /--
 ZYZ Euler decomposition: Any SO3 matrix can be written as Rz(α) * Ry(β) * Rz(γ).
 
@@ -213,83 +229,18 @@ lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
   have hN_SO3 : N ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
     Submonoid.mul_mem _ (Submonoid.mul_mem _ (rot3_mat_mem_SO3 1 β) (rot3_mat_mem_SO3 2 (-α))) hM
   have hN_fixes_z : N.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1] := by
-    -- Ry(β) * Rz(-α) * [sin β cos α, sin β sin α, cos β]
-    -- Step 1: Rz(-α) * v = [sin β, 0, cos β]  (removes azimuthal angle)
-    -- Step 2: Ry(β) * [sin β, 0, cos β] = [0, 0, 1]  (brings to z-axis)
     simp only [N, Matrix.mul_assoc, Matrix.toEuclideanLin_apply]
     have hv_sph : M *ᵥ ![0, 0, 1] =
         ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
       ext i
       simp only [v, Matrix.toEuclideanLin_apply] at hv_eq
       exact congrFun hv_eq i
-    -- Row access lemmas for explicit computation
-    have Rz_row0 : Rz_mat (-α) 0 = ![Real.cos α, Real.sin α, 0] := by
-      show ![Real.cos (-α), -Real.sin (-α), 0] = _
-      simp only [Real.cos_neg, Real.sin_neg, neg_neg]
-    have Rz_row1 : Rz_mat (-α) 1 = ![-Real.sin α, Real.cos α, 0] := by
-      show ![Real.sin (-α), Real.cos (-α), 0] = _
-      simp only [Real.cos_neg, Real.sin_neg]
-    have Rz_row2 : Rz_mat (-α) 2 = ![0, 0, 1] := rfl
-    have Ry_row0 : Ry_mat β 0 = ![Real.cos β, 0, -Real.sin β] := rfl
-    have Ry_row1 : Ry_mat β 1 = ![0, 1, 0] := rfl
-    have Ry_row2 : Ry_mat β 2 = ![Real.sin β, 0, Real.cos β] := rfl
-    -- Step 1: After Rz(-α)
-    have step1 : Rz_mat (-α) *ᵥ (M *ᵥ ![0, 0, 1]) = ![Real.sin β, 0, Real.cos β] := by
-      rw [hv_sph]
-      ext i
-      fin_cases i
-      · show (Rz_mat (-α) 0) ⬝ᵥ _ = _
-        rw [Rz_row0]
-        simp only [dotProduct, Fin.sum_univ_three]
-        show Real.cos α * (Real.sin β * Real.cos α) +
-             Real.sin α * (Real.sin β * Real.sin α) + 0 * Real.cos β = Real.sin β
-        have h := Real.cos_sq_add_sin_sq α
-        ring_nf
-        linear_combination Real.sin β * h
-      · show (Rz_mat (-α) 1) ⬝ᵥ _ = _
-        rw [Rz_row1]
-        simp only [dotProduct, Fin.sum_univ_three]
-        show -Real.sin α * (Real.sin β * Real.cos α) +
-             Real.cos α * (Real.sin β * Real.sin α) + 0 * Real.cos β = 0
-        ring
-      · show (Rz_mat (-α) 2) ⬝ᵥ _ = _
-        rw [Rz_row2]
-        simp only [dotProduct, Fin.sum_univ_three]
-        show 0 * (Real.sin β * Real.cos α) +
-             0 * (Real.sin β * Real.sin α) + 1 * Real.cos β = Real.cos β
-        ring
-    -- Step 2: After Ry(β)
-    have step2 : Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] = ![(0:ℝ), 0, 1] := by
-      ext i
-      fin_cases i
-      · show (Ry_mat β 0) ⬝ᵥ _ = _
-        rw [Ry_row0]
-        simp only [dotProduct, Fin.sum_univ_three]
-        show Real.cos β * Real.sin β + 0 * 0 + (-Real.sin β) * Real.cos β = 0
-        ring
-      · show (Ry_mat β 1) ⬝ᵥ _ = _
-        rw [Ry_row1]
-        simp only [dotProduct, Fin.sum_univ_three]
-        show 0 * Real.sin β + 1 * 0 + 0 * Real.cos β = 0
-        ring
-      · show (Ry_mat β 2) ⬝ᵥ _ = _
-        rw [Ry_row2]
-        simp only [dotProduct, Fin.sum_univ_three]
-        show Real.sin β * Real.sin β + 0 * 0 + Real.cos β * Real.cos β = 1
-        have h := Real.sin_sq_add_cos_sq β
-        ring_nf
-        linear_combination h
-    -- Combine: use the steps to compute N * [0,0,1]
     have h_calc : (Ry_mat β * (Rz_mat (-α) * M)) *ᵥ ![0, 0, 1] = ![0, 0, 1] := by
-      -- Use: (A * B) *ᵥ x = A *ᵥ (B *ᵥ x) by ← mulVec_mulVec
       calc (Ry_mat β * (Rz_mat (-α) * M)) *ᵥ ![0, 0, 1]
-          = Ry_mat β *ᵥ ((Rz_mat (-α) * M) *ᵥ ![0, 0, 1]) := by
-              rw [← Matrix.mulVec_mulVec]
-        _ = Ry_mat β *ᵥ (Rz_mat (-α) *ᵥ (M *ᵥ ![0, 0, 1])) := by
-              rw [← Matrix.mulVec_mulVec]
-        _ = Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] := by
-              rw [step1]
-        _ = ![0, 0, 1] := step2
+          = Ry_mat β *ᵥ (Rz_mat (-α) *ᵥ (M *ᵥ ![0, 0, 1])) := by
+              rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
+        _ = Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] := by rw [hv_sph, Rz_neg_mulVec_spherical]
+        _ = ![0, 0, 1] := Ry_mulVec_to_z β
     simp only [h_calc]
   -- By SO3_fixing_z_is_Rz, N = Rz(γ) for some γ
   obtain ⟨γ, hγ⟩ := SO3_fixing_z_is_Rz N hN_SO3 hN_fixes_z
