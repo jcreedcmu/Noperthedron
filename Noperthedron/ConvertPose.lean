@@ -12,17 +12,11 @@ noncomputable
 def rotRM_mat (θ φ α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
   Rz_mat (-(π / 2)) * Rz_mat α * Ry_mat φ * Rz_mat (-θ)
 
-/--
-The matrix `rotRM_mat θ φ α` is in SO3 because it's a product of SO3 matrices.
--/
-lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) :
-    rotRM_mat θ φ α ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-  unfold rotRM_mat
-  refine Submonoid.mul_mem _ (Submonoid.mul_mem _ (Submonoid.mul_mem _ ?_ ?_) ?_) ?_
-  · exact Bounding.rot3_mat_mem_SO3 2 (-(π / 2))
-  · exact Bounding.rot3_mat_mem_SO3 2 α
-  · exact Bounding.rot3_mat_mem_SO3 1 φ
-  · exact Bounding.rot3_mat_mem_SO3 2 (-θ)
+/-- rotRM_mat is in SO3. -/
+lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) : rotRM_mat θ φ α ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+  Submonoid.mul_mem _ (Submonoid.mul_mem _ (Submonoid.mul_mem _
+    (Bounding.rot3_mat_mem_SO3 2 _) (Bounding.rot3_mat_mem_SO3 2 _))
+    (Bounding.rot3_mat_mem_SO3 1 _)) (Bounding.rot3_mat_mem_SO3 2 _)
 
 /--
 `rotRM θ φ α` equals the continuous linear map induced by `rotRM_mat θ φ α`.
@@ -44,6 +38,11 @@ lemma rotRM_mat_eq (θ φ α : ℝ) :
     rotRM_mat θ φ α = Rz_mat (α - π / 2) * Ry_mat φ * Rz_mat (-θ) := by
   simp only [rotRM_mat, Rz_mat_mul, sub_eq_add_neg, add_comm]
 
+/-- inject_xy 0 = 0. -/
+@[simp]
+lemma inject_xy_zero : inject_xy (0 : ℝ²) = (0 : ℝ³) := by
+  ext i; fin_cases i <;> simp [inject_xy]
+
 noncomputable
 def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
   innerRot := ⟨rotRM_mat p.θ₁ p.φ₁ p.α, rotRM_mat_mem_SO3 p.θ₁ p.φ₁ p.α⟩
@@ -52,31 +51,11 @@ def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
 
 theorem converted_pose_inner_shadow_eq (v : Pose) (S : Set ℝ³) :
     innerShadow v S = innerShadow (v.matrixPoseOfPose) S := by
-  -- Both sides are { proj_xyL (PoseLike.inner pose x) | x ∈ S }
-  -- For Pose: PoseLike.inner v = (rotRM v.θ₁ v.φ₁ v.α).toAffineMap
-  -- For MatrixPose with zero offset: PoseLike.inner = the inner rotation
-  unfold innerShadow
-  congr 1
-  ext x
-  constructor <;> (rintro ⟨y, hy, rfl⟩; refine ⟨y, hy, ?_⟩; congr 1)
-  all_goals
-    simp only [PoseLike.inner, Pose.matrixPoseOfPose]
-    simp only [AffineEquiv.coe_toAffineMap, AffineMap.coe_comp, Function.comp_apply,
-      AffineEquiv.vaddConst_apply, LinearMap.coe_toAffineMap]
-    rw [rotRM_eq_rotRM_mat]
-    simp only [Matrix.toEuclideanLin_apply, inject_xy]
-    ext i
-    fin_cases i <;> simp [vadd_eq_add]
+  simp [innerShadow, PoseLike.inner, Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
 
 theorem converted_pose_outer_shadow_eq (v : Pose) (S : Set ℝ³) :
     outerShadow v S = outerShadow (v.matrixPoseOfPose) S := by
-  unfold outerShadow
-  congr 1
-  ext x
-  constructor <;> (rintro ⟨y, hy, rfl⟩; refine ⟨y, hy, ?_⟩; congr 1)
-  all_goals
-    simp only [PoseLike.outer, Pose.matrixPoseOfPose, LinearMap.coe_toAffineMap]
-    rw [rotRM_eq_rotRM_mat]; rfl
+  simp [outerShadow, PoseLike.outer, Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
 
 theorem converted_pose_rupert_iff (v : Pose) (S : Set ℝ³) :
     RupertPose v S ↔ RupertPose (v.matrixPoseOfPose) S := by
