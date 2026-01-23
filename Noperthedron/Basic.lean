@@ -273,21 +273,6 @@ noncomputable
 def rotRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →L[ℝ] ℝ³ :=
   RzL (-(π / 2)) ∘L RzL α ∘L RyL φ ∘L RzL (-θ)
 
-/-- Matrix version of rotRM. -/
-noncomputable
-def rotRM_mat (θ : ℝ) (φ : ℝ) (α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
-  Rz_mat (-(π / 2)) * Rz_mat α * Ry_mat φ * Rz_mat (-θ)
-
-/-- rotRM equals the EuclideanLin of rotRM_mat. -/
-lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
-    rotRM θ φ α = (rotRM_mat θ φ α).toEuclideanLin.toContinuousLinearMap := by
-  simp only [rotRM, rotRM_mat, RzL, RyL]
-  ext v
-  simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
-    LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec]
-  congr 1
-  simp only [Matrix.mul_assoc]
-
 -- This is R(α) M(θ, φ) in (5) in [SY25] § 2.2,
 noncomputable
 def rotprojRM (θ : ℝ) (φ : ℝ) (α : ℝ) : ℝ³ →L[ℝ] ℝ² :=
