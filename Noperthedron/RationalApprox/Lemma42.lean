@@ -145,14 +145,9 @@ lemma allNormsBelow_def {n m : ℕ} (mv : MatVec n m)
       simp only [hbsr, MatVec.allNormsBelow.go] at hb
       obtain ⟨htl, hA, hB⟩ := hb
       have htl' : tl.allNormsBelow bsr.reverse := by simpa [MatVec.allNormsBelow]
-      -- Elements of bsr.reverse are in bs, so they're ≥ 1
-      have hbsr1 : ∀ x ∈ bsr.reverse, 1 ≤ x := fun x hx ↦ by
-        apply hbs1
-        have : x ∈ bsr := List.mem_reverse.mp hx
-        have hbsr_sub : bsr ⊆ bs.reverse := by simp [hbsr]
-        exact List.mem_reverse.mp (hbsr_sub this)
-      have ih_bound := ih hbsr1 htl'
       have hbs : bs = bsr.reverse ++ [b] := by simpa using congrArg List.reverse hbsr
+      have hbsr1 : ∀ x ∈ bsr.reverse, 1 ≤ x := fun x hx ↦ hbs1 x (hbs ▸ List.mem_append_left _ hx)
+      have ih_bound := ih hbsr1 htl'
       have hb1 : 1 ≤ b := hbs1 b (by simp [hbs])
       rw [hbs, List.prod_append, List.prod_singleton, List.prod_append, List.prod_singleton]
       have h_max_le : max (max ‖A‖ ‖B‖) 1 ≤ b := max_le_iff.mpr ⟨max_le hA hB, hb1⟩
