@@ -45,7 +45,7 @@ def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) := matOfCovec v 
 
 private lemma matOfCovec_transpose {n : ℕ} (v : Euc(n)) : (matOfCovec v)ᵀ = matOfVec v := by
   ext i j
-  simp [matOfVec, matOfCovec]
+  rfl
 
 private lemma mapOfCovec_apply {n : ℕ} (v : Euc(n)) (c : Euc(1)) : mapOfCovec v c = c 0 • v := by
   ext i
@@ -62,42 +62,33 @@ lemma norm_map_covec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfCovec v‖ = �
 
 @[simp]
 lemma norm_map_vec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfVec v‖ = ‖v‖ := by
-  change ‖(matOfCovec v)ᵀ.toEuclideanLin.toContinuousLinearMap‖ = ‖v‖
-  rw [norm_transpose_euc_lin]
-  exact norm_map_covec_eq_norm_vec v
+  have : ‖mapOfVec v‖ = ‖mapOfCovec v‖ := by simp [mapOfVec, mapOfCovec, ← matOfCovec_transpose]
+  simp [this]
 
 lemma bound_rotM (θ φ : ℝ) : ‖rotM θ φ‖ ≤ 1 + κ := by
   norm_num [Bounding.rotM_norm_one, κ]
 
-lemma bound_rotR (α : ℝ) : ‖rotR α‖ ≤ 1 := by exact le_of_eq (Bounding.rotR_norm_one α)
+lemma bound_rotR (α : ℝ) : ‖rotR α‖ ≤ 1 := (Bounding.rotR_norm_one α).le
 
 private lemma matOfVec_sub {n : ℕ} (v w : Euc(n)) : matOfVec v - matOfVec w = matOfVec (v - w) := by
-  ext i j; simp [matOfVec]
+  ext; simp [matOfVec]
 
 private lemma matOfCovec_sub {n : ℕ} (v w : Euc(n)) : matOfCovec v - matOfCovec w = matOfCovec (v - w) := by
-  ext i j; simp [matOfCovec]
+  ext; simp [matOfCovec]
 
 private lemma norm_mapOfVec_sub_le {n : ℕ} (v w : Euc(n)) :
     ‖mapOfVec v - mapOfVec w‖ ≤ ‖v - w‖ := by
-  have h : mapOfVec v - mapOfVec w = mapOfVec (v - w) := by
-    unfold mapOfVec
-    simp only [← map_sub, matOfVec_sub]
-  rw [h, norm_map_vec_eq_norm_vec]
+  simpa [mapOfVec, ← map_sub, matOfVec_sub] using (norm_map_vec_eq_norm_vec (v - w)).le
 
 private lemma norm_mapOfCovec_sub_le {n : ℕ} (v w : Euc(n)) :
     ‖mapOfCovec v - mapOfCovec w‖ ≤ ‖v - w‖ := by
-  have h : mapOfCovec v - mapOfCovec w = mapOfCovec (v - w) := by
-    unfold mapOfCovec
-    simp only [← map_sub, matOfCovec_sub]
-  rw [h, norm_map_covec_eq_norm_vec]
+  simpa [mapOfCovec, ← map_sub, matOfCovec_sub] using (norm_map_covec_eq_norm_vec (v - w)).le
 
 private lemma mapOfVec_apply {n : ℕ} (v x : Euc(n)) : (mapOfVec v x) 0 = ⟪v, x⟫ := by
-  unfold mapOfVec
-  rw [EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
-  change (Matrix.toEuclideanLin (matOfVec v) x).ofLp 0 = _
-  simp only [Matrix.toEuclideanLin_apply, matOfVec, Matrix.mulVec, dotProduct, WithLp.ofLp_toLp]
-  exact Finset.sum_congr rfl fun j _ => mul_comm _ _
+  simp [mapOfVec, matOfVec, Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct, mul_comm,
+    EuclideanSpace.inner_eq_star_dotProduct]
 
+@[simp]
 private lemma mapOfCovec_single {n : ℕ} (v : Euc(n)) :
     mapOfCovec v (EuclideanSpace.single 0 1) = v := by
   simp [mapOfCovec_apply, EuclideanSpace.single_apply]
@@ -150,7 +141,6 @@ theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Tri
     have bound_P' (i : Fin 3) : ‖(P' i : ℝ³)‖ ≤ 1 + κ :=
       calc ‖(P' i : ℝ³)‖ ≤ ‖P i‖ + ‖P i - (P' i : ℝ³)‖ := norm_le_insert (P i) (P' i : ℝ³)
         _ ≤ 1 + κ := add_le_add (hP i) (hk i)
-    have hmvs : mv.size = 5 := by simp [mv]
     have hanb : MatVec.allNormsBelow mv [1 + κ, 1 + κ, 1, 1 + κ, 1 + κ] := by
       simp only [MatVec.allNormsBelow, List.reverse_cons, List.reverse_nil, List.nil_append,
         List.cons_append, MatVec.allNormsBelow.go, true_and, and_self, mv, norm_transpose_euc_lin,
@@ -160,18 +150,14 @@ theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Tri
         ⟨Mℚ_norm_bounded hθ hφ, bound_rotM θ φ⟩⟩, bound_rotR (π / 2)⟩,
         ⟨Mℚ_norm_bounded hθ hφ, bound_rotM θ φ⟩⟩, ⟨bound_P' i, bound_P i⟩⟩
     have hva : ⟪(rotR (π / 2)) ((rotM θ φ) (P i)), (rotM θ φ) (P (i + 1))⟫ = mv.valB := by
-      simp only [MatVec.valB, mv, MatVec.compB, ContinuousLinearMap.coe_comp',
-        ContinuousLinearMap.coe_id', Function.comp_apply, id_eq,
-        mapOfCovec_single, rotM_transpose_adjoint, mapOfVec_apply]
-      rw [ContinuousLinearMap.adjoint_inner_right, real_inner_comm]
+      simp [MatVec.valB, mv, mapOfCovec_single, rotM_transpose_adjoint, mapOfVec_apply,
+        ContinuousLinearMap.adjoint_inner_right, real_inner_comm]
     have hvb : ⟪(rotR (π / 2)) (rotMℚ θ φ (P' i)), rotMℚ θ φ (P' (i + 1))⟫ = mv.valA := by
-      simp only [MatVec.valA, mv, MatVec.compA, ContinuousLinearMap.coe_comp',
-        ContinuousLinearMap.coe_id', Function.comp_apply, id_eq,
-        mapOfCovec_single, rotMℚ_transpose_adjoint, mapOfVec_apply]
-      rw [ContinuousLinearMap.adjoint_inner_right, real_inner_comm]
+      simp [MatVec.valA, mv, mapOfCovec_single, rotMℚ_transpose_adjoint, mapOfVec_apply,
+        ContinuousLinearMap.adjoint_inner_right, real_inner_comm]
     have hdbb : mv.DiffBoundedBy κ := by
       simp [MatVec.DiffBoundedBy, mv]
-      clear hvb hva hanb hmvs mv
+      clear hvb hva hanb mv
       split_ands
       · -- ‖mapOfVec (P' (i+1)) - mapOfVec (P (i+1))‖ ≤ κ
         calc ‖mapOfVec (P' (i + 1) : ℝ³) - mapOfVec (P (i + 1))‖
@@ -198,8 +184,7 @@ theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Tri
           _ ≤ ‖(P' i : ℝ³) - P i‖ := norm_mapOfCovec_sub_le _ _
           _ = ‖P i - (P' i : ℝ³)‖ := norm_sub_rev _ _
           _ ≤ κ := hk i
-    suffices h : |mv.valA - mv.valB| ≤ 6 * κ by
-      rw [hva, hvb]; rw [abs_sub_comm]; exact h
+    suffices h : |mv.valA - mv.valB| ≤ 6 * κ by rw [hva, hvb, abs_sub_comm]; exact h
     grw [norm_sub_le_bound1 mv κ (by norm_num [κ]) hdbb hanb]
-    rw [hmvs]
+    simp only [mv]
     norm_num [κ]
