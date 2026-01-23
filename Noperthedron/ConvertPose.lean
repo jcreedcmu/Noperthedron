@@ -17,6 +17,7 @@ noncomputable def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
   innerOffset := 0
 
 /-- inject_xy 0 = 0. -/
+@[simp]
 lemma inject_xy_zero : inject_xy (0 : ℝ²) = (0 : ℝ³) := by
   ext i
   fin_cases i <;> simp [inject_xy]
