@@ -310,9 +310,7 @@ lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
 
 /-- Rz(0) = 1. -/
 @[simp]
-lemma Rz_mat_zero : Rz_mat 0 = 1 := by
-  ext i j
-  fin_cases i <;> fin_cases j <;> simp [Rz_mat]
+lemma Rz_mat_zero : Rz_mat 0 = 1 := by simp [Rz_mat, Matrix.one_fin_three]
 
 /-- rotRM_mat θ φ 0 simplifies to Rz(-π/2) * Ry(φ) * Rz(-θ). -/
 lemma rotRM_mat_zero_alpha (θ φ : ℝ) : rotRM_mat θ φ 0 = Rz_mat (-(π / 2)) * Ry_mat φ * Rz_mat (-θ) := by

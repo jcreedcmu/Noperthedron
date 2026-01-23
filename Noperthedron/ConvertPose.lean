@@ -24,17 +24,11 @@ lemma inject_xy_zero : inject_xy (0 : ℝ²) = (0 : ℝ³) := by
 
 theorem converted_pose_inner_shadow_eq (v : Pose) (S : Set ℝ³) :
     innerShadow v S = innerShadow (v.matrixPoseOfPose) S := by
-  simp only [innerShadow, PoseLike.inner]
-  congr 1
-  ext x
-  constructor <;> (rintro ⟨v', hv', rfl⟩; exact ⟨v', hv', by simp [Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]⟩)
+  simp [innerShadow, PoseLike.inner, Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
 
 theorem converted_pose_outer_shadow_eq (v : Pose) (S : Set ℝ³) :
     outerShadow v S = outerShadow (v.matrixPoseOfPose) S := by
-  simp only [outerShadow, PoseLike.outer]
-  congr 1
-  ext x
-  simp [Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
+  simp [outerShadow, PoseLike.outer, Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
 
 theorem converted_pose_rupert_iff (v : Pose) (S : Set ℝ³) :
     RupertPose v S ↔ RupertPose (v.matrixPoseOfPose) S := by
@@ -64,20 +58,13 @@ lemma pose_of_matrix_pose_with_outer_form (p : MatrixPose)
   simp only [Pose.matrixPoseOfPose, MatrixPose.zeroOffset]
   congr 1 <;> apply Subtype.ext <;> simp [h_in.symm, h_out.symm]
 
-/-- zeroOffset is idempotent when rotateBy preserves zero offset. -/
-@[simp]
-lemma zeroOffset_rotateBy_zeroOffset (p : MatrixPose) (δ : ℝ) :
-    (p.zeroOffset.rotateBy δ).zeroOffset = p.zeroOffset.rotateBy δ := by
-  simp [MatrixPose.zeroOffset, MatrixPose.rotateBy, map_zero]
-
 /-- For any MatrixPose p, after rotating by the right δ, there exists a Pose
 that equals the rotated zeroOffset. -/
 theorem pose_of_matrix_pose (p : MatrixPose) :
     ∃ δ : ℝ, ∃ pp : Pose, pp.matrixPoseOfPose = (p.zeroOffset.rotateBy δ) := by
   obtain ⟨δ, θ, φ, h_form⟩ := exists_Rz_to_rotRM_form p.outerRot
   use δ
-  have h_outer : ∃ θ₂ φ₂, (p.zeroOffset.rotateBy δ).outerRot.val = rotRM_mat θ₂ φ₂ 0 := by
-    use θ, φ
-    simp only [MatrixPose.rotateBy, MatrixPose.zeroOffset]
-    exact h_form
-  simpa using pose_of_matrix_pose_with_outer_form (p.zeroOffset.rotateBy δ) h_outer
+  have h_outer : ∃ θ₂ φ₂, (p.zeroOffset.rotateBy δ).outerRot.val = rotRM_mat θ₂ φ₂ 0 :=
+    ⟨θ, φ, by simp only [MatrixPose.rotateBy, MatrixPose.zeroOffset]; exact h_form⟩
+  simpa [MatrixPose.zeroOffset, MatrixPose.rotateBy] using
+    pose_of_matrix_pose_with_outer_form (p.zeroOffset.rotateBy δ) h_outer
