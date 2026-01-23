@@ -244,15 +244,10 @@ lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
     simp only [h_calc]
   -- By SO3_fixing_z_is_Rz, N = Rz(γ) for some γ
   obtain ⟨γ, hγ⟩ := SO3_fixing_z_is_Rz N hN_SO3 hN_fixes_z
-  -- Therefore M = Rz(α) * Ry(-β) * Rz(γ)
-  -- N = Ry(β) * Rz(-α) * M, so M = Rz(α) * Ry(-β) * N = Rz(α) * Ry(-β) * Rz(γ)
+  -- M = Rz(α) * Ry(-β) * Rz(γ) from N = Ry(β) * Rz(-α) * M = Rz(γ)
   use α, -β, γ
-  -- From N = Ry_mat β * Rz_mat (-α) * M (definition of N) and hγ : N = Rz_mat γ
-  -- We get: Rz_mat γ = Ry_mat β * Rz_mat (-α) * M
-  -- Multiply on left by Ry_mat (-β): Ry_mat (-β) * Rz_mat γ = Rz_mat (-α) * M
-  -- Multiply on left by Rz_mat α: Rz_mat α * Ry_mat (-β) * Rz_mat γ = M
-  have h1 : Rz_mat γ = Ry_mat β * Rz_mat (-α) * M := hγ ▸ rfl
   have h2 : Ry_mat (-β) * Rz_mat γ = Rz_mat (-α) * M := by
+    have h1 : Rz_mat γ = Ry_mat β * Rz_mat (-α) * M := hγ ▸ rfl
     rw [h1, ← Matrix.mul_assoc, ← Matrix.mul_assoc, neg_Ry_mat_mul, Matrix.one_mul]
   calc M = Rz_mat α * (Rz_mat (-α) * M) := by
            rw [← Matrix.mul_assoc, Rz_mat_mul_neg, Matrix.one_mul]
