@@ -157,7 +157,6 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
   · simp only [rot3_mat]
     ext i; fin_cases i <;> simp [hθϕ, Matrix.mulVec] <;> ring
 
-set_option maxHeartbeats 400000 in
 /--
 ZYZ Euler decomposition: Any SO3 matrix can be written as Rz(α) * Ry(β) * Rz(γ).
 
