@@ -68,6 +68,36 @@ lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix
   obtain ⟨v, v_nz, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr (self_eq_neg.mp h_flip)
   exact ⟨WithLp.toLp 2 v, by simpa using v_nz, by simpa [sub_eq_zero, Matrix.sub_mulVec] using hv⟩
 
+/-- Rz_mat transpose equals Rz_mat of negative angle. -/
+lemma Rz_mat_transpose (θ : ℝ) : (Rz_mat θ).transpose = Rz_mat (-θ) := by
+  ext i j
+  fin_cases i <;> fin_cases j <;> simp [Rz_mat, Matrix.transpose_apply, Real.cos_neg, Real.sin_neg]
+
+/-- Ry_mat transpose equals Ry_mat of negative angle. -/
+lemma Ry_mat_transpose (θ : ℝ) : (Ry_mat θ).transpose = Ry_mat (-θ) := by
+  ext i j
+  fin_cases i <;> fin_cases j <;> simp [Ry_mat, Matrix.transpose_apply, Real.cos_neg, Real.sin_neg]
+
+/-- Rz(θ) * Rz(-θ) = 1. -/
+lemma Rz_mat_mul_neg (θ : ℝ) : Rz_mat θ * Rz_mat (-θ) = 1 := by
+  rw [← Rz_mat_transpose]
+  exact (rot3_mat_mem_O3 2 θ).2
+
+/-- Ry(θ) * Ry(-θ) = 1. -/
+lemma Ry_mat_mul_neg (θ : ℝ) : Ry_mat θ * Ry_mat (-θ) = 1 := by
+  rw [← Ry_mat_transpose]
+  exact (rot3_mat_mem_O3 1 θ).2
+
+/-- Rz(-θ) * Rz(θ) = 1. -/
+lemma neg_Rz_mat_mul (θ : ℝ) : Rz_mat (-θ) * Rz_mat θ = 1 := by
+  rw [← Rz_mat_transpose]
+  exact (rot3_mat_mem_O3 2 θ).1
+
+/-- Ry(-θ) * Ry(θ) = 1. -/
+lemma neg_Ry_mat_mul (θ : ℝ) : Ry_mat (-θ) * Ry_mat θ = 1 := by
+  rw [← Ry_mat_transpose]
+  exact (rot3_mat_mem_O3 1 θ).1
+
 lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (hAz : A.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1]) :
     ∃ γ, A = Rz_mat γ := by
@@ -121,6 +151,158 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
   · exact Submonoid.mul_mem _ (rot3_mat_mem_SO3 2 ϕ) (rot3_mat_mem_SO3 1 _)
   · simp only [rot3_mat]
     ext i; fin_cases i <;> simp [hθϕ, Matrix.mulVec] <;> ring
+
+set_option maxHeartbeats 400000 in
+/--
+ZYZ Euler decomposition: Any SO3 matrix can be written as Rz(α) * Ry(β) * Rz(γ).
+
+Uses the fact that SO3 matrices preserve unit vectors and spherical coordinates.
+-/
+lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
+    (hM : M ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
+    ∃ α β γ : ℝ, M = Rz_mat α * Ry_mat β * Rz_mat γ := by
+  -- v = M * [0,0,1] is a unit vector
+  let v : EuclideanSpace ℝ (Fin 3) := M.toEuclideanLin !₂[0, 0, 1]
+  -- SO3 matrices preserve norms, so ‖v‖ = 1
+  have hv_norm : ‖v‖ = 1 := by
+    have key : Mᵀ * M = 1 := by
+      have h := hM.1.1; simp only [Matrix.star_eq_conjTranspose] at h; exact h
+    simp only [v, Matrix.toEuclideanLin_apply, EuclideanSpace.norm_eq]
+    -- The calculation (M*ᵥe)·(M*ᵥe) = e·((MᵀM)*ᵥe) = e·e = 1
+    have hdot : (M *ᵥ ![0, 0, 1]) ⬝ᵥ (M *ᵥ ![0, 0, 1]) = 1 := by
+      have : (M *ᵥ ![0, 0, 1]) ⬝ᵥ (M *ᵥ ![0, 0, 1]) =
+             ![0, 0, 1] ⬝ᵥ ((Mᵀ * M) *ᵥ ![0, 0, 1]) := by
+        simp only [dotProduct, Matrix.mulVec, Fin.sum_univ_three, Matrix.mul_apply,
+          Matrix.transpose_apply]
+        ring
+      rw [this, key, Matrix.one_mulVec]
+      simp [dotProduct, Fin.sum_univ_three]
+    simp only [Real.sqrt_eq_one]
+    have hsq : ∑ i, (M *ᵥ ![0, 0, 1]) i ^ 2 = 1 := by
+      simp only [dotProduct, Fin.sum_univ_three] at hdot
+      simp only [Fin.sum_univ_three, sq]
+      convert hdot using 2
+    simp only [Fin.sum_univ_three, sq] at hsq ⊢
+    convert hsq using 2
+    all_goals simp [Real.norm_eq_abs]
+  -- Use spherical coordinates: v = [sin β cos α, sin β sin α, cos β]
+  obtain ⟨β, α, hv_eq⟩ : ∃ β α : ℝ,
+      (v : Fin 3 → ℝ) = ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
+    simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv_norm ⊢
+    use Real.arccos (v 2), Complex.arg (v 0 + v 1 * Complex.I)
+    have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧
+        Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
+      rw [Real.cos_arccos, Real.sin_arccos] <;> try nlinarith
+      exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv_norm.symm⟩
+    by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
+    · simp_all [Complex.ext_iff]
+      ext i; fin_cases i <;> tauto
+    · simp [Complex.normSq, Complex.norm_def] at *
+      simp [← sq, mul_div_cancel₀ _
+        (show √(v 0 ^ 2 + v 1 ^ 2) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by
+          nlinarith [mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by
+            norm_num [Complex.ext_iff, sq]; constructor <;> nlinarith])]
+      ext i; fin_cases i <;> rfl
+  -- N = Ry(β) * Rz(-α) * M fixes [0,0,1]
+  -- (First Rz(-α) removes azimuthal angle, then Ry(β) brings to z-axis)
+  let N := Ry_mat β * Rz_mat (-α) * M
+  have hN_SO3 : N ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+    Submonoid.mul_mem _ (Submonoid.mul_mem _ (rot3_mat_mem_SO3 1 β) (rot3_mat_mem_SO3 2 (-α))) hM
+  have hN_fixes_z : N.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1] := by
+    -- Ry(β) * Rz(-α) * [sin β cos α, sin β sin α, cos β]
+    -- Step 1: Rz(-α) * v = [sin β, 0, cos β]  (removes azimuthal angle)
+    -- Step 2: Ry(β) * [sin β, 0, cos β] = [0, 0, 1]  (brings to z-axis)
+    simp only [N, Matrix.mul_assoc, Matrix.toEuclideanLin_apply]
+    have hv_sph : M *ᵥ ![0, 0, 1] =
+        ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
+      ext i
+      simp only [v, Matrix.toEuclideanLin_apply] at hv_eq
+      exact congrFun hv_eq i
+    -- Row access lemmas for explicit computation
+    have Rz_row0 : Rz_mat (-α) 0 = ![Real.cos α, Real.sin α, 0] := by
+      show ![Real.cos (-α), -Real.sin (-α), 0] = _
+      simp only [Real.cos_neg, Real.sin_neg, neg_neg]
+    have Rz_row1 : Rz_mat (-α) 1 = ![-Real.sin α, Real.cos α, 0] := by
+      show ![Real.sin (-α), Real.cos (-α), 0] = _
+      simp only [Real.cos_neg, Real.sin_neg]
+    have Rz_row2 : Rz_mat (-α) 2 = ![0, 0, 1] := rfl
+    have Ry_row0 : Ry_mat β 0 = ![Real.cos β, 0, -Real.sin β] := rfl
+    have Ry_row1 : Ry_mat β 1 = ![0, 1, 0] := rfl
+    have Ry_row2 : Ry_mat β 2 = ![Real.sin β, 0, Real.cos β] := rfl
+    -- Step 1: After Rz(-α)
+    have step1 : Rz_mat (-α) *ᵥ (M *ᵥ ![0, 0, 1]) = ![Real.sin β, 0, Real.cos β] := by
+      rw [hv_sph]
+      ext i
+      fin_cases i
+      · show (Rz_mat (-α) 0) ⬝ᵥ _ = _
+        rw [Rz_row0]
+        simp only [dotProduct, Fin.sum_univ_three]
+        show Real.cos α * (Real.sin β * Real.cos α) +
+             Real.sin α * (Real.sin β * Real.sin α) + 0 * Real.cos β = Real.sin β
+        have h := Real.cos_sq_add_sin_sq α
+        ring_nf
+        linear_combination Real.sin β * h
+      · show (Rz_mat (-α) 1) ⬝ᵥ _ = _
+        rw [Rz_row1]
+        simp only [dotProduct, Fin.sum_univ_three]
+        show -Real.sin α * (Real.sin β * Real.cos α) +
+             Real.cos α * (Real.sin β * Real.sin α) + 0 * Real.cos β = 0
+        ring
+      · show (Rz_mat (-α) 2) ⬝ᵥ _ = _
+        rw [Rz_row2]
+        simp only [dotProduct, Fin.sum_univ_three]
+        show 0 * (Real.sin β * Real.cos α) +
+             0 * (Real.sin β * Real.sin α) + 1 * Real.cos β = Real.cos β
+        ring
+    -- Step 2: After Ry(β)
+    have step2 : Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] = ![(0:ℝ), 0, 1] := by
+      ext i
+      fin_cases i
+      · show (Ry_mat β 0) ⬝ᵥ _ = _
+        rw [Ry_row0]
+        simp only [dotProduct, Fin.sum_univ_three]
+        show Real.cos β * Real.sin β + 0 * 0 + (-Real.sin β) * Real.cos β = 0
+        ring
+      · show (Ry_mat β 1) ⬝ᵥ _ = _
+        rw [Ry_row1]
+        simp only [dotProduct, Fin.sum_univ_three]
+        show 0 * Real.sin β + 1 * 0 + 0 * Real.cos β = 0
+        ring
+      · show (Ry_mat β 2) ⬝ᵥ _ = _
+        rw [Ry_row2]
+        simp only [dotProduct, Fin.sum_univ_three]
+        show Real.sin β * Real.sin β + 0 * 0 + Real.cos β * Real.cos β = 1
+        have h := Real.sin_sq_add_cos_sq β
+        ring_nf
+        linear_combination h
+    -- Combine: use the steps to compute N * [0,0,1]
+    have h_calc : (Ry_mat β * (Rz_mat (-α) * M)) *ᵥ ![0, 0, 1] = ![0, 0, 1] := by
+      -- Use: (A * B) *ᵥ x = A *ᵥ (B *ᵥ x) by ← mulVec_mulVec
+      calc (Ry_mat β * (Rz_mat (-α) * M)) *ᵥ ![0, 0, 1]
+          = Ry_mat β *ᵥ ((Rz_mat (-α) * M) *ᵥ ![0, 0, 1]) := by
+              rw [← Matrix.mulVec_mulVec]
+        _ = Ry_mat β *ᵥ (Rz_mat (-α) *ᵥ (M *ᵥ ![0, 0, 1])) := by
+              rw [← Matrix.mulVec_mulVec]
+        _ = Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] := by
+              rw [step1]
+        _ = ![0, 0, 1] := step2
+    simp only [h_calc]
+  -- By SO3_fixing_z_is_Rz, N = Rz(γ) for some γ
+  obtain ⟨γ, hγ⟩ := SO3_fixing_z_is_Rz N hN_SO3 hN_fixes_z
+  -- Therefore M = Rz(α) * Ry(-β) * Rz(γ)
+  -- N = Ry(β) * Rz(-α) * M, so M = Rz(α) * Ry(-β) * N = Rz(α) * Ry(-β) * Rz(γ)
+  use α, -β, γ
+  -- From N = Ry_mat β * Rz_mat (-α) * M (definition of N) and hγ : N = Rz_mat γ
+  -- We get: Rz_mat γ = Ry_mat β * Rz_mat (-α) * M
+  -- Multiply on left by Ry_mat (-β): Ry_mat (-β) * Rz_mat γ = Rz_mat (-α) * M
+  -- Multiply on left by Rz_mat α: Rz_mat α * Ry_mat (-β) * Rz_mat γ = M
+  have h1 : Rz_mat γ = Ry_mat β * Rz_mat (-α) * M := hγ ▸ rfl
+  have h2 : Ry_mat (-β) * Rz_mat γ = Rz_mat (-α) * M := by
+    rw [h1, ← Matrix.mul_assoc, ← Matrix.mul_assoc, neg_Ry_mat_mul, Matrix.one_mul]
+  calc M = Rz_mat α * (Rz_mat (-α) * M) := by
+           rw [← Matrix.mul_assoc, Rz_mat_mul_neg, Matrix.one_mul]
+       _ = Rz_mat α * (Ry_mat (-β) * Rz_mat γ) := by rw [h2]
+       _ = Rz_mat α * Ry_mat (-β) * Rz_mat γ := by rw [Matrix.mul_assoc]
 
 -- TODO something like this really ought to exist in mathlib.
 lemma specialOrthogonalGroup_mem_inv {n : ℕ} {U : Matrix (Fin n) (Fin n) ℝ}
