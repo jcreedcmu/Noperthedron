@@ -95,11 +95,24 @@ private lemma mapOfVec_apply {n : ℕ} (v x : Euc(n)) : (mapOfVec v x) 0 = ⟪v,
   unfold mapOfVec
   rw [EuclideanSpace.inner_eq_star_dotProduct, star_trivial]
   change (Matrix.toEuclideanLin (matOfVec v) x).ofLp 0 = _
-  rw [Matrix.toEuclideanLin_apply, WithLp.ofLp_toLp]
-  simp only [matOfVec, Matrix.mulVec, dotProduct]
-  congr 1
-  funext j
-  ring
+  simp only [Matrix.toEuclideanLin_apply, matOfVec, Matrix.mulVec, dotProduct, WithLp.ofLp_toLp]
+  exact Finset.sum_congr rfl fun j _ => mul_comm _ _
+
+private lemma mapOfCovec_single {n : ℕ} (v : Euc(n)) :
+    mapOfCovec v (EuclideanSpace.single 0 1) = v := by
+  simp [mapOfCovec_apply, EuclideanSpace.single_apply]
+
+private lemma rotM_transpose_adjoint (θ φ : ℝ) :
+    (rotM_mat θ φ)ᵀ.toEuclideanLin.toContinuousLinearMap = (rotM θ φ).adjoint := by
+  rw [← Matrix.conjTranspose_eq_transpose_of_trivial (A := rotM_mat θ φ),
+      Matrix.toEuclideanLin_conjTranspose_eq_adjoint (A := rotM_mat θ φ)]
+  rfl
+
+private lemma rotMℚ_transpose_adjoint (θ φ : ℝ) :
+    (rotMℚ_mat θ φ)ᵀ.toEuclideanLin.toContinuousLinearMap = (rotMℚ θ φ).adjoint := by
+  rw [← Matrix.conjTranspose_eq_transpose_of_trivial (A := rotMℚ_mat θ φ),
+      Matrix.toEuclideanLin_conjTranspose_eq_adjoint (A := rotMℚ_mat θ φ)]
+  rfl
 
 /- [SY25 Lemma 46] -/
 theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Triangle)
@@ -147,11 +160,15 @@ theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Tri
         ⟨Mℚ_norm_bounded hθ hφ, bound_rotM θ φ⟩⟩, bound_rotR (π / 2)⟩,
         ⟨Mℚ_norm_bounded hθ hφ, bound_rotM θ φ⟩⟩, ⟨bound_P' i, bound_P i⟩⟩
     have hva : ⟪(rotR (π / 2)) ((rotM θ φ) (P i)), (rotM θ φ) (P (i + 1))⟫ = mv.valB := by
-      simp only [MatVec.valB, mv, MatVec.compB]
-      sorry
+      simp only [MatVec.valB, mv, MatVec.compB, ContinuousLinearMap.coe_comp',
+        ContinuousLinearMap.coe_id', Function.comp_apply, id_eq,
+        mapOfCovec_single, rotM_transpose_adjoint, mapOfVec_apply]
+      rw [ContinuousLinearMap.adjoint_inner_right, real_inner_comm]
     have hvb : ⟪(rotR (π / 2)) (rotMℚ θ φ (P' i)), rotMℚ θ φ (P' (i + 1))⟫ = mv.valA := by
-      simp [MatVec.valA, mv, MatVec.compA]
-      sorry
+      simp only [MatVec.valA, mv, MatVec.compA, ContinuousLinearMap.coe_comp',
+        ContinuousLinearMap.coe_id', Function.comp_apply, id_eq,
+        mapOfCovec_single, rotMℚ_transpose_adjoint, mapOfVec_apply]
+      rw [ContinuousLinearMap.adjoint_inner_right, real_inner_comm]
     have hdbb : mv.DiffBoundedBy κ := by
       simp [MatVec.DiffBoundedBy, mv]
       clear hvb hva hanb hmvs mv
@@ -168,7 +185,7 @@ theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Tri
           simp only [← map_sub, Matrix.transpose_sub]
         rw [h, norm_transpose_euc_lin]
         calc ‖(rotMℚ_mat θ φ - rotM_mat θ φ).toEuclideanLin.toContinuousLinearMap‖
-          _ = ‖rotMℚ θ φ - rotM θ φ‖ := by simp only [rotMℚ, rotM, ← map_sub]
+          _ = ‖rotMℚ θ φ - rotM θ φ‖ := by simp [rotMℚ, rotM, ← map_sub]
           _ = ‖rotM θ φ - rotMℚ θ φ‖ := norm_sub_rev _ _
           _ ≤ κ := M_difference_norm_bounded θ φ hθ hφ
       · -- ‖rotR (π/2) - rotR (π/2)‖ ≤ κ  i.e., 0 ≤ κ
