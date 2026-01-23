@@ -127,16 +127,38 @@ lemma norm_sub_le_prod {n m : ℕ} (mv : MatVec n m)
     simp [le_refl]
 
 lemma allNormsBelow_def {n m : ℕ} (mv : MatVec n m)
-    (κ : ℝ) (κ_pos : κ > 0)
-    {bs : List ℝ} (hb : mv.allNormsBelow bs) :
+    {bs : List ℝ} (hbs1 : ∀ b ∈ bs, 1 ≤ b) (hb : mv.allNormsBelow bs) :
     mv.maxNormList.prod ≤ bs.prod := by
-  sorry
+  induction mv generalizing bs with
+  | nil =>
+    simp only [MatVec.maxNormList, List.prod_nil, MatVec.allNormsBelow] at hb ⊢
+    cases hbsr : bs.reverse with
+    | nil =>
+      have : bs = [] := List.reverse_eq_nil_iff.mp hbsr
+      simp [this]
+    | cons b bsr => simp only [hbsr, MatVec.allNormsBelow.go] at hb
+  | cons tl A B ih =>
+    simp only [MatVec.maxNormList, MatVec.allNormsBelow] at hb ⊢
+    cases hbsr : bs.reverse with
+    | nil => simp only [hbsr, MatVec.allNormsBelow.go] at hb
+    | cons b bsr =>
+      simp only [hbsr, MatVec.allNormsBelow.go] at hb
+      obtain ⟨htl, hA, hB⟩ := hb
+      have htl' : tl.allNormsBelow bsr.reverse := by simpa [MatVec.allNormsBelow]
+      have hbs : bs = bsr.reverse ++ [b] := by simpa using congrArg List.reverse hbsr
+      have hbsr1 : ∀ x ∈ bsr.reverse, 1 ≤ x := fun x hx ↦ hbs1 x (hbs ▸ List.mem_append_left _ hx)
+      have ih_bound := ih hbsr1 htl'
+      have hb1 : 1 ≤ b := hbs1 b (by simp [hbs])
+      rw [hbs, List.prod_append, List.prod_singleton, List.prod_append, List.prod_singleton]
+      have h_max_le : max (max ‖A‖ ‖B‖) 1 ≤ b := max_le_iff.mpr ⟨max_le hA hB, hb1⟩
+      have h_bsr_nonneg : 0 ≤ bsr.reverse.prod := le_trans tl.maxNormList_non_neg ih_bound
+      exact mul_le_mul ih_bound h_max_le (le_of_lt (lt_max_of_lt_right one_pos)) h_bsr_nonneg
 
 lemma norm_sub_le_bound {n m : ℕ} (mv : MatVec n m)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ)
-    {bs : List ℝ} (hb : mv.allNormsBelow bs) :
+    {bs : List ℝ} (hbs1 : ∀ b ∈ bs, 1 ≤ b) (hb : mv.allNormsBelow bs) :
     ‖mv.compA - mv.compB‖ ≤ mv.size * κ * bs.prod := by
-  grw [norm_sub_le_prod mv κ κ_pos hκ, allNormsBelow_def mv κ κ_pos hb]
+  grw [norm_sub_le_prod mv κ κ_pos hκ, allNormsBelow_def mv hbs1 hb]
 
 lemma norm_sub_le_prod1 (mv : MatVec 1 1)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ) :
@@ -157,9 +179,9 @@ lemma norm_sub_le_prod1 (mv : MatVec 1 1)
 
 lemma norm_sub_le_bound1 (mv : MatVec 1 1)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ)
-    {bs : List ℝ} (hb : mv.allNormsBelow bs) :
+    {bs : List ℝ} (hbs1 : ∀ b ∈ bs, 1 ≤ b) (hb : mv.allNormsBelow bs) :
     |mv.valA - mv.valB| ≤ mv.size * κ * bs.prod := by
-  grw [norm_sub_le_prod1 mv κ κ_pos hκ, allNormsBelow_def mv κ κ_pos hb]
+  grw [norm_sub_le_prod1 mv κ κ_pos hκ, allNormsBelow_def mv hbs1 hb]
 
 end RationalApprox
 
