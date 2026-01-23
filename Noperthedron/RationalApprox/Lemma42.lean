@@ -4,6 +4,10 @@ import Noperthedron.EuclideanSpaceNotation
 
 namespace RationalApprox
 
+/--
+Two sequences of matrices A₁,...,Aₖ and B₁,...,Bₖ with sizes that make
+the products A₁...Aₖ and B₁...Bₖ well-defined, as in [SY25] Lemma 42.
+-/
 inductive MatVec : (n m : ℕ) → Type where
   | nil : {n : ℕ} → MatVec n n
   | cons : {n m p : ℕ} → (tl : MatVec n m) → (A B : (Euc(p) →L[ℝ] Euc(m))) → MatVec n p
