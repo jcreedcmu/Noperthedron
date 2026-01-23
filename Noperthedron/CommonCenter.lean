@@ -85,10 +85,10 @@ lemma shadows_eq {S : Set ℝ³} (p : MatrixPose) :
   change ((p.shift ∘ proj_xyL) ∘ p.innerRotPart) '' S =
      ((proj_xyL ∘ p.innerOffsetPart) ∘ p.innerRotPart) '' S
   rw [← proj_xy_eq_proj_xyL]
-  rw [show p.shift ∘ proj_xy = proj_xy ∘ p.innerOffsetPart from funext fun v ↦ by
-    simp only [Function.comp_apply, MatrixPose.shift, Homeomorph.coe_addRight,
-               MatrixPose.innerOffsetPart, AffineEquiv.vaddConst_apply]
-    exact proj_offset_commute p.innerOffset v]
+  have : p.shift ∘ proj_xy = proj_xy ∘ p.innerOffsetPart := funext fun v ↦ by
+    simpa [MatrixPose.shift, MatrixPose.innerOffsetPart] using
+      proj_offset_commute p.innerOffset v
+  rw [this]
 
 /--
 If a set is point symmetric and convex, then it being rupert implies
