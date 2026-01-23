@@ -27,30 +27,14 @@ theorem converted_pose_inner_shadow_eq (v : Pose) (S : Set ℝ³) :
   simp only [innerShadow, PoseLike.inner]
   congr 1
   ext x
-  constructor
-  · rintro ⟨v', hv', rfl⟩
-    use v', hv'
-    simp only [AffineMap.coe_comp, Function.comp_apply, LinearMap.coe_toAffineMap,
-      AffineEquiv.coe_toAffineMap, AffineEquiv.vaddConst_apply, vadd_eq_add,
-      Pose.matrixPoseOfPose, inject_xy_zero, add_zero]
-    rw [rotRM_eq_rotRM_mat]
-    rfl
-  · rintro ⟨v', hv', rfl⟩
-    use v', hv'
-    simp only [AffineMap.coe_comp, Function.comp_apply, LinearMap.coe_toAffineMap,
-      AffineEquiv.coe_toAffineMap, AffineEquiv.vaddConst_apply, vadd_eq_add,
-      Pose.matrixPoseOfPose, inject_xy_zero, add_zero]
-    rw [rotRM_eq_rotRM_mat]
-    rfl
+  constructor <;> (rintro ⟨v', hv', rfl⟩; exact ⟨v', hv', by simp [Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]⟩)
 
 theorem converted_pose_outer_shadow_eq (v : Pose) (S : Set ℝ³) :
     outerShadow v S = outerShadow (v.matrixPoseOfPose) S := by
   simp only [outerShadow, PoseLike.outer]
   congr 1
   ext x
-  simp only [LinearMap.coe_toAffineMap, Pose.matrixPoseOfPose]
-  rw [rotRM_eq_rotRM_mat]
-  rfl
+  simp [Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
 
 theorem converted_pose_rupert_iff (v : Pose) (S : Set ℝ³) :
     RupertPose v S ↔ RupertPose (v.matrixPoseOfPose) S := by
