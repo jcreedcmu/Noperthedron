@@ -185,6 +185,10 @@ theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Tri
           _ = ‖P i - (P' i : ℝ³)‖ := norm_sub_rev _ _
           _ ≤ κ := hk i
     suffices h : |mv.valA - mv.valB| ≤ 6 * κ by rw [hva, hvb, abs_sub_comm]; exact h
-    grw [norm_sub_le_bound1 mv κ (by norm_num [κ]) hdbb hanb]
+    have hbs1 : ∀ b ∈ [1 + κ, 1 + κ, 1, 1 + κ, 1 + κ], 1 ≤ b := by
+      simp only [List.mem_cons, List.mem_nil_iff, or_false]
+      intro b hb
+      rcases hb with rfl | rfl | rfl | rfl | rfl <;> norm_num [κ]
+    grw [norm_sub_le_bound1 mv κ (by norm_num [κ]) hdbb hbs1 hanb]
     simp only [mv]
     norm_num [κ]
