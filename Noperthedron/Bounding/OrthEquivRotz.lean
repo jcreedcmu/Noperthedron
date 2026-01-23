@@ -98,6 +98,28 @@ lemma neg_Ry_mat_mul (θ : ℝ) : Ry_mat (-θ) * Ry_mat θ = 1 := by
   rw [← Ry_mat_transpose]
   exact (rot3_mat_mem_O3 1 θ).1
 
+/-- Rz(α) * Rz(β) = Rz(α + β). -/
+lemma Rz_mat_mul_Rz_mat (α β : ℝ) : Rz_mat α * Rz_mat β = Rz_mat (α + β) := by
+  have hrz : ∀ v : Fin 3 → ℝ, Rz_mat α *ᵥ (Rz_mat β *ᵥ v) = Rz_mat (α + β) *ᵥ v := by
+    intro v
+    have h := AddChar.map_add_eq_mul RzC α β
+    have hcomp : (RzL α).comp (RzL β) = RzL (α + β) := by
+      rw [show RzC α * RzC β = (RzC α).comp (RzC β) from rfl] at h
+      exact h.symm
+    have := congrFun (congrArg DFunLike.coe hcomp) (WithLp.toLp 2 v)
+    simp only [RzL, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply] at this
+    exact congrArg (·.ofLp) this
+  have hmul : ∀ v, (Rz_mat α * Rz_mat β) *ᵥ v = Rz_mat (α + β) *ᵥ v := by
+    intro v
+    rw [← Matrix.mulVec_mulVec]
+    exact hrz v
+  ext i j
+  have h := hmul (Pi.single j 1)
+  simp only [Matrix.mulVec_single] at h
+  have h' := congrFun h i
+  simp only [Pi.smul_apply, MulOpposite.op_one, one_smul, Matrix.col_apply] at h'
+  exact h'
+
 lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (hAz : A.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1]) :
     ∃ γ, A = Rz_mat γ := by
