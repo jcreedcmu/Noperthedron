@@ -243,7 +243,13 @@ theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
 theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
     pc.fu_outer P p.outerParams * ‖P‖ = ⟪pc.w, p.outer P⟫ := by
-  sorry
+  simp only [GlobalTheoremPrecondition.fu_outer, rotproj_outer_unit, Pose.outer, outerProj,
+             PoseLike.outer, Pose.outerParams, Matrix.cons_val_zero, Matrix.cons_val,
+             AffineMap.coe_comp, LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe,
+             Function.comp_apply]
+  by_cases hP : P = 0
+  · simp [hP]
+  · rw [div_mul_cancel₀ _ (norm_ne_zero_iff.mpr hP), Pose.proj_rm_eq_m, real_inner_comm]
 
 lemma Differentiable.rotprojRM (S : ℝ³) :
     Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
