@@ -2,12 +2,10 @@ import Noperthedron.MatrixPose
 import Noperthedron.Pose
 import Noperthedron.Bounding.OrthEquivRotz
 
+open Bounding Real
 open scoped Matrix
-open Real
 
-/--
-The matrix form of `rotRM θ φ α`, which is `Rz(-(π/2)) * Rz(α) * Ry(φ) * Rz(-θ)`.
--/
+/-- Matrix version of rotRM. -/
 noncomputable
 def rotRM_mat (θ φ α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
   Rz_mat (-(π / 2)) * Rz_mat α * Ry_mat φ * Rz_mat (-θ)
@@ -19,10 +17,10 @@ lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) :
     rotRM_mat θ φ α ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
   unfold rotRM_mat
   refine Submonoid.mul_mem _ (Submonoid.mul_mem _ (Submonoid.mul_mem _ ?_ ?_) ?_) ?_
-  · exact Bounding.rot3_mat_mem_SO3 2 (-(π / 2))
-  · exact Bounding.rot3_mat_mem_SO3 2 α
-  · exact Bounding.rot3_mat_mem_SO3 1 φ
-  · exact Bounding.rot3_mat_mem_SO3 2 (-θ)
+  · exact rot3_mat_mem_SO3 2 (-(π / 2))
+  · exact rot3_mat_mem_SO3 2 α
+  · exact rot3_mat_mem_SO3 1 φ
+  · exact rot3_mat_mem_SO3 2 (-θ)
 
 /--
 `rotRM θ φ α` equals the continuous linear map induced by `rotRM_mat θ φ α`.
@@ -35,19 +33,27 @@ lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
     LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
   rw [Matrix.mulVec_mulVec, Matrix.mulVec_mulVec, Matrix.mulVec_mulVec]
 
-/-- Rz matrices multiply by adding angles. -/
-lemma Rz_mat_mul (a b : ℝ) : Rz_mat a * Rz_mat b = Rz_mat (a + b) := by
-  ext i j; fin_cases i <;> fin_cases j <;> simp [Rz_mat, cos_add, sin_add] <;> ring
+/-- rotRM_mat θ φ 0 simplifies to Rz(-π/2) * Ry(φ) * Rz(-θ). -/
+lemma rotRM_mat_zero_alpha (θ φ : ℝ) : rotRM_mat θ φ 0 = Rz_mat (-(π / 2)) * Ry_mat φ * Rz_mat (-θ) := by
+  simp only [rotRM_mat]
+  rw [Rz_mat_zero, Matrix.mul_one]
 
-/-- Collapse leading Rz terms: `rotRM_mat θ φ α = Rz(α - π/2) * Ry(φ) * Rz(-θ)`. -/
-lemma rotRM_mat_eq (θ φ α : ℝ) :
-    rotRM_mat θ φ α = Rz_mat (α - π / 2) * Ry_mat φ * Rz_mat (-θ) := by
-  simp only [rotRM_mat, Rz_mat_mul, sub_eq_add_neg, add_comm]
+/-- For any SO3 matrix, there exists δ such that Rz(δ) * M has the form rotRM_mat θ φ 0. -/
+lemma exists_Rz_to_rotRM_form (M : SO3) :
+    ∃ δ θ φ, Rz_mat δ * M.val = rotRM_mat θ φ 0 := by
+  obtain ⟨α, β, γ, h_decomp⟩ := SO3_ZYZ_decomposition M.val M.property
+  use -(π / 2) - α, -γ, β
+  rw [rotRM_mat_zero_alpha, h_decomp]
+  rw [← Matrix.mul_assoc, ← Matrix.mul_assoc]
+  congr 1
+  · rw [Rz_mat_mul_Rz_mat]
+    ring_nf
+  · rw [neg_neg]
 
-noncomputable
-def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
-  innerRot := ⟨rotRM_mat p.θ₁ p.φ₁ p.α, rotRM_mat_mem_SO3 p.θ₁ p.φ₁ p.α⟩
-  outerRot := ⟨rotRM_mat p.θ₂ p.φ₂ 0, rotRM_mat_mem_SO3 p.θ₂ p.φ₂ 0⟩
+/-- Convert a Pose to a MatrixPose. -/
+noncomputable def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
+  innerRot := ⟨rotRM_mat p.θ₁ p.φ₁ p.α, rotRM_mat_mem_SO3 _ _ _⟩
+  outerRot := ⟨rotRM_mat p.θ₂ p.φ₂ 0, rotRM_mat_mem_SO3 _ _ _⟩
   innerOffset := 0
 
 theorem converted_pose_inner_shadow_eq (v : Pose) (S : Set ℝ³) :
@@ -141,29 +147,34 @@ lemma SO3_euler_ZYZ (A : Matrix (Fin 3) (Fin 3) ℝ)
     (by convert hB_fixes_ez; simp)
   exact ⟨α, β, γ, by rw [← hγ, ← Matrix.mul_assoc, Matrix.mul_nonsing_inv _ hU_det, Matrix.one_mul]⟩
 
-/--
-Given a MatrixPose with zero offset whose outer rotation is in the image of `rotRM_mat _ _ 0`,
-there exists a 5-parameter Pose that produces the same MatrixPose.
+/-- Any SO3 matrix can be written as rotRM_mat θ φ α for some θ, φ, α.
+Uses ZYZ Euler decomposition: M = Rz(a) * Ry(b) * Rz(c) = rotRM_mat (-c) b (a + π/2). -/
+lemma SO3_to_rotRM_params (M : Matrix (Fin 3) (Fin 3) ℝ)
+    (hM : M ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
+    ∃ θ φ α, M = rotRM_mat θ φ α := by
+  obtain ⟨a, b, c, h_decomp⟩ := SO3_ZYZ_decomposition M hM
+  use -c, b, a + π / 2
+  simp only [rotRM_mat, h_decomp, neg_neg, Rz_mat_mul_Rz_mat]
+  ring_nf
 
-Note: The assumption `h_outer` is necessary because `rotRM_mat θ φ 0 = Rz(-π/2) * Ry(φ) * Rz(-θ)`
-has only 2 DOF (the first Euler angle is fixed at -π/2), while a general SO3 matrix has 3 DOF.
--/
-theorem pose_of_matrix_pose (p : MatrixPose)
-    (h_outer : ∃ θ φ, p.outerRot.val = rotRM_mat θ φ 0) :
+/-- For a zeroOffset MatrixPose whose outer rotation is in rotRM form, we can construct
+an equivalent Pose. -/
+lemma pose_of_matrix_pose_with_outer_form (p : MatrixPose)
+    (h_outer : ∃ θ₂ φ₂, p.outerRot.val = rotRM_mat θ₂ φ₂ 0) :
     ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
-  obtain ⟨α₁, β₁, γ₁, h_inner⟩ := SO3_euler_ZYZ p.innerRot.val p.innerRot.property
-  obtain ⟨θ₂, φ₂, h_outer⟩ := h_outer
-  let pp : Pose := { θ₁ := -γ₁, φ₁ := β₁, α := α₁ + π / 2, θ₂ := θ₂, φ₂ := φ₂ }
-  refine ⟨pp, ?_⟩
-  simp only [Pose.matrixPoseOfPose, MatrixPose.zeroOffset, pp]
-  congr 1
-  · -- innerRot: use rotRM_mat_eq to simplify
-    apply Subtype.ext
-    calc rotRM_mat (-γ₁) β₁ (α₁ + π / 2)
-        = Rz_mat α₁ * Ry_mat β₁ * Rz_mat γ₁ := by
-          simp only [rotRM_mat_eq, neg_neg]
-          ring_nf
-      _ = p.innerRot.val := h_inner.symm
-  · -- outerRot: direct from h_outer
-    apply Subtype.ext
-    exact h_outer.symm
+  obtain ⟨θ₂, φ₂, h_out⟩ := h_outer
+  obtain ⟨θ₁, φ₁, α, h_in⟩ := SO3_to_rotRM_params p.innerRot.val p.innerRot.property
+  use { θ₁ := θ₁, θ₂ := θ₂, φ₁ := φ₁, φ₂ := φ₂, α := α }
+  simp only [Pose.matrixPoseOfPose, MatrixPose.zeroOffset]
+  congr 1 <;> apply Subtype.ext <;> simp [h_in.symm, h_out.symm]
+
+/-- For any MatrixPose p, after rotating by the right δ, there exists a Pose
+that equals the rotated zeroOffset. -/
+theorem pose_of_matrix_pose (p : MatrixPose) :
+    ∃ δ : ℝ, ∃ pp : Pose, pp.matrixPoseOfPose = (p.zeroOffset.rotateBy δ) := by
+  obtain ⟨δ, θ, φ, h_form⟩ := exists_Rz_to_rotRM_form p.outerRot
+  use δ
+  have h_outer : ∃ θ₂ φ₂, (p.zeroOffset.rotateBy δ).outerRot.val = rotRM_mat θ₂ φ₂ 0 :=
+    ⟨θ, φ, by simp only [MatrixPose.rotateBy, MatrixPose.zeroOffset]; exact h_form⟩
+  simpa [MatrixPose.zeroOffset, MatrixPose.rotateBy] using
+    pose_of_matrix_pose_with_outer_form (p.zeroOffset.rotateBy δ) h_outer

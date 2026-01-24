@@ -68,6 +68,58 @@ lemma SO3_has_eigenvalue_one (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix
   obtain ⟨v, v_nz, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr (self_eq_neg.mp h_flip)
   exact ⟨WithLp.toLp 2 v, by simpa using v_nz, by simpa [sub_eq_zero, Matrix.sub_mulVec] using hv⟩
 
+/-- Rz_mat transpose equals Rz_mat of negative angle. -/
+lemma Rz_mat_transpose (θ : ℝ) : (Rz_mat θ).transpose = Rz_mat (-θ) := by
+  ext i j
+  fin_cases i <;> fin_cases j <;> simp [Rz_mat, Matrix.transpose_apply, Real.cos_neg, Real.sin_neg]
+
+/-- Ry_mat transpose equals Ry_mat of negative angle. -/
+lemma Ry_mat_transpose (θ : ℝ) : (Ry_mat θ).transpose = Ry_mat (-θ) := by
+  ext i j
+  fin_cases i <;> fin_cases j <;> simp [Ry_mat, Matrix.transpose_apply, Real.cos_neg, Real.sin_neg]
+
+/-- Rz(θ) * Rz(-θ) = 1. -/
+lemma Rz_mat_mul_neg (θ : ℝ) : Rz_mat θ * Rz_mat (-θ) = 1 := by
+  rw [← Rz_mat_transpose]
+  exact (rot3_mat_mem_O3 2 θ).2
+
+/-- Ry(θ) * Ry(-θ) = 1. -/
+lemma Ry_mat_mul_neg (θ : ℝ) : Ry_mat θ * Ry_mat (-θ) = 1 := by
+  rw [← Ry_mat_transpose]
+  exact (rot3_mat_mem_O3 1 θ).2
+
+/-- Rz(-θ) * Rz(θ) = 1. -/
+lemma neg_Rz_mat_mul (θ : ℝ) : Rz_mat (-θ) * Rz_mat θ = 1 := by
+  rw [← Rz_mat_transpose]
+  exact (rot3_mat_mem_O3 2 θ).1
+
+/-- Ry(-θ) * Ry(θ) = 1. -/
+lemma neg_Ry_mat_mul (θ : ℝ) : Ry_mat (-θ) * Ry_mat θ = 1 := by
+  rw [← Ry_mat_transpose]
+  exact (rot3_mat_mem_O3 1 θ).1
+
+/-- Rz(α) * Rz(β) = Rz(α + β). -/
+lemma Rz_mat_mul_Rz_mat (α β : ℝ) : Rz_mat α * Rz_mat β = Rz_mat (α + β) := by
+  have hrz : ∀ v : Fin 3 → ℝ, Rz_mat α *ᵥ (Rz_mat β *ᵥ v) = Rz_mat (α + β) *ᵥ v := by
+    intro v
+    have h := AddChar.map_add_eq_mul RzC α β
+    have hcomp : (RzL α).comp (RzL β) = RzL (α + β) := by
+      rw [show RzC α * RzC β = (RzC α).comp (RzC β) from rfl] at h
+      exact h.symm
+    have := congrFun (congrArg DFunLike.coe hcomp) (WithLp.toLp 2 v)
+    simp only [RzL, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply] at this
+    exact congrArg (·.ofLp) this
+  have hmul : ∀ v, (Rz_mat α * Rz_mat β) *ᵥ v = Rz_mat (α + β) *ᵥ v := by
+    intro v
+    rw [← Matrix.mulVec_mulVec]
+    exact hrz v
+  ext i j
+  have h := hmul (Pi.single j 1)
+  simp only [Matrix.mulVec_single] at h
+  have h' := congrFun h i
+  simp only [Pi.smul_apply, MulOpposite.op_one, one_smul, Matrix.col_apply] at h'
+  exact h'
+
 lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (hAz : A.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1]) :
     ∃ γ, A = Rz_mat γ := by
@@ -121,6 +173,108 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
   · exact Submonoid.mul_mem _ (rot3_mat_mem_SO3 2 ϕ) (rot3_mat_mem_SO3 1 _)
   · simp only [rot3_mat]
     ext i; fin_cases i <;> simp [hθϕ, Matrix.mulVec] <;> ring
+
+/-- Rz(-α) applied to spherical vector removes azimuthal angle. -/
+lemma Rz_neg_mulVec_spherical (α β : ℝ) :
+    Rz_mat (-α) *ᵥ ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] =
+    ![Real.sin β, 0, Real.cos β] := by
+  ext i; fin_cases i <;> simp [Rz_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+    Real.cos_neg, Real.sin_neg]
+  · have h := Real.cos_sq_add_sin_sq α; ring_nf; linear_combination Real.sin β * h
+  · ring
+
+/-- Ry(β) applied to xz-plane vector brings it to z-axis. -/
+lemma Ry_mulVec_to_z (β : ℝ) :
+    Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] = ![(0:ℝ), 0, 1] := by
+  ext i; fin_cases i <;> simp [Ry_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+  · ring
+  · linear_combination Real.sin_sq_add_cos_sq β
+
+/--
+ZYZ Euler decomposition: Any SO3 matrix can be written as Rz(α) * Ry(β) * Rz(γ).
+
+Uses the fact that SO3 matrices preserve unit vectors and spherical coordinates.
+-/
+lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
+    (hM : M ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
+    ∃ α β γ : ℝ, M = Rz_mat α * Ry_mat β * Rz_mat γ := by
+  -- v = M * [0,0,1] is a unit vector
+  let v : EuclideanSpace ℝ (Fin 3) := M.toEuclideanLin !₂[0, 0, 1]
+  -- SO3 matrices preserve norms, so ‖v‖ = 1
+  have hv_norm : ‖v‖ = 1 := by
+    have key : Mᵀ * M = 1 := by
+      have h := hM.1.1; simp only [Matrix.star_eq_conjTranspose] at h; exact h
+    simp only [v, Matrix.toEuclideanLin_apply, EuclideanSpace.norm_eq]
+    -- The calculation (M*ᵥe)·(M*ᵥe) = e·((MᵀM)*ᵥe) = e·e = 1
+    have hdot : (M *ᵥ ![0, 0, 1]) ⬝ᵥ (M *ᵥ ![0, 0, 1]) = 1 := by
+      have : (M *ᵥ ![0, 0, 1]) ⬝ᵥ (M *ᵥ ![0, 0, 1]) =
+             ![0, 0, 1] ⬝ᵥ ((Mᵀ * M) *ᵥ ![0, 0, 1]) := by
+        simp only [dotProduct, Matrix.mulVec, Fin.sum_univ_three, Matrix.mul_apply,
+          Matrix.transpose_apply]
+        ring
+      rw [this, key, Matrix.one_mulVec]
+      simp [dotProduct, Fin.sum_univ_three]
+    simp only [Real.sqrt_eq_one]
+    have hsq : ∑ i, (M *ᵥ ![0, 0, 1]) i ^ 2 = 1 := by
+      simp only [dotProduct, Fin.sum_univ_three] at hdot
+      simp only [Fin.sum_univ_three, sq]
+      convert hdot using 2
+    simp only [Fin.sum_univ_three, sq] at hsq ⊢
+    convert hsq using 2
+    all_goals simp [Real.norm_eq_abs]
+  -- Use spherical coordinates: v = [sin β cos α, sin β sin α, cos β]
+  obtain ⟨β, α, hv_eq⟩ : ∃ β α : ℝ,
+      (v : Fin 3 → ℝ) = ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
+    simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv_norm ⊢
+    use Real.arccos (v 2), Complex.arg (v 0 + v 1 * Complex.I)
+    have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧
+        Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
+      rw [Real.cos_arccos, Real.sin_arccos] <;> try nlinarith
+      exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv_norm.symm⟩
+    by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
+    · simp_all [Complex.ext_iff]
+      ext i; fin_cases i <;> tauto
+    · simp [Complex.normSq, Complex.norm_def] at *
+      simp [← sq, mul_div_cancel₀ _
+        (show √(v 0 ^ 2 + v 1 ^ 2) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by
+          nlinarith [mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by
+            norm_num [Complex.ext_iff, sq]; constructor <;> nlinarith])]
+      ext i; fin_cases i <;> rfl
+  -- N = Ry(β) * Rz(-α) * M fixes [0,0,1]
+  -- (First Rz(-α) removes azimuthal angle, then Ry(β) brings to z-axis)
+  let N := Ry_mat β * Rz_mat (-α) * M
+  have hN_SO3 : N ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+    Submonoid.mul_mem _ (Submonoid.mul_mem _ (rot3_mat_mem_SO3 1 β) (rot3_mat_mem_SO3 2 (-α))) hM
+  have hN_fixes_z : N.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1] := by
+    simp only [N, Matrix.mul_assoc, Matrix.toEuclideanLin_apply]
+    have hv_sph : M *ᵥ ![0, 0, 1] =
+        ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
+      ext i
+      simp only [v, Matrix.toEuclideanLin_apply] at hv_eq
+      exact congrFun hv_eq i
+    have h_calc : (Ry_mat β * (Rz_mat (-α) * M)) *ᵥ ![0, 0, 1] = ![0, 0, 1] := by
+      calc (Ry_mat β * (Rz_mat (-α) * M)) *ᵥ ![0, 0, 1]
+          = Ry_mat β *ᵥ (Rz_mat (-α) *ᵥ (M *ᵥ ![0, 0, 1])) := by
+              rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
+        _ = Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] := by rw [hv_sph, Rz_neg_mulVec_spherical]
+        _ = ![0, 0, 1] := Ry_mulVec_to_z β
+    simp only [h_calc]
+  -- By SO3_fixing_z_is_Rz, N = Rz(γ) for some γ
+  obtain ⟨γ, hγ⟩ := SO3_fixing_z_is_Rz N hN_SO3 hN_fixes_z
+  -- M = Rz(α) * Ry(-β) * Rz(γ) from N = Ry(β) * Rz(-α) * M = Rz(γ)
+  use α, -β, γ
+  have h2 : Ry_mat (-β) * Rz_mat γ = Rz_mat (-α) * M := by
+    have h1 : Rz_mat γ = Ry_mat β * Rz_mat (-α) * M := hγ ▸ rfl
+    rw [h1, ← Matrix.mul_assoc, ← Matrix.mul_assoc, neg_Ry_mat_mul, Matrix.one_mul]
+  calc M = Rz_mat α * (Rz_mat (-α) * M) := by
+           rw [← Matrix.mul_assoc, Rz_mat_mul_neg, Matrix.one_mul]
+       _ = Rz_mat α * (Ry_mat (-β) * Rz_mat γ) := by rw [h2]
+       _ = Rz_mat α * Ry_mat (-β) * Rz_mat γ := by rw [Matrix.mul_assoc]
+
+/-- Rz(0) = 1. -/
+lemma Rz_mat_zero : Rz_mat 0 = 1 := by
+  ext i j
+  fin_cases i <;> fin_cases j <;> simp [Rz_mat]
 
 -- TODO something like this really ought to exist in mathlib.
 lemma specialOrthogonalGroup_mem_inv {n : ℕ} {U : Matrix (Fin n) (Fin n) ℝ}
