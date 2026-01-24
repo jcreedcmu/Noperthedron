@@ -289,22 +289,137 @@ def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :
   ]
   EuclideanSpace.basisFun (Fin 3) ℝ |>.toBasis.constr ℝ grad |>.toContinuousLinearMap
 
-def rotprojRM' (S : ℝ³) : ℝ³ →L[ℝ] ℝ² := sorry
+/--
+The Fréchet derivative of `fun x => rotprojRM (x 1) (x 2) (x 0) S` at `pbar.innerParams`.
+Components:
+- index 0 (α): rotR' α (rotM θ φ S)
+- index 1 (θ): rotR α (rotMθ θ φ S)
+- index 2 (φ): rotR α (rotMφ θ φ S)
+-/
+noncomputable
+def rotprojRM' (pbar : Pose) (S : ℝ³) : ℝ³ →L[ℝ] ℝ² :=
+  let M : Matrix (Fin 2) (Fin 3) ℝ := Matrix.of fun i j =>
+    match j with
+    | 0 => (pbar.rotR' (pbar.rotM₁ S)) i
+    | 1 => (pbar.rotR (pbar.rotM₁θ S)) i
+    | 2 => (pbar.rotR (pbar.rotM₁φ S)) i
+  M.toEuclideanLin.toContinuousLinearMap
 
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
 
-  have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' S) pbar.innerParams := by
+  have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
+    -- TODO: This proof requires computing fderiv of rotprojRM.
+    -- The derivative of (rotR α).comp (rotM θ φ) S is computed using chain rule:
+    -- ∂/∂α = rotR' α (rotM S)
+    -- ∂/∂θ = rotR α (rotMθ S)
+    -- ∂/∂φ = rotR α (rotMφ S)
     sorry
 
   have step :
     (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
             ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
-        ((rotprojRM' S).prod 0)) := by
-    sorry
+        ((rotprojRM' pbar S).prod 0)) := by
+    ext d
+    simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
+               ContinuousLinearMap.prod_apply, fderivInnerCLM_apply,
+               inner_zero_right, add_zero]
+    simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add, real_inner_comm]
+    simp only [rotproj_inner', rotprojRM']
+    simp only [LinearMap.coe_toContinuousLinearMap', EuclideanSpace.basisFun_apply]
+    simp only [Module.Basis.constr_apply_fintype]
+    simp only [Matrix.toEuclideanLin_apply, Matrix.mulVec]
+    simp only [Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one]
+    conv_lhs => rw [show (EuclideanSpace.basisFun (Fin 3) ℝ).toBasis.equivFun = (WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ)) by
+      rw [EuclideanSpace.basisFun_toBasis]; exact @PiLp.basisFun_equivFun 2 ℝ (Fin 3) _ _]
+    simp only [WithLp.linearEquiv_apply]
+    simp only [WithLp.addEquiv, Equiv.toFun_as_coe, Equiv.coe_fn_mk]
+    simp only [Fin.isValue, Matrix.cons_val]
+    conv_rhs => simp only [Matrix.mulVec, Matrix.of_apply]
+    simp only [PiLp.inner_apply, Matrix.mulVec, Matrix.of_apply,
+               Fin.sum_univ_two, RCLike.inner_apply, conj_trivial]
+    unfold dotProduct
+    simp only [Fin.sum_univ_three, smul_eq_mul]
+    ring
 
   rw [step]
   exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.innerParams)
+
+/-- The fderiv of rotM applied to a fixed vector P, as a function of (θ, φ). -/
+noncomputable
+def rotM' (pbar : Pose) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
+  let M : Matrix (Fin 2) (Fin 2) ℝ := Matrix.of fun i j =>
+    match j with
+    | 0 => (rotMθ pbar.θ₂ pbar.φ₂ P) i
+    | 1 => (rotMφ pbar.θ₂ pbar.φ₂ P) i
+  M.toEuclideanLin.toContinuousLinearMap
+
+lemma Differentiable.rotM_outer (P : ℝ³) :
+    Differentiable ℝ fun (x : ℝ²) => (rotM (x 0) (x 1)) P := by
+  rw [differentiable_piLp]
+  intro i
+  fin_cases i <;> simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
+
+lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
+    HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
+  -- TODO: Similar to z1 - needs fderiv computation for rotM
+  sorry
+
+lemma Differentiable.rotproj_outer (P : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_outer P w) :=
+  Differentiable.inner ℝ (Differentiable.rotM_outer P) (by fun_prop)
+
+lemma HasFDerivAt.rotproj_outer (pbar : Pose) (P : ℝ³) (w : ℝ²) :
+    HasFDerivAt (rotproj_outer P w) (rotproj_outer' pbar P w) pbar.outerParams := by
+  have z1 : HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams :=
+    HasFDerivAt.rotM_outer pbar P
+  have step :
+    rotproj_outer' pbar P w = (fderivInnerCLM ℝ
+        ((rotM (pbar.outerParams.ofLp 0) (pbar.outerParams.ofLp 1)) P, w)).comp
+        ((rotM' pbar P).prod 0) := by
+    ext d
+    simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
+               ContinuousLinearMap.prod_apply, fderivInnerCLM_apply]
+    simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add, real_inner_comm]
+    simp only [rotproj_outer', rotM']
+    simp only [LinearMap.coe_toContinuousLinearMap']
+    simp only [Module.Basis.constr_apply_fintype]
+    simp only [Matrix.toEuclideanLin_apply, Matrix.mulVec]
+    simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
+    conv_lhs => rw [show (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.equivFun = (WithLp.linearEquiv 2 ℝ (Fin 2 → ℝ)) by
+      rw [EuclideanSpace.basisFun_toBasis]; exact @PiLp.basisFun_equivFun 2 ℝ (Fin 2) _ _]
+    simp only [WithLp.linearEquiv_apply]
+    simp only [WithLp.addEquiv, Equiv.toFun_as_coe, Equiv.coe_fn_mk]
+    conv_rhs => simp only [Matrix.mulVec, Matrix.of_apply]
+    simp only [PiLp.inner_apply, Matrix.mulVec, Matrix.of_apply,
+               Fin.sum_univ_two, RCLike.inner_apply, conj_trivial]
+    unfold dotProduct
+    simp only [Fin.sum_univ_two, smul_eq_mul, Pose.rotM₂θ, Pose.rotM₂φ]
+    ring
+  rw [step]
+  exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.outerParams)
+
+lemma fderiv_rotproj_outer_unit (pbar : Pose) (P : ℝ³) (w : ℝ²) :
+    fderiv ℝ (rotproj_outer_unit P w) pbar.outerParams = ‖P‖⁻¹ • (rotproj_outer' pbar P w) := by
+  unfold rotproj_outer_unit
+  have heq : (fun x => ⟪(rotM (x.ofLp 0) (x.ofLp 1)) P, w⟫ / ‖P‖) =
+      ‖P‖⁻¹ • (rotproj_outer P w) := by
+    unfold rotproj_outer; ext x; simp [inv_mul_eq_div]
+  rw [heq, (Differentiable.rotproj_outer P w).differentiableAt.hasFDerivAt.const_smul ‖P‖⁻¹ |>.fderiv,
+    HasFDerivAt.rotproj_outer pbar P w |>.fderiv]
+
+lemma partials_helper3a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    (fderiv ℝ (rotproj_outer_unit P pc.w) pbar.outerParams) (EuclideanSpace.single 0 1) =
+    ‖P‖⁻¹ * ⟪pbar.rotM₂θ P, pc.w⟫ := by
+  rw [fderiv_rotproj_outer_unit pbar P pc.w]
+  simp [rotproj_outer']
+
+lemma partials_helper4a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    (fderiv ℝ (rotproj_outer_unit P pc.w) pbar.outerParams) (EuclideanSpace.single 1 1) =
+    ‖P‖⁻¹ * ⟪pbar.rotM₂φ P, pc.w⟫ := by
+  rw [fderiv_rotproj_outer_unit pbar P pc.w]
+  simp [rotproj_outer']
 
 lemma fderiv_rotproj_inner_unit (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     fderiv ℝ (rotproj_inner_unit S w) pbar.innerParams = ‖S‖⁻¹ • (rotproj_inner' pbar S w) := by
@@ -361,16 +476,18 @@ lemma partials_helper2 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   field_simp
 
 lemma partials_helper3 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
-    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) (hP : ‖P‖ ≠ 0) :
     ‖P‖ * nth_partial 0 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
     ⟪pbar.rotM₂θ P, pc.w⟫ := by
-  sorry
+  simp only [nth_partial, GlobalTheoremPrecondition.fu_outer, Fin.isValue, partials_helper3a]
+  field_simp
 
 lemma partials_helper4 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
-    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) (hP : ‖P‖ ≠ 0) :
     ‖P‖ * nth_partial 1 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
     ⟪pbar.rotM₂φ P, pc.w⟫ := by
-  sorry
+  simp only [nth_partial, GlobalTheoremPrecondition.fu_outer, Fin.isValue, partials_helper4a]
+  field_simp
 
 lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -380,12 +497,12 @@ lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     partials_helper0, partials_helper1, partials_helper2]
 
 lemma partials_helper_outer {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
-    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) (hP : ‖P‖ ≠ 0) :
     |⟪pbar.rotM₂θ P, pc.w⟫| + |⟪pbar.rotM₂φ P, pc.w⟫| =
     ‖P‖ * ∑ i, |nth_partial i (pc.fu_outer P) pbar.outerParams| := by
   rw [Finset.mul_sum, Fin.sum_univ_two, ← abs_norm, ← abs_mul, ← abs_mul]
   simp only [Fin.isValue]
-  rw [partials_helper3 pc P, partials_helper4 pc P]
+  rw [partials_helper3 pc P hP, partials_helper4 pc P hP]
 
 theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -460,7 +577,7 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
   replace hz := mul_le_mul_of_nonneg_right hz (ha := le_of_lt P_norm_pos)
   rw [add_mul] at hz
   rw [pc.fu_pose_eq_outer P, pc.fu_pose_eq_outer P] at hz
-  rw [partials_helper_outer pc]
+  rw [partials_helper_outer pc P (ne_of_gt P_norm_pos)]
   rw [show pbar.rotM₂ P = pbar.outer P by rw [Pose.outer_eq_M]]
   conv => enter [2, 1, 1]; rw [real_inner_comm]
   ring_nf at hz ⊢
