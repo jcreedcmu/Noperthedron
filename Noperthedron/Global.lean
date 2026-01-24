@@ -322,13 +322,12 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
         ((rotprojRM' pbar S).prod 0)) := by
     ext d
     simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
-               ContinuousLinearMap.prod_apply, fderivInnerCLM_apply,
-               inner_zero_right, add_zero]
+               ContinuousLinearMap.prod_apply, fderivInnerCLM_apply]
     simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add, real_inner_comm]
     simp only [rotproj_inner', rotprojRM']
-    simp only [LinearMap.coe_toContinuousLinearMap', EuclideanSpace.basisFun_apply]
+    simp only [LinearMap.coe_toContinuousLinearMap']
     simp only [Module.Basis.constr_apply_fintype]
-    simp only [Matrix.toEuclideanLin_apply, Matrix.mulVec]
+    simp only [Matrix.toEuclideanLin_apply]
     simp only [Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one]
     conv_lhs => rw [show (EuclideanSpace.basisFun (Fin 3) ℝ).toBasis.equivFun = (WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ)) by
       rw [EuclideanSpace.basisFun_toBasis]; exact @PiLp.basisFun_equivFun 2 ℝ (Fin 3) _ _]
@@ -383,7 +382,7 @@ lemma HasFDerivAt.rotproj_outer (pbar : Pose) (P : ℝ³) (w : ℝ²) :
     simp only [rotproj_outer', rotM']
     simp only [LinearMap.coe_toContinuousLinearMap']
     simp only [Module.Basis.constr_apply_fintype]
-    simp only [Matrix.toEuclideanLin_apply, Matrix.mulVec]
+    simp only [Matrix.toEuclideanLin_apply]
     simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
     conv_lhs => rw [show (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.equivFun = (WithLp.linearEquiv 2 ℝ (Fin 2 → ℝ)) by
       rw [EuclideanSpace.basisFun_toBasis]; exact @PiLp.basisFun_equivFun 2 ℝ (Fin 2) _ _]
