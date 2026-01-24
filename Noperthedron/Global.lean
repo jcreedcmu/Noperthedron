@@ -310,18 +310,18 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
 
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
-    -- Use hasStrictFDerivAt_euclidean to reduce to component-wise proofs
-    -- Each component involves sin/cos of α, θ, φ multiplied by S components
-    have hstrict : HasStrictFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S)
-        (rotprojRM' pbar S) pbar.innerParams := by
-      rw [hasStrictFDerivAt_euclidean]
-      intro i
-      -- Component i of rotprojRM = rotR α (rotM θ φ S)
-      -- = cos(α) * (rotM S)_0 - sin(α) * (rotM S)_1  (for i=0)
-      -- = sin(α) * (rotM S)_0 + cos(α) * (rotM S)_1  (for i=1)
-      -- Each uses HasStrictFDerivAt.add, .mul, .sin, .cos composed with PiLp projections
+    have hdiff : DifferentiableAt ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams :=
+      (Differentiable.rotprojRM S).differentiableAt
+    have h1 := hdiff.hasFDerivAt
+    -- Show fderiv = rotprojRM' by uniqueness of derivatives
+    have heq : fderiv ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams = rotprojRM' pbar S := by
+      -- The derivative is the Jacobian matrix with columns:
+      -- column 0: rotR' α (rotM θ φ S)   [partial w.r.t. α]
+      -- column 1: rotR α (rotMθ θ φ S)  [partial w.r.t. θ]
+      -- column 2: rotR α (rotMφ θ φ S)  [partial w.r.t. φ]
       sorry
-    exact hstrict.hasFDerivAt
+    rw [← heq]
+    exact h1
 
   have step :
     (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
