@@ -18,16 +18,15 @@ lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) : rotRM_mat θ φ α ∈ Matrix.special
     (Bounding.rot3_mat_mem_SO3 2 _) (Bounding.rot3_mat_mem_SO3 2 _))
     (Bounding.rot3_mat_mem_SO3 1 _)) (Bounding.rot3_mat_mem_SO3 2 _)
 
-/--
-`rotRM θ φ α` equals the continuous linear map induced by `rotRM_mat θ φ α`.
--/
+/-- rotRM equals the EuclideanLin of rotRM_mat. -/
 lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
     rotRM θ φ α = (rotRM_mat θ φ α).toEuclideanLin.toContinuousLinearMap := by
-  unfold rotRM rotRM_mat RzL RyL
-  ext v i
+  simp only [rotRM, rotRM_mat, RzL, RyL]
+  ext v
   simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
-    LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-  rw [Matrix.mulVec_mulVec, Matrix.mulVec_mulVec, Matrix.mulVec_mulVec]
+    LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec]
+  congr 1
+  simp only [Matrix.mul_assoc]
 
 /-- Rz matrices multiply by adding angles. -/
 lemma Rz_mat_mul (a b : ℝ) : Rz_mat a * Rz_mat b = Rz_mat (a + b) := by
