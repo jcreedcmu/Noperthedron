@@ -309,12 +309,26 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
 
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
-    -- TODO: This proof requires computing fderiv of rotprojRM.
-    -- The derivative of (rotR α).comp (rotM θ φ) S is computed using chain rule:
-    -- ∂/∂α = rotR' α (rotM S)
-    -- ∂/∂θ = rotR α (rotMθ S)
-    -- ∂/∂φ = rotR α (rotMφ S)
-    sorry
+    -- The function is differentiable at pbar.innerParams
+    have hdiff : DifferentiableAt ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams :=
+      (Differentiable.rotprojRM S).differentiableAt
+    -- We have HasFDerivAt with fderiv as the derivative
+    have h1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S)
+        (fderiv ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams)
+        pbar.innerParams := hdiff.hasFDerivAt
+    -- Show that fderiv equals rotprojRM' pbar S
+    -- The partial derivatives of rotprojRM(θ, φ, α) = rotR(α) ∘ rotM(θ, φ) are:
+    -- ∂/∂α = rotR'(α) (rotM θ φ S)  (column 0 of rotprojRM')
+    -- ∂/∂θ = rotR(α) (rotMθ θ φ S)  (column 1 of rotprojRM')
+    -- ∂/∂φ = rotR(α) (rotMφ θ φ S)  (column 2 of rotprojRM')
+    -- The fderiv is (dα, dθ, dφ) ↦ dα * ∂/∂α + dθ * ∂/∂θ + dφ * ∂/∂φ
+    have h2 : fderiv ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams =
+        rotprojRM' pbar S := by
+      -- This requires chain rule: rotprojRM = rotR ∘ rotM
+      -- Need HasFDerivAt for rotR as function of α, and rotM as function of (θ, φ)
+      sorry
+    rw [← h2]
+    exact h1
 
   have step :
     (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
@@ -361,8 +375,24 @@ lemma Differentiable.rotM_outer (P : ℝ³) :
 
 lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
-  -- TODO: Similar to z1 - needs fderiv computation for rotM
-  sorry
+  -- The function is differentiable
+  have hdiff : DifferentiableAt ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams :=
+    (Differentiable.rotM_outer P).differentiableAt
+  -- Get HasFDerivAt with fderiv as derivative
+  have h1 := hdiff.hasFDerivAt
+  -- Show fderiv equals rotM' pbar P
+  -- The partial derivatives of rotM are rotMθ and rotMφ:
+  -- ∂(rotM θ φ)/∂θ = rotMθ θ φ (verified by differentiation of sin/cos entries)
+  -- ∂(rotM θ φ)/∂φ = rotMφ θ φ
+  -- The fderiv is (d0, d1) ↦ d0 * rotMθ P + d1 * rotMφ P = rotM' pbar P
+  have h2 : fderiv ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams = rotM' pbar P := by
+    -- This requires computing fderiv component-wise using chain rule for sin/cos
+    -- fderiv of sin(x.ofLp 0) at pbar.outerParams applied to d = cos(pbar.θ₂) * d.ofLp 0
+    -- fderiv of cos(x.ofLp 0) at pbar.outerParams applied to d = -sin(pbar.θ₂) * d.ofLp 0
+    -- etc.
+    sorry
+  rw [← h2]
+  exact h1
 
 lemma Differentiable.rotproj_outer (P : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_outer P w) :=
   Differentiable.inner ℝ (Differentiable.rotM_outer P) (by fun_prop)
