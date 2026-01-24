@@ -10,20 +10,28 @@ noncomputable
 def rotRM_mat (θ φ α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
   Rz_mat (-(π / 2)) * Rz_mat α * Ry_mat φ * Rz_mat (-θ)
 
-/-- rotRM_mat is in SO3. -/
-lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) : rotRM_mat θ φ α ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
-  Submonoid.mul_mem _ (Submonoid.mul_mem _ (Submonoid.mul_mem _
-    (rot3_mat_mem_SO3 2 _) (rot3_mat_mem_SO3 2 _)) (rot3_mat_mem_SO3 1 _)) (rot3_mat_mem_SO3 2 _)
+/--
+The matrix `rotRM_mat θ φ α` is in SO3 because it's a product of SO3 matrices.
+-/
+lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) :
+    rotRM_mat θ φ α ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
+  unfold rotRM_mat
+  refine Submonoid.mul_mem _ (Submonoid.mul_mem _ (Submonoid.mul_mem _ ?_ ?_) ?_) ?_
+  · exact rot3_mat_mem_SO3 2 (-(π / 2))
+  · exact rot3_mat_mem_SO3 2 α
+  · exact rot3_mat_mem_SO3 1 φ
+  · exact rot3_mat_mem_SO3 2 (-θ)
 
-/-- rotRM equals the EuclideanLin of rotRM_mat. -/
+/--
+`rotRM θ φ α` equals the continuous linear map induced by `rotRM_mat θ φ α`.
+-/
 lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
     rotRM θ φ α = (rotRM_mat θ φ α).toEuclideanLin.toContinuousLinearMap := by
-  simp only [rotRM, rotRM_mat, RzL, RyL]
-  ext v
+  unfold rotRM rotRM_mat RzL RyL
+  ext v i
   simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
-    LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec]
-  congr 1
-  simp only [Matrix.mul_assoc]
+    LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+  rw [Matrix.mulVec_mulVec, Matrix.mulVec_mulVec, Matrix.mulVec_mulVec]
 
 /-- rotRM_mat θ φ 0 simplifies to Rz(-π/2) * Ry(φ) * Rz(-θ). -/
 lemma rotRM_mat_zero_alpha (θ φ : ℝ) : rotRM_mat θ φ 0 = Rz_mat (-(π / 2)) * Ry_mat φ * Rz_mat (-θ) := by
