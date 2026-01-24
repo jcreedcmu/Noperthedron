@@ -12,13 +12,17 @@ noncomputable
 def rotRM_mat (θ φ α : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
   Rz_mat (-(π / 2)) * Rz_mat α * Ry_mat φ * Rz_mat (-θ)
 
-/-- rotRM_mat is in SO3. -/
+/--
+The matrix `rotRM_mat θ φ α` is in SO3 because it's a product of SO3 matrices.
+-/
 lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) : rotRM_mat θ φ α ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
   Submonoid.mul_mem _ (Submonoid.mul_mem _ (Submonoid.mul_mem _
     (Bounding.rot3_mat_mem_SO3 2 _) (Bounding.rot3_mat_mem_SO3 2 _))
     (Bounding.rot3_mat_mem_SO3 1 _)) (Bounding.rot3_mat_mem_SO3 2 _)
 
-/-- rotRM equals the EuclideanLin of rotRM_mat. -/
+/--
+`rotRM θ φ α` equals the continuous linear map induced by `rotRM_mat θ φ α`.
+-/
 lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
     rotRM θ φ α = (rotRM_mat θ φ α).toEuclideanLin.toContinuousLinearMap := by
   simp only [rotRM, rotRM_mat, RzL, RyL]
