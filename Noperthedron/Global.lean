@@ -69,6 +69,21 @@ noncomputable
 def rotproj_outer_unit (S : ℝ³) (w : ℝ²) (x : ℝ²) : ℝ :=
   ⟪rotM (x 0) (x 1) S, w⟫ / ‖S‖
 
+noncomputable
+def rotproj_outer (S : ℝ³) (w : ℝ²) (x : ℝ²) : ℝ :=
+  ⟪rotM (x 0) (x 1) S, w⟫
+
+/--
+An explicit formula for the full derivative of rotproj_outer as a function ℝ² → ℝ
+-/
+noncomputable
+def rotproj_outer' (pbar : Pose) (P : ℝ³) (w : ℝ²) : ℝ² →L[ℝ] ℝ :=
+  let grad : Fin 2 → ℝ := ![
+    ⟪pbar.rotM₂θ P, w⟫,
+    ⟪pbar.rotM₂φ P, w⟫
+  ]
+  EuclideanSpace.basisFun (Fin 2) ℝ |>.toBasis.constr ℝ grad |>.toContinuousLinearMap
+
 lemma rotation_partials_exist {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} :
     ContDiff ℝ 2 (rotproj_inner_unit S w) := by
   refine ContDiff.div ?_ contDiff_const (fun x ↦ (ne_of_lt S_nonzero).symm)
