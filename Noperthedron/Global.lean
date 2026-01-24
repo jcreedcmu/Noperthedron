@@ -431,12 +431,9 @@ lemma HasFDerivAt.rotproj_outer (pbar : Pose) (P : ℝ³) (w : ℝ²) :
 
 lemma fderiv_rotproj_outer_unit (pbar : Pose) (P : ℝ³) (w : ℝ²) :
     fderiv ℝ (rotproj_outer_unit P w) pbar.outerParams = ‖P‖⁻¹ • (rotproj_outer' pbar P w) := by
-  unfold rotproj_outer_unit
-  have heq : (fun x => ⟪(rotM (x.ofLp 0) (x.ofLp 1)) P, w⟫ / ‖P‖) =
-      ‖P‖⁻¹ • (rotproj_outer P w) := by
-    unfold rotproj_outer; ext x; simp [inv_mul_eq_div]
-  rw [heq, (Differentiable.rotproj_outer P w).differentiableAt.hasFDerivAt.const_smul ‖P‖⁻¹ |>.fderiv,
-    HasFDerivAt.rotproj_outer pbar P w |>.fderiv]
+  have heq : rotproj_outer_unit P w = ‖P‖⁻¹ • rotproj_outer P w := by
+    ext x; simp [rotproj_outer_unit, rotproj_outer, inv_mul_eq_div]
+  simp only [heq, HasFDerivAt.rotproj_outer pbar P w |>.const_smul ‖P‖⁻¹ |>.fderiv]
 
 lemma partials_helper3a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
