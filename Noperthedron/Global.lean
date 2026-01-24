@@ -1,6 +1,7 @@
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.InnerProductSpace.Calculus
+import Mathlib.Analysis.Calculus.FDeriv.WithLp
 import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 import Noperthedron.Global.Basic
@@ -309,26 +310,18 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
 
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
-    -- The function is differentiable at pbar.innerParams
-    have hdiff : DifferentiableAt ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams :=
-      (Differentiable.rotprojRM S).differentiableAt
-    -- We have HasFDerivAt with fderiv as the derivative
-    have h1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S)
-        (fderiv ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams)
-        pbar.innerParams := hdiff.hasFDerivAt
-    -- Show that fderiv equals rotprojRM' pbar S
-    -- The partial derivatives of rotprojRM(θ, φ, α) = rotR(α) ∘ rotM(θ, φ) are:
-    -- ∂/∂α = rotR'(α) (rotM θ φ S)  (column 0 of rotprojRM')
-    -- ∂/∂θ = rotR(α) (rotMθ θ φ S)  (column 1 of rotprojRM')
-    -- ∂/∂φ = rotR(α) (rotMφ θ φ S)  (column 2 of rotprojRM')
-    -- The fderiv is (dα, dθ, dφ) ↦ dα * ∂/∂α + dθ * ∂/∂θ + dφ * ∂/∂φ
-    have h2 : fderiv ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams =
-        rotprojRM' pbar S := by
-      -- This requires chain rule: rotprojRM = rotR ∘ rotM
-      -- Need HasFDerivAt for rotR as function of α, and rotM as function of (θ, φ)
+    -- Use hasStrictFDerivAt_euclidean to reduce to component-wise proofs
+    -- Each component involves sin/cos of α, θ, φ multiplied by S components
+    have hstrict : HasStrictFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S)
+        (rotprojRM' pbar S) pbar.innerParams := by
+      rw [hasStrictFDerivAt_euclidean]
+      intro i
+      -- Component i of rotprojRM = rotR α (rotM θ φ S)
+      -- = cos(α) * (rotM S)_0 - sin(α) * (rotM S)_1  (for i=0)
+      -- = sin(α) * (rotM S)_0 + cos(α) * (rotM S)_1  (for i=1)
+      -- Each uses HasStrictFDerivAt.add, .mul, .sin, .cos composed with PiLp projections
       sorry
-    rw [← h2]
-    exact h1
+    exact hstrict.hasFDerivAt
 
   have step :
     (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
@@ -375,26 +368,16 @@ lemma Differentiable.rotM_outer (P : ℝ³) :
 
 lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
-  -- The function is differentiable
   have hdiff : DifferentiableAt ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams :=
     (Differentiable.rotM_outer P).differentiableAt
-  -- Get HasFDerivAt with fderiv as derivative
   have h1 := hdiff.hasFDerivAt
-  -- Show fderiv equals rotM' pbar P by proving HasStrictFDerivAt component-wise
-  -- Using hasStrictFDerivAt_euclidean reduces to showing:
-  -- Component 0: -sin(θ) * P_0 + cos(θ) * P_1
-  --   derivative d ↦ -cos(θ) * d_0 * P_0 - sin(θ) * d_0 * P_1 = d_0 * rotMθ(P)_0 + d_1 * rotMφ(P)_0
-  -- Component 1: -cos(θ)*cos(φ)*P_0 - sin(θ)*cos(φ)*P_1 + sin(φ)*P_2
-  --   derivative involves both θ and φ partials
-  -- Each requires HasStrictFDerivAt.add, HasStrictFDerivAt.mul, hasStrictFDerivAt_sin/cos
-  have hstrict : HasStrictFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
-    rw [hasStrictFDerivAt_euclidean]
-    intro i
-    -- Each component i requires HasStrictFDerivAt for combinations of sin/cos
-    -- This follows from chain rule: hasStrictFDerivAt_sin, hasStrictFDerivAt_cos,
-    -- HasStrictFDerivAt.add, HasStrictFDerivAt.mul, etc.
+  -- Show fderiv = rotM' by uniqueness of derivatives
+  have heq : fderiv ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams = rotM' pbar P := by
+    -- The derivative is the Jacobian matrix with columns rotMθ P and rotMφ P
+    -- This follows from chain rule for sin/cos compositions
     sorry
-  exact hstrict.hasFDerivAt
+  rw [← heq]
+  exact h1
 
 lemma Differentiable.rotproj_outer (P : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_outer P w) :=
   Differentiable.inner ℝ (Differentiable.rotM_outer P) (by fun_prop)
