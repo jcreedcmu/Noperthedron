@@ -380,19 +380,21 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     (Differentiable.rotM_outer P).differentiableAt
   -- Get HasFDerivAt with fderiv as derivative
   have h1 := hdiff.hasFDerivAt
-  -- Show fderiv equals rotM' pbar P
-  -- The partial derivatives of rotM are rotMθ and rotMφ:
-  -- ∂(rotM θ φ)/∂θ = rotMθ θ φ (verified by differentiation of sin/cos entries)
-  -- ∂(rotM θ φ)/∂φ = rotMφ θ φ
-  -- The fderiv is (d0, d1) ↦ d0 * rotMθ P + d1 * rotMφ P = rotM' pbar P
-  have h2 : fderiv ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams = rotM' pbar P := by
-    -- This requires computing fderiv component-wise using chain rule for sin/cos
-    -- fderiv of sin(x.ofLp 0) at pbar.outerParams applied to d = cos(pbar.θ₂) * d.ofLp 0
-    -- fderiv of cos(x.ofLp 0) at pbar.outerParams applied to d = -sin(pbar.θ₂) * d.ofLp 0
-    -- etc.
+  -- Show fderiv equals rotM' pbar P by proving HasStrictFDerivAt component-wise
+  -- Using hasStrictFDerivAt_euclidean reduces to showing:
+  -- Component 0: -sin(θ) * P_0 + cos(θ) * P_1
+  --   derivative d ↦ -cos(θ) * d_0 * P_0 - sin(θ) * d_0 * P_1 = d_0 * rotMθ(P)_0 + d_1 * rotMφ(P)_0
+  -- Component 1: -cos(θ)*cos(φ)*P_0 - sin(θ)*cos(φ)*P_1 + sin(φ)*P_2
+  --   derivative involves both θ and φ partials
+  -- Each requires HasStrictFDerivAt.add, HasStrictFDerivAt.mul, hasStrictFDerivAt_sin/cos
+  have hstrict : HasStrictFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
+    rw [hasStrictFDerivAt_euclidean]
+    intro i
+    -- Each component i requires HasStrictFDerivAt for combinations of sin/cos
+    -- This follows from chain rule: hasStrictFDerivAt_sin, hasStrictFDerivAt_cos,
+    -- HasStrictFDerivAt.add, HasStrictFDerivAt.mul, etc.
     sorry
-  rw [← h2]
-  exact h1
+  exact hstrict.hasFDerivAt
 
 lemma Differentiable.rotproj_outer (P : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_outer P w) :=
   Differentiable.inner ℝ (Differentiable.rotM_outer P) (by fun_prop)
