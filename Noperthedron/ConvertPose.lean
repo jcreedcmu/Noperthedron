@@ -25,12 +25,10 @@ lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) : rotRM_mat θ φ α ∈ Matrix.special
 -/
 lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
     rotRM θ φ α = (rotRM_mat θ φ α).toEuclideanLin.toContinuousLinearMap := by
-  simp only [rotRM, rotRM_mat, RzL, RyL]
   ext v
-  simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
-    LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec]
-  congr 1
-  simp only [Matrix.mul_assoc]
+  simp only [rotRM, rotRM_mat, RzL, RyL, ContinuousLinearMap.coe_comp', Function.comp_apply,
+    LinearMap.coe_toContinuousLinearMap']
+  simp only [Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec, Matrix.mul_assoc]
 
 /-- Rz matrices multiply by adding angles. -/
 lemma Rz_mat_mul (a b : ℝ) : Rz_mat a * Rz_mat b = Rz_mat (a + b) := by
