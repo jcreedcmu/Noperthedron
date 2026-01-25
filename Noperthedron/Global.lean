@@ -316,9 +316,18 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     -- Show fderiv = rotprojRM' by uniqueness of derivatives
     have heq : fderiv ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams = rotprojRM' pbar S := by
       -- The derivative is the Jacobian matrix with columns:
-      -- column 0: rotR' α (rotM θ φ S)   [partial w.r.t. α]
-      -- column 1: rotR α (rotMθ θ φ S)  [partial w.r.t. θ]
-      -- column 2: rotR α (rotMφ θ φ S)  [partial w.r.t. φ]
+      -- column 0: rotR' α (rotM θ φ S)   [partial w.r.t. α = x.ofLp 0]
+      -- column 1: rotR α (rotMθ θ φ S)  [partial w.r.t. θ = x.ofLp 1]
+      -- column 2: rotR α (rotMφ θ φ S)  [partial w.r.t. φ = x.ofLp 2]
+      -- Prove equality of CLMs by extensionality
+      ext d
+      simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, Fin.isValue]
+      -- The fderiv of rotprojRM = rotR ∘ rotM is computed by chain rule
+      -- f(α, θ, φ) = rotR α (rotM θ φ S)
+      -- Using HasDerivAt_rotR and the rotM derivatives
+      -- For now, this requires detailed term-by-term computation
+      -- Structure: 3 input params (α, θ, φ), 2 output components
       sorry
     rw [← heq]
     exact h1
