@@ -1301,46 +1301,45 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
     simp only [hconst, inner_zero_right, zero_add]
     rfl
 
--- Helper lemma for the inner case: the second partial of ⟪rotprojRM S, w⟫ equals ⟪A S, w⟫
--- where A is a composition of rotation matrices with ‖A‖ ≤ 1.
--- The 9 cases correspond to all pairs of derivatives w.r.t. (α, θ, φ).
 -- Helper: composition norm bounds for rotation matrices
-private lemma comp_rotR_norm_le (α θ φ : ℝ) (A : ℝ³ →L[ℝ] ℝ²) (hA : ‖A‖ ≤ 1) :
+private lemma comp_rotR_norm_le (α : ℝ) (A : ℝ³ →L[ℝ] ℝ²) (hA : ‖A‖ ≤ 1) :
     ‖rotR α ∘L A‖ ≤ 1 := by
   calc ‖rotR α ∘L A‖ ≤ ‖rotR α‖ * ‖A‖ := ContinuousLinearMap.opNorm_comp_le _ _
     _ = 1 * ‖A‖ := by rw [Bounding.rotR_norm_one]
     _ ≤ 1 * 1 := by apply mul_le_mul_of_nonneg_left hA; norm_num
     _ = 1 := by ring
 
-private lemma comp_rotR'_norm_le (α θ φ : ℝ) (A : ℝ³ →L[ℝ] ℝ²) (hA : ‖A‖ ≤ 1) :
+private lemma comp_rotR'_norm_le (α : ℝ) (A : ℝ³ →L[ℝ] ℝ²) (hA : ‖A‖ ≤ 1) :
     ‖rotR' α ∘L A‖ ≤ 1 := by
   calc ‖rotR' α ∘L A‖ ≤ ‖rotR' α‖ * ‖A‖ := ContinuousLinearMap.opNorm_comp_le _ _
     _ = 1 * ‖A‖ := by rw [Bounding.rotR'_norm_one]
     _ ≤ 1 * 1 := by apply mul_le_mul_of_nonneg_left hA; norm_num
     _ = 1 := by ring
 
-private lemma neg_rotR_comp_norm_le (α θ φ : ℝ) :
+private lemma neg_rotR_comp_rotM_norm_le (α θ φ : ℝ) :
     ‖-(rotR α ∘L rotM θ φ)‖ ≤ 1 := by
   rw [norm_neg]
   calc ‖rotR α ∘L rotM θ φ‖ ≤ ‖rotR α‖ * ‖rotM θ φ‖ := ContinuousLinearMap.opNorm_comp_le _ _
     _ = 1 * 1 := by rw [Bounding.rotR_norm_one, Bounding.rotM_norm_one]
     _ = 1 := by ring
 
+-- Helper lemma for the inner case: the second partial of ⟪rotprojRM S, w⟫ is bounded.
+-- The 9 cases correspond to all pairs of derivatives w.r.t. (α, θ, φ).
+-- Each second partial equals ⟪A S, w⟫ where A is a composition of rotation matrices with ‖A‖ ≤ 1.
 private lemma second_partial_inner_bound (S : ℝ³) (w : ℝ²) (x : ℝ³) (i j : Fin 3) :
     |nth_partial i (nth_partial j (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) x| ≤
     ‖S‖ * ‖w‖ := by
-  -- The second partial of ⟪rotprojRM S, w⟫ equals ⟪A S, w⟫ where A is a composition
-  -- of rotation matrices with ‖A‖ ≤ 1.
   -- Variables: y 0 = α, y 1 = θ, y 2 = φ
-  -- The operators A for each (i,j) pair:
-  --   (0,0): -(rotR ∘ rotM)    (0,1): rotR' ∘ rotMθ   (0,2): rotR' ∘ rotMφ
-  --   (1,0): rotR' ∘ rotMθ    (1,1): rotR ∘ rotMθθ   (1,2): rotR ∘ rotMθφ
-  --   (2,0): rotR' ∘ rotMφ    (2,1): rotR ∘ rotMθφ   (2,2): rotR ∘ rotMφφ
-  let α := x 0; let θ := x 1; let φ := x 2
-  -- All these compositions have norm ≤ 1 by the helper lemmas above and Bounding lemmas.
-  -- The detailed case analysis follows the same pattern as second_partial_inner_rotM_outer.
-  -- For each case, we show the second partial equals ⟪A S, w⟫ and apply inner_product_norm_bound.
-  -- This is a substantial but mechanical proof requiring 9 cases with similar structure.
+  -- The operators A for each (i,j) pair and their norm bounds:
+  --   (0,0): -(rotR ∘ rotM) → ‖·‖ ≤ 1 by neg_rotR_comp_rotM_norm_le
+  --   (0,1), (1,0): rotR' ∘ rotMθ → ‖·‖ ≤ 1 by comp_rotR'_norm_le + rotMθ_norm_le_one
+  --   (0,2), (2,0): rotR' ∘ rotMφ → ‖·‖ ≤ 1 by comp_rotR'_norm_le + rotMφ_norm_le_one
+  --   (1,1): rotR ∘ rotMθθ → ‖·‖ ≤ 1 by comp_rotR_norm_le + rotMθθ_norm_le_one
+  --   (1,2), (2,1): rotR ∘ rotMθφ → ‖·‖ ≤ 1 by comp_rotR_norm_le + rotMθφ_norm_le_one
+  --   (2,2): rotR ∘ rotMφφ → ‖·‖ ≤ 1 by comp_rotR_norm_le + rotMφφ_norm_le_one
+  -- The detailed proof showing each second partial equals ⟪A S, w⟫ follows
+  -- the same pattern as second_partial_inner_rotM_outer but with more cases.
+  -- Each case uses chain rule + fderiv_inner_apply, then applies inner_product_norm_bound.
   sorry
 
 /- [SY25] Lemma 19 -/
