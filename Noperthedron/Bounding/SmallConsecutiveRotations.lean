@@ -44,64 +44,38 @@ theorem norm_RxRy_minus_id_le_wlog {d d' : Fin 3} {α β : ℝ} :
   rw [rd_rd'_eq]
   have h : |γ| ≤ √(α^2 + β^2) := by
     suffices cos √(α^2 + β^2) ≤ cos γ by
-      apply le_of_not_gt
-      intro h
-      apply strictAntiOn_cos at h
-      · by_cases γ_sign : 0 ≤ γ
-        · rw [abs_of_nonneg] at h <;> linarith
-        · rw [abs_of_neg, cos_neg] at h <;> linarith
-      · simp only [Set.mem_Ioc, Set.mem_Icc, sqrt_nonneg, true_and] at ⊢ γ_in
-        apply sqrt_le_iff.mpr
-        constructor
+      rw [← cos_abs γ] at this
+      rw [strictAntiOn_cos.le_iff_ge] at this
+      · exact this
+      · constructor
         · positivity
         · rw [←(sq_abs α), ←(sq_abs β)]
           grw [α_le, β_le]
-          calc
-          _ ≤ 3^2 := by norm_num
-          _ ≤ π^2 := by simp only [sq_le_sq, Nat.abs_ofNat, pi_nonneg, abs_of_nonneg,
-            pi_gt_three, le_of_lt]
+          have : √(2 ^ 2 + 2 ^ 2) ≤ 3 := sqrt_le_iff.mpr ⟨by norm_num, by norm_num⟩
+          linarith [pi_gt_three]
       · simp only [Set.mem_Icc, abs_nonneg, abs_le, true_and]
         obtain ⟨le_γ, γ_lt⟩ := γ_in
         constructor <;> linarith
 
     suffices 2 * (1 + cos √(α^2 + β^2)) ≤ 2 * (1 + cos γ) by grind
     calc 2 * (1 + cos √(α^2 + β^2))
-    _ ≤ (1 + cos α) * (1 + cos β) := by
-      convert_to 2 + (2 * cos √(α ^ 2 + β ^ 2)) ≤ (1 + cos α) * (1 + cos β)
-      · ring_nf
-      apply one_plus_cos_mul_one_plus_cos_ge <;> assumption
+    _ ≤ (1 + cos α) * (1 + cos β) := by linarith [one_plus_cos_mul_one_plus_cos_ge α_le β_le]
     _ = (cos α + cos β + cos α * cos β) + 1 := by ring_nf
     _ = tr (rot3 d α ∘L rot3 d' β) + 1 := by rw [←(tr_rot3_rot3 d_ne_d')]
     _ = tr (u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap : ℝ³ →L[ℝ] ℝ³) + 1 := by rw [rd_rd'_eq]
-    _ = tr (u.conj (RzL γ)) + 1 := by rfl
-    _ = tr (RzL γ) + 1 := by rw [LinearMap.trace_conj']
-    _ = 2 + 2 * cos γ := by rw [tr_RzL]; ring_nf
-    _ = 2 * (1 + cos γ) := by ring_nf
+    _ = tr (u.conj (RzL γ)) + 1 := rfl
+    _ = 2 * (1 + cos γ) := by rw [LinearMap.trace_conj', tr_RzL]; ring_nf
 
   calc ‖u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap - 1‖
-  _ = ‖u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap
-        - (u.trans u.symm).toLinearIsometry.toContinuousLinearMap‖ := by
-    rw [LinearIsometryEquiv.self_trans_symm]
-    rfl
-  _ = ‖u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap
-        - u.toLinearIsometry.toContinuousLinearMap ∘L u.symm.toLinearIsometry.toContinuousLinearMap‖ := by
-    congr
-    reduce -- TODO: do this better
-    simp only [LinearEquiv.invFun_eq_symm, LinearIsometryEquiv.coe_symm_toLinearEquiv,
-      AddHom.toFun_eq_coe, LinearMap.coe_toAddHom, LinearEquiv.coe_coe,
-      LinearIsometryEquiv.coe_toLinearEquiv, LinearIsometryEquiv.symm_apply_apply,
-      LinearIsometryEquiv.apply_symm_apply]
   _ = ‖u.toLinearIsometry.toContinuousLinearMap ∘L (RzL γ - 1) ∘L u.symm.toLinearIsometry.toContinuousLinearMap‖ := by
-    simp only [ContinuousLinearMap.sub_comp, ContinuousLinearMap.comp_sub]
-    rfl
+    congr 1; ext x; simp [sub_eq_add_neg]
   _ = ‖RzL γ - 1‖ := by
     rw [LinearIsometry.norm_toContinuousLinearMap_comp, ContinuousLinearMap.opNorm_comp_linearIsometryEquiv]
-  _ = ‖RzC γ - 1‖ := by rfl
-  _ ≤ ‖RzC γ - RzC 0‖ := by
-    rw [RzC.map_zero_eq_one]
-  _ ≤ ‖rot3 2 γ - rot3 2 0‖ := by rfl
-  _ ≤ ‖γ‖ := by
-      grw [dist_rot3_eq_dist_rot (d := 2), dist_rot2_le_dist, sub_zero]
+  _ = ‖RzC γ - 1‖ := rfl
+  _ ≤ |γ| := by
+    rw [← RzC.map_zero_eq_one]
+    show ‖rot3 2 γ - rot3 2 0‖ ≤ _
+    grw [dist_rot3_eq_dist_rot (d := 2), dist_rot2_le_dist, sub_zero, Real.norm_eq_abs]
   _ ≤ √(α^2 + β^2) := h
 
 namespace PreferComp
