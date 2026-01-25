@@ -45,13 +45,12 @@ theorem norm_RxRy_minus_id_le_wlog {d d' : Fin 3} {α β : ℝ} :
   have h : |γ| ≤ √(α^2 + β^2) := by
     suffices cos √(α^2 + β^2) ≤ cos γ by
       rw [← cos_abs γ] at this
-      rw [strictAntiOn_cos.le_iff_ge] at this
-      · exact this
+      refine (strictAntiOn_cos.le_iff_ge ?_ ?_).mp this
       · constructor
         · positivity
         · rw [←(sq_abs α), ←(sq_abs β)]
           grw [α_le, β_le]
-          have : √(2 ^ 2 + 2 ^ 2) ≤ 3 := sqrt_le_iff.mpr ⟨by norm_num, by norm_num⟩
+          have : √(2 ^ 2 + 2 ^ 2) ≤ 3 := sqrt_le_iff.mpr (by norm_num)
           linarith [pi_gt_three]
       · simp only [Set.mem_Icc, abs_nonneg, abs_le, true_and]
         obtain ⟨le_γ, γ_lt⟩ := γ_in
