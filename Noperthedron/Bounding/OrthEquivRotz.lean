@@ -343,7 +343,12 @@ lemma to_euc_mul {a b c : ℕ}
 lemma to_euc_one {n : ℕ} : Matrix.toEuclideanLin.symm (LinearMap.id (M := Euc(n))) = 1 := by
   ext i j
   rw [Matrix.toEuclideanLin]
-  simp only [LinearEquiv.trans_symm, Matrix.toLin'_symm, LinearEquiv.trans_apply, LinearMap.toMatrix'_apply]
+  simp only [LinearEquiv.trans_symm, Matrix.toLin'_symm, LinearEquiv.trans_apply,
+    LinearMap.toMatrix'_apply, LinearEquiv.arrowCongr_symm_apply, LinearEquiv.symm_symm,
+    WithLp.linearEquiv_symm_apply, AddEquiv.toEquiv_eq_coe, Equiv.invFun_as_coe,
+    AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, EuclideanSpace.toLp_single,
+    LinearMap.id_coe, id_eq, WithLp.linearEquiv_apply, Equiv.toFun_as_coe, EquivLike.coe_coe,
+    WithLp.addEquiv_apply, EuclideanSpace.single_apply]
   rfl
 
 lemma inv_euclidean_eq_euclidean_symm (u : Euc(3) ≃ₗ[ℝ] Euc(3)) :
