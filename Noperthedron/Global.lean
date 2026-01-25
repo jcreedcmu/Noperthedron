@@ -366,9 +366,26 @@ lemma Differentiable.rotM_outer (P : ℝ³) :
   intro i
   fin_cases i <;> simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
 
+private lemma rotM_component0 (θ φ : ℝ) (P : ℝ³) :
+    (rotM θ φ P) 0 = -Real.sin θ * P 0 + Real.cos θ * P 1 := by
+  simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+
+private lemma rotM_component1 (θ φ : ℝ) (P : ℝ³) :
+    (rotM θ φ P) 1 = -Real.cos θ * Real.cos φ * P 0 - Real.sin θ * Real.cos φ * P 1 + Real.sin φ * P 2 := by
+  simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
+  ring
+
 lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
-  sorry
+  -- The derivative of (θ, φ) ↦ rotM(θ, φ) P is the Jacobian with columns [rotMθ P, rotMφ P]
+  -- We use differentiability + uniqueness of fderiv
+  have hdiff : DifferentiableAt ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams :=
+    (Differentiable.rotM_outer P).differentiableAt
+  have heq : fderiv ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams = rotM' pbar P := by
+    -- Prove by showing derivatives match componentwise
+    sorry
+  rw [← heq]
+  exact hdiff.hasFDerivAt
 
 lemma Differentiable.rotproj_outer (P : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_outer P w) :=
   Differentiable.inner ℝ (Differentiable.rotM_outer P) (by fun_prop)
