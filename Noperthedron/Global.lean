@@ -144,7 +144,7 @@ private lemma hasDerivAt_rotMθ_φ (θ φ : ℝ) (S : ℝ³) :
       Real.sin θ * Real.cos φ' * S 0 - Real.cos θ * Real.cos φ' * S 1]) := by
     ext φ' i; fin_cases i <;> simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
   have h_f' : rotMθφ θ φ S = !₂[(0 : ℝ), -Real.sin θ * Real.sin φ * S 0 + Real.cos θ * Real.sin φ * S 1] := by
-    ext i; fin_cases i <;> (simp [rotMθφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring)
+    ext i; fin_cases i <;> simp [rotMθφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
   · have h1 : HasDerivAt (fun x => Real.sin θ * Real.cos x * S 0) (-Real.sin θ * Real.sin φ * S 0) φ := by
@@ -159,9 +159,9 @@ private lemma hasDerivAt_rotMφ_θ (θ φ : ℝ) (S : ℝ³) :
     HasDerivAt (fun θ' => rotMφ θ' φ S) (rotMθφ θ φ S) θ := by
   have h_f : (fun θ' => rotMφ θ' φ S) = (fun θ' => !₂[(0 : ℝ),
       Real.cos θ' * Real.sin φ * S 0 + Real.sin θ' * Real.sin φ * S 1 + Real.cos φ * S 2]) := by
-    ext θ' i; fin_cases i <;> (simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring)
+    ext θ' i; fin_cases i <;> (simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   have h_f' : rotMθφ θ φ S = !₂[(0 : ℝ), -Real.sin θ * Real.sin φ * S 0 + Real.cos θ * Real.sin φ * S 1] := by
-    ext i; fin_cases i <;> (simp [rotMθφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring)
+    ext i; fin_cases i <;> simp [rotMθφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
   · have h1 : HasDerivAt (fun x => Real.cos x * Real.sin φ * S 0) (-Real.sin θ * Real.sin φ * S 0) θ := by
@@ -203,7 +203,12 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
   fin_cases i <;> fin_cases j
   · -- (0, 0): uses rotMθθ
     refine ⟨rotMθθ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθθ_norm_le_one _ _, ?_⟩
-    sorry -- proof that nth_partial 0 (nth_partial 0 f) = ⟪rotMθθ S, w⟫
+    simp only [nth_partial]
+    -- The second partial of ⟪rotM S, w⟫ w.r.t. (θ, θ) equals ⟪rotMθθ S, w⟫
+    -- This follows from:
+    -- 1. First partial ∂/∂θ gives ⟪rotMθ S, w⟫ (by HasFDerivAt.rotM_outer)
+    -- 2. Second partial ∂/∂θ gives ⟪rotMθθ S, w⟫ (by hasDerivAt_rotMθ_θ)
+    sorry
   · -- (0, 1): uses rotMθφ (derivative of rotMφ w.r.t. θ)
     refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
     sorry
@@ -248,11 +253,15 @@ theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
       ext y; rfl
 
     -- The second partial of f/c is (second partial of f) / c
-    -- This follows from fderiv being linear and composition rules
+    -- This follows from fderiv (c⁻¹ • f) = c⁻¹ • fderiv f applied twice
+    -- Proof: f/c = c⁻¹ • f, and since fderiv commutes with scalar multiplication,
+    -- nth_partial i (nth_partial j (f / c)) = nth_partial i (nth_partial j f) / c
     have hscale : nth_partial i (nth_partial j (rotproj_outer_unit S w)) x =
         nth_partial i (nth_partial j (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x / ‖S‖ := by
       simp only [heq, nth_partial]
-      -- fderiv of (f / c) = (fderiv f) / c when c is constant
+      -- nth_partial is linear in f, so nth_partial (f/c) = (nth_partial f)/c
+      -- This needs to be shown for the double partial
+      -- The proof follows from fderiv_const_smul applied twice
       sorry
 
     -- Get the existence of A with norm bound
