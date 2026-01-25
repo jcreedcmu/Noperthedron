@@ -30,8 +30,7 @@ lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
 
 /-- rotRM_mat θ φ 0 simplifies to Rz(-π/2) * Ry(φ) * Rz(-θ). -/
 lemma rotRM_mat_zero_alpha (θ φ : ℝ) : rotRM_mat θ φ 0 = Rz_mat (-(π / 2)) * Ry_mat φ * Rz_mat (-θ) := by
-  simp only [rotRM_mat]
-  rw [Rz_mat_zero, Matrix.mul_one]
+  simp [rotRM_mat]
 
 /-- For any SO3 matrix, there exists δ such that Rz(δ) * M has the form rotRM_mat θ φ 0. -/
 lemma exists_Rz_to_rotRM_form (M : SO3) :
