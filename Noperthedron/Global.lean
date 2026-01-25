@@ -306,31 +306,42 @@ def rotprojRM' (pbar : Pose) (S : ℝ³) : ℝ³ →L[ℝ] ℝ² :=
     | 2 => (pbar.rotR (pbar.rotM₁φ S)) i
   M.toEuclideanLin.toContinuousLinearMap
 
+-- Helper lemma: component 0 of rotprojRM in terms of sin/cos
+private lemma rotprojRM_component0 (θ φ α : ℝ) (S : ℝ³) :
+    (rotprojRM θ φ α S) 0 =
+      Real.cos α * (-Real.sin θ * S 0 + Real.cos θ * S 1) -
+      Real.sin α * (-Real.cos θ * Real.cos φ * S 0 - Real.sin θ * Real.cos φ * S 1 + Real.sin φ * S 2) := by
+  simp [rotprojRM, rotR, rotM, rotR_mat, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+  ring
+
+-- Helper lemma: component 1 of rotprojRM in terms of sin/cos
+private lemma rotprojRM_component1 (θ φ α : ℝ) (S : ℝ³) :
+    (rotprojRM θ φ α S) 1 =
+      Real.sin α * (-Real.sin θ * S 0 + Real.cos θ * S 1) +
+      Real.cos α * (-Real.cos θ * Real.cos φ * S 0 - Real.sin θ * Real.cos φ * S 1 + Real.sin φ * S 2) := by
+  simp [rotprojRM, rotR, rotM, rotR_mat, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+  ring
+
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
 
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
-    have hdiff : DifferentiableAt ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams :=
-      (Differentiable.rotprojRM S).differentiableAt
-    have h1 := hdiff.hasFDerivAt
-    -- Show fderiv = rotprojRM' by uniqueness of derivatives
-    have heq : fderiv ℝ (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) pbar.innerParams = rotprojRM' pbar S := by
-      -- The derivative is the Jacobian matrix with columns:
-      -- column 0: rotR' α (rotM θ φ S)   [partial w.r.t. α = x.ofLp 0]
-      -- column 1: rotR α (rotMθ θ φ S)  [partial w.r.t. θ = x.ofLp 1]
-      -- column 2: rotR α (rotMφ θ φ S)  [partial w.r.t. φ = x.ofLp 2]
-      -- Prove equality of CLMs by extensionality
-      ext d
-      simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, Fin.isValue]
-      -- The fderiv of rotprojRM = rotR ∘ rotM is computed by chain rule
-      -- f(α, θ, φ) = rotR α (rotM θ φ S)
-      -- Using HasDerivAt_rotR and the rotM derivatives
-      -- For now, this requires detailed term-by-term computation
-      -- Structure: 3 input params (α, θ, φ), 2 output components
+    -- Prove using HasStrictFDerivAt for each component and then combine
+    -- The function is f(α, θ, φ) = rotR α (rotM θ φ S)
+    -- Jacobian has columns: ∂/∂α = rotR' α (rotM θ φ S), ∂/∂θ = rotR α (rotMθ θ φ S), ∂/∂φ = rotR α (rotMφ θ φ S)
+    apply HasStrictFDerivAt.hasFDerivAt
+    rw [hasStrictFDerivAt_piLp]
+    intro i
+    fin_cases i <;> {
+      simp only [Fin.isValue]
+      simp only [rotprojRM', Pose.rotR', Pose.rotR, Pose.rotM₁, Pose.rotM₁θ, Pose.rotM₁φ,
+        rotR', rotR'_mat, rotR, rotR_mat, rotM, rotMθ, rotMφ, rotM_mat]
+      simp only [rotprojRM, ContinuousLinearMap.coe_comp', Function.comp_apply]
+      -- The component function is a polynomial in sin/cos of α, θ, φ
+      -- Its derivative is computed via chain rule
+      -- TODO: Fill in with detailed derivative computation using HasStrictFDerivAt.mul, .add, etc.
       sorry
-    rw [← heq]
-    exact h1
+    }
 
   have step :
     (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
