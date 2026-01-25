@@ -191,86 +191,6 @@ private lemma hasDerivAt_rotMφ_φ (θ φ : ℝ) (S : ℝ³) :
       have := (Real.hasDerivAt_cos φ).mul_const (S 2); simp only [neg_mul] at this ⊢; exact this
     convert (h1.add h2).add h3 using 1; ring
 
--- The second partial derivatives of the inner-rotM function
--- Each equals ⟪A S, w⟫ where A ∈ {rotMθθ, rotMθφ, rotMφφ}
--- These follow from differentiating rotM twice using hasDerivAt_rotMθ_θ etc.
-private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) (i j : Fin 2) :
-    ∃ A : ℝ³ →L[ℝ] ℝ², ‖A‖ ≤ 1 ∧
-      nth_partial i (nth_partial j (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x = ⟪A S, w⟫ := by
-  -- Each pair (i, j) corresponds to a specific second derivative matrix
-  -- (0, 0) → rotMθθ, (0, 1) → rotMθφ, (1, 0) → rotMθφ, (1, 1) → rotMφφ
-  -- All have operator norm ≤ 1 by rotMθθ_norm_le_one, rotMθφ_norm_le_one, rotMφφ_norm_le_one
-  fin_cases i <;> fin_cases j
-  · -- (0, 0): uses rotMθθ
-    refine ⟨rotMθθ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθθ_norm_le_one _ _, ?_⟩
-    simp only [nth_partial]
-    -- The second partial of ⟪rotM S, w⟫ w.r.t. (θ, θ) equals ⟪rotMθθ S, w⟫
-    -- This follows from:
-    -- 1. First partial ∂/∂θ gives ⟪rotMθ S, w⟫ (by HasFDerivAt.rotM_outer)
-    -- 2. Second partial ∂/∂θ gives ⟪rotMθθ S, w⟫ (by hasDerivAt_rotMθ_θ)
-    sorry
-  · -- (0, 1): uses rotMθφ (derivative of rotMφ w.r.t. θ)
-    refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
-    sorry
-  · -- (1, 0): uses rotMθφ (derivative of rotMθ w.r.t. φ)
-    refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
-    sorry
-  · -- (1, 1): uses rotMφφ
-    refine ⟨rotMφφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMφφ_norm_le_one _ _, ?_⟩
-    sorry
-
-/- [SY25] Lemma 19 -/
-theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
-    mixed_partials_bounded (rotproj_inner_unit S w) := by
-  sorry
-
-theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
-    mixed_partials_bounded (rotproj_outer_unit S w) := by
-  -- First handle the case when ‖S‖ = 0
-  by_cases hS : ‖S‖ = 0
-  · -- When ‖S‖ = 0, the function is constantly 0
-    intro x i j
-    have hzero : rotproj_outer_unit S w = 0 := by ext y; simp [rotproj_outer_unit, hS]
-    have h1 : nth_partial j (rotproj_outer_unit S w) = 0 := by
-      ext y
-      simp only [nth_partial, hzero]
-      rw [fderiv_zero]
-      simp
-    simp only [nth_partial, h1]
-    rw [fderiv_zero]
-    simp
-  · -- When ‖S‖ ≠ 0, we have S_nonzero : ‖S‖ > 0
-    have S_pos : ‖S‖ > 0 := (norm_nonneg S).lt_of_ne' hS
-    intro x i j
-    -- The function is rotproj_outer_unit S w = (fun y => ⟪rotM (y 0) (y 1) S, w⟫) / ‖S‖
-    -- Its second partial equals (second partial of inner product) / ‖S‖
-    -- By second_partial_inner_rotM_outer, the second partial of the inner product is ⟪A S, w⟫
-    -- where ‖A‖ ≤ 1, so the full second partial is ⟪A S, w⟫ / ‖S‖
-    -- By inner_bound_helper, this has absolute value ≤ 1
-
-    -- First, relate rotproj_outer_unit to the inner product function
-    have heq : rotproj_outer_unit S w = fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫ / ‖S‖ := by
-      ext y; rfl
-
-    -- The second partial of f/c is (second partial of f) / c
-    -- This follows from fderiv (c⁻¹ • f) = c⁻¹ • fderiv f applied twice
-    -- Proof: f/c = c⁻¹ • f, and since fderiv commutes with scalar multiplication,
-    -- nth_partial i (nth_partial j (f / c)) = nth_partial i (nth_partial j f) / c
-    have hscale : nth_partial i (nth_partial j (rotproj_outer_unit S w)) x =
-        nth_partial i (nth_partial j (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x / ‖S‖ := by
-      simp only [heq, nth_partial]
-      -- nth_partial is linear in f, so nth_partial (f/c) = (nth_partial f)/c
-      -- This needs to be shown for the double partial
-      -- The proof follows from fderiv_const_smul applied twice
-      sorry
-
-    -- Get the existence of A with norm bound
-    obtain ⟨A, hAnorm, hAeq⟩ := second_partial_inner_rotM_outer S w x i j
-
-    -- Now apply the bound
-    rw [hscale, hAeq]
-    exact inner_bound_helper A S w w_unit hAnorm
-
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
@@ -939,6 +859,86 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
                    ContinuousLinearMap.smul_apply, ContinuousLinearMap.neg_apply, smul_eq_mul]
         ring
     exact hf
+
+-- The second partial derivatives of the inner-rotM function
+-- Each equals ⟪A S, w⟫ where A ∈ {rotMθθ, rotMθφ, rotMφφ}
+-- These follow from differentiating rotM twice using hasDerivAt_rotMθ_θ etc.
+private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) (i j : Fin 2) :
+    ∃ A : ℝ³ →L[ℝ] ℝ², ‖A‖ ≤ 1 ∧
+      nth_partial i (nth_partial j (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x = ⟪A S, w⟫ := by
+  -- Each pair (i, j) corresponds to a specific second derivative matrix
+  -- (0, 0) → rotMθθ, (0, 1) → rotMθφ, (1, 0) → rotMθφ, (1, 1) → rotMφφ
+  -- All have operator norm ≤ 1 by rotMθθ_norm_le_one, rotMθφ_norm_le_one, rotMφφ_norm_le_one
+  fin_cases i <;> fin_cases j
+  · -- (0, 0): uses rotMθθ
+    refine ⟨rotMθθ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθθ_norm_le_one _ _, ?_⟩
+    simp only [nth_partial]
+    -- The second partial of ⟪rotM S, w⟫ w.r.t. (θ, θ) equals ⟪rotMθθ S, w⟫
+    -- This follows from:
+    -- 1. First partial ∂/∂θ gives ⟪rotMθ S, w⟫ (by HasFDerivAt.rotM_outer)
+    -- 2. Second partial ∂/∂θ gives ⟪rotMθθ S, w⟫ (by hasDerivAt_rotMθ_θ)
+    sorry
+  · -- (0, 1): uses rotMθφ (derivative of rotMφ w.r.t. θ)
+    refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
+    sorry
+  · -- (1, 0): uses rotMθφ (derivative of rotMθ w.r.t. φ)
+    refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
+    sorry
+  · -- (1, 1): uses rotMφφ
+    refine ⟨rotMφφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMφφ_norm_le_one _ _, ?_⟩
+    sorry
+
+/- [SY25] Lemma 19 -/
+theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
+    mixed_partials_bounded (rotproj_inner_unit S w) := by
+  sorry
+
+theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
+    mixed_partials_bounded (rotproj_outer_unit S w) := by
+  -- First handle the case when ‖S‖ = 0
+  by_cases hS : ‖S‖ = 0
+  · -- When ‖S‖ = 0, the function is constantly 0
+    intro x i j
+    have hzero : rotproj_outer_unit S w = 0 := by ext y; simp [rotproj_outer_unit, hS]
+    have h1 : nth_partial j (rotproj_outer_unit S w) = 0 := by
+      ext y
+      simp only [nth_partial, hzero]
+      rw [fderiv_zero]
+      simp
+    simp only [nth_partial, h1]
+    rw [fderiv_zero]
+    simp
+  · -- When ‖S‖ ≠ 0, we have S_nonzero : ‖S‖ > 0
+    have S_pos : ‖S‖ > 0 := (norm_nonneg S).lt_of_ne' hS
+    intro x i j
+    -- The function is rotproj_outer_unit S w = (fun y => ⟪rotM (y 0) (y 1) S, w⟫) / ‖S‖
+    -- Its second partial equals (second partial of inner product) / ‖S‖
+    -- By second_partial_inner_rotM_outer, the second partial of the inner product is ⟪A S, w⟫
+    -- where ‖A‖ ≤ 1, so the full second partial is ⟪A S, w⟫ / ‖S‖
+    -- By inner_bound_helper, this has absolute value ≤ 1
+
+    -- First, relate rotproj_outer_unit to the inner product function
+    have heq : rotproj_outer_unit S w = fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫ / ‖S‖ := by
+      ext y; rfl
+
+    -- The second partial of f/c is (second partial of f) / c
+    -- This follows from fderiv (c⁻¹ • f) = c⁻¹ • fderiv f applied twice
+    -- Proof: f/c = c⁻¹ • f, and since fderiv commutes with scalar multiplication,
+    -- nth_partial i (nth_partial j (f / c)) = nth_partial i (nth_partial j f) / c
+    have hscale : nth_partial i (nth_partial j (rotproj_outer_unit S w)) x =
+        nth_partial i (nth_partial j (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x / ‖S‖ := by
+      simp only [heq, nth_partial]
+      -- nth_partial is linear in f, so nth_partial (f/c) = (nth_partial f)/c
+      -- This needs to be shown for the double partial
+      -- The proof follows from fderiv_const_smul applied twice
+      sorry
+
+    -- Get the existence of A with norm bound
+    obtain ⟨A, hAnorm, hAeq⟩ := second_partial_inner_rotM_outer S w x i j
+
+    -- Now apply the bound
+    rw [hscale, hAeq]
+    exact inner_bound_helper A S w w_unit hAnorm
 
 lemma Differentiable.rotproj_outer (P : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_outer P w) :=
   Differentiable.inner ℝ (Differentiable.rotM_outer P) (by fun_prop)
