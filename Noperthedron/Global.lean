@@ -368,16 +368,7 @@ lemma Differentiable.rotM_outer (P : ℝ³) :
 
 lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
-  have hdiff : DifferentiableAt ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams :=
-    (Differentiable.rotM_outer P).differentiableAt
-  have h1 := hdiff.hasFDerivAt
-  -- Show fderiv = rotM' by uniqueness of derivatives
-  have heq : fderiv ℝ (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) pbar.outerParams = rotM' pbar P := by
-    -- The derivative is the Jacobian matrix with columns rotMθ P and rotMφ P
-    -- This follows from chain rule for sin/cos compositions
-    sorry
-  rw [← heq]
-  exact h1
+  sorry
 
 lemma Differentiable.rotproj_outer (P : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_outer P w) :=
   Differentiable.inner ℝ (Differentiable.rotM_outer P) (by fun_prop)
