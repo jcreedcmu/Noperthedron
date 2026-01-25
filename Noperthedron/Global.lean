@@ -2,6 +2,7 @@ import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
+import Noperthedron.RotationDerivs
 import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 import Noperthedron.Global.Basic
@@ -97,6 +98,122 @@ lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : �
   simp [inner, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
   fun_prop
 
+-- Key bound lemma for inner product with rotation matrices
+private lemma inner_bound_helper (A : ℝ³ →L[ℝ] ℝ²) (S : ℝ³) (w : ℝ²)
+    (hw : ‖w‖ = 1) (hA : ‖A‖ ≤ 1) : |⟪A S, w⟫ / ‖S‖| ≤ 1 := by
+  by_cases hS : ‖S‖ = 0
+  · simp [hS]
+  · rw [abs_div, abs_norm]
+    refine div_le_one_of_le₀ ?_ (norm_nonneg _)
+    calc |⟪A S, w⟫|
+      _ ≤ ‖A S‖ * ‖w‖ := abs_real_inner_le_norm _ _
+      _ ≤ ‖A‖ * ‖S‖ * ‖w‖ := by
+          apply mul_le_mul_of_nonneg_right (ContinuousLinearMap.le_opNorm _ _) (norm_nonneg _)
+      _ ≤ 1 * ‖S‖ * 1 := by
+          apply mul_le_mul (mul_le_mul_of_nonneg_right hA (norm_nonneg _)) (le_of_eq hw)
+            (norm_nonneg _)
+          positivity
+      _ = ‖S‖ := by ring
+
+-- Derivatives of rotation matrix partials w.r.t. angles
+-- These are needed for computing second derivatives of rotproj functions
+-- Each proves HasDerivAt for the rotation matrix derivative applied to a fixed vector S
+
+-- The proofs follow by expanding the matrix definitions and differentiating component-wise
+-- using HasDerivAt.add, HasDerivAt.mul_const, Real.hasDerivAt_sin, Real.hasDerivAt_cos
+private lemma hasDerivAt_rotMθ_θ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun θ' => rotMθ θ' φ S) (rotMθθ θ φ S) θ := by
+  have h_f : (fun θ' => rotMθ θ' φ S) = (fun θ' => !₂[-Real.cos θ' * S 0 - Real.sin θ' * S 1,
+      Real.sin θ' * Real.cos φ * S 0 - Real.cos θ' * Real.cos φ * S 1]) := by
+    ext θ' i; fin_cases i <;> simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
+  have h_f' : rotMθθ θ φ S = !₂[Real.sin θ * S 0 - Real.cos θ * S 1,
+      Real.cos θ * Real.cos φ * S 0 + Real.sin θ * Real.cos φ * S 1] := by
+    ext i; fin_cases i <;> simp [rotMθθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
+  rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
+  · have h : deriv (fun x => -Real.cos x * S 0 - Real.sin x * S 1) θ = Real.sin θ * S 0 - Real.cos θ * S 1 := by simp
+    rw [← h]; exact DifferentiableAt.hasDerivAt (by fun_prop)
+  · have h1 : HasDerivAt (fun x => Real.sin x * Real.cos φ * S 0) (Real.cos θ * Real.cos φ * S 0) θ := by
+      have := (Real.hasDerivAt_sin θ).mul_const (Real.cos φ * S 0); simp only [mul_assoc] at this ⊢; exact this
+    have h2 : HasDerivAt (fun x => Real.cos x * Real.cos φ * S 1) (-Real.sin θ * Real.cos φ * S 1) θ := by
+      have := (Real.hasDerivAt_cos θ).mul_const (Real.cos φ * S 1); simp only [mul_assoc, neg_mul] at this ⊢; exact this
+    convert h1.sub h2 using 1; ring
+
+private lemma hasDerivAt_rotMθ_φ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun φ' => rotMθ θ φ' S) (rotMθφ θ φ S) φ := by
+  have h_f : (fun φ' => rotMθ θ φ' S) = (fun φ' => !₂[-Real.cos θ * S 0 - Real.sin θ * S 1,
+      Real.sin θ * Real.cos φ' * S 0 - Real.cos θ * Real.cos φ' * S 1]) := by
+    ext φ' i; fin_cases i <;> simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
+  have h_f' : rotMθφ θ φ S = !₂[(0 : ℝ), -Real.sin θ * Real.sin φ * S 0 + Real.cos θ * Real.sin φ * S 1] := by
+    ext i; fin_cases i <;> (simp [rotMθφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring)
+  rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
+  · exact hasDerivAt_const _ _
+  · have h1 : HasDerivAt (fun x => Real.sin θ * Real.cos x * S 0) (-Real.sin θ * Real.sin φ * S 0) φ := by
+      have := ((Real.hasDerivAt_cos φ).const_mul (Real.sin θ)).mul_const (S 0)
+      simp only [neg_mul, mul_neg, mul_assoc] at this ⊢; exact this
+    have h2 : HasDerivAt (fun x => Real.cos θ * Real.cos x * S 1) (-Real.cos θ * Real.sin φ * S 1) φ := by
+      have := ((Real.hasDerivAt_cos φ).const_mul (Real.cos θ)).mul_const (S 1)
+      simp only [neg_mul, mul_neg, mul_assoc] at this ⊢; exact this
+    convert h1.sub h2 using 1; ring
+
+private lemma hasDerivAt_rotMφ_θ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun θ' => rotMφ θ' φ S) (rotMθφ θ φ S) θ := by
+  have h_f : (fun θ' => rotMφ θ' φ S) = (fun θ' => !₂[(0 : ℝ),
+      Real.cos θ' * Real.sin φ * S 0 + Real.sin θ' * Real.sin φ * S 1 + Real.cos φ * S 2]) := by
+    ext θ' i; fin_cases i <;> (simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring)
+  have h_f' : rotMθφ θ φ S = !₂[(0 : ℝ), -Real.sin θ * Real.sin φ * S 0 + Real.cos θ * Real.sin φ * S 1] := by
+    ext i; fin_cases i <;> (simp [rotMθφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring)
+  rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
+  · exact hasDerivAt_const _ _
+  · have h1 : HasDerivAt (fun x => Real.cos x * Real.sin φ * S 0) (-Real.sin θ * Real.sin φ * S 0) θ := by
+      have := (Real.hasDerivAt_cos θ).mul_const (Real.sin φ * S 0); simp only [mul_assoc, neg_mul] at this ⊢; exact this
+    have h2 : HasDerivAt (fun x => Real.sin x * Real.sin φ * S 1) (Real.cos θ * Real.sin φ * S 1) θ := by
+      have := (Real.hasDerivAt_sin θ).mul_const (Real.sin φ * S 1); simp only [mul_assoc] at this ⊢; exact this
+    have h3 : HasDerivAt (fun _ : ℝ => Real.cos φ * S 2) 0 θ := hasDerivAt_const _ _
+    convert (h1.add h2).add h3 using 1; ring
+
+private lemma hasDerivAt_rotMφ_φ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun φ' => rotMφ θ φ' S) (rotMφφ θ φ S) φ := by
+  have h_f : (fun φ' => rotMφ θ φ' S) = (fun φ' => !₂[(0 : ℝ),
+      Real.cos θ * Real.sin φ' * S 0 + Real.sin θ * Real.sin φ' * S 1 + Real.cos φ' * S 2]) := by
+    ext φ' i; fin_cases i <;> simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
+  have h_f' : rotMφφ θ φ S = !₂[(0 : ℝ),
+      Real.cos θ * Real.cos φ * S 0 + Real.sin θ * Real.cos φ * S 1 - Real.sin φ * S 2] := by
+    ext i; fin_cases i <;> simp [rotMφφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
+  rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
+  · exact hasDerivAt_const _ _
+  · have h1 : HasDerivAt (fun x => Real.cos θ * Real.sin x * S 0) (Real.cos θ * Real.cos φ * S 0) φ := by
+      have := ((Real.hasDerivAt_sin φ).const_mul (Real.cos θ)).mul_const (S 0)
+      simp only [mul_assoc] at this ⊢; exact this
+    have h2 : HasDerivAt (fun x => Real.sin θ * Real.sin x * S 1) (Real.sin θ * Real.cos φ * S 1) φ := by
+      have := ((Real.hasDerivAt_sin φ).const_mul (Real.sin θ)).mul_const (S 1)
+      simp only [mul_assoc] at this ⊢; exact this
+    have h3 : HasDerivAt (fun x => Real.cos x * S 2) (-Real.sin φ * S 2) φ := by
+      have := (Real.hasDerivAt_cos φ).mul_const (S 2); simp only [neg_mul] at this ⊢; exact this
+    convert (h1.add h2).add h3 using 1; ring
+
+-- The second partial derivatives of the inner-rotM function
+-- Each equals ⟪A S, w⟫ where A ∈ {rotMθθ, rotMθφ, rotMφφ}
+-- These follow from differentiating rotM twice using hasDerivAt_rotMθ_θ etc.
+private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) (i j : Fin 2) :
+    ∃ A : ℝ³ →L[ℝ] ℝ², ‖A‖ ≤ 1 ∧
+      nth_partial i (nth_partial j (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x = ⟪A S, w⟫ := by
+  -- Each pair (i, j) corresponds to a specific second derivative matrix
+  -- (0, 0) → rotMθθ, (0, 1) → rotMθφ, (1, 0) → rotMθφ, (1, 1) → rotMφφ
+  -- All have operator norm ≤ 1 by rotMθθ_norm_le_one, rotMθφ_norm_le_one, rotMφφ_norm_le_one
+  fin_cases i <;> fin_cases j
+  · -- (0, 0): uses rotMθθ
+    refine ⟨rotMθθ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθθ_norm_le_one _ _, ?_⟩
+    sorry -- proof that nth_partial 0 (nth_partial 0 f) = ⟪rotMθθ S, w⟫
+  · -- (0, 1): uses rotMθφ (derivative of rotMφ w.r.t. θ)
+    refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
+    sorry
+  · -- (1, 0): uses rotMθφ (derivative of rotMθ w.r.t. φ)
+    refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
+    sorry
+  · -- (1, 1): uses rotMφφ
+    refine ⟨rotMφφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMφφ_norm_le_one _ _, ?_⟩
+    sorry
+
 /- [SY25] Lemma 19 -/
 theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     mixed_partials_bounded (rotproj_inner_unit S w) := by
@@ -104,7 +221,46 @@ theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1)
 
 theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     mixed_partials_bounded (rotproj_outer_unit S w) := by
-  sorry
+  -- First handle the case when ‖S‖ = 0
+  by_cases hS : ‖S‖ = 0
+  · -- When ‖S‖ = 0, the function is constantly 0
+    intro x i j
+    have hzero : rotproj_outer_unit S w = 0 := by ext y; simp [rotproj_outer_unit, hS]
+    have h1 : nth_partial j (rotproj_outer_unit S w) = 0 := by
+      ext y
+      simp only [nth_partial, hzero]
+      rw [fderiv_zero]
+      simp
+    simp only [nth_partial, h1]
+    rw [fderiv_zero]
+    simp
+  · -- When ‖S‖ ≠ 0, we have S_nonzero : ‖S‖ > 0
+    have S_pos : ‖S‖ > 0 := (norm_nonneg S).lt_of_ne' hS
+    intro x i j
+    -- The function is rotproj_outer_unit S w = (fun y => ⟪rotM (y 0) (y 1) S, w⟫) / ‖S‖
+    -- Its second partial equals (second partial of inner product) / ‖S‖
+    -- By second_partial_inner_rotM_outer, the second partial of the inner product is ⟪A S, w⟫
+    -- where ‖A‖ ≤ 1, so the full second partial is ⟪A S, w⟫ / ‖S‖
+    -- By inner_bound_helper, this has absolute value ≤ 1
+
+    -- First, relate rotproj_outer_unit to the inner product function
+    have heq : rotproj_outer_unit S w = fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫ / ‖S‖ := by
+      ext y; rfl
+
+    -- The second partial of f/c is (second partial of f) / c
+    -- This follows from fderiv being linear and composition rules
+    have hscale : nth_partial i (nth_partial j (rotproj_outer_unit S w)) x =
+        nth_partial i (nth_partial j (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x / ‖S‖ := by
+      simp only [heq, nth_partial]
+      -- fderiv of (f / c) = (fderiv f) / c when c is constant
+      sorry
+
+    -- Get the existence of A with norm bound
+    obtain ⟨A, hAnorm, hAeq⟩ := second_partial_inner_rotM_outer S w x i j
+
+    -- Now apply the bound
+    rw [hscale, hAeq]
+    exact inner_bound_helper A S w w_unit hAnorm
 
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
