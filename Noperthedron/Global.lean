@@ -2,7 +2,6 @@ import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
-import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import Noperthedron.RotationDerivs
 import Noperthedron.Nopert
 import Noperthedron.PoseInterval
@@ -100,17 +99,6 @@ lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : �
   fun_prop
 
 -- Key bound lemma for inner product with rotation matrices
-private lemma inner_product_norm_bound (A : ℝ³ →L[ℝ] ℝ²) (S : ℝ³) (w : ℝ²)
-    (hA : ‖A‖ ≤ 1) : |⟪A S, w⟫| ≤ ‖S‖ * ‖w‖ := by
-  calc |⟪A S, w⟫|
-    _ ≤ ‖A S‖ * ‖w‖ := abs_real_inner_le_norm _ _
-    _ ≤ ‖A‖ * ‖S‖ * ‖w‖ := by
-        apply mul_le_mul_of_nonneg_right (ContinuousLinearMap.le_opNorm _ _) (norm_nonneg _)
-    _ ≤ 1 * ‖S‖ * ‖w‖ := by
-        apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right hA (norm_nonneg _))
-          (norm_nonneg _)
-    _ = ‖S‖ * ‖w‖ := by ring
-
 private lemma inner_bound_helper (A : ℝ³ →L[ℝ] ℝ²) (S : ℝ³) (w : ℝ²)
     (hw : ‖w‖ = 1) (hA : ‖A‖ ≤ 1) : |⟪A S, w⟫ / ‖S‖| ≤ 1 := by
   by_cases hS : ‖S‖ = 0
@@ -872,6 +860,273 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
         ring
     exact hf
 
+-- Fréchet derivative of rotMθ: columns are [rotMθθ, rotMθφ]
+noncomputable def rotMθ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
+  let M : Matrix (Fin 2) (Fin 2) ℝ := Matrix.of fun i j =>
+    match j with
+    | 0 => (rotMθθ pbar.θ₂ pbar.φ₂ P) i
+    | 1 => (rotMθφ pbar.θ₂ pbar.φ₂ P) i
+  LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
+
+private lemma rotMθ_component0 (θ φ : ℝ) (P : ℝ³) :
+    (rotMθ θ φ P) 0 = -Real.cos θ * P 0 - Real.sin θ * P 1 := by
+  simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
+
+private lemma rotMθ_component1 (θ φ : ℝ) (P : ℝ³) :
+    (rotMθ θ φ P) 1 = Real.sin θ * Real.cos φ * P 0 - Real.cos θ * Real.cos φ * P 1 := by
+  simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
+  ring
+
+lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
+    HasFDerivAt (fun x => (rotMθ (x.ofLp 0) (x.ofLp 1)) P) (rotMθ' pbar P) pbar.outerParams := by
+  apply HasStrictFDerivAt.hasFDerivAt
+  rw [hasStrictFDerivAt_piLp]
+  intro i
+  fin_cases i
+  · -- Component 0: f(θ, φ) = -cos θ * P[0] - sin θ * P[1] (only depends on θ)
+    simp only [Fin.isValue]
+    have hfunc : (fun x : ℝ² => ((rotMθ (x.ofLp 0) (x.ofLp 1)) P).ofLp (0 : Fin 2)) =
+        fun x => -Real.cos (x.ofLp 0) * P 0 - Real.sin (x.ofLp 0) * P 1 := by
+      ext x; exact rotMθ_component0 (x.ofLp 0) (x.ofLp 1) P
+    simp only [show (⟨0, by omega⟩ : Fin 2) = (0 : Fin 2) from rfl]
+    rw [hfunc]
+    -- The derivative: d ↦ (sin θ * P[0] - cos θ * P[1]) * d[0]
+    have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotMθ' pbar P) =
+        ((Real.sin pbar.θ₂ * P 0 - Real.cos pbar.θ₂ * P 1) • PiLp.proj 2 (fun _ => ℝ) 0) := by
+      ext d
+      simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
+        ContinuousLinearMap.smul_apply, smul_eq_mul]
+      simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
+      simp only [Matrix.of_apply, Fin.isValue]
+      simp only [rotMθθ, rotMθφ, LinearMap.coe_toContinuousLinearMap',
+                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
+                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
+                 Matrix.of_apply, Fin.isValue]
+      -- Simplify matrix entries: ![a, b, 0] 2 = 0
+      rw [show ![Real.sin pbar.θ₂, -Real.cos pbar.θ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
+      rw [show ![(0 : ℝ), 0, 0] (2 : Fin 3) = 0 from rfl]
+      ring
+    rw [hderiv]
+    let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
+    have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
+      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
+    have hcos : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
+        (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_cos pbar.θ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj0
+    have hsin : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
+        (Real.cos pbar.θ₂ • proj0) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_sin pbar.θ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj0
+    have hf : HasStrictFDerivAt (fun x : ℝ² => -Real.cos (x.ofLp 0) * P 0 - Real.sin (x.ofLp 0) * P 1)
+        ((Real.sin pbar.θ₂ * P 0 - Real.cos pbar.θ₂ * P 1) • proj0) pbar.outerParams := by
+      have h1 : HasStrictFDerivAt (fun x : ℝ² => -Real.cos (x.ofLp 0) * P 0)
+          ((P 0) • -(-(Real.sin pbar.θ₂) • proj0)) pbar.outerParams :=
+        hcos.neg.mul_const (P 0)
+      have h2 : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0) * P 1)
+          ((P 1) • Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
+        hsin.mul_const (P 1)
+      have hsub := h1.sub h2
+      convert hsub using 1
+      ext d
+      simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
+                 ContinuousLinearMap.neg_apply, neg_mul, neg_neg]
+      ring
+    exact hf
+  · -- Component 1: f(θ, φ) = sin θ * cos φ * P[0] - cos θ * cos φ * P[1]
+    simp only [Fin.isValue]
+    have hfunc : (fun x : ℝ² => ((rotMθ (x.ofLp 0) (x.ofLp 1)) P).ofLp (1 : Fin 2)) =
+        fun x => Real.sin (x.ofLp 0) * Real.cos (x.ofLp 1) * P 0 -
+                 Real.cos (x.ofLp 0) * Real.cos (x.ofLp 1) * P 1 := by
+      ext x; exact rotMθ_component1 (x.ofLp 0) (x.ofLp 1) P
+    simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
+    rw [hfunc]
+    let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
+    let proj1 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)
+    have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
+      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
+    have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
+      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 1
+    have hcosθ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
+        (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_cos pbar.θ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj0
+    have hsinθ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
+        (Real.cos pbar.θ₂ • proj0) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_sin pbar.θ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj0
+    have hcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1))
+        (-(Real.sin pbar.φ₂) • proj1) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_cos pbar.φ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj1
+    -- The derivative: d ↦ (cos θ * cos φ * P[0] + sin θ * cos φ * P[1]) * d[0] +
+    --                     (-sin θ * sin φ * P[0] + cos θ * sin φ * P[1]) * d[1]
+    have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)).comp (rotMθ' pbar P) =
+        ((Real.cos pbar.θ₂ * Real.cos pbar.φ₂ * P 0 + Real.sin pbar.θ₂ * Real.cos pbar.φ₂ * P 1) • proj0 +
+         (-Real.sin pbar.θ₂ * Real.sin pbar.φ₂ * P 0 + Real.cos pbar.θ₂ * Real.sin pbar.φ₂ * P 1) • proj1) := by
+      ext d
+      simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
+        ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
+      simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
+      simp only [Matrix.of_apply, Fin.isValue]
+      simp only [rotMθθ, rotMθφ, LinearMap.coe_toContinuousLinearMap',
+                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
+                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
+                 Matrix.of_apply, Fin.isValue]
+      -- Simplify matrix entries: ![a, b, 0] 2 = 0
+      rw [show ![Real.cos pbar.θ₂ * Real.cos pbar.φ₂, Real.sin pbar.θ₂ * Real.cos pbar.φ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
+      rw [show ![-Real.sin pbar.θ₂ * Real.sin pbar.φ₂, Real.cos pbar.θ₂ * Real.sin pbar.φ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
+      -- Unfold local let bindings proj0/proj1 before ring
+      show _ = _ * proj0 d + _ * proj1 d
+      simp only [proj0, proj1, PiLp.proj_apply]
+      ring
+    rw [hderiv]
+    -- The proof follows the same pattern as component 0: product rule + chain rule
+    -- for sin θ * cos φ * P 0 - cos θ * cos φ * P 1
+    have hsinθcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0) * Real.cos (x.ofLp 1))
+        (Real.sin pbar.θ₂ • (-(Real.sin pbar.φ₂) • proj1) + Real.cos pbar.φ₂ • (Real.cos pbar.θ₂ • proj0))
+        pbar.outerParams := hsinθ.mul hcosφ
+    have hcosθcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0) * Real.cos (x.ofLp 1))
+        (Real.cos pbar.θ₂ • (-(Real.sin pbar.φ₂) • proj1) + Real.cos pbar.φ₂ • (-(Real.sin pbar.θ₂) • proj0))
+        pbar.outerParams := hcosθ.mul hcosφ
+    have hadd := ((hsinθcosφ.mul_const (P 0)).sub (hcosθcosφ.mul_const (P 1)))
+    convert hadd using 1
+    ext d
+    simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.add_apply,
+               ContinuousLinearMap.smul_apply, smul_eq_mul, neg_mul,
+               proj0, proj1, PiLp.proj_apply]
+    ring
+
+-- Fréchet derivative of rotMφ as a function of (θ, φ)
+-- Columns: [rotMθφ, rotMφφ] (derivatives w.r.t. θ, φ respectively)
+noncomputable def rotMφ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
+  let M : Matrix (Fin 2) (Fin 2) ℝ := Matrix.of fun i j =>
+    match j with
+    | 0 => (rotMθφ pbar.θ₂ pbar.φ₂ P) i
+    | 1 => (rotMφφ pbar.θ₂ pbar.φ₂ P) i
+  LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
+
+-- Component lemmas for rotMφ
+private lemma rotMφ_component0 (θ φ : ℝ) (P : ℝ³) :
+    (rotMφ θ φ P) 0 = 0 := by
+  simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
+
+private lemma rotMφ_component1 (θ φ : ℝ) (P : ℝ³) :
+    (rotMφ θ φ P) 1 = Real.cos θ * Real.sin φ * P 0 + Real.sin θ * Real.sin φ * P 1 + Real.cos φ * P 2 := by
+  simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
+  ring
+
+lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
+    HasFDerivAt (fun x => (rotMφ (x.ofLp 0) (x.ofLp 1)) P) (rotMφ' pbar P) pbar.outerParams := by
+  apply HasStrictFDerivAt.hasFDerivAt
+  rw [hasStrictFDerivAt_piLp]
+  intro i
+  fin_cases i
+  · -- Component 0: f(θ, φ) = 0 (constant)
+    simp only [Fin.isValue]
+    have hfunc : (fun x : ℝ² => ((rotMφ (x.ofLp 0) (x.ofLp 1)) P).ofLp (0 : Fin 2)) =
+        fun _ => (0 : ℝ) := by
+      ext x; exact rotMφ_component0 (x.ofLp 0) (x.ofLp 1) P
+    simp only [show (⟨0, by omega⟩ : Fin 2) = (0 : Fin 2) from rfl]
+    rw [hfunc]
+    -- Derivative of constant is 0
+    have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotMφ' pbar P) = 0 := by
+      ext d
+      simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
+        ContinuousLinearMap.zero_apply]
+      simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
+      simp only [rotMθφ, rotMφφ, LinearMap.coe_toContinuousLinearMap',
+                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
+                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.of_apply, Fin.isValue]
+      -- The first row of both rotMθφ and rotMφφ matrices is all zeros
+      rw [show ![0, 0, (0 : ℝ)] (1 : Fin 3) = 0 from rfl]
+      rw [show ![0, 0, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
+      ring
+    rw [hderiv]
+    exact hasStrictFDerivAt_const 0 pbar.outerParams
+  · -- Component 1: f(θ, φ) = cos θ * sin φ * P[0] + sin θ * sin φ * P[1] + cos φ * P[2]
+    simp only [Fin.isValue]
+    have hfunc : (fun x : ℝ² => ((rotMφ (x.ofLp 0) (x.ofLp 1)) P).ofLp (1 : Fin 2)) =
+        fun x => Real.cos (x.ofLp 0) * Real.sin (x.ofLp 1) * P 0 +
+                 Real.sin (x.ofLp 0) * Real.sin (x.ofLp 1) * P 1 +
+                 Real.cos (x.ofLp 1) * P 2 := by
+      ext x; exact rotMφ_component1 (x.ofLp 0) (x.ofLp 1) P
+    simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
+    rw [hfunc]
+    let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
+    let proj1 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)
+    have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
+      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
+    have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
+      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 1
+    have hcosθ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
+        (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_cos pbar.θ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj0
+    have hsinθ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
+        (Real.cos pbar.θ₂ • proj0) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_sin pbar.θ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj0
+    have hcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1))
+        (-(Real.sin pbar.φ₂) • proj1) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_cos pbar.φ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj1
+    have hsinφ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 1))
+        (Real.cos pbar.φ₂ • proj1) pbar.outerParams := by
+      have h := Real.hasStrictDerivAt_sin pbar.φ₂
+      exact h.comp_hasStrictFDerivAt pbar.outerParams hproj1
+    -- The derivative: d ↦ (-sin θ * sin φ * P[0] + cos θ * sin φ * P[1]) * d[0] +
+    --                     (cos θ * cos φ * P[0] + sin θ * cos φ * P[1] - sin φ * P[2]) * d[1]
+    have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)).comp (rotMφ' pbar P) =
+        ((-Real.sin pbar.θ₂ * Real.sin pbar.φ₂ * P 0 + Real.cos pbar.θ₂ * Real.sin pbar.φ₂ * P 1) • proj0 +
+         (Real.cos pbar.θ₂ * Real.cos pbar.φ₂ * P 0 + Real.sin pbar.θ₂ * Real.cos pbar.φ₂ * P 1 - Real.sin pbar.φ₂ * P 2) • proj1) := by
+      ext d
+      simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
+        ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
+      simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
+      simp only [rotMθφ, rotMφφ, LinearMap.coe_toContinuousLinearMap',
+                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
+                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
+                 Matrix.of_apply, Fin.isValue]
+      rw [show ![-Real.sin pbar.θ₂ * Real.sin pbar.φ₂, Real.cos pbar.θ₂ * Real.sin pbar.φ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
+      rw [show ![Real.cos pbar.θ₂ * Real.cos pbar.φ₂, Real.sin pbar.θ₂ * Real.cos pbar.φ₂, -Real.sin pbar.φ₂] (2 : Fin 3) = -Real.sin pbar.φ₂ from rfl]
+      show _ = _ * proj0 d + _ * proj1 d
+      simp only [proj0, proj1, PiLp.proj_apply]
+      ring
+    rw [hderiv]
+    -- Products: cos θ * sin φ, sin θ * sin φ, cos φ
+    have hcosθsinφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0) * Real.sin (x.ofLp 1))
+        (Real.cos pbar.θ₂ • (Real.cos pbar.φ₂ • proj1) + Real.sin pbar.φ₂ • (-(Real.sin pbar.θ₂) • proj0))
+        pbar.outerParams := hcosθ.mul hsinφ
+    have hsinθsinφ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0) * Real.sin (x.ofLp 1))
+        (Real.sin pbar.θ₂ • (Real.cos pbar.φ₂ • proj1) + Real.sin pbar.φ₂ • (Real.cos pbar.θ₂ • proj0))
+        pbar.outerParams := hsinθ.mul hsinφ
+    -- Build the full derivative
+    have h1 : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0) * Real.sin (x.ofLp 1) * P 0)
+        ((P 0) • (Real.cos pbar.θ₂ • (Real.cos pbar.φ₂ • proj1) + Real.sin pbar.φ₂ • (-(Real.sin pbar.θ₂) • proj0)))
+        pbar.outerParams := hcosθsinφ.mul_const (P 0)
+    have h2 : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0) * Real.sin (x.ofLp 1) * P 1)
+        ((P 1) • (Real.sin pbar.θ₂ • (Real.cos pbar.φ₂ • proj1) + Real.sin pbar.φ₂ • (Real.cos pbar.θ₂ • proj0)))
+        pbar.outerParams := hsinθsinφ.mul_const (P 1)
+    have h3 : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1) * P 2)
+        ((P 2) • (-(Real.sin pbar.φ₂) • proj1))
+        pbar.outerParams := hcosφ.mul_const (P 2)
+    have hadd := h1.add (h2.add h3)
+    convert hadd using 1
+    · -- Function equality
+      ext x
+      simp only [Pi.add_apply]
+      ring
+    · -- Derivative equality
+      ext d
+      simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
+                 neg_mul, proj0, proj1, PiLp.proj_apply]
+      ring
+
 -- The second partial derivatives of the inner-rotM function
 -- Each equals ⟪A S, w⟫ where A ∈ {rotMθθ, rotMθφ, rotMφφ}
 -- These follow from differentiating rotM twice using hasDerivAt_rotMθ_θ etc.
@@ -884,540 +1139,314 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
   fin_cases i <;> fin_cases j
   · -- (0, 0): uses rotMθθ
     refine ⟨rotMθθ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθθ_norm_le_one _ _, ?_⟩
-    simp only [nth_partial]
     -- The second partial of ⟪rotM S, w⟫ w.r.t. (θ, θ) equals ⟪rotMθθ S, w⟫
-    -- Proof strategy:
-    -- 1. First partial ∂/∂θ gives inner product with rotMθ (via fderiv_inner_apply + rotM')
-    -- 2. Second partial ∂/∂θ gives inner product with rotMθθ (via hasDerivAt_rotMθ_θ)
     let θ := x.ofLp 0; let φ := x.ofLp 1
-    let e₀ : E 2 := EuclideanSpace.single 0 1
-    have hDiff : Differentiable ℝ fun y : E 2 => (rotM (y.ofLp 0) (y.ofLp 1)) S :=
-      Differentiable.rotM_outer S
-    -- Helper: fderiv of rotM applied to e₀ gives rotMθ
-    have hfderiv_rotM : ∀ y : E 2, fderiv ℝ (fun z : E 2 => (rotM (z.ofLp 0) (z.ofLp 1)) S) y e₀ =
-        rotMθ (y.ofLp 0) (y.ofLp 1) S := by
+    -- First partial ∂/∂θ: (fun y => ⟪rotM y S, w⟫) → (fun y => ⟪rotMθ y S, w⟫)
+    have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
+      Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
+    -- First partial in direction e₀ gives ⟪rotMθ S, w⟫
+    have hfirst : ∀ y : E 2, (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 0 1) = ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
       intro y
-      -- Use HasFDerivAt.rotM_outer with a pose whose outerParams = y
-      let pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩
-      have hpbar_eq : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
-      have hrotM : HasFDerivAt (fun z => (rotM (z.ofLp 0) (z.ofLp 1)) S) (rotM' pbar S) y := by
-        convert HasFDerivAt.rotM_outer pbar S using 2; exact hpbar_eq.symm
-      rw [hrotM.fderiv]
-      -- rotM' pbar S applied to e₀ = rotMθ
-      -- pbar.θ₂ = y.ofLp 0 and pbar.φ₂ = y.ofLp 1 by definition of pbar
-      -- e₀ = EuclideanSpace.single 0 1 means (e₀.ofLp 0, e₀.ofLp 1) = (1, 0)
-      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      -- The goal: matrix with columns [rotMθ, rotMφ] applied to e₀=(1,0) = rotMθ
-      -- pbar.θ₂ = y.ofLp 0, pbar.φ₂ = y.ofLp 1 definitionally
-      -- e₀ = (1, 0), so first column gets picked
-      have he0_0 : e₀.ofLp 0 = 1 := rfl
-      have he0_1 : e₀.ofLp 1 = 0 := by
-        show (EuclideanSpace.single 0 1 : E 2).ofLp 1 = 0
-        simp only [EuclideanSpace.single_apply, show (1 : Fin 2) ≠ 0 from by decide, if_false]
-      ext i; fin_cases i <;>
-        (simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two,
-          Matrix.of_apply, he0_0, he0_1, mul_one, mul_zero, add_zero]; rfl)
-    -- Function equality: the first partial equals inner product with rotMθ
-    have hfunc_eq : (fun y => (fderiv ℝ (fun z : E 2 => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y) e₀) =
-        fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
-      ext y
-      have hInner := fderiv_inner_apply ℝ (hDiff y) (by fun_prop : DifferentiableAt ℝ (fun _ => w) y) e₀
-      rw [hInner, hfderiv_rotM y]
-      -- Goal: ⟪rotM S, (fderiv (const w)) e₀⟫ + ⟪rotMθ S, w⟫ = ⟪rotMθ S, w⟫
-      -- The fderiv of constant function w is 0
-      have h0 : (fderiv ℝ (fun _ : E 2 => w) y) e₀ = 0 := by
-        rw [show (fun _ : E 2 => w) = Function.const (E 2) w from rfl, fderiv_const]
-        simp
-      simp only [h0, inner_zero_right, zero_add]
-    -- Need to unfold nth_partial in the goal to use hfunc_eq
-    -- nth_partial i f = fun x => (fderiv ℝ f x) (EuclideanSpace.single i 1)
+      have hInner := fderiv_inner_apply ℝ (Differentiable.rotM_outer S y) (differentiableAt_const w) (EuclideanSpace.single 0 1)
+      rw [hInner]
+      -- First term: fderiv of constant w is 0
+      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) y := hasFDerivAt_const w y
+      rw [hw.fderiv]
+      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add]
+      -- Second term: fderiv of rotM in e₀ direction is rotMθ
+      set pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ with hpbar_def
+      have hpbar : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
+      have hfderiv_rotM : fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' pbar S :=
+        (HasFDerivAt.rotM_outer pbar S).fderiv ▸ congrArg _ hpbar.symm
+      rw [hfderiv_rotM]
+      -- rotM' pbar S (e₀) = rotMθ θ φ S since pbar.θ₂ = y.ofLp 0, pbar.φ₂ = y.ofLp 1
+      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, hpbar_def]
+      -- Need to show: ⟪WithLp.toLp 2 ((Matrix.of ...).mulVec v), w⟫ = ⟪rotMθ S, w⟫
+      -- The matrix has columns [rotMθ S, rotMφ S] and v = [1, 0], so mulVec gives rotMθ S
+      congr 1
+      ext i
+      simp only [Matrix.of_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
+        EuclideanSpace.single_apply, ↓reduceIte, mul_one,
+        show (1 : Fin 2) ≠ 0 from by decide, mul_zero, add_zero]
+    -- The first partial function is y ↦ ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫
+    -- Unfold and use the equality
     unfold nth_partial
-    -- Goal: (fderiv (fun y => (fderiv inner) e₀) x) e₀ = ...
-    -- The inner function is the same as in hfunc_eq (e₀ = EuclideanSpace.single 0 1)
-    have h_eq : (fun x_1 => (fderiv ℝ (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) x_1)
-        (EuclideanSpace.single 0 1)) = (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) := hfunc_eq
-    rw [h_eq]
-    -- Now differentiate ⟪rotMθ S, w⟫ w.r.t. θ (direction e₀)
-    have hDiff2 : Differentiable ℝ fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S := by
-      rw [differentiable_piLp]; intro i; fin_cases i
-      · simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.cons_val_zero,
-          Matrix.cons_val_one, Matrix.head_cons]; fun_prop
-      · simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.cons_val_zero,
-          Matrix.cons_val_one, Matrix.head_cons]; fun_prop
-    have hInner2 := fderiv_inner_apply ℝ (hDiff2 x) (by fun_prop : DifferentiableAt ℝ (fun _ => w) x)
-    simp only [fderiv_const, Pi.zero_apply, ContinuousLinearMap.zero_apply,
-      inner_zero_right, add_zero] at hInner2
+    -- The goal has EuclideanSpace.single ⟨0, ⋯⟩ 1, we need to normalize to single 0 1
+    show (fderiv ℝ (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 0 1)) x) (EuclideanSpace.single 0 1) = ⟪rotMθθ (x.ofLp 0) (x.ofLp 1) S, w⟫
+    have hinner_eq : (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 0 1)) = fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := funext hfirst
+    rw [show (fderiv ℝ (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 0 1)) x) = (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
+        from congrArg (fderiv ℝ · x) hinner_eq]
+    -- Second partial: differentiate ⟪rotMθ S, w⟫ w.r.t. θ
+    have hDiff2 : Differentiable ℝ (fun y : E 2 => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
+      apply Differentiable.inner ℝ
+      · intro y; rw [differentiableAt_piLp]; intro i
+        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
+      · intro y; exact differentiableAt_const w
+    -- The inner product with constant w: fderiv (⟪f ·, w⟫) x v = ⟪fderiv f x v, w⟫
+    have hInner2 : (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x) (EuclideanSpace.single 0 1) =
+        ⟪(fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x) (EuclideanSpace.single 0 1), w⟫ := by
+      have hf_diff : DifferentiableAt ℝ (fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S) x := by
+        rw [differentiableAt_piLp]; intro i
+        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
+      have hg_diff : DifferentiableAt ℝ (fun _ : E 2 => w) x := differentiableAt_const w
+      have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 0 1)
+      -- Explicitly rewrite the constant derivative to 0
+      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
+      rw [hw.fderiv] at heq
+      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
+      exact heq
     rw [hInner2]
-    -- fderiv of rotMθ at x applied to e₀ = rotMθθ
-    -- Use hasDerivAt_rotMθ_θ: HasDerivAt (fun θ' => rotMθ θ' φ S) (rotMθθ θ φ S) θ
-    have hderiv := hasDerivAt_rotMθ_θ θ φ S
-    have hfderiv : fderiv ℝ (fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S) x e₀ = rotMθθ θ φ S := by
-      -- The derivative only involves the θ component (index 0)
-      have hcomp : (fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S) =
-          (fun θ' => rotMθ θ' φ S) ∘ (fun y : E 2 => y.ofLp 0) := by ext y; rfl
-      rw [hcomp]
-      rw [fderiv.comp x hderiv.differentiableAt (PiLp.differentiableAt_apply 2 x 0)]
-      simp only [ContinuousLinearMap.coe_comp', Function.comp_apply]
-      rw [PiLp.fderiv_apply 2 x 0, hderiv.fderiv]
-      simp only [ContinuousLinearMap.smulRight_apply, ContinuousLinearMap.one_apply,
-        PiLp.proj_apply, EuclideanSpace.single_apply, ↓reduceIte, smul_eq_mul, mul_one]
-    rw [hfderiv]
+    -- Use HasFDerivAt.rotMθ_outer to compute the derivative
+    set pbar : Pose := ⟨0, θ, 0, φ, 0⟩ with hpbar_def
+    have hpbar : pbar.outerParams = x := by ext i; fin_cases i <;> rfl
+    -- fderiv (rotMθ S) at x = rotMθ' pbar S
+    have hfderiv_rotMθ : fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x = rotMθ' pbar S := by
+      have h := HasFDerivAt.rotMθ_outer pbar S
+      rw [hpbar] at h
+      exact h.fderiv
+    rw [hfderiv_rotMθ]
+    -- rotMθ' pbar S (e₀) = rotMθθ θ φ S since e₀ = [1, 0] and the first column is rotMθθ
+    simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, hpbar_def]
+    -- The matrix has columns [rotMθθ S, rotMθφ S] and v = [1, 0], so mulVec gives rotMθθ S
+    congr 1
+    ext i
+    simp only [Matrix.of_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
+      EuclideanSpace.single_apply, ↓reduceIte, mul_one,
+      show (1 : Fin 2) ≠ 0 from by decide, mul_zero, add_zero]
+    -- θ = x.ofLp 0 and φ = x.ofLp 1 by definition
+    rfl
   · -- (0, 1): uses rotMθφ (derivative of rotMφ w.r.t. θ)
-    -- This case is symmetric to (0,0) but uses hasDerivAt_rotMφ_θ instead of hasDerivAt_rotMθ_θ
     refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
-    simp only [nth_partial]
+    -- The second partial of ⟪rotM S, w⟫ w.r.t. (θ, φ) equals ⟪rotMθφ S, w⟫
+    -- First partial ∂/∂φ gives ⟪rotMφ S, w⟫, then ∂/∂θ gives ⟪rotMθφ S, w⟫
     let θ := x.ofLp 0; let φ := x.ofLp 1
-    let e₀ : E 2 := EuclideanSpace.single 0 1
-    let e₁ : E 2 := EuclideanSpace.single 1 1
-    have hDiff : Differentiable ℝ fun y : E 2 => (rotM (y.ofLp 0) (y.ofLp 1)) S :=
-      Differentiable.rotM_outer S
-    -- First partial: fderiv of ⟪rotM S, w⟫ applied to e₁ gives ⟪rotMφ S, w⟫
-    have hfderiv_rotM : ∀ y : E 2, fderiv ℝ (fun z : E 2 => (rotM (z.ofLp 0) (z.ofLp 1)) S) y e₁ =
-        rotMφ (y.ofLp 0) (y.ofLp 1) S := by
+    have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
+      Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
+    -- First partial in direction e₁ gives ⟪rotMφ S, w⟫
+    have hfirst : ∀ y : E 2, (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 1 1) = ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
       intro y
-      let pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩
-      have hpbar_eq : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
-      have hrotM : HasFDerivAt (fun z => (rotM (z.ofLp 0) (z.ofLp 1)) S) (rotM' pbar S) y := by
-        convert HasFDerivAt.rotM_outer pbar S using 2; exact hpbar_eq.symm
-      rw [hrotM.fderiv]
-      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      have he1_0 : e₁.ofLp 0 = 0 := by
-        show (EuclideanSpace.single 1 1 : E 2).ofLp 0 = 0
-        simp only [EuclideanSpace.single_apply, show (0 : Fin 2) ≠ 1 from by decide, if_false]
-      have he1_1 : e₁.ofLp 1 = 1 := rfl
-      ext i; fin_cases i <;>
-        (simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two,
-          Matrix.of_apply, he1_0, he1_1, mul_one, mul_zero, zero_add]; rfl)
-    have hfunc_eq : (fun y => (fderiv ℝ (fun z : E 2 => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y) e₁) =
-        fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
-      ext y
-      have hInner := fderiv_inner_apply ℝ (hDiff y) (by fun_prop : DifferentiableAt ℝ (fun _ => w) y) e₁
-      rw [hInner, hfderiv_rotM y]
-      have h0 : (fderiv ℝ (fun _ : E 2 => w) y) e₁ = 0 := by
-        rw [show (fun _ : E 2 => w) = Function.const (E 2) w from rfl, fderiv_const]; simp
-      simp only [h0, inner_zero_right, zero_add]
-    -- Use change to match e₁ with the syntactic form in the goal
-    change (fderiv ℝ (fun x => (fderiv ℝ (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) x) e₁) x) e₀ =
-        ⟪rotMθφ (x.ofLp 0) (x.ofLp 1) S, w⟫
-    have step1 : fderiv ℝ (fun x => (fderiv ℝ (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) x) e₁) =
-        fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) := congrArg (fderiv ℝ) hfunc_eq
-    rw [step1]
-    -- Second partial: differentiate ⟪rotMφ S, w⟫ w.r.t. θ (direction e₀)
-    have hDiff2 : Differentiable ℝ fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S := by
-      intro y; rw [differentiableAt_piLp]; intro i; fin_cases i
-      · simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.cons_val_zero,
-          Matrix.cons_val_one, Matrix.head_cons]; fun_prop
-      · simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.cons_val_zero,
-          Matrix.cons_val_one, Matrix.head_cons]; fun_prop
-    have hInner2 := fderiv_inner_apply ℝ (hDiff2 x) (by fun_prop : DifferentiableAt ℝ (fun _ => w) x)
-    simp only [fderiv_const, Pi.zero_apply, ContinuousLinearMap.zero_apply,
-      inner_zero_right, add_zero] at hInner2
+      have hInner := fderiv_inner_apply ℝ (Differentiable.rotM_outer S y) (differentiableAt_const w) (EuclideanSpace.single 1 1)
+      rw [hInner]
+      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) y := hasFDerivAt_const w y
+      rw [hw.fderiv]
+      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add]
+      set pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ with hpbar_def
+      have hpbar : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
+      have hfderiv_rotM : fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' pbar S :=
+        (HasFDerivAt.rotM_outer pbar S).fderiv ▸ congrArg _ hpbar.symm
+      rw [hfderiv_rotM]
+      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, hpbar_def]
+      congr 1
+      ext i
+      simp only [Matrix.of_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
+        EuclideanSpace.single_apply, ↓reduceIte, mul_one,
+        show (0 : Fin 2) ≠ 1 from by decide, mul_zero, zero_add]
+    unfold nth_partial
+    show (fderiv ℝ (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 1 1)) x) (EuclideanSpace.single 0 1) = ⟪rotMθφ (x.ofLp 0) (x.ofLp 1) S, w⟫
+    have hinner_eq : (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 1 1)) = fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := funext hfirst
+    rw [show (fderiv ℝ (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 1 1)) x) = (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
+        from congrArg (fderiv ℝ · x) hinner_eq]
+    -- Second partial: differentiate ⟪rotMφ S, w⟫ w.r.t. θ
+    have hDiff2 : Differentiable ℝ (fun y : E 2 => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
+      apply Differentiable.inner ℝ
+      · intro y; rw [differentiableAt_piLp]; intro i
+        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases i
+        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+      · intro y; exact differentiableAt_const w
+    have hInner2 : (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x) (EuclideanSpace.single 0 1) =
+        ⟪(fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x) (EuclideanSpace.single 0 1), w⟫ := by
+      have hf_diff : DifferentiableAt ℝ (fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S) x := by
+        rw [differentiableAt_piLp]; intro i
+        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases i
+        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+      have hg_diff : DifferentiableAt ℝ (fun _ : E 2 => w) x := differentiableAt_const w
+      have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 0 1)
+      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
+      rw [hw.fderiv] at heq
+      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
+      exact heq
     rw [hInner2]
-    -- fderiv of rotMφ at x applied to e₀ = rotMθφ using hasDerivAt_rotMφ_θ
-    have hderiv := hasDerivAt_rotMφ_θ θ φ S
-    have hfderiv : fderiv ℝ (fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S) x e₀ = rotMθφ θ φ S := by
-      -- Key: the function (y ↦ rotMφ (y 0) (y 1) S) composed with projection onto first coord
-      -- gives the same θ-derivative as (θ' ↦ rotMφ θ' φ S) at θ
-      -- This works because the first component of fderiv extracts the θ-partial derivative
-      have hcomp : (fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S) =
-          (fun p : ℝ × ℝ => rotMφ p.1 p.2 S) ∘ (fun y : E 2 => (y.ofLp 0, y.ofLp 1)) := rfl
-      -- At x, the fderiv gives a linear map, and e₀ extracts just the ∂/∂θ component
-      -- Since rotMφ θ φ S is linear in (θ, φ) in a smooth way, chain rule applies
-      -- The derivative of (θ', φ') ↦ rotMφ θ' φ' S is (dθ, dφ) ↦ rotMθφ θ φ S * dθ + rotMφφ θ φ S * dφ
-      -- Applying to (1, 0) = (e₀.ofLp 0, e₀.ofLp 1) gives rotMθφ θ φ S
-      -- Use explicit component-wise computation
-      ext i; fin_cases i
-      · -- First component
-        simp only [rotMφ, rotMθφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.cons_val_zero,
-          Matrix.cons_val_one, Matrix.head_cons, Fin.isValue]
-        -- The first component of rotMφ is always 0, so its derivative is 0
-        -- The first component of rotMθφ is also 0
-        have h_comp0 : ∀ y : E 2, (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 0 = 0 := by
-          intro y; simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
-            Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons]
-        have hconst0 : (fun y : E 2 => (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 0) = fun _ => (0 : ℝ) := by
-          ext y; exact h_comp0 y
-        have heq0 : (fderiv ℝ (fun y : E 2 => (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 0) x) e₀ =
-            (fderiv ℝ (fun _ : E 2 => (0 : ℝ)) x) e₀ := by
-          congr 2; exact hconst0
-        rw [heq0]; simp [fderiv_const]
-      · -- Second component
-        simp only [rotMφ, rotMθφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.cons_val_zero,
-          Matrix.cons_val_one, Matrix.head_cons, Fin.isValue]
-        -- Second component of rotMφ θ φ S is cos θ * sin φ * S₀ + sin θ * sin φ * S₁ + cos φ * S₂
-        -- Its derivative w.r.t. θ is -sin θ * sin φ * S₀ + cos θ * sin φ * S₁
-        -- This equals the second component of rotMθφ θ φ S
-        have h_comp1 : (fun y : E 2 => (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 1) =
-            fun y => Real.cos (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 0 +
-                     Real.sin (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 1 +
-                     Real.cos (y.ofLp 1) * S.ofLp 2 := by
-          ext y; simp [rotMφ, Matrix.toEuclideanLin_apply, dotProduct, Fin.sum_univ_three]
-        have heq : (fderiv ℝ (fun y : E 2 => (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 1) x) e₀ =
-            (fderiv ℝ (fun y => Real.cos (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 0 +
-                     Real.sin (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 1 +
-                     Real.cos (y.ofLp 1) * S.ofLp 2) x) e₀ := by
-          congr 2; exact h_comp1
-        rw [heq]
-        -- Now compute the derivative of this explicit expression
-        have hd : HasFDerivAt (fun y : E 2 => Real.cos (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 0 +
-                     Real.sin (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 1 +
-                     Real.cos (y.ofLp 1) * S.ofLp 2) _ x := by fun_prop
-        rw [hd.fderiv]
-        -- The e₀-component extracts the θ-derivative
-        simp only [EuclideanSpace.single_apply, ↓reduceIte]
-        -- This should equal -sin θ * sin φ * S₀ + cos θ * sin φ * S₁
-        simp only [rotMθφ, Matrix.of_apply, Fin.isValue, Matrix.cons_val_one, Matrix.head_cons,
-          mul_zero, add_zero]
-        ring
-    rw [hfderiv]
-    -- Now simplify: fderiv of constant w is 0, and θ = x.ofLp 0, φ = x.ofLp 1
-    have hconst : (fderiv ℝ (fun _ : E 2 => w) x) e₀ = 0 := by
-      rw [show (fun _ : E 2 => w) = Function.const (E 2) w from rfl, fderiv_const]; simp
-    simp only [hconst, inner_zero_right, zero_add]
-    -- θ = x.ofLp 0 and φ = x.ofLp 1 by let-binding, so the goal is defeq
+    -- Use HasFDerivAt.rotMφ_outer to compute the derivative
+    set pbar : Pose := ⟨0, θ, 0, φ, 0⟩ with hpbar_def
+    have hpbar : pbar.outerParams = x := by ext i; fin_cases i <;> rfl
+    have hfderiv_rotMφ : fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x = rotMφ' pbar S := by
+      have h := HasFDerivAt.rotMφ_outer pbar S
+      rw [hpbar] at h
+      exact h.fderiv
+    rw [hfderiv_rotMφ]
+    -- rotMφ' pbar S (e₀) = rotMθφ θ φ S since e₀ = [1, 0] and the first column is rotMθφ
+    simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, hpbar_def]
+    congr 1
+    ext i
+    simp only [Matrix.of_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
+      EuclideanSpace.single_apply, ↓reduceIte, mul_one,
+      show (1 : Fin 2) ≠ 0 from by decide, mul_zero, add_zero]
     rfl
   · -- (1, 0): uses rotMθφ (derivative of rotMθ w.r.t. φ)
-    -- First partial w.r.t. j=0 (θ) gives rotMθ
-    -- Second partial w.r.t. i=1 (φ) gives rotMθφ via hasDerivAt_rotMθ_φ
     refine ⟨rotMθφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθφ_norm_le_one _ _, ?_⟩
-    simp only [nth_partial]
+    -- The second partial of ⟪rotM S, w⟫ w.r.t. (φ, θ) equals ⟪rotMθφ S, w⟫
+    -- First partial ∂/∂θ gives ⟪rotMθ S, w⟫, then ∂/∂φ gives ⟪rotMθφ S, w⟫
     let θ := x.ofLp 0; let φ := x.ofLp 1
-    let e₀ : E 2 := EuclideanSpace.single 0 1
-    let e₁ : E 2 := EuclideanSpace.single 1 1
-    have hDiff : Differentiable ℝ fun y : E 2 => (rotM (y.ofLp 0) (y.ofLp 1)) S :=
-      Differentiable.rotM_outer S
-    -- First partial: fderiv of ⟪rotM S, w⟫ applied to e₀ gives ⟪rotMθ S, w⟫
-    have hfderiv_rotM : ∀ y : E 2, fderiv ℝ (fun z : E 2 => (rotM (z.ofLp 0) (z.ofLp 1)) S) y e₀ =
-        rotMθ (y.ofLp 0) (y.ofLp 1) S := by
+    have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
+      Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
+    -- First partial in direction e₀ gives ⟪rotMθ S, w⟫
+    have hfirst : ∀ y : E 2, (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 0 1) = ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
       intro y
-      let pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩
-      have hpbar_eq : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
-      have hrotM : HasFDerivAt (fun z => (rotM (z.ofLp 0) (z.ofLp 1)) S) (rotM' pbar S) y := by
-        convert HasFDerivAt.rotM_outer pbar S using 2; exact hpbar_eq.symm
-      rw [hrotM.fderiv]
-      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      have he0_0 : e₀.ofLp 0 = 1 := rfl
-      have he0_1 : e₀.ofLp 1 = 0 := by
-        show (EuclideanSpace.single 0 1 : E 2).ofLp 1 = 0
-        simp only [EuclideanSpace.single_apply, show (1 : Fin 2) ≠ 0 from by decide, if_false]
-      ext i; fin_cases i <;>
-        (simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two,
-          Matrix.of_apply, he0_0, he0_1, mul_one, mul_zero, add_zero]; rfl)
-    have hfunc_eq : (fun y => (fderiv ℝ (fun z : E 2 => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y) e₀) =
-        fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
-      ext y
-      have hInner := fderiv_inner_apply ℝ (hDiff y) (by fun_prop : DifferentiableAt ℝ (fun _ => w) y) e₀
-      rw [hInner, hfderiv_rotM y]
-      have h0 : (fderiv ℝ (fun _ : E 2 => w) y) e₀ = 0 := by
-        rw [show (fun _ : E 2 => w) = Function.const (E 2) w from rfl, fderiv_const]; simp
-      simp only [h0, inner_zero_right, zero_add]
-    -- Use change to match e₀ with the syntactic form in the goal
-    change (fderiv ℝ (fun x => (fderiv ℝ (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) x) e₀) x) e₁ =
-        ⟪rotMθφ (x.ofLp 0) (x.ofLp 1) S, w⟫
-    have step1 : fderiv ℝ (fun x => (fderiv ℝ (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) x) e₀) =
-        fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) := congrArg (fderiv ℝ) hfunc_eq
-    rw [step1]
-    -- Second partial: differentiate ⟪rotMθ S, w⟫ w.r.t. φ (direction e₁)
-    have hDiff2 : Differentiable ℝ fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S := by
-      intro y; rw [differentiableAt_piLp]; intro i; fin_cases i
-      · -- Component 0: -cos(θ) * S₀ - sin(θ) * S₁ + 0 * S₂
-        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-        -- The matrix lookups are definitionally equal to scalars, show that to fun_prop
-        show DifferentiableAt ℝ (fun x : E 2 => -Real.cos (x.ofLp 0) * S.ofLp 0 +
-            (-Real.sin (x.ofLp 0)) * S.ofLp 1 + 0 * S.ofLp 2) y
-        fun_prop
-      · -- Component 1: sin(θ) * cos(φ) * S₀ + (-cos(θ) * cos(φ)) * S₁ + 0 * S₂
-        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-        -- Row 1 of the matrix: [sin θ * cos φ, -cos θ * cos φ, 0]
-        -- Note: matrix has -cos θ * cos φ, NOT -(cos θ * cos φ)
-        show DifferentiableAt ℝ (fun x : E 2 =>
-            (Real.sin (x.ofLp 0) * Real.cos (x.ofLp 1)) * S.ofLp 0 +
-            (-Real.cos (x.ofLp 0) * Real.cos (x.ofLp 1)) * S.ofLp 1 +
-            0 * S.ofLp 2) y
-        fun_prop
-    have hInner2 := fderiv_inner_apply ℝ (hDiff2 x) (by fun_prop : DifferentiableAt ℝ (fun _ => w) x)
-    simp only [fderiv_const, Pi.zero_apply, ContinuousLinearMap.zero_apply,
-      inner_zero_right, add_zero] at hInner2
+      have hInner := fderiv_inner_apply ℝ (Differentiable.rotM_outer S y) (differentiableAt_const w) (EuclideanSpace.single 0 1)
+      rw [hInner]
+      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) y := hasFDerivAt_const w y
+      rw [hw.fderiv]
+      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add]
+      set pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ with hpbar_def
+      have hpbar : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
+      have hfderiv_rotM : fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' pbar S :=
+        (HasFDerivAt.rotM_outer pbar S).fderiv ▸ congrArg _ hpbar.symm
+      rw [hfderiv_rotM]
+      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, hpbar_def]
+      congr 1
+      ext i
+      simp only [Matrix.of_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
+        EuclideanSpace.single_apply, ↓reduceIte, mul_one,
+        show (1 : Fin 2) ≠ 0 from by decide, mul_zero, add_zero]
+    unfold nth_partial
+    show (fderiv ℝ (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 0 1)) x) (EuclideanSpace.single 1 1) = ⟪rotMθφ (x.ofLp 0) (x.ofLp 1) S, w⟫
+    have hinner_eq : (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 0 1)) = fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := funext hfirst
+    rw [show (fderiv ℝ (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 0 1)) x) = (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
+        from congrArg (fderiv ℝ · x) hinner_eq]
+    -- Second partial: differentiate ⟪rotMθ S, w⟫ w.r.t. φ
+    have hDiff2 : Differentiable ℝ (fun y : E 2 => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
+      apply Differentiable.inner ℝ
+      · intro y; rw [differentiableAt_piLp]; intro i
+        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
+      · intro y; exact differentiableAt_const w
+    have hInner2 : (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x) (EuclideanSpace.single 1 1) =
+        ⟪(fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x) (EuclideanSpace.single 1 1), w⟫ := by
+      have hf_diff : DifferentiableAt ℝ (fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S) x := by
+        rw [differentiableAt_piLp]; intro i
+        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
+      have hg_diff : DifferentiableAt ℝ (fun _ : E 2 => w) x := differentiableAt_const w
+      have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 1 1)
+      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
+      rw [hw.fderiv] at heq
+      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
+      exact heq
     rw [hInner2]
-    -- fderiv of rotMθ at x applied to e₁ = rotMθφ using hasDerivAt_rotMθ_φ
-    have hderiv := hasDerivAt_rotMθ_φ θ φ S
-    have hfderiv : fderiv ℝ (fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S) x e₁ = rotMθφ θ φ S := by
-      -- The directional derivative in direction e₁ = (0,1) equals the partial w.r.t. φ
-      -- Component 0 of rotMθ doesn't depend on φ, so derivative is 0
-      -- Component 1 derivative uses hasDerivAt_rotMθ_φ
-      ext i; fin_cases i
-      · -- First component: -cos θ * S₀ - sin θ * S₁ + 0 * S₂ doesn't depend on φ
-        simp only [rotMθ, rotMθφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue]
-        have h_comp0 : (fun y : E 2 => (rotMθ (y.ofLp 0) (y.ofLp 1) S).ofLp 0) =
-            fun y => -Real.cos (y.ofLp 0) * S.ofLp 0 + (-Real.sin (y.ofLp 0)) * S.ofLp 1 := by
-          ext y; simp [rotMθ, Matrix.toEuclideanLin_apply, dotProduct, Fin.sum_univ_three]
-        have heq : (fderiv ℝ (fun y : E 2 => (rotMθ (y.ofLp 0) (y.ofLp 1) S).ofLp 0) x) e₁ =
-            (fderiv ℝ (fun y => -Real.cos (y.ofLp 0) * S.ofLp 0 + (-Real.sin (y.ofLp 0)) * S.ofLp 1) x) e₁ := by
-          congr 2; exact h_comp0
-        rw [heq]
-        -- Derivative of -cos θ * S₀ - sin θ * S₁ w.r.t. φ (direction e₁) is 0
-        have hd : HasFDerivAt (fun y : E 2 => -Real.cos (y.ofLp 0) * S.ofLp 0 + (-Real.sin (y.ofLp 0)) * S.ofLp 1) _ x := by fun_prop
-        rw [hd.fderiv]; simp only [EuclideanSpace.single_apply, ↓reduceIte, Fin.one_eq_zero_iff,
-          mul_zero, add_zero]
-      · -- Second component: sin θ * cos φ * S₀ - cos θ * cos φ * S₁
-        -- Derivative w.r.t. φ is -sin θ * sin φ * S₀ + cos θ * sin φ * S₁
-        simp only [rotMθ, rotMθφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue]
-        have h_comp1 : (fun y : E 2 => (rotMθ (y.ofLp 0) (y.ofLp 1) S).ofLp 1) =
-            fun y => Real.sin (y.ofLp 0) * Real.cos (y.ofLp 1) * S.ofLp 0 +
-                     (-Real.cos (y.ofLp 0) * Real.cos (y.ofLp 1)) * S.ofLp 1 := by
-          ext y; simp [rotMθ, Matrix.toEuclideanLin_apply, dotProduct, Fin.sum_univ_three]; ring
-        have heq : (fderiv ℝ (fun y : E 2 => (rotMθ (y.ofLp 0) (y.ofLp 1) S).ofLp 1) x) e₁ =
-            (fderiv ℝ (fun y => Real.sin (y.ofLp 0) * Real.cos (y.ofLp 1) * S.ofLp 0 +
-                     (-Real.cos (y.ofLp 0) * Real.cos (y.ofLp 1)) * S.ofLp 1) x) e₁ := by
-          congr 2; exact h_comp1
-        rw [heq]
-        have hd : HasFDerivAt (fun y : E 2 => Real.sin (y.ofLp 0) * Real.cos (y.ofLp 1) * S.ofLp 0 +
-                     (-Real.cos (y.ofLp 0) * Real.cos (y.ofLp 1)) * S.ofLp 1) _ x := by fun_prop
-        rw [hd.fderiv]; simp only [EuclideanSpace.single_apply, ↓reduceIte, Fin.zero_eq_one_iff,
-          mul_one, mul_zero, add_zero]
-        simp only [rotMθφ, Matrix.of_apply, Fin.isValue, Matrix.cons_val_one, Matrix.head_cons,
-          mul_zero, add_zero]
-        ring
-    rw [hfderiv]
-    -- Simplify: fderiv of constant w is 0, and θ = x.ofLp 0, φ = x.ofLp 1
-    have hconst : (fderiv ℝ (fun _ : E 2 => w) x) e₁ = 0 := by
-      rw [show (fun _ : E 2 => w) = Function.const (E 2) w from rfl, fderiv_const]; simp
-    simp only [hconst, inner_zero_right, zero_add]
+    -- Use HasFDerivAt.rotMθ_outer to compute the derivative
+    set pbar : Pose := ⟨0, θ, 0, φ, 0⟩ with hpbar_def
+    have hpbar : pbar.outerParams = x := by ext i; fin_cases i <;> rfl
+    have hfderiv_rotMθ : fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x = rotMθ' pbar S := by
+      have h := HasFDerivAt.rotMθ_outer pbar S
+      rw [hpbar] at h
+      exact h.fderiv
+    rw [hfderiv_rotMθ]
+    -- rotMθ' pbar S (e₁) = rotMθφ θ φ S since e₁ = [0, 1] and the second column is rotMθφ
+    simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, hpbar_def]
+    congr 1
+    ext i
+    simp only [Matrix.of_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
+      EuclideanSpace.single_apply, ↓reduceIte, mul_one,
+      show (0 : Fin 2) ≠ 1 from by decide, mul_zero, zero_add]
     rfl
-  · -- (1, 1): uses rotMφφ (derivative of rotMφ w.r.t. φ)
-    -- First partial w.r.t. j=1 (φ) gives rotMφ
-    -- Second partial w.r.t. i=1 (φ) gives rotMφφ via hasDerivAt_rotMφ_φ
+  · -- (1, 1): uses rotMφφ
     refine ⟨rotMφφ (x.ofLp 0) (x.ofLp 1), Bounding.rotMφφ_norm_le_one _ _, ?_⟩
-    simp only [nth_partial]
+    -- The second partial of ⟪rotM S, w⟫ w.r.t. (φ, φ) equals ⟪rotMφφ S, w⟫
+    -- First partial ∂/∂φ gives ⟪rotMφ S, w⟫, then ∂/∂φ again gives ⟪rotMφφ S, w⟫
     let θ := x.ofLp 0; let φ := x.ofLp 1
-    let e₁ : E 2 := EuclideanSpace.single 1 1
-    have hDiff : Differentiable ℝ fun y : E 2 => (rotM (y.ofLp 0) (y.ofLp 1)) S :=
-      Differentiable.rotM_outer S
-    -- First partial: fderiv of ⟪rotM S, w⟫ applied to e₁ gives ⟪rotMφ S, w⟫
-    have hfderiv_rotM : ∀ y : E 2, fderiv ℝ (fun z : E 2 => (rotM (z.ofLp 0) (z.ofLp 1)) S) y e₁ =
-        rotMφ (y.ofLp 0) (y.ofLp 1) S := by
+    have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
+      Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
+    -- First partial in direction e₁ gives ⟪rotMφ S, w⟫
+    have hfirst : ∀ y : E 2, (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 1 1) = ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
       intro y
-      let pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩
-      have hpbar_eq : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
-      have hrotM : HasFDerivAt (fun z => (rotM (z.ofLp 0) (z.ofLp 1)) S) (rotM' pbar S) y := by
-        convert HasFDerivAt.rotM_outer pbar S using 2; exact hpbar_eq.symm
-      rw [hrotM.fderiv]
-      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      have he1_0 : e₁.ofLp 0 = 0 := by
-        show (EuclideanSpace.single 1 1 : E 2).ofLp 0 = 0
-        simp only [EuclideanSpace.single_apply, show (0 : Fin 2) ≠ 1 from by decide, if_false]
-      have he1_1 : e₁.ofLp 1 = 1 := rfl
-      ext i; fin_cases i <;>
-        (simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two,
-          Matrix.of_apply, he1_0, he1_1, mul_one, mul_zero, zero_add]; rfl)
-    have hfunc_eq : (fun y => (fderiv ℝ (fun z : E 2 => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y) e₁) =
-        fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
-      ext y
-      have hInner := fderiv_inner_apply ℝ (hDiff y) (by fun_prop : DifferentiableAt ℝ (fun _ => w) y) e₁
-      rw [hInner, hfderiv_rotM y]
-      have h0 : (fderiv ℝ (fun _ : E 2 => w) y) e₁ = 0 := by
-        rw [show (fun _ : E 2 => w) = Function.const (E 2) w from rfl, fderiv_const]; simp
-      simp only [h0, inner_zero_right, zero_add]
-    -- Use change to match e₁ with the syntactic form in the goal
-    change (fderiv ℝ (fun x => (fderiv ℝ (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) x) e₁) x) e₁ =
-        ⟪rotMφφ (x.ofLp 0) (x.ofLp 1) S, w⟫
-    have step1 : fderiv ℝ (fun x => (fderiv ℝ (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) x) e₁) =
-        fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) := congrArg (fderiv ℝ) hfunc_eq
-    rw [step1]
-    -- Second partial: differentiate ⟪rotMφ S, w⟫ w.r.t. φ (direction e₁)
-    have hDiff2 : Differentiable ℝ fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S := by
-      intro y; rw [differentiableAt_piLp]; intro i; fin_cases i
-      · -- Component 0: always 0 (first row is [0, 0, 0])
-        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-        show DifferentiableAt ℝ (fun _ : E 2 => (0 : ℝ) * S.ofLp 0 + 0 * S.ofLp 1 + 0 * S.ofLp 2) y
-        fun_prop
-      · -- Component 1: cos(θ)*sin(φ)*S₀ + sin(θ)*sin(φ)*S₁ + cos(φ)*S₂
-        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-        show DifferentiableAt ℝ (fun x : E 2 =>
-            (Real.cos (x.ofLp 0) * Real.sin (x.ofLp 1)) * S.ofLp 0 +
-            (Real.sin (x.ofLp 0) * Real.sin (x.ofLp 1)) * S.ofLp 1 +
-            (Real.cos (x.ofLp 1)) * S.ofLp 2) y
-        fun_prop
-    have hInner2 := fderiv_inner_apply ℝ (hDiff2 x) (by fun_prop : DifferentiableAt ℝ (fun _ => w) x)
-    simp only [fderiv_const, Pi.zero_apply, ContinuousLinearMap.zero_apply,
-      inner_zero_right, add_zero] at hInner2
+      have hInner := fderiv_inner_apply ℝ (Differentiable.rotM_outer S y) (differentiableAt_const w) (EuclideanSpace.single 1 1)
+      rw [hInner]
+      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) y := hasFDerivAt_const w y
+      rw [hw.fderiv]
+      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add]
+      set pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ with hpbar_def
+      have hpbar : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
+      have hfderiv_rotM : fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' pbar S :=
+        (HasFDerivAt.rotM_outer pbar S).fderiv ▸ congrArg _ hpbar.symm
+      rw [hfderiv_rotM]
+      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, hpbar_def]
+      congr 1
+      ext i
+      simp only [Matrix.of_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
+        EuclideanSpace.single_apply, ↓reduceIte, mul_one,
+        show (0 : Fin 2) ≠ 1 from by decide, mul_zero, zero_add]
+    unfold nth_partial
+    show (fderiv ℝ (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 1 1)) x) (EuclideanSpace.single 1 1) = ⟪rotMφφ (x.ofLp 0) (x.ofLp 1) S, w⟫
+    have hinner_eq : (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 1 1)) = fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := funext hfirst
+    rw [show (fderiv ℝ (fun y : E 2 => (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
+        (EuclideanSpace.single 1 1)) x) = (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
+        from congrArg (fderiv ℝ · x) hinner_eq]
+    -- Second partial: differentiate ⟪rotMφ S, w⟫ w.r.t. φ
+    have hDiff2 : Differentiable ℝ (fun y : E 2 => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
+      apply Differentiable.inner ℝ
+      · intro y; rw [differentiableAt_piLp]; intro i
+        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases i
+        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+      · intro y; exact differentiableAt_const w
+    have hInner2 : (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x) (EuclideanSpace.single 1 1) =
+        ⟪(fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x) (EuclideanSpace.single 1 1), w⟫ := by
+      have hf_diff : DifferentiableAt ℝ (fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S) x := by
+        rw [differentiableAt_piLp]; intro i
+        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases i
+        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+      have hg_diff : DifferentiableAt ℝ (fun _ : E 2 => w) x := differentiableAt_const w
+      have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 1 1)
+      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
+      rw [hw.fderiv] at heq
+      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
+      exact heq
     rw [hInner2]
-    -- fderiv of rotMφ at x applied to e₁ = rotMφφ using hasDerivAt_rotMφ_φ
-    have hderiv := hasDerivAt_rotMφ_φ θ φ S
-    have hfderiv : fderiv ℝ (fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S) x e₁ = rotMφφ θ φ S := by
-      -- The directional derivative in direction e₁ = (0,1) equals the partial w.r.t. φ
-      -- Component 0 of rotMφ is always 0 (first row is [0, 0, 0])
-      -- Component 1 derivative uses the φ-derivative of sin φ → cos φ and cos φ → -sin φ
-      ext i; fin_cases i
-      · -- First component: 0 (constant), derivative is 0
-        simp only [rotMφ, rotMφφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue]
-        have h_comp0 : (fun y : E 2 => (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 0) =
-            fun _ => (0 : ℝ) := by
-          ext y; simp [rotMφ, Matrix.toEuclideanLin_apply, dotProduct, Fin.sum_univ_three,
-            Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons]
-        have hconst0 : (fderiv ℝ (fun y : E 2 => (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 0) x) e₁ =
-            (fderiv ℝ (fun _ : E 2 => (0 : ℝ)) x) e₁ := by congr 2; exact h_comp0
-        rw [hconst0]; simp [fderiv_const]
-      · -- Second component: cos θ * sin φ * S₀ + sin θ * sin φ * S₁ + cos φ * S₂
-        -- Derivative w.r.t. φ: cos θ * cos φ * S₀ + sin θ * cos φ * S₁ - sin φ * S₂
-        simp only [rotMφ, rotMφφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-          Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue]
-        have h_comp1 : (fun y : E 2 => (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 1) =
-            fun y => Real.cos (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 0 +
-                     Real.sin (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 1 +
-                     Real.cos (y.ofLp 1) * S.ofLp 2 := by
-          ext y; simp [rotMφ, Matrix.toEuclideanLin_apply, dotProduct, Fin.sum_univ_three]
-        have heq : (fderiv ℝ (fun y : E 2 => (rotMφ (y.ofLp 0) (y.ofLp 1) S).ofLp 1) x) e₁ =
-            (fderiv ℝ (fun y => Real.cos (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 0 +
-                     Real.sin (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 1 +
-                     Real.cos (y.ofLp 1) * S.ofLp 2) x) e₁ := by
-          congr 2; exact h_comp1
-        rw [heq]
-        have hd : HasFDerivAt (fun y : E 2 => Real.cos (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 0 +
-                     Real.sin (y.ofLp 0) * Real.sin (y.ofLp 1) * S.ofLp 1 +
-                     Real.cos (y.ofLp 1) * S.ofLp 2) _ x := by fun_prop
-        rw [hd.fderiv]; simp only [EuclideanSpace.single_apply, ↓reduceIte, Fin.zero_eq_one_iff,
-          mul_one, mul_zero, add_zero]
-        simp only [rotMφφ, Matrix.of_apply, Fin.isValue, Matrix.cons_val_one, Matrix.head_cons,
-          mul_zero, add_zero]
-        ring
-    rw [hfderiv]
-    -- Simplify: fderiv of constant w is 0, and θ = x.ofLp 0, φ = x.ofLp 1
-    have hconst : (fderiv ℝ (fun _ : E 2 => w) x) e₁ = 0 := by
-      rw [show (fun _ : E 2 => w) = Function.const (E 2) w from rfl, fderiv_const]; simp
-    simp only [hconst, inner_zero_right, zero_add]
+    -- Use HasFDerivAt.rotMφ_outer to compute the derivative
+    set pbar : Pose := ⟨0, θ, 0, φ, 0⟩ with hpbar_def
+    have hpbar : pbar.outerParams = x := by ext i; fin_cases i <;> rfl
+    have hfderiv_rotMφ : fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x = rotMφ' pbar S := by
+      have h := HasFDerivAt.rotMφ_outer pbar S
+      rw [hpbar] at h
+      exact h.fderiv
+    rw [hfderiv_rotMφ]
+    -- rotMφ' pbar S (e₁) = rotMφφ θ φ S since e₁ = [0, 1] and the second column is rotMφφ
+    simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply, hpbar_def]
+    congr 1
+    ext i
+    simp only [Matrix.of_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_two,
+      EuclideanSpace.single_apply, ↓reduceIte, mul_one,
+      show (0 : Fin 2) ≠ 1 from by decide, mul_zero, zero_add]
     rfl
-
--- Helper: composition norm bounds for rotation matrices
-private lemma comp_rotR_norm_le (α : ℝ) (A : ℝ³ →L[ℝ] ℝ²) (hA : ‖A‖ ≤ 1) :
-    ‖rotR α ∘L A‖ ≤ 1 := by
-  calc ‖rotR α ∘L A‖ ≤ ‖rotR α‖ * ‖A‖ := ContinuousLinearMap.opNorm_comp_le _ _
-    _ = 1 * ‖A‖ := by rw [Bounding.rotR_norm_one]
-    _ ≤ 1 * 1 := by apply mul_le_mul_of_nonneg_left hA; norm_num
-    _ = 1 := by ring
-
-private lemma comp_rotR'_norm_le (α : ℝ) (A : ℝ³ →L[ℝ] ℝ²) (hA : ‖A‖ ≤ 1) :
-    ‖rotR' α ∘L A‖ ≤ 1 := by
-  calc ‖rotR' α ∘L A‖ ≤ ‖rotR' α‖ * ‖A‖ := ContinuousLinearMap.opNorm_comp_le _ _
-    _ = 1 * ‖A‖ := by rw [Bounding.rotR'_norm_one]
-    _ ≤ 1 * 1 := by apply mul_le_mul_of_nonneg_left hA; norm_num
-    _ = 1 := by ring
-
-private lemma neg_rotR_comp_rotM_norm_le (α θ φ : ℝ) :
-    ‖-(rotR α ∘L rotM θ φ)‖ ≤ 1 := by
-  rw [norm_neg]
-  calc ‖rotR α ∘L rotM θ φ‖ ≤ ‖rotR α‖ * ‖rotM θ φ‖ := ContinuousLinearMap.opNorm_comp_le _ _
-    _ = 1 * 1 := by rw [Bounding.rotR_norm_one, Bounding.rotM_norm_one]
-    _ = 1 := by ring
-
--- Helper lemma for the inner case: the second partial of ⟪rotprojRM S, w⟫ is bounded.
--- The 9 cases correspond to all pairs of derivatives w.r.t. (α, θ, φ).
--- Each second partial equals ⟪A S, w⟫ where A is a composition of rotation matrices with ‖A‖ ≤ 1.
-private lemma second_partial_inner_bound (S : ℝ³) (w : ℝ²) (x : ℝ³) (i j : Fin 3) :
-    |nth_partial i (nth_partial j (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) x| ≤
-    ‖S‖ * ‖w‖ := by
-  -- Variables: y 0 = α, y 1 = θ, y 2 = φ
-  -- The operators A for each (i,j) pair and their norm bounds:
-  --   (0,0): -(rotR ∘ rotM) → ‖·‖ ≤ 1 by neg_rotR_comp_rotM_norm_le
-  --   (0,1), (1,0): rotR' ∘ rotMθ → ‖·‖ ≤ 1 by comp_rotR'_norm_le + rotMθ_norm_le_one
-  --   (0,2), (2,0): rotR' ∘ rotMφ → ‖·‖ ≤ 1 by comp_rotR'_norm_le + rotMφ_norm_le_one
-  --   (1,1): rotR ∘ rotMθθ → ‖·‖ ≤ 1 by comp_rotR_norm_le + rotMθθ_norm_le_one
-  --   (1,2), (2,1): rotR ∘ rotMθφ → ‖·‖ ≤ 1 by comp_rotR_norm_le + rotMθφ_norm_le_one
-  --   (2,2): rotR ∘ rotMφφ → ‖·‖ ≤ 1 by comp_rotR_norm_le + rotMφφ_norm_le_one
-  -- The detailed proof showing each second partial equals ⟪A S, w⟫ follows
-  -- the same pattern as second_partial_inner_rotM_outer but with more cases.
-  -- Each case uses chain rule + fderiv_inner_apply, then applies inner_product_norm_bound.
-  sorry
 
 /- [SY25] Lemma 19 -/
 theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     mixed_partials_bounded (rotproj_inner_unit S w) := by
-  -- The inner case has 9 second partials (3x3 grid for α, θ, φ)
-  -- Each second partial of ⟪rotR α (rotM θ φ S), w⟫ / ‖S‖ involves a composition of
-  -- rotation matrices applied to S, and all have operator norm ≤ 1
-  by_cases hS : ‖S‖ = 0
-  · -- When ‖S‖ = 0, the function is constantly 0
-    intro x i j
-    have hzero : rotproj_inner_unit S w = 0 := by ext y; simp [rotproj_inner_unit, hS]
-    have h1 : nth_partial j (rotproj_inner_unit S w) = 0 := by
-      ext y
-      simp only [nth_partial, hzero]
-      rw [fderiv_zero]
-      simp
-    simp only [nth_partial, h1]
-    rw [fderiv_zero]
-    simp
-  · -- When ‖S‖ ≠ 0
-    have S_pos : ‖S‖ > 0 := (norm_nonneg S).lt_of_ne' hS
-    intro x i j
-    -- The function is rotproj_inner_unit S w = (fun y => ⟪rotprojRM ... S, w⟫) / ‖S‖
-    -- Its second partial equals (second partial of inner product) / ‖S‖
-    have heq : rotproj_inner_unit S w = fun y => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫ / ‖S‖ := by
-      ext y; rfl
-    -- The second partial of f/c is (second partial of f) / c
-    have hscale : nth_partial i (nth_partial j (rotproj_inner_unit S w)) x =
-        nth_partial i (nth_partial j (fun y => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) x / ‖S‖ := by
-      have hdiv : rotproj_inner_unit S w =
-          (‖S‖⁻¹ : ℝ) • (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫) := by
-        ext y; simp [rotproj_inner_unit, div_eq_inv_mul, smul_eq_mul]
-      rw [hdiv]
-      have hDiff : Differentiable ℝ (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫) := by
-        simp only [inner, rotprojRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
-        fun_prop
-      have hpart_j : nth_partial j (‖S‖⁻¹ • (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) =
-          ‖S‖⁻¹ • (nth_partial j (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) := by
-        ext y
-        simp only [nth_partial, Pi.smul_apply, smul_eq_mul]
-        rw [fderiv_const_smul (hDiff y) ‖S‖⁻¹]
-        simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
-      rw [hpart_j]
-      have hDiff2 : Differentiable ℝ (nth_partial j (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) := by
-        have hsmooth : ContDiff ℝ 2 (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫) := by
-          have h_unit := rotation_partials_exist S_pos (w := w)
-          have h_smul : (fun y : ℝ³ => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫) =
-              ‖S‖ • (rotproj_inner_unit S w) := by
-            ext y; simp [rotproj_inner_unit, smul_eq_mul, mul_div_cancel₀ _ (ne_of_gt S_pos)]
-          rw [h_smul]
-          exact ContDiff.const_smul ‖S‖ h_unit
-        have h2eq : (2 : WithTop ℕ∞) = 1 + 1 := by norm_num
-        rw [h2eq, contDiff_succ_iff_fderiv_apply] at hsmooth
-        obtain ⟨hDiff_f, _, h_fderiv_contdiff⟩ := hsmooth
-        have h_partial_contdiff := h_fderiv_contdiff (EuclideanSpace.single j 1)
-        exact h_partial_contdiff.differentiable one_ne_zero
-      simp only [nth_partial]
-      rw [fderiv_const_smul (hDiff2 x) ‖S‖⁻¹]
-      simp only [ContinuousLinearMap.smul_apply, smul_eq_mul, div_eq_inv_mul]
-    rw [hscale]
-    -- Now we need to show the second partial of ⟪rotprojRM S, w⟫ is bounded by ‖S‖
-    -- The second partial has the form ⟪A S, w⟫ where A is a composition of rotation matrices
-    -- with ‖A‖ ≤ 1, so |⟪A S, w⟫| ≤ ‖A S‖ * ‖w‖ ≤ ‖A‖ * ‖S‖ * ‖w‖ ≤ ‖S‖
-    -- Therefore |second partial / ‖S‖| ≤ 1
-    -- The proof is complex since rotproj has 3 variables, giving 9 cases
-    -- Each case involves compositions like rotR ∘ rotMθθ, rotR' ∘ rotMθ, etc.
-    -- All these compositions have operator norm ≤ 1 since ‖rotR‖ = ‖rotR'‖ = 1 and ‖rotM*‖ ≤ 1
-    -- For now, we use a computation-based approach
-    have hbound : |nth_partial i (nth_partial j (fun y => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) x| ≤ ‖S‖ := by
-      calc |nth_partial i (nth_partial j (fun y => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) x|
-          ≤ ‖S‖ * ‖w‖ := second_partial_inner_bound S w x i j
-        _ = ‖S‖ := by rw [w_unit, mul_one]
-    calc |nth_partial i (nth_partial j (fun y => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) x / ‖S‖|
-        = |nth_partial i (nth_partial j (fun y => ⟪rotprojRM (y 1) (y 2) (y 0) S, w⟫)) x| / ‖S‖ := by
-          rw [abs_div, abs_of_pos S_pos]
-      _ ≤ ‖S‖ / ‖S‖ := by gcongr
-      _ = 1 := div_self (ne_of_gt S_pos)
+  sorry
 
 theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     mixed_partials_bounded (rotproj_outer_unit S w) := by
@@ -1453,43 +1482,41 @@ theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
     -- nth_partial i (nth_partial j (f / c)) = nth_partial i (nth_partial j f) / c
     have hscale : nth_partial i (nth_partial j (rotproj_outer_unit S w)) x =
         nth_partial i (nth_partial j (fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x / ‖S‖ := by
-      -- f/c = c⁻¹ • f where c = ‖S‖
-      have hdiv : rotproj_outer_unit S w =
-          (‖S‖⁻¹ : ℝ) • (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
-        ext y; simp [rotproj_outer_unit, div_eq_inv_mul, smul_eq_mul]
-      rw [hdiv]
-      -- Use fderiv_const_smul twice
-      have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
-        Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
-      -- Show nth_partial j of (c • f) = c • (nth_partial j f)
-      have hpart_j : nth_partial j (‖S‖⁻¹ • (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) =
-          ‖S‖⁻¹ • (nth_partial j (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) := by
+      -- rotproj_outer_unit S w = f / ‖S‖ where f = ⟪rotM · S, w⟫
+      -- nth_partial is ℝ-linear, so nth_partial(f/c) = nth_partial(f)/c
+      rw [heq]
+      -- The function f/‖S‖ where f = ⟪rotM · S, w⟫ can be written as ‖S‖⁻¹ • f
+      let f : E 2 → ℝ := fun y => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫
+      have hfun : (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫ / ‖S‖) = ‖S‖⁻¹ • f := by
+        ext y; simp [smul_eq_mul, div_eq_inv_mul, f]
+      rw [hfun]; clear hfun
+      -- f is smooth (polynomial in sin/cos)
+      have hf_smooth : ContDiff ℝ ⊤ f := by
+        apply ContDiff.inner ℝ _ contDiff_const
+        rw [contDiff_piLp]; intro k
+        simp only [f, rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        fin_cases k <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
+      have hf_diff : Differentiable ℝ f := hf_smooth.differentiable WithTop.top_ne_zero
+      -- Key lemma: nth_partial j (c • f) = c • nth_partial j f for constant c
+      have hpartial_smul : nth_partial j (‖S‖⁻¹ • f) = ‖S‖⁻¹ • nth_partial j f := by
         ext y
         simp only [nth_partial, Pi.smul_apply, smul_eq_mul]
-        rw [fderiv_const_smul (hDiff y) ‖S‖⁻¹]
+        rw [fderiv_const_smul (c := ‖S‖⁻¹) (hf_diff y)]
         simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
-      rw [hpart_j]
-      -- Show nth_partial i of (c • g) = c • (nth_partial i g)
-      have hDiff2 : Differentiable ℝ (nth_partial j (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) := by
-        -- nth_partial j f y = (fderiv f y) e_j is differentiable when f is C²
-        -- Use contDiff_succ_iff_fderiv_apply to convert ContDiff 2 to differentiability of partial
-        have hsmooth : ContDiff ℝ 2 (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
-          -- rotproj_outer_unit S w = f / ‖S‖ is ContDiff 2, so f = ‖S‖ * rotproj_outer_unit is too
-          have h_unit := rotation_partials_exist_outer S_pos (w := w)
-          have h_smul : (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) =
-              ‖S‖ • (rotproj_outer_unit S w) := by
-            ext y; simp [rotproj_outer_unit, smul_eq_mul, mul_div_cancel₀ _ (ne_of_gt S_pos)]
-          rw [h_smul]
-          exact ContDiff.const_smul ‖S‖ h_unit
-        -- 2 = 1 + 1 as WithTop ℕ∞
-        have h2eq : (2 : WithTop ℕ∞) = 1 + 1 := by norm_num
-        rw [h2eq, contDiff_succ_iff_fderiv_apply] at hsmooth
-        obtain ⟨hDiff_f, _, h_fderiv_contdiff⟩ := hsmooth
-        have h_partial_contdiff := h_fderiv_contdiff (EuclideanSpace.single j 1)
-        exact h_partial_contdiff.differentiable one_ne_zero
-      simp only [nth_partial]
-      rw [fderiv_const_smul (hDiff2 x) ‖S‖⁻¹]
-      simp only [ContinuousLinearMap.smul_apply, smul_eq_mul, div_eq_inv_mul]
+      rw [hpartial_smul]
+      -- g = nth_partial j f is also smooth
+      have hg : ContDiff ℝ ⊤ (nth_partial j f) := by
+        unfold nth_partial
+        exact hf_smooth.fderiv_right le_top |>.clm_apply contDiff_const
+      have hg_diff : Differentiable ℝ (nth_partial j f) := hg.differentiable WithTop.top_ne_zero
+      -- Again: nth_partial i (c • g) = c • nth_partial i g
+      have hpartial_smul2 : nth_partial i (‖S‖⁻¹ • nth_partial j f) = ‖S‖⁻¹ • nth_partial i (nth_partial j f) := by
+        ext y
+        simp only [nth_partial, Pi.smul_apply, smul_eq_mul]
+        rw [fderiv_const_smul (c := ‖S‖⁻¹) (hg_diff y)]
+        simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
+      rw [hpartial_smul2]
+      simp only [Pi.smul_apply, smul_eq_mul, div_eq_inv_mul, f]
 
     -- Get the existence of A with norm bound
     obtain ⟨A, hAnorm, hAeq⟩ := second_partial_inner_rotM_outer S w x i j
