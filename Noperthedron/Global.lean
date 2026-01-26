@@ -1474,7 +1474,51 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
   -- Each case shows the second partial is ⟪A S, w⟫ where A is a composition
   -- of rotR/rotR' with rotM/rotMθ/rotMφ/rotMθθ/rotMθφ/rotMφφ
   -- All such compositions have ‖A‖ ≤ 1 by comp_norm_le_one
-  sorry
+  --
+  -- Variables: x 0 = α, x 1 = θ, x 2 = φ (note: rotprojRM takes θ φ α)
+  -- rotproj_inner S w x = ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫
+  --                     = ⟪rotR (x 0) (rotM (x 1) (x 2) S), w⟫
+  let α := x.ofLp 0; let θ := x.ofLp 1; let φ := x.ofLp 2
+  fin_cases i <;> fin_cases j
+  · -- (0, 0): ∂²/∂α² → -(rotR α ∘L rotM θ φ)
+    -- rotR'' = -rotR, so the second α-derivative of rotR is -rotR
+    refine ⟨-(rotR α ∘L rotM θ φ), ?_, ?_⟩
+    · -- Norm bound: ‖-(rotR ∘L rotM)‖ ≤ 1
+      exact neg_comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (le_of_eq (Bounding.rotM_norm_one θ φ))
+    · -- The second partial equals ⟪-(rotR ∘L rotM) S, w⟫
+      sorry
+  · -- (0, 1): ∂²/∂α∂θ → rotR' α ∘L rotMθ θ φ
+    refine ⟨rotR' α ∘L rotMθ θ φ, ?_, ?_⟩
+    · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMθ_norm_le_one θ φ)
+    · sorry
+  · -- (0, 2): ∂²/∂α∂φ → rotR' α ∘L rotMφ θ φ
+    refine ⟨rotR' α ∘L rotMφ θ φ, ?_, ?_⟩
+    · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMφ_norm_le_one θ φ)
+    · sorry
+  · -- (1, 0): ∂²/∂θ∂α → rotR' α ∘L rotMθ θ φ (same as (0,1) by symmetry)
+    refine ⟨rotR' α ∘L rotMθ θ φ, ?_, ?_⟩
+    · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMθ_norm_le_one θ φ)
+    · sorry
+  · -- (1, 1): ∂²/∂θ² → rotR α ∘L rotMθθ θ φ
+    refine ⟨rotR α ∘L rotMθθ θ φ, ?_, ?_⟩
+    · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMθθ_norm_le_one θ φ)
+    · sorry
+  · -- (1, 2): ∂²/∂θ∂φ → rotR α ∘L rotMθφ θ φ
+    refine ⟨rotR α ∘L rotMθφ θ φ, ?_, ?_⟩
+    · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMθφ_norm_le_one θ φ)
+    · sorry
+  · -- (2, 0): ∂²/∂φ∂α → rotR' α ∘L rotMφ θ φ (same as (0,2) by symmetry)
+    refine ⟨rotR' α ∘L rotMφ θ φ, ?_, ?_⟩
+    · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMφ_norm_le_one θ φ)
+    · sorry
+  · -- (2, 1): ∂²/∂φ∂θ → rotR α ∘L rotMθφ θ φ (same as (1,2) by symmetry)
+    refine ⟨rotR α ∘L rotMθφ θ φ, ?_, ?_⟩
+    · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMθφ_norm_le_one θ φ)
+    · sorry
+  · -- (2, 2): ∂²/∂φ² → rotR α ∘L rotMφφ θ φ
+    refine ⟨rotR α ∘L rotMφφ θ φ, ?_, ?_⟩
+    · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMφφ_norm_le_one θ φ)
+    · sorry
 
 /- [SY25] Lemma 19 -/
 theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
