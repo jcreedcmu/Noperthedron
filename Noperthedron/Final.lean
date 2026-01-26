@@ -30,14 +30,10 @@ theorem no_nopert_pose : ¬ ∃ v : Pose, RupertPose v nopert.hull := by
 There is no purely rotational pose that makes the Noperthedron have the Rupert property
 -/
 theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, RupertPose p.zeroOffset nopert.hull := by
-  intro r
-  obtain ⟨p, r⟩ := r
-  -- pose_of_matrix_pose gives us δ and a Pose v such that v.matrixPoseOfPose = p.zeroOffset.rotateBy δ
+  rintro ⟨p, r⟩
   obtain ⟨δ, v, e⟩ := pose_of_matrix_pose p
-  -- TODO: Need RupertPose_rotateBy_iff to show RupertPose (p.zeroOffset.rotateBy δ) ↔ RupertPose p.zeroOffset
-  -- This is proved in the Rz-invariance PR.
-  have h_rotateBy : RupertPose (p.zeroOffset.rotateBy δ) nopert.hull := by sorry
-  exact no_nopert_pose ⟨v, (converted_pose_rupert_iff v nopert.hull).mpr (e ▸ h_rotateBy)⟩
+  exact no_nopert_pose ⟨v, (converted_pose_rupert_iff v nopert.hull).mpr <|
+    e ▸ (MatrixPose.RupertPose_rotateBy_iff p.zeroOffset δ nopert.hull).mpr r⟩
 
 /--
 There is no pose that makes the Noperthedron have the Rupert property
