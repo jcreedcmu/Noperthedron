@@ -1127,6 +1127,19 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
                  neg_mul, proj0, proj1, PiLp.proj_apply]
       ring
 
+-- Composition norm bounds for inner projection second derivatives
+-- All compositions have norm ≤ 1 since ‖rotR‖ = ‖rotR'‖ = 1 and ‖rotM*‖ ≤ 1
+private lemma comp_norm_le_one {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
+    ‖A ∘L B‖ ≤ 1 := by
+  calc ‖A ∘L B‖ ≤ ‖A‖ * ‖B‖ := ContinuousLinearMap.opNorm_comp_le A B
+    _ ≤ 1 * 1 := by apply mul_le_mul hA hB (norm_nonneg _) (by linarith)
+    _ = 1 := by ring
+
+private lemma neg_comp_norm_le_one {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
+    ‖-(A ∘L B)‖ ≤ 1 := by
+  rw [norm_neg]
+  exact comp_norm_le_one hA hB
+
 -- The second partial derivatives of the inner-rotM function
 -- Each equals ⟪A S, w⟫ where A ∈ {rotMθθ, rotMθφ, rotMφφ}
 -- These follow from differentiating rotM twice using hasDerivAt_rotMθ_θ etc.
@@ -1443,10 +1456,105 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
       show (0 : Fin 2) ≠ 1 from by decide, mul_zero, zero_add]
     rfl
 
+-- The second partial derivatives of the inner-rotprojRM function (3 variables: α, θ, φ)
+-- Each equals ⟪A S, w⟫ where A is a composition of rotation matrices with ‖A‖ ≤ 1
+-- Variables: x 0 = α, x 1 = θ, x 2 = φ
+-- rotprojRM θ φ α S = rotR α (rotM θ φ S)
+-- Second partials:
+--   (0,0): ∂²/∂α² → -rotR ∘ rotM (rotR'' = -rotR)
+--   (0,1), (1,0): ∂²/∂α∂θ → rotR' ∘ rotMθ
+--   (0,2), (2,0): ∂²/∂α∂φ → rotR' ∘ rotMφ
+--   (1,1): ∂²/∂θ² → rotR ∘ rotMθθ
+--   (1,2), (2,1): ∂²/∂θ∂φ → rotR ∘ rotMθφ
+--   (2,2): ∂²/∂φ² → rotR ∘ rotMφφ
+private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) (i j : Fin 3) :
+    ∃ A : ℝ³ →L[ℝ] ℝ², ‖A‖ ≤ 1 ∧
+      nth_partial i (nth_partial j (rotproj_inner S w)) x = ⟪A S, w⟫ := by
+  -- The proof requires 9 case analyses similar to the outer case
+  -- Each case shows the second partial is ⟪A S, w⟫ where A is a composition
+  -- of rotR/rotR' with rotM/rotMθ/rotMφ/rotMθθ/rotMθφ/rotMφφ
+  -- All such compositions have ‖A‖ ≤ 1 by comp_norm_le_one
+  sorry
+
 /- [SY25] Lemma 19 -/
 theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     mixed_partials_bounded (rotproj_inner_unit S w) := by
-  sorry
+  -- First handle the case when ‖S‖ = 0
+  by_cases hS : ‖S‖ = 0
+  · -- When ‖S‖ = 0, the function is constantly 0
+    intro x i j
+    have hzero : rotproj_inner_unit S w = 0 := by ext y; simp [rotproj_inner_unit, hS]
+    have h1 : nth_partial j (rotproj_inner_unit S w) = 0 := by
+      ext y
+      simp only [nth_partial, hzero]
+      rw [fderiv_zero]
+      simp
+    simp only [nth_partial, h1]
+    rw [fderiv_zero]
+    simp
+  · -- When ‖S‖ ≠ 0, we have S_nonzero : ‖S‖ > 0
+    have S_pos : ‖S‖ > 0 := (norm_nonneg S).lt_of_ne' hS
+    intro x i j
+    -- The function is rotproj_inner_unit S w = (rotproj_inner S w) / ‖S‖
+    -- Its second partial equals (second partial of inner product) / ‖S‖
+    -- By second_partial_inner_rotM_inner, the second partial of rotproj_inner is ⟪A S, w⟫
+    -- where ‖A‖ ≤ 1, so the full second partial is ⟪A S, w⟫ / ‖S‖
+    -- By inner_bound_helper, this has absolute value ≤ 1
+
+    have heq : rotproj_inner_unit S w = fun y => rotproj_inner S w y / ‖S‖ := by
+      ext y; rfl
+
+    -- The function rotproj_inner is smooth (it's ‖S‖ times rotproj_inner_unit which is ContDiff ℝ 2)
+    have hf_smooth : ContDiff ℝ 2 (rotproj_inner S w) := by
+      have heq_inner : rotproj_inner S w = ‖S‖ • rotproj_inner_unit S w := by
+        ext x; simp [rotproj_inner, rotproj_inner_unit, mul_div_cancel₀ _ (ne_of_gt S_pos)]
+      rw [heq_inner]
+      have h2 : ContDiff ℝ 2 (rotproj_inner_unit S w) := rotation_partials_exist S_pos
+      exact contDiff_const.smul h2
+
+    -- The second partial of f/‖S‖ is (second partial of f) / ‖S‖
+    have hscale : nth_partial i (nth_partial j (rotproj_inner_unit S w)) x =
+        nth_partial i (nth_partial j (rotproj_inner S w)) x / ‖S‖ := by
+      -- rotproj_inner_unit S w = f / ‖S‖ where f = rotproj_inner S w
+      -- nth_partial is ℝ-linear, so nth_partial(f/c) = nth_partial(f)/c
+      rw [heq]
+      -- The function f/‖S‖ can be written as ‖S‖⁻¹ • f
+      have hdiv : (fun y => rotproj_inner S w y / ‖S‖) = ‖S‖⁻¹ • (rotproj_inner S w) := by
+        ext y; simp [div_eq_inv_mul, smul_eq_mul]
+      rw [hdiv]
+      -- First application: nth_partial j (c • f) = c • nth_partial j f
+      have hpartial_smul : nth_partial j (‖S‖⁻¹ • rotproj_inner S w) =
+          ‖S‖⁻¹ • nth_partial j (rotproj_inner S w) := by
+        ext y
+        simp only [nth_partial, Pi.smul_apply, smul_eq_mul]
+        have h2ne : (2 : WithTop ℕ∞) ≠ 0 := by decide
+        rw [fderiv_const_smul (c := ‖S‖⁻¹) (hf_smooth.differentiable h2ne y)]
+        simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
+      rw [hpartial_smul]
+      -- g = nth_partial j (rotproj_inner S w) is also smooth (ContDiff ℝ 1)
+      have hg : ContDiff ℝ 1 (nth_partial j (rotproj_inner S w)) := by
+        unfold nth_partial
+        have h : (1 : WithTop ℕ∞) + 1 ≤ 2 := by decide
+        exact hf_smooth.fderiv_right h |>.clm_apply contDiff_const
+      have hg_diff : Differentiable ℝ (nth_partial j (rotproj_inner S w)) := by
+        have h1ne : (1 : WithTop ℕ∞) ≠ 0 := by decide
+        exact hg.differentiable h1ne
+      -- Again: nth_partial i (c • g) = c • nth_partial i g
+      have hpartial_smul2 : nth_partial i (‖S‖⁻¹ • nth_partial j (rotproj_inner S w)) =
+          ‖S‖⁻¹ • nth_partial i (nth_partial j (rotproj_inner S w)) := by
+        ext y
+        simp only [nth_partial, Pi.smul_apply, smul_eq_mul]
+        rw [fderiv_const_smul (c := ‖S‖⁻¹) (hg_diff y)]
+        simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
+      rw [hpartial_smul2]
+      simp only [Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
+
+    -- Get the existence of A with norm bound
+    obtain ⟨A, hAnorm, hAeq⟩ := second_partial_inner_rotM_inner S w x i j
+
+    -- Now apply the bound
+    rw [hscale, hAeq]
+    exact inner_bound_helper A S w w_unit hAnorm
 
 theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     mixed_partials_bounded (rotproj_outer_unit S w) := by
