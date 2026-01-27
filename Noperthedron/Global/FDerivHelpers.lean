@@ -6,6 +6,7 @@ Authors: Cameron Freer
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import Noperthedron.RotationDerivs
+import Noperthedron.Global.SecondPartialHelpers
 
 /-!
 # FDeriv Helper Lemmas for Global Theorem
@@ -73,18 +74,9 @@ lemma fderiv_rotR_rotM_in_e0 (S : Euc(3)) (y : E 3)
       (EuclideanSpace.single 0 1) =
     rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) := by
   rw [← hf_diff.lineDeriv_eq_fderiv]
-  have h0 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 + t := by
-    intro t
-    simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      ↓reduceIte, smul_eq_mul, mul_one, add_comm]
-  have h1 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 := by
-    intro t
-    simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (1 : Fin 3) ≠ 0 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
-  have h2 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 := by
-    intro t
-    simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (2 : Fin 3) ≠ 0 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
+  have h0 := fun t => coord_e0_same y t
+  have h1 := coord_e0_at1 y
+  have h2 := coord_e0_at2 y
   have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
       (rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 0 1) := by
     unfold HasLineDerivAt
@@ -117,12 +109,9 @@ lemma fderiv_rotR_any_M_in_e0 (S : Euc(3)) (y : E 3) (M : ℝ → ℝ → ℝ³ 
       (EuclideanSpace.single 0 1) =
     rotR' (y.ofLp 0) (M (y.ofLp 1) (y.ofLp 2) S) := by
   rw [← hf_diff.lineDeriv_eq_fderiv]
-  have h0 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 + t := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply, ↓reduceIte, smul_eq_mul, mul_one, add_comm]
-  have h1 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply, show (1 : Fin 3) ≠ 0 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
-  have h2 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply, show (2 : Fin 3) ≠ 0 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
+  have h0 := fun t => coord_e0_same y t
+  have h1 := coord_e0_at1 y
+  have h2 := coord_e0_at2 y
   have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (M (z.ofLp 1) (z.ofLp 2) S))
       (rotR' (y.ofLp 0) (M (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 0 1) := by
     unfold HasLineDerivAt
@@ -145,15 +134,9 @@ lemma fderiv_rotR_rotM_in_e2 (S : Euc(3)) (y : E 3)
       (EuclideanSpace.single 2 1) =
     rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S) := by
   rw [← hf_diff.lineDeriv_eq_fderiv]
-  have h0 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (2 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (0 : Fin 3) ≠ 2 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
-  have h1 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (2 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (1 : Fin 3) ≠ 2 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
-  have h2 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (2 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 + t := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      ↓reduceIte, smul_eq_mul, mul_one, add_comm]
+  have h0 := coord_e2_at0 y
+  have h1 := coord_e2_at1 y
+  have h2 := fun t => coord_e2_same y t
   have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
       (rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 2 1) := by
     unfold HasLineDerivAt
@@ -196,15 +179,9 @@ lemma fderiv_rotR_rotM_in_e1 (S : Euc(3)) (y : E 3)
       (EuclideanSpace.single 1 1) =
     rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S) := by
   rw [← hf_diff.lineDeriv_eq_fderiv]
-  have h0 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (0 : Fin 3) ≠ 1 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
-  have h1 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 + t := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      ↓reduceIte, smul_eq_mul, mul_one, add_comm]
-  have h2 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (2 : Fin 3) ≠ 1 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
+  have h0 := coord_e1_at0 y
+  have h1 := fun t => coord_e1_same y t
+  have h2 := coord_e1_at2 y
   have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
       (rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 1 1) := by
     unfold HasLineDerivAt
@@ -248,18 +225,9 @@ lemma fderiv_rotR'_rotM_in_e0 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
       (EuclideanSpace.single 0 1) =
     -(rotR α (rotM θ φ S)) := by
   rw [← hf_diff.lineDeriv_eq_fderiv]
-  have h0 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 + t := by
-    intro t
-    simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      ↓reduceIte, smul_eq_mul, mul_one, add_comm]
-  have h1 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 := by
-    intro t
-    simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (1 : Fin 3) ≠ 0 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
-  have h2 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 := by
-    intro t
-    simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (2 : Fin 3) ≠ 0 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
+  have h0 := fun t => coord_e0_same y t
+  have h1 := coord_e0_at1 y
+  have h2 := coord_e0_at2 y
   have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
       (-(rotR α (rotM θ φ S))) y (EuclideanSpace.single 0 1) := by
     unfold HasLineDerivAt
@@ -294,15 +262,9 @@ lemma fderiv_rotR'_rotM_in_e1 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
       (EuclideanSpace.single 1 1) =
     rotR' α (rotMθ θ φ S) := by
   rw [← hf_diff.lineDeriv_eq_fderiv]
-  have h0 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (0 : Fin 3) ≠ 1 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
-  have h1 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 + t := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      ↓reduceIte, smul_eq_mul, mul_one, add_comm]
-  have h2 : ∀ t : ℝ, (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 := by
-    intro t; simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-      show (2 : Fin 3) ≠ 1 from by decide, ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
+  have h0 := coord_e1_at0 y
+  have h1 := fun t => coord_e1_same y t
+  have h2 := coord_e1_at2 y
   have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
       (rotR' α (rotMθ θ φ S)) y (EuclideanSpace.single 1 1) := by
     unfold HasLineDerivAt
