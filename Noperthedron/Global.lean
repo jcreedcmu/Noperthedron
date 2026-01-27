@@ -872,7 +872,6 @@ private lemma rotprojRM_component1 (θ φ α : ℝ) (S : ℝ³) :
   simp [rotprojRM, rotR, rotM, rotR_mat, rotM_mat, Matrix.vecHead, Matrix.vecTail]
   ring
 
-set_option maxHeartbeats 800000 in
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
 
