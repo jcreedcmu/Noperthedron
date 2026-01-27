@@ -8,6 +8,7 @@ import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import Noperthedron.RotationDerivs
+import Noperthedron.Bounding.OpNorm
 
 open scoped RealInnerProductSpace
 
@@ -294,5 +295,62 @@ lemma fderiv_rotR_rotMφ_in_e2 (S : ℝ³) (y : E 3) :
     simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at hderiv
     exact hasDerivAt_comp_add _ _ _ hderiv
   exact hline.lineDeriv
+
+/-!
+## A[i,j] Table for Second Partials
+
+This defines the operator A_{i,j}(α, θ, φ) such that
+  ∂²(rotproj_inner S w)/∂x_i∂x_j = ⟪A_{i,j} S, w⟫
+
+where x₀ = α, x₁ = θ, x₂ = φ.
+
+The table is:
+| i\j |    0                    |    1                  |    2                  |
+|-----|-------------------------|-----------------------|-----------------------|
+|  0  | -(rotR α ∘L rotM θ φ)   | rotR' α ∘L rotMθ θ φ  | rotR' α ∘L rotMφ θ φ  |
+|  1  | rotR' α ∘L rotMθ θ φ    | rotR α ∘L rotMθθ θ φ  | rotR α ∘L rotMθφ θ φ  |
+|  2  | rotR' α ∘L rotMφ θ φ    | rotR α ∘L rotMθφ θ φ  | rotR α ∘L rotMφφ θ φ  |
+
+All have operator norm ≤ 1 since ‖rotR‖ = ‖rotR'‖ = 1 and ‖rotM*‖ ≤ 1.
+-/
+
+/-- The operator A[i,j] for second partials of the inner rotation projection.
+    Returns the composition that appears in ⟪A S, w⟫. -/
+noncomputable def inner_second_partial_A (α θ φ : ℝ) (i j : Fin 3) : ℝ³ →L[ℝ] ℝ² :=
+  match i, j with
+  | 0, 0 => -(rotR α ∘L rotM θ φ)
+  | 0, 1 => rotR' α ∘L rotMθ θ φ
+  | 0, 2 => rotR' α ∘L rotMφ θ φ
+  | 1, 0 => rotR' α ∘L rotMθ θ φ   -- = A[0,1] by mixed partial symmetry
+  | 1, 1 => rotR α ∘L rotMθθ θ φ
+  | 1, 2 => rotR α ∘L rotMθφ θ φ
+  | 2, 0 => rotR' α ∘L rotMφ θ φ   -- = A[0,2] by mixed partial symmetry
+  | 2, 1 => rotR α ∘L rotMθφ θ φ   -- = A[1,2] by mixed partial symmetry
+  | 2, 2 => rotR α ∘L rotMφφ θ φ
+
+-- Helper for composition norm bounds
+private lemma comp_norm_le_one' {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
+    ‖A ∘L B‖ ≤ 1 :=
+  calc ‖A ∘L B‖ ≤ ‖A‖ * ‖B‖ := ContinuousLinearMap.opNorm_comp_le A B
+    _ ≤ 1 * 1 := mul_le_mul hA hB (norm_nonneg _) (by linarith)
+    _ = 1 := one_mul 1
+
+private lemma neg_comp_norm_le_one' {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
+    ‖-(A ∘L B)‖ ≤ 1 := by
+  rw [norm_neg]; exact comp_norm_le_one' hA hB
+
+/-- All A[i,j] have operator norm ≤ 1. -/
+lemma inner_second_partial_A_norm_le (α θ φ : ℝ) (i j : Fin 3) :
+    ‖inner_second_partial_A α θ φ i j‖ ≤ 1 := by
+  fin_cases i <;> fin_cases j
+  · exact neg_comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (le_of_eq (Bounding.rotM_norm_one _ _))
+  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
+  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
+  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
+  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθθ_norm_le_one _ _)
+  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
+  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
+  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
+  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMφφ_norm_le_one _ _)
 
 end GlobalTheorem
