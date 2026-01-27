@@ -1,6 +1,7 @@
 /-
-Rotation partial derivative proofs for the global theorem.
-Contains HasFDerivAt proofs, second partial lemmas, and rotation_partials_bounded.
+Copyright (c) 2026 Cameron Freer. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Cameron Freer
 -/
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
@@ -15,6 +16,13 @@ import Noperthedron.Global.BoundedPartialsControlDifference
 import Noperthedron.Global.SecondPartialHelpers
 import Noperthedron.Global.FDerivHelpers
 import Noperthedron.Global.Definitions
+
+/-!
+# Rotation Partial Derivatives
+
+Rotation partial derivative proofs for the global theorem.
+Contains HasFDerivAt proofs, second partial lemmas, and rotation_partials_bounded.
+-/
 
 open scoped RealInnerProductSpace
 

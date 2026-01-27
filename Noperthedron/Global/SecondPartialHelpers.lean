@@ -1,14 +1,22 @@
 /-
-Helper lemmas for second partial derivative computations in Global.lean.
-
-These lemmas factor out repeated DifferentiableAt proofs and first partial
-computations to reduce heartbeat usage in second_partial_inner_rotM_inner.
+Copyright (c) 2026 Cameron Freer. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Cameron Freer
 -/
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import Noperthedron.RotationDerivs
 import Noperthedron.Bounding.OpNorm
+
+/-!
+# Second Partial Helper Lemmas
+
+Helper lemmas for second partial derivative computations in Global.lean.
+
+These lemmas factor out repeated DifferentiableAt proofs and first partial
+computations to reduce heartbeat usage in second_partial_inner_rotM_inner.
+-/
 
 open scoped RealInnerProductSpace
 
