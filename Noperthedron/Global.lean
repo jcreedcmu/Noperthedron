@@ -1825,7 +1825,7 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
 --   (1,1): ∂²/∂θ² → rotR ∘ rotMθθ
 --   (1,2), (2,1): ∂²/∂θ∂φ → rotR ∘ rotMθφ
 --   (2,2): ∂²/∂φ² → rotR ∘ rotMφφ
-set_option maxHeartbeats 400000 in
+set_option maxHeartbeats 350000 in
 private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) (i j : Fin 3) :
     ∃ A : ℝ³ →L[ℝ] ℝ², ‖A‖ ≤ 1 ∧
       nth_partial i (nth_partial j (rotproj_inner S w)) x = ⟪A S, w⟫ := by
