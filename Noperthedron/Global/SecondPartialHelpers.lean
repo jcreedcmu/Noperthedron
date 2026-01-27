@@ -63,4 +63,28 @@ lemma differentiableAt_rotR'_rotMφ (S : ℝ³) (y : E 3) :
   fin_cases i <;> (simp [rotR', rotR'_mat, rotMφ, Matrix.toEuclideanLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
+/-!
+## Inner product fderiv helper
+
+This lemma factors out the repeated pattern:
+```
+have hInner := fderiv_inner_apply ℝ hf_diff (differentiableAt_const w) (e_i)
+have hw := hasFDerivAt_const w y
+rw [hw.fderiv] at hInner
+simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at hInner
+```
+
+The result is: `fderiv (⟪f·, w⟫) y d = ⟪fderiv f y d, w⟫` when `w` is constant.
+-/
+
+/-- fderiv of inner product with constant second argument equals inner product of fderiv -/
+lemma fderiv_inner_const {n : ℕ} (f : E n → ℝ²) (w : ℝ²) (y : E n) (d : E n)
+    (hf : DifferentiableAt ℝ f y) :
+    (fderiv ℝ (fun z => ⟪f z, w⟫) y) d = ⟪(fderiv ℝ f y) d, w⟫ := by
+  have hInner := fderiv_inner_apply ℝ hf (differentiableAt_const w) d
+  have hw : HasFDerivAt (fun _ : E n ↦ w) (0 : E n →L[ℝ] ℝ²) y := hasFDerivAt_const w y
+  rw [hw.fderiv] at hInner
+  simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at hInner
+  exact hInner
+
 end GlobalTheorem
