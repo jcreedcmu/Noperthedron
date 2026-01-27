@@ -22,6 +22,22 @@ These lemmas eliminate the repeated `rw [differentiableAt_piLp]; intro i; fin_ca
 pattern that appears ~30+ times in second_partial_inner_rotM_inner.
 -/
 
+/-- DifferentiableAt for rotMθ (outer, E 2) -/
+lemma differentiableAt_rotMθ_outer (S : ℝ³) (y : E 2) :
+    DifferentiableAt ℝ (fun z : E 2 => rotMθ (z.ofLp 0) (z.ofLp 1) S) y := by
+  rw [differentiableAt_piLp]; intro i
+  simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+  fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
+
+/-- DifferentiableAt for rotMφ (outer, E 2) -/
+lemma differentiableAt_rotMφ_outer (S : ℝ³) (y : E 2) :
+    DifferentiableAt ℝ (fun z : E 2 => rotMφ (z.ofLp 0) (z.ofLp 1) S) y := by
+  rw [differentiableAt_piLp]; intro i
+  simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+  fin_cases i
+  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+
 /-- DifferentiableAt for rotR ∘ rotM -/
 lemma differentiableAt_rotR_rotM (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y := by

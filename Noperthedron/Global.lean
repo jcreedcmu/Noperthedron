@@ -35,21 +35,20 @@ theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (f : E n →ₗ[ℝ] ℝ) :
     f S ≤ (V.image f).max' (by simp [Finset.image_nonempty]; exact Vne) := by
   have Vine : (V.image f).Nonempty := by simp [Finset.image_nonempty]; exact Vne
-  have hs_orig := hs
   rw [Finset.convexHull_eq] at hs
   obtain ⟨w, hw1, hw2, hw3⟩ := hs
-  calc
-    (f S) = (f (∑ i ∈ V, w i • id i)) := by rw [← hw3, Finset.centerMass_eq_of_sum_1 V id hw2]
-    _       = ∑ x ∈ V, w x * f x := by simp
-    _       ≤ ∑ x ∈ V, w x * ((Finset.image f V).max' Vine) := f_le_max Vne w hw1 f
-    _       = (∑ x ∈ V, w x) * ((Finset.image f V).max' Vine) := by rw [← Finset.sum_mul]
-    _       = (Finset.image f V).max' (by simp [Finset.image_nonempty]; exact Vne) := by rw [hw2]; simp
+  calc f S
+    _ = f (∑ i ∈ V, w i • id i) := by rw [← hw3, Finset.centerMass_eq_of_sum_1 V id hw2]
+    _ = ∑ x ∈ V, w x * f x := by simp
+    _ ≤ ∑ x ∈ V, w x * (V.image f).max' Vine := f_le_max Vne w hw1 f
+    _ = (∑ x ∈ V, w x) * (V.image f).max' Vine := by rw [← Finset.sum_mul]
+    _ = (V.image f).max' Vine := by rw [hw2]; simp
 
 /- [SY25] Lemma 18 -/
 theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (w : E n) :
-    ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) (by simp [Finset.image_nonempty]; exact Vne) := by
-  exact finset_hull_linear_max Vne S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
+    ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) (by simp [Finset.image_nonempty]; exact Vne) :=
+  finset_hull_linear_max Vne S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
 
 
 -- NOTE: The HasDerivAt_rotR', fderiv_rotR_rotM_in_e0/e1/e2, fderiv_rotR'_rotM_in_e0/e1,
@@ -138,26 +137,17 @@ max_{P} ⟪ R(α) M(θ₁, φ₁), P, w ⟫ < max_{P} ⟪ M(θ₂, φ₂), P, w 
 theorem global_theorem_le_reasoning (p : Pose)
     (poly : GoodPoly)
     (h_rupert : RupertPose p (convexHull ℝ poly.vertices)) (w : ℝ²) :
-    maxInner p poly w ≤ maxOuter p poly w
-    := by
+    maxInner p poly w ≤ maxOuter p poly w := by
   simp only [maxInner]
   refine Finset.max'_le _ _ _ ?_
   intro y hy
-  simp only [maxOuter, imgOuter]
-  simp only [imgInner, Finset.mem_image] at hy
-  obtain ⟨v, ⟨hv, hv'⟩⟩ := hy
-  rw [← hv']
-  clear hv'
-  change ⟪w, p.inner v⟫ ≤ (poly.vertices.image (⟪w, p.outer ·⟫)).max' _
+  simp only [maxOuter, imgOuter, imgInner, Finset.mem_image] at hy ⊢
+  obtain ⟨v, hv, rfl⟩ := hy
   convert_to ⟪w, p.inner v⟫ ≤ ((poly.vertices.image p.outer).image (⟪w, ·⟫)).max' (by
       simp only [Finset.image_nonempty]; exact poly.nonempty)
   · simp [Finset.image_image]; rfl
-  let S := p.inner v
-  let V := poly.vertices.image p.outer
-  have Vne : V.Nonempty := by simp only [V, Finset.image_nonempty]; exact poly.nonempty
-  change ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) _
-  refine hull_scalar_prod V Vne S ?_ w
-  simp only [Finset.coe_image, V, S]
+  refine hull_scalar_prod _ (by simp [Finset.image_nonempty, poly.nonempty]) _ ?_ w
+  simp only [Finset.coe_image]
   exact p.is_rupert_imp_inner_in_outer poly.vertices h_rupert v hv
 
 lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose) : rotproj_inner S w p.innerParams = ⟪p.inner S, w⟫ := by
@@ -196,14 +186,12 @@ def GlobalTheoremPrecondition.f {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
 theorem f_pose_eq_sval {p pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     pc.f p.innerParams = pc.Sval p := by
-  simp [GlobalTheoremPrecondition.f, GlobalTheoremPrecondition.Sval]
-  rw [rotproj_inner_pose_eq]
-  apply real_inner_comm
+  simp [GlobalTheoremPrecondition.f, GlobalTheoremPrecondition.Sval, rotproj_inner_pose_eq, real_inner_comm]
 
 theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     pc.f pbar.innerParams = ⟪pbar.inner pc.S, pc.w⟫ := by
-  rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
+  simp [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
 theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
@@ -359,10 +347,7 @@ theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
 lemma rotproj_helper {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     |pc.fu pbar.innerParams - pc.fu p.innerParams| * ‖pc.S‖ = |⟪pbar.inner pc.S, pc.w⟫ - pc.Sval p| := by
-  rw [← f_pose_eq_sval, ← f_pose_eq_inner]
-  repeat rw [← fu_times_norm_S_eq_f]
-  rw [← sub_mul]
-  simp
+  simp [← f_pose_eq_sval, ← f_pose_eq_inner, ← fu_times_norm_S_eq_f, ← sub_mul]
 
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.

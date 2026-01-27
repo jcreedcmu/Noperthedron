@@ -841,20 +841,12 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
     refine ⟨rotMθθ (x.ofLp 0) (x.ofLp 1), Bounding.rotMθθ_norm_le_one _ _, ?_⟩
     -- The second partial of ⟪rotM S, w⟫ w.r.t. (θ, θ) equals ⟪rotMθθ S, w⟫
     let θ := x.ofLp 0; let φ := x.ofLp 1
-    -- First partial ∂/∂θ: (fun y => ⟪rotM y S, w⟫) → (fun y => ⟪rotMθ y S, w⟫)
-    have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
-      Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
     -- First partial in direction e₀ gives ⟪rotMθ S, w⟫
     have hfirst : ∀ y : E 2, (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
         (EuclideanSpace.single 0 1) = ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
       intro y
-      have hInner := fderiv_inner_apply ℝ (Differentiable.rotM_outer S y) (differentiableAt_const w) (EuclideanSpace.single 0 1)
-      rw [hInner]
-      -- First term: fderiv of constant w is 0
-      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) y := hasFDerivAt_const w y
-      rw [hw.fderiv]
-      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add]
-      -- Second term: fderiv of rotM in e₀ direction is rotMθ
+      rw [fderiv_inner_const _ w y _ (Differentiable.rotM_outer S y)]
+      -- fderiv of rotM in e₀ direction is rotMθ
       set pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ with hpbar_def
       have hpbar : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
       have hfderiv_rotM : fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' pbar S :=
@@ -881,27 +873,7 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
         (EuclideanSpace.single 0 1)) x) = (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
         from congrArg (fderiv ℝ · x) hinner_eq]
     -- Second partial: differentiate ⟪rotMθ S, w⟫ w.r.t. θ
-    have hDiff2 : Differentiable ℝ (fun y : E 2 => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
-      apply Differentiable.inner ℝ
-      · intro y; rw [differentiableAt_piLp]; intro i
-        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-        fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
-      · intro y; exact differentiableAt_const w
-    -- The inner product with constant w: fderiv (⟪f ·, w⟫) x v = ⟪fderiv f x v, w⟫
-    have hInner2 : (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x) (EuclideanSpace.single 0 1) =
-        ⟪(fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x) (EuclideanSpace.single 0 1), w⟫ := by
-      have hf_diff : DifferentiableAt ℝ (fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S) x := by
-        rw [differentiableAt_piLp]; intro i
-        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-        fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
-      have hg_diff : DifferentiableAt ℝ (fun _ : E 2 => w) x := differentiableAt_const w
-      have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 0 1)
-      -- Explicitly rewrite the constant derivative to 0
-      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
-      rw [hw.fderiv] at heq
-      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
-      exact heq
-    rw [hInner2]
+    rw [fderiv_inner_const _ w x (EuclideanSpace.single 0 1) (differentiableAt_rotMθ_outer S x)]
     -- Use HasFDerivAt.rotMθ_outer to compute the derivative
     set pbar : Pose := ⟨0, θ, 0, φ, 0⟩ with hpbar_def
     have hpbar : pbar.outerParams = x := by ext i; fin_cases i <;> rfl
@@ -926,17 +898,11 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
     -- The second partial of ⟪rotM S, w⟫ w.r.t. (θ, φ) equals ⟪rotMθφ S, w⟫
     -- First partial ∂/∂φ gives ⟪rotMφ S, w⟫, then ∂/∂θ gives ⟪rotMθφ S, w⟫
     let θ := x.ofLp 0; let φ := x.ofLp 1
-    have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
-      Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
     -- First partial in direction e₁ gives ⟪rotMφ S, w⟫
     have hfirst : ∀ y : E 2, (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
         (EuclideanSpace.single 1 1) = ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
       intro y
-      have hInner := fderiv_inner_apply ℝ (Differentiable.rotM_outer S y) (differentiableAt_const w) (EuclideanSpace.single 1 1)
-      rw [hInner]
-      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) y := hasFDerivAt_const w y
-      rw [hw.fderiv]
-      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add]
+      rw [fderiv_inner_const _ w y _ (Differentiable.rotM_outer S y)]
       set pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ with hpbar_def
       have hpbar : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
       have hfderiv_rotM : fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' pbar S :=
@@ -957,29 +923,7 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
         (EuclideanSpace.single 1 1)) x) = (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
         from congrArg (fderiv ℝ · x) hinner_eq]
     -- Second partial: differentiate ⟪rotMφ S, w⟫ w.r.t. θ
-    have hDiff2 : Differentiable ℝ (fun y : E 2 => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
-      apply Differentiable.inner ℝ
-      · intro y; rw [differentiableAt_piLp]; intro i
-        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-        fin_cases i
-        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
-      · intro y; exact differentiableAt_const w
-    have hInner2 : (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x) (EuclideanSpace.single 0 1) =
-        ⟪(fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x) (EuclideanSpace.single 0 1), w⟫ := by
-      have hf_diff : DifferentiableAt ℝ (fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S) x := by
-        rw [differentiableAt_piLp]; intro i
-        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-        fin_cases i
-        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
-      have hg_diff : DifferentiableAt ℝ (fun _ : E 2 => w) x := differentiableAt_const w
-      have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 0 1)
-      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
-      rw [hw.fderiv] at heq
-      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
-      exact heq
-    rw [hInner2]
+    rw [fderiv_inner_const _ w x (EuclideanSpace.single 0 1) (differentiableAt_rotMφ_outer S x)]
     -- Use HasFDerivAt.rotMφ_outer to compute the derivative
     set pbar : Pose := ⟨0, θ, 0, φ, 0⟩ with hpbar_def
     have hpbar : pbar.outerParams = x := by ext i; fin_cases i <;> rfl
@@ -1001,17 +945,11 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
     -- The second partial of ⟪rotM S, w⟫ w.r.t. (φ, θ) equals ⟪rotMθφ S, w⟫
     -- First partial ∂/∂θ gives ⟪rotMθ S, w⟫, then ∂/∂φ gives ⟪rotMθφ S, w⟫
     let θ := x.ofLp 0; let φ := x.ofLp 1
-    have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
-      Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
     -- First partial in direction e₀ gives ⟪rotMθ S, w⟫
     have hfirst : ∀ y : E 2, (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
         (EuclideanSpace.single 0 1) = ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
       intro y
-      have hInner := fderiv_inner_apply ℝ (Differentiable.rotM_outer S y) (differentiableAt_const w) (EuclideanSpace.single 0 1)
-      rw [hInner]
-      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) y := hasFDerivAt_const w y
-      rw [hw.fderiv]
-      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add]
+      rw [fderiv_inner_const _ w y _ (Differentiable.rotM_outer S y)]
       set pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ with hpbar_def
       have hpbar : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
       have hfderiv_rotM : fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' pbar S :=
@@ -1032,25 +970,7 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
         (EuclideanSpace.single 0 1)) x) = (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
         from congrArg (fderiv ℝ · x) hinner_eq]
     -- Second partial: differentiate ⟪rotMθ S, w⟫ w.r.t. φ
-    have hDiff2 : Differentiable ℝ (fun y : E 2 => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
-      apply Differentiable.inner ℝ
-      · intro y; rw [differentiableAt_piLp]; intro i
-        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-        fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
-      · intro y; exact differentiableAt_const w
-    have hInner2 : (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x) (EuclideanSpace.single 1 1) =
-        ⟪(fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x) (EuclideanSpace.single 1 1), w⟫ := by
-      have hf_diff : DifferentiableAt ℝ (fun y : E 2 => rotMθ (y.ofLp 0) (y.ofLp 1) S) x := by
-        rw [differentiableAt_piLp]; intro i
-        simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-        fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
-      have hg_diff : DifferentiableAt ℝ (fun _ : E 2 => w) x := differentiableAt_const w
-      have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 1 1)
-      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
-      rw [hw.fderiv] at heq
-      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
-      exact heq
-    rw [hInner2]
+    rw [fderiv_inner_const _ w x (EuclideanSpace.single 1 1) (differentiableAt_rotMθ_outer S x)]
     -- Use HasFDerivAt.rotMθ_outer to compute the derivative
     set pbar : Pose := ⟨0, θ, 0, φ, 0⟩ with hpbar_def
     have hpbar : pbar.outerParams = x := by ext i; fin_cases i <;> rfl
@@ -1072,17 +992,11 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
     -- The second partial of ⟪rotM S, w⟫ w.r.t. (φ, φ) equals ⟪rotMφφ S, w⟫
     -- First partial ∂/∂φ gives ⟪rotMφ S, w⟫, then ∂/∂φ again gives ⟪rotMφφ S, w⟫
     let θ := x.ofLp 0; let φ := x.ofLp 1
-    have hDiff : Differentiable ℝ (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫) :=
-      Differentiable.inner ℝ (Differentiable.rotM_outer S) (by fun_prop)
     -- First partial in direction e₁ gives ⟪rotMφ S, w⟫
     have hfirst : ∀ y : E 2, (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
         (EuclideanSpace.single 1 1) = ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
       intro y
-      have hInner := fderiv_inner_apply ℝ (Differentiable.rotM_outer S y) (differentiableAt_const w) (EuclideanSpace.single 1 1)
-      rw [hInner]
-      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) y := hasFDerivAt_const w y
-      rw [hw.fderiv]
-      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add]
+      rw [fderiv_inner_const _ w y _ (Differentiable.rotM_outer S y)]
       set pbar : Pose := ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ with hpbar_def
       have hpbar : pbar.outerParams = y := by ext i; fin_cases i <;> rfl
       have hfderiv_rotM : fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' pbar S :=
@@ -1103,29 +1017,7 @@ private lemma second_partial_inner_rotM_outer (S : ℝ³) (w : ℝ²) (x : E 2) 
         (EuclideanSpace.single 1 1)) x) = (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
         from congrArg (fderiv ℝ · x) hinner_eq]
     -- Second partial: differentiate ⟪rotMφ S, w⟫ w.r.t. φ
-    have hDiff2 : Differentiable ℝ (fun y : E 2 => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) := by
-      apply Differentiable.inner ℝ
-      · intro y; rw [differentiableAt_piLp]; intro i
-        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-        fin_cases i
-        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
-      · intro y; exact differentiableAt_const w
-    have hInner2 : (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x) (EuclideanSpace.single 1 1) =
-        ⟪(fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x) (EuclideanSpace.single 1 1), w⟫ := by
-      have hf_diff : DifferentiableAt ℝ (fun y : E 2 => rotMφ (y.ofLp 0) (y.ofLp 1) S) x := by
-        rw [differentiableAt_piLp]; intro i
-        simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-        fin_cases i
-        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-        · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
-      have hg_diff : DifferentiableAt ℝ (fun _ : E 2 => w) x := differentiableAt_const w
-      have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 1 1)
-      have hw : HasFDerivAt (fun _ : E 2 ↦ w) (0 : E 2 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
-      rw [hw.fderiv] at heq
-      simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
-      exact heq
-    rw [hInner2]
+    rw [fderiv_inner_const _ w x (EuclideanSpace.single 1 1) (differentiableAt_rotMφ_outer S x)]
     -- Use HasFDerivAt.rotMφ_outer to compute the derivative
     set pbar : Pose := ⟨0, θ, 0, φ, 0⟩ with hpbar_def
     have hpbar : pbar.outerParams = x := by ext i; fin_cases i <;> rfl
@@ -1177,8 +1069,6 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
       -- Normalize the fin_cases indices
       show nth_partial 0 (nth_partial 0 (rotproj_inner S w)) x = ⟪(-(rotR α ∘L rotM θ φ)) S, w⟫
       -- First partial ∂/∂α of ⟪rotR α (rotM θ φ S), w⟫ = ⟪rotR' α (rotM θ φ S), w⟫
-      have hDiff : Differentiable ℝ (rotproj_inner S w) := Differentiable.rotproj_inner S w
-      -- rotproj_inner S w x = ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫ = ⟪rotR (x 0) (rotM (x 1) (x 2) S), w⟫
       have heq_rotproj : rotproj_inner S w = fun y => ⟪rotR (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
         ext y; simp [rotproj_inner, rotprojRM]
       -- First partial in direction e₀ gives ⟪rotR' α (rotM θ φ S), w⟫
@@ -1193,20 +1083,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
           fun y => ⟪rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫ := funext hfirst
       rw [congrArg (fderiv ℝ · x) hinner_eq]
       -- Second partial: d/dα⟪rotR' α v, w⟫ = ⟪-rotR α v, w⟫ where v = rotM θ φ S is constant in α
-      -- Use fderiv_inner_apply to decompose
-      have hInner2 : (fderiv ℝ (fun y => ⟪rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫) x)
-          (EuclideanSpace.single 0 1) =
-          ⟪(fderiv ℝ (fun y => rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) x)
-            (EuclideanSpace.single 0 1), w⟫ := by
-        have hf_diff : DifferentiableAt ℝ (fun y : E 3 => rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) x :=
-          differentiableAt_rotR'_rotM S x
-        have hg_diff : DifferentiableAt ℝ (fun _ : E 3 => w) x := differentiableAt_const w
-        have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 0 1)
-        have hw : HasFDerivAt (fun _ : E 3 ↦ w) (0 : E 3 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
-        rw [hw.fderiv] at heq
-        simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
-        exact heq
-      rw [hInner2]
+      rw [fderiv_inner_const _ w x (EuclideanSpace.single 0 1) (differentiableAt_rotR'_rotM S x)]
       -- Now compute fderiv (rotR' (·.ofLp 0) (rotM (·.ofLp 1) (·.ofLp 2) S)) at x in direction e₀
       -- Since direction e₀ = [1, 0, 0], this is the partial w.r.t. α
       -- d/dα(rotR' α v)|_{v = rotM θ φ S} = -rotR α v by HasDerivAt_rotR'
@@ -1223,7 +1100,6 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
     · -- First partial in direction 1 (θ) gives ⟪rotR α (rotMθ θ φ S), w⟫
       -- Second partial in direction 0 (α) gives ⟪rotR' α (rotMθ θ φ S), w⟫
       show nth_partial 0 (nth_partial 1 (rotproj_inner S w)) x = ⟪(rotR' α ∘L rotMθ θ φ) S, w⟫
-      have hDiff : Differentiable ℝ (rotproj_inner S w) := Differentiable.rotproj_inner S w
       have heq_rotproj : rotproj_inner S w = fun y => ⟪rotR (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
         ext y; simp [rotproj_inner, rotprojRM]
       -- First partial in direction e₁ (θ direction): gives ⟪rotR α (rotMθ θ φ S), w⟫
@@ -1246,19 +1122,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
           fun y => ⟪rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫ := funext hfirst
       rw [congrArg (fderiv ℝ · x) hinner_eq]
       -- Second partial in α direction: d/dα⟪rotR α v, w⟫ = ⟪rotR' α v, w⟫
-      have hInner2 : (fderiv ℝ (fun y => ⟪rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫) x)
-          (EuclideanSpace.single 0 1) =
-          ⟪(fderiv ℝ (fun y => rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S)) x)
-            (EuclideanSpace.single 0 1), w⟫ := by
-        have hf_diff : DifferentiableAt ℝ (fun y : E 3 => rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S)) x :=
-          differentiableAt_rotR_rotMθ S x
-        have hg_diff : DifferentiableAt ℝ (fun _ : E 3 => w) x := differentiableAt_const w
-        have heq := fderiv_inner_apply (𝕜 := ℝ) hf_diff hg_diff (EuclideanSpace.single 0 1)
-        have hw : HasFDerivAt (fun _ : E 3 ↦ w) (0 : E 3 →L[ℝ] ℝ²) x := hasFDerivAt_const w x
-        rw [hw.fderiv] at heq
-        simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at heq
-        exact heq
-      rw [hInner2]
+      rw [fderiv_inner_const _ w x (EuclideanSpace.single 0 1) (differentiableAt_rotR_rotMθ S x)]
       -- d/de₀[rotR α (rotMθ θ φ S)] = rotR' α (rotMθ θ φ S)
       -- In direction e₀ = [1, 0, 0], only α changes, so d/de₀ = d/dα
       have hfderiv_rotR : (fderiv ℝ (fun y => rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S)) x)
