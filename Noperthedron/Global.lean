@@ -272,7 +272,7 @@ private lemma fderiv_rotR_rotM_in_e2 (S : Euc(3)) (y : E 3)
       simpa using (hasDerivAt_id (0 : ℝ)).const_add (y.ofLp 2)
     have hcomp_deriv' : HasDerivAt (fun φ => rotR (y.ofLp 0) (rotM (y.ofLp 1) φ S))
         (rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2 + 0) S)) (y.ofLp 2 + 0) := by
-      simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+      simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
     have hfinal := hcomp_deriv'.scomp 0 hid
     simp only [one_smul, add_zero] at hfinal
     have heq_fun : ((fun φ => rotR (y.ofLp 0) (rotM (y.ofLp 1) φ S)) ∘ HAdd.hAdd (y.ofLp 2)) =
@@ -323,7 +323,7 @@ private lemma fderiv_rotR_rotM_in_e1 (S : Euc(3)) (y : E 3)
       simpa using (hasDerivAt_id (0 : ℝ)).const_add (y.ofLp 1)
     have hcomp_deriv' : HasDerivAt (fun θ => rotR (y.ofLp 0) (rotM θ (y.ofLp 2) S))
         (rotR (y.ofLp 0) (rotMθ (y.ofLp 1 + 0) (y.ofLp 2) S)) (y.ofLp 1 + 0) := by
-      simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+      simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
     have hfinal := hcomp_deriv'.scomp 0 hid
     simp only [one_smul, add_zero] at hfinal
     have heq_fun : ((fun θ => rotR (y.ofLp 0) (rotM θ (y.ofLp 2) S)) ∘ HAdd.hAdd (y.ofLp 1)) =
@@ -422,7 +422,7 @@ private lemma fderiv_rotR'_rotM_in_e1 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
       simpa using (hasDerivAt_id (0 : ℝ)).const_add θ
     have hcomp_deriv' : HasDerivAt (fun θ' => rotR' α (rotM θ' φ S))
         (rotR' α (rotMθ (θ + 0) φ S)) (θ + 0) := by
-      simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+      simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
     have hfinal := hcomp_deriv'.scomp 0 hid
     simp only [one_smul, add_zero] at hfinal
     have heq_fun : ((fun θ' => rotR' α (rotM θ' φ S)) ∘ HAdd.hAdd θ) =
@@ -1249,7 +1249,7 @@ noncomputable def rotMφ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
 -- Component lemmas for rotMφ
 private lemma rotMφ_component0 (θ φ : ℝ) (P : ℝ³) :
     (rotMφ θ φ P) 0 = 0 := by
-  simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
+  simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
 
 private lemma rotMφ_component1 (θ φ : ℝ) (P : ℝ³) :
     (rotMφ θ φ P) 1 = Real.cos θ * Real.sin φ * P 0 + Real.sin θ * Real.sin φ * P 1 + Real.cos φ * P 2 := by
@@ -1767,7 +1767,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
         fderiv_rotR'_rotM_in_e0 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)
       rw [hfderiv_rotR']
       simp only [ContinuousLinearMap.neg_apply, ContinuousLinearMap.coe_comp',
-        Function.comp_apply, inner_neg_left, neg_neg]
+        Function.comp_apply, inner_neg_left]
   · -- (0, 1): ∂²/∂α∂θ → rotR' α ∘L rotMθ θ φ
     refine ⟨rotR' α ∘L rotMθ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMθ_norm_le_one θ φ)
@@ -1862,7 +1862,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
               rw [heq_fun] at hcomp'; exact hcomp'
             exact hline.lineDeriv
           rw [hLHS, hcomp.fderiv]
-          simp only [heq_form, ContinuousLinearMap.smulRight_apply, proj0, PiLp.proj_apply, EuclideanSpace.single_apply, ↓reduceIte, one_smul]
+          simp only [ContinuousLinearMap.smulRight_apply, proj0, PiLp.proj_apply, EuclideanSpace.single_apply, ↓reduceIte, one_smul]
         rw [heq_fderiv, hcomp.fderiv]
         simp only [ContinuousLinearMap.smulRight_apply, proj0, PiLp.proj_apply,
           EuclideanSpace.single_apply, ↓reduceIte, one_smul]
@@ -1913,11 +1913,11 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
             (fderiv ℝ (fun z => rotR (y.ofLp 0) (rotM (y.ofLp 1) (z.ofLp 2) S)) y) (EuclideanSpace.single 2 1) := by
           rw [hcomp.fderiv]
           simp only [ContinuousLinearMap.smulRight_apply, proj2, PiLp.proj_apply,
-            EuclideanSpace.single_apply, show (0 : Fin 3) ≠ 2 from by decide, show (1 : Fin 3) ≠ 2 from by decide, ↓reduceIte, one_smul]
+            EuclideanSpace.single_apply, ↓reduceIte, one_smul]
           exact fderiv_rotR_rotM_in_e2 S y hf_diff
         rw [heq_fderiv, hcomp.fderiv]
         simp only [ContinuousLinearMap.smulRight_apply, proj2, PiLp.proj_apply,
-          EuclideanSpace.single_apply, show (0 : Fin 3) ≠ 2 from by decide, show (1 : Fin 3) ≠ 2 from by decide, ↓reduceIte, one_smul]
+          EuclideanSpace.single_apply, ↓reduceIte, one_smul]
       unfold nth_partial
       have hinner_eq : (fun y : E 3 => (fderiv ℝ (rotproj_inner S w) y) (EuclideanSpace.single 2 1)) =
           fun y => ⟪rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S), w⟫ := funext hfirst
@@ -2012,11 +2012,11 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
             (fderiv ℝ (fun y => rotR' α (rotM (y.ofLp 1) φ S)) x) (EuclideanSpace.single 1 1) := by
           rw [hcomp.fderiv]
           simp only [ContinuousLinearMap.smulRight_apply, proj1, PiLp.proj_apply,
-            EuclideanSpace.single_apply, show (0 : Fin 3) ≠ 1 from by decide, ↓reduceIte, one_smul]
+            EuclideanSpace.single_apply, ↓reduceIte, one_smul]
           exact fderiv_rotR'_rotM_in_e1 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)
         rw [heq_fderiv, hcomp.fderiv]
         simp only [ContinuousLinearMap.smulRight_apply, proj1, PiLp.proj_apply,
-          EuclideanSpace.single_apply, show (0 : Fin 3) ≠ 1 from by decide, ↓reduceIte, one_smul]
+          EuclideanSpace.single_apply, ↓reduceIte, one_smul]
       rw [hfderiv]
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply]
   · -- (1, 1): ∂²/∂θ² → rotR α ∘L rotMθθ θ φ
@@ -2066,7 +2066,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
           have hid : HasDerivAt (fun t : ℝ => y.ofLp 1 + t) 1 0 := by simpa using (hasDerivAt_id (0 : ℝ)).const_add (y.ofLp 1)
           have hcomp_deriv' : HasDerivAt (fun θ' => rotR (y.ofLp 0) (rotM θ' (y.ofLp 2) S))
               (rotR (y.ofLp 0) (rotMθ (y.ofLp 1 + 0) (y.ofLp 2) S)) (y.ofLp 1 + 0) := by
-            simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+            simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
           have hfinal := hcomp_deriv'.scomp 0 hid
           simp only [one_smul, add_zero] at hfinal
           have heq_fun : ((fun θ' => rotR (y.ofLp 0) (rotM θ' (y.ofLp 2) S)) ∘ HAdd.hAdd (y.ofLp 1)) =
@@ -2119,7 +2119,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
             simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at h; exact h
           have hid : HasDerivAt (fun t : ℝ => θ + t) 1 0 := by simpa using (hasDerivAt_id (0 : ℝ)).const_add θ
           have hcomp_deriv' : HasDerivAt (fun θ' => rotR α (rotMθ θ' φ S)) (rotR α (rotMθθ (θ + 0) φ S)) (θ + 0) := by
-            simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+            simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
           have hfinal := hcomp_deriv'.scomp 0 hid
           simp only [one_smul, add_zero] at hfinal
           have heq_fun : ((fun θ' => rotR α (rotMθ θ' φ S)) ∘ HAdd.hAdd θ) =
@@ -2186,7 +2186,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
             simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at h; exact h
           have hid : HasDerivAt (fun t : ℝ => θ + t) 1 0 := by simpa using (hasDerivAt_id (0 : ℝ)).const_add θ
           have hcomp_deriv' : HasDerivAt (fun θ' => rotR α (rotMφ θ' φ S)) (rotR α (rotMθφ (θ + 0) φ S)) (θ + 0) := by
-            simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+            simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
           have hfinal := hcomp_deriv'.scomp 0 hid
           simp only [one_smul, add_zero] at hfinal
           have heq_fun : ((fun θ' => rotR α (rotMφ θ' φ S)) ∘ HAdd.hAdd θ) =
@@ -2252,7 +2252,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
             simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at h; exact h
           have hid : HasDerivAt (fun t : ℝ => φ + t) 1 0 := by simpa using (hasDerivAt_id (0 : ℝ)).const_add φ
           have hcomp_deriv' : HasDerivAt (fun φ' => rotR' α (rotM θ φ' S)) (rotR' α (rotMφ θ (φ + 0) S)) (φ + 0) := by
-            simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+            simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
           have hfinal := hcomp_deriv'.scomp 0 hid
           simp only [one_smul, add_zero] at hfinal
           have heq_fun : ((fun φ' => rotR' α (rotM θ φ' S)) ∘ HAdd.hAdd φ) =
@@ -2318,7 +2318,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
             simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at h; exact h
           have hid : HasDerivAt (fun t : ℝ => φ + t) 1 0 := by simpa using (hasDerivAt_id (0 : ℝ)).const_add φ
           have hcomp_deriv' : HasDerivAt (fun φ' => rotR α (rotMθ θ φ' S)) (rotR α (rotMθφ θ (φ + 0) S)) (φ + 0) := by
-            simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+            simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
           have hfinal := hcomp_deriv'.scomp 0 hid
           simp only [one_smul, add_zero] at hfinal
           have heq_fun : ((fun φ' => rotR α (rotMθ θ φ' S)) ∘ HAdd.hAdd φ) =
@@ -2384,7 +2384,7 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
             simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at h; exact h
           have hid : HasDerivAt (fun t : ℝ => φ + t) 1 0 := by simpa using (hasDerivAt_id (0 : ℝ)).const_add φ
           have hcomp_deriv' : HasDerivAt (fun φ' => rotR α (rotMφ θ φ' S)) (rotR α (rotMφφ θ (φ + 0) S)) (φ + 0) := by
-            simp only [add_zero, Function.comp_apply] at hcomp_deriv ⊢; exact hcomp_deriv
+            simp only [add_zero] at hcomp_deriv ⊢; exact hcomp_deriv
           have hfinal := hcomp_deriv'.scomp 0 hid
           simp only [one_smul, add_zero] at hfinal
           have heq_fun : ((fun φ' => rotR α (rotMφ θ φ' S)) ∘ HAdd.hAdd φ) =
@@ -2519,7 +2519,7 @@ theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
       have hf_smooth : ContDiff ℝ ⊤ f := by
         apply ContDiff.inner ℝ _ contDiff_const
         rw [contDiff_piLp]; intro k
-        simp only [f, rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+        simp only [rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
         fin_cases k <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
       have hf_diff : Differentiable ℝ f := hf_smooth.differentiable WithTop.top_ne_zero
       -- Key lemma: nth_partial j (c • f) = c • nth_partial j f for constant c

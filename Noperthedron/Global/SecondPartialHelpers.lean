@@ -163,65 +163,6 @@ private lemma hasDerivAt_comp_add (f : ℝ → ℝ²) (f' : ℝ²) (a : ℝ) (hf
   simp only [one_smul] at hcomp
   exact hcomp
 
-/-- fderiv of rotR' ∘ rotM in direction e1 gives rotR' ∘ rotMθ -/
-private lemma fderiv_rotR'_rotM_in_e1' (S : ℝ³) (y : E 3) :
-    (fderiv ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 1 1) =
-    rotR' (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S) := by
-  have hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y :=
-    differentiableAt_rotR'_rotM S y
-  rw [← DifferentiableAt.lineDeriv_eq_fderiv hf_diff]
-  have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
-      (rotR' (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 1 1) := by
-    unfold HasLineDerivAt
-    have hsimp : ∀ t, rotR' ((y + t • EuclideanSpace.single 1 1).ofLp 0)
-        (rotM ((y + t • EuclideanSpace.single 1 1).ofLp 1) ((y + t • EuclideanSpace.single 1 1).ofLp 2) S) =
-        rotR' (y.ofLp 0) (rotM (y.ofLp 1 + t) (y.ofLp 2) S) := by
-      intro t; rw [coord_e1_at0, coord_e1_same, coord_e1_at2, add_comm]
-    simp_rw [hsimp]
-    have hrotM : HasDerivAt (fun θ' => rotM θ' (y.ofLp 2) S) (rotMθ (y.ofLp 1) (y.ofLp 2) S) (y.ofLp 1) :=
-      hasDerivAt_rotM_θ _ _ _
-    have hR' : HasFDerivAt (fun v => rotR' (y.ofLp 0) v) (rotR' (y.ofLp 0)) (rotM (y.ofLp 1) (y.ofLp 2) S) :=
-      ContinuousLinearMap.hasFDerivAt (rotR' (y.ofLp 0))
-    have hcomp := hR'.comp (y.ofLp 1) hrotM.hasFDerivAt
-    have heq : (rotR' (y.ofLp 0)).comp (ContinuousLinearMap.toSpanSingleton ℝ (rotMθ (y.ofLp 1) (y.ofLp 2) S)) =
-        ContinuousLinearMap.toSpanSingleton ℝ (rotR' (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S)) := by
-      ext z; simp [ContinuousLinearMap.toSpanSingleton_apply]
-    rw [heq] at hcomp
-    have hderiv := hcomp.hasDerivAt
-    simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at hderiv
-    exact hasDerivAt_comp_add _ _ _ hderiv
-  exact hline.lineDeriv
-
-/-- fderiv of rotR' ∘ rotM in direction e2 gives rotR' ∘ rotMφ -/
-private lemma fderiv_rotR'_rotM_in_e2' (S : ℝ³) (y : E 3) :
-    (fderiv ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 2 1) =
-    rotR' (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S) := by
-  have hf_diff := differentiableAt_rotR'_rotM S y
-  rw [← DifferentiableAt.lineDeriv_eq_fderiv hf_diff]
-  have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
-      (rotR' (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 2 1) := by
-    unfold HasLineDerivAt
-    have hsimp : ∀ t, rotR' ((y + t • EuclideanSpace.single 2 1).ofLp 0)
-        (rotM ((y + t • EuclideanSpace.single 2 1).ofLp 1) ((y + t • EuclideanSpace.single 2 1).ofLp 2) S) =
-        rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2 + t) S) := by
-      intro t; rw [coord_e2_at0, coord_e2_at1, coord_e2_same, add_comm]
-    simp_rw [hsimp]
-    have hrotM : HasDerivAt (fun φ' => rotM (y.ofLp 1) φ' S) (rotMφ (y.ofLp 1) (y.ofLp 2) S) (y.ofLp 2) :=
-      hasDerivAt_rotM_φ _ _ _
-    have hR' : HasFDerivAt (fun v => rotR' (y.ofLp 0) v) (rotR' (y.ofLp 0)) (rotM (y.ofLp 1) (y.ofLp 2) S) :=
-      ContinuousLinearMap.hasFDerivAt (rotR' (y.ofLp 0))
-    have hcomp := hR'.comp (y.ofLp 2) hrotM.hasFDerivAt
-    have heq : (rotR' (y.ofLp 0)).comp (ContinuousLinearMap.toSpanSingleton ℝ (rotMφ (y.ofLp 1) (y.ofLp 2) S)) =
-        ContinuousLinearMap.toSpanSingleton ℝ (rotR' (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S)) := by
-      ext z; simp [ContinuousLinearMap.toSpanSingleton_apply]
-    rw [heq] at hcomp
-    have hderiv := hcomp.hasDerivAt
-    simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at hderiv
-    exact hasDerivAt_comp_add _ _ _ hderiv
-  exact hline.lineDeriv
-
 /-- fderiv of rotR ∘ rotMθ in direction e1 gives rotR ∘ rotMθθ -/
 lemma fderiv_rotR_rotMθ_in_e1 (S : ℝ³) (y : E 3) :
     (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y)
