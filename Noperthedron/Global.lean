@@ -1887,34 +1887,10 @@ private lemma second_partial_inner_rotM_inner (S : ℝ³) (w : ℝ²) (x : E 3) 
       -- Now compute fderiv (rotR' (·.ofLp 0) (rotM (·.ofLp 1) (·.ofLp 2) S)) at x in direction e₀
       -- Since direction e₀ = [1, 0, 0], this is the partial w.r.t. α
       -- d/dα(rotR' α v)|_{v = rotM θ φ S} = -rotR α v by HasDerivAt_rotR'
+      -- fderiv of rotR' ... rotM in direction e₀ gives -(rotR ...)
       have hfderiv_rotR' : (fderiv ℝ (fun y => rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) x)
-          (EuclideanSpace.single 0 1) = -(rotR α (rotM θ φ S)) := by
-        let proj0 : ℝ³ →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 3 => ℝ) (0 : Fin 3)
-        have hproj0 : HasFDerivAt (fun x : ℝ³ => x.ofLp 0) proj0 x :=
-          (PiLp.hasStrictFDerivAt_apply 2 x 0).hasFDerivAt
-        have hderiv : HasDerivAt (fun α' => rotR' α' (rotM θ φ S)) (-(rotR α (rotM θ φ S))) α :=
-          HasDerivAt_rotR' α (rotM θ φ S)
-        have hfderiv : HasFDerivAt (fun α' : ℝ => rotR' α' (rotM θ φ S))
-            (ContinuousLinearMap.toSpanSingleton ℝ (-(rotR α (rotM θ φ S)))) α :=
-          hderiv.hasFDerivAt
-        have hcomp : HasFDerivAt ((fun α' => rotR' α' (rotM θ φ S)) ∘ (fun y : E 3 => y.ofLp 0))
-            (ContinuousLinearMap.toSpanSingleton ℝ (-(rotR α (rotM θ φ S))) ∘L proj0) x :=
-          hfderiv.comp x hproj0
-        have heq_form : ContinuousLinearMap.toSpanSingleton ℝ (-(rotR α (rotM θ φ S))) ∘L proj0 =
-            proj0.smulRight (-(rotR α (rotM θ φ S))) := by
-          ext y; simp [ContinuousLinearMap.toSpanSingleton_apply, ContinuousLinearMap.smulRight_apply]
-        -- Show full and restricted fderiv agree in e₀ direction
-        have hf_diff' : DifferentiableAt ℝ (fun y : E 3 => rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) x :=
-          differentiableAt_rotR'_rotM S x
-        have heq_fderiv : (fderiv ℝ (fun y => rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) x) (EuclideanSpace.single 0 1) =
-            (fderiv ℝ ((fun α' => rotR' α' (rotM θ φ S)) ∘ (fun y : E 3 => y.ofLp 0)) x) (EuclideanSpace.single 0 1) := by
-          -- Both sides equal -(rotR α (rotM θ φ S))
-          rw [fderiv_rotR'_rotM_in_e0 S x α θ φ rfl rfl rfl hf_diff', hcomp.fderiv, heq_form]
-          simp only [ContinuousLinearMap.smulRight_apply, proj0, PiLp.proj_apply,
-            EuclideanSpace.single_apply, ↓reduceIte, one_smul]
-        rw [heq_fderiv, hcomp.fderiv, heq_form]
-        simp only [ContinuousLinearMap.smulRight_apply, proj0, PiLp.proj_apply,
-          EuclideanSpace.single_apply, ↓reduceIte, smul_neg, one_smul]
+          (EuclideanSpace.single 0 1) = -(rotR α (rotM θ φ S)) :=
+        fderiv_rotR'_rotM_in_e0 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)
       rw [hfderiv_rotR']
       simp only [ContinuousLinearMap.neg_apply, ContinuousLinearMap.coe_comp',
         Function.comp_apply, inner_neg_left, neg_neg]
