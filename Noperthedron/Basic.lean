@@ -259,6 +259,28 @@ def rotMφ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
     !![0, 0, 0; cos θ * sin φ, sin θ * sin φ, cos φ]
   A.toEuclideanLin.toContinuousLinearMap
 
+-- Second partial derivatives of rotM
+-- ∂²rotM/∂θ² (derivative of rotMθ w.r.t. θ)
+noncomputable
+def rotMθθ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  let A : Matrix (Fin 2) (Fin 3) ℝ :=
+    !![sin θ, -cos θ, 0; cos θ * cos φ, sin θ * cos φ, 0]
+  A.toEuclideanLin.toContinuousLinearMap
+
+-- ∂²rotM/∂θ∂φ (derivative of rotMθ w.r.t. φ, or rotMφ w.r.t. θ)
+noncomputable
+def rotMθφ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  let A : Matrix (Fin 2) (Fin 3) ℝ :=
+    !![0, 0, 0; -sin θ * sin φ, cos θ * sin φ, 0]
+  A.toEuclideanLin.toContinuousLinearMap
+
+-- ∂²rotM/∂φ² (derivative of rotMφ w.r.t. φ)
+noncomputable
+def rotMφφ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  let A : Matrix (Fin 2) (Fin 3) ℝ :=
+    !![0, 0, 0; cos θ * cos φ, sin θ * cos φ, -sin φ]
+  A.toEuclideanLin.toContinuousLinearMap
+
 theorem sin_neg_pi_div_two : Real.sin (-(π / 2)) = -1 := by
   simp only [Real.sin_neg, Real.sin_pi_div_two]
 
