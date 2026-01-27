@@ -119,6 +119,10 @@ private lemma inner_bound_helper (A : ℝ³ →L[ℝ] ℝ²) (S : ℝ³) (w : �
 
 -- Derivative of rotR' with respect to α: d/dα(rotR' α v) = -rotR α v
 -- This is needed for the second derivative ∂²/∂α² of rotproj_inner
+-- Note: Linter reports false positives about seq focus and unused/unreachable tactics
+set_option linter.unnecessarySeqFocus false in
+set_option linter.unusedTactic false in
+set_option linter.unreachableTactic false in
 private lemma HasDerivAt_rotR' (α : ℝ) (v : ℝ²) :
     HasDerivAt (rotR' · v) (-(rotR α v)) α := by
   -- rotR' α v = !₂[-sin α * v 0 - cos α * v 1, cos α * v 0 - sin α * v 1]
@@ -753,6 +757,8 @@ private lemma rotprojRM_component1 (θ φ α : ℝ) (S : ℝ³) :
   simp [rotprojRM, rotR, rotM, rotR_mat, rotM_mat, Matrix.vecHead, Matrix.vecTail]
   ring
 
+-- Note: Linter reports false positives about seq focus; the <;> is actually needed for ext
+set_option linter.unnecessarySeqFocus false in
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
 
