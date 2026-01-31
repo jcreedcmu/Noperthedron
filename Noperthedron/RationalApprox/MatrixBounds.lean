@@ -3,7 +3,7 @@ import Noperthedron.RationalApprox.ApproximableMatrices
 
 namespace RationalApprox
 
-/-- Material for [SY25] Lemma 41 -/
+/-- Material for [SY25] Corollary 41 -/
 def rotR_approx : Matrix (Fin 2) (Fin 2) DistLeKappaEntry :=
   !![(.one, .cos), (.one, .msin); (.one, .sin), (.one, .cos)]
 
@@ -25,7 +25,7 @@ def rotMφ_approx : Matrix (Fin 2) (Fin 3) DistLeKappaEntry :=
 def vecX_approx : Matrix (Fin 3) (Fin 1) DistLeKappaEntry :=
   !![ (.cos, .sin); (.sin, .sin); (.one, .cos) ]
 
-/-- Proof of [SY25] Lemma 41 -/
+/-- Proof of [SY25] Corollary 41 -/
 theorem R_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR α - rotRℚ α‖ ≤ κ := by
   let z_ : Set.Icc (-4 : ℝ) 4 := ⟨0, by norm_num⟩
   let α_ : Set.Icc (-4 : ℝ) 4 := ⟨α, hα⟩
