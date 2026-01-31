@@ -134,6 +134,16 @@ See \cite{polyhedron.without.rupert}, Lemma 42.
 
 
 \begin{lemma} \label{lem:boundskappa}
+\leanok
+\lean{
+RationalApprox.bounds_kappa_M,
+RationalApprox.bounds_kappa_Mθ,
+RationalApprox.bounds_kappa_Mφ,
+RationalApprox.bounds_kappa_RM,
+RationalApprox.bounds_kappa_R'M,
+RationalApprox.bounds_kappa_RMθ,
+RationalApprox.bounds_kappa_RMφ
+}
     Let $\alpha, \theta, \phi \in [-4,4]$, $P\in \R^3$ with $\|P\| \leq 1$ and let $\widetilde{P}$ be a $\kappa$-rational approximation of $P$. Set $M = M(\theta, \phi)$ and $M_{\Q} = M_{\Q}(\theta, \phi)$, $M^\theta = M^\theta(\theta, \phi)$, $M^\theta_{\Q} = M^\theta_{\Q}(\theta, \phi)$, $M^\phi = M^\phi(\theta, \phi)$, $M^\phi_{\Q} = M^\phi_{\Q}(\theta, \phi)$ as well as $R = R(\alpha)$, $R_{\Q} = R_{\Q}(\alpha)$, $R' = R'(\alpha)$, $R'_{\Q} = R'_{\Q}(\alpha)$. Finally let $w \in \R^2$ with $\|w\| = 1$. Then:
     \begin{align}
         | \langle M P, w\rangle - \langle M_{\Q} \widetilde{P}, w\rangle | & \leq 3\kappa, \label{eq:boundskappa1} \\
