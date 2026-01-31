@@ -317,6 +317,13 @@ lemma reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
   simp only [RzL, proj_xyL, proj_xy_mat]
   fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
 
+/-- Projecting to xy after Rz rotation equals 2D rotation after projection. -/
+@[simp]
+lemma proj_xyL_comp_RzL (δ : ℝ) : proj_xyL ∘L RzL δ = rotR δ ∘L proj_xyL := by
+  ext v i
+  fin_cases i <;> simp [proj_xyL, proj_xy_mat, RzL, Rz_mat, rotR, rotR_mat,
+    Matrix.vecHead, Matrix.vecTail] <;> ring
+
 lemma rotR_add_pi_eq_neg_rotR {α : ℝ} :
     rotR (α + π) = -rotR α := by
   ext v i; fin_cases i <;>
