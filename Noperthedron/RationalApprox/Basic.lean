@@ -122,6 +122,10 @@ noncomputable
 def vecXLℚ (θ φ : ℝ) : Euc(1) →L[ℝ] ℝ³ :=
   vecXℚ_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
 
+noncomputable
+def vecXℚ (θ : ℝ) (φ : ℝ) : ℝ³ :=
+  !₂[ cosℚ θ * sinℚ φ, sinℚ θ * sinℚ φ, cosℚ φ ]
+
 noncomputable section
 def _root_.Pose.rotRℚ (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotRℚ p.α
 def _root_.Pose.rotR'ℚ (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotR'ℚ p.α
