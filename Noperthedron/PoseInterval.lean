@@ -56,6 +56,27 @@ def tightInterval : PoseInterval where
     α := π / 2
   }
 
+/--
+An interval we need to constrain poses to sometimes for the purposes
+of rational approximation reasoning.
+-/
+noncomputable
+def fourInterval : PoseInterval where
+  min := {
+    θ₁ := -4
+    θ₂ := -4
+    φ₁ := -4
+    φ₂ := -4
+    α := -4
+  }
+  max := {
+    θ₁ := 4
+    θ₂ := 4
+    φ₁ := 4
+    φ₂ := 4
+    α := 4
+  }
+
 namespace Pose
 
 def closed_ball (p : Pose) (ε : ℝ) : PoseInterval := {

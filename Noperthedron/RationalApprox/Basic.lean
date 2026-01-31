@@ -1,4 +1,5 @@
 import Noperthedron.Basic
+import Noperthedron.Pose
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 namespace RationalApprox
@@ -61,6 +62,10 @@ def κApproxMat {m n : ℕ}
 def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
   ‖(A - A').toEuclideanLin.toContinuousLinearMap‖ ≤ κ
 
+structure κApproxPoly (A B : Finset ℝ³) where
+  bijection : A ≃ B
+  approx : ∀ a : A, ‖(a : ℝ³) - bijection a‖ ≤ κ
+
 end
 
 noncomputable
@@ -116,3 +121,16 @@ def rotR'ℚ (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
 noncomputable
 def vecXLℚ (θ φ : ℝ) : Euc(1) →L[ℝ] ℝ³ :=
   vecXℚ_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
+
+noncomputable section
+def _root_.Pose.rotRℚ (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotRℚ p.α
+def _root_.Pose.rotR'ℚ (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotR'ℚ p.α
+def _root_.Pose.rotM₁ℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMℚ p.θ₁ p.φ₁
+def _root_.Pose.rotM₂ℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMℚ p.θ₂ p.φ₂
+def _root_.Pose.rotM₁θℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMθℚ p.θ₁ p.φ₁
+def _root_.Pose.rotM₂θℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMθℚ p.θ₂ p.φ₂
+def _root_.Pose.rotM₁φℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚ p.θ₁ p.φ₁
+def _root_.Pose.rotM₂φℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚ p.θ₂ p.φ₂
+def _root_.Pose.innerℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := p.rotRℚ ∘L p.rotM₁ℚ
+def _root_.Pose.outerℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := p.rotM₂
+end
