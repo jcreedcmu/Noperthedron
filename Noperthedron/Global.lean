@@ -241,9 +241,13 @@ theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
 theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose} {ε : ℝ} {poly : GoodPoly}
-    (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    (pc : GlobalTheoremPrecondition poly pbar ε) {P : ℝ³} (hP : ‖P‖ ≠ 0):
     pc.fu_outer P p.outerParams * ‖P‖ = ⟪pc.w, p.outer P⟫ := by
-  sorry
+  simp only [GlobalTheoremPrecondition.fu_outer, rotproj_outer_unit, Pose.outer, outerProj,
+           PoseLike.outer, Pose.outerParams, Matrix.cons_val,
+           AffineMap.coe_comp, LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe,
+           Function.comp_apply]
+  rw [div_mul_cancel₀ _ hP, Pose.proj_rm_eq_m, real_inner_comm]
 
 lemma Differentiable.rotprojRM (S : ℝ³) :
     Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
@@ -425,6 +429,7 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
   -- Now we're just considering a single polyhedron vertex P
   intro P hP
   have P_norm_pos : 0 < ‖P‖ := poly.nontriv P hP
+  have P_norm_nonzero : ‖P‖ ≠ 0 := by exact Ne.symm (ne_of_lt P_norm_pos)
   have P_norm_le_one : ‖P‖ ≤ 1 := poly.vertex_radius_le_one P hP
 
   have hz := bounded_partials_control_difference
@@ -438,7 +443,7 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
   rw [tsub_le_iff_right] at hz
   replace hz := mul_le_mul_of_nonneg_right hz (ha := le_of_lt P_norm_pos)
   rw [add_mul] at hz
-  rw [pc.fu_pose_eq_outer P, pc.fu_pose_eq_outer P] at hz
+  rw [pc.fu_pose_eq_outer P_norm_nonzero, pc.fu_pose_eq_outer P_norm_nonzero] at hz
   rw [partials_helper_outer pc]
   rw [show pbar.rotM₂ P = pbar.outer P by rw [Pose.outer_eq_M]]
   conv => enter [2, 1, 1]; rw [real_inner_comm]
