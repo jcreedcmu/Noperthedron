@@ -67,41 +67,6 @@ lemma HasDerivAt_rotR' (α : ℝ) (v : ℝ²) :
       convert this using 2 <;> ring
     convert h1.add h2 using 1 <;> first | (funext x; simp only [Pi.add_apply]; ring) | ring
 
-/-- fderiv of rotR (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) in direction e₀ gives rotR' -/
-lemma fderiv_rotR_rotM_in_e0 (S : Euc(3)) (y : E 3)
-    (hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y) :
-    (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 0 1) =
-    rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) := by
-  rw [← hf_diff.lineDeriv_eq_fderiv]
-  have h0 := fun t => coord_e0_same y t
-  have h1 := coord_e0_at1 y
-  have h2 := coord_e0_at2 y
-  have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
-      (rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 0 1) := by
-    unfold HasLineDerivAt
-    have hsimp : ∀ t, rotR ((y + t • EuclideanSpace.single 0 1).ofLp 0)
-        (rotM ((y + t • EuclideanSpace.single 0 1).ofLp 1)
-             ((y + t • EuclideanSpace.single 0 1).ofLp 2) S) =
-        rotR (y.ofLp 0 + t) (rotM (y.ofLp 1) (y.ofLp 2) S) := by
-      intro t; rw [h0, h1, h2]
-    simp_rw [hsimp]
-    have hrotR : HasDerivAt (fun α => rotR α (rotM (y.ofLp 1) (y.ofLp 2) S))
-        (rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) (y.ofLp 0) := HasDerivAt_rotR _ _
-    have hid : HasDerivAt (fun t : ℝ => y.ofLp 0 + t) 1 0 := by
-      simpa using (hasDerivAt_id (0 : ℝ)).const_add (y.ofLp 0)
-    have hrotR' : HasDerivAt (fun α => rotR α (rotM (y.ofLp 1) (y.ofLp 2) S))
-        (rotR' (y.ofLp 0 + 0) (rotM (y.ofLp 1) (y.ofLp 2) S)) (y.ofLp 0 + 0) := by
-      simp only [add_zero]; exact hrotR
-    have hcomp := hrotR'.scomp 0 hid
-    simp only [one_smul, add_zero] at hcomp
-    have heq_fun : ((fun α ↦ rotR α (rotM (y.ofLp 1) (y.ofLp 2) S)) ∘ HAdd.hAdd (y.ofLp 0)) =
-        (fun t => rotR (y.ofLp 0 + t) (rotM (y.ofLp 1) (y.ofLp 2) S)) := by
-      ext t; simp only [Function.comp_apply]
-    rw [heq_fun] at hcomp
-    exact hcomp
-  exact hline.lineDeriv
-
 /-- fderiv of rotR with any M in direction e₀ gives rotR' -/
 lemma fderiv_rotR_any_M_in_e0 (S : Euc(3)) (y : E 3) (M : ℝ → ℝ → ℝ³ →L[ℝ] ℝ²)
     (hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (M (z.ofLp 1) (z.ofLp 2) S)) y) :
@@ -126,6 +91,14 @@ lemma fderiv_rotR_any_M_in_e0 (S : Euc(3)) (y : E 3) (M : ℝ → ℝ → ℝ³ 
     have heq_fun : ((fun α ↦ rotR α (M (y.ofLp 1) (y.ofLp 2) S)) ∘ HAdd.hAdd (y.ofLp 0)) = (fun t => rotR (y.ofLp 0 + t) (M (y.ofLp 1) (y.ofLp 2) S)) := by ext t; simp only [Function.comp_apply]
     rw [heq_fun] at hcomp; exact hcomp
   exact hline.lineDeriv
+
+/-- fderiv of rotR (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) in direction e₀ gives rotR' -/
+lemma fderiv_rotR_rotM_in_e0 (S : Euc(3)) (y : E 3)
+    (hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y) :
+    (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y)
+      (EuclideanSpace.single 0 1) =
+    rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) :=
+  fderiv_rotR_any_M_in_e0 S y rotM hf_diff
 
 /-- fderiv of rotR (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) in direction e₂ gives rotR ∘ rotMφ -/
 lemma fderiv_rotR_rotM_in_e2 (S : Euc(3)) (y : E 3)
@@ -299,6 +272,36 @@ lemma fderiv_rotR'_rotM_in_e1 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
     have heq_fun : ((fun θ' => rotR' α (rotM θ' φ S)) ∘ HAdd.hAdd θ) =
         (fun t => rotR' α (rotM (θ + t) φ S)) := by ext t; simp only [Function.comp_apply]
     rw [heq_fun] at hfinal; exact hfinal
+  exact hline.lineDeriv
+
+/-- fderiv of rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) in direction e₂ gives rotR' α (rotMφ θ φ S) -/
+lemma fderiv_rotR'_rotM_in_e2 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
+    (hα : y.ofLp 0 = α) (hθ : y.ofLp 1 = θ) (hφ : y.ofLp 2 = φ)
+    (hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y) :
+    (fderiv ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y)
+      (EuclideanSpace.single 2 1) =
+    rotR' α (rotMφ θ φ S) := by
+  rw [← hf_diff.lineDeriv_eq_fderiv]
+  have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S))
+      (rotR' α (rotMφ θ φ S)) y (EuclideanSpace.single 2 1) := by
+    unfold HasLineDerivAt
+    have hsimp : ∀ t, rotR' ((y + t • EuclideanSpace.single 2 1).ofLp 0)
+        (rotM ((y + t • EuclideanSpace.single 2 1).ofLp 1)
+             ((y + t • EuclideanSpace.single 2 1).ofLp 2) S) =
+        rotR' α (rotM θ (φ + t) S) := by
+      intro t; rw [coord_e2_at0, coord_e2_at1, coord_e2_same, hα, hθ, hφ, add_comm]
+    simp_rw [hsimp]
+    have hrotM : HasDerivAt (fun φ' => rotM θ φ' S) (rotMφ θ φ S) φ := hasDerivAt_rotM_φ θ φ S
+    have hR : HasFDerivAt (fun v => rotR' α v) (rotR' α) (rotM θ φ S) :=
+      ContinuousLinearMap.hasFDerivAt (rotR' α)
+    have hcomp := hR.comp φ hrotM.hasFDerivAt
+    have heq_comp : (rotR' α).comp (ContinuousLinearMap.toSpanSingleton ℝ (rotMφ θ φ S)) =
+        ContinuousLinearMap.toSpanSingleton ℝ (rotR' α (rotMφ θ φ S)) := by
+      ext z; simp [ContinuousLinearMap.toSpanSingleton_apply]
+    rw [heq_comp] at hcomp
+    have hderiv := hcomp.hasDerivAt
+    simp only [ContinuousLinearMap.toSpanSingleton_apply, one_smul] at hderiv
+    exact hasDerivAt_comp_add _ _ _ hderiv
   exact hline.lineDeriv
 
 end GlobalTheorem

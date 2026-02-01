@@ -113,6 +113,23 @@ lemma fderiv_inner_const {n : ℕ} (f : E n → ℝ²) (w : ℝ²) (y : E n) (d 
   simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at hInner
   exact hInner
 
+/-- |⟪A S, w⟫ / ‖S‖| ≤ 1 when ‖A‖ ≤ 1 and ‖w‖ = 1 -/
+lemma inner_bound_helper (A : ℝ³ →L[ℝ] ℝ²) (S : ℝ³) (w : ℝ²)
+    (hw : ‖w‖ = 1) (hA : ‖A‖ ≤ 1) : |⟪A S, w⟫ / ‖S‖| ≤ 1 := by
+  by_cases hS : ‖S‖ = 0
+  · simp [hS]
+  · rw [abs_div, abs_norm]
+    refine div_le_one_of_le₀ ?_ (norm_nonneg _)
+    calc |⟪A S, w⟫|
+      _ ≤ ‖A S‖ * ‖w‖ := abs_real_inner_le_norm _ _
+      _ ≤ ‖A‖ * ‖S‖ * ‖w‖ := by
+          apply mul_le_mul_of_nonneg_right (ContinuousLinearMap.le_opNorm _ _) (norm_nonneg _)
+      _ ≤ 1 * ‖S‖ * 1 := by
+          apply mul_le_mul (mul_le_mul_of_nonneg_right hA (norm_nonneg _)) (le_of_eq hw)
+            (norm_nonneg _)
+          positivity
+      _ = ‖S‖ := by ring
+
 /-!
 ## Coordinate extraction lemmas
 
@@ -192,7 +209,7 @@ These factor out the lineDeriv_eq_fderiv + HasLineDerivAt pattern.
 -/
 
 /-- Helper for deriv → fderiv composition pattern -/
-private lemma hasDerivAt_comp_add (f : ℝ → ℝ²) (f' : ℝ²) (a : ℝ) (hf : HasDerivAt f f' a) :
+lemma hasDerivAt_comp_add (f : ℝ → ℝ²) (f' : ℝ²) (a : ℝ) (hf : HasDerivAt f f' a) :
     HasDerivAt (fun t => f (a + t)) f' 0 := by
   have hid : HasDerivAt (fun t : ℝ => a + t) 1 0 := by simpa using (hasDerivAt_id 0).const_add a
   have hf' : HasDerivAt f f' (a + 0) := by simp only [add_zero]; exact hf
@@ -348,29 +365,30 @@ noncomputable def inner_second_partial_A (α θ φ : ℝ) (i j : Fin 3) : ℝ³ 
   | 2, 1 => rotR α ∘L rotMθφ θ φ   -- = A[1,2] by mixed partial symmetry
   | 2, 2 => rotR α ∘L rotMφφ θ φ
 
--- Helper for composition norm bounds
-private lemma comp_norm_le_one' {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
+/-- Composition norm bound: ‖A ∘L B‖ ≤ 1 when ‖A‖ ≤ 1 and ‖B‖ ≤ 1 -/
+lemma comp_norm_le_one {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
     ‖A ∘L B‖ ≤ 1 :=
   calc ‖A ∘L B‖ ≤ ‖A‖ * ‖B‖ := ContinuousLinearMap.opNorm_comp_le A B
     _ ≤ 1 * 1 := mul_le_mul hA hB (norm_nonneg _) (by linarith)
     _ = 1 := one_mul 1
 
-private lemma neg_comp_norm_le_one' {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
+/-- Negated composition norm bound: ‖-(A ∘L B)‖ ≤ 1 when ‖A‖ ≤ 1 and ‖B‖ ≤ 1 -/
+lemma neg_comp_norm_le_one {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
     ‖-(A ∘L B)‖ ≤ 1 := by
-  rw [norm_neg]; exact comp_norm_le_one' hA hB
+  rw [norm_neg]; exact comp_norm_le_one hA hB
 
 /-- All A[i,j] have operator norm ≤ 1. -/
 lemma inner_second_partial_A_norm_le (α θ φ : ℝ) (i j : Fin 3) :
     ‖inner_second_partial_A α θ φ i j‖ ≤ 1 := by
   fin_cases i <;> fin_cases j
-  · exact neg_comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (le_of_eq (Bounding.rotM_norm_one _ _))
-  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθθ_norm_le_one _ _)
-  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one' (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMφφ_norm_le_one _ _)
+  · exact neg_comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (le_of_eq (Bounding.rotM_norm_one _ _))
+  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
+  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
+  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
+  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθθ_norm_le_one _ _)
+  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
+  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
+  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
+  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMφφ_norm_le_one _ _)
 
 end GlobalTheorem
