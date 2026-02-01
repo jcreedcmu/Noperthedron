@@ -57,11 +57,8 @@ theorem rotMθ_norm_le_one (θ φ : ℝ) : ‖rotMθ θ φ‖ ≤ 1 := by
        (Real.sin θ * Real.cos φ * v 0 - Real.cos θ * Real.cos φ * v 1) ^ 2 ≤
       v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
     -- Row 0 has norm 1 (cos² + sin² = 1), row 1 has norm |cos φ| ≤ 1
-    have h₁ := sq_nonneg (Real.sin θ * v 0 - Real.cos θ * v 1)
-    have h₂ := sq_nonneg (v 2)
-    have h₃ := Real.sin_sq_add_cos_sq θ
-    have h₄ := Real.cos_sq_le_one φ
-    nlinarith
+    nlinarith [sq_nonneg (Real.sin θ * v 0 - Real.cos θ * v 1), sq_nonneg (v 2),
+      Real.sin_sq_add_cos_sq θ, Real.cos_sq_le_one φ]
   simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
     Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
     Fin.succ_one_eq_two, one_mul]
@@ -125,11 +122,8 @@ theorem rotMθθ_norm_le_one (θ φ : ℝ) : ‖rotMθθ θ φ‖ ≤ 1 := by
       v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
     -- Row 0: [sin θ, -cos θ, 0], norm = 1
     -- Row 1: [cos θ * cos φ, sin θ * cos φ, 0], norm = |cos φ| ≤ 1
-    have h₁ := sq_nonneg (Real.cos θ * v 0 + Real.sin θ * v 1)
-    have h₂ := sq_nonneg (v 2)
-    have h₃ := Real.sin_sq_add_cos_sq θ
-    have h₄ := Real.cos_sq_le_one φ
-    nlinarith
+    nlinarith [sq_nonneg (Real.cos θ * v 0 + Real.sin θ * v 1), sq_nonneg (v 2),
+      Real.sin_sq_add_cos_sq θ, Real.cos_sq_le_one φ]
   simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
     Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
     Fin.succ_one_eq_two, one_mul]
@@ -364,12 +358,9 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
         (-Real.sin θ * v 0 + Real.cos θ * v 1) ^ 2 +
          (-Real.cos θ * Real.cos φ * v 0 - Real.sin θ * Real.cos φ * v 1 + Real.sin φ * v 2) ^ 2 ≤
         v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
-      have h₁ := sq_nonneg (Real.sin θ * v 1 + Real.cos θ * v 0)
-      have h₂ := sq_nonneg (Real.sin θ * v 1 + Real.cos θ * v 0)
-      have h₃ := sq_nonneg (Real.sin φ * (Real.cos θ * v 0 + Real.sin θ * v 1) + Real.cos φ * v 2)
-      have h₄ := Real.sin_sq_add_cos_sq θ
-      have h₅ := Real.sin_sq_add_cos_sq φ
-      nlinarith
+      nlinarith [sq_nonneg (Real.sin θ * v 1 + Real.cos θ * v 0),
+        sq_nonneg (Real.sin φ * (Real.cos θ * v 0 + Real.sin θ * v 1) + Real.cos φ * v 2),
+        Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq φ]
     simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
       Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
       Fin.succ_one_eq_two, one_mul]
