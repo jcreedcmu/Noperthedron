@@ -65,14 +65,11 @@ lemma hasDerivAt_rotM_θ (θ φ : ℝ) (S : ℝ³) :
       Real.sin θ * Real.cos φ * S 0 - Real.cos θ * Real.cos φ * S 1] := by
     ext i; fin_cases i <;> (simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
-  · have := hasDerivAt_sin_cos_lincomb (-S 0) (S 1) θ
-    simp only [neg_mul] at this
-    convert this using 1
+  · convert hasDerivAt_sin_cos_lincomb (-S 0) (S 1) θ using 1
     · funext; ring
     · ring
-  · have h12 := hasDerivAt_cos_sin_lincomb (-Real.cos φ * S 0) (-Real.cos φ * S 1) θ
-    have h3 : HasDerivAt (fun _ : ℝ => Real.sin φ * S 2) 0 θ := hasDerivAt_const _ _
-    convert h12.add h3 using 1
+  · convert (hasDerivAt_cos_sin_lincomb (-Real.cos φ * S 0) (-Real.cos φ * S 1) θ).add
+        (hasDerivAt_const θ (Real.sin φ * S 2)) using 1
     · funext; simp only [Pi.add_apply]; ring
     · ring
 
@@ -87,8 +84,7 @@ lemma hasDerivAt_rotM_φ (θ φ : ℝ) (S : ℝ³) :
     ext i; fin_cases i <;> (simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
-  · have := hasDerivAt_cos_sin_lincomb (-Real.cos θ * S 0 - Real.sin θ * S 1) (S 2) φ
-    convert this using 1
+  · convert hasDerivAt_cos_sin_lincomb (-Real.cos θ * S 0 - Real.sin θ * S 1) (S 2) φ using 1
     · funext; ring
     · ring
 
@@ -102,13 +98,10 @@ lemma hasDerivAt_rotMθ_θ (θ φ : ℝ) (S : ℝ³) :
       Real.cos θ * Real.cos φ * S 0 + Real.sin θ * Real.cos φ * S 1] := by
     ext i; fin_cases i <;> (simp [rotMθθ, rotMθθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
-  · have := hasDerivAt_cos_sin_lincomb (-S 0) (-S 1) θ
-    simp only [neg_neg, neg_mul] at this
-    convert this using 1
+  · convert hasDerivAt_cos_sin_lincomb (-S 0) (-S 1) θ using 1
     · funext; ring
     · ring
-  · have := hasDerivAt_sin_cos_lincomb (Real.cos φ * S 0) (-Real.cos φ * S 1) θ
-    convert this using 1
+  · convert hasDerivAt_sin_cos_lincomb (Real.cos φ * S 0) (-Real.cos φ * S 1) θ using 1
     · funext; ring
     · ring
 
@@ -122,8 +115,7 @@ lemma hasDerivAt_rotMθ_φ (θ φ : ℝ) (S : ℝ³) :
     ext i; fin_cases i <;> simp [rotMθφ, rotMθφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
-  · have := hasDerivAt_cos_sin_lincomb (Real.sin θ * S 0 - Real.cos θ * S 1) 0 φ
-    convert this using 1
+  · convert hasDerivAt_cos_sin_lincomb (Real.sin θ * S 0 - Real.cos θ * S 1) 0 φ using 1
     · funext; ring
     · ring
 
@@ -137,9 +129,8 @@ lemma hasDerivAt_rotMφ_θ (θ φ : ℝ) (S : ℝ³) :
     ext i; fin_cases i <;> simp [rotMθφ, rotMθφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
-  · have h12 := hasDerivAt_cos_sin_lincomb (Real.sin φ * S 0) (Real.sin φ * S 1) θ
-    have h3 : HasDerivAt (fun _ : ℝ => Real.cos φ * S 2) 0 θ := hasDerivAt_const _ _
-    convert h12.add h3 using 1
+  · convert (hasDerivAt_cos_sin_lincomb (Real.sin φ * S 0) (Real.sin φ * S 1) θ).add
+        (hasDerivAt_const θ (Real.cos φ * S 2)) using 1
     · funext; simp only [Pi.add_apply]; ring
     · ring
 
@@ -154,7 +145,6 @@ lemma hasDerivAt_rotMφ_φ (θ φ : ℝ) (S : ℝ³) :
     ext i; fin_cases i <;> (simp [rotMφφ, rotMφφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
-  · have := hasDerivAt_sin_cos_lincomb (Real.cos θ * S 0 + Real.sin θ * S 1) (S 2) φ
-    convert this using 1
+  · convert hasDerivAt_sin_cos_lincomb (Real.cos θ * S 0 + Real.sin θ * S 1) (S 2) φ using 1
     · funext; ring
     · ring
