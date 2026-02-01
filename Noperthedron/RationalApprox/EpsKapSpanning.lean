@@ -105,7 +105,7 @@ private lemma rotMℚ_transpose_adjoint (θ φ : ℝ) :
       Matrix.toEuclideanLin_conjTranspose_eq_adjoint (A := rotMℚ_mat θ φ)]
   rfl
 
-/- [SY25 Lemma 46] -/
+/- [SY25] Lemma 46 -/
 theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Triangle)
     (hk : κApproxTri P P') (hP : ∀ i, ‖P i‖ ≤ 1) {θ φ ε : ℝ}
     (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4)
