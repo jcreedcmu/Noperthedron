@@ -31,15 +31,8 @@ private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
 -- Derivative of rotR' with respect to α: d/dα(rotR' α v) = -rotR α v
 -- This is needed for the second derivative ∂²/∂α² of rotproj_inner
--- Note: Linter reports false positives about seq focus and unused/unreachable tactics
-set_option linter.unnecessarySeqFocus false in
-set_option linter.unusedTactic false in
-set_option linter.unreachableTactic false in
 lemma HasDerivAt_rotR' (α : ℝ) (v : ℝ²) :
     HasDerivAt (rotR' · v) (-(rotR α v)) α := by
-  -- rotR' α v = !₂[-sin α * v 0 - cos α * v 1, cos α * v 0 - sin α * v 1]
-  -- d/dα = !₂[-cos α * v 0 + sin α * v 1, -sin α * v 0 - cos α * v 1]
-  --      = -!₂[cos α * v 0 - sin α * v 1, sin α * v 0 + cos α * v 1] = -rotR α v
   have h_f : (rotR' · v) = (fun α' => !₂[-Real.sin α' * v 0 - Real.cos α' * v 1,
       Real.cos α' * v 0 - Real.sin α' * v 1]) := by
     ext α' i
@@ -50,22 +43,12 @@ lemma HasDerivAt_rotR' (α : ℝ) (v : ℝ²) :
     fin_cases i <;> simp [rotR, rotR_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
   rw [h_f, h_f']
   refine hasDerivAt_lp2 ?_ ?_
-  · -- Component 0: d/dα(-sin α * v 0 - cos α * v 1) = -cos α * v 0 + sin α * v 1
-    have h1 : HasDerivAt (fun x => -Real.sin x * v.ofLp 0) (-Real.cos α * v.ofLp 0) α := by
-      have := (Real.hasDerivAt_sin α).neg.mul_const (v.ofLp 0)
-      convert this using 2 <;> ring
-    have h2 : HasDerivAt (fun x => -Real.cos x * v.ofLp 1) (Real.sin α * v.ofLp 1) α := by
-      have := (Real.hasDerivAt_cos α).neg.mul_const (v.ofLp 1)
-      convert this using 2 <;> ring
-    convert h1.add h2 using 1 <;> first | (funext x; simp only [Pi.add_apply]; ring) | ring
-  · -- Component 1: d/dα(cos α * v 0 - sin α * v 1) = -sin α * v 0 - cos α * v 1
-    have h1 : HasDerivAt (fun x => Real.cos x * v.ofLp 0) (-Real.sin α * v.ofLp 0) α := by
-      have := (Real.hasDerivAt_cos α).mul_const (v.ofLp 0)
-      convert this using 2 <;> ring
-    have h2 : HasDerivAt (fun x => -Real.sin x * v.ofLp 1) (-Real.cos α * v.ofLp 1) α := by
-      have := (Real.hasDerivAt_sin α).neg.mul_const (v.ofLp 1)
-      convert this using 2 <;> ring
-    convert h1.add h2 using 1 <;> first | (funext x; simp only [Pi.add_apply]; ring) | ring
+  · convert hasDerivAt_sin_cos_lincomb (-v 0) (-v 1) α using 1
+    · funext; ring
+    · ring
+  · convert hasDerivAt_cos_sin_lincomb (v 0) (-v 1) α using 1
+    · funext; ring
+    · ring
 
 /-- fderiv of rotR with any M in direction e₀ gives rotR' -/
 lemma fderiv_rotR_any_M_in_e0 (S : Euc(3)) (y : E 3) (M : ℝ → ℝ → ℝ³ →L[ℝ] ℝ²)
