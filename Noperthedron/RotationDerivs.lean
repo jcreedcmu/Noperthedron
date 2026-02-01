@@ -21,6 +21,18 @@ lemma hasDerivAt_lp2 {f g : ℝ → ℝ} {f' g' t : ℝ}
   let lpmap := WithLp.linearEquiv 2 ℝ (Fin 2 → ℝ) |>.symm.toContinuousLinearMap
   exact (hasDerivAt_clm_pi2 f g f' g' t lpmap) hf hg
 
+/-- Derivative of a * sin t + b * cos t is a * cos t - b * sin t -/
+lemma hasDerivAt_sin_cos_lincomb (a b t : ℝ) :
+    HasDerivAt (fun x => a * Real.sin x + b * Real.cos x) (a * Real.cos t - b * Real.sin t) t := by
+  convert (Real.hasDerivAt_sin t).const_mul a |>.add ((Real.hasDerivAt_cos t).const_mul b) using 1
+  ring
+
+/-- Derivative of a * cos t + b * sin t is -a * sin t + b * cos t -/
+lemma hasDerivAt_cos_sin_lincomb (a b t : ℝ) :
+    HasDerivAt (fun x => a * Real.cos x + b * Real.sin x) (-a * Real.sin t + b * Real.cos t) t := by
+  convert (Real.hasDerivAt_cos t).const_mul a |>.add ((Real.hasDerivAt_sin t).const_mul b) using 1
+  ring
+
 theorem HasDerivAt_rotR_mat (α : ℝ) (v : ℝ²) :
     HasDerivAt (fun α ↦ !₂[Real.cos α * v 0 + -(Real.sin α * v 1), Real.sin α * v 0 + Real.cos α * v 1])
     !₂[-(Real.sin α * v 0) + -(Real.cos α * v 1), Real.cos α * v 0 + -(Real.sin α * v 1)] α := by
@@ -53,8 +65,11 @@ lemma hasDerivAt_rotM_θ (θ φ : ℝ) (S : ℝ³) :
       Real.sin θ * Real.cos φ * S 0 - Real.cos θ * Real.cos φ * S 1] := by
     ext i; fin_cases i <;> (simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
-  · have h : deriv (fun x => -Real.sin x * S 0 + Real.cos x * S 1) θ = -Real.cos θ * S 0 - Real.sin θ * S 1 := by simp; ring
-    rw [← h]; exact DifferentiableAt.hasDerivAt (by fun_prop)
+  · have := hasDerivAt_sin_cos_lincomb (-S 0) (S 1) θ
+    simp only [neg_mul] at this
+    convert this using 1
+    · funext; ring
+    · ring
   · have h1 : HasDerivAt (fun x => -Real.cos x * Real.cos φ * S 0) (Real.sin θ * Real.cos φ * S 0) θ := by
       have := (Real.hasDerivAt_cos θ).neg.mul_const (Real.cos φ * S 0)
       simp only [neg_neg, mul_assoc] at this ⊢; exact this
@@ -94,8 +109,11 @@ lemma hasDerivAt_rotMθ_θ (θ φ : ℝ) (S : ℝ³) :
       Real.cos θ * Real.cos φ * S 0 + Real.sin θ * Real.cos φ * S 1] := by
     ext i; fin_cases i <;> (simp [rotMθθ, rotMθθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
-  · have h : deriv (fun x => -Real.cos x * S 0 - Real.sin x * S 1) θ = Real.sin θ * S 0 - Real.cos θ * S 1 := by simp
-    rw [← h]; exact DifferentiableAt.hasDerivAt (by fun_prop)
+  · have := hasDerivAt_cos_sin_lincomb (-S 0) (-S 1) θ
+    simp only [neg_neg, neg_mul] at this
+    convert this using 1
+    · funext; ring
+    · ring
   · have h1 : HasDerivAt (fun x => Real.sin x * Real.cos φ * S 0) (Real.cos θ * Real.cos φ * S 0) θ := by
       have := (Real.hasDerivAt_sin θ).mul_const (Real.cos φ * S 0); simp only [mul_assoc] at this ⊢; exact this
     have h2 : HasDerivAt (fun x => Real.cos x * Real.cos φ * S 1) (-Real.sin θ * Real.cos φ * S 1) θ := by
