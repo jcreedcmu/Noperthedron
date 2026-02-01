@@ -7,6 +7,7 @@ import Mathlib.Analysis.Calculus.FDeriv.WithLp
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import Noperthedron.RotationDerivs
 import Noperthedron.Global.SecondPartialHelpers
+import Noperthedron.Global.Definitions
 
 /-!
 # FDeriv Helper Lemmas for Global Theorem
@@ -171,5 +172,39 @@ lemma fderiv_rotR'_rotM_in_e2 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
     exact hasDerivAt_comp_add _ _ _ (by simpa [comp_toSpanSingleton] using
       ((ContinuousLinearMap.hasFDerivAt (rotR' α)).comp φ (hasDerivAt_rotM_φ θ φ S).hasFDerivAt).hasDerivAt)
   exact hline.lineDeriv
+
+/-!
+## fderiv of rotproj_inner in coordinate directions
+
+These combine `fderiv_inner_const` with `fderiv_rotR_rotM_in_e*` to give
+formulas for partial derivatives of rotproj_inner directly.
+-/
+
+/-- fderiv of rotproj_inner in direction e₀ -/
+lemma fderiv_rotproj_inner_in_e0 (S : ℝ³) (w : ℝ²) (y : E 3)
+    (hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y) :
+    (fderiv ℝ (rotproj_inner S w) y) (EuclideanSpace.single 0 1) =
+    ⟪rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  have heq : rotproj_inner S w = fun z => ⟪rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S), w⟫ := by
+    ext z; simp [rotproj_inner, rotprojRM]
+  rw [heq, fderiv_inner_const _ w y _ hf_diff, fderiv_rotR_rotM_in_e0 S y hf_diff]
+
+/-- fderiv of rotproj_inner in direction e₁ -/
+lemma fderiv_rotproj_inner_in_e1 (S : ℝ³) (w : ℝ²) (y : E 3)
+    (hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y) :
+    (fderiv ℝ (rotproj_inner S w) y) (EuclideanSpace.single 1 1) =
+    ⟪rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  have heq : rotproj_inner S w = fun z => ⟪rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S), w⟫ := by
+    ext z; simp [rotproj_inner, rotprojRM]
+  rw [heq, fderiv_inner_const _ w y _ hf_diff, fderiv_rotR_rotM_in_e1 S y hf_diff]
+
+/-- fderiv of rotproj_inner in direction e₂ -/
+lemma fderiv_rotproj_inner_in_e2 (S : ℝ³) (w : ℝ²) (y : E 3)
+    (hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y) :
+    (fderiv ℝ (rotproj_inner S w) y) (EuclideanSpace.single 2 1) =
+    ⟪rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  have heq : rotproj_inner S w = fun z => ⟪rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S), w⟫ := by
+    ext z; simp [rotproj_inner, rotprojRM]
+  rw [heq, fderiv_inner_const _ w y _ hf_diff, fderiv_rotR_rotM_in_e2 S y hf_diff]
 
 end GlobalTheorem
