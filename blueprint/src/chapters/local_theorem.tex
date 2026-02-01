@@ -169,6 +169,8 @@ See \cite{polyhedron.without.rupert}, Lemma 33.
 \end{proof}
 
 \begin{lemma} \label{lem:congruent}
+\leanok
+\lean{Local.congruent_iff_sym_matrix_eq}
     Let $P_1,P_2,P_3, Q_1,Q_2,Q_3 \in \R^3$. Define the $3 \times 3$ matrices $P \coloneqq (P_1|P_2|P_3)$ and $Q \coloneqq (Q_1|Q_2|Q_3)$ and assume that $Q$ is invertible.
     Then $P_1, P_2, P_3$ and $Q_1, Q_2, Q_3$ are congruent if and only if $P^t P = Q^t Q$.
 \end{lemma}
