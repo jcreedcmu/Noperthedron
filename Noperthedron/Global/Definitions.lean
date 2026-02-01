@@ -33,6 +33,28 @@ noncomputable
 def rotproj_outer (S : ℝ³) (w : ℝ²) (x : ℝ²) : ℝ :=
   ⟪rotM (x 0) (x 1) S, w⟫
 
+/-- Expand rotproj_inner in terms of rotR and rotM -/
+@[simp]
+lemma rotproj_inner_eq (S : ℝ³) (w : ℝ²) (x : ℝ³) :
+    rotproj_inner S w x = ⟪rotR (x 0) (rotM (x 1) (x 2) S), w⟫ := by
+  simp [rotproj_inner, rotprojRM]
+
+/-- rotproj_inner_unit equals rotproj_inner divided by norm -/
+@[simp]
+lemma rotproj_inner_unit_eq (S : ℝ³) (w : ℝ²) (x : ℝ³) :
+    rotproj_inner_unit S w x = rotproj_inner S w x / ‖S‖ := by
+  simp [rotproj_inner_unit, rotproj_inner]
+
+/-- Expand rotproj_outer in terms of rotM -/
+@[simp]
+lemma rotproj_outer_eq (S : ℝ³) (w : ℝ²) (x : ℝ²) :
+    rotproj_outer S w x = ⟪rotM (x 0) (x 1) S, w⟫ := rfl
+
+/-- rotproj_outer_unit equals rotproj_outer divided by norm -/
+@[simp]
+lemma rotproj_outer_unit_eq (S : ℝ³) (w : ℝ²) (x : ℝ²) :
+    rotproj_outer_unit S w x = rotproj_outer S w x / ‖S‖ := rfl
+
 /--
 An explicit formula for the full derivative of rotproj_outer as a function ℝ² → ℝ
 -/
