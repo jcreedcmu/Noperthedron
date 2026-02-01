@@ -37,12 +37,12 @@ theorem HasDerivAt_rotR_mat (α : ℝ) (v : ℝ²) :
     HasDerivAt (fun α ↦ !₂[Real.cos α * v 0 + -(Real.sin α * v 1), Real.sin α * v 0 + Real.cos α * v 1])
     !₂[-(Real.sin α * v 0) + -(Real.cos α * v 1), Real.cos α * v 0 + -(Real.sin α * v 1)] α := by
   refine hasDerivAt_lp2 ?_ ?_
-  · let f (x : ℝ) := Real.cos x * v 0 + -(Real.sin x * v 1)
-    rw [show -(Real.sin α * v 0) + -(Real.cos α * v 1) = deriv f α by simp [f]]
-    refine DifferentiableAt.hasDerivAt ?_; simp
-  · let f (x : ℝ) := Real.sin x * v 0 + Real.cos x * v 1
-    rw [show (Real.cos α * v 0) + -(Real.sin α * v 1) = deriv f α by simp [f]]
-    refine DifferentiableAt.hasDerivAt ?_; simp
+  · convert hasDerivAt_cos_sin_lincomb (v 0) (-v 1) α using 1
+    · funext; ring
+    · ring
+  · convert hasDerivAt_sin_cos_lincomb (v 0) (v 1) α using 1
+    · funext; ring
+    · ring
 
 theorem HasDerivAt_rotR (α : ℝ) (v : ℝ²) :
     HasDerivAt (rotR · v) (rotR' α v) α := by
