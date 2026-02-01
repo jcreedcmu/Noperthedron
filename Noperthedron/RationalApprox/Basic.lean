@@ -135,6 +135,8 @@ def _root_.Pose.rotM₁φℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.Ration
 def _root_.Pose.rotM₂φℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚ p.θ₂ p.φ₂
 def _root_.Pose.innerℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := p.rotRℚ ∘L p.rotM₁ℚ
 def _root_.Pose.outerℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := p.rotM₂
+def _root_.Pose.vecX₁ℚ (p : Pose) : ℝ³ := vecXℚ (p.θ₁) (p.φ₁)
+def _root_.Pose.vecX₂ℚ (p : Pose) : ℝ³ := vecXℚ (p.θ₂) (p.φ₂)
 end
 
 structure UpperSqrt where
@@ -150,3 +152,7 @@ structure LowerSqrt where
   f : ℝ → ℝ
   rational : ∀ (x : ℚ), 0 ≤ x → ∃ q : ℚ, f x = q
   bound : ∀ (x : ℚ), 0 ≤ x → f x ≤ √x
+
+noncomputable
+def LowerSqrt.norm {n : ℕ} (s : LowerSqrt) (v : Euc(n)) : ℝ :=
+  s.f (‖v‖^2)

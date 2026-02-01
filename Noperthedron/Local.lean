@@ -87,6 +87,8 @@ def shape_of (S : Finset ℝ³) : Shape where
 -- predicate in a way that is suitable for the computational step's
 -- tree check.
 
+-- TODO: refactor to use GoodPoly?
+
 /--
   [SY25] Theorem 36
 -/

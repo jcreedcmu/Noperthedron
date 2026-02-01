@@ -184,7 +184,7 @@ See \cite{polyhedron.without.rupert}, Lemma 44.
 
 \begin{definition} \label{def:ekspanning}
 \leanok
-\lean{RationalApprox.Triangle.Spanning}
+\lean{Local.Triangle.κSpanning}
     Let $\theta, \phi \in \Q \cap [-4,4]$ and $M_{\Q} \coloneqq M_{\Q}(\theta, \phi)$. Three points $\widetilde{P}_1, \widetilde{P}_2, \widetilde{P}_3 \in \Q^3$ with $\|\widetilde{P}_1\|, \|\widetilde{P}_2\|, \|\widetilde{P}_3\| \leq 1+\kappa$ are called \emph{$\epsilon$-$\kappa$-spanning for $(\theta, \phi)$} if it holds that:
 \begin{align*}
     \langle R(\pi/2) M_{\Q} \widetilde{P}_1,M_{\Q} \widetilde{P}_{2}\rangle > 2 \epsilon(\sqrt{2} + \epsilon) + 6\kappa,\\
@@ -261,7 +261,8 @@ See \cite{polyhedron.without.rupert}, Corollary 51.
 
 \begin{theorem}[Rational Local Theorem]
 \label{thm:local_rational}
-\lean{RationalApprox.rational_local}
+\leanok
+\lean{RationalApprox.LocalTheorem.rational_local}
 \uses{def:ekspanning}
     Let $\PPP$ be a polyhedron with radius $\rho=1$ and $\widetilde{P}_i$ be a $\kappa$-rational approximation of $P_i \in \PPP$. Set $\widetilde{\PPP} = \{\widetilde{P}_i \text{ for } P_i \in \PPP \}$. Let $P_1, P_2, P_3, Q_1, Q_2, Q_3 \in \PPP$ be not necessarily distinct and assume that $P_1, P_2, P_3$ and $Q_1, Q_2, Q_3$ are congruent.
     Let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \Q \cap [-4,4]$.
