@@ -13,8 +13,6 @@ instance : Coe ℚ² ℝ² where
 instance : Coe ℚ³ ℝ³ where
   coe q := WithLp.toLp 2 (q ·)
 
-def Triangle : Type := Fin 3 → ℚ³
-
 noncomputable section
 
 /- The below definitions are [SY25] Definition 37 -/

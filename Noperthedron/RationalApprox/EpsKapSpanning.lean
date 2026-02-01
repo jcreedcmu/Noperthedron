@@ -10,6 +10,7 @@ namespace RationalApprox
 open scoped RealInnerProductSpace Real
 open scoped Matrix
 
+open Local (Triangle)
 
 /-- [SY25] Definition 45. Note that the "+ 1" at the type Fin 3 wraps.
   We don't include in this definition the constraint that θ, φ ∈ [-4, 4] or
@@ -18,13 +19,13 @@ open scoped Matrix
 /- QUESTION: should be we be casting to ℝ to take the inner product?;
    on the one hand, we don't *have* to, because rotR (π / 2) is a valid 90° rotation on rationals.
    And should ε be real or rational? -/
-structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where
+structure _root_.Local.Triangle.κSpanning (P : Triangle) (θ φ ε : ℝ) : Prop where
   pos : 0 < ε
   lt : ∀ i : Fin 3, 2 * ε * (√2 + ε) + 6 * κ <
       ⟪rotR (π / 2) (rotMℚ θ φ (P i)), rotMℚ θ φ (P (i + 1))⟫
 
-def κApproxTri (A : Local.Triangle) (A' : RationalApprox.Triangle) : Prop :=
-  ∀ i, ‖A i - (↑(A' i) : ℝ³)‖ ≤ κ
+def κApproxTri (A A' : Triangle) : Prop :=
+  ∀ i, ‖A i - A' i‖ ≤ κ
 
 @[simp]
 lemma norm_transpose_euc_lin {n m : ℕ} (M : Matrix (Fin n) (Fin m) ℝ) :
@@ -106,10 +107,10 @@ private lemma rotMℚ_transpose_adjoint (θ φ : ℝ) :
   rfl
 
 /- [SY25] Lemma 46 -/
-theorem ek_spanning_imp_e_spanning (P : Local.Triangle) (P' : RationalApprox.Triangle)
+theorem ek_spanning_imp_e_spanning (P P' : Triangle)
     (hk : κApproxTri P P') (hP : ∀ i, ‖P i‖ ≤ 1) {θ φ ε : ℝ}
     (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4)
-    (hspan : P'.Spanning θ φ ε) : P.Spanning θ φ ε := by
+    (hspan : P'.κSpanning θ φ ε) : P.Spanning θ φ ε := by
   constructor
   · exact hspan.pos
   · have lt := hspan.lt
