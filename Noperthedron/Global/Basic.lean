@@ -12,6 +12,20 @@ noncomputable
 def nth_partial {n : ℕ} (i : Fin n) (f : E n → ℝ) (x : E n) : ℝ :=
   fderiv ℝ f x (EuclideanSpace.single i 1)
 
+/-- Partial derivative of a scalar multiple equals scalar times partial derivative -/
+lemma nth_partial_const_smul {n : ℕ} (i : Fin n) (c : ℝ) (f : E n → ℝ) (x : E n)
+    (hf : DifferentiableAt ℝ f x) :
+    nth_partial i (c • f) x = c * nth_partial i f x := by
+  simp only [nth_partial]
+  rw [fderiv_const_smul hf, ContinuousLinearMap.smul_apply, smul_eq_mul]
+
+/-- Partial derivative of f/c equals (partial of f)/c -/
+lemma nth_partial_div_const {n : ℕ} (i : Fin n) (f : E n → ℝ) (c : ℝ) (x : E n)
+    (hf : DifferentiableAt ℝ f x) :
+    nth_partial i (fun y => f y / c) x = nth_partial i f x / c := by
+  simp only [div_eq_mul_inv, nth_partial, fderiv_mul_const hf, ContinuousLinearMap.smul_apply,
+    smul_eq_mul, mul_comm]
+
 def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) : Prop :=
   ∀ (x : E n) (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
 
