@@ -138,3 +138,17 @@ def _root_.Pose.rotM₂φℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.Ration
 def _root_.Pose.innerℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := p.rotRℚ ∘L p.rotM₁ℚ
 def _root_.Pose.outerℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := p.rotM₂
 end
+
+structure UpperSqrt where
+  f : ℝ → ℝ
+  rational : ∀ (x : ℚ), 0 ≤ x → ∃ q : ℚ, f x = q
+  bound : ∀ (x : ℚ), 0 ≤ x → √x ≤ f x
+
+noncomputable
+def UpperSqrt.norm {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ℝ :=
+  s.f (‖v‖^2)
+
+structure LowerSqrt where
+  f : ℝ → ℝ
+  rational : ∀ (x : ℚ), 0 ≤ x → ∃ q : ℚ, f x = q
+  bound : ∀ (x : ℚ), 0 ≤ x → f x ≤ √x
