@@ -57,15 +57,13 @@ lemma fderiv_rotR_any_M_in_e0 (S : Euc(3)) (y : E 3) (M : ℝ → ℝ → ℝ³ 
       (EuclideanSpace.single 0 1) =
     rotR' (y.ofLp 0) (M (y.ofLp 1) (y.ofLp 2) S) := by
   rw [← hf_diff.lineDeriv_eq_fderiv]
-  have h0 := fun t => coord_e0_same y t
-  have h1 := coord_e0_at1 y
-  have h2 := coord_e0_at2 y
   have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (M (z.ofLp 1) (z.ofLp 2) S))
       (rotR' (y.ofLp 0) (M (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 0 1) := by
     unfold HasLineDerivAt
-    have hsimp : ∀ t, rotR ((y + t • EuclideanSpace.single 0 1).ofLp 0) (M ((y + t • EuclideanSpace.single 0 1).ofLp 1) ((y + t • EuclideanSpace.single 0 1).ofLp 2) S) =
-        rotR (y.ofLp 0 + t) (M (y.ofLp 1) (y.ofLp 2) S) := by intro t; rw [h0, h1, h2]
-    simp_rw [hsimp]
+    simp_rw [fun t => show rotR ((y + t • EuclideanSpace.single 0 1).ofLp 0)
+        (M ((y + t • EuclideanSpace.single 0 1).ofLp 1) ((y + t • EuclideanSpace.single 0 1).ofLp 2) S) =
+        rotR (y.ofLp 0 + t) (M (y.ofLp 1) (y.ofLp 2) S) by
+      rw [coord_e0_same, coord_e0_at1, coord_e0_at2]]
     have hrotR : HasDerivAt (fun α => rotR α (M (y.ofLp 1) (y.ofLp 2) S)) (rotR' (y.ofLp 0) (M (y.ofLp 1) (y.ofLp 2) S)) (y.ofLp 0) := HasDerivAt_rotR _ _
     have hid : HasDerivAt (fun t : ℝ => y.ofLp 0 + t) 1 0 := by simpa using (hasDerivAt_id (0 : ℝ)).const_add (y.ofLp 0)
     have hrotR' : HasDerivAt (fun α => rotR α (M (y.ofLp 1) (y.ofLp 2) S)) (rotR' (y.ofLp 0 + 0) (M (y.ofLp 1) (y.ofLp 2) S)) (y.ofLp 0 + 0) := by simp only [add_zero]; exact hrotR
