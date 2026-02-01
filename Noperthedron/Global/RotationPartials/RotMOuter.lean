@@ -3,7 +3,7 @@ Copyright (c) 2026 Cameron Freer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cameron Freer
 -/
-import Noperthedron.Global.RotationPartials.Rotproj
+import Noperthedron.Global.Definitions
 
 /-!
 # RotM Outer HasFDerivAt Lemmas
