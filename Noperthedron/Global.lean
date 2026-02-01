@@ -430,7 +430,7 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : ε > 0)
   -- Now we're just considering a single polyhedron vertex P
   intro P hP
   have P_norm_pos : 0 < ‖P‖ := poly.nontriv P hP
-  have P_norm_nonzero : ‖P‖ ≠ 0 := by exact Ne.symm (ne_of_lt P_norm_pos)
+  have P_norm_nonzero : ‖P‖ ≠ 0 := Ne.symm (ne_of_lt P_norm_pos)
   have P_norm_le_one : ‖P‖ ≤ 1 := poly.vertex_radius_le_one P hP
 
   have hz := bounded_partials_control_difference

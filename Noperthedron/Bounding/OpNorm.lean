@@ -392,8 +392,6 @@ theorem lemma9 {d : Fin 3} (α : ℝ) : ‖rot3 d α‖ = 1 := by
   · exact Rz_norm_one α
 
 theorem reduceL_norm : ‖reduceL‖ = 1 := by
-  have h₁ : reduceL = rotM 0 0 := by simp [rotM, reduceL, rotM_mat]
-  rw [h₁]
-  exact Bounding.rotM_norm_one 0 0
+  simpa [rotM, reduceL, rotM_mat] using Bounding.rotM_norm_one 0 0
 
 end Bounding
