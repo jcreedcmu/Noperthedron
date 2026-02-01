@@ -108,8 +108,7 @@ lemma fderiv_inner_const {n : ℕ} (f : E n → ℝ²) (w : ℝ²) (y : E n) (d 
     (hf : DifferentiableAt ℝ f y) :
     (fderiv ℝ (fun z => ⟪f z, w⟫) y) d = ⟪(fderiv ℝ f y) d, w⟫ := by
   have hInner := fderiv_inner_apply ℝ hf (differentiableAt_const w) d
-  have hw : HasFDerivAt (fun _ : E n ↦ w) (0 : E n →L[ℝ] ℝ²) y := hasFDerivAt_const w y
-  rw [hw.fderiv] at hInner
+  rw [(hasFDerivAt_const w y).fderiv] at hInner
   simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add] at hInner
   exact hInner
 
