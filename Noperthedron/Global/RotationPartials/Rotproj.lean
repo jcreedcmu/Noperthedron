@@ -57,6 +57,16 @@ lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ 
 
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams := by
-  sorry
+  have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
+    sorry
+
+  have step :
+    (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
+            ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
+        ((rotprojRM' pbar S).prod 0)) := by
+    sorry
+
+  rw [step]
+  exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.innerParams)
 
 end GlobalTheorem
