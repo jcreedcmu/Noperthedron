@@ -210,8 +210,7 @@ lemma fderiv_rotR_rotMθ_in_e1 (S : ℝ³) (y : E 3) :
     (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y)
       (EuclideanSpace.single 1 1) =
     rotR (y.ofLp 0) (rotMθθ (y.ofLp 1) (y.ofLp 2) S) := by
-  have hf_diff := differentiableAt_rotR_rotMθ S y
-  rw [← DifferentiableAt.lineDeriv_eq_fderiv hf_diff]
+  rw [← (differentiableAt_rotR_rotMθ S y).lineDeriv_eq_fderiv]
   have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S))
       (rotR (y.ofLp 0) (rotMθθ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 1 1) := by
     unfold HasLineDerivAt
