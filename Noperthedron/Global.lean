@@ -90,6 +90,7 @@ theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
     mixed_partials_bounded (rotproj_outer_unit S w) := by
   sorry
 
+/- FIXME: the paper has `- 9 * ε²/2` rather than `+ 9 * ε²/2` below. Did we mess something up here? -/
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
