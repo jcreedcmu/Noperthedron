@@ -35,14 +35,14 @@ pattern that appears ~30+ times in second_partial_inner_rotM_inner.
 lemma differentiableAt_rotMθ_outer (S : ℝ³) (y : E 2) :
     DifferentiableAt ℝ (fun z : E 2 => rotMθ (z.ofLp 0) (z.ofLp 1) S) y := by
   rw [differentiableAt_piLp]; intro i
-  simp only [rotMθ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+  simp only [rotMθ, rotMθ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
   fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotMφ (outer, E 2) -/
 lemma differentiableAt_rotMφ_outer (S : ℝ³) (y : E 2) :
     DifferentiableAt ℝ (fun z : E 2 => rotMφ (z.ofLp 0) (z.ofLp 1) S) y := by
   rw [differentiableAt_piLp]; intro i
-  simp only [rotMφ, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+  simp only [rotMφ, rotMφ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
   fin_cases i
   · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
   · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
@@ -65,28 +65,28 @@ lemma differentiableAt_rotR'_rotM (S : ℝ³) (y : E 3) :
 lemma differentiableAt_rotR_rotMθ (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMθ, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR, rotR_mat, rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotR ∘ rotMφ -/
 lemma differentiableAt_rotR_rotMφ (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMφ, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR, rotR_mat, rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotR' ∘ rotMθ -/
 lemma differentiableAt_rotR'_rotMθ (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR', rotR'_mat, rotMθ, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR', rotR'_mat, rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotR' ∘ rotMφ -/
 lemma differentiableAt_rotR'_rotMφ (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR', rotR'_mat, rotMφ, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR', rotR'_mat, rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-!
@@ -136,71 +136,55 @@ lemma inner_bound_helper (A : ℝ³ →L[ℝ] ℝ²) (S : ℝ³) (w : ℝ²)
 These factor out the repeated `(y + t • EuclideanSpace.single k 1).ofLp j` simplifications.
 -/
 
-/-- Coordinate extraction: direction e0, coordinate 0 (moves) -/
-lemma coord_e0_same (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 + t := by
+/-- Coordinate extraction: direction e_i, same coordinate (moves) -/
+lemma coord_ei_same (i : Fin 3) (y : E 3) (t : ℝ) :
+    (y + t • (EuclideanSpace.single i 1 : E 3)).ofLp i = y.ofLp i + t := by
   simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
     ↓reduceIte, smul_eq_mul, mul_one, add_comm]
 
-/-- Coordinate extraction: direction e0, coordinate 1 (fixed) -/
+/-- Coordinate extraction: direction e_i, different coordinate j (fixed) -/
+@[simp]
+lemma coord_ei_at_other (i j : Fin 3) (hij : j ≠ i) (y : E 3) (t : ℝ) :
+    (y + t • (EuclideanSpace.single i 1 : E 3)).ofLp j = y.ofLp j := by
+  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply, hij,
+    ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
+
+/-- Shorthand for coord_ei_same 0 -/
+abbrev coord_e0_same := coord_ei_same 0
+/-- Shorthand for coord_ei_same 1 -/
+abbrev coord_e1_same := coord_ei_same 1
+/-- Shorthand for coord_ei_same 2 -/
+abbrev coord_e2_same := coord_ei_same 2
+
 @[simp]
 lemma coord_e0_at1 (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply,
-    Pi.single_apply, smul_eq_mul, show (1 : Fin 3) ≠ 0 from by decide,
-    ↓reduceIte, mul_zero, add_zero]
+    (y + t • (EuclideanSpace.single (0 : Fin 3) 1 : E 3)).ofLp 1 = y.ofLp 1 :=
+  coord_ei_at_other 0 1 (by decide) y t
 
-/-- Coordinate extraction: direction e0, coordinate 2 (fixed) -/
 @[simp]
 lemma coord_e0_at2 (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (0 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply,
-    Pi.single_apply, smul_eq_mul, show (2 : Fin 3) ≠ 0 from by decide,
-    ↓reduceIte, mul_zero, add_zero]
+    (y + t • (EuclideanSpace.single (0 : Fin 3) 1 : E 3)).ofLp 2 = y.ofLp 2 :=
+  coord_ei_at_other 0 2 (by decide) y t
 
-/-- Coordinate extraction: direction e1, coordinate 0 (fixed) -/
 @[simp]
 lemma coord_e1_at0 (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply,
-    Pi.single_apply, smul_eq_mul, show (0 : Fin 3) ≠ 1 from by decide,
-    ↓reduceIte, mul_zero, add_zero]
+    (y + t • (EuclideanSpace.single (1 : Fin 3) 1 : E 3)).ofLp 0 = y.ofLp 0 :=
+  coord_ei_at_other 1 0 (by decide) y t
 
-/-- Coordinate extraction: direction e1, coordinate 1 (moves) -/
-lemma coord_e1_same (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 + t := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply,
-    Pi.single_apply, smul_eq_mul, mul_one, ↓reduceIte, add_comm]
-
-/-- Coordinate extraction: direction e1, coordinate 2 (fixed) -/
 @[simp]
 lemma coord_e1_at2 (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (1 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply,
-    Pi.single_apply, smul_eq_mul, show (2 : Fin 3) ≠ 1 from by decide,
-    ↓reduceIte, mul_zero, add_zero]
+    (y + t • (EuclideanSpace.single (1 : Fin 3) 1 : E 3)).ofLp 2 = y.ofLp 2 :=
+  coord_ei_at_other 1 2 (by decide) y t
 
-/-- Coordinate extraction: direction e2, coordinate 0 (fixed) -/
 @[simp]
 lemma coord_e2_at0 (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (2 : Fin 3) (1 : ℝ) : E 3)).ofLp 0 = y.ofLp 0 := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply,
-    Pi.single_apply, smul_eq_mul, show (0 : Fin 3) ≠ 2 from by decide,
-    ↓reduceIte, mul_zero, add_zero]
+    (y + t • (EuclideanSpace.single (2 : Fin 3) 1 : E 3)).ofLp 0 = y.ofLp 0 :=
+  coord_ei_at_other 2 0 (by decide) y t
 
-/-- Coordinate extraction: direction e2, coordinate 1 (fixed) -/
 @[simp]
 lemma coord_e2_at1 (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (2 : Fin 3) (1 : ℝ) : E 3)).ofLp 1 = y.ofLp 1 := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply,
-    Pi.single_apply, smul_eq_mul, show (1 : Fin 3) ≠ 2 from by decide,
-    ↓reduceIte, mul_zero, add_zero]
-
-/-- Coordinate extraction: direction e2, coordinate 2 (moves) -/
-lemma coord_e2_same (y : E 3) (t : ℝ) :
-    (y + t • (EuclideanSpace.single (2 : Fin 3) (1 : ℝ) : E 3)).ofLp 2 = y.ofLp 2 + t := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-    ↓reduceIte, smul_eq_mul, mul_one, add_comm]
+    (y + t • (EuclideanSpace.single (2 : Fin 3) 1 : E 3)).ofLp 1 = y.ofLp 1 :=
+  coord_ei_at_other 2 1 (by decide) y t
 
 /-!
 ## Directional fderiv lemmas for second partials

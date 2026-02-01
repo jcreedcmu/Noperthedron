@@ -87,7 +87,7 @@ theorem Mθ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
   let φ_ : Set.Icc (-4 : ℝ) 4 := ⟨φ, hφ⟩
 
   have h : rotMθ θ φ = clinActual rotMθ_approx θ_ φ_ := by
-    simp only [rotMθ, clinActual, rotMθ_approx,
+    simp only [rotMθ, rotMθ_mat, clinActual, rotMθ_approx,
        EmbeddingLike.apply_eq_iff_eq, θ_, φ_]
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
@@ -106,7 +106,7 @@ theorem Mφ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
   let φ_ : Set.Icc (-4 : ℝ) 4 := ⟨φ, hφ⟩
 
   have h : rotMφ θ φ = clinActual rotMφ_approx θ_ φ_ := by
-    simp only [rotMφ, clinActual, rotMφ_approx,
+    simp only [rotMφ, rotMφ_mat, clinActual, rotMφ_approx,
        EmbeddingLike.apply_eq_iff_eq, θ_, φ_]
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]

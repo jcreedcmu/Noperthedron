@@ -66,14 +66,14 @@ theorem rotMθ_norm_le_one (θ φ : ℝ) : ‖rotMθ θ φ‖ ≤ 1 := by
     Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
     Fin.succ_one_eq_two, one_mul]
   convert Real.sqrt_le_sqrt h_expand using 1
-  · simp only [rotMθ, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+  · simp only [rotMθ, rotMθ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
       LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
       WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
       WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
-      zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec,
-      WithLp.linearEquiv_symm_apply, Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm,
-      WithLp.addEquiv_symm_apply, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one, neg_mul]
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, neg_mul, add_zero,
+      zero_mul]
     ring_nf!
   · ring_nf
 
@@ -105,14 +105,13 @@ theorem rotMφ_norm_le_one (θ φ : ℝ) : ‖rotMφ θ φ‖ ≤ 1 := by
     Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
     Fin.succ_one_eq_two, one_mul]
   convert Real.sqrt_le_sqrt h_expand using 1
-  · simp only [rotMφ, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+  · simp only [rotMφ, rotMφ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
       LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
       WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
       WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
-      zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec,
-      WithLp.linearEquiv_symm_apply, Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm,
-      WithLp.addEquiv_symm_apply, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one]
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, add_zero, zero_mul]
     ring_nf!
   · ring_nf
 
@@ -135,14 +134,13 @@ theorem rotMθθ_norm_le_one (θ φ : ℝ) : ‖rotMθθ θ φ‖ ≤ 1 := by
     Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
     Fin.succ_one_eq_two, one_mul]
   convert Real.sqrt_le_sqrt h_expand using 1
-  · simp only [rotMθθ, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+  · simp only [rotMθθ, rotMθθ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
       LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
       WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
       WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
-      zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec,
-      WithLp.linearEquiv_symm_apply, Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm,
-      WithLp.addEquiv_symm_apply, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one]
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, add_zero, zero_mul]
     ring_nf!
   · ring_nf
 
@@ -179,14 +177,14 @@ theorem rotMθφ_norm_le_one (θ φ : ℝ) : ‖rotMθφ θ φ‖ ≤ 1 := by
     Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
     Fin.succ_one_eq_two, one_mul]
   convert Real.sqrt_le_sqrt h_expand using 1
-  · simp only [rotMθφ, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+  · simp only [rotMθφ, rotMθφ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
       LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
       WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
       WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
-      zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec,
-      WithLp.linearEquiv_symm_apply, Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm,
-      WithLp.addEquiv_symm_apply, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one, neg_mul]
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, neg_mul, add_zero,
+      zero_mul]
     ring_nf!
   · ring_nf
 
@@ -218,14 +216,13 @@ theorem rotMφφ_norm_le_one (θ φ : ℝ) : ‖rotMφφ θ φ‖ ≤ 1 := by
     Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
     Fin.succ_one_eq_two, one_mul]
   convert Real.sqrt_le_sqrt h_expand using 1
-  · simp only [rotMφφ, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+  · simp only [rotMφφ, rotMφφ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
       LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
       WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
       WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
-      zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec,
-      WithLp.linearEquiv_symm_apply, Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm,
-      WithLp.addEquiv_symm_apply, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one]
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, add_zero, zero_mul]
     ring_nf!
   · ring_nf
 

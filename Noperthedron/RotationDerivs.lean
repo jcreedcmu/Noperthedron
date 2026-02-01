@@ -51,7 +51,7 @@ lemma hasDerivAt_rotM_θ (θ φ : ℝ) (S : ℝ³) :
     ext θ' i; fin_cases i <;> (simp [rotM, rotM_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   have h_f' : rotMθ θ φ S = !₂[-Real.cos θ * S 0 - Real.sin θ * S 1,
       Real.sin θ * Real.cos φ * S 0 - Real.cos θ * Real.cos φ * S 1] := by
-    ext i; fin_cases i <;> (simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
+    ext i; fin_cases i <;> (simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · have h : deriv (fun x => -Real.sin x * S 0 + Real.cos x * S 1) θ = -Real.cos θ * S 0 - Real.sin θ * S 1 := by simp; ring
     rw [← h]; exact DifferentiableAt.hasDerivAt (by fun_prop)
@@ -72,7 +72,7 @@ lemma hasDerivAt_rotM_φ (θ φ : ℝ) (S : ℝ³) :
     ext φ' i; fin_cases i <;> (simp [rotM, rotM_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   have h_f' : rotMφ θ φ S = !₂[(0 : ℝ),
       Real.cos θ * Real.sin φ * S 0 + Real.sin θ * Real.sin φ * S 1 + Real.cos φ * S 2] := by
-    ext i; fin_cases i <;> (simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
+    ext i; fin_cases i <;> (simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
   · have h1 : HasDerivAt (fun x => -Real.cos θ * Real.cos x * S 0) (Real.cos θ * Real.sin φ * S 0) φ := by
@@ -89,10 +89,10 @@ lemma hasDerivAt_rotMθ_θ (θ φ : ℝ) (S : ℝ³) :
     HasDerivAt (fun θ' => rotMθ θ' φ S) (rotMθθ θ φ S) θ := by
   have h_f : (fun θ' => rotMθ θ' φ S) = (fun θ' => !₂[-Real.cos θ' * S 0 - Real.sin θ' * S 1,
       Real.sin θ' * Real.cos φ * S 0 - Real.cos θ' * Real.cos φ * S 1]) := by
-    ext θ' i; fin_cases i <;> (simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
+    ext θ' i; fin_cases i <;> (simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   have h_f' : rotMθθ θ φ S = !₂[Real.sin θ * S 0 - Real.cos θ * S 1,
       Real.cos θ * Real.cos φ * S 0 + Real.sin θ * Real.cos φ * S 1] := by
-    ext i; fin_cases i <;> (simp [rotMθθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
+    ext i; fin_cases i <;> (simp [rotMθθ, rotMθθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · have h : deriv (fun x => -Real.cos x * S 0 - Real.sin x * S 1) θ = Real.sin θ * S 0 - Real.cos θ * S 1 := by simp
     rw [← h]; exact DifferentiableAt.hasDerivAt (by fun_prop)
@@ -107,9 +107,9 @@ lemma hasDerivAt_rotMθ_φ (θ φ : ℝ) (S : ℝ³) :
     HasDerivAt (fun φ' => rotMθ θ φ' S) (rotMθφ θ φ S) φ := by
   have h_f : (fun φ' => rotMθ θ φ' S) = (fun φ' => !₂[-Real.cos θ * S 0 - Real.sin θ * S 1,
       Real.sin θ * Real.cos φ' * S 0 - Real.cos θ * Real.cos φ' * S 1]) := by
-    ext φ' i; fin_cases i <;> (simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
+    ext φ' i; fin_cases i <;> (simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   have h_f' : rotMθφ θ φ S = !₂[(0 : ℝ), -Real.sin θ * Real.sin φ * S 0 + Real.cos θ * Real.sin φ * S 1] := by
-    ext i; fin_cases i <;> simp [rotMθφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
+    ext i; fin_cases i <;> simp [rotMθφ, rotMθφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
   · have h1 : HasDerivAt (fun x => Real.sin θ * Real.cos x * S 0) (-Real.sin θ * Real.sin φ * S 0) φ := by
@@ -125,9 +125,9 @@ lemma hasDerivAt_rotMφ_θ (θ φ : ℝ) (S : ℝ³) :
     HasDerivAt (fun θ' => rotMφ θ' φ S) (rotMθφ θ φ S) θ := by
   have h_f : (fun θ' => rotMφ θ' φ S) = (fun θ' => !₂[(0 : ℝ),
       Real.cos θ' * Real.sin φ * S 0 + Real.sin θ' * Real.sin φ * S 1 + Real.cos φ * S 2]) := by
-    ext θ' i; fin_cases i <;> (simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
+    ext θ' i; fin_cases i <;> (simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   have h_f' : rotMθφ θ φ S = !₂[(0 : ℝ), -Real.sin θ * Real.sin φ * S 0 + Real.cos θ * Real.sin φ * S 1] := by
-    ext i; fin_cases i <;> simp [rotMθφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
+    ext i; fin_cases i <;> simp [rotMθφ, rotMθφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
   · have h1 : HasDerivAt (fun x => Real.cos x * Real.sin φ * S 0) (-Real.sin θ * Real.sin φ * S 0) θ := by
@@ -142,10 +142,10 @@ lemma hasDerivAt_rotMφ_φ (θ φ : ℝ) (S : ℝ³) :
     HasDerivAt (fun φ' => rotMφ θ φ' S) (rotMφφ θ φ S) φ := by
   have h_f : (fun φ' => rotMφ θ φ' S) = (fun φ' => !₂[(0 : ℝ),
       Real.cos θ * Real.sin φ' * S 0 + Real.sin θ * Real.sin φ' * S 1 + Real.cos φ' * S 2]) := by
-    ext φ' i; fin_cases i <;> (simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
+    ext φ' i; fin_cases i <;> (simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   have h_f' : rotMφφ θ φ S = !₂[(0 : ℝ),
       Real.cos θ * Real.cos φ * S 0 + Real.sin θ * Real.cos φ * S 1 - Real.sin φ * S 2] := by
-    ext i; fin_cases i <;> (simp [rotMφφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
+    ext i; fin_cases i <;> (simp [rotMφφ, rotMφφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; try ring)
   rw [h_f, h_f']; refine hasDerivAt_lp2 ?_ ?_
   · exact hasDerivAt_const _ _
   · have h1 : HasDerivAt (fun x => Real.cos θ * Real.sin x * S 0) (Real.cos θ * Real.cos φ * S 0) φ := by
