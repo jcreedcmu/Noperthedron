@@ -168,6 +168,21 @@ See \cite{polyhedron.without.rupert}, Lemma 32.
 See \cite{polyhedron.without.rupert}, Lemma 33.
 \end{proof}
 
+\begin{lemma} \label{lem:congruent}
+    Let $P_1,P_2,P_3, Q_1,Q_2,Q_3 \in \R^3$. Define the $3 \times 3$ matrices $P \coloneqq (P_1|P_2|P_3)$ and $Q \coloneqq (Q_1|Q_2|Q_3)$ and assume that $Q$ is invertible.
+    Then $P_1, P_2, P_3$ and $Q_1, Q_2, Q_3$ are congruent if and only if $P^t P = Q^t Q$.
+\end{lemma}
+
+\begin{proof}
+From \cite{polyhedron.without.rupert}, Lemma 35.
+Note that $P^t P = Q^t Q$ is equivalent to saying that $\langle P_i,P_j\rangle = \langle Q_i,Q_j\rangle$ for all $1 \leq i,j \leq 3$. Moreover, the condition on invertibility of $Q$ can be dropped, however then the proof becomes somewhat less straightforward.
+
+    If $P_1, P_2, P_3$ and $Q_1, Q_2, Q_3$ are congruent then $\langle P_i,P_j\rangle = \langle LQ_i,LQ_j\rangle = \langle Q_i,Q_j\rangle$, thus $P^t P = Q^t Q$.
+    For the other direction, we claim that $L \coloneqq PQ^{-1}$ is orthonormal and satisfies that $P_i = LQ_i$ for all $i=1,2,3$.
+    Indeed,  $L^t L = (PQ^{-1})^t (PQ^{-1}) = (Q^t)^{-1} P^t P Q^{-1} = \mathrm{Id}$ and it holds that $LQ=PQ^{-1}Q=P$, thus $LQ_i = P_i$.
+\end{proof}
+
+
 \begin{theorem}[Local Theorem] \label{thm:local}
 \leanok
 \lean{Local.local_theorem}
