@@ -231,7 +231,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
               ContinuousLinearMap.smul_apply, ContinuousLinearMap.neg_apply, smul_eq_mul] <;> ring
     fin_cases i
     · -- Component 0: cos(α) * A - sin(α) * B
-      simp only [Fin.isValue, show (⟨0, by omega⟩ : Fin 2) = (0 : Fin 2) from rfl]
+      simp only [Fin.zero_eta, Fin.isValue]
       have hfunc : (fun x : ℝ³ => ((rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S).ofLp (0 : Fin 2)) =
           fun x => Real.cos (x.ofLp 0) * (-Real.sin (x.ofLp 1) * S 0 + Real.cos (x.ofLp 1) * S 1) -
                    Real.sin (x.ofLp 0) * (-Real.cos (x.ofLp 1) * Real.cos (x.ofLp 2) * S 0 -
@@ -267,7 +267,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
                  show proj2 d = d.ofLp 2 from rfl, mul_zero, zero_sub]
       ring
     · -- Component 1: sin(α) * A + cos(α) * B
-      simp only [Fin.isValue, show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
+      simp only [Fin.mk_one, Fin.isValue]
       have hfunc : (fun x : ℝ³ => ((rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S).ofLp (1 : Fin 2)) =
           fun x => Real.sin (x.ofLp 0) * (-Real.sin (x.ofLp 1) * S 0 + Real.cos (x.ofLp 1) * S 1) +
                    Real.cos (x.ofLp 0) * (-Real.cos (x.ofLp 1) * Real.cos (x.ofLp 2) * S 0 -
