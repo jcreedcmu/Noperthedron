@@ -224,27 +224,18 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
       PiLp.hasStrictFDerivAt_apply 2 pbar.innerParams 1
     have hproj2 : HasStrictFDerivAt (fun x : ℝ³ => x.ofLp 2) proj2 pbar.innerParams :=
       PiLp.hasStrictFDerivAt_apply 2 pbar.innerParams 2
-    have hα : pbar.innerParams.ofLp 0 = pbar.α := by simp [Pose.innerParams]
-    have hθ : pbar.innerParams.ofLp 1 = pbar.θ₁ := by simp [Pose.innerParams]
-    have hφ : pbar.innerParams.ofLp 2 = pbar.φ₁ := by simp [Pose.innerParams]
-    have hsinα : HasStrictFDerivAt (fun x : ℝ³ => Real.sin (x.ofLp 0))
-        (Real.cos pbar.α • proj0) pbar.innerParams :=
-      (Real.hasStrictDerivAt_sin pbar.α).comp_hasStrictFDerivAt_of_eq pbar.innerParams hproj0 hα.symm
-    have hcosα : HasStrictFDerivAt (fun x : ℝ³ => Real.cos (x.ofLp 0))
-        (-(Real.sin pbar.α) • proj0) pbar.innerParams :=
-      (Real.hasStrictDerivAt_cos pbar.α).comp_hasStrictFDerivAt_of_eq pbar.innerParams hproj0 hα.symm
-    have hsinθ : HasStrictFDerivAt (fun x : ℝ³ => Real.sin (x.ofLp 1))
-        (Real.cos pbar.θ₁ • proj1) pbar.innerParams :=
-      (Real.hasStrictDerivAt_sin pbar.θ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams hproj1 hθ.symm
-    have hcosθ : HasStrictFDerivAt (fun x : ℝ³ => Real.cos (x.ofLp 1))
-        (-(Real.sin pbar.θ₁) • proj1) pbar.innerParams :=
-      (Real.hasStrictDerivAt_cos pbar.θ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams hproj1 hθ.symm
-    have hsinφ : HasStrictFDerivAt (fun x : ℝ³ => Real.sin (x.ofLp 2))
-        (Real.cos pbar.φ₁ • proj2) pbar.innerParams :=
-      (Real.hasStrictDerivAt_sin pbar.φ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams hproj2 hφ.symm
-    have hcosφ : HasStrictFDerivAt (fun x : ℝ³ => Real.cos (x.ofLp 2))
-        (-(Real.sin pbar.φ₁) • proj2) pbar.innerParams :=
-      (Real.hasStrictDerivAt_cos pbar.φ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams hproj2 hφ.symm
+    have hsinα := (Real.hasStrictDerivAt_sin pbar.α).comp_hasStrictFDerivAt_of_eq pbar.innerParams
+      hproj0 (by simp [Pose.innerParams])
+    have hcosα := (Real.hasStrictDerivAt_cos pbar.α).comp_hasStrictFDerivAt_of_eq pbar.innerParams
+      hproj0 (by simp [Pose.innerParams])
+    have hsinθ := (Real.hasStrictDerivAt_sin pbar.θ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams
+      hproj1 (by simp [Pose.innerParams])
+    have hcosθ := (Real.hasStrictDerivAt_cos pbar.θ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams
+      hproj1 (by simp [Pose.innerParams])
+    have hsinφ := (Real.hasStrictDerivAt_sin pbar.φ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams
+      hproj2 (by simp [Pose.innerParams])
+    have hcosφ := (Real.hasStrictDerivAt_cos pbar.φ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams
+      hproj2 (by simp [Pose.innerParams])
     -- Helper lemmas for product terms
     have hA : HasStrictFDerivAt (fun x : ℝ³ => -Real.sin (x.ofLp 1) * S 0 + Real.cos (x.ofLp 1) * S 1)
         ((-Real.cos pbar.θ₁ * S 0 - Real.sin pbar.θ₁ * S 1) • proj1) pbar.innerParams := by
