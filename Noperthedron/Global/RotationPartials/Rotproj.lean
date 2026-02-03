@@ -340,24 +340,18 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
             ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
         ((rotprojRM' pbar S).prod 0)) := by
     ext d
-    simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
-               ContinuousLinearMap.prod_apply, fderivInnerCLM_apply]
-    simp only [ContinuousLinearMap.zero_apply, inner_zero_right, zero_add, real_inner_comm]
-    simp only [rotproj_inner', rotprojRM']
-    simp only [LinearMap.coe_toContinuousLinearMap']
-    simp only [Module.Basis.constr_apply_fintype]
-    simp only [Matrix.toEuclideanLin_apply]
-    simp only [Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one]
+    simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, ContinuousLinearMap.prod_apply,
+      fderivInnerCLM_apply, ContinuousLinearMap.zero_apply, inner_zero_right, zero_add,
+      real_inner_comm, rotproj_inner', rotprojRM', LinearMap.coe_toContinuousLinearMap',
+      Module.Basis.constr_apply_fintype, Matrix.toEuclideanLin_apply, Fin.sum_univ_three,
+      Matrix.cons_val_zero, Matrix.cons_val_one]
     conv_lhs => rw [show (EuclideanSpace.basisFun (Fin 3) ℝ).toBasis.equivFun = (WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ)) by
       rw [EuclideanSpace.basisFun_toBasis]; exact @PiLp.basisFun_equivFun 2 ℝ (Fin 3) _ _]
-    simp only [WithLp.linearEquiv_apply]
-    simp only [WithLp.addEquiv, Equiv.toFun_as_coe, Equiv.coe_fn_mk]
-    simp only [Fin.isValue, Matrix.cons_val]
+    simp only [WithLp.linearEquiv_apply, WithLp.addEquiv, Equiv.toFun_as_coe, Equiv.coe_fn_mk,
+      Fin.isValue, Matrix.cons_val]
     conv_rhs => simp only [Matrix.mulVec, Matrix.of_apply]
-    simp only [PiLp.inner_apply, Matrix.mulVec, Matrix.of_apply,
-               Fin.sum_univ_two, RCLike.inner_apply, conj_trivial]
-    unfold dotProduct
-    simp only [Fin.sum_univ_three, smul_eq_mul]
+    simp only [PiLp.inner_apply, Matrix.mulVec, Matrix.of_apply, Fin.sum_univ_two,
+      RCLike.inner_apply, conj_trivial, dotProduct, Fin.sum_univ_three, smul_eq_mul]
     ring
 
   rw [step]
