@@ -63,23 +63,32 @@ def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :
   (fderivInnerCLM ℝ ((rotprojRM pbar.θ₁ pbar.φ₁ pbar.α) S, w)).comp ((rotprojRM' pbar S).prod 0)
 
 -- Simp lemmas for rotprojRM' applied to basis vectors
-@[simp] lemma rotprojRM'_single_0 (pbar : Pose) (S : ℝ³) :
+@[simp]
+lemma rotprojRM'_single_0 (pbar : Pose) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 0 1) = pbar.rotR' (pbar.rotM₁ S) := by
-  ext i; simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+  ext i
+  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
-    mul_ite, mul_one, mul_zero, ite_true]; fin_cases i <;> simp
+    mul_ite, mul_one, mul_zero, ite_true]
+  fin_cases i <;> simp
 
-@[simp] lemma rotprojRM'_single_1 (pbar : Pose) (S : ℝ³) :
+@[simp]
+lemma rotprojRM'_single_1 (pbar : Pose) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 1 1) = pbar.rotR (pbar.rotM₁θ S) := by
-  ext i; simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+  ext i
+  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
-    mul_ite, mul_one, mul_zero]; fin_cases i <;> simp
+    mul_ite, mul_one, mul_zero]
+  fin_cases i <;> simp
 
-@[simp] lemma rotprojRM'_single_2 (pbar : Pose) (S : ℝ³) :
+@[simp]
+lemma rotprojRM'_single_2 (pbar : Pose) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 2 1) = pbar.rotR (pbar.rotM₁φ S) := by
-  ext i; simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+  ext i
+  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
-    mul_ite, mul_one, mul_zero]; fin_cases i <;> simp
+    mul_ite, mul_one, mul_zero]
+  fin_cases i <;> simp
 
 -- Explicit component lemmas for rotR applied to a vector
 private lemma rotR_apply_0 (α : ℝ) (v : ℝ²) :
@@ -175,22 +184,6 @@ private lemma rotprojRM'_apply_1_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) 
   rw [rotR'_apply_1, rotR_apply_1, rotR_apply_1, rotM_apply_0, rotM_apply_1,
       rotMθ_apply_0, rotMθ_apply_1, rotMφ_apply_0, rotMφ_apply_1]
 
--- Helper lemma: component 0 of rotprojRM in terms of sin/cos
-private lemma rotprojRM_component0 (θ φ α : ℝ) (S : ℝ³) :
-    (rotprojRM θ φ α S) 0 =
-      Real.cos α * (-Real.sin θ * S 0 + Real.cos θ * S 1) -
-      Real.sin α * (-Real.cos θ * Real.cos φ * S 0 - Real.sin θ * Real.cos φ * S 1 + Real.sin φ * S 2) := by
-  simp [rotprojRM, rotR, rotM, rotR_mat, rotM_mat, Matrix.vecHead, Matrix.vecTail]
-  ring
-
--- Helper lemma: component 1 of rotprojRM in terms of sin/cos
-private lemma rotprojRM_component1 (θ φ α : ℝ) (S : ℝ³) :
-    (rotprojRM θ φ α S) 1 =
-      Real.sin α * (-Real.sin θ * S 0 + Real.cos θ * S 1) +
-      Real.cos α * (-Real.cos θ * Real.cos φ * S 0 - Real.sin θ * Real.cos φ * S 1 + Real.sin φ * S 2) := by
-  simp [rotprojRM, rotR, rotM, rotR_mat, rotM_mat, Matrix.vecHead, Matrix.vecTail]
-  ring
-
 -- Note: Linter reports false positives about seq focus; the <;> is actually needed for ext
 set_option linter.unnecessarySeqFocus false in
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
@@ -256,9 +249,8 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
                    Real.sin (x.ofLp 0) * (-Real.cos (x.ofLp 1) * Real.cos (x.ofLp 2) * S 0 -
                      Real.sin (x.ofLp 1) * Real.cos (x.ofLp 2) * S 1 + Real.sin (x.ofLp 2) * S 2) := by
         ext x
-        have := rotprojRM_component0 (x.ofLp 1) (x.ofLp 2) (x.ofLp 0) S
-        simp only [rotprojRM, ContinuousLinearMap.coe_comp', Function.comp_apply] at this ⊢
-        exact this
+        simp [rotprojRM, rotR, rotM, rotR_mat, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+        ring
       rw [hfunc]
       have hcosA : HasStrictFDerivAt (fun x : ℝ³ => Real.cos (x.ofLp 0) *
             (-Real.sin (x.ofLp 1) * S 0 + Real.cos (x.ofLp 1) * S 1))
@@ -293,9 +285,8 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
                    Real.cos (x.ofLp 0) * (-Real.cos (x.ofLp 1) * Real.cos (x.ofLp 2) * S 0 -
                      Real.sin (x.ofLp 1) * Real.cos (x.ofLp 2) * S 1 + Real.sin (x.ofLp 2) * S 2) := by
         ext x
-        have := rotprojRM_component1 (x.ofLp 1) (x.ofLp 2) (x.ofLp 0) S
-        simp only [rotprojRM, ContinuousLinearMap.coe_comp', Function.comp_apply] at this ⊢
-        exact this
+        simp [rotprojRM, rotR, rotM, rotR_mat, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+        ring
       rw [hfunc]
       have hsinA : HasStrictFDerivAt (fun x : ℝ³ => Real.sin (x.ofLp 0) *
             (-Real.sin (x.ofLp 1) * S 0 + Real.cos (x.ofLp 1) * S 1))
