@@ -35,6 +35,191 @@ theorem rotR_preserves_norm (α : ℝ) :
 theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 :=
   norm_one_of_preserves_norm (rotR_preserves_norm α)
 
+theorem rotR'_preserves_norm (α : ℝ) :
+    ∀ (v : E 2), ‖rotR' α v‖ = ‖v‖ := by
+  intro v
+  have heq : rotR' α v = rotR (α + Real.pi/2) v := by
+    simp only [rotR', rotR'_mat, rotR, rotR_mat]
+    simp only [LinearMap.coe_toContinuousLinearMap']
+    ext i
+    fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail, Real.sin_add_pi_div_two, Real.cos_add_pi_div_two]
+  rw [heq]
+  exact rotR_preserves_norm (α + Real.pi/2) v
+
+theorem rotR'_norm_one (α : ℝ) : ‖rotR' α‖ = 1 :=
+  norm_one_of_preserves_norm (rotR'_preserves_norm α)
+
+theorem rotMθ_norm_le_one (θ φ : ℝ) : ‖rotMθ θ φ‖ ≤ 1 := by
+  refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_
+  intro v
+  have h_expand :
+      (-Real.cos θ * v 0 - Real.sin θ * v 1) ^ 2 +
+       (Real.sin θ * Real.cos φ * v 0 - Real.cos θ * Real.cos φ * v 1) ^ 2 ≤
+      v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
+    -- Row 0 has norm 1 (cos² + sin² = 1), row 1 has norm |cos φ| ≤ 1
+    nlinarith [sq_nonneg (Real.sin θ * v 0 - Real.cos θ * v 1), sq_nonneg (v 2),
+      Real.sin_sq_add_cos_sq θ, Real.cos_sq_le_one φ]
+  simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
+    Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
+    Fin.succ_one_eq_two, one_mul]
+  convert Real.sqrt_le_sqrt h_expand using 1
+  · simp only [rotMθ, rotMθ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+      LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
+      WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
+      WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, neg_mul, add_zero,
+      zero_mul]
+    ring_nf!
+  · ring_nf
+
+theorem rotMφ_norm_le_one (θ φ : ℝ) : ‖rotMφ θ φ‖ ≤ 1 := by
+  refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_
+  intro v
+  have h_expand :
+      0 ^ 2 +
+       (Real.cos θ * Real.sin φ * v 0 + Real.sin θ * Real.sin φ * v 1 + Real.cos φ * v 2) ^ 2 ≤
+      v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
+    -- Row 1 of rotMφ is [cos θ sin φ, sin θ sin φ, cos φ], a unit vector
+    -- Cauchy-Schwarz via orthogonal decomposition
+    set c := Real.cos θ; set s := Real.sin θ
+    set cφ := Real.cos φ; set sφ := Real.sin φ
+    set u := c * v 0 + s * v 1
+    set w := s * v 0 - c * v 1
+    have h₁ : c^2 + s^2 = 1 := by simp only [c, s]; linarith [Real.sin_sq_add_cos_sq θ]
+    have h₂ : sφ^2 + cφ^2 = 1 := Real.sin_sq_add_cos_sq φ
+    have huw : v 0 ^ 2 + v 1 ^ 2 = u^2 + w^2 :=
+      by nlinarith [sq_nonneg c, sq_nonneg s, sq_nonneg (v 0), sq_nonneg (v 1)]
+    have heq : c * sφ * v 0 + s * sφ * v 1 + cφ * v 2 = sφ * u + cφ * v 2 := by ring
+    have hrot : u^2 + v 2 ^2 = (sφ * u + cφ * v 2)^2 + (cφ * u - sφ * v 2)^2 :=
+      by nlinarith [sq_nonneg cφ, sq_nonneg sφ, sq_nonneg u, sq_nonneg (v 2)]
+    have hw : 0 ≤ w^2 := sq_nonneg w
+    have hcomp : 0 ≤ (cφ * u - sφ * v 2)^2 := sq_nonneg _
+    simp only [heq, pow_two] at *
+    linarith
+  simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
+    Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
+    Fin.succ_one_eq_two, one_mul]
+  convert Real.sqrt_le_sqrt h_expand using 1
+  · simp only [rotMφ, rotMφ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+      LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
+      WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
+      WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, add_zero, zero_mul]
+    ring_nf!
+  · ring_nf
+
+-- Operator norm bounds for second derivative matrices
+theorem rotMθθ_norm_le_one (θ φ : ℝ) : ‖rotMθθ θ φ‖ ≤ 1 := by
+  refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_
+  intro v
+  have h_expand :
+      (Real.sin θ * v 0 - Real.cos θ * v 1) ^ 2 +
+       (Real.cos θ * Real.cos φ * v 0 + Real.sin θ * Real.cos φ * v 1) ^ 2 ≤
+      v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
+    -- Row 0: [sin θ, -cos θ, 0], norm = 1
+    -- Row 1: [cos θ * cos φ, sin θ * cos φ, 0], norm = |cos φ| ≤ 1
+    nlinarith [sq_nonneg (Real.cos θ * v 0 + Real.sin θ * v 1), sq_nonneg (v 2),
+      Real.sin_sq_add_cos_sq θ, Real.cos_sq_le_one φ]
+  simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
+    Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
+    Fin.succ_one_eq_two, one_mul]
+  convert Real.sqrt_le_sqrt h_expand using 1
+  · simp only [rotMθθ, rotMθθ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+      LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
+      WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
+      WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, add_zero, zero_mul]
+    ring_nf!
+  · ring_nf
+
+theorem rotMθφ_norm_le_one (θ φ : ℝ) : ‖rotMθφ θ φ‖ ≤ 1 := by
+  refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_
+  intro v
+  have h_expand :
+      0 ^ 2 +
+       (-Real.sin θ * Real.sin φ * v 0 + Real.cos θ * Real.sin φ * v 1) ^ 2 ≤
+      v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
+    -- Row 0: [0, 0, 0], norm = 0
+    -- Row 1: [-sin θ * sin φ, cos θ * sin φ, 0], norm = |sin φ| ≤ 1
+    -- The key is: (-sin θ * v 0 + cos θ * v 1)² ≤ v 0² + v 1² (sin² + cos² = 1)
+    -- Then multiply by sin² φ ≤ 1
+    set c := Real.cos θ; set s := Real.sin θ
+    set sφ := Real.sin φ
+    set u := -s * v 0 + c * v 1  -- the term being multiplied by sin φ
+    have hsc : s^2 + c^2 = 1 := Real.sin_sq_add_cos_sq θ
+    have hu_bound : u^2 ≤ v 0^2 + v 1^2 := by
+      have h := sq_nonneg (c * v 0 + s * v 1)
+      nlinarith
+    have hsφ : sφ^2 ≤ 1 := Real.sin_sq_le_one φ
+    have h_main : (sφ * u)^2 ≤ v 0^2 + v 1^2 := by
+      have hsφ_nn : 0 ≤ sφ^2 := sq_nonneg _
+      calc (sφ * u)^2 = sφ^2 * u^2 := by ring
+        _ ≤ 1 * u^2 := by apply mul_le_mul_of_nonneg_right hsφ (sq_nonneg _)
+        _ = u^2 := by ring
+        _ ≤ v 0^2 + v 1^2 := hu_bound
+    have hv2 : 0 ≤ v 2^2 := sq_nonneg _
+    have heq : -s * sφ * v 0 + c * sφ * v 1 = sφ * u := by ring
+    simp only [heq, pow_two] at *
+    linarith
+  simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
+    Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
+    Fin.succ_one_eq_two, one_mul]
+  convert Real.sqrt_le_sqrt h_expand using 1
+  · simp only [rotMθφ, rotMθφ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+      LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
+      WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
+      WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, neg_mul, add_zero,
+      zero_mul]
+    ring_nf!
+  · ring_nf
+
+theorem rotMφφ_norm_le_one (θ φ : ℝ) : ‖rotMφφ θ φ‖ ≤ 1 := by
+  refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_
+  intro v
+  have h_expand :
+      0 ^ 2 +
+       (Real.cos θ * Real.cos φ * v 0 + Real.sin θ * Real.cos φ * v 1 - Real.sin φ * v 2) ^ 2 ≤
+      v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
+    -- Row 0: [0, 0, 0], norm = 0
+    -- Row 1: [cos θ * cos φ, sin θ * cos φ, -sin φ], this is a unit vector
+    set c := Real.cos θ; set s := Real.sin θ
+    set cφ := Real.cos φ; set sφ := Real.sin φ
+    set u := c * v 0 + s * v 1
+    set w := s * v 0 - c * v 1
+    have h₁ : c^2 + s^2 = 1 := by simp only [c, s]; linarith [Real.sin_sq_add_cos_sq θ]
+    have h₂ : cφ^2 + sφ^2 = 1 := Real.cos_sq_add_sin_sq φ
+    have huw : v 0 ^ 2 + v 1 ^ 2 = u^2 + w^2 :=
+      by nlinarith [sq_nonneg c, sq_nonneg s, sq_nonneg (v 0), sq_nonneg (v 1)]
+    have heq : c * cφ * v 0 + s * cφ * v 1 - sφ * v 2 = cφ * u - sφ * v 2 := by ring
+    have hrot : u^2 + v 2 ^2 = (cφ * u - sφ * v 2)^2 + (sφ * u + cφ * v 2)^2 :=
+      by nlinarith [sq_nonneg cφ, sq_nonneg sφ, sq_nonneg u, sq_nonneg (v 2)]
+    have hw : 0 ≤ w^2 := sq_nonneg w
+    have hcomp : 0 ≤ (sφ * u + cφ * v 2)^2 := sq_nonneg _
+    simp only [heq, pow_two] at *
+    linarith
+  simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
+    Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
+    Fin.succ_one_eq_two, one_mul]
+  convert Real.sqrt_le_sqrt h_expand using 1
+  · simp only [rotMφφ, rotMφφ_mat, Matrix.toEuclideanLin, LinearEquiv.trans_apply,
+      LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply, LinearEquiv.symm_symm,
+      WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe, EquivLike.coe_coe,
+      WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
+      Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, WithLp.linearEquiv_symm_apply,
+      Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm, WithLp.addEquiv_symm_apply, Fin.isValue,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, add_zero, zero_mul]
+    ring_nf!
+  · ring_nf
+
 theorem Rx_preserves_norm (α : ℝ) :
     ∀ (v : E 3), ‖(RxL α) v‖ = ‖v‖ := by
   intro v
@@ -173,12 +358,9 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
         (-Real.sin θ * v 0 + Real.cos θ * v 1) ^ 2 +
          (-Real.cos θ * Real.cos φ * v 0 - Real.sin θ * Real.cos φ * v 1 + Real.sin φ * v 2) ^ 2 ≤
         v 0 ^ 2 + v 1 ^ 2 + v 2 ^ 2 := by
-      have h₁ := sq_nonneg (Real.sin θ * v 1 + Real.cos θ * v 0)
-      have h₂ := sq_nonneg (Real.sin θ * v 1 + Real.cos θ * v 0)
-      have h₃ := sq_nonneg (Real.sin φ * (Real.cos θ * v 0 + Real.sin θ * v 1) + Real.cos φ * v 2)
-      have h₄ := Real.sin_sq_add_cos_sq θ
-      have h₅ := Real.sin_sq_add_cos_sq φ
-      nlinarith
+      nlinarith [sq_nonneg (Real.sin θ * v 1 + Real.cos θ * v 0),
+        sq_nonneg (Real.sin φ * (Real.cos θ * v 0 + Real.sin θ * v 1) + Real.cos φ * v 2),
+        Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq φ]
     simp only [EuclideanSpace.norm_eq, Real.norm_eq_abs, sq_abs, Fin.sum_univ_succ, Fin.isValue,
       Finset.univ_unique, Fin.default_eq_zero, Finset.sum_singleton, Fin.succ_zero_eq_one,
       Fin.succ_one_eq_two, one_mul]
@@ -210,8 +392,6 @@ theorem lemma9 {d : Fin 3} (α : ℝ) : ‖rot3 d α‖ = 1 := by
   · exact Rz_norm_one α
 
 theorem reduceL_norm : ‖reduceL‖ = 1 := by
-  have h₁ : reduceL = rotM 0 0 := by simp [rotM, reduceL, rotM_mat]
-  rw [h₁]
-  exact Bounding.rotM_norm_one 0 0
+  simpa [rotM, reduceL, rotM_mat] using Bounding.rotM_norm_one 0 0
 
 end Bounding
