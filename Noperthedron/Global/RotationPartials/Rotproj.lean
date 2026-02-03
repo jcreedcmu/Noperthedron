@@ -39,18 +39,6 @@ lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ 
   Differentiable.inner ℝ (Differentiable.rotprojRM S) (by fun_prop)
 
 /--
-An explicit formula for the full derivative of rotproj_inner as a function ℝ³ → ℝ
--/
-noncomputable
-def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :=
-  let grad : Fin 3 → ℝ := ![
-    ⟪pbar.rotR' (pbar.rotM₁ S), w⟫,
-    ⟪pbar.rotR (pbar.rotM₁θ S), w⟫,
-    ⟪pbar.rotR (pbar.rotM₁φ S), w⟫
-  ]
-  EuclideanSpace.basisFun (Fin 3) ℝ |>.toBasis.constr ℝ grad |>.toContinuousLinearMap
-
-/--
 The Fréchet derivative of `fun x => rotprojRM (x 1) (x 2) (x 0) S` at `pbar.innerParams`.
 Components:
 - index 0 (α): rotR' α (rotM θ φ S)
@@ -65,6 +53,33 @@ def rotprojRM' (pbar : Pose) (S : ℝ³) : ℝ³ →L[ℝ] ℝ² :=
     | 1 => (pbar.rotR (pbar.rotM₁θ S)) i
     | 2 => (pbar.rotR (pbar.rotM₁φ S)) i
   M.toEuclideanLin.toContinuousLinearMap
+
+/--
+The Fréchet derivative of `rotproj_inner S w` at `pbar.innerParams`.
+Defined as the composition of the inner product derivative with the rotprojRM derivative.
+-/
+noncomputable
+def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :=
+  (fderivInnerCLM ℝ ((rotprojRM pbar.θ₁ pbar.φ₁ pbar.α) S, w)).comp ((rotprojRM' pbar S).prod 0)
+
+-- Simp lemmas for rotprojRM' applied to basis vectors
+@[simp] lemma rotprojRM'_single_0 (pbar : Pose) (S : ℝ³) :
+    (rotprojRM' pbar S) (EuclideanSpace.single 0 1) = pbar.rotR' (pbar.rotM₁ S) := by
+  ext i; simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+    Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
+    mul_ite, mul_one, mul_zero, ite_true]; fin_cases i <;> simp
+
+@[simp] lemma rotprojRM'_single_1 (pbar : Pose) (S : ℝ³) :
+    (rotprojRM' pbar S) (EuclideanSpace.single 1 1) = pbar.rotR (pbar.rotM₁θ S) := by
+  ext i; simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+    Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
+    mul_ite, mul_one, mul_zero]; fin_cases i <;> simp
+
+@[simp] lemma rotprojRM'_single_2 (pbar : Pose) (S : ℝ³) :
+    (rotprojRM' pbar S) (EuclideanSpace.single 2 1) = pbar.rotR (pbar.rotM₁φ S) := by
+  ext i; simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+    Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
+    mul_ite, mul_one, mul_zero]; fin_cases i <;> simp
 
 -- Explicit component lemmas for rotR applied to a vector
 private lemma rotR_apply_0 (α : ℝ) (v : ℝ²) :
@@ -308,24 +323,11 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
                  show proj2 d = d.ofLp 2 from rfl, mul_zero, zero_add]
       ring
 
-  have step :
-    (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
-            ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
-        ((rotprojRM' pbar S).prod 0)) := by
-    ext d
-    simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, ContinuousLinearMap.prod_apply,
-      fderivInnerCLM_apply, ContinuousLinearMap.zero_apply, inner_zero_right, zero_add,
-      real_inner_comm, rotproj_inner', rotprojRM', LinearMap.coe_toContinuousLinearMap',
-      Module.Basis.constr_apply_fintype, Matrix.toEuclideanLin_apply, Fin.sum_univ_three,
-      Matrix.cons_val_zero, Matrix.cons_val_one]
-    conv_lhs => rw [show (EuclideanSpace.basisFun (Fin 3) ℝ).toBasis.equivFun = (WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ)) by
-      rw [EuclideanSpace.basisFun_toBasis]; exact @PiLp.basisFun_equivFun 2 ℝ (Fin 3) _ _]
-    simp only [WithLp.linearEquiv_apply, WithLp.addEquiv, Equiv.toFun_as_coe, Equiv.coe_fn_mk,
-      Fin.isValue, Matrix.cons_val]
-    conv_rhs => simp only [Matrix.mulVec, Matrix.of_apply]
-    simp only [PiLp.inner_apply, Matrix.mulVec, Matrix.of_apply, Fin.sum_univ_two,
-      RCLike.inner_apply, conj_trivial, dotProduct, Fin.sum_univ_three, smul_eq_mul]
-    ring
+  have step : (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
+      ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
+      ((rotprojRM' pbar S).prod 0)) := by
+    simp only [rotproj_inner', Pose.innerParams, Matrix.cons_val_zero, Matrix.cons_val_one]
+    rfl
 
   rw [step]
   exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.innerParams)
