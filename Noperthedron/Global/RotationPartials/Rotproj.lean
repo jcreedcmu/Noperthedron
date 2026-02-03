@@ -15,7 +15,6 @@ import Noperthedron.Global.Definitions
 # Rotproj Inner Lemmas
 
 This file contains:
-- `inner_bound_helper` (private)
 - `Differentiable.rotprojRM`, `Differentiable.rotproj_inner`
 - `rotproj_inner'`, `rotprojRM'` definitions
 - Component lemmas: `rotR_apply_0/1`, `rotM_apply_0/1`, etc.
@@ -27,23 +26,6 @@ open scoped RealInnerProductSpace
 namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
-
--- Key bound lemma for inner product with rotation matrices
-private lemma inner_bound_helper (A : ℝ³ →L[ℝ] ℝ²) (S : ℝ³) (w : ℝ²)
-    (hw : ‖w‖ = 1) (hA : ‖A‖ ≤ 1) : |⟪A S, w⟫ / ‖S‖| ≤ 1 := by
-  by_cases hS : ‖S‖ = 0
-  · simp [hS]
-  · rw [abs_div, abs_norm]
-    refine div_le_one_of_le₀ ?_ (norm_nonneg _)
-    calc |⟪A S, w⟫|
-      _ ≤ ‖A S‖ * ‖w‖ := abs_real_inner_le_norm _ _
-      _ ≤ ‖A‖ * ‖S‖ * ‖w‖ := by
-          apply mul_le_mul_of_nonneg_right (ContinuousLinearMap.le_opNorm _ _) (norm_nonneg _)
-      _ ≤ 1 * ‖S‖ * 1 := by
-          apply mul_le_mul (mul_le_mul_of_nonneg_right hA (norm_nonneg _)) (le_of_eq hw)
-            (norm_nonneg _)
-          positivity
-      _ = ‖S‖ := by ring
 
 lemma Differentiable.rotprojRM (S : ℝ³) :
     Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
@@ -83,15 +65,6 @@ def rotprojRM' (pbar : Pose) (S : ℝ³) : ℝ³ →L[ℝ] ℝ² :=
     | 1 => (pbar.rotR (pbar.rotM₁θ S)) i
     | 2 => (pbar.rotR (pbar.rotM₁φ S)) i
   M.toEuclideanLin.toContinuousLinearMap
-
--- Helper simp lemmas for rotR and rotR' applied to vectors
-@[simp]
-private lemma rotR_eq_toEuclideanLin (α : ℝ) :
-    (rotR α : ℝ² →L[ℝ] ℝ²) = (rotR_mat α).toEuclideanLin.toContinuousLinearMap := rfl
-
-@[simp]
-private lemma rotR'_eq_toEuclideanLin (α : ℝ) :
-    rotR' α = (rotR'_mat α).toEuclideanLin.toContinuousLinearMap := rfl
 
 -- Explicit component lemmas for rotR applied to a vector
 private lemma rotR_apply_0 (α : ℝ) (v : ℝ²) :
