@@ -66,29 +66,17 @@ def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :
 @[simp]
 lemma rotprojRM'_single_0 (pbar : Pose) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 0 1) = pbar.rotR' (pbar.rotM₁ S) := by
-  ext i
-  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-    Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
-    mul_ite, mul_one, mul_zero, ite_true]
-  fin_cases i <;> simp
+  ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
 
 @[simp]
 lemma rotprojRM'_single_1 (pbar : Pose) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 1 1) = pbar.rotR (pbar.rotM₁θ S) := by
-  ext i
-  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-    Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
-    mul_ite, mul_one, mul_zero]
-  fin_cases i <;> simp
+  ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
 
 @[simp]
 lemma rotprojRM'_single_2 (pbar : Pose) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 2 1) = pbar.rotR (pbar.rotM₁φ S) := by
-  ext i
-  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
-    Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply, EuclideanSpace.single_apply,
-    mul_ite, mul_one, mul_zero]
-  fin_cases i <;> simp
+  ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
 
 -- Explicit component lemmas for rotR applied to a vector
 private lemma rotR_apply_0 (α : ℝ) (v : ℝ²) :
