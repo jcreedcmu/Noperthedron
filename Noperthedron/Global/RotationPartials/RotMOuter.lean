@@ -89,6 +89,26 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
   rw [hasStrictFDerivAt_piLp]
+  have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
+    PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
+  have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
+    PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 1
+  have hsinθ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
+      (Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
+    (Real.hasStrictDerivAt_sin pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
+      (outerParams_0 pbar)
+  have hcosθ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
+      (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams :=
+    (Real.hasStrictDerivAt_cos pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
+      (outerParams_0 pbar)
+  have hsinφ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 1))
+      (Real.cos pbar.φ₂ • proj1) pbar.outerParams :=
+    (Real.hasStrictDerivAt_sin pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
+      (outerParams_1 pbar)
+  have hcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1))
+      (-(Real.sin pbar.φ₂) • proj1) pbar.outerParams :=
+    (Real.hasStrictDerivAt_cos pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
+      (outerParams_1 pbar)
   intro i
   fin_cases i
   · simp only [Fin.isValue]
@@ -104,29 +124,11 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
         ContinuousLinearMap.smul_apply, smul_eq_mul, rotM'_apply, rotMθ_apply_0, rotMφ_apply_0]
       ring
     rw [hderiv]
-    have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
-      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
-    have hsin : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
-        (Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_sin pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
-    have hcos : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
-        (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_cos pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
     have hf : HasStrictFDerivAt (fun x : ℝ² => -Real.sin (x.ofLp 0) * P 0 + Real.cos (x.ofLp 0) * P 1)
-        ((-Real.cos pbar.θ₂ * P 0 - Real.sin pbar.θ₂ * P 1) • proj0)
-        pbar.outerParams := by
-      have h1 : HasStrictFDerivAt (fun x : ℝ² => -Real.sin (x.ofLp 0) * P 0)
-          ((P 0) • -(Real.cos pbar.θ₂ • proj0)) pbar.outerParams :=
-        hsin.neg.mul_const (P 0)
-      have h2 : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0) * P 1)
-          ((P 1) • -(Real.sin pbar.θ₂ • proj0)) pbar.outerParams := by
-        have := hcos.mul_const (P 1)
-        rw [show (P 1) • -(Real.sin pbar.θ₂ • proj0) = (P 1) • -Real.sin pbar.θ₂ • proj0 by rw [neg_smul]]
-        exact this
-      have hadd := h1.add h2
-      convert hadd using 1
+        ((-Real.cos pbar.θ₂ * P 0 - Real.sin pbar.θ₂ * P 1) • proj0) pbar.outerParams := by
+      have h1 := hsinθ.neg.mul_const (P 0)
+      have h2 := hcosθ.mul_const (P 1)
+      convert h1.add h2 using 1
       ext d
       simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
                  ContinuousLinearMap.neg_apply, neg_mul]
@@ -151,26 +153,6 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
         rotM'_apply, rotMθ_apply_1, rotMφ_apply_1]
       ring
     rw [hderiv]
-    have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
-      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
-    have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
-      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 1
-    have hsinθ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
-        (Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_sin pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
-    have hcosθ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
-        (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_cos pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
-    have hsinφ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 1))
-        (Real.cos pbar.φ₂ • proj1) pbar.outerParams :=
-      (Real.hasStrictDerivAt_sin pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
-        (outerParams_1 pbar)
-    have hcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1))
-        (-(Real.sin pbar.φ₂) • proj1) pbar.outerParams :=
-      (Real.hasStrictDerivAt_cos pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
-        (outerParams_1 pbar)
     have hf : HasStrictFDerivAt
         (fun x => -Real.cos (x.ofLp 0) * Real.cos (x.ofLp 1) * P 0
                 - Real.sin (x.ofLp 0) * Real.cos (x.ofLp 1) * P 1
@@ -213,6 +195,22 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMθ (x.ofLp 0) (x.ofLp 1)) P) (rotMθ' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
   rw [hasStrictFDerivAt_piLp]
+  have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
+    PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
+  have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
+    PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 1
+  have hcosθ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
+      (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams :=
+    (Real.hasStrictDerivAt_cos pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
+      (outerParams_0 pbar)
+  have hsinθ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
+      (Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
+    (Real.hasStrictDerivAt_sin pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
+      (outerParams_0 pbar)
+  have hcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1))
+      (-(Real.sin pbar.φ₂) • proj1) pbar.outerParams :=
+    (Real.hasStrictDerivAt_cos pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
+      (outerParams_1 pbar)
   intro i
   fin_cases i
   · simp only [Fin.isValue]
@@ -228,26 +226,11 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
         ContinuousLinearMap.smul_apply, smul_eq_mul, rotMθ'_apply, rotMθθ_apply_0, rotMθφ_apply_0]
       ring
     rw [hderiv]
-    have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
-      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
-    have hcos : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
-        (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_cos pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
-    have hsin : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
-        (Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_sin pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
     have hf : HasStrictFDerivAt (fun x : ℝ² => -Real.cos (x.ofLp 0) * P 0 - Real.sin (x.ofLp 0) * P 1)
         ((Real.sin pbar.θ₂ * P 0 - Real.cos pbar.θ₂ * P 1) • proj0) pbar.outerParams := by
-      have h1 : HasStrictFDerivAt (fun x : ℝ² => -Real.cos (x.ofLp 0) * P 0)
-          ((P 0) • -(-(Real.sin pbar.θ₂) • proj0)) pbar.outerParams :=
-        hcos.neg.mul_const (P 0)
-      have h2 : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0) * P 1)
-          ((P 1) • Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
-        hsin.mul_const (P 1)
-      have hsub := h1.sub h2
-      convert hsub using 1
+      have h1 := hcosθ.neg.mul_const (P 0)
+      have h2 := hsinθ.mul_const (P 1)
+      convert h1.sub h2 using 1
       ext d
       simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
                  ContinuousLinearMap.neg_apply, neg_mul, neg_neg]
@@ -260,22 +243,6 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
       ext x; simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
     simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
-    have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
-      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
-    have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
-      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 1
-    have hcosθ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
-        (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_cos pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
-    have hsinθ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
-        (Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_sin pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
-    have hcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1))
-        (-(Real.sin pbar.φ₂) • proj1) pbar.outerParams :=
-      (Real.hasStrictDerivAt_cos pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
-        (outerParams_1 pbar)
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)).comp (rotMθ' pbar P) =
         ((Real.cos pbar.θ₂ * Real.cos pbar.φ₂ * P 0 + Real.sin pbar.θ₂ * Real.cos pbar.φ₂ * P 1) • proj0 +
          (-Real.sin pbar.θ₂ * Real.sin pbar.φ₂ * P 0 + Real.cos pbar.θ₂ * Real.sin pbar.φ₂ * P 1) • proj1) := by
@@ -318,6 +285,26 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMφ (x.ofLp 0) (x.ofLp 1)) P) (rotMφ' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
   rw [hasStrictFDerivAt_piLp]
+  have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
+    PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
+  have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
+    PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 1
+  have hcosθ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
+      (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams :=
+    (Real.hasStrictDerivAt_cos pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
+      (outerParams_0 pbar)
+  have hsinθ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
+      (Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
+    (Real.hasStrictDerivAt_sin pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
+      (outerParams_0 pbar)
+  have hcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1))
+      (-(Real.sin pbar.φ₂) • proj1) pbar.outerParams :=
+    (Real.hasStrictDerivAt_cos pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
+      (outerParams_1 pbar)
+  have hsinφ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 1))
+      (Real.cos pbar.φ₂ • proj1) pbar.outerParams :=
+    (Real.hasStrictDerivAt_sin pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
+      (outerParams_1 pbar)
   intro i
   fin_cases i
   · simp only [Fin.isValue]
@@ -341,26 +328,6 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
       ext x; simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
     simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
-    have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
-      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
-    have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
-      PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 1
-    have hcosθ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
-        (-(Real.sin pbar.θ₂) • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_cos pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
-    have hsinθ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
-        (Real.cos pbar.θ₂ • proj0) pbar.outerParams :=
-      (Real.hasStrictDerivAt_sin pbar.θ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj0
-        (outerParams_0 pbar)
-    have hcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 1))
-        (-(Real.sin pbar.φ₂) • proj1) pbar.outerParams :=
-      (Real.hasStrictDerivAt_cos pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
-        (outerParams_1 pbar)
-    have hsinφ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 1))
-        (Real.cos pbar.φ₂ • proj1) pbar.outerParams :=
-      (Real.hasStrictDerivAt_sin pbar.φ₂).comp_hasStrictFDerivAt_of_eq pbar.outerParams hproj1
-        (outerParams_1 pbar)
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)).comp (rotMφ' pbar P) =
         ((-Real.sin pbar.θ₂ * Real.sin pbar.φ₂ * P 0 + Real.cos pbar.θ₂ * Real.sin pbar.φ₂ * P 1) • proj0 +
          (Real.cos pbar.θ₂ * Real.cos pbar.φ₂ * P 0 + Real.sin pbar.θ₂ * Real.cos pbar.φ₂ * P 1 - Real.sin pbar.φ₂ * P 2) • proj1) := by
