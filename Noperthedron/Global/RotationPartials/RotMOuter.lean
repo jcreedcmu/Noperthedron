@@ -48,21 +48,17 @@ private lemma rotM_component1 (θ φ : ℝ) (P : ℝ³) :
 
 lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
-  -- Use hasStrictFDerivAt_piLp to decompose into components, then convert to hasFDerivAt
   apply HasStrictFDerivAt.hasFDerivAt
   rw [hasStrictFDerivAt_piLp]
   intro i
   fin_cases i
-  · -- Component 0: f(θ, φ) = -sin θ * P[0] + cos θ * P[1] (only depends on θ)
-    simp only [Fin.isValue]
-    -- Rewrite function using component lemma
+  · simp only [Fin.isValue]
     have hfunc : (fun x : ℝ² => ((rotM (x.ofLp 0) (x.ofLp 1)) P).ofLp (0 : Fin 2)) =
         fun x => -Real.sin (x.ofLp 0) * P 0 + Real.cos (x.ofLp 0) * P 1 := by
       ext x
       exact rotM_component0 (x.ofLp 0) (x.ofLp 1) P
     simp only [show (⟨0, by omega⟩ : Fin 2) = (0 : Fin 2) from rfl]
     rw [hfunc]
-    -- The derivative: d ↦ (-cos θ * P[0] - sin θ * P[1]) * d[0]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotM' pbar P) =
         ((-Real.cos pbar.θ₂ * P 0 - Real.sin pbar.θ₂ * P 1) • PiLp.proj 2 (fun _ => ℝ) 0) := by
       ext d
@@ -80,8 +76,6 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
       rw [show ![(0 : ℝ), 0, 0] (2 : Fin 3) = 0 from rfl]
       ring
     rw [hderiv]
-    -- Now prove: HasStrictFDerivAt (fun x => -sin(x 0) * P 0 + cos(x 0) * P 1)
-    --            ((c) • proj 0) pbar.outerParams
     let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
       PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
