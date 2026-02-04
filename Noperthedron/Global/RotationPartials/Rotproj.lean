@@ -62,7 +62,6 @@ noncomputable
 def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :=
   (fderivInnerCLM ℝ ((rotprojRM pbar.θ₁ pbar.φ₁ pbar.α) S, w)).comp ((rotprojRM' pbar S).prod 0)
 
--- Simp lemmas for rotprojRM' applied to basis vectors
 @[simp]
 lemma rotprojRM'_single_0 (pbar : Pose) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 0 1) = pbar.rotR' (pbar.rotM₁ S) := by
@@ -78,7 +77,6 @@ lemma rotprojRM'_single_2 (pbar : Pose) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 2 1) = pbar.rotR (pbar.rotM₁φ S) := by
   ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
 
--- Explicit component lemmas for rotR applied to a vector
 private lemma rotR_apply_0 (α : ℝ) (v : ℝ²) :
     (rotR α v) 0 = Real.cos α * v 0 - Real.sin α * v 1 := by
   simp [rotR, rotR_mat, Matrix.vecHead, Matrix.vecTail]; ring
@@ -95,7 +93,6 @@ private lemma rotR'_apply_1 (α : ℝ) (v : ℝ²) :
     (rotR' α v) 1 = Real.cos α * v 0 - Real.sin α * v 1 := by
   simp [rotR', rotR'_mat, Matrix.vecHead, Matrix.vecTail]; ring
 
--- Explicit component lemmas for rotM applied to a vector
 private lemma rotM_apply_0 (θ φ : ℝ) (S : ℝ³) :
     (rotM θ φ S) 0 = -Real.sin θ * S 0 + Real.cos θ * S 1 := by
   simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
