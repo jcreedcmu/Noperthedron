@@ -72,11 +72,10 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
       simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
       simp only [Matrix.of_apply, Fin.isValue]
       -- Expand rotMθ and rotMφ at component 0
-      simp only [rotMθ, rotMφ, LinearMap.coe_toContinuousLinearMap',
+      simp only [rotMθ, rotMφ, rotMθ_mat, rotMφ_mat, LinearMap.coe_toContinuousLinearMap',
                  Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
                  Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
                  Matrix.of_apply, Fin.isValue]
-      -- Evaluate the matrix row entries: ![a, b, c] 2 = c
       rw [show ![-Real.cos pbar.θ₂, -Real.sin pbar.θ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
       rw [show ![(0 : ℝ), 0, 0] (2 : Fin 3) = 0 from rfl]
       ring
@@ -138,7 +137,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
       simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
       simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
       simp only [Matrix.of_apply, Fin.isValue]
-      simp only [rotMθ, rotMφ, LinearMap.coe_toContinuousLinearMap',
+      simp only [rotMθ, rotMφ, rotMθ_mat, rotMφ_mat, LinearMap.coe_toContinuousLinearMap',
                  Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
                  Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
                  Matrix.of_apply, Fin.isValue]
@@ -210,11 +209,11 @@ noncomputable def rotMθ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
 
 private lemma rotMθ_component0 (θ φ : ℝ) (P : ℝ³) :
     (rotMθ θ φ P) 0 = -Real.cos θ * P 0 - Real.sin θ * P 1 := by
-  simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
+  simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
 
 private lemma rotMθ_component1 (θ φ : ℝ) (P : ℝ³) :
     (rotMθ θ φ P) 1 = Real.sin θ * Real.cos φ * P 0 - Real.cos θ * Real.cos φ * P 1 := by
-  simp [rotMθ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
+  simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
   ring
 
 lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
@@ -239,7 +238,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
       simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
       simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
       simp only [Matrix.of_apply, Fin.isValue]
-      simp only [rotMθθ, rotMθφ, LinearMap.coe_toContinuousLinearMap',
+      simp only [rotMθθ, rotMθφ, rotMθθ_mat, rotMθφ_mat, LinearMap.coe_toContinuousLinearMap',
                  Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
                  Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
                  Matrix.of_apply, Fin.isValue]
@@ -311,7 +310,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
       simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
       simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
       simp only [Matrix.of_apply, Fin.isValue]
-      simp only [rotMθθ, rotMθφ, LinearMap.coe_toContinuousLinearMap',
+      simp only [rotMθθ, rotMθφ, rotMθθ_mat, rotMθφ_mat, LinearMap.coe_toContinuousLinearMap',
                  Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
                  Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
                  Matrix.of_apply, Fin.isValue]
@@ -351,11 +350,11 @@ noncomputable def rotMφ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
 -- Component lemmas for rotMφ
 private lemma rotMφ_component0 (θ φ : ℝ) (P : ℝ³) :
     (rotMφ θ φ P) 0 = 0 := by
-  simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
+  simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
 
 private lemma rotMφ_component1 (θ φ : ℝ) (P : ℝ³) :
     (rotMφ θ φ P) 1 = Real.cos θ * Real.sin φ * P 0 + Real.sin θ * Real.sin φ * P 1 + Real.cos φ * P 2 := by
-  simp [rotMφ, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
+  simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
   ring
 
 lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
@@ -378,7 +377,7 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
         ContinuousLinearMap.zero_apply]
       simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
       simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
-      simp only [rotMθφ, rotMφφ, LinearMap.coe_toContinuousLinearMap',
+      simp only [rotMθφ, rotMφφ, rotMθφ_mat, rotMφφ_mat, LinearMap.coe_toContinuousLinearMap',
                  Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
                  Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.of_apply, Fin.isValue]
       -- The first row of both rotMθφ and rotMφφ matrices is all zeros
@@ -428,7 +427,7 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
         ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
       simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
       simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
-      simp only [rotMθφ, rotMφφ, LinearMap.coe_toContinuousLinearMap',
+      simp only [rotMθφ, rotMφφ, rotMθφ_mat, rotMφφ_mat, LinearMap.coe_toContinuousLinearMap',
                  Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
                  Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
                  Matrix.of_apply, Fin.isValue]
