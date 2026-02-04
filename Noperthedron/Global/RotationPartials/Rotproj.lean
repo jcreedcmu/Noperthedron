@@ -14,10 +14,7 @@ import Noperthedron.Global.Definitions
 /-!
 # Rotproj Inner Lemmas
 
-This file contains:
-- `Differentiable.rotprojRM`, `Differentiable.rotproj_inner`
 - `rotproj_inner'`, `rotprojRM'` definitions
-- Component lemmas: `rotR_apply_0/1`, `rotM_apply_0/1`, etc.
 - **`HasFDerivAt.rotproj_inner`** (main theorem)
 -/
 
