@@ -21,6 +21,8 @@ open scoped RealInnerProductSpace
 namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
+private noncomputable abbrev proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) 0
+private noncomputable abbrev proj1 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) 1
 
 /-- The fderiv of rotM applied to a fixed vector P, as a function of (θ, φ). -/
 noncomputable
@@ -65,7 +67,6 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
       rw [show ![(0 : ℝ), 0, 0] (2 : Fin 3) = 0 from rfl]
       ring
     rw [hderiv]
-    let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
       PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
     have hsin : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0))
@@ -121,8 +122,6 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
       rw [show ![Real.cos pbar.θ₂ * Real.sin pbar.φ₂, Real.sin pbar.θ₂ * Real.sin pbar.φ₂, Real.cos pbar.φ₂] (2 : Fin 3) = Real.cos pbar.φ₂ from rfl]
       ring
     rw [hderiv]
-    let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
-    let proj1 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
       PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
     have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
@@ -201,7 +200,6 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
       rw [show ![(0 : ℝ), 0, 0] (2 : Fin 3) = 0 from rfl]
       ring
     rw [hderiv]
-    let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
       PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
     have hcos : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0))
@@ -234,8 +232,6 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
       ext x; simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
     simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
-    let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
-    let proj1 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
       PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
     have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
@@ -328,8 +324,6 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
       ext x; simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
     simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
-    let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
-    let proj1 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
       PiLp.hasStrictFDerivAt_apply 2 pbar.outerParams 0
     have hproj1 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 1) proj1 pbar.outerParams :=
