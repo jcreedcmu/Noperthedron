@@ -37,15 +37,6 @@ lemma Differentiable.rotM_outer (P : ℝ³) :
   intro i
   fin_cases i <;> simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
 
-private lemma rotM_component0 (θ φ : ℝ) (P : ℝ³) :
-    (rotM θ φ P) 0 = -Real.sin θ * P 0 + Real.cos θ * P 1 := by
-  simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
-
-private lemma rotM_component1 (θ φ : ℝ) (P : ℝ³) :
-    (rotM θ φ P) 1 = -Real.cos θ * Real.cos φ * P 0 - Real.sin θ * Real.cos φ * P 1 + Real.sin φ * P 2 := by
-  simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
-  ring
-
 lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
@@ -55,8 +46,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
   · simp only [Fin.isValue]
     have hfunc : (fun x : ℝ² => ((rotM (x.ofLp 0) (x.ofLp 1)) P).ofLp (0 : Fin 2)) =
         fun x => -Real.sin (x.ofLp 0) * P 0 + Real.cos (x.ofLp 0) * P 1 := by
-      ext x
-      exact rotM_component0 (x.ofLp 0) (x.ofLp 1) P
+      ext x; simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
     simp only [show (⟨0, by omega⟩ : Fin 2) = (0 : Fin 2) from rfl]
     rw [hfunc]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotM' pbar P) =
@@ -109,8 +99,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
         fun x => -Real.cos (x.ofLp 0) * Real.cos (x.ofLp 1) * P 0
                - Real.sin (x.ofLp 0) * Real.cos (x.ofLp 1) * P 1
                + Real.sin (x.ofLp 1) * P 2 := by
-      ext x
-      exact rotM_component1 (x.ofLp 0) (x.ofLp 1) P
+      ext x; simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
     simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)).comp (rotM' pbar P) =
@@ -184,15 +173,6 @@ noncomputable def rotMθ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
     | 1 => (rotMθφ pbar.θ₂ pbar.φ₂ P) i
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
 
-private lemma rotMθ_component0 (θ φ : ℝ) (P : ℝ³) :
-    (rotMθ θ φ P) 0 = -Real.cos θ * P 0 - Real.sin θ * P 1 := by
-  simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
-
-private lemma rotMθ_component1 (θ φ : ℝ) (P : ℝ³) :
-    (rotMθ θ φ P) 1 = Real.sin θ * Real.cos φ * P 0 - Real.cos θ * Real.cos φ * P 1 := by
-  simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
-  ring
-
 lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMθ (x.ofLp 0) (x.ofLp 1)) P) (rotMθ' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
@@ -202,7 +182,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
   · simp only [Fin.isValue]
     have hfunc : (fun x : ℝ² => ((rotMθ (x.ofLp 0) (x.ofLp 1)) P).ofLp (0 : Fin 2)) =
         fun x => -Real.cos (x.ofLp 0) * P 0 - Real.sin (x.ofLp 0) * P 1 := by
-      ext x; exact rotMθ_component0 (x.ofLp 0) (x.ofLp 1) P
+      ext x; simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
     simp only [show (⟨0, by omega⟩ : Fin 2) = (0 : Fin 2) from rfl]
     rw [hfunc]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotMθ' pbar P) =
@@ -251,7 +231,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
     have hfunc : (fun x : ℝ² => ((rotMθ (x.ofLp 0) (x.ofLp 1)) P).ofLp (1 : Fin 2)) =
         fun x => Real.sin (x.ofLp 0) * Real.cos (x.ofLp 1) * P 0 -
                  Real.cos (x.ofLp 0) * Real.cos (x.ofLp 1) * P 1 := by
-      ext x; exact rotMθ_component1 (x.ofLp 0) (x.ofLp 1) P
+      ext x; simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
     simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
     let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
@@ -314,15 +294,6 @@ noncomputable def rotMφ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
     | 1 => (rotMφφ pbar.θ₂ pbar.φ₂ P) i
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
 
-private lemma rotMφ_component0 (θ φ : ℝ) (P : ℝ³) :
-    (rotMφ θ φ P) 0 = 0 := by
-  simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
-
-private lemma rotMφ_component1 (θ φ : ℝ) (P : ℝ³) :
-    (rotMφ θ φ P) 1 = Real.cos θ * Real.sin φ * P 0 + Real.sin θ * Real.sin φ * P 1 + Real.cos φ * P 2 := by
-  simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]
-  ring
-
 lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMφ (x.ofLp 0) (x.ofLp 1)) P) (rotMφ' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
@@ -332,7 +303,7 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
   · simp only [Fin.isValue]
     have hfunc : (fun x : ℝ² => ((rotMφ (x.ofLp 0) (x.ofLp 1)) P).ofLp (0 : Fin 2)) =
         fun _ => (0 : ℝ) := by
-      ext x; exact rotMφ_component0 (x.ofLp 0) (x.ofLp 1) P
+      ext x; simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
     simp only [show (⟨0, by omega⟩ : Fin 2) = (0 : Fin 2) from rfl]
     rw [hfunc]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotMφ' pbar P) = 0 := by
@@ -354,7 +325,7 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
         fun x => Real.cos (x.ofLp 0) * Real.sin (x.ofLp 1) * P 0 +
                  Real.sin (x.ofLp 0) * Real.sin (x.ofLp 1) * P 1 +
                  Real.cos (x.ofLp 1) * P 2 := by
-      ext x; exact rotMφ_component1 (x.ofLp 0) (x.ofLp 1) P
+      ext x; simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
     simp only [show (⟨1, by omega⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
     let proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)
