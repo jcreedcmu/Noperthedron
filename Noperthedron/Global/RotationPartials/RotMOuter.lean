@@ -24,6 +24,43 @@ private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 private noncomputable abbrev proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) 0
 private noncomputable abbrev proj1 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) 1
 
+private lemma rotMθ_apply_0 (θ φ : ℝ) (P : ℝ³) :
+    (rotMθ θ φ P) 0 = -Real.cos θ * P 0 - Real.sin θ * P 1 := by
+  simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
+
+private lemma rotMθ_apply_1 (θ φ : ℝ) (P : ℝ³) :
+    (rotMθ θ φ P) 1 = Real.sin θ * Real.cos φ * P 0 - Real.cos θ * Real.cos φ * P 1 := by
+  simp [rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
+
+private lemma rotMφ_apply_0 (θ φ : ℝ) (P : ℝ³) : (rotMφ θ φ P) 0 = 0 := by
+  simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
+
+private lemma rotMφ_apply_1 (θ φ : ℝ) (P : ℝ³) :
+    (rotMφ θ φ P) 1 = Real.cos θ * Real.sin φ * P 0 + Real.sin θ * Real.sin φ * P 1 + Real.cos φ * P 2 := by
+  simp [rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
+
+private lemma rotMθθ_apply_0 (θ φ : ℝ) (P : ℝ³) :
+    (rotMθθ θ φ P) 0 = Real.sin θ * P 0 - Real.cos θ * P 1 := by
+  simp [rotMθθ, rotMθθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
+
+private lemma rotMθθ_apply_1 (θ φ : ℝ) (P : ℝ³) :
+    (rotMθθ θ φ P) 1 = Real.cos θ * Real.cos φ * P 0 + Real.sin θ * Real.cos φ * P 1 := by
+  simp [rotMθθ, rotMθθ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
+
+private lemma rotMθφ_apply_0 (θ φ : ℝ) (P : ℝ³) : (rotMθφ θ φ P) 0 = 0 := by
+  simp [rotMθφ, rotMθφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
+
+private lemma rotMθφ_apply_1 (θ φ : ℝ) (P : ℝ³) :
+    (rotMθφ θ φ P) 1 = -Real.sin θ * Real.sin φ * P 0 + Real.cos θ * Real.sin φ * P 1 := by
+  simp [rotMθφ, rotMθφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
+
+private lemma rotMφφ_apply_0 (θ φ : ℝ) (P : ℝ³) : (rotMφφ θ φ P) 0 = 0 := by
+  simp [rotMφφ, rotMφφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]
+
+private lemma rotMφφ_apply_1 (θ φ : ℝ) (P : ℝ³) :
+    (rotMφφ θ φ P) 1 = Real.cos θ * Real.cos φ * P 0 + Real.sin θ * Real.cos φ * P 1 - Real.sin φ * P 2 := by
+  simp [rotMφφ, rotMφφ_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
+
 /-- The fderiv of rotM applied to a fixed vector P, as a function of (θ, φ). -/
 noncomputable
 def rotM' (pbar : Pose) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
@@ -32,6 +69,12 @@ def rotM' (pbar : Pose) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
     | 0 => (rotMθ pbar.θ₂ pbar.φ₂ P) i
     | 1 => (rotMφ pbar.θ₂ pbar.φ₂ P) i
   M.toEuclideanLin.toContinuousLinearMap
+
+private lemma rotM'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+    (rotM' pbar P d) i = d 0 * (rotMθ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMφ pbar.θ₂ pbar.φ₂ P) i := by
+  simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+    Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
+  fin_cases i <;> ring
 
 lemma Differentiable.rotM_outer (P : ℝ³) :
     Differentiable ℝ fun (x : ℝ²) => (rotM (x 0) (x 1)) P := by
@@ -55,16 +98,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
         ((-Real.cos pbar.θ₂ * P 0 - Real.sin pbar.θ₂ * P 1) • PiLp.proj 2 (fun _ => ℝ) 0) := by
       ext d
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
-        ContinuousLinearMap.smul_apply, smul_eq_mul]
-      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
-      simp only [Matrix.of_apply, Fin.isValue]
-      simp only [rotMθ, rotMφ, rotMθ_mat, rotMφ_mat, LinearMap.coe_toContinuousLinearMap',
-                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
-                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
-                 Matrix.of_apply, Fin.isValue]
-      rw [show ![-Real.cos pbar.θ₂, -Real.sin pbar.θ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
-      rw [show ![(0 : ℝ), 0, 0] (2 : Fin 3) = 0 from rfl]
+        ContinuousLinearMap.smul_apply, smul_eq_mul, rotM'_apply, rotMθ_apply_0, rotMφ_apply_0]
       ring
     rw [hderiv]
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
@@ -110,16 +144,8 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
           PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) 1 := by
       ext d
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
-        ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
-      simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
-      simp only [Matrix.of_apply, Fin.isValue]
-      simp only [rotMθ, rotMφ, rotMθ_mat, rotMφ_mat, LinearMap.coe_toContinuousLinearMap',
-                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
-                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
-                 Matrix.of_apply, Fin.isValue]
-      rw [show ![Real.sin pbar.θ₂ * Real.cos pbar.φ₂, -Real.cos pbar.θ₂ * Real.cos pbar.φ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
-      rw [show ![Real.cos pbar.θ₂ * Real.sin pbar.φ₂, Real.sin pbar.θ₂ * Real.sin pbar.φ₂, Real.cos pbar.φ₂] (2 : Fin 3) = Real.cos pbar.φ₂ from rfl]
+        ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
+        rotM'_apply, rotMθ_apply_1, rotMφ_apply_1]
       ring
     rw [hderiv]
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
@@ -172,6 +198,12 @@ noncomputable def rotMθ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
     | 1 => (rotMθφ pbar.θ₂ pbar.φ₂ P) i
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
 
+private lemma rotMθ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+    (rotMθ' pbar P d) i = d 0 * (rotMθθ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMθφ pbar.θ₂ pbar.φ₂ P) i := by
+  simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+    Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
+  fin_cases i <;> ring
+
 lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMθ (x.ofLp 0) (x.ofLp 1)) P) (rotMθ' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
@@ -188,16 +220,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
         ((Real.sin pbar.θ₂ * P 0 - Real.cos pbar.θ₂ * P 1) • PiLp.proj 2 (fun _ => ℝ) 0) := by
       ext d
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
-        ContinuousLinearMap.smul_apply, smul_eq_mul]
-      simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
-      simp only [Matrix.of_apply, Fin.isValue]
-      simp only [rotMθθ, rotMθφ, rotMθθ_mat, rotMθφ_mat, LinearMap.coe_toContinuousLinearMap',
-                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
-                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
-                 Matrix.of_apply, Fin.isValue]
-      rw [show ![Real.sin pbar.θ₂, -Real.cos pbar.θ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
-      rw [show ![(0 : ℝ), 0, 0] (2 : Fin 3) = 0 from rfl]
+        ContinuousLinearMap.smul_apply, smul_eq_mul, rotMθ'_apply, rotMθθ_apply_0, rotMθφ_apply_0]
       ring
     rw [hderiv]
     have hproj0 : HasStrictFDerivAt (fun x : ℝ² => x.ofLp 0) proj0 pbar.outerParams :=
@@ -253,18 +276,8 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
          (-Real.sin pbar.θ₂ * Real.sin pbar.φ₂ * P 0 + Real.cos pbar.θ₂ * Real.sin pbar.φ₂ * P 1) • proj1) := by
       ext d
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
-        ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
-      simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
-      simp only [Matrix.of_apply, Fin.isValue]
-      simp only [rotMθθ, rotMθφ, rotMθθ_mat, rotMθφ_mat, LinearMap.coe_toContinuousLinearMap',
-                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
-                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
-                 Matrix.of_apply, Fin.isValue]
-      rw [show ![Real.cos pbar.θ₂ * Real.cos pbar.φ₂, Real.sin pbar.θ₂ * Real.cos pbar.φ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
-      rw [show ![-Real.sin pbar.θ₂ * Real.sin pbar.φ₂, Real.cos pbar.θ₂ * Real.sin pbar.φ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
-      show _ = _ * proj0 d + _ * proj1 d
-      simp only [proj0, proj1, PiLp.proj_apply]
+        ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
+        rotMθ'_apply, rotMθθ_apply_1, rotMθφ_apply_1, proj0, proj1]
       ring
     rw [hderiv]
     have hsinθcosφ : HasStrictFDerivAt (fun x : ℝ² => Real.sin (x.ofLp 0) * Real.cos (x.ofLp 1))
@@ -290,6 +303,12 @@ noncomputable def rotMφ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
     | 1 => (rotMφφ pbar.θ₂ pbar.φ₂ P) i
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
 
+private lemma rotMφ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+    (rotMφ' pbar P d) i = d 0 * (rotMθφ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMφφ pbar.θ₂ pbar.φ₂ P) i := by
+  simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+    Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
+  fin_cases i <;> ring
+
 lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMφ (x.ofLp 0) (x.ofLp 1)) P) (rotMφ' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
@@ -305,14 +324,7 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotMφ' pbar P) = 0 := by
       ext d
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
-        ContinuousLinearMap.zero_apply]
-      simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
-      simp only [rotMθφ, rotMφφ, rotMθφ_mat, rotMφφ_mat, LinearMap.coe_toContinuousLinearMap',
-                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
-                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.of_apply, Fin.isValue]
-      rw [show ![0, 0, (0 : ℝ)] (1 : Fin 3) = 0 from rfl]
-      rw [show ![0, 0, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
+        ContinuousLinearMap.zero_apply, rotMφ'_apply, rotMθφ_apply_0, rotMφφ_apply_0]
       ring
     rw [hderiv]
     exact hasStrictFDerivAt_const 0 pbar.outerParams
@@ -349,17 +361,8 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
          (Real.cos pbar.θ₂ * Real.cos pbar.φ₂ * P 0 + Real.sin pbar.θ₂ * Real.cos pbar.φ₂ * P 1 - Real.sin pbar.φ₂ * P 2) • proj1) := by
       ext d
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, PiLp.proj_apply,
-        ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
-      simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
-      simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
-      simp only [rotMθφ, rotMφφ, rotMθφ_mat, rotMφφ_mat, LinearMap.coe_toContinuousLinearMap',
-                 Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct,
-                 Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one,
-                 Matrix.of_apply, Fin.isValue]
-      rw [show ![-Real.sin pbar.θ₂ * Real.sin pbar.φ₂, Real.cos pbar.θ₂ * Real.sin pbar.φ₂, (0 : ℝ)] (2 : Fin 3) = 0 from rfl]
-      rw [show ![Real.cos pbar.θ₂ * Real.cos pbar.φ₂, Real.sin pbar.θ₂ * Real.cos pbar.φ₂, -Real.sin pbar.φ₂] (2 : Fin 3) = -Real.sin pbar.φ₂ from rfl]
-      show _ = _ * proj0 d + _ * proj1 d
-      simp only [proj0, proj1, PiLp.proj_apply]
+        ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
+        rotMφ'_apply, rotMθφ_apply_1, rotMφφ_apply_1, proj0, proj1]
       ring
     rw [hderiv]
     have hcosθsinφ : HasStrictFDerivAt (fun x : ℝ² => Real.cos (x.ofLp 0) * Real.sin (x.ofLp 1))
