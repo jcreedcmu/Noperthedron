@@ -120,7 +120,6 @@ private lemma rotMφ_apply_1 (θ φ : ℝ) (S : ℝ³) :
     (rotMφ θ φ S) 1 = Real.cos θ * Real.sin φ * S 0 + Real.sin θ * Real.sin φ * S 1 + Real.cos φ * S 2 := by
   simp [rotMφ, rotMφ_mat, Matrix.vecHead, Matrix.vecTail]; ring
 
--- Explicit computation of rotprojRM' applied to a vector (component 0)
 private lemma rotprojRM'_apply_0 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
     ((rotprojRM' pbar S) d) 0 =
       d 0 * (pbar.rotR' (pbar.rotM₁ S)) 0 +
@@ -130,7 +129,6 @@ private lemma rotprojRM'_apply_0 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply]
   ring
 
--- Explicit computation of rotprojRM' applied to a vector (component 1)
 private lemma rotprojRM'_apply_1 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
     ((rotprojRM' pbar S) d) 1 =
       d 0 * (pbar.rotR' (pbar.rotM₁ S)) 1 +
@@ -140,7 +138,6 @@ private lemma rotprojRM'_apply_1 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply]
   ring
 
--- Full expansion of rotprojRM'_apply_0 to arithmetic
 private lemma rotprojRM'_apply_0_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) :
     ((rotprojRM' pbar S) d) 0 =
       d 0 * (-Real.sin pbar.α * (-Real.sin pbar.θ₁ * S 0 + Real.cos pbar.θ₁ * S 1) -
@@ -156,7 +153,6 @@ private lemma rotprojRM'_apply_0_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) 
   rw [rotR'_apply_0, rotR_apply_0, rotR_apply_0, rotM_apply_0, rotM_apply_1,
       rotMθ_apply_0, rotMθ_apply_1, rotMφ_apply_0, rotMφ_apply_1]
 
--- Full expansion of rotprojRM'_apply_1 to arithmetic
 private lemma rotprojRM'_apply_1_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) :
     ((rotprojRM' pbar S) d) 1 =
       d 0 * (Real.cos pbar.α * (-Real.sin pbar.θ₁ * S 0 + Real.cos pbar.θ₁ * S 1) -
