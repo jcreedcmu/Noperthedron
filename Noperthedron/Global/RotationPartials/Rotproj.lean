@@ -176,14 +176,10 @@ private lemma rotprojRM'_apply_1_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) 
 set_option linter.unnecessarySeqFocus false in
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
-
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
-    -- The function is f(α, θ, φ) = rotR α (rotM θ φ S)
-    -- Prove via component-wise HasStrictFDerivAt
     apply HasStrictFDerivAt.hasFDerivAt
     rw [hasStrictFDerivAt_piLp]
     intro i
-    -- Define projections for coordinates
     let proj0 : ℝ³ →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 3 => ℝ) (0 : Fin 3)
     let proj1 : ℝ³ →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 3 => ℝ) (1 : Fin 3)
     let proj2 : ℝ³ →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 3 => ℝ) (2 : Fin 3)
@@ -205,7 +201,6 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
       hproj2 (by simp [Pose.innerParams])
     have hcosφ := (Real.hasStrictDerivAt_cos pbar.φ₁).comp_hasStrictFDerivAt_of_eq pbar.innerParams
       hproj2 (by simp [Pose.innerParams])
-    -- Helper lemmas for product terms
     have hA : HasStrictFDerivAt (fun x : ℝ³ => -Real.sin (x.ofLp 1) * S 0 + Real.cos (x.ofLp 1) * S 1)
         ((-Real.cos pbar.θ₁ * S 0 - Real.sin pbar.θ₁ * S 1) • proj1) pbar.innerParams := by
       have h1 := hsinθ.neg.mul_const (S 0)
@@ -230,8 +225,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
         simp [ContinuousLinearMap.add_apply, ContinuousLinearMap.sub_apply,
               ContinuousLinearMap.smul_apply, ContinuousLinearMap.neg_apply, smul_eq_mul] <;> ring
     fin_cases i
-    · -- Component 0: cos(α) * A - sin(α) * B
-      simp only [Fin.zero_eta, Fin.isValue]
+    · simp only [Fin.zero_eta, Fin.isValue]
       have hfunc : (fun x : ℝ³ => ((rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S).ofLp (0 : Fin 2)) =
           fun x => Real.cos (x.ofLp 0) * (-Real.sin (x.ofLp 1) * S 0 + Real.cos (x.ofLp 1) * S 1) -
                    Real.sin (x.ofLp 0) * (-Real.cos (x.ofLp 1) * Real.cos (x.ofLp 2) * S 0 -
@@ -266,8 +260,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
       simp only [show proj0 d = d.ofLp 0 from rfl, show proj1 d = d.ofLp 1 from rfl,
                  show proj2 d = d.ofLp 2 from rfl, mul_zero, zero_sub]
       ring
-    · -- Component 1: sin(α) * A + cos(α) * B
-      simp only [Fin.mk_one, Fin.isValue]
+    · simp only [Fin.mk_one, Fin.isValue]
       have hfunc : (fun x : ℝ³ => ((rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S).ofLp (1 : Fin 2)) =
           fun x => Real.sin (x.ofLp 0) * (-Real.sin (x.ofLp 1) * S 0 + Real.cos (x.ofLp 1) * S 1) +
                    Real.cos (x.ofLp 0) * (-Real.cos (x.ofLp 1) * Real.cos (x.ofLp 2) * S 0 -
