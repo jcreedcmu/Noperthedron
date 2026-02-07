@@ -4,6 +4,14 @@ import Noperthedron.RationalApprox
 import Noperthedron.SolutionTable
 import Noperthedron.ComputationalStep
 import Noperthedron.Global
+import Noperthedron.Global.Definitions
+import Noperthedron.Global.FDerivHelpers
+import Noperthedron.Global.RotationPartials
+import Noperthedron.Global.RotationPartials.RotMOuter
+import Noperthedron.Global.RotationPartials.Rotproj
+import Noperthedron.Global.RotationPartials.SecondPartialInner
+import Noperthedron.Global.RotationPartials.SecondPartialOuter
+import Noperthedron.Global.SecondPartialHelpers
 import Noperthedron.RotationDerivs
 import Noperthedron.Local
 import Noperthedron.Final
