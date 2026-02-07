@@ -45,11 +45,9 @@ noncomputable def outer_second_partial_A (θ φ : ℝ) (i j : Fin 2) : ℝ³ →
 /-- All A[i,j] have operator norm ≤ 1 for outer partials. -/
 lemma outer_second_partial_A_norm_le (θ φ : ℝ) (i j : Fin 2) :
     ‖outer_second_partial_A θ φ i j‖ ≤ 1 := by
-  fin_cases i <;> fin_cases j
-  · exact Bounding.rotMθθ_norm_le_one θ φ
-  · exact Bounding.rotMθφ_norm_le_one θ φ
-  · exact Bounding.rotMθφ_norm_le_one θ φ
-  · exact Bounding.rotMφφ_norm_le_one θ φ
+  fin_cases i <;> fin_cases j <;>
+    simp [outer_second_partial_A, Bounding.rotMθθ_norm_le_one,
+      Bounding.rotMθφ_norm_le_one, Bounding.rotMφφ_norm_le_one]
 
 /-!
 ## Helper lemmas: first partials of ⟪rotM S, w⟫ in coordinate directions
@@ -171,8 +169,7 @@ theorem second_partial_inner_rotM_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
       (EuclideanSpace.single j 1)| ≤ 1 := by
   show |nth_partial j (nth_partial i (rotproj_outer_unit S w)) y| ≤ 1
   let f : E 2 → ℝ := fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫
-  have hfun : rotproj_outer_unit S w = fun z => f z / ‖S‖ := by
-    ext z; simp [rotproj_outer_unit, f]
+  have hfun : rotproj_outer_unit S w = fun z => f z / ‖S‖ := by ext; rfl
   have hf_smooth : ContDiff ℝ ⊤ f := by
     apply ContDiff.inner ℝ _ contDiff_const
     rw [contDiff_piLp]; intro k
