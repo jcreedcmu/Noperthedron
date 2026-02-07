@@ -73,7 +73,7 @@ def rotM' (pbar : Pose) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
     | 1 => (rotMφ pbar.θ₂ pbar.φ₂ P) i
   M.toEuclideanLin.toContinuousLinearMap
 
-private lemma rotM'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+lemma rotM'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotM' pbar P d) i = d 0 * (rotMθ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
@@ -185,7 +185,7 @@ noncomputable def rotMθ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
     | 1 => (rotMθφ pbar.θ₂ pbar.φ₂ P) i
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
 
-private lemma rotMθ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+lemma rotMθ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotMθ' pbar P d) i = d 0 * (rotMθθ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMθφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
@@ -275,7 +275,7 @@ noncomputable def rotMφ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
     | 1 => (rotMφφ pbar.θ₂ pbar.φ₂ P) i
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
 
-private lemma rotMφ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+lemma rotMφ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotMφ' pbar P d) i = d 0 * (rotMθφ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMφφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
