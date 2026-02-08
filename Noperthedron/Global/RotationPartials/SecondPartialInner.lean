@@ -149,62 +149,27 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
 theorem second_partial_inner_rotM_inner (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) (i j : Fin 3) (y : ℝ³) :
     |(fderiv ℝ (fun z => (fderiv ℝ (rotproj_inner_unit S w) z) (EuclideanSpace.single i 1)) y)
       (EuclideanSpace.single j 1)| ≤ 1 := by
-  by_cases hS : ‖S‖ = 0
-  · have hzero : rotproj_inner_unit S w = 0 := by ext y; simp [rotproj_inner_unit, hS]
-    simp only [hzero, fderiv_zero, Pi.zero_apply, ContinuousLinearMap.zero_apply]
-    norm_num
-  · have S_pos : ‖S‖ > 0 := (norm_nonneg S).lt_of_ne' hS
-    have heq : rotproj_inner_unit S w = fun z => rotproj_inner S w z / ‖S‖ := by ext z; rfl
-    have hgoal : (fderiv ℝ (fun z => (fderiv ℝ (rotproj_inner_unit S w) z) (EuclideanSpace.single i 1)) y)
-        (EuclideanSpace.single j 1) = nth_partial j (nth_partial i (rotproj_inner_unit S w)) y := by
-      unfold nth_partial; rfl
-    rw [hgoal]
-    have hf_smooth : ContDiff ℝ 2 (rotproj_inner S w) := by
-      have heq_inner : rotproj_inner S w = ‖S‖ • rotproj_inner_unit S w := by
-        ext x; simp [rotproj_inner, rotproj_inner_unit, mul_div_cancel₀ _ (ne_of_gt S_pos)]
-      rw [heq_inner]
-      have h2 : ContDiff ℝ 2 (rotproj_inner_unit S w) := rotation_partials_exist S_pos
-      exact contDiff_const.smul h2
-    have hdiv : (fun z => rotproj_inner S w z / ‖S‖) = ‖S‖⁻¹ • (rotproj_inner S w) := by
-      ext z; simp [div_eq_inv_mul, smul_eq_mul]
-    have hpartial_smul : nth_partial i (‖S‖⁻¹ • rotproj_inner S w) =
-        ‖S‖⁻¹ • nth_partial i (rotproj_inner S w) := by
-      ext z
-      simp only [nth_partial, Pi.smul_apply, smul_eq_mul]
-      have h2ne : (2 : WithTop ℕ∞) ≠ 0 := by decide
-      rw [fderiv_const_smul (c := ‖S‖⁻¹) (hf_smooth.differentiable h2ne z)]
-      simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
-    have hg : ContDiff ℝ 1 (nth_partial i (rotproj_inner S w)) := by
-      unfold nth_partial
-      have h : (1 : WithTop ℕ∞) + 1 ≤ 2 := by decide
-      exact hf_smooth.fderiv_right h |>.clm_apply contDiff_const
-    have hg_diff : Differentiable ℝ (nth_partial i (rotproj_inner S w)) := by
-      have h1ne : (1 : WithTop ℕ∞) ≠ 0 := by decide
-      exact hg.differentiable h1ne
-    have hpartial_smul2 : nth_partial j (‖S‖⁻¹ • nth_partial i (rotproj_inner S w)) =
-        ‖S‖⁻¹ • nth_partial j (nth_partial i (rotproj_inner S w)) := by
-      ext z
-      simp only [nth_partial, Pi.smul_apply, smul_eq_mul]
-      rw [fderiv_const_smul (c := ‖S‖⁻¹) (hg_diff z)]
-      simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
-    have hscale : nth_partial j (nth_partial i (rotproj_inner_unit S w)) y =
-        nth_partial j (nth_partial i (rotproj_inner S w)) y / ‖S‖ := by
-      rw [heq, hdiv, hpartial_smul, hpartial_smul2]
-      simp only [Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
-    rw [hscale]
-    obtain ⟨A, hAnorm, hAeq⟩ := second_partial_rotM_inner_eq S w y j i
-    rw [hAeq]
-    exact inner_bound_helper A S w w_unit hAnorm
+  change |nth_partial j (nth_partial i (rotproj_inner_unit S w)) y| ≤ 1
+  have hf_smooth : ContDiff ℝ 2 (rotproj_inner S w) := by
+    change ContDiff ℝ 2 (fun x : ℝ³ => ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫)
+    simp [inner, rotprojRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+    fun_prop
+  have hf_diff : Differentiable ℝ (rotproj_inner S w) :=
+    hf_smooth.differentiable (by decide)
+  have hg_diff : Differentiable ℝ (nth_partial i (rotproj_inner S w)) :=
+    (hf_smooth.fderiv_right (by decide : (1 : WithTop ℕ∞) + 1 ≤ 2) |>.clm_apply
+      contDiff_const).differentiable (by decide)
+  have hscale : nth_partial j (nth_partial i (rotproj_inner_unit S w)) y =
+      nth_partial j (nth_partial i (rotproj_inner S w)) y / ‖S‖ := by
+    rw [funext (rotproj_inner_unit_eq S w)]
+    rw [funext fun z => nth_partial_div_const i (rotproj_inner S w) ‖S‖ z (hf_diff z)]
+    simpa using nth_partial_div_const j (nth_partial i (rotproj_inner S w)) ‖S‖ y (hg_diff y)
+  obtain ⟨A, hAnorm, hAeq⟩ := second_partial_rotM_inner_eq S w y j i
+  simpa [hscale, hAeq] using inner_bound_helper A S w w_unit hAnorm
 
 /- [SY25] Lemma 19 -/
 theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
-    mixed_partials_bounded (rotproj_inner_unit S w) := by
-  intro x i j
-  have hgoal : (nth_partial i <| nth_partial j <| rotproj_inner_unit S w) x =
-      (fderiv ℝ (fun z => (fderiv ℝ (rotproj_inner_unit S w) z) (EuclideanSpace.single j 1)) x)
-        (EuclideanSpace.single i 1) := by
-    unfold nth_partial; rfl
-  rw [hgoal]
-  exact second_partial_inner_rotM_inner S w_unit j i x
+    mixed_partials_bounded (rotproj_inner_unit S w) := fun x i j =>
+  second_partial_inner_rotM_inner S w_unit j i x
 
 end GlobalTheorem
