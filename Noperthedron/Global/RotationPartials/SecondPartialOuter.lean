@@ -56,65 +56,53 @@ lemma outer_second_partial_A_norm_le (θ φ : ℝ) (i j : Fin 2) :
 private lemma outerPbar (x : E 2) : (⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ : Pose).outerParams = x := by
   ext i; fin_cases i <;> simp [Pose.outerParams]
 
+private lemma fderiv_rotM_outer_eq (S : ℝ³) (x : E 2) :
+    fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) x = rotM' ⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ S :=
+  (outerPbar x ▸ HasFDerivAt.rotM_outer _ S).fderiv
+
+private lemma fderiv_rotMθ_outer_eq (S : ℝ³) (x : E 2) :
+    fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x = rotMθ' ⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ S :=
+  (outerPbar x ▸ HasFDerivAt.rotMθ_outer _ S).fderiv
+
+private lemma fderiv_rotMφ_outer_eq (S : ℝ³) (x : E 2) :
+    fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x = rotMφ' ⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ S :=
+  (outerPbar x ▸ HasFDerivAt.rotMφ_outer _ S).fderiv
+
 private lemma fderiv_rotM_inner_e0 (S : ℝ³) (w : ℝ²) (y : E 2) :
     (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
       (EuclideanSpace.single 0 1) = ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
-  rw [fderiv_inner_const _ w y _ (Differentiable.rotM_outer S y),
-    show fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ S from
-      (outerPbar y ▸ HasFDerivAt.rotM_outer _ S).fderiv]
-  congr 1
-  ext i
-  simp [rotM'_apply, EuclideanSpace.single_apply]
+  rw [fderiv_inner_const _ w y _ (Differentiable.rotM_outer S y), fderiv_rotM_outer_eq S y]
+  congr 1; ext i; simp [rotM'_apply, EuclideanSpace.single_apply]
 
 private lemma fderiv_rotM_inner_e1 (S : ℝ³) (w : ℝ²) (y : E 2) :
     (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
       (EuclideanSpace.single 1 1) = ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫ := by
-  rw [fderiv_inner_const _ w y _ (Differentiable.rotM_outer S y),
-    show fderiv ℝ (fun z => rotM (z.ofLp 0) (z.ofLp 1) S) y = rotM' ⟨0, y.ofLp 0, 0, y.ofLp 1, 0⟩ S from
-      (outerPbar y ▸ HasFDerivAt.rotM_outer _ S).fderiv]
-  congr 1
-  ext i
-  simp [rotM'_apply, EuclideanSpace.single_apply]
+  rw [fderiv_inner_const _ w y _ (Differentiable.rotM_outer S y), fderiv_rotM_outer_eq S y]
+  congr 1; ext i; simp [rotM'_apply, EuclideanSpace.single_apply]
 
 private lemma fderiv_rotMθ_inner_e0 (S : ℝ³) (w : ℝ²) (x : E 2) :
     (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
       (EuclideanSpace.single 0 1) = ⟪rotMθθ (x.ofLp 0) (x.ofLp 1) S, w⟫ := by
-  rw [fderiv_inner_const _ w x _ (differentiableAt_rotMθ_outer S x),
-    show fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x = rotMθ' ⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ S from
-      (outerPbar x ▸ HasFDerivAt.rotMθ_outer _ S).fderiv]
-  congr 1
-  ext i
-  simp [rotMθ'_apply, EuclideanSpace.single_apply]
+  rw [fderiv_inner_const _ w x _ (differentiableAt_rotMθ_outer S x), fderiv_rotMθ_outer_eq S x]
+  congr 1; ext i; simp [rotMθ'_apply, EuclideanSpace.single_apply]
 
 private lemma fderiv_rotMθ_inner_e1 (S : ℝ³) (w : ℝ²) (x : E 2) :
     (fderiv ℝ (fun y => ⟪rotMθ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
       (EuclideanSpace.single 1 1) = ⟪rotMθφ (x.ofLp 0) (x.ofLp 1) S, w⟫ := by
-  rw [fderiv_inner_const _ w x _ (differentiableAt_rotMθ_outer S x),
-    show fderiv ℝ (fun y => rotMθ (y.ofLp 0) (y.ofLp 1) S) x = rotMθ' ⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ S from
-      (outerPbar x ▸ HasFDerivAt.rotMθ_outer _ S).fderiv]
-  congr 1
-  ext i
-  simp [rotMθ'_apply, EuclideanSpace.single_apply]
+  rw [fderiv_inner_const _ w x _ (differentiableAt_rotMθ_outer S x), fderiv_rotMθ_outer_eq S x]
+  congr 1; ext i; simp [rotMθ'_apply, EuclideanSpace.single_apply]
 
 private lemma fderiv_rotMφ_inner_e0 (S : ℝ³) (w : ℝ²) (x : E 2) :
     (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
       (EuclideanSpace.single 0 1) = ⟪rotMθφ (x.ofLp 0) (x.ofLp 1) S, w⟫ := by
-  rw [fderiv_inner_const _ w x _ (differentiableAt_rotMφ_outer S x),
-    show fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x = rotMφ' ⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ S from
-      (outerPbar x ▸ HasFDerivAt.rotMφ_outer _ S).fderiv]
-  congr 1
-  ext i
-  simp [rotMφ'_apply, EuclideanSpace.single_apply]
+  rw [fderiv_inner_const _ w x _ (differentiableAt_rotMφ_outer S x), fderiv_rotMφ_outer_eq S x]
+  congr 1; ext i; simp [rotMφ'_apply, EuclideanSpace.single_apply]
 
 private lemma fderiv_rotMφ_inner_e1 (S : ℝ³) (w : ℝ²) (x : E 2) :
     (fderiv ℝ (fun y => ⟪rotMφ (y.ofLp 0) (y.ofLp 1) S, w⟫) x)
       (EuclideanSpace.single 1 1) = ⟪rotMφφ (x.ofLp 0) (x.ofLp 1) S, w⟫ := by
-  rw [fderiv_inner_const _ w x _ (differentiableAt_rotMφ_outer S x),
-    show fderiv ℝ (fun y => rotMφ (y.ofLp 0) (y.ofLp 1) S) x = rotMφ' ⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ S from
-      (outerPbar x ▸ HasFDerivAt.rotMφ_outer _ S).fderiv]
-  congr 1
-  ext i
-  simp [rotMφ'_apply, EuclideanSpace.single_apply]
+  rw [fderiv_inner_const _ w x _ (differentiableAt_rotMφ_outer S x), fderiv_rotMφ_outer_eq S x]
+  congr 1; ext i; simp [rotMφ'_apply, EuclideanSpace.single_apply]
 
 /-!
 ## Private lemma: second partials as inner products
