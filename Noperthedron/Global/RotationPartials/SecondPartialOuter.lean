@@ -54,7 +54,7 @@ lemma outer_second_partial_A_norm_le (θ φ : ℝ) (i j : Fin 2) :
 -/
 
 private lemma outerPbar (x : E 2) : (⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ : Pose).outerParams = x := by
-  ext i; fin_cases i <;> rfl
+  ext i; fin_cases i <;> simp [Pose.outerParams]
 
 private lemma fderiv_rotM_inner_e0 (S : ℝ³) (w : ℝ²) (y : E 2) :
     (fderiv ℝ (fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) y)
@@ -139,19 +139,17 @@ theorem second_partial_inner_rotM_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
       (EuclideanSpace.single j 1)| ≤ 1 := by
   show |nth_partial j (nth_partial i (rotproj_outer_unit S w)) y| ≤ 1
   let f : E 2 → ℝ := fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫
-  have hfun : rotproj_outer_unit S w = fun z => f z / ‖S‖ := rfl
   have hf_smooth : ContDiff ℝ ⊤ f := by
     apply ContDiff.inner ℝ _ contDiff_const
     rw [contDiff_piLp]; intro k
     simp only [rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
     fin_cases k <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
-  have hf_diff : Differentiable ℝ f := hf_smooth.differentiable WithTop.top_ne_zero
-  have hg_diff : Differentiable ℝ (nth_partial i f) :=
-    (hf_smooth.fderiv_right le_top |>.clm_apply contDiff_const).differentiable WithTop.top_ne_zero
   have hscale : nth_partial j (nth_partial i (rotproj_outer_unit S w)) y =
       nth_partial j (nth_partial i f) y / ‖S‖ := by
-    rw [hfun, funext fun z => nth_partial_div_const i f ‖S‖ z (hf_diff z)]
-    simpa using nth_partial_div_const j (nth_partial i f) ‖S‖ y (hg_diff y)
+    rw [show rotproj_outer_unit S w = fun z => f z / ‖S‖ from rfl,
+      funext fun z => nth_partial_div_const i f ‖S‖ z (hf_smooth.differentiable WithTop.top_ne_zero z)]
+    exact nth_partial_div_const j _ ‖S‖ y
+      ((hf_smooth.fderiv_right le_top |>.clm_apply contDiff_const).differentiable WithTop.top_ne_zero y)
   obtain ⟨A, hAnorm, hAeq⟩ := second_partial_rotM_outer_eq S w y j i
   simpa [hscale, f, hAeq] using inner_bound_helper A S w w_unit hAnorm
 
