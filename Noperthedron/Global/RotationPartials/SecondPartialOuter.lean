@@ -159,8 +159,7 @@ theorem second_partial_inner_rotM_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
     exact nth_partial_div_const j _ ‖S‖ y (hg_diff y)
   rw [hscale]
   obtain ⟨A, hAnorm, hAeq⟩ := second_partial_rotM_outer_eq S w y j i
-  rw [hAeq]
-  exact inner_bound_helper A S w w_unit hAnorm
+  simpa [f, hAeq] using inner_bound_helper A S w w_unit hAnorm
 
 theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     mixed_partials_bounded (rotproj_outer_unit S w) := fun x i j =>
