@@ -165,7 +165,7 @@ private lemma rotprojRM'_apply_1_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) 
 -- Note: Linter reports false positives about seq focus; the <;> is actually needed for ext
 set_option linter.unnecessarySeqFocus false in
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
-    (HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams) := by
+    HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams := by
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
     apply HasStrictFDerivAt.hasFDerivAt
     rw [hasStrictFDerivAt_piLp]
