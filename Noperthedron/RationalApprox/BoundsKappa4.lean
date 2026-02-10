@@ -23,11 +23,6 @@ def bounds_kappa4_Aℚ (s : UpperSqrt) :=
   (⟪rotMℚ θ φ P_, rotMℚ θ φ (P_ - Q_)⟫ - 10 * κ - 2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε)) /
   ((s.norm (rotMℚ θ φ P_) + √2 * ε + 3 * κ) * (s.norm (rotMℚ θ φ (P_ - Q_)) + 2 * √2 * ε + 6 * κ))
 
-/-- Convert `Set.Icc` membership from `ℤ` bounds to `ℝ` bounds. -/
-private lemma icc_int_to_real (x : Set.Icc ((-4 : ℤ)) 4) :
-    (x : ℝ) ∈ Set.Icc ((-4 : ℝ)) 4 :=
-  ⟨by exact_mod_cast x.property.1, by exact_mod_cast x.property.2⟩
-
 /-- An `UpperSqrt` overestimates the Euclidean norm. -/
 private lemma UpperSqrt_norm_le {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ‖v‖ ≤ s.norm v := by
   unfold UpperSqrt.norm
@@ -54,21 +49,8 @@ private lemma inner_product_bound_10kappa
     simp [inner_sub_left, inner_sub_right]
   rw [decomp]
   -- Bound ‖rotM P - rotMℚ P_‖
-  have hAP : ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖ ≤ 2 * κ + κ ^ 2 := by
-    calc ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖
-      _ = ‖((rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P) + ((rotMℚ ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_)‖ := by
-          congr 1; abel
-      _ ≤ ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P‖ + ‖(rotMℚ ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖ :=
-          norm_add_le _ _
-      _ = ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P‖ + ‖(rotMℚ ↑θ ↑φ) (P - P_)‖ := by
-          rw [ContinuousLinearMap.sub_apply, map_sub]
-      _ ≤ ‖rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ‖ * ‖P‖ + ‖rotMℚ ↑θ ↑φ‖ * ‖P - P_‖ :=
-          add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
-      _ ≤ κ * 1 + (1 + κ) * κ :=
-          add_le_add
-            (mul_le_mul hMdiff hP (norm_nonneg _) (by norm_num [κ]))
-            (mul_le_mul hMℚnorm Papprox (norm_nonneg _) (by norm_num [κ]))
-      _ = 2 * κ + κ ^ 2 := by ring
+  have hAP : ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖ ≤ 2 * κ + κ ^ 2 :=
+    clm_approx_apply_sub hMdiff hMℚnorm hP Papprox
   -- Bound ‖rotM Q - rotMℚ Q_‖ (with ‖Q‖ ≤ 2 and ‖Q - Q_‖ ≤ 2κ)
   have hBQ : ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ ≤ 4 * κ + 2 * κ ^ 2 := by
     calc ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖

@@ -10,16 +10,11 @@ namespace RationalApprox
 
 variable {P P_ : ℝ³} {Q Q_ : ℝ³} {α θ φ θ_ φ_ : Set.Icc (-4) 4} {w : ℝ²}
 
-/-- Convert `Set.Icc` membership from `ℤ` bounds to `ℝ` bounds. -/
-private lemma icc_int_to_real (x : Set.Icc ((-4 : ℤ)) 4) :
-    (x : ℝ) ∈ Set.Icc ((-4 : ℝ)) 4 :=
-  ⟨by exact_mod_cast x.property.1, by exact_mod_cast x.property.2⟩
-
 /-!
 [SY25] Corollary 50
 -/
 
-lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ κ) :
+lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_‖ ≤ κ) :
     |‖rotR α (rotM θ φ P) - rotM θ_ φ_ Q‖ - ‖rotRℚ α (rotMℚ θ φ P) - rotMℚ θ_ φ_ Q_‖| ≤ 6 * κ := by
   have hMdiff : ‖rotM (θ : ℝ) (φ : ℝ) - rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ κ :=
     M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ)
@@ -62,21 +57,8 @@ lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - P_
                     (by positivity) (by norm_num [κ])
       _ = 2 * κ + κ ^ 2 := by ring
   -- Term 2: ‖rotM' Q - rotMℚ' Q_‖ ≤ 2κ + κ²
-  have term2 : ‖rotM θ_ φ_ Q - rotMℚ θ_ φ_ Q_‖ ≤ 2 * κ + κ ^ 2 := by
-    calc ‖rotM θ_ φ_ Q - rotMℚ θ_ φ_ Q_‖
-      _ = ‖((rotM ↑θ_ ↑φ_) Q - (rotMℚ ↑θ_ ↑φ_) Q) +
-            ((rotMℚ ↑θ_ ↑φ_) Q - (rotMℚ ↑θ_ ↑φ_) Q_)‖ := by congr 1; abel
-      _ ≤ ‖(rotM ↑θ_ ↑φ_) Q - (rotMℚ ↑θ_ ↑φ_) Q‖ +
-            ‖(rotMℚ ↑θ_ ↑φ_) Q - (rotMℚ ↑θ_ ↑φ_) Q_‖ := norm_add_le _ _
-      _ = ‖(rotM ↑θ_ ↑φ_ - rotMℚ ↑θ_ ↑φ_) Q‖ + ‖(rotMℚ ↑θ_ ↑φ_) (Q - Q_)‖ := by
-          rw [ContinuousLinearMap.sub_apply, map_sub]
-      _ ≤ ‖rotM ↑θ_ ↑φ_ - rotMℚ ↑θ_ ↑φ_‖ * ‖Q‖ + ‖rotMℚ ↑θ_ ↑φ_‖ * ‖Q - Q_‖ :=
-          add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
-      _ ≤ κ * 1 + (1 + κ) * κ :=
-          add_le_add
-            (mul_le_mul hM_diff' hQ (norm_nonneg _) (by norm_num [κ]))
-            (mul_le_mul hMℚnorm' Qapprox (norm_nonneg _) (by norm_num [κ]))
-      _ = 2 * κ + κ ^ 2 := by ring
+  have term2 : ‖rotM θ_ φ_ Q - rotMℚ θ_ φ_ Q_‖ ≤ 2 * κ + κ ^ 2 :=
+    clm_approx_apply_sub hM_diff' hMℚnorm' hQ Qapprox
   -- Combine using reverse triangle inequality
   calc |‖rotR ↑α ((rotM ↑θ ↑φ) P) - (rotM ↑θ_ ↑φ_) Q‖ -
         ‖rotRℚ ↑α ((rotMℚ ↑θ ↑φ) P) - (rotMℚ ↑θ_ ↑φ_) Q_‖|
