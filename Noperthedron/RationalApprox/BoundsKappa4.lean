@@ -52,29 +52,15 @@ private lemma inner_product_bound_10kappa
   have hAP : ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hMdiff hMℚnorm hP Papprox
   -- Bound ‖rotM Q - rotMℚ Q_‖ (with ‖Q‖ ≤ 2 and ‖Q - Q_‖ ≤ 2κ)
-  have hBQ : ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ ≤ 4 * κ + 2 * κ ^ 2 := by
-    calc ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖
-      _ = ‖((rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q) + ((rotMℚ ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_)‖ := by
-          congr 1; abel
-      _ ≤ ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q‖ + ‖(rotMℚ ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ :=
-          norm_add_le _ _
-      _ = ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) Q‖ + ‖(rotMℚ ↑θ ↑φ) (Q - Q_)‖ := by
-          rw [ContinuousLinearMap.sub_apply, map_sub]
-      _ ≤ ‖rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ‖ * ‖Q‖ + ‖rotMℚ ↑θ ↑φ‖ * ‖Q - Q_‖ :=
-          add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
-      _ ≤ κ * 2 + (1 + κ) * (2 * κ) :=
-          add_le_add
-            (mul_le_mul hMdiff hR (norm_nonneg _) (by norm_num [κ]))
-            (mul_le_mul hMℚnorm Qapprox (norm_nonneg _) (by norm_num [κ]))
-      _ = 4 * κ + 2 * κ ^ 2 := by ring
+  have hBQ : ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ ≤ 4 * κ + 2 * κ ^ 2 :=
+    clm_approx_apply_sub₂ hMdiff hMℚnorm hR Qapprox
   -- Bound ‖rotM Q‖
   have hMQ : ‖(rotM ↑θ ↑φ) Q‖ ≤ 2 := by
     have := ContinuousLinearMap.le_opNorm (rotM ↑θ ↑φ) Q
     rw [Bounding.rotM_norm_one, one_mul] at this; linarith
   -- Bound ‖rotMℚ P_‖
   have hMℚP_ : ‖(rotMℚ ↑θ ↑φ) P_‖ ≤ (1 + κ) * (1 + κ) :=
-    (ContinuousLinearMap.le_opNorm _ _).trans
-      (mul_le_mul hMℚnorm (by linarith [norm_le_insert P P_]) (norm_nonneg _) (by norm_num [κ]))
+    approx_image_norm_le hMℚnorm hP Papprox
   calc |⟪(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q⟫ +
         ⟪(rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_⟫|
     _ ≤ |⟪(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q⟫| +
@@ -120,21 +106,8 @@ private lemma norm_diff_bound_6kappa
       _ ≤ κ + κ := add_le_add Papprox Qapprox
       _ = 2 * κ := by ring
   -- ‖M(P-Q) - Mℚ(P_-Q_)‖ ≤ ‖(M-Mℚ)(P-Q)‖ + ‖Mℚ((P-Q)-(P_-Q_))‖
-  have h_diff : ‖(rotM ↑θ ↑φ) (P - Q) - (rotMℚ ↑θ ↑φ) (P_ - Q_)‖ ≤ 6 * κ := by
-    have h_split : (rotM ↑θ ↑φ) (P - Q) - (rotMℚ ↑θ ↑φ) (P_ - Q_) =
-        (rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) (P - Q) + (rotMℚ ↑θ ↑φ) ((P - Q) - (P_ - Q_)) := by
-      simp [ContinuousLinearMap.sub_apply, map_sub]; abel
-    rw [h_split]
-    calc ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) (P - Q) + (rotMℚ ↑θ ↑φ) ((P - Q) - (P_ - Q_))‖
-      _ ≤ ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) (P - Q)‖ + ‖(rotMℚ ↑θ ↑φ) ((P - Q) - (P_ - Q_))‖ :=
-          norm_add_le _ _
-      _ ≤ ‖rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ‖ * ‖P - Q‖ + ‖rotMℚ ↑θ ↑φ‖ * ‖(P - Q) - (P_ - Q_)‖ :=
-          add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
-      _ ≤ κ * 2 + (1 + κ) * (2 * κ) :=
-          add_le_add
-            (mul_le_mul hMdiff hPQ_norm (norm_nonneg _) (by norm_num [κ]))
-            (mul_le_mul hMℚnorm hPQ_approx (norm_nonneg _) (by norm_num [κ]))
-      _ ≤ 6 * κ := by unfold κ; norm_num
+  have h_diff : ‖(rotM ↑θ ↑φ) (P - Q) - (rotMℚ ↑θ ↑φ) (P_ - Q_)‖ ≤ 6 * κ :=
+    (clm_approx_apply_sub₂ hMdiff hMℚnorm hPQ_norm hPQ_approx).trans (by unfold κ; norm_num)
   linarith [norm_le_insert' ((rotM ↑θ ↑φ) (P - Q)) ((rotMℚ ↑θ ↑φ) (P_ - Q_))]
 
 lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ κ)
@@ -186,8 +159,7 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
         (mul_le_mul_of_nonneg_left h_norm_PQ (by linarith)) (by positivity)
     linarith [h_inner_le, h_eps_term]
   -- Step 2: denA > 0
-  have h_denA_pos : 0 < denA := by
-    apply mul_pos <;> positivity
+  have h_denA_pos : 0 < denA := by positivity
   -- Step 3: denA ≤ denAℚ
   have h_denA_le : denA ≤ denAℚ := by
     -- Factor 1: ‖rotM P‖ + √2ε ≤ s.norm(rotMℚ P_) + √2ε + 3κ

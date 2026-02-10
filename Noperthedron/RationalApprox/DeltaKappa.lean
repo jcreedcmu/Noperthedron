@@ -28,9 +28,7 @@ lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_
   -- Decompose at the R level: A = rotR, Aℚ = rotRℚ, P = rotM P, P_ = rotMℚ P
   have term1 : ‖rotR α (rotM θ φ P) - rotRℚ α (rotMℚ θ φ P)‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hRdiff (Rℚ_norm_bounded _ (icc_int_to_real α))
-      (by calc ‖(rotM ↑θ ↑φ) P‖
-            _ ≤ ‖rotM ↑θ ↑φ‖ * ‖P‖ := ContinuousLinearMap.le_opNorm _ _
-            _ ≤ 1 := by rw [Bounding.rotM_norm_one]; linarith [norm_nonneg P])
+      (clm_unit_apply_le (le_of_eq (Bounding.rotM_norm_one _ _)) hP)
       (by rw [show (rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P = (rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P from
               (ContinuousLinearMap.sub_apply _ _ _).symm]
           calc ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P‖

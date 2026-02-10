@@ -80,12 +80,7 @@ private lemma inner_four_kappa {E F G : Type*}
     simp [map_sub, ContinuousLinearMap.sub_apply]]
   have hAP_diff : ‖A P - Aℚ P_‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hAdiff hAℚnorm hP approx
-  have hAℚP_ : ‖Aℚ P_‖ ≤ (1 + κ) * (1 + κ) := by
-    have hP_ : ‖P_‖ ≤ 1 + κ := by linarith [norm_le_insert P P_]
-    calc ‖Aℚ P_‖
-      _ ≤ ‖Aℚ‖ * ‖P_‖ := ContinuousLinearMap.le_opNorm _ _
-      _ ≤ (1 + κ) * (1 + κ) :=
-          mul_le_mul hAℚnorm hP_ (norm_nonneg _) (by norm_num [κ])
+  have hAℚP_ : ‖Aℚ P_‖ ≤ (1 + κ) * (1 + κ) := approx_image_norm_le hAℚnorm hP approx
   calc ‖@inner ℝ G _ (R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)) w‖
     _ ≤ ‖R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)‖ * ‖w‖ := norm_inner_le_norm (𝕜 := ℝ) _ _
     _ = ‖R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)‖ := by rw [hw, mul_one]
