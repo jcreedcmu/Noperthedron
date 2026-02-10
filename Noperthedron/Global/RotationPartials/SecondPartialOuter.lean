@@ -127,16 +127,17 @@ theorem second_partial_inner_rotM_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
       (EuclideanSpace.single j 1)| ≤ 1 := by
   show |nth_partial j (nth_partial i (rotproj_outer_unit S w)) y| ≤ 1
   let f : E 2 → ℝ := fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫
-  have hf_smooth : ContDiff ℝ ⊤ f := by
+  have hf_smooth : ContDiff ℝ 2 f := by
     apply ContDiff.inner ℝ _ contDiff_const
     rw [contDiff_piLp]; intro k
     simp only [rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
     fin_cases k <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
   have hscale : nth_partial j (nth_partial i (rotproj_outer_unit S w)) y =
       nth_partial j (nth_partial i f) y / ‖S‖ := by
-    simpa using nth_partial_nth_partial_div_const j i f ‖S‖ y
-      (hf_smooth.differentiable WithTop.top_ne_zero)
-      ((hf_smooth.fderiv_right le_top |>.clm_apply contDiff_const).differentiable WithTop.top_ne_zero)
+    simpa using nth_partial_nth_partial_div_const' i j f ‖S‖ y
+      (hf_smooth.differentiable (by decide))
+      ((hf_smooth.fderiv_right (by decide : (1 : WithTop ℕ∞) + 1 ≤ 2) |>.clm_apply
+        contDiff_const).differentiable (by decide))
   obtain ⟨A, hAnorm, hAeq⟩ := second_partial_rotM_outer_eq S w y j i
   simpa [hscale, f, hAeq] using inner_bound_helper A S w w_unit hAnorm
 

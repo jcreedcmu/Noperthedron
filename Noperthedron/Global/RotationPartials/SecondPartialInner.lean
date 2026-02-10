@@ -142,7 +142,7 @@ theorem second_partial_inner_rotM_inner (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
   have hscale : nth_partial j (nth_partial i (rotproj_inner_unit S w)) y =
       nth_partial j (nth_partial i (rotproj_inner S w)) y / ‖S‖ := by
     simpa [rotproj_inner_unit_eq] using
-      nth_partial_nth_partial_div_const j i (rotproj_inner S w) ‖S‖ y
+      nth_partial_nth_partial_div_const' i j (rotproj_inner S w) ‖S‖ y
         (Differentiable.rotproj_inner S w) hg_diff
   obtain ⟨A, hAnorm, hAeq⟩ := second_partial_rotM_inner_eq S w y j i
   simpa [hscale, hAeq] using inner_bound_helper A S w w_unit hAnorm
