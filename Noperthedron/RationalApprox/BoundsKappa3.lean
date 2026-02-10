@@ -11,11 +11,6 @@ namespace RationalApprox
 
 variable {P Q Q_ P_ : ℝ³} {α θ φ : Set.Icc (-4) 4} {w : ℝ²}
 
-/-- Convert `Set.Icc` membership from `ℤ` bounds to `ℝ` bounds. -/
-private lemma icc_int_to_real (x : Set.Icc ((-4 : ℤ)) 4) :
-    (x : ℝ) ∈ Set.Icc ((-4 : ℝ)) 4 :=
-  ⟨by exact_mod_cast x.property.1, by exact_mod_cast x.property.2⟩
-
 /-!
 ## Helper: vector norm difference bound
 
@@ -52,7 +47,7 @@ private lemma vecXℚ_norm_le (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
 [SY25] Lemma 49
 -/
 
-lemma bounds_kappa3_X (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ κ) :
+lemma bounds_kappa3_X (hP : ‖P‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) :
     ‖⟪vecX θ φ, P⟫ - ⟪vecXℚ θ φ, P_⟫‖ ≤ 3 * κ := by
   -- Decompose: ⟪vecX, P⟫ - ⟪vecXℚ, P_⟫ = ⟪vecX - vecXℚ, P⟫ + ⟪vecXℚ, P - P_⟫
   have decomp : ⟪vecX θ φ, P⟫ - ⟪vecXℚ θ φ, P_⟫ =
@@ -85,34 +80,11 @@ lemma bounds_kappa3_M (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P 
       ⟪(rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_⟫ := by
     simp [inner_sub_left, inner_sub_right]
   rw [decomp]
-  -- Bound ‖rotM P - rotMℚ P_‖
-  have hAP : ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖ ≤ 2 * κ + κ ^ 2 := by
-    calc ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖
-      _ = ‖((rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P) + ((rotMℚ ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_)‖ := by congr 1; abel
-      _ ≤ ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P‖ + ‖(rotMℚ ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖ := norm_add_le _ _
-      _ = ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P‖ + ‖(rotMℚ ↑θ ↑φ) (P - P_)‖ := by
-          rw [ContinuousLinearMap.sub_apply, map_sub]
-      _ ≤ ‖rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ‖ * ‖P‖ + ‖rotMℚ ↑θ ↑φ‖ * ‖P - P_‖ :=
-          add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
-      _ ≤ κ * 1 + (1 + κ) * κ :=
-          add_le_add
-            (mul_le_mul hMdiff hP (norm_nonneg _) (by norm_num [κ]))
-            (mul_le_mul hMℚnorm Papprox (norm_nonneg _) (by norm_num [κ]))
-      _ = 2 * κ + κ ^ 2 := by ring
-  -- Bound ‖rotM Q - rotMℚ Q_‖
-  have hBQ : ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ ≤ 2 * κ + κ ^ 2 := by
-    calc ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖
-      _ = ‖((rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q) + ((rotMℚ ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_)‖ := by congr 1; abel
-      _ ≤ ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q‖ + ‖(rotMℚ ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ := norm_add_le _ _
-      _ = ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) Q‖ + ‖(rotMℚ ↑θ ↑φ) (Q - Q_)‖ := by
-          rw [ContinuousLinearMap.sub_apply, map_sub]
-      _ ≤ ‖rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ‖ * ‖Q‖ + ‖rotMℚ ↑θ ↑φ‖ * ‖Q - Q_‖ :=
-          add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
-      _ ≤ κ * 1 + (1 + κ) * κ :=
-          add_le_add
-            (mul_le_mul hMdiff hQ (norm_nonneg _) (by norm_num [κ]))
-            (mul_le_mul hMℚnorm Qapprox (norm_nonneg _) (by norm_num [κ]))
-      _ = 2 * κ + κ ^ 2 := by ring
+  -- Bound ‖rotM P - rotMℚ P_‖ and ‖rotM Q - rotMℚ Q_‖
+  have hAP : ‖(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_‖ ≤ 2 * κ + κ ^ 2 :=
+    clm_approx_apply_sub hMdiff hMℚnorm hP Papprox
+  have hBQ : ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ ≤ 2 * κ + κ ^ 2 :=
+    clm_approx_apply_sub hMdiff hMℚnorm hQ Qapprox
   -- Bound ‖rotM Q‖
   have hMQ : ‖(rotM ↑θ ↑φ) Q‖ ≤ 1 := by
     calc ‖(rotM ↑θ ↑φ) Q‖
@@ -149,19 +121,8 @@ lemma bounds_kappa3_MQ (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_‖ ≤ κ) :
     M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ)
   have hMℚnorm : ‖rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ 1 + κ :=
     Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ)
-  -- Reverse triangle inequality: |‖a‖ - ‖b‖| ≤ ‖a - b‖
+  -- Reverse triangle inequality + clm_approx_apply_sub
   calc |(‖rotM θ φ Q‖ - ‖rotMℚ θ φ Q_‖)|
     _ ≤ ‖rotM θ φ Q - rotMℚ θ φ Q_‖ := abs_norm_sub_norm_le _ _
-    -- Decompose: rotM Q - rotMℚ Q_ = (rotM Q - rotMℚ Q) + (rotMℚ Q - rotMℚ Q_)
-    _ = ‖((rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q) + ((rotMℚ ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_)‖ := by
-        congr 1; abel
-    _ ≤ ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q‖ + ‖(rotMℚ ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ := norm_add_le _ _
-    _ = ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) Q‖ + ‖(rotMℚ ↑θ ↑φ) (Q - Q_)‖ := by
-        rw [ContinuousLinearMap.sub_apply, map_sub]
-    _ ≤ ‖rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ‖ * ‖Q‖ + ‖rotMℚ ↑θ ↑φ‖ * ‖Q - Q_‖ :=
-        add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
-    _ ≤ κ * 1 + (1 + κ) * κ :=
-        add_le_add
-          (mul_le_mul hMdiff hQ (norm_nonneg _) (by norm_num [κ]))
-          (mul_le_mul hMℚnorm Qapprox (norm_nonneg _) (by norm_num [κ]))
+    _ ≤ 2 * κ + κ ^ 2 := clm_approx_apply_sub hMdiff hMℚnorm hQ Qapprox
     _ ≤ 3 * κ := by unfold κ; norm_num

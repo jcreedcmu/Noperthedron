@@ -150,3 +150,49 @@ theorem Mℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ 
   _ ≤ ‖rotM θ φ‖ + ‖rotM θ φ - rotMℚ θ φ‖ := norm_le_insert (rotM θ φ) (rotMℚ θ φ)
   _ = 1        + ‖rotM θ φ - rotMℚ θ φ‖ := by rw [Bounding.rotM_norm_one]
   _ ≤ 1 + κ := by grw [M_difference_norm_bounded θ φ hθ hφ]
+
+theorem R'ℚ_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR'ℚ α‖ ≤ 1 + κ := by
+  calc ‖rotR'ℚ α‖
+  _ ≤ ‖rotR' α‖ + ‖rotR' α - rotR'ℚ α‖ := norm_le_insert (rotR' α) (rotR'ℚ α)
+  _ = 1 + ‖rotR' α - rotR'ℚ α‖ := by rw [Bounding.rotR'_norm_one]
+  _ ≤ 1 + κ := by grw [R'_difference_norm_bounded α hα]
+
+theorem Mθℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4) :
+    ‖rotMθℚ θ φ‖ ≤ 1 + κ := by
+  calc ‖rotMθℚ θ φ‖
+  _ ≤ ‖rotMθ θ φ‖ + ‖rotMθ θ φ - rotMθℚ θ φ‖ := norm_le_insert _ _
+  _ ≤ 1 + ‖rotMθ θ φ - rotMθℚ θ φ‖ := by gcongr; exact Bounding.rotMθ_norm_le_one _ _
+  _ ≤ 1 + κ := by gcongr; exact Mθ_difference_norm_bounded _ _ hθ hφ
+
+theorem Mφℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4) :
+    ‖rotMφℚ θ φ‖ ≤ 1 + κ := by
+  calc ‖rotMφℚ θ φ‖
+  _ ≤ ‖rotMφ θ φ‖ + ‖rotMφ θ φ - rotMφℚ θ φ‖ := norm_le_insert _ _
+  _ ≤ 1 + ‖rotMφ θ φ - rotMφℚ θ φ‖ := by gcongr; exact Bounding.rotMφ_norm_le_one _ _
+  _ ≤ 1 + κ := by gcongr; exact Mφ_difference_norm_bounded _ _ hθ hφ
+
+/-- Convert `Set.Icc` membership from `ℤ` bounds to `ℝ` bounds. -/
+lemma icc_int_to_real (x : Set.Icc ((-4 : ℤ)) 4) :
+    (x : ℝ) ∈ Set.Icc ((-4 : ℝ)) 4 :=
+  ⟨by exact_mod_cast x.property.1, by exact_mod_cast x.property.2⟩
+
+/-- Common bound: ‖A P - Aℚ P_‖ ≤ 2κ + κ² when ‖A - Aℚ‖ ≤ κ, ‖Aℚ‖ ≤ 1 + κ,
+‖P‖ ≤ 1, and ‖P - P_‖ ≤ κ. -/
+lemma clm_approx_apply_sub {E F : Type*}
+    [SeminormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
+    {A Aℚ : E →L[ℝ] F} {P P_ : E}
+    (hAdiff : ‖A - Aℚ‖ ≤ κ) (hAℚnorm : ‖Aℚ‖ ≤ 1 + κ)
+    (hP : ‖P‖ ≤ 1) (hPapprox : ‖P - P_‖ ≤ κ) :
+    ‖A P - Aℚ P_‖ ≤ 2 * κ + κ ^ 2 := by
+  calc ‖A P - Aℚ P_‖
+    _ = ‖(A P - Aℚ P) + (Aℚ P - Aℚ P_)‖ := by congr 1; abel
+    _ ≤ ‖A P - Aℚ P‖ + ‖Aℚ P - Aℚ P_‖ := norm_add_le _ _
+    _ = ‖(A - Aℚ) P‖ + ‖Aℚ (P - P_)‖ := by
+        rw [ContinuousLinearMap.sub_apply, map_sub]
+    _ ≤ ‖A - Aℚ‖ * ‖P‖ + ‖Aℚ‖ * ‖P - P_‖ :=
+        add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
+    _ ≤ κ * 1 + (1 + κ) * κ :=
+        add_le_add
+          (mul_le_mul hAdiff hP (norm_nonneg _) (by norm_num [κ]))
+          (mul_le_mul hAℚnorm hPapprox (norm_nonneg _) (by norm_num [κ]))
+    _ = 2 * κ + κ ^ 2 := by ring
