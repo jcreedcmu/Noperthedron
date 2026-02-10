@@ -168,9 +168,9 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     apply HasStrictFDerivAt.hasFDerivAt
     rw [hasStrictFDerivAt_piLp]
     intro i
-    let proj0 : ℝ³ →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 3 => ℝ) (0 : Fin 3)
-    let proj1 : ℝ³ →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 3 => ℝ) (1 : Fin 3)
-    let proj2 : ℝ³ →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 3 => ℝ) (2 : Fin 3)
+    let proj0 : ℝ³ →L[ℝ] ℝ := PiLp.proj 2 (fun _ : Fin 3 => ℝ) (0 : Fin 3)
+    let proj1 : ℝ³ →L[ℝ] ℝ := PiLp.proj 2 (fun _ : Fin 3 => ℝ) (1 : Fin 3)
+    let proj2 : ℝ³ →L[ℝ] ℝ := PiLp.proj 2 (fun _ : Fin 3 => ℝ) (2 : Fin 3)
     have hproj0 : HasStrictFDerivAt (fun x : ℝ³ => x.ofLp 0) proj0 pbar.innerParams :=
       PiLp.hasStrictFDerivAt_apply 2 pbar.innerParams 0
     have hproj1 : HasStrictFDerivAt (fun x : ℝ³ => x.ofLp 1) proj1 pbar.innerParams :=
