@@ -154,8 +154,6 @@ theorem second_partial_inner_rotM_inner (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
     change ContDiff ℝ 2 (fun x : ℝ³ => ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫)
     simp [inner, rotprojRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
     fun_prop
-  have hf_diff : Differentiable ℝ (rotproj_inner S w) :=
-    hf_smooth.differentiable (by decide)
   have hg_diff : Differentiable ℝ (nth_partial i (rotproj_inner S w)) :=
     (hf_smooth.fderiv_right (by decide : (1 : WithTop ℕ∞) + 1 ≤ 2) |>.clm_apply
       contDiff_const).differentiable (by decide)
