@@ -221,8 +221,9 @@ lemma clm_approx_apply_sub₂ {E F : Type*}
 lemma clm_unit_apply_le {E F : Type*}
     [SeminormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
     {A : E →L[ℝ] F} {x : E} (hA : ‖A‖ ≤ 1) (hx : ‖x‖ ≤ 1) : ‖A x‖ ≤ 1 :=
-  (ContinuousLinearMap.le_opNorm A x).trans
-    ((mul_le_mul hA hx (norm_nonneg _) (by linarith [norm_nonneg A])).trans (one_mul 1).le)
+  calc ‖A x‖ ≤ ‖A‖ * ‖x‖ := ContinuousLinearMap.le_opNorm A x
+    _ ≤ 1 * 1 := mul_le_mul hA hx (norm_nonneg _) zero_le_one
+    _ = 1 := one_mul 1
 
 /-- Approximate image norm: ‖Aℚ P_‖ ≤ (1+κ)² from ‖Aℚ‖ ≤ 1+κ, ‖P‖ ≤ 1, ‖P-P_‖ ≤ κ. -/
 lemma approx_image_norm_le {E F : Type*}
