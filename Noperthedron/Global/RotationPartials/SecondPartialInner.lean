@@ -64,7 +64,6 @@ private lemma second_partial_col2 (S : ℝ³) (w : ℝ²) (x : E 3) (i : Fin 3) 
   rw [nth_partial_rotproj_inner_e2 S w]; unfold nth_partial
   exact fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMφ S x)
 
-set_option maxHeartbeats 400000 in
 private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i j : Fin 3) :
     ∃ A : ℝ³ →L[ℝ] ℝ², ‖A‖ ≤ 1 ∧
       nth_partial i (nth_partial j (rotproj_inner S w)) x = ⟪A S, w⟫ := by
