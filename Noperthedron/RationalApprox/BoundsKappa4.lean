@@ -69,20 +69,12 @@ private lemma inner_product_bound_10kappa
       _ = 4 * κ + 2 * κ ^ 2 := by ring
   -- Bound ‖rotM Q‖
   have hMQ : ‖(rotM ↑θ ↑φ) Q‖ ≤ 2 := by
-    calc ‖(rotM ↑θ ↑φ) Q‖
-      _ ≤ ‖rotM ↑θ ↑φ‖ * ‖Q‖ := ContinuousLinearMap.le_opNorm _ _
-      _ = 1 * ‖Q‖ := by rw [Bounding.rotM_norm_one]
-      _ ≤ 1 * 2 := by gcongr
-      _ = 2 := one_mul _
+    have := ContinuousLinearMap.le_opNorm (rotM ↑θ ↑φ) Q
+    rw [Bounding.rotM_norm_one, one_mul] at this; linarith
   -- Bound ‖rotMℚ P_‖
-  have hP_ : ‖P_‖ ≤ 1 + κ := by
-    calc ‖P_‖ ≤ ‖P‖ + ‖P - P_‖ := norm_le_insert P P_
-      _ ≤ 1 + κ := add_le_add hP Papprox
-  have hMℚP_ : ‖(rotMℚ ↑θ ↑φ) P_‖ ≤ (1 + κ) * (1 + κ) := by
-    calc ‖(rotMℚ ↑θ ↑φ) P_‖
-      _ ≤ ‖rotMℚ ↑θ ↑φ‖ * ‖P_‖ := ContinuousLinearMap.le_opNorm _ _
-      _ ≤ (1 + κ) * (1 + κ) :=
-          mul_le_mul hMℚnorm hP_ (norm_nonneg _) (by norm_num [κ])
+  have hMℚP_ : ‖(rotMℚ ↑θ ↑φ) P_‖ ≤ (1 + κ) * (1 + κ) :=
+    (ContinuousLinearMap.le_opNorm _ _).trans
+      (mul_le_mul hMℚnorm (by linarith [norm_le_insert P P_]) (norm_nonneg _) (by norm_num [κ]))
   calc |⟪(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q⟫ +
         ⟪(rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_⟫|
     _ ≤ |⟪(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q⟫| +
@@ -189,13 +181,9 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
     -- We need: inner_ℚ - 10κ - 2ε(‖P_-Q_‖ + 2κ)(√2 + ε) ≤ inner - 2ε‖P-Q‖(√2 + ε)
     -- i.e., inner_ℚ - 10κ ≤ inner + 2ε(√2 + ε)((‖P_-Q_‖ + 2κ) - ‖P-Q‖)
     -- which follows from inner_ℚ - 10κ ≤ inner and (‖P_-Q_‖ + 2κ) - ‖P-Q‖ ≥ 0
-    have h_eps_term : 2 * ε * ‖P - Q‖ * (√2 + ε) ≤ 2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε) := by
-      have h1 : √2 + ε > 0 := by positivity
-      have h2 : 0 < 2 * ε := by linarith
-      have h3 : ‖P - Q‖ ≤ ‖P_ - Q_‖ + 2 * κ := h_norm_PQ
-      have h4 : 2 * ε * ‖P - Q‖ ≤ 2 * ε * (‖P_ - Q_‖ + 2 * κ) := by
-        exact mul_le_mul_of_nonneg_left h3 h2.le
-      exact mul_le_mul_of_nonneg_right h4 h1.le
+    have h_eps_term : 2 * ε * ‖P - Q‖ * (√2 + ε) ≤ 2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε) :=
+      mul_le_mul_of_nonneg_right
+        (mul_le_mul_of_nonneg_left h_norm_PQ (by linarith)) (by positivity)
     linarith [h_inner_le, h_eps_term]
   -- Step 2: denA > 0
   have h_denA_pos : 0 < denA := by

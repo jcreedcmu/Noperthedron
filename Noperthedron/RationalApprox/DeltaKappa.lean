@@ -18,8 +18,6 @@ lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_
     |‖rotR α (rotM θ φ P) - rotM θ_ φ_ Q‖ - ‖rotRℚ α (rotMℚ θ φ P) - rotMℚ θ_ φ_ Q_‖| ≤ 6 * κ := by
   have hMdiff : ‖rotM (θ : ℝ) (φ : ℝ) - rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ κ :=
     M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ)
-  have hMℚnorm : ‖rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ 1 + κ :=
-    Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ)
   have hRdiff : ‖rotR (α : ℝ) - rotRℚ (α : ℝ)‖ ≤ κ :=
     R_difference_norm_bounded _ (icc_int_to_real α)
   have hM_diff' : ‖rotM (θ_ : ℝ) (φ_ : ℝ) - rotMℚ (θ_ : ℝ) (φ_ : ℝ)‖ ≤ κ :=
@@ -27,35 +25,18 @@ lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_
   have hMℚnorm' : ‖rotMℚ (θ_ : ℝ) (φ_ : ℝ)‖ ≤ 1 + κ :=
     Mℚ_norm_bounded (icc_int_to_real θ_) (icc_int_to_real φ_)
   -- Term 1: ‖rotR(rotM P) - rotRℚ(rotMℚ P)‖ ≤ 2κ + κ²
-  have term1 : ‖rotR α (rotM θ φ P) - rotRℚ α (rotMℚ θ φ P)‖ ≤ 2 * κ + κ ^ 2 := by
-    calc ‖rotR α (rotM θ φ P) - rotRℚ α (rotMℚ θ φ P)‖
-      _ = ‖(rotR ↑α ((rotM ↑θ ↑φ) P) - rotR ↑α ((rotMℚ ↑θ ↑φ) P)) +
-            (rotR ↑α ((rotMℚ ↑θ ↑φ) P) - rotRℚ ↑α ((rotMℚ ↑θ ↑φ) P))‖ := by congr 1; abel
-      _ ≤ ‖rotR ↑α ((rotM ↑θ ↑φ) P) - rotR ↑α ((rotMℚ ↑θ ↑φ) P)‖ +
-            ‖rotR ↑α ((rotMℚ ↑θ ↑φ) P) - rotRℚ ↑α ((rotMℚ ↑θ ↑φ) P)‖ := norm_add_le _ _
-      _ = ‖rotR ↑α ((rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P)‖ +
-            ‖(rotR ↑α - rotRℚ ↑α) ((rotMℚ ↑θ ↑φ) P)‖ := by
-          simp only [map_sub, ContinuousLinearMap.sub_apply]
-      _ ≤ ‖rotR (↑α)‖ * ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P‖ +
-            ‖rotR ↑α - rotRℚ ↑α‖ * ‖(rotMℚ ↑θ ↑φ) P‖ :=
-          add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
-      _ ≤ 1 * (κ * 1) + κ * ((1 + κ) * 1) := by
-          apply add_le_add
-          · calc ‖rotR (↑α)‖ * ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P‖
-              _ ≤ ‖rotR (↑α)‖ * (‖rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ‖ * ‖P‖) :=
-                  mul_le_mul_of_nonneg_left (ContinuousLinearMap.le_opNorm _ _) (norm_nonneg _)
-              _ ≤ 1 * (κ * 1) :=
-                  mul_le_mul (le_of_eq (Bounding.rotR_norm_one _))
-                    (mul_le_mul hMdiff hP (norm_nonneg _) (by norm_num [κ]))
-                    (by positivity) (by norm_num)
-          · calc ‖rotR ↑α - rotRℚ ↑α‖ * ‖(rotMℚ ↑θ ↑φ) P‖
-              _ ≤ ‖rotR ↑α - rotRℚ ↑α‖ * (‖rotMℚ ↑θ ↑φ‖ * ‖P‖) :=
-                  mul_le_mul_of_nonneg_left (ContinuousLinearMap.le_opNorm _ _) (norm_nonneg _)
-              _ ≤ κ * ((1 + κ) * 1) :=
-                  mul_le_mul hRdiff
-                    (mul_le_mul hMℚnorm hP (norm_nonneg _) (by norm_num [κ]))
-                    (by positivity) (by norm_num [κ])
-      _ = 2 * κ + κ ^ 2 := by ring
+  -- Decompose at the R level: A = rotR, Aℚ = rotRℚ, P = rotM P, P_ = rotMℚ P
+  have term1 : ‖rotR α (rotM θ φ P) - rotRℚ α (rotMℚ θ φ P)‖ ≤ 2 * κ + κ ^ 2 :=
+    clm_approx_apply_sub hRdiff (Rℚ_norm_bounded _ (icc_int_to_real α))
+      (by calc ‖(rotM ↑θ ↑φ) P‖
+            _ ≤ ‖rotM ↑θ ↑φ‖ * ‖P‖ := ContinuousLinearMap.le_opNorm _ _
+            _ ≤ 1 := by rw [Bounding.rotM_norm_one]; linarith [norm_nonneg P])
+      (by rw [show (rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P = (rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P from
+              (ContinuousLinearMap.sub_apply _ _ _).symm]
+          calc ‖(rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P‖
+            _ ≤ ‖rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ‖ * ‖P‖ := ContinuousLinearMap.le_opNorm _ _
+            _ ≤ κ * 1 := mul_le_mul hMdiff hP (norm_nonneg _) (by norm_num [κ])
+            _ = κ := mul_one κ)
   -- Term 2: ‖rotM' Q - rotMℚ' Q_‖ ≤ 2κ + κ²
   have term2 : ‖rotM θ_ φ_ Q - rotMℚ θ_ φ_ Q_‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hM_diff' hMℚnorm' hQ Qapprox

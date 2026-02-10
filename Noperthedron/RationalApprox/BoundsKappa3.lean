@@ -87,15 +87,10 @@ lemma bounds_kappa3_M (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P 
     clm_approx_apply_sub hMdiff hMℚnorm hQ Qapprox
   -- Bound ‖rotM Q‖
   have hMQ : ‖(rotM ↑θ ↑φ) Q‖ ≤ 1 := by
-    calc ‖(rotM ↑θ ↑φ) Q‖
-      _ ≤ ‖rotM ↑θ ↑φ‖ * ‖Q‖ := ContinuousLinearMap.le_opNorm _ _
-      _ = 1 * ‖Q‖ := by rw [Bounding.rotM_norm_one]
-      _ ≤ 1 * 1 := by gcongr
-      _ = 1 := one_mul _
+    have h := ContinuousLinearMap.le_opNorm (rotM ↑θ ↑φ) Q
+    rw [Bounding.rotM_norm_one, one_mul] at h; linarith
   -- Bound ‖rotMℚ P_‖
-  have hP_ : ‖P_‖ ≤ 1 + κ := by
-    calc ‖P_‖ ≤ ‖P‖ + ‖P - P_‖ := norm_le_insert P P_
-      _ ≤ 1 + κ := add_le_add hP Papprox
+  have hP_ : ‖P_‖ ≤ 1 + κ := by linarith [norm_le_insert P P_]
   have hMℚP_ : ‖(rotMℚ ↑θ ↑φ) P_‖ ≤ (1 + κ) * (1 + κ) := by
     calc ‖(rotMℚ ↑θ ↑φ) P_‖
       _ ≤ ‖rotMℚ ↑θ ↑φ‖ * ‖P_‖ := ContinuousLinearMap.le_opNorm _ _
