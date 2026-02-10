@@ -5,7 +5,7 @@ import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 import Noperthedron.Global.Basic
 import Noperthedron.Global.BoundedPartialsControlDifference
-import Noperthedron.Global.RotationPartials.Rotproj
+import Noperthedron.Global.RotationPartials
 
 open scoped RealInnerProductSpace
 
@@ -60,16 +60,10 @@ theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
 
 -- rotproj_inner, rotproj_inner_unit, rotproj_outer_unit, rotation_partials_exist,
 -- rotation_partials_exist_outer are now imported from Noperthedron.Global.Definitions
--- (via Noperthedron.Global.RotationPartials.Rotproj)
+-- (via Noperthedron.Global.RotationPartials)
 
-/- [SY25] Lemma 19 -/
-theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
-    mixed_partials_bounded (rotproj_inner_unit S w) := by
-  sorry
-
-theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
-    mixed_partials_bounded (rotproj_outer_unit S w) := by
-  sorry
+-- rotation_partials_bounded, rotation_partials_bounded_outer ([SY25] Lemma 19) are now
+-- imported from Noperthedron.Global.RotationPartials (via SecondPartialInner/SecondPartialOuter)
 
 /- FIXME: the paper has `- 9 * ε²/2` rather than `+ 9 * ε²/2` below. Did we mess something up here? -/
 /--
@@ -288,17 +282,51 @@ lemma partials_helper2 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper2a]
   field_simp
 
+private lemma nth_partial_rotproj_outer_0 (pbar : Pose) (P : ℝ³) (w : ℝ²) :
+    nth_partial 0 (rotproj_outer P w) pbar.outerParams = ⟪rotMθ pbar.θ₂ pbar.φ₂ P, w⟫ := by
+  unfold nth_partial rotproj_outer
+  rw [fderiv_inner_const _ w pbar.outerParams (EuclideanSpace.single 0 1)
+    ((Differentiable.rotM_outer P).differentiableAt)]
+  congr 1
+  rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
+  ext i; simp [rotM'_apply, EuclideanSpace.single_apply]
+
+private lemma nth_partial_rotproj_outer_1 (pbar : Pose) (P : ℝ³) (w : ℝ²) :
+    nth_partial 1 (rotproj_outer P w) pbar.outerParams = ⟪rotMφ pbar.θ₂ pbar.φ₂ P, w⟫ := by
+  unfold nth_partial rotproj_outer
+  rw [fderiv_inner_const _ w pbar.outerParams (EuclideanSpace.single 1 1)
+    ((Differentiable.rotM_outer P).differentiableAt)]
+  congr 1
+  rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
+  ext i; simp [rotM'_apply, EuclideanSpace.single_apply]
+
 lemma partials_helper3 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
     ‖P‖ * nth_partial 0 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
     ⟪pbar.rotM₂θ P, pc.w⟫ := by
-  sorry
+  by_cases hP : ‖P‖ = 0
+  · simp [norm_eq_zero.mp hP, Pose.rotM₂θ, ContinuousLinearMap.map_zero]
+  · simp only [GlobalTheoremPrecondition.fu_outer]
+    rw [show rotproj_outer_unit P pc.w = fun x => rotproj_outer P pc.w x / ‖P‖ from rfl]
+    rw [nth_partial_div_const 0 (rotproj_outer P pc.w) ‖P‖ pbar.outerParams
+      ((Differentiable.inner ℝ (Differentiable.rotM_outer P) (differentiable_const pc.w)).differentiableAt)]
+    rw [nth_partial_rotproj_outer_0]
+    simp only [Pose.rotM₂θ]
+    field_simp
 
 lemma partials_helper4 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
     ‖P‖ * nth_partial 1 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
     ⟪pbar.rotM₂φ P, pc.w⟫ := by
-  sorry
+  by_cases hP : ‖P‖ = 0
+  · simp [norm_eq_zero.mp hP, Pose.rotM₂φ, ContinuousLinearMap.map_zero]
+  · simp only [GlobalTheoremPrecondition.fu_outer]
+    rw [show rotproj_outer_unit P pc.w = fun x => rotproj_outer P pc.w x / ‖P‖ from rfl]
+    rw [nth_partial_div_const 1 (rotproj_outer P pc.w) ‖P‖ pbar.outerParams
+      ((Differentiable.inner ℝ (Differentiable.rotM_outer P) (differentiable_const pc.w)).differentiableAt)]
+    rw [nth_partial_rotproj_outer_1]
+    simp only [Pose.rotM₂φ]
+    field_simp
 
 lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
