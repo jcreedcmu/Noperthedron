@@ -27,13 +27,10 @@ private lemma inner_three_kappa {E F : Type*}
     (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖@inner ℝ F _ (A P) w - @inner ℝ F _ (Aℚ P_) w‖ ≤ 3 * κ := by
   rw [← inner_sub_left]
-  have key : ‖A P - Aℚ P_‖ ≤ 3 * κ :=
-    (clm_approx_apply_sub hAdiff hAℚnorm hP approx).trans (by unfold κ; norm_num)
   calc ‖@inner ℝ F _ (A P - Aℚ P_) w‖
     _ ≤ ‖A P - Aℚ P_‖ * ‖w‖ := norm_inner_le_norm (𝕜 := ℝ) _ _
-    _ = ‖A P - Aℚ P_‖ * 1 := by rw [hw]
-    _ = ‖A P - Aℚ P_‖ := mul_one _
-    _ ≤ 3 * κ := key
+    _ = ‖A P - Aℚ P_‖ := by rw [hw, mul_one]
+    _ ≤ 3 * κ := (clm_approx_apply_sub hAdiff hAℚnorm hP approx).trans (by unfold κ; norm_num)
 
 /-!
 [SY25] Lemma 44
@@ -79,10 +76,8 @@ private lemma inner_four_kappa {E F G : Type*}
     (hAdiff : ‖A - Aℚ‖ ≤ κ)
     (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖@inner ℝ G _ (R (A P)) w - @inner ℝ G _ (Rℚ (Aℚ P_)) w‖ ≤ 4 * κ := by
-  rw [← inner_sub_left]
-  have decomp : R (A P) - Rℚ (Aℚ P_) = R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_) := by
-    simp [map_sub, ContinuousLinearMap.sub_apply]
-  rw [decomp]
+  rw [← inner_sub_left, show R (A P) - Rℚ (Aℚ P_) = R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_) from by
+    simp [map_sub, ContinuousLinearMap.sub_apply]]
   have hAP_diff : ‖A P - Aℚ P_‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hAdiff hAℚnorm hP approx
   have hAℚP_ : ‖Aℚ P_‖ ≤ (1 + κ) * (1 + κ) := by
@@ -91,20 +86,16 @@ private lemma inner_four_kappa {E F G : Type*}
       _ ≤ ‖Aℚ‖ * ‖P_‖ := ContinuousLinearMap.le_opNorm _ _
       _ ≤ (1 + κ) * (1 + κ) :=
           mul_le_mul hAℚnorm hP_ (norm_nonneg _) (by norm_num [κ])
-  have key : ‖R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)‖ ≤ 4 * κ := by
-    have hκ : (0 : ℝ) ≤ κ := by unfold κ; norm_num
-    calc ‖R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)‖
-      _ ≤ ‖R (A P - Aℚ P_)‖ + ‖(R - Rℚ) (Aℚ P_)‖ := norm_add_le _ _
-      _ ≤ ‖R‖ * ‖A P - Aℚ P_‖ + ‖R - Rℚ‖ * ‖Aℚ P_‖ := by
-          gcongr
-          · exact ContinuousLinearMap.le_opNorm _ _
-          · exact ContinuousLinearMap.le_opNorm _ _
-      _ ≤ 1 * (2 * κ + κ ^ 2) + κ * ((1 + κ) * (1 + κ)) := by gcongr
-      _ ≤ 4 * κ := by unfold κ; norm_num
   calc ‖@inner ℝ G _ (R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)) w‖
     _ ≤ ‖R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)‖ * ‖w‖ := norm_inner_le_norm (𝕜 := ℝ) _ _
     _ = ‖R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)‖ := by rw [hw, mul_one]
-    _ ≤ 4 * κ := key
+    _ ≤ ‖R (A P - Aℚ P_)‖ + ‖(R - Rℚ) (Aℚ P_)‖ := norm_add_le _ _
+    _ ≤ ‖R‖ * ‖A P - Aℚ P_‖ + ‖R - Rℚ‖ * ‖Aℚ P_‖ := by
+        gcongr <;> exact ContinuousLinearMap.le_opNorm _ _
+    _ ≤ 1 * (2 * κ + κ ^ 2) + κ * ((1 + κ) * (1 + κ)) := by
+        have : (0 : ℝ) ≤ κ := by unfold κ; norm_num
+        gcongr
+    _ ≤ 4 * κ := by unfold κ; norm_num
 
 lemma bounds_kappa_RM (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖⟪rotR α (rotM θ φ P), w⟫ - ⟪rotRℚ α (rotMℚ θ φ P_), w⟫‖ ≤ 4 * κ :=
