@@ -27,17 +27,11 @@ lemma nth_partial_div_const {n : ℕ} (i : Fin n) (f : E n → ℝ) (c : ℝ) (x
     smul_eq_mul, mul_comm]
 
 lemma nth_partial_nth_partial_div_const {n : ℕ} (i j : Fin n) (f : E n → ℝ) (c : ℝ) (x : E n)
-    (hf : Differentiable ℝ f) (hg : Differentiable ℝ (nth_partial j f)) :
-    nth_partial i (nth_partial j (fun y => f y / c)) x =
-      nth_partial i (nth_partial j f) x / c := by
-  rw [funext fun z => nth_partial_div_const j f c z (hf z)]
-  exact nth_partial_div_const i (nth_partial j f) c x (hg x)
-
-lemma nth_partial_nth_partial_div_const' {n : ℕ} (i j : Fin n) (f : E n → ℝ) (c : ℝ) (x : E n)
     (hf : Differentiable ℝ f) (hg : Differentiable ℝ (nth_partial i f)) :
     nth_partial j (nth_partial i (fun y => f y / c)) x =
-      nth_partial j (nth_partial i f) x / c :=
-  nth_partial_nth_partial_div_const j i f c x hf hg
+      nth_partial j (nth_partial i f) x / c := by
+  rw [funext fun z => nth_partial_div_const i f c z (hf z)]
+  exact nth_partial_div_const j (nth_partial i f) c x (hg x)
 
 def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) : Prop :=
   ∀ (x : E n) (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
