@@ -86,16 +86,10 @@ lemma bounds_kappa3_M (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P 
   have hBQ : ‖(rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hMdiff hMℚnorm hQ Qapprox
   -- Bound ‖rotM Q‖
-  have hMQ : ‖(rotM ↑θ ↑φ) Q‖ ≤ 1 := by
-    have h := ContinuousLinearMap.le_opNorm (rotM ↑θ ↑φ) Q
-    rw [Bounding.rotM_norm_one, one_mul] at h; linarith
+  have hMQ : ‖(rotM ↑θ ↑φ) Q‖ ≤ 1 := clm_unit_apply_le (le_of_eq (Bounding.rotM_norm_one _ _)) hQ
   -- Bound ‖rotMℚ P_‖
-  have hP_ : ‖P_‖ ≤ 1 + κ := by linarith [norm_le_insert P P_]
-  have hMℚP_ : ‖(rotMℚ ↑θ ↑φ) P_‖ ≤ (1 + κ) * (1 + κ) := by
-    calc ‖(rotMℚ ↑θ ↑φ) P_‖
-      _ ≤ ‖rotMℚ ↑θ ↑φ‖ * ‖P_‖ := ContinuousLinearMap.le_opNorm _ _
-      _ ≤ (1 + κ) * (1 + κ) :=
-          mul_le_mul hMℚnorm hP_ (norm_nonneg _) (by norm_num [κ])
+  have hMℚP_ : ‖(rotMℚ ↑θ ↑φ) P_‖ ≤ (1 + κ) * (1 + κ) :=
+    approx_image_norm_le hMℚnorm hP Papprox
   calc |⟪(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q⟫ +
         ⟪(rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q - (rotMℚ ↑θ ↑φ) Q_⟫|
     _ ≤ |⟪(rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P_, (rotM ↑θ ↑φ) Q⟫| +
