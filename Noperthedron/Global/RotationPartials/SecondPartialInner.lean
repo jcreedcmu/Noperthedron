@@ -53,9 +53,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨-(rotR α ∘L rotM θ φ), ?_, ?_⟩
     · exact neg_comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (le_of_eq (Bounding.rotM_norm_one θ φ))
     · show nth_partial 0 (nth_partial 0 (rotproj_inner S w)) x = ⟪(-(rotR α ∘L rotM θ φ)) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e0 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e0 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR'_rotM S x),
         fderiv_rotR'_rotM_in_e0 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)]
       simp only [ContinuousLinearMap.neg_apply, ContinuousLinearMap.coe_comp',
@@ -64,9 +62,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨rotR' α ∘L rotMθ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMθ_norm_le_one θ φ)
     · show nth_partial 0 (nth_partial 1 (rotproj_inner S w)) x = ⟪(rotR' α ∘L rotMθ θ φ) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e1 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e1 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMθ S x),
         fderiv_rotR_any_M_in_e0 S x rotMθ (differentiableAt_rotR_rotMθ S x)]
       rfl
@@ -74,9 +70,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨rotR' α ∘L rotMφ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMφ_norm_le_one θ φ)
     · show nth_partial 0 (nth_partial 2 (rotproj_inner S w)) x = ⟪(rotR' α ∘L rotMφ θ φ) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e2 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e2 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMφ S x),
         fderiv_rotR_any_M_in_e0 S x rotMφ (differentiableAt_rotR_rotMφ S x)]
       rfl
@@ -84,9 +78,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨rotR' α ∘L rotMθ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMθ_norm_le_one θ φ)
     · show nth_partial 1 (nth_partial 0 (rotproj_inner S w)) x = ⟪(rotR' α ∘L rotMθ θ φ) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e0 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e0 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR'_rotM S x),
         fderiv_rotR'_rotM_in_e1 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)]
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply]
@@ -94,9 +86,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨rotR α ∘L rotMθθ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMθθ_norm_le_one θ φ)
     · show nth_partial 1 (nth_partial 1 (rotproj_inner S w)) x = ⟪(rotR α ∘L rotMθθ θ φ) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e1 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e1 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMθ S x),
         fderiv_rotR_rotMθ_in_e1 S x]
       rfl
@@ -104,9 +94,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨rotR α ∘L rotMθφ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMθφ_norm_le_one θ φ)
     · show nth_partial 1 (nth_partial 2 (rotproj_inner S w)) x = ⟪(rotR α ∘L rotMθφ θ φ) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e2 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e2 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMφ S x),
         fderiv_rotR_rotMφ_in_e1 S x]
       rfl
@@ -114,9 +102,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨rotR' α ∘L rotMφ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMφ_norm_le_one θ φ)
     · show nth_partial 2 (nth_partial 0 (rotproj_inner S w)) x = ⟪(rotR' α ∘L rotMφ θ φ) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e0 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e0 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR'_rotM S x),
         fderiv_rotR'_rotM_in_e2 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)]
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply]
@@ -124,9 +110,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨rotR α ∘L rotMθφ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMθφ_norm_le_one θ φ)
     · show nth_partial 2 (nth_partial 1 (rotproj_inner S w)) x = ⟪(rotR α ∘L rotMθφ θ φ) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e1 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e1 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMθ S x),
         fderiv_rotR_rotMθ_in_e2 S x]
       rfl
@@ -134,9 +118,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     refine ⟨rotR α ∘L rotMφφ θ φ, ?_, ?_⟩
     · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMφφ_norm_le_one θ φ)
     · show nth_partial 2 (nth_partial 2 (rotproj_inner S w)) x = ⟪(rotR α ∘L rotMφφ θ φ) S, w⟫
-      unfold nth_partial
-      rw [congrArg (fderiv ℝ · x) (funext fun y =>
-        fderiv_rotproj_inner_in_e2 S w y (differentiableAt_rotR_rotM S y))]
+      rw [nth_partial_rotproj_inner_e2 S w]; unfold nth_partial
       rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMφ S x),
         fderiv_rotR_rotMφ_in_e2 S x]
       rfl

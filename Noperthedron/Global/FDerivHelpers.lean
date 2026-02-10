@@ -8,6 +8,7 @@ import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import Noperthedron.RotationDerivs
 import Noperthedron.Global.SecondPartialHelpers
 import Noperthedron.Global.Definitions
+import Noperthedron.Global.Basic
 
 /-!
 # FDeriv Helper Lemmas for Global Theorem
@@ -206,5 +207,27 @@ lemma fderiv_rotproj_inner_in_e2 (S : ℝ³) (w : ℝ²) (y : E 3)
   have heq : rotproj_inner S w = fun z => ⟪rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S), w⟫ := by
     ext z; simp [rotproj_inner, rotprojRM]
   rw [heq, fderiv_inner_const _ w y _ hf_diff, fderiv_rotR_rotM_in_e2 S y hf_diff]
+
+/-!
+## nth_partial of rotproj_inner in coordinate directions
+
+These lift the pointwise `fderiv_rotproj_inner_in_e*` to function-level equalities
+of `nth_partial`, eliminating the `funext`/`congrArg` boilerplate at each use site.
+-/
+
+lemma nth_partial_rotproj_inner_e0 (S : ℝ³) (w : ℝ²) :
+    nth_partial 0 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫ :=
+  funext fun y => fderiv_rotproj_inner_in_e0 S w y (differentiableAt_rotR_rotM S y)
+
+lemma nth_partial_rotproj_inner_e1 (S : ℝ³) (w : ℝ²) :
+    nth_partial 1 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫ :=
+  funext fun y => fderiv_rotproj_inner_in_e1 S w y (differentiableAt_rotR_rotM S y)
+
+lemma nth_partial_rotproj_inner_e2 (S : ℝ³) (w : ℝ²) :
+    nth_partial 2 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S), w⟫ :=
+  funext fun y => fderiv_rotproj_inner_in_e2 S w y (differentiableAt_rotR_rotM S y)
 
 end GlobalTheorem
