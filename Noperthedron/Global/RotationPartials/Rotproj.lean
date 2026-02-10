@@ -162,8 +162,6 @@ private lemma rotprojRM'_apply_1_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) 
   rw [rotR'_apply_1, rotR_apply_1, rotR_apply_1, rotM_apply_0, rotM_apply_1,
       rotMθ_apply_0, rotMθ_apply_1, rotMφ_apply_0, rotMφ_apply_1]
 
--- Note: Linter reports false positives about seq focus; the <;> is actually needed for ext
-set_option linter.unnecessarySeqFocus false in
 lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
     HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams := by
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
@@ -195,8 +193,10 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
         ((-Real.cos pbar.θ₁ * S 0 - Real.sin pbar.θ₁ * S 1) • proj1) pbar.innerParams := by
       have h1 := hsinθ.neg.mul_const (S 0)
       have h2 := hcosθ.mul_const (S 1)
-      convert h1.add h2 using 1 <;> ext d <;>
-        simp [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul] <;> ring
+      convert h1.add h2 using 1
+      ext d
+      simp [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
+      ring
     have hcosθcosφ : HasStrictFDerivAt (fun x : ℝ³ => Real.cos (x.ofLp 1) * Real.cos (x.ofLp 2))
         (Real.cos pbar.θ₁ • (-(Real.sin pbar.φ₁) • proj2) + Real.cos pbar.φ₁ • (-(Real.sin pbar.θ₁) • proj1))
         pbar.innerParams := hcosθ.mul hcosφ
@@ -213,7 +213,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
       have h3 := hsinφ.mul_const (S 2)
       convert (h1.sub h2).add h3 using 1 <;> ext d <;>
         simp [ContinuousLinearMap.add_apply, ContinuousLinearMap.sub_apply,
-              ContinuousLinearMap.smul_apply, ContinuousLinearMap.neg_apply, smul_eq_mul] <;> ring
+              ContinuousLinearMap.smul_apply, ContinuousLinearMap.neg_apply, smul_eq_mul]; ring
     fin_cases i
     · simp only [Fin.zero_eta, Fin.isValue]
       have hfunc : (fun x : ℝ³ => ((rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S).ofLp (0 : Fin 2)) =
