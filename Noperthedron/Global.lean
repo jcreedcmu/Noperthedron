@@ -282,55 +282,51 @@ lemma partials_helper2 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper2a]
   field_simp
 
-private lemma fderiv_rotproj_outer_e0 (P : ℝ³) (w : ℝ²) (pbar : Pose) :
-    (fderiv ℝ (fun z : ℝ² => ⟪(rotM (z 0) (z 1)) P, w⟫) pbar.outerParams)
-      (EuclideanSpace.single 0 1) = ⟪pbar.rotM₂θ P, w⟫ := by
-  rw [fderiv_inner_const _ w pbar.outerParams _ ((Differentiable.rotM_outer P).differentiableAt),
-      (HasFDerivAt.rotM_outer pbar P).fderiv]
-  congr 1; ext i; simp [rotM'_apply, EuclideanSpace.single_apply, Pose.rotM₂θ]
+private lemma nth_partial_rotproj_outer_0 (pbar : Pose) (P : ℝ³) (w : ℝ²) :
+    nth_partial 0 (rotproj_outer P w) pbar.outerParams = ⟪rotMθ pbar.θ₂ pbar.φ₂ P, w⟫ := by
+  unfold nth_partial rotproj_outer
+  rw [fderiv_inner_const _ w pbar.outerParams (EuclideanSpace.single 0 1)
+    ((Differentiable.rotM_outer P).differentiableAt)]
+  congr 1
+  rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
+  ext i; simp [rotM'_apply, EuclideanSpace.single_apply]
 
-private lemma fderiv_rotproj_outer_e1 (P : ℝ³) (w : ℝ²) (pbar : Pose) :
-    (fderiv ℝ (fun z : ℝ² => ⟪(rotM (z 0) (z 1)) P, w⟫) pbar.outerParams)
-      (EuclideanSpace.single 1 1) = ⟪pbar.rotM₂φ P, w⟫ := by
-  rw [fderiv_inner_const _ w pbar.outerParams _ ((Differentiable.rotM_outer P).differentiableAt),
-      (HasFDerivAt.rotM_outer pbar P).fderiv]
-  congr 1; ext i; simp [rotM'_apply, EuclideanSpace.single_apply, Pose.rotM₂φ]
+private lemma nth_partial_rotproj_outer_1 (pbar : Pose) (P : ℝ³) (w : ℝ²) :
+    nth_partial 1 (rotproj_outer P w) pbar.outerParams = ⟪rotMφ pbar.θ₂ pbar.φ₂ P, w⟫ := by
+  unfold nth_partial rotproj_outer
+  rw [fderiv_inner_const _ w pbar.outerParams (EuclideanSpace.single 1 1)
+    ((Differentiable.rotM_outer P).differentiableAt)]
+  congr 1
+  rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
+  ext i; simp [rotM'_apply, EuclideanSpace.single_apply]
 
 lemma partials_helper3 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
     ‖P‖ * nth_partial 0 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
     ⟪pbar.rotM₂θ P, pc.w⟫ := by
-  simp only [nth_partial, GlobalTheoremPrecondition.fu_outer, Fin.isValue]
-  unfold rotproj_outer_unit
-  have heq : (fun (x : ℝ²) => ⟪rotM (x 0) (x 1) P, pc.w⟫ / ‖P‖) =
-      ‖P‖⁻¹ • (fun (x : ℝ²) => ⟪(rotM (x 0) (x 1)) P, pc.w⟫) := by
-    ext x; simp [inv_mul_eq_div]
-  rw [heq,
-    (Differentiable.inner ℝ (Differentiable.rotM_outer P)
-      (differentiable_const pc.w)).differentiableAt.hasFDerivAt.const_smul ‖P‖⁻¹ |>.fderiv,
-    ContinuousLinearMap.smul_apply, smul_eq_mul,
-    fderiv_rotproj_outer_e0 P pc.w pbar]
   by_cases hP : ‖P‖ = 0
-  · simp [norm_eq_zero.mp hP, Pose.rotM₂θ, map_zero]
-  · field_simp
+  · simp [norm_eq_zero.mp hP, Pose.rotM₂θ, ContinuousLinearMap.map_zero]
+  · simp only [GlobalTheoremPrecondition.fu_outer]
+    rw [show rotproj_outer_unit P pc.w = fun x => rotproj_outer P pc.w x / ‖P‖ from rfl]
+    rw [nth_partial_div_const 0 (rotproj_outer P pc.w) ‖P‖ pbar.outerParams
+      ((Differentiable.inner ℝ (Differentiable.rotM_outer P) (differentiable_const pc.w)).differentiableAt)]
+    rw [nth_partial_rotproj_outer_0]
+    simp only [Pose.rotM₂θ]
+    field_simp
 
 lemma partials_helper4 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
     ‖P‖ * nth_partial 1 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
     ⟪pbar.rotM₂φ P, pc.w⟫ := by
-  simp only [nth_partial, GlobalTheoremPrecondition.fu_outer, Fin.isValue]
-  unfold rotproj_outer_unit
-  have heq : (fun (x : ℝ²) => ⟪rotM (x 0) (x 1) P, pc.w⟫ / ‖P‖) =
-      ‖P‖⁻¹ • (fun (x : ℝ²) => ⟪(rotM (x 0) (x 1)) P, pc.w⟫) := by
-    ext x; simp [inv_mul_eq_div]
-  rw [heq,
-    (Differentiable.inner ℝ (Differentiable.rotM_outer P)
-      (differentiable_const pc.w)).differentiableAt.hasFDerivAt.const_smul ‖P‖⁻¹ |>.fderiv,
-    ContinuousLinearMap.smul_apply, smul_eq_mul,
-    fderiv_rotproj_outer_e1 P pc.w pbar]
   by_cases hP : ‖P‖ = 0
-  · simp [norm_eq_zero.mp hP, Pose.rotM₂φ, map_zero]
-  · field_simp
+  · simp [norm_eq_zero.mp hP, Pose.rotM₂φ, ContinuousLinearMap.map_zero]
+  · simp only [GlobalTheoremPrecondition.fu_outer]
+    rw [show rotproj_outer_unit P pc.w = fun x => rotproj_outer P pc.w x / ‖P‖ from rfl]
+    rw [nth_partial_div_const 1 (rotproj_outer P pc.w) ‖P‖ pbar.outerParams
+      ((Differentiable.inner ℝ (Differentiable.rotM_outer P) (differentiable_const pc.w)).differentiableAt)]
+    rw [nth_partial_rotproj_outer_1]
+    simp only [Pose.rotM₂φ]
+    field_simp
 
 lemma partials_helper {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :

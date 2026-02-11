@@ -142,7 +142,7 @@ end
 structure UpperSqrt where
   f : ℝ → ℝ
   rational : ∀ (x : ℚ), 0 ≤ x → ∃ q : ℚ, f x = q
-  bound : ∀ (x : ℚ), 0 ≤ x → √x ≤ f x
+  bound : ∀ (x : ℝ), 0 ≤ x → √x ≤ f x
 
 noncomputable
 def UpperSqrt.norm {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ℝ :=
@@ -151,7 +151,7 @@ def UpperSqrt.norm {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ℝ :=
 structure LowerSqrt where
   f : ℝ → ℝ
   rational : ∀ (x : ℚ), 0 ≤ x → ∃ q : ℚ, f x = q
-  bound : ∀ (x : ℚ), 0 ≤ x → f x ≤ √x
+  bound : ∀ (x : ℝ), 0 ≤ x → f x ≤ √x
 
 noncomputable
 def LowerSqrt.norm {n : ℕ} (s : LowerSqrt) (v : Euc(n)) : ℝ :=
