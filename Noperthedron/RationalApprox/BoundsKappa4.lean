@@ -24,7 +24,7 @@ def bounds_kappa4_Aℚ (s : UpperSqrt) :=
   ((s.norm (rotMℚ θ φ P_) + √2 * ε + 3 * κ) * (s.norm (rotMℚ θ φ (P_ - Q_)) + 2 * √2 * ε + 6 * κ))
 
 /-- An `UpperSqrt` overestimates the Euclidean norm. -/
-private lemma UpperSqrt_norm_le {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ‖v‖ ≤ s.norm v := by
+lemma UpperSqrt_norm_le {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ‖v‖ ≤ s.norm v := by
   unfold UpperSqrt.norm
   have h : (0 : ℝ) ≤ ‖v‖ ^ 2 := sq_nonneg _
   calc ‖v‖ = √(‖v‖ ^ 2) := by rw [Real.sqrt_sq (norm_nonneg _)]
@@ -32,7 +32,7 @@ private lemma UpperSqrt_norm_le {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ‖v‖
 
 /-- The inner product bound for `rotM`/`rotMℚ` when the second vector has norm ≤ 2.
 This generalises `bounds_kappa3_M` (which requires ‖Q‖ ≤ 1) to handle `P − Q`. -/
-private lemma inner_product_bound_10kappa
+lemma inner_product_bound_10kappa
     {P Q P_ Q_ : ℝ³} {θ φ : Set.Icc (-4 : ℝ) 4}
     (hP : ‖P‖ ≤ 1) (hR : ‖Q‖ ≤ 2)
     (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ 2 * κ) :
@@ -77,7 +77,7 @@ private lemma inner_product_bound_10kappa
 
 /-- The norm difference bound for `rotM`/`rotMℚ` applied to P (norm ≤ 1).
     Generalises `bounds_kappa3_MQ` from BoundsKappa3.lean. -/
-private lemma norm_diff_bound_3kappa
+lemma norm_diff_bound_3kappa
     {P P_ : ℝ³} {θ φ : Set.Icc (-4 : ℝ) 4}
     (hP : ‖P‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) :
     ‖(rotM ↑θ ↑φ) P‖ ≤ ‖(rotMℚ ↑θ ↑φ) P_‖ + 3 * κ := by
@@ -87,7 +87,7 @@ private lemma norm_diff_bound_3kappa
 
 /-- The norm difference bound for `rotM`/`rotMℚ` applied to `P - Q` (norm ≤ 2).
     Uses the same technique as bounds_kappa3_MQ but for ‖P - Q‖ ≤ 2. -/
-private lemma norm_diff_bound_6kappa
+lemma norm_diff_bound_6kappa
     {P Q P_ Q_ : ℝ³} {θ φ : Set.Icc (-4 : ℝ) 4}
     (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
     (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ κ) :
