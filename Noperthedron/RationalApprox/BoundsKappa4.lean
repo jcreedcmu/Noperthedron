@@ -8,7 +8,7 @@ open scoped RealInnerProductSpace
 
 namespace RationalApprox
 
-variable (P Q P_ Q_ : ℝ³) (α θ φ : Set.Icc (-4) 4) (ε : ℝ)
+variable (P Q P_ Q_ : ℝ³) (α θ φ : Set.Icc (-4 : ℝ) 4) (ε : ℝ)
 
 /-!
 [SY25] Corollary 51
@@ -33,14 +33,14 @@ private lemma UpperSqrt_norm_le {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ‖v‖
 /-- The inner product bound for `rotM`/`rotMℚ` when the second vector has norm ≤ 2.
 This generalises `bounds_kappa3_M` (which requires ‖Q‖ ≤ 1) to handle `P − Q`. -/
 private lemma inner_product_bound_10kappa
-    {P Q P_ Q_ : ℝ³} {θ φ : Set.Icc (-4) 4}
+    {P Q P_ Q_ : ℝ³} {θ φ : Set.Icc (-4 : ℝ) 4}
     (hP : ‖P‖ ≤ 1) (hR : ‖Q‖ ≤ 2)
     (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ 2 * κ) :
     |⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) Q⟫ - ⟪(rotMℚ ↑θ ↑φ) P_, (rotMℚ ↑θ ↑φ) Q_⟫| ≤ 10 * κ := by
   have hMdiff : ‖rotM (θ : ℝ) (φ : ℝ) - rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ κ :=
-    M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ)
+    M_difference_norm_bounded _ _ (θ.property) (φ.property)
   have hMℚnorm : ‖rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ 1 + κ :=
-    Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ)
+    Mℚ_norm_bounded (θ.property) (φ.property)
   -- Decompose: ⟪rotM P, rotM Q⟫ - ⟪rotMℚ P_, rotMℚ Q_⟫
   --   = ⟪rotM P - rotMℚ P_, rotM Q⟫ + ⟪rotMℚ P_, rotM Q - rotMℚ Q_⟫
   have decomp : ⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) Q⟫ - ⟪(rotMℚ ↑θ ↑φ) P_, (rotMℚ ↑θ ↑φ) Q_⟫ =
@@ -78,7 +78,7 @@ private lemma inner_product_bound_10kappa
 /-- The norm difference bound for `rotM`/`rotMℚ` applied to P (norm ≤ 1).
     Generalises `bounds_kappa3_MQ` from BoundsKappa3.lean. -/
 private lemma norm_diff_bound_3kappa
-    {P P_ : ℝ³} {θ φ : Set.Icc (-4) 4}
+    {P P_ : ℝ³} {θ φ : Set.Icc (-4 : ℝ) 4}
     (hP : ‖P‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) :
     ‖(rotM ↑θ ↑φ) P‖ ≤ ‖(rotMℚ ↑θ ↑φ) P_‖ + 3 * κ := by
   have h := bounds_kappa3_MQ (θ := θ) (φ := φ) hP Papprox
@@ -88,14 +88,14 @@ private lemma norm_diff_bound_3kappa
 /-- The norm difference bound for `rotM`/`rotMℚ` applied to `P - Q` (norm ≤ 2).
     Uses the same technique as bounds_kappa3_MQ but for ‖P - Q‖ ≤ 2. -/
 private lemma norm_diff_bound_6kappa
-    {P Q P_ Q_ : ℝ³} {θ φ : Set.Icc (-4) 4}
+    {P Q P_ Q_ : ℝ³} {θ φ : Set.Icc (-4 : ℝ) 4}
     (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
     (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ κ) :
     ‖(rotM ↑θ ↑φ) (P - Q)‖ ≤ ‖(rotMℚ ↑θ ↑φ) (P_ - Q_)‖ + 6 * κ := by
   have hMdiff : ‖rotM (θ : ℝ) (φ : ℝ) - rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ κ :=
-    M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ)
+    M_difference_norm_bounded _ _ (θ.property) (φ.property)
   have hMℚnorm : ‖rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ 1 + κ :=
-    Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ)
+    Mℚ_norm_bounded (θ.property) (φ.property)
   have hPQ_norm : ‖P - Q‖ ≤ 2 := by
     calc ‖P - Q‖ ≤ ‖P‖ + ‖Q‖ := norm_sub_le _ _
       _ ≤ 1 + 1 := add_le_add hP hQ
