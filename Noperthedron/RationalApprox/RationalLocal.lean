@@ -29,13 +29,13 @@ def _root_.Local.Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) 
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
-def _root_.Local.Triangle.Bεℚ (Q : Triangle) (poly : Finset Euc(3)) (p : Pose) (ε δ r : ℝ) : Prop :=
+def _root_.Local.Triangle.Bεℚ (Q : Triangle) (poly : Finset Euc(3)) (p : Pose) (ε δ r : ℝ) (su : UpperSqrt) : Prop :=
   ∀ i : Fin 3, ∀ v ∈ poly, v ≠ Q i →
-    (δ + √5 * ε) / r < Triangle.Bε.lhs (Q i) v p ε
+    (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q i) v p ε su
 
 /-- The condition on δ -/
 def BoundDeltaℚ (δ : ℝ) (p : Pose) (P Q : Triangle) (su : UpperSqrt) : Prop :=
-  ∀ i : Fin 3, δ ≥ su.norm (p.rotR (p.rotM₁ℚ (P i)) - p.rotM₂ℚ (Q i))/2
+  ∀ i : Fin 3, δ ≥ su.norm (p.rotR (p.rotM₁ℚ (P i)) - p.rotM₂ℚ (Q i))/2 + 3 * κ
 
 /-- The condition on r -/
 def BoundRℚ (r ε : ℝ) (p : Pose) (Q : Triangle) (sl : LowerSqrt) : Prop :=
@@ -57,6 +57,6 @@ theorem rational_local (poly poly_ : GoodPoly)
     (ae₁ : (transportTri hP hpoly).Aεℚ p_.vecX₁ℚ ε) (ae₂ : (transportTri hQ hpoly).Aεℚ p_.vecX₂ℚ ε)
     (span₁ : (transportTri hP hpoly).κSpanning p_.θ₁ p_.φ₁ ε)
     (span₂ : (transportTri hQ hpoly).κSpanning p_.θ₂ p_.φ₂ ε)
-    (be : (transportTri hQ hpoly).Bεℚ poly_.vertices p_ ε δ r)
+    (be : (transportTri hQ hpoly).Bεℚ poly_.vertices p_ ε δ r su)
     : ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull := by
   sorry

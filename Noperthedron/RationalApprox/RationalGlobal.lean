@@ -13,7 +13,7 @@ A measure of how far an inner-shadow vertex S can "stick out"
 noncomputable
 def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
   ⟪p.innerℚ S, w⟫ - (ε * (|⟪p.rotR'ℚ (p.rotM₁ℚ S), w⟫| + |⟪p.rotRℚ (p.rotM₁θℚ S), w⟫| + |⟪p.rotRℚ (p.rotM₁φℚ S), w⟫|)
-  - 9 * ε^2 / 2 - 4 * κ * (1 + 3 * ε))
+  + 9 * ε^2 / 2 + 4 * κ * (1 + 3 * ε))
 
 /--
 A measure of how far an outer-shadow vertex P can "reach" along w.
