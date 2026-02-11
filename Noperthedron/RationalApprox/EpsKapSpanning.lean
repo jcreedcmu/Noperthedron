@@ -36,58 +36,47 @@ lemma norm_transpose_euc_lin {n m : ℕ} (M : Matrix (Fin n) (Fin m) ℝ) :
   _ = ‖M.toEuclideanLin.toContinuousLinearMap.adjoint‖ := rfl
   _ = ‖M.toEuclideanLin.toContinuousLinearMap‖ := LinearIsometryEquiv.norm_map ContinuousLinearMap.adjoint _
 
-def matOfVec {n : ℕ} (v : Euc(n)) : Matrix (Fin 1) (Fin n) ℝ := fun _ii jj => v jj
-def matOfCovec {n : ℕ} (v : Euc(n)) : Matrix (Fin n) (Fin 1) ℝ := fun ii _jj => v ii
-
 noncomputable
-def mapOfVec {n : ℕ} (v : Euc(n)) : Euc(n) →L[ℝ] Euc(1) := matOfVec v |>.toEuclideanLin.toContinuousLinearMap
+def mapOfVec {n : ℕ} (v : Euc(n)) : Euc(n) →L[ℝ] Euc(1) :=
+  (innerSL ℝ v).smulRight (EuclideanSpace.single 0 1)
 noncomputable
-def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) := matOfCovec v |>.toEuclideanLin.toContinuousLinearMap
-
-private lemma matOfCovec_transpose {n : ℕ} (v : Euc(n)) : (matOfCovec v)ᵀ = matOfVec v := by
-  ext i j
-  rfl
+def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) :=
+  (innerSL ℝ (EuclideanSpace.single 0 (1 : ℝ))).smulRight v
 
 private lemma mapOfCovec_apply {n : ℕ} (v : Euc(n)) (c : Euc(1)) : mapOfCovec v c = c 0 • v := by
-  ext i
-  simp [mapOfCovec, matOfCovec, Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct, mul_comm]
-
-private lemma Euc1_norm_eq (c : Euc(1)) : ‖c‖ = |c 0| := by
-  simpa [EuclideanSpace.norm_eq] using Real.sqrt_sq_eq_abs _
+  simp [mapOfCovec, ContinuousLinearMap.smulRight_apply, EuclideanSpace.inner_single_left]
 
 @[simp]
 lemma norm_map_covec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfCovec v‖ = ‖v‖ := by
-  refine ContinuousLinearMap.opNorm_eq_of_bounds (norm_nonneg v) (fun c ↦ ?_) (fun N _ hN ↦ ?_)
-  · simp [mapOfCovec_apply, norm_smul, Euc1_norm_eq, mul_comm]
-  · simpa [mapOfCovec_apply, EuclideanSpace.norm_single] using hN (EuclideanSpace.single 0 1)
+  simp [mapOfCovec, ContinuousLinearMap.norm_smulRight_apply, EuclideanSpace.norm_single]
 
 @[simp]
 lemma norm_map_vec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfVec v‖ = ‖v‖ := by
-  have : ‖mapOfVec v‖ = ‖mapOfCovec v‖ := by simp [mapOfVec, mapOfCovec, ← matOfCovec_transpose]
-  simp [this]
+  simp [mapOfVec, ContinuousLinearMap.norm_smulRight_apply, EuclideanSpace.norm_single]
 
 lemma bound_rotM (θ φ : ℝ) : ‖rotM θ φ‖ ≤ 1 + κ := by
   norm_num [Bounding.rotM_norm_one, κ]
 
 lemma bound_rotR (α : ℝ) : ‖rotR α‖ ≤ 1 := (Bounding.rotR_norm_one α).le
 
-private lemma matOfVec_sub {n : ℕ} (v w : Euc(n)) : matOfVec v - matOfVec w = matOfVec (v - w) := by
-  ext; simp [matOfVec]
+private lemma mapOfVec_sub {n : ℕ} (v w : Euc(n)) :
+    mapOfVec v - mapOfVec w = mapOfVec (v - w) := by
+  ext x i; fin_cases i; simp [mapOfVec, ContinuousLinearMap.smulRight_apply]
 
-private lemma matOfCovec_sub {n : ℕ} (v w : Euc(n)) : matOfCovec v - matOfCovec w = matOfCovec (v - w) := by
-  ext; simp [matOfCovec]
+private lemma mapOfCovec_sub {n : ℕ} (v w : Euc(n)) :
+    mapOfCovec v - mapOfCovec w = mapOfCovec (v - w) := by
+  ext x i; simp [mapOfCovec, ContinuousLinearMap.smulRight_apply, smul_sub]
 
 private lemma norm_mapOfVec_sub_le {n : ℕ} (v w : Euc(n)) :
     ‖mapOfVec v - mapOfVec w‖ ≤ ‖v - w‖ := by
-  simpa [mapOfVec, ← map_sub, matOfVec_sub] using (norm_map_vec_eq_norm_vec (v - w)).le
+  simp [mapOfVec_sub]
 
 private lemma norm_mapOfCovec_sub_le {n : ℕ} (v w : Euc(n)) :
     ‖mapOfCovec v - mapOfCovec w‖ ≤ ‖v - w‖ := by
-  simpa [mapOfCovec, ← map_sub, matOfCovec_sub] using (norm_map_covec_eq_norm_vec (v - w)).le
+  simp [mapOfCovec_sub]
 
 private lemma mapOfVec_apply {n : ℕ} (v x : Euc(n)) : (mapOfVec v x) 0 = ⟪v, x⟫ := by
-  simp [mapOfVec, matOfVec, Matrix.toEuclideanLin_apply, Matrix.mulVec, dotProduct, mul_comm,
-    EuclideanSpace.inner_eq_star_dotProduct]
+  simp [mapOfVec, ContinuousLinearMap.smulRight_apply]
 
 @[simp]
 private lemma mapOfCovec_single {n : ℕ} (v : Euc(n)) :
