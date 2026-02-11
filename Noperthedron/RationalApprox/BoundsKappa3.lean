@@ -9,7 +9,7 @@ open scoped RealInnerProductSpace
 
 namespace RationalApprox
 
-variable {P Q Q_ P_ : ℝ³} {α θ φ : Set.Icc (-4) 4} {w : ℝ²}
+variable {P Q Q_ P_ : ℝ³} {α θ φ : Set.Icc (-4 : ℝ) 4} {w : ℝ²}
 
 /-!
 ## Helper: vector norm difference bound
@@ -60,9 +60,9 @@ lemma bounds_kappa3_X (hP : ‖P‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) :
         add_le_add (abs_real_inner_le_norm _ _) (abs_real_inner_le_norm _ _)
     _ ≤ κ * 1 + (1 + κ) * κ :=
         add_le_add
-          (mul_le_mul (vecX_sub_vecXℚ_norm_le _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+          (mul_le_mul (vecX_sub_vecXℚ_norm_le _ _ (θ.property) (φ.property))
             hP (norm_nonneg _) (by norm_num [κ]))
-          (mul_le_mul (vecXℚ_norm_le _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+          (mul_le_mul (vecXℚ_norm_le _ _ (θ.property) (φ.property))
             Papprox (norm_nonneg _) (by norm_num [κ]))
     _ ≤ 3 * κ := by unfold κ; norm_num
 
@@ -70,9 +70,9 @@ lemma bounds_kappa3_M (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P 
     ‖⟪rotM θ φ P, rotM θ φ Q⟫ - ⟪rotMℚ θ φ P_, rotMℚ θ φ Q_⟫‖ ≤ 5 * κ := by
   rw [Real.norm_eq_abs]
   have hMdiff : ‖rotM (θ : ℝ) (φ : ℝ) - rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ κ :=
-    M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ)
+    M_difference_norm_bounded _ _ (θ.property) (φ.property)
   have hMℚnorm : ‖rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ 1 + κ :=
-    Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ)
+    Mℚ_norm_bounded (θ.property) (φ.property)
   -- Decompose: ⟪rotM P, rotM Q⟫ - ⟪rotMℚ P_, rotMℚ Q_⟫
   --   = ⟪rotM P - rotMℚ P_, rotM Q⟫ + ⟪rotMℚ P_, rotM Q - rotMℚ Q_⟫
   have decomp : ⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) Q⟫ - ⟪(rotMℚ ↑θ ↑φ) P_, (rotMℚ ↑θ ↑φ) Q_⟫ =
@@ -107,9 +107,9 @@ lemma bounds_kappa3_M (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P 
 lemma bounds_kappa3_MQ (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_‖ ≤ κ) :
     |(‖rotM θ φ Q‖ - ‖rotMℚ θ φ Q_‖)| ≤ 3 * κ := by
   have hMdiff : ‖rotM (θ : ℝ) (φ : ℝ) - rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ κ :=
-    M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ)
+    M_difference_norm_bounded _ _ (θ.property) (φ.property)
   have hMℚnorm : ‖rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ 1 + κ :=
-    Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ)
+    Mℚ_norm_bounded (θ.property) (φ.property)
   -- Reverse triangle inequality + clm_approx_apply_sub
   calc |(‖rotM θ φ Q‖ - ‖rotMℚ θ φ Q_‖)|
     _ ≤ ‖rotM θ φ Q - rotMℚ θ φ Q_‖ := abs_norm_sub_norm_le _ _
