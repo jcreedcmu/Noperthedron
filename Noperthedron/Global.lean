@@ -5,9 +5,7 @@ import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 import Noperthedron.Global.Basic
 import Noperthedron.Global.BoundedPartialsControlDifference
-import Noperthedron.Global.RotationPartials.Rotproj
-import Noperthedron.Global.RotationPartials.SecondPartialInner
-import Noperthedron.Global.RotationPartials.SecondPartialOuter
+import Noperthedron.Global.RotationPartials
 
 open scoped RealInnerProductSpace
 
@@ -62,7 +60,10 @@ theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
 
 -- rotproj_inner, rotproj_inner_unit, rotproj_outer_unit, rotation_partials_exist,
 -- rotation_partials_exist_outer are now imported from Noperthedron.Global.Definitions
--- (via Noperthedron.Global.RotationPartials.Rotproj)
+-- (via Noperthedron.Global.RotationPartials)
+
+-- rotation_partials_bounded, rotation_partials_bounded_outer ([SY25] Lemma 19) are now
+-- imported from Noperthedron.Global.RotationPartials (via SecondPartialInner/SecondPartialOuter)
 
 /- FIXME: the paper has `- 9 * ε²/2` rather than `+ 9 * ε²/2` below. Did we mess something up here? -/
 /--
