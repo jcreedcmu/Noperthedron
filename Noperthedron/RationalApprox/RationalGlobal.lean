@@ -33,7 +33,7 @@ def maxH (p : Pose) (poly : GoodPoly) (ε : ℝ) (w : ℝ²) : ℝ :=
 
 /--
 A compact way of saying "the pose satisfies the rational global theorem precondition at width ε".
-We require the existence of some inner-shadow vertex S from the polyehdron, and a covector w meant to express
+We require the existence of some inner-shadow vertex S from the polyhedron, and a covector w meant to express
 the direction we're projecting ℝ² → ℝ to find that S "sticks out too far" compared to all the
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
