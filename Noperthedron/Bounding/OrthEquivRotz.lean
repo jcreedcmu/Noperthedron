@@ -340,15 +340,12 @@ lemma to_euc_mul {a b c : ℕ}
   rw [this]
   simp
 
-lemma to_euc_one {n : ℕ} : Matrix.toEuclideanLin.symm (LinearMap.id (M := Euc(n))) = 1 :=
-  Matrix.toLpLin_symm_id 2
-
 lemma inv_euclidean_eq_euclidean_symm (u : Euc(3) ≃ₗ[ℝ] Euc(3)) :
     (Matrix.toEuclideanLin.symm u.toLinearMap)⁻¹ = Matrix.toEuclideanLin.symm u.symm.toLinearMap := by
   rw [Matrix.inv_eq_right_inv]
   rw [to_euc_mul u.symm.toLinearMap u.toLinearMap]
   simp only [LinearEquiv.comp_coe, LinearEquiv.symm_trans_self, LinearEquiv.refl_toLinearMap]
-  exact to_euc_one
+  exact   Matrix.toLpLin_symm_id 2
 
 lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3)) (U : Matrix (Fin 3) (Fin 3) ℝ)
     (hu : U = Matrix.toEuclideanLin.symm u.toLinearMap) :
