@@ -26,7 +26,7 @@ lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
   ext v
   simp only [rotRM, rotRM_mat, RzL, RyL, ContinuousLinearMap.coe_comp', Function.comp_apply,
     LinearMap.coe_toContinuousLinearMap']
-  simp only [Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec, Matrix.mul_assoc]
+  simp only [Matrix.toLpLin_apply, Matrix.mulVec_mulVec, Matrix.mul_assoc]
 
 /-- rotRM_mat θ φ 0 simplifies to Rz(-π/2) * Ry(φ) * Rz(-θ). -/
 lemma rotRM_mat_zero_alpha (θ φ : ℝ) : rotRM_mat θ φ 0 = Rz_mat (-(π / 2)) * Ry_mat φ * Rz_mat (-θ) := by

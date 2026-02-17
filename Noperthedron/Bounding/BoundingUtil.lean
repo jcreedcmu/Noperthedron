@@ -27,7 +27,7 @@ theorem dist_rot3_apply {d : Fin 3} {α α' : ℝ} {v : ℝ³} :
       | 2,2 => 1
     fin_cases d <;>
     · try simp [rot3, RxC, RyC, RzC, RxL, RyL, RzL, Rx_mat, Ry_mat, Rz_mat, AddChar.coe_mk, ContinuousLinearMap.coe_sub',
-        LinearMap.coe_toContinuousLinearMap', Pi.sub_apply, Matrix.toEuclideanLin_apply,
+        LinearMap.coe_toContinuousLinearMap', Pi.sub_apply, Matrix.toLpLin_apply,
         Matrix.mulVec_eq_sum, op_smul_eq_smul, Fin.sum_univ_three, Fin.isValue,
         WithLp.toLp_add, WithLp.toLp_smul, ENNReal.toReal_ofNat, Nat.ofNat_pos, PiLp.norm_eq_sum,
         PiLp.sub_apply, PiLp.add_apply, PiLp.smul_apply, Matrix.transpose_apply,
@@ -84,7 +84,7 @@ theorem dist_rot3 {d : Fin 3} {α α' : ℝ} :
           2 * |sin ((α - α') / 2)| = _ := by rfl
           _ = ‖(rot3 d' α - rot3 d' α') v‖ := by
             rw [dist_rot3_apply]
-            simp [v, d', PiLp.norm_eq_sum, Fin.removeNth_apply, Fin.succAbove, Fin.tail]
+            simp [v, d', PiLp.norm_eq_sum, Fin.removeNth_apply, Fin.succAbove]
           _ ≤ N * ‖v‖ := by assumption
           _ = N := by simp [norm_v_one]
       }
@@ -92,7 +92,7 @@ theorem dist_rot3 {d : Fin 3} {α α' : ℝ} :
 theorem dist_rot2_apply {α α' : ℝ} {v : ℝ²} :
   ‖(rot2 α - rot2 α') v‖ = 2 * |sin ((α - α') / 2)| * ‖v‖ := by
     simp only [rot2, rot2_mat, AddChar.coe_mk, ContinuousLinearMap.coe_sub',
-      LinearMap.coe_toContinuousLinearMap', Pi.sub_apply, Matrix.toEuclideanLin_apply,
+      LinearMap.coe_toContinuousLinearMap', Pi.sub_apply, Matrix.toLpLin_apply,
       Matrix.mulVec_eq_sum, op_smul_eq_smul, Fin.sum_univ_two, Fin.isValue,
       WithLp.toLp_add, WithLp.toLp_smul, ENNReal.toReal_ofNat, Nat.ofNat_pos, PiLp.norm_eq_sum,
       PiLp.sub_apply, PiLp.add_apply, PiLp.smul_apply, Matrix.transpose_apply,

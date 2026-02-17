@@ -138,7 +138,7 @@ def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
   map_add_eq_mul' a b := by
     ext v i
     fin_cases i <;> {
-      simp [RzL, Fin.sum_univ_succ, Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
+      simp [RzL, Fin.sum_univ_succ, Matrix.toLpLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
       try ring_nf
     }
 
@@ -167,13 +167,13 @@ def rot2 : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
   toFun α := (rot2_mat α).toEuclideanLin.toContinuousLinearMap
   map_zero_eq_one' := by
     ext v i
-    fin_cases i <;> simp [Matrix.toEuclideanLin_apply, Matrix.mulVec]
+    fin_cases i <;> simp [Matrix.toLpLin_apply, Matrix.mulVec]
 
   map_add_eq_mul' := by
     intro α β
     ext v i
     fin_cases i <;> {
-      simp [Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, rot2_mat, cos_add, sin_add]
+      simp [Matrix.toLpLin_apply, Matrix.mulVec_eq_sum, rot2_mat, cos_add, sin_add]
       ring_nf
      }
 
@@ -213,7 +213,7 @@ def rotR : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
     intro α β
     ext v i
     fin_cases i <;> {
-      simp [Matrix.toEuclideanLin_apply, Matrix.mulVec_eq_sum, rotR_mat, cos_add, sin_add]
+      simp [Matrix.toLpLin_apply, Matrix.mulVec_eq_sum, rotR_mat, cos_add, sin_add]
       ring_nf
      }
 

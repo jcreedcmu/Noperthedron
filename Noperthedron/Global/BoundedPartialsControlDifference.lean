@@ -199,7 +199,7 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
   have g₀_diff : Differentiable ℝ g₀ := Differentiable.interpolator x y
   have g_diff : Differentiable ℝ g := Differentiable.interpolated x y f fc
   have g'_diff : Differentiable ℝ g' := differentiable_deriv_interpolated x y f fc
-  have g'_cont : Continuous g' := by fun_prop
+  have g'_cont : Continuous g' := g'_diff.continuous
   have g''_cont : Continuous g'' := continuous_deriv_interpolated2 x y f fc
 
   have deriv_g_eq_g' : deriv g = g' := by

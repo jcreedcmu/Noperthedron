@@ -130,7 +130,7 @@ theorem second_partial_inner_rotM_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
   have hf_smooth : ContDiff ℝ 2 f := by
     apply ContDiff.inner ℝ _ contDiff_const
     rw [contDiff_piLp]; intro k
-    simp only [rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+    simp only [rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
     fin_cases k <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
   have hscale : nth_partial j (nth_partial i (rotproj_outer_unit S w)) y =
       nth_partial j (nth_partial i f) y / ‖S‖ := by

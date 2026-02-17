@@ -78,7 +78,7 @@ theorem inner_shadow_lemma (p : MatrixPose) (S : Set ℝ³) :
 /-- Matrix multiplication yields RzL composition. -/
 lemma Rz_mul_toEuclideanLin (δ : ℝ) (M : Matrix (Fin 3) (Fin 3) ℝ) (v : ℝ³) :
     (Rz_mat δ * M).toEuclideanLin v = RzL δ (M.toEuclideanLin v) := by
-  simp [Matrix.toEuclideanLin_apply, RzL, Matrix.mulVec_mulVec]
+  simp [Matrix.toLpLin_apply, RzL, Matrix.mulVec_mulVec]
 
 /-- Outer shadow of rotated pose equals rotated outer shadow. -/
 theorem outerShadow_rotateBy (p : MatrixPose) (δ : ℝ) (S : Set ℝ³) :

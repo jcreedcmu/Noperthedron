@@ -13,7 +13,7 @@ open scoped Matrix
 theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
     ‖rotM θ φ P‖ ^ 2 = ‖P‖ ^ 2 - ⟪vecX θ φ, P⟫ ^ 2 := by
   simp only [rotM, rotM_mat, neg_mul, LinearMap.coe_toContinuousLinearMap',
-    EuclideanSpace.norm_sq_eq, Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply, Matrix.mulVec,
+    EuclideanSpace.norm_sq_eq, Matrix.ofLp_toLpLin, Matrix.toLin'_apply, Matrix.mulVec,
     Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_fin_one, Real.norm_eq_abs, sq_abs,
     Fin.sum_univ_succ, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_dotProduct, Matrix.vecHead,
     Matrix.vecTail, zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Finset.univ_unique,

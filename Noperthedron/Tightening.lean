@@ -201,7 +201,7 @@ lemma lemma7_3_calculation (θ φ : ℝ) (v : ℝ³) :
   simp only [flip_y, flip_y_mat, rotM, RzC, rotM_mat]
   ext i
   simp only [neg_mul, LinearMap.coe_toContinuousLinearMap',
-    Function.comp_apply, Matrix.piLp_ofLp_toEuclideanLin, Matrix.toLin'_apply, Matrix.cons_mulVec,
+    Function.comp_apply, Matrix.ofLp_toLpLin, Matrix.toLin'_apply, Matrix.cons_mulVec,
     Matrix.cons_dotProduct, Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one,
     Nat.reduceAdd, Fin.succ_zero_eq_one, Fin.succ_one_eq_two, zero_mul,
     Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec, Matrix.mulVec_cons,

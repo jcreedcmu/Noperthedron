@@ -35,14 +35,14 @@ pattern that appears ~30+ times in second_partial_inner_rotM_inner.
 lemma differentiableAt_rotMθ_outer (S : ℝ³) (y : E 2) :
     DifferentiableAt ℝ (fun z : E 2 => rotMθ (z.ofLp 0) (z.ofLp 1) S) y := by
   rw [differentiableAt_piLp]; intro i
-  simp only [rotMθ, rotMθ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+  simp only [rotMθ, rotMθ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
   fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotMφ (outer, E 2) -/
 lemma differentiableAt_rotMφ_outer (S : ℝ³) (y : E 2) :
     DifferentiableAt ℝ (fun z : E 2 => rotMφ (z.ofLp 0) (z.ofLp 1) S) y := by
   rw [differentiableAt_piLp]; intro i
-  simp only [rotMφ, rotMφ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply]
+  simp only [rotMφ, rotMφ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
   fin_cases i
   · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
   · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
@@ -51,42 +51,42 @@ lemma differentiableAt_rotMφ_outer (S : ℝ³) (y : E 2) :
 lemma differentiableAt_rotR_rotM (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotM, rotM_mat, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR, rotR_mat, rotM, rotM_mat, Matrix.toLpLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotR' ∘ rotM -/
 lemma differentiableAt_rotR'_rotM (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR', rotR'_mat, rotM, rotM_mat, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR', rotR'_mat, rotM, rotM_mat, Matrix.toLpLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotR ∘ rotMθ -/
 lemma differentiableAt_rotR_rotMθ (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR, rotR_mat, rotMθ, rotMθ_mat, Matrix.toLpLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotR ∘ rotMφ -/
 lemma differentiableAt_rotR_rotMφ (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR, rotR_mat, rotMφ, rotMφ_mat, Matrix.toLpLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotR' ∘ rotMθ -/
 lemma differentiableAt_rotR'_rotMθ (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR', rotR'_mat, rotMθ, rotMθ_mat, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR', rotR'_mat, rotMθ, rotMθ_mat, Matrix.toLpLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-- DifferentiableAt for rotR' ∘ rotMφ -/
 lemma differentiableAt_rotR'_rotMφ (S : ℝ³) (y : E 3) :
     DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y := by
   rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR', rotR'_mat, rotMφ, rotMφ_mat, Matrix.toEuclideanLin_apply,
+  fin_cases i <;> (simp [rotR', rotR'_mat, rotMφ, rotMφ_mat, Matrix.toLpLin_apply,
     Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
 
 /-!

@@ -119,7 +119,7 @@ private lemma rotprojRM'_apply_0 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
       d 0 * (pbar.rotR' (pbar.rotM₁ S)) 0 +
       d 1 * (pbar.rotR (pbar.rotM₁θ S)) 0 +
       d 2 * (pbar.rotR (pbar.rotM₁φ S)) 0 := by
-  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply]
   ring
 
@@ -128,7 +128,7 @@ private lemma rotprojRM'_apply_1 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
       d 0 * (pbar.rotR' (pbar.rotM₁ S)) 1 +
       d 1 * (pbar.rotR (pbar.rotM₁θ S)) 1 +
       d 2 * (pbar.rotR (pbar.rotM₁φ S)) 1 := by
-  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toEuclideanLin_apply,
+  simp only [rotprojRM', LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply]
   ring
 

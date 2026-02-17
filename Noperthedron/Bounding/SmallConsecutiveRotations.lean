@@ -22,8 +22,8 @@ lemma tr_rot3_rot3  {d d' : Fin 3} {α β : ℝ} : d ≠ d' → tr (rot3 d α �
   intro d_ne_d'
   calc tr (rot3 d α ∘L rot3 d' β)
   _ = tr ((rot3_mat d α).toEuclideanLin.toContinuousLinearMap ∘L (rot3_mat d' β).toEuclideanLin.toContinuousLinearMap) := by simp [rot3_eq_rot3_mat_toEuclideanLin]
-  _ = tr ((rot3_mat d α * rot3_mat d' β).toEuclideanLin) := by simp [Matrix.toEuclideanLin_eq_toLin, Matrix.toLin_mul (v₁:=?a) (v₂:=?a) (v₃:=?a)]
-  _ = Matrix.trace (rot3_mat d α * rot3_mat d' β) := by simp only [Matrix.toEuclideanLin_eq_toLin, Matrix.trace_toLin_eq]
+  _ = tr ((rot3_mat d α * rot3_mat d' β).toEuclideanLin) := by simp [Matrix.toLpLin_eq_toLin, Matrix.toLin_mul (v₁:=?a) (v₂:=?a) (v₃:=?a)]
+  _ = Matrix.trace (rot3_mat d α * rot3_mat d' β) := by simp only [Matrix.toLpLin_eq_toLin, Matrix.trace_toLin_eq]
   _ = cos α + cos β + cos α * cos β := by
     fin_cases d <;> fin_cases d'
     all_goals try contradiction
@@ -31,7 +31,7 @@ lemma tr_rot3_rot3  {d d' : Fin 3} {α β : ℝ} : d ≠ d' → tr (rot3 d α �
 
 lemma tr_RzL {α : ℝ} : tr (RzL α) = 1 + 2 * Real.cos α :=
   calc tr (RzL α)
-  _ = tr' ((Rz_mat α).toLin') := by simp [RzL, Matrix.toEuclideanLin_eq_toLin]
+  _ = tr' ((Rz_mat α).toLin') := by simp [RzL, Matrix.toLpLin_eq_toLin]
   _ = Matrix.trace (Rz_mat α) := by rw [Matrix.trace_toLin'_eq]
   _ = 1 + 2 * cos α := by
     simp [Matrix.trace, Fin.sum_univ_three]

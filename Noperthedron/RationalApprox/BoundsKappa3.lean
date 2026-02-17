@@ -25,7 +25,7 @@ private lemma vecX_sub_vecXℚ_norm_le (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 
   -- vecX θ φ - vecXℚ θ φ = (vecXL θ φ - vecXLℚ θ φ) (single 0 1)
   have h_eq : vecX θ φ - vecXℚ θ φ = (vecXL θ φ - vecXLℚ θ φ) (EuclideanSpace.single 0 1) := by
     simp [vecX, vecXℚ, vecXL, vecX_mat, vecXLℚ, vecXℚ_mat, ContinuousLinearMap.sub_apply,
-      Matrix.toEuclideanLin_apply]
+      Matrix.toLpLin_apply]
     ext i; fin_cases i <;> simp
   rw [h_eq]
   calc ‖(vecXL θ φ - vecXLℚ θ φ) (EuclideanSpace.single 0 1)‖

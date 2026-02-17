@@ -38,11 +38,11 @@ lemma HasDerivAt_rotR' (α : ℝ) (v : ℝ²) :
   have h_f : (rotR' · v) = (fun α' => !₂[-Real.sin α' * v 0 - Real.cos α' * v 1,
       Real.cos α' * v 0 - Real.sin α' * v 1]) := by
     ext α' i
-    fin_cases i <;> simp [rotR', rotR'_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
+    fin_cases i <;> simp [rotR', rotR'_mat, Matrix.toLpLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
   have h_f' : -(rotR α v) = !₂[-Real.cos α * v 0 + Real.sin α * v 1,
       -Real.sin α * v 0 - Real.cos α * v 1] := by
     ext i
-    fin_cases i <;> simp [rotR, rotR_mat, Matrix.toEuclideanLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
+    fin_cases i <;> simp [rotR, rotR_mat, Matrix.toLpLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
   rw [h_f, h_f']
   refine hasDerivAt_lp2 ?_ ?_
   · convert hasDerivAt_sin_cos_lincomb (-v 0) (-v 1) α using 1
