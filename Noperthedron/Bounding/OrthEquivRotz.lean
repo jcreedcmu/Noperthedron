@@ -327,25 +327,12 @@ lemma Matrix.orthogonalGroup.to_linear_equiv_apply {n : ℕ} (A : Matrix.orthogo
     Matrix.OrthogonalGroup.toLinearEquiv A x = A.1.mulVec x := by
   rfl
 
-lemma to_euc_mul {a b c : ℕ}
-    (u : Euc(a) →ₗ[ℝ] Euc(b)) (v : Euc(b) →ₗ[ℝ] Euc(c)) :
-    Matrix.toEuclideanLin.symm v * Matrix.toEuclideanLin.symm u =
-    Matrix.toEuclideanLin.symm (v ∘ₗ u) := by
-  refine LinearEquiv.injective Matrix.toEuclideanLin ?_
-  have (uu : Matrix (Fin b) (Fin a) ℝ) (vv : Matrix (Fin c) (Fin b) ℝ) :
-     Matrix.toEuclideanLin (vv * uu) = Matrix.toEuclideanLin vv ∘ₗ Matrix.toEuclideanLin uu := by
-    ext x
-    simp only [Matrix.toLpLin_apply, LinearMap.coe_comp, Function.comp_apply,
-      Matrix.mulVec_mulVec]
-  rw [this]
-  simp
-
 lemma inv_euclidean_eq_euclidean_symm (u : Euc(3) ≃ₗ[ℝ] Euc(3)) :
     (Matrix.toEuclideanLin.symm u.toLinearMap)⁻¹ = Matrix.toEuclideanLin.symm u.symm.toLinearMap := by
   rw [Matrix.inv_eq_right_inv]
-  rw [to_euc_mul u.symm.toLinearMap u.toLinearMap]
+  rw [← Matrix.toLpLin_symm_comp]
   simp only [LinearEquiv.comp_coe, LinearEquiv.symm_trans_self, LinearEquiv.refl_toLinearMap]
-  exact   Matrix.toLpLin_symm_id 2
+  exact Matrix.toLpLin_symm_id 2
 
 lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3)) (U : Matrix (Fin 3) (Fin 3) ℝ)
     (hu : U = Matrix.toEuclideanLin.symm u.toLinearMap) :
