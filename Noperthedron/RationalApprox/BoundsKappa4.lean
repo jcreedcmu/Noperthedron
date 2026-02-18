@@ -165,15 +165,13 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
     -- Factor 1: ‖rotM P‖ + √2ε ≤ s.norm(rotMℚ P_) + √2ε + 3κ
     have h_f1 : ‖(rotM ↑θ ↑φ) P‖ + √2 * ε ≤
         s.norm ((rotMℚ ↑θ ↑φ) P_) + √2 * ε + 3 * κ := by
-      have h1 := norm_diff_bound_3kappa hP Papprox (θ := θ) (φ := φ)
-      have h2 := UpperSqrt_norm_le s ((rotMℚ ↑θ ↑φ) P_)
-      linarith
+      linarith [norm_diff_bound_3kappa hP Papprox (θ := θ) (φ := φ),
+        UpperSqrt_norm_le s ((rotMℚ ↑θ ↑φ) P_)]
     -- Factor 2: ‖rotM (P-Q)‖ + 2√2ε ≤ s.norm(rotMℚ (P_-Q_)) + 2√2ε + 6κ
     have h_f2 : ‖(rotM ↑θ ↑φ) (P - Q)‖ + 2 * √2 * ε ≤
         s.norm ((rotMℚ ↑θ ↑φ) (P_ - Q_)) + 2 * √2 * ε + 6 * κ := by
-      have h1 := norm_diff_bound_6kappa hP hQ Papprox Qapprox (θ := θ) (φ := φ)
-      have h2 := UpperSqrt_norm_le s ((rotMℚ ↑θ ↑φ) (P_ - Q_))
-      linarith
+      linarith [norm_diff_bound_6kappa hP hQ Papprox Qapprox (θ := θ) (φ := φ),
+        UpperSqrt_norm_le s ((rotMℚ ↑θ ↑φ) (P_ - Q_))]
     -- Both factors are nonneg
     have h_f1_nn : 0 ≤ ‖(rotM ↑θ ↑φ) P‖ + √2 * ε := by positivity
     have h_f2_nn : 0 ≤ ‖(rotM ↑θ ↑φ) (P - Q)‖ + 2 * √2 * ε := by positivity

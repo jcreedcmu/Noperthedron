@@ -8,7 +8,7 @@ open scoped RealInnerProductSpace
 
 namespace RationalApprox
 
-variable {P P_ : ℝ³} {Q Q_ : ℝ³} {α θ φ θ_ φ_ : Set.Icc (-4 : ℝ) 4} {w : ℝ²}
+variable {P P_ : ℝ³} {Q Q_ : ℝ³} {α θ φ θ_ φ_ : Set.Icc (-4 : ℝ) 4}
 
 /-!
 [SY25] Corollary 50

@@ -48,6 +48,9 @@ structure RationalGlobalTheoremPrecondition (poly poly_ : GoodPoly)
   w_unit : ‖w‖ = 1
   exceeds : G p ε S w > maxH p poly_ ε w
 
+private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
+  linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
+
 private lemma G_rational_le_G_real {pbar : Pose} {ε : ℝ} (hε : ε > 0)
     {S S_ : ℝ³} {w : ℝ²}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
@@ -91,18 +94,9 @@ private lemma G_rational_le_G_real {pbar : Pose} {ε : ℝ} (hε : ε > 0)
   have hi_le : ⟪pbar.rotRℚ (pbar.rotM₁ℚ S_), w⟫ ≤ ⟪pbar.rotR (pbar.rotM₁ S), w⟫ + 4 * κ := by
     have := (Real.norm_eq_abs _).symm ▸ h_inner; rw [abs_le] at this; linarith [this.1]
   -- |abs_real| ≤ |abs_rational| + 4κ for the three ε-coefficient terms
-  have hR'_abs : |⟪pbar.rotR' (pbar.rotM₁ S), w⟫| ≤ |⟪pbar.rotR'ℚ (pbar.rotM₁ℚ S_), w⟫| + 4 * κ := by
-    have h2 : |⟪pbar.rotR' (pbar.rotM₁ S), w⟫ - ⟪pbar.rotR'ℚ (pbar.rotM₁ℚ S_), w⟫| ≤ 4 * κ :=
-      (Real.norm_eq_abs _).symm ▸ h_R'M
-    linarith [abs_sub_abs_le_abs_sub (⟪pbar.rotR' (pbar.rotM₁ S), w⟫) (⟪pbar.rotR'ℚ (pbar.rotM₁ℚ S_), w⟫)]
-  have hRθ_abs : |⟪pbar.rotR (pbar.rotM₁θ S), w⟫| ≤ |⟪pbar.rotRℚ (pbar.rotM₁θℚ S_), w⟫| + 4 * κ := by
-    have h2 : |⟪pbar.rotR (pbar.rotM₁θ S), w⟫ - ⟪pbar.rotRℚ (pbar.rotM₁θℚ S_), w⟫| ≤ 4 * κ :=
-      (Real.norm_eq_abs _).symm ▸ h_RMθ
-    linarith [abs_sub_abs_le_abs_sub (⟪pbar.rotR (pbar.rotM₁θ S), w⟫) (⟪pbar.rotRℚ (pbar.rotM₁θℚ S_), w⟫)]
-  have hRφ_abs : |⟪pbar.rotR (pbar.rotM₁φ S), w⟫| ≤ |⟪pbar.rotRℚ (pbar.rotM₁φℚ S_), w⟫| + 4 * κ := by
-    have h2 : |⟪pbar.rotR (pbar.rotM₁φ S), w⟫ - ⟪pbar.rotRℚ (pbar.rotM₁φℚ S_), w⟫| ≤ 4 * κ :=
-      (Real.norm_eq_abs _).symm ▸ h_RMφ
-    linarith [abs_sub_abs_le_abs_sub (⟪pbar.rotR (pbar.rotM₁φ S), w⟫) (⟪pbar.rotRℚ (pbar.rotM₁φℚ S_), w⟫)]
+  have hR'_abs := abs_le_abs_add_of_norm_sub_le h_R'M
+  have hRθ_abs := abs_le_abs_add_of_norm_sub_le h_RMθ
+  have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
   nlinarith
 
 private lemma H_real_le_H_rational {pbar : Pose} {ε : ℝ} (hε : ε > 0)
@@ -130,15 +124,8 @@ private lemma H_real_le_H_rational {pbar : Pose} {ε : ℝ} (hε : ε > 0)
   have hm_le : ⟪pbar.rotM₂ P, w⟫ ≤ ⟪pbar.rotM₂ℚ P_, w⟫ + 3 * κ := by
     have := (Real.norm_eq_abs _).symm ▸ h_M; rw [abs_le] at this; linarith [this.2]
   -- Absolute value bounds: |real| ≤ |rational| + 3κ
-  have hθ_abs : |⟪pbar.rotM₂θ P, w⟫| ≤ |⟪pbar.rotM₂θℚ P_, w⟫| + 3 * κ := by
-    have h1 := abs_abs_sub_abs_le ⟪pbar.rotM₂θ P, w⟫ ⟪pbar.rotM₂θℚ P_, w⟫
-    have h2 : |⟪pbar.rotM₂θ P, w⟫ - ⟪pbar.rotM₂θℚ P_, w⟫| ≤ 3 * κ :=
-      (Real.norm_eq_abs _).symm ▸ h_Mθ
-    linarith [abs_sub_abs_le_abs_sub (⟪pbar.rotM₂θ P, w⟫) (⟪pbar.rotM₂θℚ P_, w⟫)]
-  have hφ_abs : |⟪pbar.rotM₂φ P, w⟫| ≤ |⟪pbar.rotM₂φℚ P_, w⟫| + 3 * κ := by
-    have h2 : |⟪pbar.rotM₂φ P, w⟫ - ⟪pbar.rotM₂φℚ P_, w⟫| ≤ 3 * κ :=
-      (Real.norm_eq_abs _).symm ▸ h_Mφ
-    linarith [abs_sub_abs_le_abs_sub (⟪pbar.rotM₂φ P, w⟫) (⟪pbar.rotM₂φℚ P_, w⟫)]
+  have hθ_abs := abs_le_abs_add_of_norm_sub_le h_Mθ
+  have hφ_abs := abs_le_abs_add_of_norm_sub_le h_Mφ
   nlinarith
 
 /--
