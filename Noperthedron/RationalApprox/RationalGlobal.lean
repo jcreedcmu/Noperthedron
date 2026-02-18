@@ -13,7 +13,7 @@ namespace RationalApprox.GlobalTheorem
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
-def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
+def Gℚ (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
   ⟪p.innerℚ S, w⟫ - (ε * (|⟪p.rotR'ℚ (p.rotM₁ℚ S), w⟫| + |⟪p.rotRℚ (p.rotM₁θℚ S), w⟫| + |⟪p.rotRℚ (p.rotM₁φℚ S), w⟫|)
   + 9 * ε^2 / 2 + 4 * κ * (1 + 3 * ε))
 
@@ -21,15 +21,15 @@ def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
 A measure of how far an outer-shadow vertex P can "reach" along w.
 -/
 noncomputable
-def H (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
+def Hℚ (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
   ⟪p.rotM₂ℚ P, w⟫ + ε * (|⟪p.rotM₂θℚ P, w⟫| + |⟪p.rotM₂φℚ P, w⟫|) + 2 * ε^2 + 3 * κ * (1 + 2 * ε)
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
-def maxH (p : Pose) (poly : GoodPoly) (ε : ℝ) (w : ℝ²) : ℝ :=
-  poly.vertices.image (H p ε w) |>.max' <| by
+def maxHℚ (p : Pose) (poly : GoodPoly) (ε : ℝ) (w : ℝ²) : ℝ :=
+  poly.vertices.image (Hℚ p ε w) |>.max' <| by
     simp only [Finset.image_nonempty]
     exact poly.nonempty
 
@@ -46,18 +46,18 @@ structure RationalGlobalTheoremPrecondition (poly poly_ : GoodPoly)
   p_in_4 : fourInterval.contains p
   w : ℝ²
   w_unit : ‖w‖ = 1
-  exceeds : G p ε S w > maxH p poly_ ε w
+  exceeds : Gℚ p ε S w > maxHℚ p poly_ ε w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
 
-private lemma G_rational_le_G_real {pbar : Pose} {ε : ℝ} (hε : ε > 0)
+private lemma Gℚ_le_G {pbar : Pose} {ε : ℝ} (hε : ε > 0)
     {S S_ : ℝ³} {w : ℝ²}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
     (hp : fourInterval.contains pbar) :
-    G pbar ε S_ w ≤ _root_.GlobalTheorem.G pbar ε S w := by
+    Gℚ pbar ε S_ w ≤ GlobalTheorem.G pbar ε S w := by
   -- Unfold both G definitions
-  unfold G _root_.GlobalTheorem.G
+  unfold Gℚ GlobalTheorem.G
   -- Key bounds from BoundsKappa
   set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₁, hp.θ₁Bound⟩
   set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₁, hp.φ₁Bound⟩
@@ -84,11 +84,7 @@ private lemma G_rational_le_G_real {pbar : Pose} {ε : ℝ} (hε : ε > 0)
   have h_RMφ : ‖⟪pbar.rotR (pbar.rotM₁φ S), w⟫ - ⟪pbar.rotRℚ (pbar.rotM₁φℚ S_), w⟫‖ ≤ 4 * κ := by
     show ‖⟪rotR ↑α_ (rotMφ ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚ ↑α_ (rotMφℚ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
     exact bounds_kappa_RMφ hS hS_approx hw
-  -- Now combine: G_rational ≤ G_real
-  -- G_real = inner_real - (ε * sum_real + 9ε²/2)
-  -- G_rational = innerQ - (ε * sumQ + 9ε²/2 + 4κ(1+3ε))
-  -- G_real - G_rational = (inner_real - innerQ) - ε*(sum_real - sumQ) + 4κ(1+3ε)
-  -- ≥ -4κ - ε*12κ + 4κ + 12εκ = 0
+  -- Now combine: Gℚ ≤ G
   rw [h_inner_eq, h_innerQ_eq]
   -- inner bound: real ≥ rational - 4κ
   have hi_le : ⟪pbar.rotRℚ (pbar.rotM₁ℚ S_), w⟫ ≤ ⟪pbar.rotR (pbar.rotM₁ S), w⟫ + 4 * κ := by
@@ -99,12 +95,12 @@ private lemma G_rational_le_G_real {pbar : Pose} {ε : ℝ} (hε : ε > 0)
   have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
   nlinarith
 
-private lemma H_real_le_H_rational {pbar : Pose} {ε : ℝ} (hε : ε > 0)
+private lemma H_le_Hℚ {pbar : Pose} {ε : ℝ} (hε : ε > 0)
     {P P_ : ℝ³} {w : ℝ²}
     (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1)
     (hp : fourInterval.contains pbar) :
-    _root_.GlobalTheorem.H pbar ε w P ≤ H pbar ε w P_ := by
-  unfold _root_.GlobalTheorem.H H
+    GlobalTheorem.H pbar ε w P ≤ Hℚ pbar ε w P_ := by
+  unfold GlobalTheorem.H Hℚ
   set θ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₂, hp.θ₂Bound⟩
   set φ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₂, hp.φ₂Bound⟩
   -- M bound
@@ -119,7 +115,7 @@ private lemma H_real_le_H_rational {pbar : Pose} {ε : ℝ} (hε : ε > 0)
   have h_Mφ : ‖⟪pbar.rotM₂φ P, w⟫ - ⟪pbar.rotM₂φℚ P_, w⟫‖ ≤ 3 * κ := by
     show ‖⟪rotMφ ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMφℚ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
     exact bounds_kappa_Mφ hP hP_approx hw
-  -- Combine: H_real ≤ H_rational
+  -- Combine: H ≤ Hℚ
   -- Extract scalar bounds from norm bounds
   have hm_le : ⟪pbar.rotM₂ P, w⟫ ≤ ⟪pbar.rotM₂ℚ P_, w⟫ + 3 * κ := by
     have := (Real.norm_eq_abs _).symm ▸ h_M; rw [abs_le] at this; linarith [this.2]
@@ -144,10 +140,10 @@ theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
     simpa [S_real, Equiv.apply_symm_apply] using happrox.approx S_real
   have hS_norm : ‖(S_real : ℝ³)‖ ≤ 1 := poly.vertex_radius_le_one _ hS_in
   -- Step 2: Build GlobalTheoremPrecondition
-  have h_G_le := G_rational_le_G_real hε hS_norm hS_approx pc.w_unit pc.p_in_4
-  -- Step 3: Show maxH_real ≤ maxH_rational
-  have h_maxH_le : _root_.GlobalTheorem.maxH pbar poly ε pc.w ≤ maxH pbar poly_ ε pc.w := by
-    unfold _root_.GlobalTheorem.maxH maxH
+  have h_G_le := Gℚ_le_G hε hS_norm hS_approx pc.w_unit pc.p_in_4
+  -- Step 3: Show maxH_real ≤ maxHℚ
+  have h_maxH_le : GlobalTheorem.maxH pbar poly ε pc.w ≤ maxHℚ pbar poly_ ε pc.w := by
+    unfold GlobalTheorem.maxH maxHℚ
     apply Finset.max'_le
     intro _ hh_real
     rcases Finset.mem_image.mp hh_real with ⟨P, hP_mem, rfl⟩
@@ -155,14 +151,14 @@ theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
     let P_ := happrox.bijection ⟨P, hP_mem⟩
     have hP_norm : ‖P‖ ≤ 1 := poly.vertex_radius_le_one P hP_mem
     have hP_approx : ‖P - (P_ : ℝ³)‖ ≤ κ := happrox.approx ⟨P, hP_mem⟩
-    have hH_le := H_real_le_H_rational hε hP_norm hP_approx pc.w_unit pc.p_in_4
-    calc _root_.GlobalTheorem.H pbar ε pc.w P
-      _ ≤ H pbar ε pc.w P_ := hH_le
-      _ ≤ (poly_.vertices.image (H pbar ε pc.w)).max' _ := by
+    have hH_le := H_le_Hℚ hε hP_norm hP_approx pc.w_unit pc.p_in_4
+    calc GlobalTheorem.H pbar ε pc.w P
+      _ ≤ Hℚ pbar ε pc.w P_ := hH_le
+      _ ≤ (poly_.vertices.image (Hℚ pbar ε pc.w)).max' _ := by
           apply Finset.le_max'
           exact Finset.mem_image_of_mem _ P_.property
   -- Step 4: Build the precondition and apply global_theorem
-  exact _root_.GlobalTheorem.global_theorem pbar ε hε poly _poly_pointsym {
+  exact GlobalTheorem.global_theorem pbar ε hε poly _poly_pointsym {
     S := S_real
     S_in_poly := hS_in
     w := pc.w
