@@ -150,7 +150,7 @@ theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
     -- Map P to P_
     let P_ := happrox.bijection ⟨P, hP_mem⟩
     have hP_norm : ‖P‖ ≤ 1 := poly.vertex_radius_le_one P hP_mem
-    have hP_approx : ‖P - (P_ : ℝ³)‖ ≤ κ := happrox.approx ⟨P, hP_mem⟩
+    have hP_approx : ‖P - (P_ : ℝ³)‖ ≤ κ := by simpa [P_] using happrox.approx ⟨P, hP_mem⟩
     have hH_le := H_le_Hℚ hε hP_norm hP_approx pc.w_unit pc.p_in_4
     calc GlobalTheorem.H pbar ε pc.w P
       _ ≤ Hℚ pbar ε pc.w P_ := hH_le
