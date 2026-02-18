@@ -9,7 +9,7 @@ open scoped RealInnerProductSpace
 
 namespace RationalApprox
 
-variable {P Q Q_ P_ : ℝ³} {α θ φ : Set.Icc (-4 : ℝ) 4} {w : ℝ²}
+variable {P Q Q_ P_ : ℝ³} {θ φ : Set.Icc (-4 : ℝ) 4}
 
 /-!
 ## Helper: vector norm difference bound

@@ -68,7 +68,7 @@ private lemma G_rational_le_G_real {pbar : Pose} {ε : ℝ} (hε : ε > 0)
     exact bounds_kappa_RM hS hS_approx hw
   -- The inner is ⟪pbar.inner S, w⟫ = ⟪pbar.rotR (pbar.rotM₁ S), w⟫
   have h_inner_eq : ⟪(pbar.inner S : ℝ²), w⟫ = ⟪pbar.rotR (pbar.rotM₁ S), w⟫ := by
-    congr 1; have := Pose.inner_eq_RM pbar; rw [this]; rfl
+    simp [Pose.inner_eq_RM pbar]
   -- innerℚ = rotRℚ ∘ rotM₁ℚ
   have h_innerQ_eq : ⟪pbar.innerℚ S_, w⟫ = ⟪pbar.rotRℚ (pbar.rotM₁ℚ S_), w⟫ := by
     simp [Pose.innerℚ, ContinuousLinearMap.comp_apply]
@@ -141,9 +141,7 @@ theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
   let S_real := happrox.bijection.symm ⟨pc.S, pc.S_in_poly⟩
   have hS_in : (S_real : ℝ³) ∈ poly.vertices := S_real.property
   have hS_approx : ‖(S_real : ℝ³) - pc.S‖ ≤ κ := by
-    have h := happrox.approx S_real
-    simp only [S_real, Equiv.apply_symm_apply] at h
-    exact h
+    simpa [S_real, Equiv.apply_symm_apply] using happrox.approx S_real
   have hS_norm : ‖(S_real : ℝ³)‖ ≤ 1 := poly.vertex_radius_le_one _ hS_in
   -- Step 2: Build GlobalTheoremPrecondition
   have h_G_le := G_rational_le_G_real hε hS_norm hS_approx pc.w_unit pc.p_in_4
@@ -151,9 +149,8 @@ theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
   have h_maxH_le : _root_.GlobalTheorem.maxH pbar poly ε pc.w ≤ maxH pbar poly_ ε pc.w := by
     unfold _root_.GlobalTheorem.maxH maxH
     apply Finset.max'_le
-    intro h_real hh_real
-    simp only [Finset.mem_image] at hh_real
-    obtain ⟨P, hP_mem, rfl⟩ := hh_real
+    intro _ hh_real
+    rcases Finset.mem_image.mp hh_real with ⟨P, hP_mem, rfl⟩
     -- Map P to P_
     let P_ := happrox.bijection ⟨P, hP_mem⟩
     have hP_norm : ‖P‖ ≤ 1 := poly.vertex_radius_le_one P hP_mem
