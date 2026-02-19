@@ -139,9 +139,7 @@ theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
   have hS_approx : ‖(S_real : ℝ³) - pc.S‖ ≤ κ := by
     simpa [S_real, Equiv.apply_symm_apply] using happrox.approx S_real
   have hS_norm : ‖(S_real : ℝ³)‖ ≤ 1 := poly.vertex_radius_le_one _ hS_in
-  -- Step 2: Build GlobalTheoremPrecondition
-  have h_G_le := Gℚ_le_G hε hS_norm hS_approx pc.w_unit pc.p_in_4
-  -- Step 3: Show maxH_real ≤ maxHℚ
+  -- Step 2: Show maxH_real ≤ maxHℚ
   have h_maxH_le : GlobalTheorem.maxH pbar poly ε pc.w ≤ maxHℚ pbar poly_ ε pc.w := by
     unfold GlobalTheorem.maxH maxHℚ
     apply Finset.max'_le
@@ -151,9 +149,8 @@ theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
     let P_ := happrox.bijection ⟨P, hP_mem⟩
     have hP_norm : ‖P‖ ≤ 1 := poly.vertex_radius_le_one P hP_mem
     have hP_approx : ‖P - (P_ : ℝ³)‖ ≤ κ := by simpa [P_] using happrox.approx ⟨P, hP_mem⟩
-    have hH_le := H_le_Hℚ hε hP_norm hP_approx pc.w_unit pc.p_in_4
     calc GlobalTheorem.H pbar ε pc.w P
-      _ ≤ Hℚ pbar ε pc.w P_ := hH_le
+      _ ≤ Hℚ pbar ε pc.w P_ := H_le_Hℚ hε hP_norm hP_approx pc.w_unit pc.p_in_4
       _ ≤ (poly_.vertices.image (Hℚ pbar ε pc.w)).max' _ := by
           apply Finset.le_max'
           exact Finset.mem_image_of_mem _ P_.property
@@ -163,5 +160,5 @@ theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
     S_in_poly := hS_in
     w := pc.w
     w_unit := pc.w_unit
-    exceeds := by linarith [pc.exceeds]
+    exceeds := by linarith [pc.exceeds, Gℚ_le_G hε hS_norm hS_approx pc.w_unit pc.p_in_4]
   }

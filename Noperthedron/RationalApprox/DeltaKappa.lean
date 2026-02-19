@@ -20,10 +20,6 @@ lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_
     M_difference_norm_bounded _ _ (θ.property) (φ.property)
   have hRdiff : ‖rotR (α : ℝ) - rotRℚ (α : ℝ)‖ ≤ κ :=
     R_difference_norm_bounded _ (α.property)
-  have hM_diff' : ‖rotM (θ_ : ℝ) (φ_ : ℝ) - rotMℚ (θ_ : ℝ) (φ_ : ℝ)‖ ≤ κ :=
-    M_difference_norm_bounded _ _ (θ_.property) (φ_.property)
-  have hMℚnorm' : ‖rotMℚ (θ_ : ℝ) (φ_ : ℝ)‖ ≤ 1 + κ :=
-    Mℚ_norm_bounded (θ_.property) (φ_.property)
   -- Term 1: ‖rotR(rotM P) - rotRℚ(rotMℚ P)‖ ≤ 2κ + κ²
   -- Decompose at the R level: A = rotR, Aℚ = rotRℚ, P = rotM P, P_ = rotMℚ P
   have term1 : ‖rotR α (rotM θ φ P) - rotRℚ α (rotMℚ θ φ P)‖ ≤ 2 * κ + κ ^ 2 :=
@@ -37,7 +33,8 @@ lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_
             _ = κ := mul_one κ)
   -- Term 2: ‖rotM' Q - rotMℚ' Q_‖ ≤ 2κ + κ²
   have term2 : ‖rotM θ_ φ_ Q - rotMℚ θ_ φ_ Q_‖ ≤ 2 * κ + κ ^ 2 :=
-    clm_approx_apply_sub hM_diff' hMℚnorm' hQ Qapprox
+    clm_approx_apply_sub (M_difference_norm_bounded _ _ (θ_.property) (φ_.property))
+      (Mℚ_norm_bounded (θ_.property) (φ_.property)) hQ Qapprox
   -- Combine using reverse triangle inequality
   calc |‖rotR ↑α ((rotM ↑θ ↑φ) P) - (rotM ↑θ_ ↑φ_) Q‖ -
         ‖rotRℚ ↑α ((rotMℚ ↑θ ↑φ) P) - (rotMℚ ↑θ_ ↑φ_) Q_‖|

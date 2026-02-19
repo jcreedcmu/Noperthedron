@@ -115,13 +115,12 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
     (hA_nonneg : 0 ≤ ⟪rotM θ φ P, rotM θ φ (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)) :
     bounds_kappa4_Aℚ P_ Q_ θ φ ε s ≤ bounds_kappa4_A P Q θ φ ε := by
   -- Abbreviate the numerators and denominators
-  set numA := ⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε) with numA_def
+  set numA := ⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)
   set numAℚ := ⟪(rotMℚ ↑θ ↑φ) P_, (rotMℚ ↑θ ↑φ) (P_ - Q_)⟫ - 10 * κ -
-    2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε) with numAℚ_def
+    2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε)
   set denA := (‖(rotM ↑θ ↑φ) P‖ + √2 * ε) * (‖(rotM ↑θ ↑φ) (P - Q)‖ + 2 * √2 * ε)
-    with denA_def
   set denAℚ := (s.norm ((rotMℚ ↑θ ↑φ) P_) + √2 * ε + 3 * κ) *
-    (s.norm ((rotMℚ ↑θ ↑φ) (P_ - Q_)) + 2 * √2 * ε + 6 * κ) with denAℚ_def
+    (s.norm ((rotMℚ ↑θ ↑φ) (P_ - Q_)) + 2 * √2 * ε + 6 * κ)
   -- The goal becomes numAℚ / denAℚ ≤ numA / denA after unfolding
   change numAℚ / denAℚ ≤ numA / denA
   -- Step 1: numAℚ ≤ numA
@@ -158,9 +157,7 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
       mul_le_mul_of_nonneg_right
         (mul_le_mul_of_nonneg_left h_norm_PQ (by linarith)) (by positivity)
     linarith [h_inner_le, h_eps_term]
-  -- Step 2: denA > 0
-  have h_denA_pos : 0 < denA := by positivity
-  -- Step 3: denA ≤ denAℚ
+  -- Step 2: denA ≤ denAℚ
   have h_denA_le : denA ≤ denAℚ := by
     -- Factor 1: ‖rotM P‖ + √2ε ≤ s.norm(rotMℚ P_) + √2ε + 3κ
     have h_f1 : ‖(rotM ↑θ ↑φ) P‖ + √2 * ε ≤
@@ -172,9 +169,6 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
         s.norm ((rotMℚ ↑θ ↑φ) (P_ - Q_)) + 2 * √2 * ε + 6 * κ := by
       linarith [norm_diff_bound_6kappa hP hQ Papprox Qapprox (θ := θ) (φ := φ),
         UpperSqrt_norm_le s ((rotMℚ ↑θ ↑φ) (P_ - Q_))]
-    -- Both factors are nonneg
-    have h_f1_nn : 0 ≤ ‖(rotM ↑θ ↑φ) P‖ + √2 * ε := by positivity
-    have h_f2_nn : 0 ≤ ‖(rotM ↑θ ↑φ) (P - Q)‖ + 2 * √2 * ε := by positivity
-    exact mul_le_mul h_f1 h_f2 h_f2_nn (le_trans h_f1_nn h_f1)
-  -- Step 4: Apply div_le_div₀
-  exact div_le_div₀ hA_nonneg h_numAℚ_le h_denA_pos h_denA_le
+    exact mul_le_mul h_f1 h_f2 (by positivity) (le_trans (by positivity) h_f1)
+  -- Step 3: Apply div_le_div₀
+  exact div_le_div₀ hA_nonneg h_numAℚ_le (by positivity) h_denA_le
