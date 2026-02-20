@@ -8,7 +8,7 @@ open scoped RealInnerProductSpace
 
 namespace RationalApprox
 
-variable {P P_ : ℝ³} {α θ φ : Set.Icc (-4) 4} {w : ℝ²}
+variable {P P_ : ℝ³} {α θ φ : Set.Icc (-4 : ℝ) 4} {w : ℝ²}
 
 /-!
 ## Helper lemma
@@ -39,22 +39,22 @@ private lemma inner_three_kappa {E F : Type*}
 lemma bounds_kappa_M (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖⟪rotM θ φ P, w⟫ - ⟪rotMℚ θ φ P_, w⟫‖ ≤ 3 * κ :=
   inner_three_kappa
-    (Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ))
-    (M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+    (Mℚ_norm_bounded (θ.property) (φ.property))
+    (M_difference_norm_bounded _ _ (θ.property) (φ.property))
     hP approx hw
 
 lemma bounds_kappa_Mθ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖⟪rotMθ θ φ P, w⟫ - ⟪rotMθℚ θ φ P_, w⟫‖ ≤ 3 * κ :=
   inner_three_kappa
-    (Mθℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ))
-    (Mθ_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+    (Mθℚ_norm_bounded (θ.property) (φ.property))
+    (Mθ_difference_norm_bounded _ _ (θ.property) (φ.property))
     hP approx hw
 
 lemma bounds_kappa_Mφ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖⟪rotMφ θ φ P, w⟫ - ⟪rotMφℚ θ φ P_, w⟫‖ ≤ 3 * κ :=
   inner_three_kappa
-    (Mφℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ))
-    (Mφ_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+    (Mφℚ_norm_bounded (θ.property) (φ.property))
+    (Mφ_difference_norm_bounded _ _ (θ.property) (φ.property))
     hP approx hw
 
 /-!
@@ -96,34 +96,34 @@ lemma bounds_kappa_RM (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : 
     ‖⟪rotR α (rotM θ φ P), w⟫ - ⟪rotRℚ α (rotMℚ θ φ P_), w⟫‖ ≤ 4 * κ :=
   inner_four_kappa
     (le_of_eq (Bounding.rotR_norm_one _))
-    (R_difference_norm_bounded _ (icc_int_to_real α))
-    (Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ))
-    (M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+    (R_difference_norm_bounded _ (α.property))
+    (Mℚ_norm_bounded (θ.property) (φ.property))
+    (M_difference_norm_bounded _ _ (θ.property) (φ.property))
     hP approx hw
 
 lemma bounds_kappa_R'M (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖⟪rotR' α (rotM θ φ P), w⟫ - ⟪rotR'ℚ α (rotMℚ θ φ P_), w⟫‖ ≤ 4 * κ :=
   inner_four_kappa
     (le_of_eq (Bounding.rotR'_norm_one _))
-    (R'_difference_norm_bounded _ (icc_int_to_real α))
-    (Mℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ))
-    (M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+    (R'_difference_norm_bounded _ (α.property))
+    (Mℚ_norm_bounded (θ.property) (φ.property))
+    (M_difference_norm_bounded _ _ (θ.property) (φ.property))
     hP approx hw
 
 lemma bounds_kappa_RMθ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖⟪rotR α (rotMθ θ φ P), w⟫ - ⟪rotRℚ α (rotMθℚ θ φ P_), w⟫‖ ≤ 4 * κ :=
   inner_four_kappa
     (le_of_eq (Bounding.rotR_norm_one _))
-    (R_difference_norm_bounded _ (icc_int_to_real α))
-    (Mθℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ))
-    (Mθ_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+    (R_difference_norm_bounded _ (α.property))
+    (Mθℚ_norm_bounded (θ.property) (φ.property))
+    (Mθ_difference_norm_bounded _ _ (θ.property) (φ.property))
     hP approx hw
 
 lemma bounds_kappa_RMφ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖⟪rotR α (rotMφ θ φ P), w⟫ - ⟪rotRℚ α (rotMφℚ θ φ P_), w⟫‖ ≤ 4 * κ :=
   inner_four_kappa
     (le_of_eq (Bounding.rotR_norm_one _))
-    (R_difference_norm_bounded _ (icc_int_to_real α))
-    (Mφℚ_norm_bounded (icc_int_to_real θ) (icc_int_to_real φ))
-    (Mφ_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ))
+    (R_difference_norm_bounded _ (α.property))
+    (Mφℚ_norm_bounded (θ.property) (φ.property))
+    (Mφ_difference_norm_bounded _ _ (θ.property) (φ.property))
     hP approx hw
