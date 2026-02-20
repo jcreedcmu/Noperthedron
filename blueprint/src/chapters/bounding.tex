@@ -1,9 +1,9 @@
 \chapter{Bounding Rotations}
 
 \begin{lemma} \label{lem:RaRalpha}
-\lean{Bounding.Rx_norm_one,Bounding.Ry_norm_one,Bounding.Rz_norm_one,Bounding.rotR_norm_one,Bounding.rotM_norm_one}
+\lean{Bounding.Rx_norm_one,Bounding.Ry_norm_one,Bounding.Rz_norm_one,Bounding.rotR_norm_one,Bounding.rotM_norm_one,Bounding.rotR'_norm_one,Bounding.rotMθ_norm_le_one,Bounding.rotMφ_norm_le_one}
 \leanok
-For any $\alpha, \theta,\varphi \in \R$ and $a \in \{x,y,z\}$ one has $\| R(\alpha)\| = \| R_a(\alpha)\| =\| M(\theta, \phi)\| = 1$.
+For any $\alpha, \theta,\varphi \in \R$ and $a \in \{x,y,z\}$ one has $\| R(\alpha)\| = \| R_a(\alpha)\| = \| R'(\alpha) \| =\| M(\theta, \phi)\| = 1$ and $\| M^\theta(\theta,\varphi)\|, \| M^\phi(\theta,\varphi)\| \leq 1$.
 \end{lemma}
 \begin{proof}
 \leanok
