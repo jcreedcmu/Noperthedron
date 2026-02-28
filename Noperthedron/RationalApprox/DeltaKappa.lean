@@ -8,7 +8,7 @@ open scoped RealInnerProductSpace
 
 namespace RationalApprox
 
-variable {P P_ : ℝ³} {Q Q_ : ℝ³} {α θ φ θ_ φ_ : Set.Icc (-4) 4} {w : ℝ²}
+variable {P : ℝ³} {Q Q_ : ℝ³} {α θ φ θ_ φ_ : Set.Icc (-4 : ℝ) 4}
 
 /-!
 [SY25] Corollary 50
@@ -17,17 +17,13 @@ variable {P P_ : ℝ³} {Q Q_ : ℝ³} {α θ φ θ_ φ_ : Set.Icc (-4) 4} {w : 
 lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_‖ ≤ κ) :
     |‖rotR α (rotM θ φ P) - rotM θ_ φ_ Q‖ - ‖rotRℚ α (rotMℚ θ φ P) - rotMℚ θ_ φ_ Q_‖| ≤ 6 * κ := by
   have hMdiff : ‖rotM (θ : ℝ) (φ : ℝ) - rotMℚ (θ : ℝ) (φ : ℝ)‖ ≤ κ :=
-    M_difference_norm_bounded _ _ (icc_int_to_real θ) (icc_int_to_real φ)
+    M_difference_norm_bounded _ _ (θ.property) (φ.property)
   have hRdiff : ‖rotR (α : ℝ) - rotRℚ (α : ℝ)‖ ≤ κ :=
-    R_difference_norm_bounded _ (icc_int_to_real α)
-  have hM_diff' : ‖rotM (θ_ : ℝ) (φ_ : ℝ) - rotMℚ (θ_ : ℝ) (φ_ : ℝ)‖ ≤ κ :=
-    M_difference_norm_bounded _ _ (icc_int_to_real θ_) (icc_int_to_real φ_)
-  have hMℚnorm' : ‖rotMℚ (θ_ : ℝ) (φ_ : ℝ)‖ ≤ 1 + κ :=
-    Mℚ_norm_bounded (icc_int_to_real θ_) (icc_int_to_real φ_)
+    R_difference_norm_bounded _ (α.property)
   -- Term 1: ‖rotR(rotM P) - rotRℚ(rotMℚ P)‖ ≤ 2κ + κ²
   -- Decompose at the R level: A = rotR, Aℚ = rotRℚ, P = rotM P, P_ = rotMℚ P
   have term1 : ‖rotR α (rotM θ φ P) - rotRℚ α (rotMℚ θ φ P)‖ ≤ 2 * κ + κ ^ 2 :=
-    clm_approx_apply_sub hRdiff (Rℚ_norm_bounded _ (icc_int_to_real α))
+    clm_approx_apply_sub hRdiff (Rℚ_norm_bounded _ (α.property))
       (clm_unit_apply_le (le_of_eq (Bounding.rotM_norm_one _ _)) hP)
       (by rw [show (rotM ↑θ ↑φ) P - (rotMℚ ↑θ ↑φ) P = (rotM ↑θ ↑φ - rotMℚ ↑θ ↑φ) P from
               (ContinuousLinearMap.sub_apply _ _ _).symm]
@@ -37,7 +33,8 @@ lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_
             _ = κ := mul_one κ)
   -- Term 2: ‖rotM' Q - rotMℚ' Q_‖ ≤ 2κ + κ²
   have term2 : ‖rotM θ_ φ_ Q - rotMℚ θ_ φ_ Q_‖ ≤ 2 * κ + κ ^ 2 :=
-    clm_approx_apply_sub hM_diff' hMℚnorm' hQ Qapprox
+    clm_approx_apply_sub (M_difference_norm_bounded _ _ (θ_.property) (φ_.property))
+      (Mℚ_norm_bounded (θ_.property) (φ_.property)) hQ Qapprox
   -- Combine using reverse triangle inequality
   calc |‖rotR ↑α ((rotM ↑θ ↑φ) P) - (rotM ↑θ_ ↑φ_) Q‖ -
         ‖rotRℚ ↑α ((rotMℚ ↑θ ↑φ) P) - (rotMℚ ↑θ_ ↑φ_) Q_‖|
