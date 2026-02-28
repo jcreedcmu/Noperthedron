@@ -93,7 +93,10 @@ RationalApprox.Mθ_difference_norm_bounded,
 RationalApprox.Mφ_difference_norm_bounded,
 RationalApprox.X_difference_norm_bounded,
 RationalApprox.Rℚ_norm_bounded,
-RationalApprox.Mℚ_norm_bounded }
+RationalApprox.Mℚ_norm_bounded,
+RationalApprox.R'ℚ_norm_bounded,
+RationalApprox.Mθℚ_norm_bounded,
+RationalApprox.Mφℚ_norm_bounded }
     Let $\alpha,\theta,\phi\in [-4,4]$. Then it holds that
     \begin{align*}
         \|R(\alpha)-R_{\Q}(\alpha)\|, \|R'(\alpha)-R_{\Q}'(\alpha)\|,\|X(\theta,\phi)-X_{\Q}(\theta, \phi)\|, \|M(\theta, \phi)-M_{\Q}(\theta, \phi)\|, \\
@@ -101,11 +104,8 @@ RationalApprox.Mℚ_norm_bounded }
         \|M^\phi(\theta,\phi) - M_{\Q}^\phi(\theta,\phi)\|\leq \kappa.
     \end{align*}
     Moreover,
-    %% \[
-    %%     \|R_{\Q}(\alpha)\|, \|R'_{\Q}(\alpha)\|, \|X_{\Q}(\theta, \phi)\|, \|M_{\Q}(\theta, \phi)\|, \|M_{\Q}^{\theta}(\theta,\varphi)\|, \|M_{\Q}^{\phi}(\theta,\varphi)\| \leq 1+\kappa
-    %% \]
     \[
-        \|R_{\Q}(\alpha)\|,  \|M_{\Q}(\theta, \phi)\| \leq 1+\kappa
+        \|R_{\Q}(\alpha)\|, \|R'_{\Q}(\alpha)\|, \|M_{\Q}(\theta, \phi)\|, \|M_{\Q}^{\theta}(\theta,\varphi)\|, \|M_{\Q}^{\phi}(\theta,\varphi)\| \leq 1+\kappa
     \]
 \end{corollary}
 
@@ -113,11 +113,7 @@ RationalApprox.Mℚ_norm_bounded }
 \leanok
 \uses{lem:dist_le_kappa,lem:RaRalpha}
     The first statement is a direct application of \cref{lem:dist_le_kappa} and the second statement follows immediately after using \cref{lem:RaRalpha} and the triangle inequality.
-
-Note: the original paper's Corollary 41 makes a stronger claim that the norms of the derivatives of the rotation matrices are
-bounded by $1 + \kappa$ as well. This doesn't directly follow from \cref{lem:RaRalpha} as currently
-stated. If we need these other bounds, we should strengthen \cref{lem:RaRalpha} to
-assert that the derivatives' operator norms are at most 1.
+    The derivative norm bounds follow similarly, using that the operator norms of $R'$, $M^\theta$, and $M^\phi$ are at most~$1$.
 \end{proof}
 
 \begin{lemma} \label{lem:A1AnB1Bn}
@@ -230,29 +226,31 @@ See \cite{polyhedron.without.rupert}, Lemma 49.
 \begin{corollary} \label{corr:deltakappa}
 \leanok
 \lean{RationalApprox.delta_kappa}
-    In the setting of \cref{lem:boundskappa3}, let additionally $\thetab, \phib \in \R \cap [-4,4]$ and set $\overline{M} = M(\thetab, \phib)$, $\overline{M}_{\Q} = M_{\Q}(\thetab, \phib)$. Then
+    Let $P, Q \in \R^3$ with $\|P\|, \|Q\| \leq 1$ and $\widetilde{Q}$ a $\kappa$-rational approximation of $Q$.
+    Let $\alpha, \theta, \phi, \thetab, \phib \in [-4,4]$ and set $M = M(\theta, \phi)$, $M_{\Q} = M_{\Q}(\theta, \phi)$, $\overline{M} = M(\thetab, \phib)$, $\overline{M}_{\Q} = M_{\Q}(\thetab, \phib)$. Then
      \[
-|\|R(\alpha) M P - \overline{M} Q\|- \| R_{\Q}(\alpha) M_{\Q} \widetilde{P} - \overline{M}_{\Q} \widetilde{Q}\| | \leq 6 \kappa
+|\|R(\alpha) M P - \overline{M} Q\|- \| R_{\Q}(\alpha) M_{\Q} P - \overline{M}_{\Q} \widetilde{Q}\| | \leq 6 \kappa
      \]
+    Note that the rational side uses $P$ directly (not a rational approximation $\widetilde{P}$).
 \end{corollary}
 \begin{proof}
 See \cite{polyhedron.without.rupert}, Corollary 50.
-\uses{lem:boundskappa3}
+\uses{corr:kappa1kappa,lem:RaRalpha}
 \end{proof}
 
 
 \begin{corollary} \label{lem:boundskappa4}
 \leanok
 \lean{RationalApprox.bounds_kappa4}
-    In the setting of \cref{lem:boundskappa3}, let $\sqrt[+]{x}$ be an upper-$\Q$-square-root function and set $\|x\|_{+} \coloneqq \sqrt[+]{\|x\|^2}$. Set
+    In the setting of \cref{lem:boundskappa3}, let $\sqrt[+]{x}$ be an upper square-root function, i.e., $\sqrt{x} \leq \sqrt[+]{x}$ for all real $x \geq 0$ with rational output on rational input. Set $\|x\|_{+} \coloneqq \sqrt[+]{\|x\|^2}$. Set
     \[
         A =  \frac{\langle M P, M(P-Q)\rangle - 2 \epsilon  \|P-Q\| \cdot  (\sqrt{2}+\varepsilon)}{ \big(\| M P\|+\sqrt{2} \varepsilon \big) \cdot \big(\|M(P-Q)\|+2 \sqrt{2} \varepsilon\big)}
     \]
     as well as
     \[
-        A_{\Q} =         \frac{\langle M_{\Q} \widetilde{P}, M_{\Q} (\widetilde{P}-\widetilde{Q})\rangle - 10\kappa - 2 \epsilon ( \|\widetilde{P}-\widetilde{Q}\|_{+} + 2 \kappa ) \cdot  (\sqrt{2}+\varepsilon)}{ \big(\| M_{\Q} \widetilde{P}\|_{+}+\sqrt{2} \varepsilon + 3\kappa \big) \cdot \big(\|M_{\Q}(\widetilde{P}-\widetilde{Q})\|_{+}+2 \sqrt{2} \varepsilon + 6\kappa\big)}.
+        A_{\Q} =         \frac{\langle M_{\Q} \widetilde{P}, M_{\Q} (\widetilde{P}-\widetilde{Q})\rangle - 10\kappa - 2 \epsilon ( \|\widetilde{P}-\widetilde{Q}\| + 2 \kappa ) \cdot  (\sqrt{2}+\varepsilon)}{ \big(\| M_{\Q} \widetilde{P}\|_{+}+\sqrt{2} \varepsilon + 3\kappa \big) \cdot \big(\|M_{\Q}(\widetilde{P}-\widetilde{Q})\|_{+}+2 \sqrt{2} \varepsilon + 6\kappa\big)}.
     \]
-    Then it holds that $A \geq A_{\Q}$.
+    Assume that $A \geq 0$. Then it holds that $A \geq A_{\Q}$.
 \end{corollary}
 \begin{proof}
 See \cite{polyhedron.without.rupert}, Corollary 51.
@@ -273,14 +271,14 @@ See \cite{polyhedron.without.rupert}, Corollary 51.
         (-1)^{\sigma_Q} \langle \Xiib , \widetilde{Q}_i\rangle>\sqrt{2}\varepsilon + 3\kappa, \tag{A$^{\Q}_\epsilon$}
     \]
     for all $i=1,2,3$.
-    Moreover, assume that $\widetilde{P}_1,\widetilde{P}_2,\widetilde{P}_3$ are $\epsilon$-$\kappa$-spanning for $(\thetab_1,\phib_1)$ and that $\widetilde{Q}_1,\widetilde{Q}_2,\widetilde{Q}_3$ are $\epsilon$-$\kappa$-spanning for $(\thetab_2,\phib_2)$. Let $\sqrt[+]{x}$ and $\sqrt[-]{x}$ be upper- and lower-$\Q$-square-root functions, then set $\|Z\|_{+} \coloneqq \sqrt[+]{\|Z\|^2}$ and $\|Z\|_{-} \coloneqq \sqrt[-]{\|Z\|^2}$ for $Z \in \Q^n$.
+    Moreover, assume that $\widetilde{P}_1,\widetilde{P}_2,\widetilde{P}_3$ are $\epsilon$-$\kappa$-spanning for $(\thetab_1,\phib_1)$ and that $\widetilde{Q}_1,\widetilde{Q}_2,\widetilde{Q}_3$ are $\epsilon$-$\kappa$-spanning for $(\thetab_2,\phib_2)$. Let $\sqrt[+]{x}$ and $\sqrt[-]{x}$ be upper- and lower-square-root functions (bounding $\sqrt{x}$ from above/below for all real $x \geq 0$, with rational output on rational input), then set $\|Z\|_{+} \coloneqq \sqrt[+]{\|Z\|^2}$ and $\|Z\|_{-} \coloneqq \sqrt[-]{\|Z\|^2}$ for $Z \in \R^n$.
     Finally, assume that for all $i = 1,2,3$ and any $\widetilde{Q}_j \in \widetilde{\PPP} \setminus \widetilde{Q}_i$ it holds that
     \[
         \frac{\langle \Miib \widetilde{Q}_i,\Miib (\widetilde{Q}_i-\widetilde{Q}_j)\rangle - 10\kappa - 2 \epsilon ( \|\widetilde{Q}_i-\widetilde{Q}_j\|_{+} + 2 \kappa ) \cdot  (\sqrt{2}+\varepsilon)}{ \big(\|\Miib \widetilde{Q}_i\|_{+}+\sqrt{2} \varepsilon + 3\kappa \big) \cdot \big(\|\Miib(\widetilde{Q}_i-\widetilde{Q}_j)\|_{+}+2 \sqrt{2} \varepsilon + 6\kappa\big)} > \frac{\sqrt{5} \epsilon + \delta}{r}, \tag{B$^{\Q}_\epsilon$}
     \]
     for some $r >0$ such that $\min_{i=1,2,3}\| \Miib \widetilde{Q}_i \|_{-} > r + \sqrt{2} \epsilon + 3\kappa$ and for some $\delta \in \R$ with
     \[
-        \delta = \max_{i=1,2,3}\left\|R_{\Q}(\alphab) \Mib \widetilde{P}_i-\Miib \widetilde{Q}_i\right\|_{+}/2 + 3\kappa.
+        \delta \geq \max_{i=1,2,3}\left\|R_{\Q}(\alphab) \Mib \widetilde{P}_i-\Miib \widetilde{Q}_i\right\|_{+}/2 + 3\kappa.
     \]
     Then there exists no solution to Rupert's problem $R(\alpha) M(\theta_1,\phi_1)\PPP \subset  M(\theta_2,\phi_2)\PPP^\circ$ with
     \[
