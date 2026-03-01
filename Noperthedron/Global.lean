@@ -65,7 +65,6 @@ theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
 -- rotation_partials_bounded, rotation_partials_bounded_outer ([SY25] Lemma 19) are now
 -- imported from Noperthedron.Global.RotationPartials (via SecondPartialInner/SecondPartialOuter)
 
-/- FIXME: the paper has `- 9 * ε²/2` rather than `+ 9 * ε²/2` below. Did we mess something up here? -/
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
