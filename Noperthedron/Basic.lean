@@ -395,8 +395,7 @@ theorem polyhedron_radius_iff {n : ℕ} {r : ℝ} (S : Finset (E n)) (ne : S.Non
 theorem polyhedron_vertex_norm_le_radius {n : ℕ} (S : Finset (E n))
     (ne : S.Nonempty) {v : E n} (hv : v ∈ S) : ‖v‖ ≤ polyhedronRadius S ne := by
   apply Finset.le_max'
-  simp only [Finset.mem_image]
-  use v
+  exact Finset.mem_image_of_mem _ hv
 
 structure GoodPoly : Type where
   vertices : Finset ℝ³

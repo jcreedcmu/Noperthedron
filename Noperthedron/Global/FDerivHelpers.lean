@@ -91,7 +91,7 @@ lemma fderiv_rotR_rotM_in_e2 (S : Euc(3)) (y : E 3)
         (rotM ((y + t • EuclideanSpace.single 2 1).ofLp 1) ((y + t • EuclideanSpace.single 2 1).ofLp 2) S) =
         rotR (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2 + t) S) by
       rw [coord_e2_at0, coord_e2_at1, coord_e2_same]]
-    exact hasDerivAt_comp_add _ _ _ (by simpa [comp_toSpanSingleton] using
+    exact hasDerivAt_comp_add _ _ _ (by simpa [LinearMap.comp_toSpanSingleton] using
       ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp
         (y.ofLp 2) (hasDerivAt_rotM_φ (y.ofLp 1) (y.ofLp 2) S).hasFDerivAt).hasDerivAt)
   exact hline.lineDeriv
@@ -110,7 +110,7 @@ lemma fderiv_rotR_rotM_in_e1 (S : Euc(3)) (y : E 3)
         (rotM ((y + t • EuclideanSpace.single 1 1).ofLp 1) ((y + t • EuclideanSpace.single 1 1).ofLp 2) S) =
         rotR (y.ofLp 0) (rotM (y.ofLp 1 + t) (y.ofLp 2) S) by
       rw [coord_e1_at0, coord_e1_same, coord_e1_at2, add_comm]]
-    exact hasDerivAt_comp_add _ _ _ (by simpa [comp_toSpanSingleton] using
+    exact hasDerivAt_comp_add _ _ _ (by simpa [LinearMap.comp_toSpanSingleton] using
       ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp
         (y.ofLp 1) (hasDerivAt_rotM_θ (y.ofLp 1) (y.ofLp 2) S).hasFDerivAt).hasDerivAt)
   exact hline.lineDeriv
@@ -150,7 +150,7 @@ lemma fderiv_rotR'_rotM_in_e1 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
              ((y + t • EuclideanSpace.single 1 1).ofLp 2) S) =
         rotR' α (rotM (θ + t) φ S) by
       rw [coord_e1_at0, coord_e1_same, coord_e1_at2, hα, hθ, hφ, add_comm]]
-    exact hasDerivAt_comp_add _ _ _ (by simpa [comp_toSpanSingleton] using
+    exact hasDerivAt_comp_add _ _ _ (by simpa [LinearMap.comp_toSpanSingleton] using
       ((ContinuousLinearMap.hasFDerivAt (rotR' α)).comp θ (hasDerivAt_rotM_θ θ φ S).hasFDerivAt).hasDerivAt)
   exact hline.lineDeriv
 
@@ -170,7 +170,7 @@ lemma fderiv_rotR'_rotM_in_e2 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
              ((y + t • EuclideanSpace.single 2 1).ofLp 2) S) =
         rotR' α (rotM θ (φ + t) S) by
       rw [coord_e2_at0, coord_e2_at1, coord_e2_same, hα, hθ, hφ, add_comm]]
-    exact hasDerivAt_comp_add _ _ _ (by simpa [comp_toSpanSingleton] using
+    exact hasDerivAt_comp_add _ _ _ (by simpa [LinearMap.comp_toSpanSingleton] using
       ((ContinuousLinearMap.hasFDerivAt (rotR' α)).comp φ (hasDerivAt_rotM_φ θ φ S).hasFDerivAt).hasDerivAt)
   exact hline.lineDeriv
 

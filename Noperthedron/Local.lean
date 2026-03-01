@@ -199,8 +199,7 @@ theorem local_theorem (P Q : Triangle)
   let pm : Finset Euc(2) := Finset.image (rotM p.θ₂ p.φ₂) poly
   have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) (T i) pm := by
     refine inner_ge_implies_LMD (r := r) ?_ ?_ hr h₃ ?_
-    · simp only [Finset.mem_image, pm]
-      exact ⟨Q i, hQ i, rfl⟩
+    · exact Finset.mem_image_of_mem _ (hQ i)
     · simp only [T, Pose.rotR, Pose.rotM₁, Pose.rotM₂]
       rw [Metric.mem_ball, dist_eq_norm, norm_sub_rev] at hd₂
       rw [add_comm, norm_sub_rev]

@@ -341,11 +341,7 @@ lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3))
   have (qq : Euc(3) ≃ₗ[ℝ] Euc(3)) : ((Matrix.toEuclideanLin.symm (qq.toLinearMap)).toEuclideanLin v) =
       (Matrix.toEuclideanLin.symm (qq.toLinearMap)).mulVec v := by rfl
   simp only [LinearEquiv.apply_symm_apply, LinearEquiv.coe_coe] at this
-  specialize this u.symm
-  have xx : WithLp.toLp 2 ((u.symm v).ofLp) =
-      WithLp.toLp 2 ((Matrix.toEuclideanLin.symm ↑u.symm).mulVec v.ofLp) := by
-    congr
-  simpa using xx
+  rw [←this]
 
 lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
