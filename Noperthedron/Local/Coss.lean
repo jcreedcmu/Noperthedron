@@ -36,10 +36,8 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
     grw [Bounding.norm_M_sub_lt hε hθ hφ] at h₁
     rw [Bounding.rotM_norm_one, Bounding.rotM_norm_one] at h₁
     have h₂ : ‖P - Q‖ * (√2 * ε) * (1 + 1 + √2 * ε) = 2 * ε * ‖P - Q‖ * (√2 + ε) := by grind
-    rw [h₂] at h₁; clear h₂
-    rw [abs_sub_comm] at h₁
-    grw [←le_abs_self] at h₁
-    linarith only [h₁]
+    rw [h₂] at h₁
+    exact sub_le_of_abs_sub_le_left h₁
   have hp₄ : 0 < ⟪M P, M (P - Q)⟫ := by linarith only [hp₂, hp₃]
   apply div_le_div₀ hp₄.le hp₃
   · grw [←real_inner_le_norm]

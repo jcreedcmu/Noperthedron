@@ -216,7 +216,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
   · simp only [Fin.isValue]
     have hfunc : (fun x : ℝ² => ((rotMθ (x.ofLp 0) (x.ofLp 1)) P).ofLp (0 : Fin 2)) =
         fun x => -Real.cos (x.ofLp 0) * P 0 - Real.sin (x.ofLp 0) * P 1 := by
-      ext x; simp [rotMθ, rotMθ_mat, Matrix.toLpLin_apply, Matrix.vecHead, Matrix.vecTail]; ring
+      ext x; exact rotMθ_apply_0 (x.ofLp 0) (x.ofLp 1) P
     simp only [show (⟨0, zero_lt_two⟩ : Fin 2) = (0 : Fin 2) from rfl]
     rw [hfunc]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotMθ' pbar P) =
@@ -240,7 +240,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
     have hfunc : (fun x : ℝ² => ((rotMθ (x.ofLp 0) (x.ofLp 1)) P).ofLp (1 : Fin 2)) =
         fun x => Real.sin (x.ofLp 0) * Real.cos (x.ofLp 1) * P 0 -
                  Real.cos (x.ofLp 0) * Real.cos (x.ofLp 1) * P 1 := by
-      ext x; simp [rotMθ, rotMθ_mat, Matrix.toLpLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
+      ext x; exact rotMθ_apply_1 (x.ofLp 0) (x.ofLp 1) P
     simp only [show (⟨1, one_lt_two⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)).comp (rotMθ' pbar P) =
@@ -310,7 +310,7 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
   · simp only [Fin.isValue]
     have hfunc : (fun x : ℝ² => ((rotMφ (x.ofLp 0) (x.ofLp 1)) P).ofLp (0 : Fin 2)) =
         fun _ => (0 : ℝ) := by
-      ext x; simp [rotMφ, rotMφ_mat, Matrix.toLpLin_apply, Matrix.vecHead, Matrix.vecTail]
+      ext x; exact rotMφ_apply_0 (x.ofLp 0) (x.ofLp 1) P
     simp only [show (⟨0, zero_lt_two⟩ : Fin 2) = (0 : Fin 2) from rfl]
     rw [hfunc]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (0 : Fin 2)).comp (rotMφ' pbar P) = 0 := by
@@ -325,7 +325,7 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
         fun x => Real.cos (x.ofLp 0) * Real.sin (x.ofLp 1) * P 0 +
                  Real.sin (x.ofLp 0) * Real.sin (x.ofLp 1) * P 1 +
                  Real.cos (x.ofLp 1) * P 2 := by
-      ext x; simp [rotMφ, rotMφ_mat, Matrix.toLpLin_apply, Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_one]; ring
+      ext x; exact rotMφ_apply_1 (x.ofLp 0) (x.ofLp 1) P
     simp only [show (⟨1, one_lt_two⟩ : Fin 2) = (1 : Fin 2) from rfl]
     rw [hfunc]
     have hderiv : (PiLp.proj 2 (fun _ : Fin 2 => ℝ) (1 : Fin 2)).comp (rotMφ' pbar P) =

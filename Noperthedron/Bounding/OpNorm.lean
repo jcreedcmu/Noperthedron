@@ -84,7 +84,7 @@ theorem rotMφ_norm_le_one (θ φ : ℝ) : ‖rotMφ θ φ‖ ≤ 1 := by
     set cφ := Real.cos φ; set sφ := Real.sin φ
     set u := c * v 0 + s * v 1
     set w := s * v 0 - c * v 1
-    have h₁ : c^2 + s^2 = 1 := by simp only [c, s]; linarith [Real.sin_sq_add_cos_sq θ]
+    have h₁ : c^2 + s^2 = 1 := Real.cos_sq_add_sin_sq θ
     have h₂ : sφ^2 + cφ^2 = 1 := Real.sin_sq_add_cos_sq φ
     have huw : v 0 ^ 2 + v 1 ^ 2 = u^2 + w^2 :=
       by nlinarith [sq_nonneg c, sq_nonneg s, sq_nonneg (v 0), sq_nonneg (v 1)]
@@ -183,7 +183,7 @@ theorem rotMφφ_norm_le_one (θ φ : ℝ) : ‖rotMφφ θ φ‖ ≤ 1 := by
     set cφ := Real.cos φ; set sφ := Real.sin φ
     set u := c * v 0 + s * v 1
     set w := s * v 0 - c * v 1
-    have h₁ : c^2 + s^2 = 1 := by simp only [c, s]; linarith [Real.sin_sq_add_cos_sq θ]
+    have h₁ : c^2 + s^2 = 1 := Real.cos_sq_add_sin_sq θ
     have h₂ : cφ^2 + sφ^2 = 1 := Real.cos_sq_add_sin_sq φ
     have huw : v 0 ^ 2 + v 1 ^ 2 = u^2 + w^2 :=
       by nlinarith [sq_nonneg c, sq_nonneg s, sq_nonneg (v 0), sq_nonneg (v 1)]

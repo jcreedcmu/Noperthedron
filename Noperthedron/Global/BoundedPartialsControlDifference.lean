@@ -251,8 +251,7 @@ theorem bounded_partials_control_difference {n : ℕ} (f : E n → ℝ)
     · exact Continuous.intervalIntegrable (by fun_prop) 0 1
     · exact Continuous.intervalIntegrable (by fun_prop) 0 1
     · intro t ⟨ht₁, ht₂⟩
-      apply intervalIntegral.abs_integral_le_integral_abs
-      exact ht₁
+      exact intervalIntegral.abs_integral_le_integral_abs ht₁
 
   have bound2 : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤ (n^2 / 2) * ε^2 := by
     suffices h : ∫ (t : ℝ) in 0..1, ∫ (s : ℝ) in 0..t, |g'' s| ≤

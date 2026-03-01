@@ -241,8 +241,8 @@ theorem rational_local (poly poly_ : GoodPoly)
     have hA_nonneg : 0 ≤ ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ -
         2 * ε * ‖Q i - v‖ * (√2 + ε) := by
       have h_inner_le : ⟪(rotMℚ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ ≤
-          ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ := by
-        rw [abs_le] at h_inner_10; linarith [h_inner_10.1]
+          ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ :=
+        sub_le_of_abs_sub_le_left h_inner_10
       have h_eps_term : 2 * ε * ‖Q i - v‖ * (√2 + ε) ≤
           2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) := by
         apply mul_le_mul_of_nonneg_right

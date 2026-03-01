@@ -108,7 +108,7 @@ lemma hull_preserves_pointsym {S : Set (EuclideanSpace ℝ (Fin 3))} (s_psym : P
 
   have ht' : S ⊆ T' := by
     rw [pointsym_imp_flip_pres s_psym]
-    exact (Equiv.image_subset pointSymLinEquiv.toEquiv S T).mpr ht
+    exact Set.image_mono ht
 
   have hc' : Convex ℝ T' := Convex.linear_image hc pointSymLinEquiv.toLinearMap
   have a_in_T' := mem_convexHull_iff.mp ha T' ht' hc'
