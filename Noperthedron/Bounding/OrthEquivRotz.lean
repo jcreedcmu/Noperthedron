@@ -295,7 +295,7 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
   obtain ⟨γ, γb⟩ := SO3_fixing_z_is_Rz B B_in_SO3 (by convert B_fixes_z; simp)
   refine ⟨U, U_SO3.1, γ, ?_⟩
   simp only [← γb, B, ← mul_assoc, Matrix.mul_nonsing_inv U U_det_unit, one_mul]
-  rw [mul_assoc, Matrix.mul_nonsing_inv U U_det_unit, mul_one]
+  exact (U.mul_nonsing_inv_cancel_right A U_det_unit).symm
 
 lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_mat γ' := by
   use π - Real.emod (π - γ) (2 * π)

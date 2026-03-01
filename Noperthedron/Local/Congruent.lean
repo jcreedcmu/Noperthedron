@@ -62,8 +62,7 @@ lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)
       -- goal: `A *ᵥ y.ofLp ⬝ᵥ A *ᵥ x.ofLp = y.ofLp ⬝ᵥ x.ofLp`
       calc
         A *ᵥ y.ofLp ⬝ᵥ A *ᵥ x.ofLp
-            = (A *ᵥ y.ofLp) ᵥ* A ⬝ᵥ x.ofLp := by
-                simpa using (Matrix.dotProduct_mulVec (v := A *ᵥ y.ofLp) (A := A) (w := x.ofLp))
+            = (A *ᵥ y.ofLp) ᵥ* A ⬝ᵥ x.ofLp := Matrix.dotProduct_mulVec _ _ _
         _   = y.ofLp ᵥ* (Aᵀ * A) ⬝ᵥ x.ofLp := by
                 simpa using congrArg (fun t => t ⬝ᵥ x.ofLp)
                   (Matrix.vecMul_mulVec (A := A) (B := A) (x := y.ofLp))
