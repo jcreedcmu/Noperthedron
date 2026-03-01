@@ -138,8 +138,7 @@ These factor out the repeated `(y + t • EuclideanSpace.single k 1).ofLp j` sim
 /-- Coordinate extraction: direction e_i, same coordinate (moves) -/
 lemma coord_ei_same (i : Fin 3) (y : E 3) (t : ℝ) :
     (y + t • (EuclideanSpace.single i 1 : E 3)).ofLp i = y.ofLp i + t := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply,
-    ↓reduceIte, smul_eq_mul, mul_one, add_comm]
+  simp
 
 /-- Coordinate extraction: direction e_i, different coordinate j (fixed) -/
 @[simp]

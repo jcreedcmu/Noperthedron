@@ -292,20 +292,9 @@ lemma has_intervals_concat (tab : Table) (start : ℕ) (ivs1 ivs2 : List Interva
     intro i
     if h : i < ivs1.length then
       specialize h1 ⟨i, h⟩
-      simp only [Fin.getElem_fin] at h1 ⊢
-      obtain ⟨h1a, h1b⟩ := h1
-      use h1a
-      rw [h1b]
-      exact List.getElem_append_left' h ivs2
+      simp_all
     else
       replace h := Nat.le_of_not_lt h
       have : (i : ℕ) - ivs1.length < ivs2.length := by grind
       specialize h2 ⟨(i : ℕ) - ivs1.length, this⟩
-      simp only [Fin.getElem_fin] at h2 ⊢
-      obtain ⟨h2a, h2b⟩ := h2
-      have : ivs1.length + (↑i - ivs1.length) = i := Nat.add_sub_of_le h
-      conv at h2a => lhs; rw [add_assoc, this]
-      conv at h2b => enter [1, 1, 2]; rw [add_assoc, this]
-      use h2a
-      rw [h2b]
-      rw [List.getElem_append_right h]
+      simp_all
