@@ -14,8 +14,8 @@ def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .α => q.α
 
 structure Interval where
-  min : Param → ℕ
-  max : Param → ℕ
+  min : Param → ℤ
+  max : Param → ℤ
 deriving DecidableEq
 
 instance : Repr Interval where
@@ -36,7 +36,7 @@ structure Row : Type where
    IDfirstChild : ℕ
    split : ℕ
    interval : Interval
-   S_index : Fin 30
+   S_index : Fin 90
    wx_numerator : ℤ
    wy_numerator : ℤ
    w_denominator : ℕ

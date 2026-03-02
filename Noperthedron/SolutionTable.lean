@@ -18,7 +18,7 @@ lemma mem_pose_interval_iff (q : Pose) (iv : Interval) :
 
 lemma mem_lower_half (q : Pose) (iv : Interval) (p : Param)
     (hq : q ∈ iv.toPoseInterval)
-    (lower : q.getParam p ≤ ((iv.min p + iv.max p) / 2 : ℕ) / DENOM) :
+    (lower : q.getParam p ≤ ((iv.min p + iv.max p) / 2 : ℤ) / DENOM) :
     q ∈ (iv.lower_half p).toPoseInterval := by
   rw [mem_pose_interval_iff] at hq ⊢
   have ⟨_, _, _, _, _⟩ := hq
@@ -27,7 +27,7 @@ lemma mem_lower_half (q : Pose) (iv : Interval) (p : Param)
 
 lemma mem_upper_half (q : Pose) (iv : Interval) (p : Param)
     (hq : q ∈ iv.toPoseInterval)
-    (upper : ((iv.min p + iv.max p) / 2 : ℕ) / DENOM ≤ q.getParam p ) :
+    (upper : ((iv.min p + iv.max p) / 2 : ℤ) / DENOM ≤ q.getParam p ) :
     q ∈ (iv.upper_half p).toPoseInterval := by
   rw [mem_pose_interval_iff] at hq ⊢
   have ⟨_, _, _, _, _⟩ := hq
@@ -37,7 +37,7 @@ lemma mem_upper_half (q : Pose) (iv : Interval) (p : Param)
 lemma mem_interval_imp_mem_union_halves (q : Pose) (iv : Interval) (p : Param)
      (hq : q ∈ iv.toPoseInterval) :
      q ∈ (iv.lower_half p).toPoseInterval ∨ q ∈ (iv.upper_half p).toPoseInterval := by
-  let midn : ℕ := (iv.min p + iv.max p) / 2
+  let midn : ℤ := (iv.min p + iv.max p) / 2
   let midr : ℝ := midn / DENOM
   if h : q.getParam p ≤ midr then
     left; exact mem_lower_half q iv p hq h
