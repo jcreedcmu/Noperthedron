@@ -12,28 +12,6 @@ Then wire `Row.ValidGlobal` to use it, replacing the current `sorry`.
 
 ---
 
-## Prerequisite: Fix Row/Interval types
-
-**File:** `SolutionTable/Basic.lean`
-
-Two type errors in the current `Row`/`Interval` definitions prevent
-representing real CSV data:
-
-1. **`Interval.min/max : Param → ℕ` must become `Param → ℤ`.**
-   The α parameter has negative values in the CSV (e.g. A_min = −24268800).
-   ℕ cannot represent these.
-
-2. **`S_index : Fin 30` must become `ℕ`.**
-   The CSV uses S_index values 0–89 (indexing all 90 noperthedron vertices).
-   `Fin 30` is too small. We use `ℕ` and bounds-check in the checker.
-
-These changes propagate to:
-- `Interval.toPoseInterval` (divides by DENOM; needs ℤ → ℝ coercion)
-- `ValidSplitParam` (interval arithmetic on ℤ instead of ℕ)
-- `Interval.lower_half`, `Interval.upper_half` (midpoint of ℤ values)
-
----
-
 ## New file: `Noperthedron/Checker/Global.lean`
 
 All checker code lives here. This file imports `SolutionTable.Basic` for
@@ -42,12 +20,18 @@ the `Row`/`Interval` types but does NOT import any `RationalApprox` or
 
 ### Why a separate file?
 
-The existing `sinℚ`, `cosℚ`, `rotMℚ_mat`, etc. in `RationalApprox/Basic.lean`
-are all inside a `noncomputable section`. A `Bool`-returning checker cannot
-call noncomputable definitions. We reimplement the same math as computable
-functions over ℚ. This duplication is intentional and acceptable — the
-checker is a self-contained computational artifact, separate from the proof
-infrastructure.
+The existing `sinℚ`, `cosℚ`, `rotMℚ_mat`, etc. in
+`RationalApprox/Basic.lean` are all inside a `noncomputable section`.
+A `Bool`-returning checker cannot call noncomputable definitions. We
+reimplement the same math as computable functions over ℚ. This
+duplication is intentional and acceptable — the checker is a
+self-contained computational artifact, separate from the proof
+infrastructure. This is sensible, because the function of `sinℚ` is to
+define the Taylor-series approximation of sin for the purposes of
+*reasoning* about it. It is okay if we define a separate function that
+takes rationals as inputs and outputs rationals for the purposes of
+*computing* with it, and prove that the two are equivalent under
+coercion.
 
 ### Contents
 
