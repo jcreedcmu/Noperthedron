@@ -125,7 +125,7 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
     have hX0 := hX 0
     have hX1 := hX 1
     have hX2 := hX 2
-    nlinarith only [ha, hb, hc, hX0, hX1, hX2]
+    positivity
   have h₅ : vecX θ φ = lam⁻¹ • S := by
     rw [hlam, smul_smul, inv_eq_one_div, one_div_mul_cancel h₄.ne.symm]
     simp
