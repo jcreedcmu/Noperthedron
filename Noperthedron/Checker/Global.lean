@@ -261,10 +261,16 @@ def checkGlobal (row : Row) : Bool :=
   -- (6) G > maxH inequality
   && decide (computeGQ θ₁ φ₁ α ε S w > computeMaxHQ θ₂ φ₂ ε w)
 
-/-! ## Smoke test -/
+/-! ## Smoke tests
 
-/-- Row 91 from `data/solution_tree_300.csv` — the first global leaf. -/
-def testGlobalRow : Row := {
+Auto-generated from `data/solution_tree_300.csv`.
+To regenerate: `python3 scripts/gen_global_tests.py 30`
+-/
+
+-- Auto-generated from data/solution_tree_300.csv (30 global rows)
+-- To regenerate: python3 scripts/gen_global_tests.py 30
+
+private def testRow91 : Row := {
   ID := 91, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
   interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 806400
                             | .φ₂ => 808960 | .α => -23459840,
@@ -278,8 +284,426 @@ def testGlobalRow : Row := {
   r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
 }
 
-/-- info: true -/
+private def testRow92 : Row := {
+  ID := 92, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 806400 | .θ₂ => 0
+                            | .φ₂ => 0 | .α => -24268800,
+                max := fun | .θ₁ => 806400 | .φ₁ => 1612800 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23459840 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 9859861492, wy_numerator := 3591020715,
+  w_denominator := 10493440733,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow94 : Row := {
+  ID := 94, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 806400 | .θ₂ => 0
+                            | .φ₂ => 808960 | .α => -24268800,
+                max := fun | .θ₁ => 806400 | .φ₁ => 1612800 | .θ₂ => 806400
+                            | .φ₂ => 1617920 | .α => -23459840 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 2341529500, wy_numerator := 919459749,
+  w_denominator := 2515584749,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow95 : Row := {
+  ID := 95, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 806400 | .θ₂ => 0
+                            | .φ₂ => 808960 | .α => -23459840,
+                max := fun | .θ₁ => 806400 | .φ₁ => 1612800 | .θ₂ => 806400
+                            | .φ₂ => 1617920 | .α => -22650880 },
+  S_index := ⟨39, by omega⟩,
+  wx_numerator := 19348165624, wy_numerator := 61980254193,
+  w_denominator := 64929988625,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow98 : Row := {
+  ID := 98, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -24268800,
+                max := fun | .θ₁ => 806400 | .φ₁ => 1612800 | .θ₂ => 1612800
+                            | .φ₂ => 1617920 | .α => -23459840 },
+  S_index := ⟨39, by omega⟩,
+  wx_numerator := 7125455960, wy_numerator := 19125400809,
+  w_denominator := 20409632009,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow99 : Row := {
+  ID := 99, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23459840,
+                max := fun | .θ₁ => 806400 | .φ₁ => 1612800 | .θ₂ => 1612800
+                            | .φ₂ => 1617920 | .α => -22650880 },
+  S_index := ⟨39, by omega⟩,
+  wx_numerator := 5319166373, wy_numerator := 15662395164,
+  w_denominator := 16540984045,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow107 : Row := {
+  ID := 107, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 806400 | .φ₁ => 0 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23459840,
+                max := fun | .θ₁ => 1612800 | .φ₁ => 806400 | .θ₂ => 1612800
+                            | .φ₂ => 1617920 | .α => -22650880 },
+  S_index := ⟨85, by omega⟩,
+  wx_numerator := 36380760, wy_numerator := -543260641,
+  w_denominator := 544477441,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow108 : Row := {
+  ID := 108, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 0
+                            | .φ₂ => 0 | .α => -24268800,
+                max := fun | .θ₁ => 1612800 | .φ₁ => 1612800 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23459840 },
+  S_index := ⟨35, by omega⟩,
+  wx_numerator := 630691044, wy_numerator := -357161717,
+  w_denominator := 724800445,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow109 : Row := {
+  ID := 109, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 0
+                            | .φ₂ => 0 | .α => -23459840,
+                max := fun | .θ₁ => 1612800 | .φ₁ => 1612800 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -22650880 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 9859861492, wy_numerator := 3591020715,
+  w_denominator := 10493440733,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow110 : Row := {
+  ID := 110, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 0
+                            | .φ₂ => 808960 | .α => -24268800,
+                max := fun | .θ₁ => 1612800 | .φ₁ => 1612800 | .θ₂ => 806400
+                            | .φ₂ => 1617920 | .α => -23459840 },
+  S_index := ⟨35, by omega⟩,
+  wx_numerator := 804988240, wy_numerator := -494376951,
+  w_denominator := 944677001,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow111 : Row := {
+  ID := 111, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 0
+                            | .φ₂ => 808960 | .α => -23459840,
+                max := fun | .θ₁ => 1612800 | .φ₁ => 1612800 | .θ₂ => 806400
+                            | .φ₂ => 1617920 | .α => -22650880 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 2341529500, wy_numerator := 919459749,
+  w_denominator := 2515584749,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow112 : Row := {
+  ID := 112, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 0 | .α => -24268800,
+                max := fun | .θ₁ => 1612800 | .φ₁ => 1612800 | .θ₂ => 1612800
+                            | .φ₂ => 808960 | .α => -23459840 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 316700391, wy_numerator := 96278600,
+  w_denominator := 331011641,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow114 : Row := {
+  ID := 114, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -24268800,
+                max := fun | .θ₁ => 1612800 | .φ₁ => 1612800 | .θ₂ => 1612800
+                            | .φ₂ => 1617920 | .α => -23459840 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 59674116501, wy_numerator := 19533781940,
+  w_denominator := 62789878301,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow115 : Row := {
+  ID := 115, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23459840,
+                max := fun | .θ₁ => 1612800 | .φ₁ => 1612800 | .θ₂ => 1612800
+                            | .φ₂ => 1617920 | .α => -22650880 },
+  S_index := ⟨39, by omega⟩,
+  wx_numerator := 7125455960, wy_numerator := 19125400809,
+  w_denominator := 20409632009,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow116 : Row := {
+  ID := 116, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 0
+                            | .φ₂ => 0 | .α => -24268800,
+                max := fun | .θ₁ => 403200 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -23864320 },
+  S_index := ⟨36, by omega⟩,
+  wx_numerator := 418569037, wy_numerator := -28741284,
+  w_denominator := 419554645,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow117 : Row := {
+  ID := 117, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 0
+                            | .φ₂ => 0 | .α => -23864320,
+                max := fun | .θ₁ => 403200 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -23459840 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 200916921, wy_numerator := 74937200,
+  w_denominator := 214436921,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow118 : Row := {
+  ID := 118, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 0
+                            | .φ₂ => 404480 | .α => -24268800,
+                max := fun | .θ₁ => 403200 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 808960 | .α => -23864320 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 2482999140, wy_numerator := 959805749,
+  w_denominator := 2662050301,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow119 : Row := {
+  ID := 119, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 0
+                            | .φ₂ => 404480 | .α => -23864320,
+                max := fun | .θ₁ => 403200 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 808960 | .α => -23459840 },
+  S_index := ⟨39, by omega⟩,
+  wx_numerator := 47131693972, wy_numerator := 134799139965,
+  w_denominator := 142801276997,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow120 : Row := {
+  ID := 120, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 403200
+                            | .φ₂ => 0 | .α => -24268800,
+                max := fun | .θ₁ => 403200 | .φ₁ => 403200 | .θ₂ => 806400
+                            | .φ₂ => 404480 | .α => -23864320 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 1141600345, wy_numerator := 391466208,
+  w_denominator := 1206854233,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow122 : Row := {
+  ID := 122, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -24268800,
+                max := fun | .θ₁ => 403200 | .φ₁ => 403200 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23864320 },
+  S_index := ⟨39, by omega⟩,
+  wx_numerator := 17912906816, wy_numerator := 47156086713,
+  w_denominator := 50443718585,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow123 : Row := {
+  ID := 123, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -23864320,
+                max := fun | .θ₁ => 403200 | .φ₁ => 403200 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23459840 },
+  S_index := ⟨39, by omega⟩,
+  wx_numerator := 17912906816, wy_numerator := 47156086713,
+  w_denominator := 50443718585,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow124 : Row := {
+  ID := 124, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 403200 | .θ₂ => 0
+                            | .φ₂ => 0 | .α => -24268800,
+                max := fun | .θ₁ => 403200 | .φ₁ => 806400 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -23864320 },
+  S_index := ⟨36, by omega⟩,
+  wx_numerator := 418569037, wy_numerator := -28741284,
+  w_denominator := 419554645,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow125 : Row := {
+  ID := 125, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 403200 | .θ₂ => 0
+                            | .φ₂ => 0 | .α => -23864320,
+                max := fun | .θ₁ => 403200 | .φ₁ => 806400 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -23459840 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 200916921, wy_numerator := 74937200,
+  w_denominator := 214436921,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow126 : Row := {
+  ID := 126, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 403200 | .θ₂ => 0
+                            | .φ₂ => 404480 | .α => -24268800,
+                max := fun | .θ₁ => 403200 | .φ₁ => 806400 | .θ₂ => 403200
+                            | .φ₂ => 808960 | .α => -23864320 },
+  S_index := ⟨36, by omega⟩,
+  wx_numerator := 5456912188, wy_numerator := -387511245,
+  w_denominator := 5470654037,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow127 : Row := {
+  ID := 127, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 403200 | .θ₂ => 0
+                            | .φ₂ => 404480 | .α => -23864320,
+                max := fun | .θ₁ => 403200 | .φ₁ => 806400 | .θ₂ => 403200
+                            | .φ₂ => 808960 | .α => -23459840 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 2482999140, wy_numerator := 959805749,
+  w_denominator := 2662050301,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow128 : Row := {
+  ID := 128, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 0 | .α => -24268800,
+                max := fun | .θ₁ => 403200 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 404480 | .α => -23864320 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 1141600345, wy_numerator := 391466208,
+  w_denominator := 1206854233,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow129 : Row := {
+  ID := 129, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 0 | .α => -23864320,
+                max := fun | .θ₁ => 403200 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 404480 | .α => -23459840 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 1141600345, wy_numerator := 391466208,
+  w_denominator := 1206854233,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow130 : Row := {
+  ID := 130, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -24268800,
+                max := fun | .θ₁ => 403200 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23864320 },
+  S_index := ⟨37, by omega⟩,
+  wx_numerator := 846860385, wy_numerator := 300865912,
+  w_denominator := 898717313,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow131 : Row := {
+  ID := 131, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -23864320,
+                max := fun | .θ₁ => 403200 | .φ₁ => 806400 | .θ₂ => 806400
+                            | .φ₂ => 808960 | .α => -23459840 },
+  S_index := ⟨38, by omega⟩,
+  wx_numerator := 3235387544, wy_numerator := 3187166367,
+  w_denominator := 4541559425,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def testRow132 : Row := {
+  ID := 132, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 403200 | .φ₁ => 0 | .θ₂ => 0
+                            | .φ₂ => 0 | .α => -24268800,
+                max := fun | .θ₁ => 806400 | .φ₁ => 403200 | .θ₂ => 403200
+                            | .φ₂ => 404480 | .α => -23864320 },
+  S_index := ⟨36, by omega⟩,
+  wx_numerator := 418569037, wy_numerator := -28741284,
+  w_denominator := 419554645,
+  P1_index := 0, P2_index := 0, P3_index := 0,
+  Q1_index := 0, Q2_index := 0, Q3_index := 0,
+  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+}
+
+private def globalTestRows : Array Row := #[
+  testRow91, testRow92, testRow94, testRow95, testRow98, testRow99,
+  testRow107, testRow108, testRow109, testRow110, testRow111, testRow112,
+  testRow114, testRow115, testRow116, testRow117, testRow118, testRow119,
+  testRow120, testRow122, testRow123, testRow124, testRow125, testRow126,
+  testRow127, testRow128, testRow129, testRow130, testRow131, testRow132
+]
+
+/-- info: All 30 global rows pass -/
 #guard_msgs in
-#eval checkGlobal testGlobalRow
+#eval show IO Unit from do
+  let failures ← globalTestRows.toList.foldlM (init := (#[] : Array Nat)) fun acc row => do
+    if checkGlobal row then pure acc else pure (acc.push row.ID)
+  if failures.isEmpty then IO.println "All 30 global rows pass"
+  else IO.println s!"FAILED rows: {failures}"
 
 end Solution.Checker
