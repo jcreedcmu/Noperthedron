@@ -1,20 +1,10 @@
 import Noperthedron.SolutionTable.Basic
 import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Global
+import Noperthedron.SolutionTable.RationalLocalCheck
 import Noperthedron.Nopert
 
 namespace Solution
-
-lemma mem_pose_interval_iff (q : Pose) (iv : Interval) :
-    q ∈ iv.toPoseInterval ↔
-      q.θ₁ ∈ Set.Icc (iv.min .θ₁ / DENOM) (iv.max .θ₁ / DENOM) ∧
-      q.φ₁ ∈ Set.Icc (iv.min .φ₁ / DENOM) (iv.max .φ₁ / DENOM) ∧
-      q.θ₂ ∈ Set.Icc (iv.min .θ₂ / DENOM) (iv.max .θ₂ / DENOM) ∧
-      q.φ₂ ∈ Set.Icc (iv.min .φ₂ / DENOM) (iv.max .φ₂ / DENOM) ∧
-      q.α ∈ Set.Icc (iv.min .α / DENOM) (iv.max .α / DENOM)
-      := by
-  constructor <;>
-  · simp_all [Interval.toPoseInterval, Membership.mem, PoseInterval.contains]
 
 lemma mem_lower_half (q : Pose) (iv : Interval) (p : Param)
     (hq : q ∈ iv.toPoseInterval)

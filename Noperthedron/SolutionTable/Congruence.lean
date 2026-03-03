@@ -97,6 +97,116 @@ noncomputable def QTriangle (row : Solution.Row) : Triangle :=
 
 end Row
 
+/-! ### Membership of indexed points in the noperthedron vertex set -/
+
+lemma c15_cpt_sub_half (i : Fin 3) : Nopert.C15 (Nopert.Cpt i) ⊆ halfNopertVerts := by
+  intro v hv
+  fin_cases i
+  · have hv' : v ∈ Nopert.C15 Nopert.C1R := by
+      simpa [Nopert.Cpt] using hv
+    simp [halfNopertVerts, hv', Nopert.Cpt]
+  · have hv' : v ∈ Nopert.C15 Nopert.C2R := by
+      simpa [Nopert.Cpt] using hv
+    simp [halfNopertVerts, hv', Nopert.Cpt]
+  · have hv' : v ∈ Nopert.C15 Nopert.C3R := by
+      simpa [Nopert.Cpt] using hv
+    simp [halfNopertVerts, hv', Nopert.Cpt]
+
+lemma Row.indexPoint_mem_nopertVerts (idx : ℕ) :
+    Row.indexPoint idx ∈ Nopert.poly.vertices := by
+  classical
+  have hk : Solution.decodeK idx < 15 := by
+    simpa [Solution.decodeK] using (Nat.mod_lt idx (by decide))
+  have hv :
+      RzL (2 * π * (Solution.decodeK idx : ℝ) / 15) (Nopert.Cpt (Row.decodeIFin idx)) ∈
+        Nopert.C15 (Nopert.Cpt (Row.decodeIFin idx)) := by
+    unfold Nopert.C15
+    refine Finset.mem_image.mpr ?_
+    refine ⟨Solution.decodeK idx, ?_, rfl⟩
+    simpa [Finset.mem_range] using hk
+  have hv_half :
+      RzL (2 * π * (Solution.decodeK idx : ℝ) / 15) (Nopert.Cpt (Row.decodeIFin idx)) ∈
+        halfNopertVerts :=
+    c15_cpt_sub_half (Row.decodeIFin idx) hv
+  have hpar : Even (Solution.decodeL idx) ∨ Odd (Solution.decodeL idx) :=
+    Nat.even_or_odd (Solution.decodeL idx)
+  have hmem : Row.indexPoint idx ∈ pointsymmetrize halfNopertVerts := by
+    rcases hpar with hEven | hOdd
+    · have hsign : (-1 : ℤ) ^ Solution.decodeL idx = 1 := by
+        simpa using (Even.neg_one_pow (α := ℤ) hEven)
+      apply (pointsymmetrize_mem halfNopertVerts _).2
+      left
+      have hidx :
+          Row.indexPoint idx =
+            RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+              (Nopert.Cpt (Row.decodeIFin idx)) := by
+        dsimp [Row.indexPoint, Nopert.nopertPt]
+        have hsign' :
+            (-1 : ℤ) ^ Solution.decodeL idx •
+              RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                (Nopert.Cpt (Row.decodeIFin idx)) =
+            (1 : ℤ) •
+              RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                (Nopert.Cpt (Row.decodeIFin idx)) := by
+          exact congrArg (fun t => t •
+            RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+              (Nopert.Cpt (Row.decodeIFin idx))) hsign
+        calc
+          (-1 : ℤ) ^ Solution.decodeL idx •
+              RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                (Nopert.Cpt (Row.decodeIFin idx)) =
+              (1 : ℤ) •
+                RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                  (Nopert.Cpt (Row.decodeIFin idx)) := hsign'
+          _ = RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                (Nopert.Cpt (Row.decodeIFin idx)) := by simp
+      simpa [hidx] using hv_half
+    · have hsign : (-1 : ℤ) ^ Solution.decodeL idx = -1 := by
+        simpa using (Odd.neg_one_pow (α := ℤ) hOdd)
+      apply (pointsymmetrize_mem halfNopertVerts _).2
+      right
+      have hidx :
+          Row.indexPoint idx =
+            - RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+              (Nopert.Cpt (Row.decodeIFin idx)) := by
+        dsimp [Row.indexPoint, Nopert.nopertPt]
+        have hsign' :
+            (-1 : ℤ) ^ Solution.decodeL idx •
+              RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                (Nopert.Cpt (Row.decodeIFin idx)) =
+            (-1 : ℤ) •
+              RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                (Nopert.Cpt (Row.decodeIFin idx)) := by
+          exact congrArg (fun t => t •
+            RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+              (Nopert.Cpt (Row.decodeIFin idx))) hsign
+        calc
+          (-1 : ℤ) ^ Solution.decodeL idx •
+              RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                (Nopert.Cpt (Row.decodeIFin idx)) =
+              (-1 : ℤ) •
+                RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                  (Nopert.Cpt (Row.decodeIFin idx)) := hsign'
+          _ = - RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+                (Nopert.Cpt (Row.decodeIFin idx)) := by simp
+      have hidx' :
+          -Row.indexPoint idx =
+            RzL (2 * π * (Solution.decodeK idx : ℝ) / 15)
+              (Nopert.Cpt (Row.decodeIFin idx)) := by
+        simp [hidx]
+      simpa [hidx'] using hv_half
+  simpa [Nopert.poly, nopertVerts] using hmem
+
+lemma Row.PTriangle_mem_nopertVerts (row : Row) :
+    ∀ i, Row.PTriangle row i ∈ Nopert.poly.vertices := by
+  intro i
+  fin_cases i <;> simp [Row.PTriangle, Row.indexPoint_mem_nopertVerts]
+
+lemma Row.QTriangle_mem_nopertVerts (row : Row) :
+    ∀ i, Row.QTriangle row i ∈ Nopert.poly.vertices := by
+  intro i
+  fin_cases i <;> simp [Row.QTriangle, Row.indexPoint_mem_nopertVerts]
+
 /-! ### Linear isometries used for congruence witnesses -/
 
 noncomputable def signedRzIsom (dl dk : ℕ) : Euc(3) →ₗᵢ[ℝ] Euc(3) :=
