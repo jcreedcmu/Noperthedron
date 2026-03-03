@@ -1,4 +1,5 @@
 import Noperthedron.SolutionTable.Basic
+import Noperthedron.SolutionTable.Validity
 import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Global
 import Noperthedron.SolutionTable.RationalLocalCheck
@@ -156,6 +157,8 @@ theorem Row.valid_imp_not_rupert_ix
   | .asSplit y => valid_split_imp_no_rupert tab row tab_valid y rv3
   | .asGlobal y => valid_global_imp_no_rupert tab row y
   | .asLocal y=> valid_local_imp_no_rupert tab row y
+  | .asGlobalRational y => valid_global_imp_no_rupert tab row (y.toValidGlobal tab row)
+  | .asLocalRational y => valid_local_imp_no_rupert tab row (y.toValidLocal tab row)
 termination_by (tab.size - i, 3, 0)
 decreasing_by rw [_rv1]; grind
 
