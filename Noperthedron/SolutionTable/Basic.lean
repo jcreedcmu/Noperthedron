@@ -52,8 +52,19 @@ structure Row : Type where
 abbrev Table : Type := Array Row
 
 /-
-Do we want to write this validity checker instead as a manifestly
-computational program returning Bool?
+TODO: Wire these to use `Checker.checkGlobal` / `Checker.checkLocal`.
+The checker is implemented in `Noperthedron/Checker/Global.lean` and
+passes the smoke test on CSV row 91. To resolve the circular import
+(Checker imports this file for Row/Interval, this file would need to
+import Checker for checkGlobal), extract Param/Interval/Row/Table into
+`SolutionTable/Defs.lean`, then have both Checker and this file import
+Defs. Once wired:
+
+  def Row.ValidGlobal (_tab : Table) (row : Row) : Prop :=
+    Checker.checkGlobal row = true
+
+  instance : Decidable (Row.ValidGlobal tab row) :=
+    inferInstanceAs (Decidable (_ = true))
 -/
 
 def Row.ValidGlobal (tab : Table) (row : Row) : Prop :=
