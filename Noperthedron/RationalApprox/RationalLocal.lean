@@ -37,7 +37,7 @@ namespace RationalApprox.LocalTheorem
 If we have a triangle `P` in `poly`, yield the corresponding
 triangle in `poly_` which κ-approximates P.
 -/
-def transportTri {poly poly_ : GoodPoly} {P : Triangle}
+def transportTri {poly : GoodPoly} {poly_ : ApproxGoodPoly} {P : Triangle}
     (hP : ∀ i, P i ∈ poly.vertices)
     (hpoly : κApproxPoly poly.vertices poly_.vertices) : Triangle :=
   fun i => hpoly.bijection ⟨P i, hP i⟩
@@ -53,7 +53,7 @@ def BoundRℚ (r ε : ℝ) (p : Pose) (Q : Triangle) (sl : LowerSqrt) : Prop :=
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"
 -/
-theorem rational_local (poly poly_ : GoodPoly)
+theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
     (hpoly : κApproxPoly poly.vertices poly_.vertices)
     (P Q : Triangle)
     (cong_tri : P.Congruent Q)

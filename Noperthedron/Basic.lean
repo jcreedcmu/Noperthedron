@@ -397,10 +397,12 @@ theorem polyhedron_vertex_norm_le_radius {n : ℕ} (S : Finset (E n))
   apply Finset.le_max'
   exact Finset.mem_image_of_mem _ hv
 
-structure GoodPoly : Type where
+structure ApproxGoodPoly : Type where
   vertices : Finset ℝ³
   nonempty : vertices.Nonempty
   nontriv : ∀ v ∈ vertices, ‖v‖ > 0
+
+structure GoodPoly extends ApproxGoodPoly where
   radius_eq_one : polyhedronRadius vertices nonempty = 1
 
 def GoodPoly.hull (poly : GoodPoly) : Set ℝ³ :=

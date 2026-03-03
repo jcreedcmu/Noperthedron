@@ -28,7 +28,7 @@ def Hℚ (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
-def maxHℚ (p : Pose) (poly : GoodPoly) (ε : ℝ) (w : ℝ²) : ℝ :=
+def maxHℚ (p : Pose) (poly : ApproxGoodPoly) (ε : ℝ) (w : ℝ²) : ℝ :=
   poly.vertices.image (Hℚ p ε w) |>.max' <| by
     simp only [Finset.image_nonempty]
     exact poly.nonempty
@@ -39,7 +39,7 @@ We require the existence of some inner-shadow vertex S from the polyhedron, and 
 the direction we're projecting ℝ² → ℝ to find that S "sticks out too far" compared to all the
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
-structure RationalGlobalTheoremPrecondition (poly poly_ : GoodPoly)
+structure RationalGlobalTheoremPrecondition (poly : GoodPoly) (poly_ : ApproxGoodPoly)
     (happrox : κApproxPoly poly.vertices poly_.vertices) (p : Pose) (ε : ℝ) : Type where
   S : ℝ³
   S_in_poly : S ∈ poly_.vertices
@@ -128,7 +128,7 @@ private lemma H_le_Hℚ {pbar : Pose} {ε : ℝ} (hε : ε > 0)
 [SY25] Theorem 43
 -/
 theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
-    (poly poly_ : GoodPoly)
+    (poly : GoodPoly) (poly_ : ApproxGoodPoly)
     (happrox : κApproxPoly poly.vertices poly_.vertices)
     (_poly_pointsym : PointSym poly.hull)
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox pbar ε) :
