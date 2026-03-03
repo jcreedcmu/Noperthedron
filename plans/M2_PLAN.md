@@ -124,7 +124,7 @@ agreement needs careful handling of Array↔Finset correspondence.
 `nopertListQ`) cast to ℝ³.
 
 ```lean
-noncomputable def approxPoly : ApproxGoodPoly := { ... }
+def approxPoly : ApproxGoodPoly := { ... }
 theorem nopert_kapprox : κApproxPoly nopertVerts approxPoly.vertices
 ```
 

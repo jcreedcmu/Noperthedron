@@ -1,5 +1,7 @@
 import Mathlib.Data.Nat.Factorial.Basic
 import Noperthedron.Checker.Global
+import Noperthedron.SolutionTable.NopertList
+import Noperthedron.RationalApprox.TrigLemmas
 
 /-!
 # κ-Approximation of Noperthedron Vertices
@@ -187,3 +189,54 @@ def κQ' : ℚ := 1 / 10 ^ 10
 #eval decide (worstDiff < 1 / 10 ^ 14)
 
 end Solution.KappaApprox
+
+/-! ## Per-vertex κ-approximation theorem -/
+
+namespace Nopert
+
+open Solution.Checker Solution.KappaApprox RationalApprox
+
+/-- Cast a rational 3-vector to a real EuclideanSpace point. -/
+noncomputable def ratToR3 (v : Fin 3 → ℚ) : ℝ³ :=
+  WithLp.toLp 2 (fun j => (v j : ℝ))
+
+/-! ## Agreement: Cx/Cy/Cz = C1/C2/C3 components
+
+    `Cpt i : ℝ³ = WithLp 2 (Fin 3 → ℝ)` is the ith base vertex.
+    Accessing coordinate `j` gives `Cpt i j : ℝ`, which equals `↑(Cx/Cy/Cz i)`.
+-/
+
+theorem Cx_eq (i : Fin 3) : (Cx i : ℝ) = Nopert.Cpt i 0 := by
+  fin_cases i <;> simp [Cx, Nopert.Cpt, Nopert.C1R, Nopert.C2R, Nopert.C3R,
+    Nopert.C1, Nopert.C2, Nopert.C3] <;> ring
+
+theorem Cy_eq (i : Fin 3) : (Cy i : ℝ) = Nopert.Cpt i 1 := by
+  fin_cases i <;> simp [Cy, Nopert.Cpt, Nopert.C1R, Nopert.C2R, Nopert.C3R,
+    Nopert.C1, Nopert.C2, Nopert.C3] <;> ring
+
+theorem Cz_eq (i : Fin 3) : (Cz i : ℝ) = Nopert.Cpt i 2 := by
+  fin_cases i <;> simp [Cz, Nopert.Cpt, Nopert.C1R, Nopert.C2R, Nopert.C3R,
+    Nopert.C1, Nopert.C2, Nopert.C3] <;> ring
+
+/-! ## Agreement: cosQ = cosℚ, sinQ = sinℚ over ℚ -/
+
+theorem cosQ_eq_cosℚ (x : ℚ) : cosQ x = RationalApprox.cosℚ (k := ℚ) x := by
+  simp only [cosQ, RationalApprox.cosℚ, RationalApprox.cos_psum, Finset.sum_range_succ,
+    Finset.sum_range_zero]
+  ring
+
+theorem sinQ_eq_sinℚ (x : ℚ) : sinQ x = RationalApprox.sinℚ (k := ℚ) x := by
+  simp only [sinQ, RationalApprox.sinℚ, RationalApprox.sin_psum, Finset.sum_range_succ,
+    Finset.sum_range_zero]
+  ring
+
+/-- Each real noperthedron vertex κ-approximates the corresponding rational vertex.
+    This is the core bound: for every (k, i, ℓ), the real vertex `nopertPt k ℓ i`
+    (using exact trig) is within κ of the hard-coded rational approximation in
+    `nopertListQ` (indexed by `k + 15·i + 45·ℓ`). -/
+theorem nopertPt_approx (k : ℕ) (hk : k < 15) (i : Fin 3) (ℓ : ℕ) (hℓ : ℓ < 2) :
+    ‖nopertPt k ℓ i
+     - ratToR3 (nopertListQ[flatIdx k i.val ℓ]'(by simp [nopertListQ, flatIdx]; omega))‖ ≤ κ := by
+  sorry
+
+end Nopert
