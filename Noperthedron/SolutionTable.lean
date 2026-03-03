@@ -3,6 +3,7 @@ import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Global
 import Noperthedron.SolutionTable.RationalLocalCheck
 import Noperthedron.SolutionTable.RationalGlobalCheck
+import Noperthedron.SolutionTable.LeafCertificates
 import Noperthedron.Nopert
 
 namespace Solution
