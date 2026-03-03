@@ -1,10 +1,8 @@
-import Mathlib.Data.Real.Basic
+import Noperthedron.SolutionTable.Defs
 import Noperthedron.PoseInterval
+import Noperthedron.Checker.Global
 
 namespace Solution
-
-inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
-deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype
 
 def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .θ₁ => q.θ₁
@@ -13,81 +11,17 @@ def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .φ₂ => q.φ₂
 | .α => q.α
 
-structure Interval where
-  min : Param → ℤ
-  max : Param → ℤ
-deriving DecidableEq
+def Row.ValidGlobal (_tab : Table) (row : Row) : Prop :=
+  Checker.checkGlobal row = true
 
-instance : Repr Interval where
-  reprPrec i _ :=
-    let params := [Param.θ₁, Param.φ₁, Param.θ₂, Param.φ₂, Param.α]
-    let entries := params.map fun p =>
-      s!"{repr p}: [{i.min p}, {i.max p}]"
-    "{" ++ String.intercalate ",\n" entries ++ "}"
-
-/--
-A `Solution.Row` aims to closely model of exactly the data in Steininger and Yurkevich's big CSV file.
-IDs start from zero. See [SY25] §7.1 for the meaning of all these fields.
--/
-structure Row : Type where
-   ID : ℕ
-   nodeType : ℕ
-   nrChildren : ℕ
-   IDfirstChild : ℕ
-   split : ℕ
-   interval : Interval
-   S_index : Fin 90
-   wx_numerator : ℤ
-   wy_numerator : ℤ
-   w_denominator : ℕ
-   P1_index : ℕ
-   P2_index : ℕ
-   P3_index : ℕ
-   Q1_index : ℕ
-   Q2_index : ℕ
-   Q3_index : ℕ
-   r : ℤ
-   sigma_Q : Finset.Icc 0 1
-
-abbrev Table : Type := Array Row
-
-/-
-TODO: Wire these to use `Checker.checkGlobal` / `Checker.checkLocal`.
-The checker is implemented in `Noperthedron/Checker/Global.lean` and
-passes the smoke test on CSV row 91. To resolve the circular import
-(Checker imports this file for Row/Interval, this file would need to
-import Checker for checkGlobal), extract Param/Interval/Row/Table into
-`SolutionTable/Defs.lean`, then have both Checker and this file import
-Defs. Once wired:
-
-  def Row.ValidGlobal (_tab : Table) (row : Row) : Prop :=
-    Checker.checkGlobal row = true
-
-  instance : Decidable (Row.ValidGlobal tab row) :=
-    inferInstanceAs (Decidable (_ = true))
--/
-
-def Row.ValidGlobal (tab : Table) (row : Row) : Prop :=
-  row.nodeType = 1 ∧ sorry
-
-instance (tab : Table) (row : Row) : Decidable (Row.ValidGlobal tab row) := by
-  sorry
+instance (_tab : Table) (row : Row) : Decidable (Row.ValidGlobal _tab row) :=
+  inferInstanceAs (Decidable (_ = true))
 
 def Row.ValidLocal (tab : Table) (row : Row) : Prop :=
   row.nodeType = 2 ∧ sorry
 
 instance (tab : Table) (row : Row) : Decidable (Row.ValidLocal tab row) := by
   sorry
-
-def Interval.lower_half (param : Param) (interval : Interval) : Interval := {
-  min := interval.min
-  max := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.max p
-}
-
-def Interval.upper_half (param : Param) (interval : Interval) : Interval := {
-  min := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.min p
-  max := interval.max
-}
 
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
   split : row.split = 1
@@ -116,15 +50,6 @@ def Row.ValidBinarySplit (tab : Table) (row : Row) : Prop :=
      (row.split = 4 ∧ row.ValidSplitParam tab .φ₂) ∨
      (row.split = 5 ∧ row.ValidSplitParam tab .α))
 deriving Decidable
-
-/--
-`cubeFold fs b as`, takes a list of functions `fs` and a starting value `b` and a list of
-coordinates `as` and returns a list of length `|fs|^|as|` consisting of all the ways
-of folding the initial value `b` through some sequence of functions in `fs`, using values from `as`.
--/
-def cubeFold {α β : Type} (fs : List (α → β → β)) (b : β) : List α → List β
-| [] => [b]
-| (h :: tl) => fs.flatMap (fun f => cubeFold fs (f h b) tl)
 
 /-
 Equivalently I probably could have done

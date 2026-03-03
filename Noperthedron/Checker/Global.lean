@@ -1,4 +1,4 @@
-import Noperthedron.SolutionTable.Basic
+import Noperthedron.SolutionTable.Defs
 
 /-!
 # Global Validity Checker
