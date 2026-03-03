@@ -1,6 +1,7 @@
 import Noperthedron.PoseInterval
 import Noperthedron.Nopert
 import Noperthedron.SolutionTable
+import Noperthedron.SolutionTable.Witness
 
 structure SolutionTablePrecheckData where
   localData : Solution.LocalPrecheckCertificateData
@@ -31,9 +32,8 @@ def solutionTableValidFromPrecheck (tab : Solution.Table)
 theorem exists_solution_table :
     ∃ (tab : Solution.Table) (tab_valid : tab.Valid)
       (hz : 0 < tab.size),
-      tightInterval ⊆ tab[0].toPoseInterval
-     := by
-  sorry -- TODO(hard)
+      tightInterval ⊆ tab[0].toPoseInterval :=
+  Solution.exists_solution_table_witness
 
 theorem exists_solution_table_of_precheck
     (tab : Solution.Table)
