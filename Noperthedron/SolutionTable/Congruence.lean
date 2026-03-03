@@ -56,7 +56,7 @@ lemma RzL_natMod_15 (k : ℕ) :
 
   have hmat : Rz_mat (2 * π * (k : ℝ) / 15) = Rz_mat x := by
     -- `Rz_mat (x + z*(2π)) = Rz_mat x`, and `2π*k/15 = x + z*(2π)`.
-    simpa [hangle] using (Rz_mat_add_int_mul_two_pi z x)
+    simp [hangle]
 
   -- Transport the matrix equality across `toEuclideanLin.toContinuousLinearMap`.
   have hlin :
@@ -69,9 +69,8 @@ lemma RzL_add_int_mul_two_pi (z : ℤ) (x : ℝ) : RzL (x + z * (2 * π)) = RzL 
   have hlin :
       (Rz_mat (x + z * (2 * π))).toEuclideanLin.toContinuousLinearMap =
         (Rz_mat x).toEuclideanLin.toContinuousLinearMap := by
-    simpa using
-      congrArg (fun M => M.toEuclideanLin.toContinuousLinearMap) (Rz_mat_add_int_mul_two_pi z x)
-  simpa [RzL] using hlin
+    simp
+  simp [RzL]
 
 namespace Row
 
@@ -104,13 +103,13 @@ lemma c15_cpt_sub_half (i : Fin 3) : Nopert.C15 (Nopert.Cpt i) ⊆ halfNopertVer
   fin_cases i
   · have hv' : v ∈ Nopert.C15 Nopert.C1R := by
       simpa [Nopert.Cpt] using hv
-    simp [halfNopertVerts, hv', Nopert.Cpt]
+    simp [halfNopertVerts, hv']
   · have hv' : v ∈ Nopert.C15 Nopert.C2R := by
       simpa [Nopert.Cpt] using hv
-    simp [halfNopertVerts, hv', Nopert.Cpt]
+    simp [halfNopertVerts, hv']
   · have hv' : v ∈ Nopert.C15 Nopert.C3R := by
       simpa [Nopert.Cpt] using hv
-    simp [halfNopertVerts, hv', Nopert.Cpt]
+    simp [halfNopertVerts, hv']
 
 lemma Row.indexPoint_mem_nopertVerts (idx : ℕ) :
     Row.indexPoint idx ∈ Nopert.poly.vertices := by
@@ -241,21 +240,21 @@ lemma xyProj_mem_reflPlane (c : ℝ³) : xyProj c ∈ reflPlane c := by
   -- `xyProj c ⟂ xyPerp c`.
   rw [reflPlane, Submodule.mem_orthogonal_singleton_iff_inner_right]
   -- Expand the Euclidean inner product (dot product) coordinatewise.
-  simp [xyProj, xyPerp, WithLp.toLp, EuclideanSpace.inner_eq_star_dotProduct, dotProduct,
+  simp [xyProj, xyPerp, EuclideanSpace.inner_eq_star_dotProduct, dotProduct,
     Fin.sum_univ_three]
   ring
 
 lemma ez_mem_reflPlane (c : ℝ³) : ez ∈ reflPlane c := by
   rw [reflPlane, Submodule.mem_orthogonal_singleton_iff_inner_right]
-  simp [ez, xyPerp, WithLp.toLp, EuclideanSpace.inner_eq_star_dotProduct, dotProduct,
+  simp [ez, xyPerp, EuclideanSpace.inner_eq_star_dotProduct, dotProduct,
     Fin.sum_univ_three]
 
 lemma RzL_apply_decomp (θ : ℝ) (c : ℝ³) :
     RzL θ c = (Real.cos θ) • xyProj c + (Real.sin θ) • xyPerp c + (c 2) • ez := by
   ext i
   fin_cases i <;>
-    (simp [RzL, Rz_mat, xyProj, xyPerp, ez, WithLp.toLp, Matrix.toLpLin_apply, Matrix.mulVec,
-      Matrix.vecHead, Matrix.vecTail, Fin.sum_univ_three]; try ring)
+    (simp [RzL, Rz_mat, xyProj, xyPerp, ez, Matrix.toLpLin_apply,
+      Matrix.vecHead, Matrix.vecTail]; try ring)
 
 lemma reflPlane_reflection_apply_RzL (θ : ℝ) (c : ℝ³) :
     (reflPlane c).reflection (RzL θ c) = RzL (-θ) c := by
@@ -279,7 +278,7 @@ lemma reflPlane_reflection_apply_RzL (θ : ℝ) (c : ℝ³) :
     _ = (Real.cos θ) • xyProj c + (Real.sin θ) • (-xyPerp c) + (c 2) • ez := by
           simp [map_add, map_smul, hfix_xy, hfix_ez, hneg_perp]
     _ = (Real.cos (-θ)) • xyProj c + (Real.sin (-θ)) • xyPerp c + (c 2) • ez := by
-          simp [Real.cos_neg, Real.sin_neg, smul_smul, add_assoc, add_left_comm, add_comm]
+          simp [Real.cos_neg, Real.sin_neg, add_left_comm, add_comm]
     _ = RzL (-θ) c := by
           simp [RzL_apply_decomp]
 
@@ -384,7 +383,7 @@ lemma Row.indexPoint_eq_signedRzIsom_apply
       ((-1 : ℝ) ^ dl) * ((-1 : ℝ) ^ lq) = ((-1 : ℝ) ^ lq) * ((-1 : ℝ) ^ dl) := by
         simp [mul_comm]
       _ = (-1 : ℝ) ^ (lq + dl) := by
-        simpa [pow_add] using (pow_add (-1 : ℝ) lq dl).symm
+        simp [pow_add]
 
   calc
     ((-1 : ℝ) ^ lp) • RzL (2 * π * (kp : ℝ) / 15) (Nopert.Cpt iq)
@@ -473,7 +472,7 @@ lemma Row.indexPoint_eq_signedRzRefIsom_apply
   have hAngle :
       (2 * π * (dk : ℝ) / 15) + (2 * π * ((15 - kq : ℕ) : ℝ) / 15) =
         2 * π * ((dk + (15 - kq : ℕ) : ℕ) : ℝ) / 15 := by
-    simp [Nat.cast_add, add_comm, mul_add, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+    simp [Nat.cast_add, mul_add, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
 
   have hRz_comp :
       RzL (2 * π * (dk : ℝ) / 15)
@@ -504,14 +503,14 @@ lemma Row.indexPoint_eq_signedRzRefIsom_apply
           RzL (2 * π * (dk : ℝ) / 15)
             (RzL (-(2 * π * (kq : ℝ)) / 15) (Nopert.Cpt iq)) := by
               have hang0 : (-(2 * π * (kq : ℝ)) / 15) = (-2 * π * (kq : ℝ) / 15) := by ring
-              simpa [hang0]
+              simp [hang0]
       _ =
           RzL (2 * π * (dk : ℝ) / 15)
             (RzL (2 * π * ((15 - kq : ℕ) : ℝ) / 15) (Nopert.Cpt iq)) := by
-              simpa [hneg_apply]
+              simp [hneg_apply]
       _ = RzL (2 * π * ((dk + (15 - kq : ℕ) : ℕ) : ℝ) / 15) (Nopert.Cpt iq) := hcomp
       _ = RzL (2 * π * ((dk + 15 - kq : ℕ) : ℝ) / 15) (Nopert.Cpt iq) := by
-            simpa [hadd] 
+            simp [hadd]
 
   have hp :
       Row.indexPoint p =
@@ -541,7 +540,7 @@ lemma Row.indexPoint_eq_signedRzRefIsom_apply
       ((-1 : ℝ) ^ dl) * ((-1 : ℝ) ^ lq) = ((-1 : ℝ) ^ lq) * ((-1 : ℝ) ^ dl) := by
         simp [mul_comm]
       _ = (-1 : ℝ) ^ (lq + dl) := by
-        simpa [pow_add] using (pow_add (-1 : ℝ) lq dl).symm
+        simp [pow_add]
 
   have hRz_apply :
       RzL (2 * π * (dk : ℝ) / 15)
@@ -554,7 +553,7 @@ lemma Row.indexPoint_eq_signedRzRefIsom_apply
     exact hRz_comp.trans hRz'
 
   -- Finish by expanding both sides and using the reflection+rotation identity.
-  have hc : Nopert.Cpt ip = Nopert.Cpt iq := by simpa [hip]
+  have hc : Nopert.Cpt ip = Nopert.Cpt iq := by simp [hip]
 
   have href_q :
       (reflPlaneIsom (Nopert.Cpt iq)) (Row.indexPoint q) =
@@ -604,7 +603,7 @@ lemma Row.indexPoint_eq_signedRzRefIsom_apply
   have hang :
       (-(π * (2 * (kq : ℝ)) / 15)) = (-(π * (2 * (kq : ℝ))) / 15) := by
     ring
-  simpa [hscal, hRz_apply_norm, hang]
+  simp [hscal, hRz_apply_norm, hang]
 
 /--
 Soundness of `Row.localCongruenceIndexCheck`: if the index-level check passes, then the
