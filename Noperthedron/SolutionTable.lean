@@ -2,6 +2,7 @@ import Noperthedron.SolutionTable.Basic
 import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Global
 import Noperthedron.SolutionTable.RationalLocalCheck
+import Noperthedron.SolutionTable.RationalGlobalCheck
 import Noperthedron.Nopert
 
 namespace Solution

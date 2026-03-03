@@ -46,3 +46,24 @@ theorem valid_local_imp_no_rupert_rational_from_row (tab : Table) (row : Row)
   intro hrupert
   rcases hrupert with ⟨q, hq, hru⟩
   exact hno ⟨q, mem_poseInterval_imp_mem_closed_ball row q hq, hru⟩
+
+theorem valid_local_imp_no_rupert_rational_from_row_bool (tab : Table) (row : Row)
+    (hr : row.ValidLocal tab)
+    {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
+    (alg : Solution.LocalPrecheckAlg su sl)
+    (hpre : row.localPreconditionCheckBool alg = true) :
+    ¬ ∃ q ∈ row.toPoseInterval, RupertPose q Nopert.poly.hull := by
+  have hspec : row.localPreconditionCheck su sl :=
+    Solution.localPreconditionCheckBool_sound row alg hpre
+  exact valid_local_imp_no_rupert_rational_from_row tab row hr su sl hspec
+
+theorem valid_local_imp_no_rupert_rational_from_cert (tab : Table) (row : Row)
+    (hr : row.ValidLocal tab)
+    {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
+    (cert : Solution.LocalPrecheckCertificate tab su sl)
+    (hpre :
+      row.localPreconditionCheckBool
+        (Solution.LocalPrecheckAlg.ofOracle (Solution.LocalPrecheckCertificate.toOracle cert)) = true) :
+    ¬ ∃ q ∈ row.toPoseInterval, RupertPose q Nopert.poly.hull := by
+  exact valid_local_imp_no_rupert_rational_from_row_bool tab row hr
+    (Solution.LocalPrecheckAlg.ofOracle (Solution.LocalPrecheckCertificate.toOracle cert)) hpre
