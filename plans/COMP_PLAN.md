@@ -1,6 +1,8 @@
 # Computational Step Formalization Plan
 
-This is a plan for the remaining work to help Claude make progress.
+This is a plan for the remaining work to help Claude make progress. It
+covers the remaining work of "the computational part" of the overall
+proof.
 
 ## Context
 

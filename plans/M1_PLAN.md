@@ -10,6 +10,16 @@ rational global theorem (`rational_global` in `RationalApprox/RationalGlobal.lea
 
 Then wire `Row.ValidGlobal` to use it, replacing the current `sorry`.
 
+## Test data
+
+`data/solution_tree_300.csv` contains the first 300 rows of the
+decision tree.  Of these, 176 are global leaves (nodeType=1).  The
+first global leaf is row 91.  This file is small enough to inspect
+manually and serves as the primary source of test cases during
+development.  Every intermediate artifact (Row literal, sinQ/cosQ
+output, GQ/HQ values) should be cross-checked against the Python
+verification on the same row before proceeding.
+
 ---
 
 ## New file: `Noperthedron/Checker/Global.lean`
@@ -207,10 +217,21 @@ While the inequality should still hold (the Gℚ/Hℚ formulas include
 approximations are well within κ), there could be razor-thin margins on
 some rows. Using the Python's exact data eliminates this risk entirely.
 
-### M2 proof of κApproxPoly (both approaches need similar work)
+### Connecting hard-coded vertices to the proof
 
-For M2, we must prove `‖real_vertex - hard_coded_rational‖ ≤ κ` for
-each of the 90 vertices. This decomposes into:
+After the `ApproxGoodPoly` refactor (see below), the only thing we need
+to know about the hard-coded rational vertices for connecting the
+checker to `rational_global` is that they form a `κApproxPoly` with the
+real nopert vertices. Concretely, we need to construct:
+
+- `κApproxPoly nopertVerts approxVerts` — a bijection between the 90
+  real vertices and the 90 rational vertices, with ‖error‖ ≤ κ per pair
+- `ApproxGoodPoly` on the rational vertices — this follows nearly
+  automatically: `nonempty` is trivial (90 vertices), and `nontriv`
+  (all norms > 0) follows from κApproxPoly + the real vertices having
+  norm ≥ 0.98, far above κ = 10⁻¹⁰
+
+The κApproxPoly proof itself (an M2 concern) decomposes into:
 
 1. **Taylor remainder bound:** `|sin(x) - sinQ(x)| ≤ |x|²⁷/27!` for
    `|x| ≤ 4`. At x = 4 this is ~1.7 · 10⁻¹². The existing BoundsKappa
@@ -237,6 +258,17 @@ each of the 90 vertices. This decomposes into:
    `|Cᵢⱼ| · (trig_error)`, and since `‖Cᵢ‖ ≤ 1`, the L2 norm error is
    at most `√3 · max_coord_error ≈ √3 · 10⁻¹² ≪ κ`.
 
+### ApproxGoodPoly refactor (DONE)
+
+We refactored `GoodPoly` into `ApproxGoodPoly` (vertices + nonempty +
+nontriv) extended by `GoodPoly` (adding radius_eq_one). The `poly_`
+parameter in `rational_global` and `rational_local` was weakened from
+`GoodPoly` to `ApproxGoodPoly`. This was safe because the proofs never
+used `poly_.radius_eq_one` — only `poly_.vertices` and
+`poly_.nonempty`. This means we no longer need to prove the approximate
+vertices have polyhedron radius exactly 1, which would have been
+impossible for truncated rational data.
+
 ---
 
 ## Data generation
@@ -256,8 +288,8 @@ a block of Lean code that gets pasted into `Checker/Global.lean`.
 
 ## Smoke test
 
-Extract one global row from `data/solution_tree.csv` (e.g. row 91, the
-first global row), hard-code it as a Lean `Row` literal, and verify:
+Row 91 from `data/solution_tree_300.csv` is the first global leaf
+(nodeType=1).  Hard-code it as a Lean `Row` literal and verify:
 
 ```
 def testGlobalRow : Row := {
@@ -284,12 +316,24 @@ at least one row, confirming the formulas and vertex data are correct.
 
 ## Execution order
 
-1. Fix `Interval` and `Row` types in `SolutionTable/Basic.lean` (prerequisite)
-2. Create `Checker/Global.lean` with `sinQ`/`cosQ` and rotation matrices
-3. Run Python script to generate `nopertListQ` data; paste into `Checker/Global.lean`
-4. Implement `GQ`/`HQ`/`maxHQ`/`checkGlobal`
-5. Smoke test with one row (`#eval`)
-6. Wire `ValidGlobal` to use `checkGlobal`
+**Testing principle:** Every step that produces runnable code should be
+tested against real data before moving on.  The file
+`data/solution_tree_300.csv` contains the first 300 rows of the
+decision tree, including 176 global leaves (nodeType=1).  Row 91 (the
+first global leaf) is the primary test case throughout.
+
+1. **Hardcode test row (prerequisite).** Transcribe CSV row 91 into a
+   Lean `Row` literal (see "Smoke test" section below) and confirm it
+   type-checks.  This validates that the `Row`/`Interval` types can
+   represent real data — any field-type mismatches surface immediately.
+2. Create `Checker/Global.lean` with `sinQ`/`cosQ` and rotation matrices.
+3. Run Python script to generate `nopertListQ` data; paste into
+   `Checker/Global.lean`.
+4. Implement `GQ`/`HQ`/`maxHQ`/`checkGlobal`.
+5. **Smoke test.** `#eval checkGlobal testGlobalRow` must return `true`.
+   If it doesn't, debug before proceeding — the formulas or vertex data
+   are wrong.
+6. Wire `ValidGlobal` to use `checkGlobal`.
 
 ---
 
@@ -301,7 +345,7 @@ M1 produces a `Bool`-returning checker. M2 must prove:
 checkGlobal row = true → ¬ ∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull
 ```
 
-This requires three things, all M2 concerns:
+This requires four things, all M2 concerns:
 
 1. **sinQ/cosQ agreement:** The computable `sinQ`/`cosQ` in
    `Checker/Global.lean` agree with the noncomputable `sinℚ`/`cosℚ` in
@@ -311,13 +355,16 @@ This requires three things, all M2 concerns:
    the same polynomial.
 
 2. **κApproxPoly for vertices:** `nopertListQ` satisfies
-   `κApproxPoly nopertVerts nopertListQ_as_reals`. This requires the
-   Taylor remainder + π approximation bounds discussed in "Vertex
-   approximation strategy" above. The existing BoundsKappa module proves
-   similar bounds for rotation matrices and may provide reusable
-   ingredients.
+   `κApproxPoly nopertVerts nopertListQ_as_reals`. This is the main
+   piece of work — see "Connecting hard-coded vertices to the proof"
+   in the vertex approximation strategy section above.
 
-3. **Interval containment:** The axis-aligned box from
+3. **ApproxGoodPoly for vertices:** The rational vertices form an
+   `ApproxGoodPoly`. This follows nearly for free from κApproxPoly:
+   `nonempty` is trivial, and `nontriv` follows because the real
+   vertices have norm ≥ 0.98 ≫ κ = 10⁻¹⁰.
+
+4. **Interval containment:** The axis-aligned box from
    `row.toPoseInterval` is contained in `pbar.closed_ball ε` where pbar
    is the center and ε is the max half-width. This is a simple geometric
    fact about sup-norm balls containing axis-aligned boxes.
