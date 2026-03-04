@@ -1,3 +1,4 @@
 import Noperthedron.SolutionTable.RationalLocalCheck.Computable.BasicChecks
 import Noperthedron.SolutionTable.RationalLocalCheck.Computable.Oracle
+import Noperthedron.SolutionTable.RationalLocalCheck.Computable.RowCerts
 import Noperthedron.SolutionTable.RationalLocalCheck.Computable.Bool

@@ -46,6 +46,21 @@ This produces:
 
 - `external/rupert/data/solution_tree.skinny.csv`
 
+## Convert parquet → precheck JSON (stub)
+
+```bash
+external/pyvenv/bin/python ./scripts/solution_tree_to_precheck_json.py --limit 1000
+```
+
+This produces:
+
+- `external/rupert/data/solution_tree.precheck.json`
+
+Note: this exporter fills the boolean arrays with `true` and uses a fixed `S`.
+It now applies basic sanity checks (midpoint in 4-interval, ε>0, r>0, w unit)
+and also emits a `congruence_ok` array, but it still does not compute the
+actual rational inequalities.
+
 ## How this connects to the Lean proof
 
 Today, `Solution.Row.ValidGlobal` / `Solution.Row.ValidLocal` are **certificate-carrying** predicates used to drive the logical proof that a *valid* table implies “no Rupert pose exists”.

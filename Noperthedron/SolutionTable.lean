@@ -9,6 +9,45 @@ import Noperthedron.Nopert
 
 namespace Solution
 
+def Table.precheckBoolFromData (tab : Table)
+    (localData : LocalPrecheckCertificateData)
+    (global : GlobalPrecheckCertificateData) : Bool :=
+  tab.foldl (fun ok row =>
+    ok &&
+      (if row.nodeType = 1 then
+          row.globalPreconditionCheckBoolFromData global
+        else if row.nodeType = 2 then
+          row.localPreconditionCheckBoolFromData localData
+        else
+          true)) true
+
+def Table.precheckBoolFromDataWithCongruence (tab : Table)
+    (localData : LocalPrecheckCertificateData)
+    (global : GlobalPrecheckCertificateData)
+    (congruence : Array Bool) : Bool :=
+  tab.foldl (fun ok row =>
+    ok &&
+      (if row.nodeType = 1 then
+          row.globalPreconditionCheckBoolFromData global
+        else if row.nodeType = 2 then
+          row.localPreconditionCheckBoolFromData localData &&
+            (if h : row.ID < congruence.size then congruence[row.ID]'h else false)
+        else
+          true)) true
+
+noncomputable def Table.precheckBoolFromRowCerts (tab : Table)
+    {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
+    (localCerts : LocalPrecheckRowCerts tab su sl)
+    (global : GlobalPrecheckRowCerts tab) : Bool :=
+  tab.foldl (fun ok row =>
+    ok &&
+      (if row.nodeType = 1 then
+          row.globalPreconditionCheckBoolFromRowCerts global
+        else if row.nodeType = 2 then
+          row.localPreconditionCheckBoolFromRowCerts localCerts
+        else
+          true)) true
+
 lemma mem_lower_half (q : Pose) (iv : Interval) (p : Param)
     (hq : q ∈ iv.toPoseInterval)
     (lower : q.getParam p ≤ (↑((iv.min p + iv.max p) / 2) : ℝ) / DENOM) :

@@ -47,6 +47,7 @@ leanblueprint serve
 
 The solution-table checker is designed to accept external certificates for the heavy rational checks, while
 keeping verification in Lean.
+See `docs/solution_table_certificates.md` for a draft serialization spec.
 
 Local certificates:
 - `Noperthedron/SolutionTable/RationalLocalCheck.lean` defines `LocalPrecheckCertificateData` and

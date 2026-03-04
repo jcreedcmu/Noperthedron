@@ -1,3 +1,5 @@
+import Mathlib.Algebra.Order.Field.Basic
+import Mathlib.Algebra.Order.Floor.Ring
 import Noperthedron.SolutionTable.RationalLocalCheck
 import Noperthedron.RationalApprox.RationalGlobal
 import Noperthedron.Nopert
@@ -95,11 +97,116 @@ structure GlobalPrecheckCertificateData where
   S : Array ℝ³
   exceeds_ok : Array Bool
 
+def Row.globalPreconditionCheckBoolFromData (row : Row)
+    (data : GlobalPrecheckCertificateData) : Bool :=
+  decide (row.nodeType = 1) &&
+    row.globalPoseInFourIntervalBool &&
+    row.globalEpsPosBool &&
+    row.wUnitCheckBool &&
+    oracleGet data.exceeds_ok row.ID
+
+def Table.globalPreconditionCheckBoolFromData (tab : Table)
+    (data : GlobalPrecheckCertificateData) : Bool :=
+  tab.foldl (fun ok row => ok && row.globalPreconditionCheckBoolFromData data) true
+
 structure GlobalExceedsCert (row : Row) where
   S : ℝ³
   sound :
     Gℚ row.globalPose row.globalEps S row.w >
       maxHℚ row.globalPose Nopert.poly row.globalEps row.w
+
+structure GlobalExceedsRealData (row : Row) where
+  S : ℝ³
+  g_val : ℝ
+  h_val : ℝ
+
+def GlobalExceedsRealData.ofRow (row : Row) (S : ℝ³) : GlobalExceedsRealData row := {
+  S := S
+  g_val := Gℚ row.globalPose row.globalEps S row.w
+  h_val := maxHℚ row.globalPose Nopert.poly row.globalEps row.w
+}
+
+noncomputable def ratLower (x : ℝ) (n : ℕ) : ℚ :=
+  if h : n = 0 then 0 else (Int.floor (x * n) : ℚ) / n
+
+noncomputable def ratUpper (x : ℝ) (n : ℕ) : ℚ :=
+  if h : n = 0 then 0 else (Int.ceil (x * n) : ℚ) / n
+
+lemma ratLower_le (x : ℝ) {n : ℕ} (hn : 0 < n) :
+    (ratLower x n : ℝ) ≤ x := by
+  have hn0 : n ≠ 0 := Nat.ne_of_gt hn
+  have hn' : (0 : ℝ) < n := by exact_mod_cast hn
+  simp [ratLower, hn0]
+  have hfloor : ((Int.floor (x * n) : ℚ) : ℝ) ≤ x * n := by
+    simpa using (Int.floor_le (x * n))
+  have hdiv : ((Int.floor (x * n) : ℚ) : ℝ) / (n : ℝ) ≤ x := by
+    have := (div_le_iff₀ hn').2 hfloor
+    simpa [mul_comm] using this
+  simpa using hdiv
+
+lemma le_ratUpper (x : ℝ) {n : ℕ} (hn : 0 < n) :
+    x ≤ (ratUpper x n : ℝ) := by
+  have hn0 : n ≠ 0 := Nat.ne_of_gt hn
+  have hn' : (0 : ℝ) < n := by exact_mod_cast hn
+  simp [ratUpper, hn0]
+  have hceil : x * n ≤ ((Int.ceil (x * n) : ℚ) : ℝ) := by
+    simpa using (Int.le_ceil (x * n))
+  have hdiv : x ≤ ((Int.ceil (x * n) : ℚ) : ℝ) / (n : ℝ) := by
+    have := (le_div_iff₀ hn').2 hceil
+    simpa [mul_comm] using this
+  simpa using hdiv
+
+structure GlobalExceedsWitness (row : Row) where
+  S : ℝ³
+  g_lower : ℚ
+  h_upper : ℚ
+  g_lower_le :
+    (g_lower : ℝ) ≤ Gℚ row.globalPose row.globalEps S row.w
+  h_upper_ge :
+    maxHℚ row.globalPose Nopert.poly row.globalEps row.w ≤ (h_upper : ℝ)
+  gap : (h_upper : ℝ) < (g_lower : ℝ)
+
+def Row.globalPrecheckWitnessOK (row : Row) (w : GlobalExceedsWitness row) : Prop :=
+  ((w.g_lower : ℝ) ≤ Gℚ row.globalPose row.globalEps w.S row.w) ∧
+    (maxHℚ row.globalPose Nopert.poly row.globalEps row.w ≤ (w.h_upper : ℝ)) ∧
+    ((w.h_upper : ℝ) < (w.g_lower : ℝ))
+
+lemma exceeds_of_bounds (row : Row) (S : ℝ³) (g_lower h_upper : ℚ)
+    (h1 : (g_lower : ℝ) ≤ Gℚ row.globalPose row.globalEps S row.w)
+    (h2 : maxHℚ row.globalPose Nopert.poly row.globalEps row.w ≤ (h_upper : ℝ))
+    (hgap : (h_upper : ℝ) < (g_lower : ℝ)) :
+    Gℚ row.globalPose row.globalEps S row.w >
+      maxHℚ row.globalPose Nopert.poly row.globalEps row.w := by
+  have h1' :
+      maxHℚ row.globalPose Nopert.poly row.globalEps row.w < (g_lower : ℝ) :=
+    lt_of_le_of_lt h2 hgap
+  have h2' :
+      maxHℚ row.globalPose Nopert.poly row.globalEps row.w <
+        Gℚ row.globalPose row.globalEps S row.w :=
+    lt_of_lt_of_le h1' h1
+  simpa [gt_iff_lt] using h2'
+
+def GlobalExceedsWitness.toCert {row : Row} (w : GlobalExceedsWitness row) :
+    GlobalExceedsCert row := by
+  refine { S := w.S, sound := ?_ }
+  exact exceeds_of_bounds row w.S w.g_lower w.h_upper
+    w.g_lower_le w.h_upper_ge w.gap
+
+structure GlobalPrecheckRowCert (row : Row) where
+  exceeds : GlobalExceedsCert row
+  S_in_poly : exceeds.S ∈ Nopert.poly.vertices
+
+structure GlobalPrecheckRowWitness (row : Row) where
+  exceeds : GlobalExceedsWitness row
+  S_in_poly : exceeds.S ∈ Nopert.poly.vertices
+
+def GlobalPrecheckRowWitness.toRowCert {row : Row} (w : GlobalPrecheckRowWitness row) :
+    GlobalPrecheckRowCert row := by
+  refine { exceeds := w.exceeds.toCert, S_in_poly := ?_ }
+  simpa using w.S_in_poly
+
+structure GlobalPrecheckRowCerts (tab : Table) where
+  cert : (row : Row) → row.ID < tab.size → GlobalPrecheckRowCert row
 
 structure GlobalPrecheckCertificateData.ForTable (tab : Table)
     (data : GlobalPrecheckCertificateData) : Prop where
@@ -159,6 +266,38 @@ theorem globalPreconditionCheckBoolFromCert_sound (row : Row)
     row.globalPreconditionCheck ((GlobalPrecheckCertificate.toAlg cert).S row) := by
   intro h
   exact globalPreconditionCheckBool_sound row (GlobalPrecheckCertificate.toAlg cert) h
+
+def GlobalPrecheckRowCerts.toAlg {tab : Table}
+    (certs : GlobalPrecheckRowCerts tab) : GlobalPrecheckAlg :=
+  { S := fun row =>
+      if h : row.ID < tab.size then (certs.cert row h).exceeds.S else Nopert.C1R
+    exceeds := fun row => if h : row.ID < tab.size then true else false
+    S_in_poly_sound := by
+      intro row
+      by_cases h : row.ID < tab.size
+      · simpa [h] using (certs.cert row h).S_in_poly
+      · simpa [h] using c1r_in_nopert_verts
+    exceeds_sound := by
+      intro row hval
+      by_cases h : row.ID < tab.size
+      · simpa [h] using (certs.cert row h).exceeds.sound
+      · have hfalse : False := by simpa [h] using hval
+        exact (False.elim hfalse) }
+
+def Row.globalPreconditionCheckBoolFromRowCerts (row : Row)
+    {tab : Table} (certs : GlobalPrecheckRowCerts tab) : Bool :=
+  row.globalPreconditionCheckBool (GlobalPrecheckRowCerts.toAlg certs)
+
+def Table.globalPreconditionCheckBoolFromRowCerts (tab : Table)
+    (certs : GlobalPrecheckRowCerts tab) : Bool :=
+  tab.foldl (fun ok row => ok && row.globalPreconditionCheckBoolFromRowCerts certs) true
+
+theorem globalPreconditionCheckBoolFromRowCerts_sound (row : Row)
+    {tab : Table} (certs : GlobalPrecheckRowCerts tab) :
+    row.globalPreconditionCheckBoolFromRowCerts (tab := tab) certs = true →
+    row.globalPreconditionCheck ((GlobalPrecheckRowCerts.toAlg certs).S row) := by
+  intro h
+  exact globalPreconditionCheckBool_sound row (GlobalPrecheckRowCerts.toAlg certs) h
 
 end
 

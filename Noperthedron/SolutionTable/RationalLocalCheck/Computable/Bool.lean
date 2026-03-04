@@ -1,5 +1,6 @@
 import Noperthedron.SolutionTable.RationalLocalCheck.Computable.BasicChecks
 import Noperthedron.SolutionTable.RationalLocalCheck.Computable.Oracle
+import Noperthedron.SolutionTable.RationalLocalCheck.Computable.RowCerts
 
 namespace Solution
 
@@ -34,6 +35,35 @@ def Row.localPreconditionCheckBoolFromCert (row : Row)
     (cert : LocalPrecheckCertificate tab su sl) : Bool :=
   row.localPreconditionCheckBool
     (LocalPrecheckAlg.ofOracle (LocalPrecheckCertificate.toOracle cert))
+
+def Row.localPreconditionCheckBoolFromData (row : Row) (data : LocalPrecheckCertificateData) :
+    Bool :=
+  decide (row.nodeType = 2) &&
+    (row.localPoseInFourIntervalBool &&
+      (row.localEpsPosBool &&
+        (row.localRPosBool &&
+          (oracleGet data.boundR_ok row.ID &&
+            (oracleGet data.boundDelta_ok row.ID &&
+              (oracleGet data.ae1_ok row.ID &&
+                (oracleGet data.ae2_ok row.ID &&
+                  (oracleGet data.span1_ok row.ID &&
+                    (oracleGet data.span2_ok row.ID && oracleGet data.be_ok row.ID)))))))))
+
+def Table.localPreconditionCheckBoolFromData (tab : Table) (data : LocalPrecheckCertificateData) :
+    Bool :=
+  tab.foldl (fun ok row => ok && row.localPreconditionCheckBoolFromData data) true
+
+def Row.localPreconditionCheckBoolFromRowCerts (row : Row)
+    {tab : Table} {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
+    (certs : LocalPrecheckRowCerts tab su sl) : Bool :=
+  row.localPreconditionCheckBoolFromCert
+    (LocalPrecheckRowCerts.toCertificate certs)
+
+def Table.localPreconditionCheckBoolFromRowCerts (tab : Table)
+    {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
+    (certs : LocalPrecheckRowCerts tab su sl) : Bool :=
+  tab.foldl (fun ok row => ok && row.localPreconditionCheckBoolFromRowCerts (tab := tab) certs)
+    true
 
 theorem localPreconditionCheckBool_sound (row : Row)
     {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
@@ -75,6 +105,14 @@ theorem localPreconditionCheckBoolFromCert_sound (row : Row)
   intro h
   exact localPreconditionCheckBool_sound row
     (LocalPrecheckAlg.ofOracle (LocalPrecheckCertificate.toOracle cert)) h
+
+theorem localPreconditionCheckBoolFromRowCerts_sound (row : Row)
+    {tab : Table} {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
+    (certs : LocalPrecheckRowCerts tab su sl) :
+    row.localPreconditionCheckBoolFromRowCerts (tab := tab) certs = true →
+    row.localPreconditionCheck su sl := by
+  intro h
+  exact localPreconditionCheckBoolFromCert_sound row (LocalPrecheckRowCerts.toCertificate certs) h
 
 end
 

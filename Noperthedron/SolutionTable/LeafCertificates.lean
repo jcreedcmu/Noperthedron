@@ -1,6 +1,7 @@
 import Noperthedron.SolutionTable.Basic
 import Noperthedron.SolutionTable.Congruence
 import Noperthedron.SolutionTable.RationalLocalCheck
+import Noperthedron.SolutionTable.RationalGlobalCheck
 import Noperthedron.RationalApprox.RationalGlobal
 import Noperthedron.RationalApprox.RationalLocal
 import Noperthedron.Nopert
@@ -8,6 +9,8 @@ import Noperthedron.Nopert
 namespace Solution
 
 open scoped Real
+
+noncomputable section
 
 lemma nopert_poly_hull_eq_nopert_hull : Nopert.poly.hull = nopert.hull := by
   simp [GoodPoly.hull, Shape.hull, Nopert.poly, nopert]
@@ -28,6 +31,54 @@ structure Row.ValidLocalRational (tab : Table) (row : Row) : Type where
   su : RationalApprox.UpperSqrt
   sl : RationalApprox.LowerSqrt
   precheck : row.localPreconditionCheck su sl
+
+def Row.ValidGlobalRational.ofPrecheckBool (tab : Table) (row : Row)
+    (alg : Solution.GlobalPrecheckAlg)
+    (hpre : row.globalPreconditionCheckBool alg = true) :
+    Row.ValidGlobalRational tab row := by
+  have hspec : row.globalPreconditionCheck (alg.S row) :=
+    Solution.globalPreconditionCheckBool_sound row alg hpre
+  rcases hspec with ⟨hnode, hp4, hε, hw, hS, hEx⟩
+  refine {
+    nodeType := hnode
+    eps_pos := hε
+    pre := ?_
+  }
+  exact Row.globalPreconditionCheck_to_precondition row (alg.S row)
+    ⟨hnode, hp4, hε, hw, hS, hEx⟩
+
+def Row.ValidGlobalRational.ofPrecheckBoolFromRowCerts (tab : Table) (row : Row)
+    (certs : Solution.GlobalPrecheckRowCerts tab)
+    (hpre : row.globalPreconditionCheckBoolFromRowCerts (tab := tab) certs = true) :
+    Row.ValidGlobalRational tab row :=
+  Row.ValidGlobalRational.ofPrecheckBool tab row
+    (Solution.GlobalPrecheckRowCerts.toAlg certs) hpre
+
+def Row.ValidLocalRational.ofPrecheckBool (tab : Table) (row : Row)
+    (hc : row.localCongruenceIndexCheck)
+    {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
+    (alg : Solution.LocalPrecheckAlg su sl)
+    (hpre : row.localPreconditionCheckBool alg = true) :
+    Row.ValidLocalRational tab row := by
+  have hspec : row.localPreconditionCheck su sl :=
+    Solution.localPreconditionCheckBool_sound row alg hpre
+  exact {
+    congruence_check := hc
+    su := su
+    sl := sl
+    precheck := hspec
+  }
+
+def Row.ValidLocalRational.ofPrecheckBoolFromRowCerts (tab : Table) (row : Row)
+    (hc : row.localCongruenceIndexCheck)
+    {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
+    (certs : Solution.LocalPrecheckRowCerts tab su sl)
+    (hpre : row.localPreconditionCheckBoolFromRowCerts (tab := tab) certs = true) :
+    Row.ValidLocalRational tab row :=
+  Row.ValidLocalRational.ofPrecheckBool tab row hc
+    (Solution.LocalPrecheckAlg.ofOracle
+      (Solution.LocalPrecheckCertificate.toOracle
+        (Solution.LocalPrecheckRowCerts.toCertificate certs))) hpre
 
 lemma no_rupert_of_subset {A B : PoseInterval}
     (hAB : A ⊆ B)
@@ -81,5 +132,7 @@ lemma Row.ValidLocalRational.toValidLocal (tab : Table) (row : Row)
   refine ⟨?_, hc, hnorow⟩
   -- The node type fact is part of `localPreconditionCheck`.
   exact h.precheck.1
+
+end
 
 end Solution
