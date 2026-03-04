@@ -115,7 +115,7 @@ def jsonRow (j : Json) : Except String Row := do
   let q2 <- jsonNatOr (← jsonField o "Q2_index") 0
   let q3 <- jsonNatOr (← jsonField o "Q3_index") 0
   let r <- jsonIntOr (← jsonField o "r") 0
-  if h : sIndex < 30 then
+  if h : sIndex < 90 then
     pure {
       ID := id
       nodeType := nodeType

@@ -37,7 +37,7 @@ structure Row : Type where
    IDfirstChild : ℕ
    split : ℕ
    interval : Interval
-   S_index : Fin 30
+   S_index : Fin 90
    wx_numerator : ℤ
    wy_numerator : ℤ
    w_denominator : ℕ
