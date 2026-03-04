@@ -8,7 +8,7 @@ proof.
 
 The Noperthedron formalization proves that a specific convex polyhedron lacks Rupert's property.
 The proof reduces to showing no "Rupert solution" exists anywhere in a 5D parameter space
-(tightInterval). The parameter space is covered by a decision tree (~135K nodes) where each
+(tightInterval). The parameter space is covered by a decision tree (~18M nodes) where each
 leaf is either a "global" or "local" node, and the formalization must verify that every leaf
 rules out Rupert solutions in its sub-region.
 
