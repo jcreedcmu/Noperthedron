@@ -13,6 +13,39 @@ only runs once — this file builds in seconds.
 namespace Solution
 
 /-!
+### Oracle-backed certificates (sorry'd soundness — Phase B trust boundary)
+
+These are in the fast file so that filling oracle sorries (Phase B) doesn't
+require rebuilding the expensive native_decide checks.
+-/
+
+/-- Upper sqrt approximation oracle (Phase B trust boundary). -/
+noncomputable def witnessSu : RationalApprox.UpperSqrt := sorry
+
+/-- Lower sqrt approximation oracle (Phase B trust boundary). -/
+noncomputable def witnessSl : RationalApprox.LowerSqrt := sorry
+
+/-- Global precheck certificate with oracle soundness assumptions. -/
+noncomputable def globalCert : GlobalPrecheckCertificate solutionTable where
+  data := globalCertData
+  forTable := sorry  -- data sizes match tab.size
+  S_in_poly := sorry -- oracle trust: external verifier validated S ∈ vertices
+  exceeds_sound := sorry -- oracle trust: external verifier validated Gℚ > maxHℚ
+
+/-- Local precheck certificate with oracle soundness assumptions. -/
+noncomputable def localCert :
+    LocalPrecheckCertificate solutionTable witnessSu witnessSl where
+  data := localCertData
+  forTable := sorry -- 7 size equalities
+  boundR_sound := sorry -- oracle trust
+  boundDelta_sound := sorry -- oracle trust
+  ae1_sound := sorry -- oracle trust
+  ae2_sound := sorry -- oracle trust
+  span1_sound := sorry -- oracle trust
+  span2_sound := sorry -- oracle trust
+  be_sound := sorry -- oracle trust
+
+/-!
 ### Assembly — proof logic connecting bridges and witnesses
 
 These theorems combine the bridge lemmas (PrecheckBridge) with the computational
