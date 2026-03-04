@@ -76,8 +76,8 @@ theorem solutionTable_valid : Table.Valid solutionTable :=
     (LocalPrecheckAlg.ofOracle (LocalPrecheckCertificate.toOracle localCert))
     congrDecide congrDecide_sound witnessIds solutionTable_precheck
 
-/-- The root row covers tightInterval. -/
 set_option maxHeartbeats 800000 in
+/-- The root row covers tightInterval. -/
 theorem solutionTable_covers :
     tightInterval ⊆ (solutionTable[0]'witnessNonempty).toPoseInterval := by
   apply tightSubset_of_intervals
