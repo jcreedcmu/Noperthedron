@@ -60,22 +60,26 @@ theorem localFromData_imp_localCheckBool (row : Row)
     row.localPreconditionCheckBool
       (LocalPrecheckAlg.ofOracle (LocalPrecheckCertificate.toOracle cert)) = true := by
   intro h
-  -- Extract the eleven Bool atoms from the left-associated &&-chain
-  simp only [Row.localPreconditionCheckBoolFromData, Bool.and_eq_true,
-    decide_eq_true_eq] at h
-  obtain ⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨h₁, h₂⟩, h₃⟩, h₄⟩, h₅⟩, h₆⟩, h₇⟩, h₈⟩, h₉⟩, h₁₀⟩, h₁₁⟩ := h
-  -- h₁ : nodeType = 2
-  -- h₂ : localPoseInFourIntervalBool = true
-  -- h₃ : localEpsPosBool = true
-  -- h₄ : localRPosBool = true
-  -- h₅..h₁₁ : oracleGet cert.data.X_ok row.ID = true  (for each of 7 checks)
+  -- Extract the eleven Bool atoms from the &&-chain in a way that is robust to simp associativity.
+  unfold Row.localPreconditionCheckBoolFromData at h
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hnodeB, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hfourB, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hεb, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hrb, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hR, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hΔ, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hae1, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hae2, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hspan1, h⟩
+  rcases Eq.mp (Bool.and_eq_true _ _) h with ⟨hspan2, hbe⟩
+  have hnode : row.nodeType = 2 := decide_true_iff hnodeB
   -- Build the right-associated &&-chain
   -- After unfolding, the alg fields reduce to oracleGet cert.data.X_ok row.ID
   unfold Row.localPreconditionCheckBool
   simp only [Bool.and_eq_true, decide_eq_true_eq]
   -- The alg field accesses reduce definitionally:
   -- (ofOracle (toOracle cert)).boundR row = oracleGet cert.data.boundR_ok row.ID, etc.
-  exact ⟨h₁, h₂, h₃, h₄, h₅, h₆, h₇, h₈, h₉, h₁₀, h₁₁⟩
+  exact ⟨hnode, hfourB, hεb, hrb, hR, hΔ, hae1, hae2, hspan1, hspan2, hbe⟩
 
 /-!
 ### Master bridge: leaf checks + split validity → Table.Precheck
