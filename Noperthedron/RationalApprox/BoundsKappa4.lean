@@ -146,7 +146,7 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
     have h_norm_PQ : ‖P - Q‖ ≤ ‖P_ - Q_‖ + 2 * κ := by
       calc ‖P - Q‖
         _ ≤ ‖P_ - Q_‖ + ‖(P - Q) - (P_ - Q_)‖ := norm_le_insert' _ _
-        _ ≤ ‖P_ - Q_‖ + 2 * κ := by linarith [hPQ_approx]
+        _ ≤ ‖P_ - Q_‖ + 2 * κ := by grw [hPQ_approx]
     -- Now combine: numAℚ ≤ numA
     -- numAℚ = inner_ℚ - 10κ - 2ε(‖P_-Q_‖ + 2κ)(√2 + ε)
     -- numA  = inner - 2ε‖P-Q‖(√2 + ε)
