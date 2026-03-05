@@ -1,5 +1,4 @@
-import Noperthedron.SolutionTable.Validity
-import Noperthedron.RationalApprox.EpsKapSpanning
+import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Squaring trick for eliminating √2 from decidable comparisons
