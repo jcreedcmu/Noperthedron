@@ -40,7 +40,7 @@ def Row.globalPreconditionCheck (row : Row) (S : ℝ³) : Prop :=
 def Row.globalPreconditionCheck_to_precondition (row : Row) (S : ℝ³)
     (h : row.globalPreconditionCheck S) :
     RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
-      Nopert.poly Nopert.poly (RationalApprox.κApproxPoly.refl Nopert.poly)
+      Nopert.poly Nopert.poly.toApproxGoodPoly (RationalApprox.κApproxPoly.refl Nopert.poly)
       row.globalPose row.globalEps := by
   rcases h with ⟨_hnode, hp4, hε, hw, hS, hEx⟩
   refine {
