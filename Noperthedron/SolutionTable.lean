@@ -1,5 +1,7 @@
 import Noperthedron.SolutionTable.Basic
+import Noperthedron.SolutionTable.CheckAeComputable
 import Noperthedron.SolutionTable.Local
+import Noperthedron.SolutionTable.SquaringDecide
 import Noperthedron.SolutionTable.Global
 import Noperthedron.Nopert
 
