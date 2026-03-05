@@ -35,7 +35,7 @@ def Row.globalPreconditionCheck (row : Row) (S : ℝ³) : Prop :=
     row.wUnitCheck ∧
     S ∈ Nopert.poly.vertices ∧
     Gℚ row.globalPose row.globalEps S row.w >
-      maxHℚ row.globalPose Nopert.poly row.globalEps row.w
+      maxHℚ row.globalPose Nopert.poly.toApproxGoodPoly row.globalEps row.w
 
 def Row.globalPreconditionCheck_to_precondition (row : Row) (S : ℝ³)
     (h : row.globalPreconditionCheck S) :
@@ -59,7 +59,7 @@ structure GlobalPrecheckAlg where
   exceeds_sound :
     ∀ row, exceeds row = true →
       Gℚ row.globalPose row.globalEps (S row) row.w >
-        maxHℚ row.globalPose Nopert.poly row.globalEps row.w
+        maxHℚ row.globalPose Nopert.poly.toApproxGoodPoly row.globalEps row.w
 
 def Row.globalPreconditionCheckSpec (row : Row) (alg : GlobalPrecheckAlg) : Prop :=
   row.nodeType = 1 ∧
@@ -99,7 +99,7 @@ structure GlobalExceedsCert (row : Row) where
   S : ℝ³
   sound :
     Gℚ row.globalPose row.globalEps S row.w >
-      maxHℚ row.globalPose Nopert.poly row.globalEps row.w
+      maxHℚ row.globalPose Nopert.poly.toApproxGoodPoly row.globalEps row.w
 
 structure GlobalPrecheckCertificateData.ForTable (tab : Table)
     (data : GlobalPrecheckCertificateData) : Prop where
@@ -129,7 +129,7 @@ structure GlobalPrecheckCertificate (tab : Table) where
         true →
         Gℚ row.globalPose row.globalEps
           data.S[(⟨row.ID, by simpa [forTable.S] using h⟩ : Fin data.S.size)] row.w >
-        maxHℚ row.globalPose Nopert.poly row.globalEps row.w
+        maxHℚ row.globalPose Nopert.poly.toApproxGoodPoly row.globalEps row.w
 
 def GlobalPrecheckCertificate.toAlg {tab : Table}
     (cert : GlobalPrecheckCertificate tab) : GlobalPrecheckAlg :=
