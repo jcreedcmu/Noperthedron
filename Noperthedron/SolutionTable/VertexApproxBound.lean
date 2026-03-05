@@ -46,4 +46,22 @@ lemma angle_in_range (k : ℕ) (hk : k ≤ 7) :
     have hpi : π < 4 := pi_lt_four
     nlinarith
 
+/-! ### Numeric bounds -/
+
+/-- √2 * κ/7 < κ — the coarsest trig-error bound is already sub-κ. -/
+lemma sqrt2_kappa_div7_lt_kappa : √2 * RationalApprox.κ / 7 < RationalApprox.κ := by
+  have hκ : (0 : ℝ) < RationalApprox.κ := by norm_num [RationalApprox.κ]
+  have h2 : √2 < 2 := by
+    have : (2 : ℝ) = √(2^2) := by rw [Real.sqrt_sq (by norm_num : (2:ℝ) ≥ 0)]
+    rw [this]; exact Real.sqrt_lt_sqrt (by norm_num) (by norm_num)
+  nlinarith
+
+/-- 2√2 * κ/7 < κ — coordinate-wise bound is also sub-κ. -/
+lemma two_sqrt2_kappa_div7_lt_kappa : 2 * √2 * RationalApprox.κ / 7 < RationalApprox.κ := by
+  have hκ : (0 : ℝ) < RationalApprox.κ := by norm_num [RationalApprox.κ]
+  have h2 : √2 < 2 := by
+    have : (2 : ℝ) = √(2^2) := by rw [Real.sqrt_sq (by norm_num : (2:ℝ) ≥ 0)]
+    rw [this]; exact Real.sqrt_lt_sqrt (by norm_num) (by norm_num)
+  nlinarith
+
 end Solution
