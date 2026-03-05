@@ -20,7 +20,7 @@ structure Row.ValidGlobalRational (tab : Table) (row : Row) : Type where
   eps_pos : 0 < row.localEps
   pre :
     RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
-      Nopert.poly Nopert.poly (RationalApprox.κApproxPoly.refl Nopert.poly)
+      Nopert.poly Nopert.poly.toApproxGoodPoly (RationalApprox.κApproxPoly.refl Nopert.poly)
       row.localPose row.localEps
 
 structure Row.ValidLocalRational (tab : Table) (row : Row) : Type where
@@ -46,7 +46,7 @@ lemma Row.ValidGlobalRational.toValidGlobal (tab : Table) (row : Row)
         ¬ ∃ p ∈ row.localPose.closed_ball row.localEps, RupertPose p Nopert.poly.hull := by
       simpa using
         (RationalApprox.GlobalTheorem.rational_global row.localPose row.localEps h.eps_pos
-          Nopert.poly Nopert.poly (RationalApprox.κApproxPoly.refl Nopert.poly)
+          Nopert.poly Nopert.poly.toApproxGoodPoly (RationalApprox.κApproxPoly.refl Nopert.poly)
           nopert_poly_pointsym h.pre)
     simpa [nopert_poly_hull_eq_nopert_hull] using h'
   -- Restrict from the closed ball to the row's pose interval.

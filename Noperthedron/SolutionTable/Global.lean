@@ -19,7 +19,7 @@ theorem valid_global_imp_no_rupert_rational_from_row (tab : Table) (row : Row)
   have hno :=
     RationalApprox.GlobalTheorem.rational_global
       row.globalPose row.globalEps hε
-      Nopert.poly Nopert.poly (RationalApprox.κApproxPoly.refl Nopert.poly)
+      Nopert.poly Nopert.poly.toApproxGoodPoly (RationalApprox.κApproxPoly.refl Nopert.poly)
       hsym hpc
   intro hrupert
   rcases hrupert with ⟨q, hq, hru⟩
