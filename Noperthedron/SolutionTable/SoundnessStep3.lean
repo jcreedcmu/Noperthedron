@@ -1,6 +1,7 @@
-import Noperthedron.SolutionTable.AeqApproxBridge
 import Noperthedron.SolutionTable.VertexApproxBound
 import Noperthedron.SolutionTable.Congruence
+import Noperthedron.RationalApprox.BoundsKappa3
+import Noperthedron.RationalApprox.RationalLocal
 
 /-!
 # Soundness proofs for Step 3 (ae1, ae2, span1, span2)

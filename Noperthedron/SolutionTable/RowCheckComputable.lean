@@ -28,12 +28,14 @@ def intervalMidQ (row : Row) (p : Param) : ℚ :=
 def intervalHalfWidthQ (row : Row) (p : Param) : ℚ :=
   ((row.interval.max p : ℚ) - row.interval.min p) / (2 * DENOM_Q)
 
-/-- Rational localEps: max half-width over all 5 parameters. -/
+/-- Rational localEps: max half-width over all 5 parameters.
+    Matches `Row.localEps` definition structure (nested max chain). -/
 def localEpsQ (row : Row) : ℚ :=
-  let ws := [intervalHalfWidthQ row .θ₁, intervalHalfWidthQ row .φ₁,
-             intervalHalfWidthQ row .θ₂, intervalHalfWidthQ row .φ₂,
-             intervalHalfWidthQ row .α]
-  ws.foldl max 0
+  max (intervalHalfWidthQ row .θ₁)
+    (max (intervalHalfWidthQ row .φ₁)
+      (max (intervalHalfWidthQ row .θ₂)
+        (max (intervalHalfWidthQ row .φ₂)
+          (intervalHalfWidthQ row .α))))
 
 /-- Rational pose angles. -/
 def θ₁Q (row : Row) : ℚ := intervalMidQ row .θ₁

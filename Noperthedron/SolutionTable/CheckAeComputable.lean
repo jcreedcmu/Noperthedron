@@ -45,13 +45,16 @@ def checkAeVertexSq (dot : ℚ) (ε : ℚ) : Bool :=
   shifted > 0 && shifted ^ 2 > 2 * ε ^ 2
 
 /-- Check Aεℚ for a triangle given rational vertex coordinates and pose data.
-    Tries both signs σ ∈ {-1, 1} and checks all 3 vertices. -/
+    Since `Aεℚ` uses `σ ∈ ({-1, 1} : Set ℤ)` and `(-1)^σ` where both values
+    of σ give `(-1)^σ = -1`, the condition reduces to checking that all
+    negated inner products exceed the threshold. We also check the positive
+    sign (corresponding to `σ = 0` if the definition is later corrected). -/
 def checkAeTriSq (verts : Fin 3 → (Fin 3 → ℚ)) (X : Fin 3 → ℚ) (ε : ℚ) : Bool :=
   let dots : Fin 3 → ℚ := fun i => dotQ X (verts i)
-  -- Try σ = 0 (positive sign): all dots must pass
-  (checkAeVertexSq (dots 0) ε && checkAeVertexSq (dots 1) ε && checkAeVertexSq (dots 2) ε) ||
-  -- Try σ = 1 (negative sign): all negated dots must pass
-  (checkAeVertexSq (-(dots 0)) ε && checkAeVertexSq (-(dots 1)) ε && checkAeVertexSq (-(dots 2)) ε)
+  -- Check negated dots (matches (-1)^σ = -1 for σ ∈ {-1, 1})
+  (checkAeVertexSq (-(dots 0)) ε && checkAeVertexSq (-(dots 1)) ε && checkAeVertexSq (-(dots 2)) ε) ||
+  -- Also check positive dots (for robustness / if σ set is corrected to {0, 1})
+  (checkAeVertexSq (dots 0) ε && checkAeVertexSq (dots 1) ε && checkAeVertexSq (dots 2) ε)
 
 /-! ### Computable κSpanning check -/
 
