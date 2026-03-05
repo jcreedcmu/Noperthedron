@@ -15,7 +15,9 @@ def Triangle.toMatrix (P : Local.Triangle) : Matrix (Fin 3) (Fin 3) ℝ :=
   fun i j => P j i
 
 @[simp]
-lemma Triangle.toMatrix_col (P : Local.Triangle) (j : Fin 3) : P.toMatrix.col j = P j := rfl
+lemma Triangle.toMatrix_col (P : Local.Triangle) (j : Fin 3) : P.toMatrix.col j = P j := by
+  ext i
+  rfl
 
 def Triangle.toSymMatrix (P : Local.Triangle) : Matrix (Fin 3) (Fin 3) ℝ :=
   (P.toMatrix.transpose) * P.toMatrix
@@ -30,7 +32,8 @@ lemma Triangle.toSymMatrix_apply (P : Triangle) (i j : Fin 3) :
 [SY25] Lemma 35
 -/
 lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)) :
-    P.Congruent Q ↔ (P.toSymMatrix = Q.toSymMatrix) := by
+    P.Congruent Q ↔ (P.toSymMatrix = Q.toSymMatrix) :=
+  by
   constructor
   · rintro ⟨L, hL⟩
     ext i j
@@ -51,9 +54,17 @@ lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)
         _   = ((⅟ Q.toMatrix)ᵀ * Q.toMatrixᵀ) * (Q.toMatrix * ⅟ Q.toMatrix) := by
                 simp [Matrix.mul_assoc]
         _   = (1 : Matrix (Fin 3) (Fin 3) ℝ) := by
-                have h1 : (⅟ Q.toMatrix)ᵀ * Q.toMatrixᵀ = (1 : Matrix (Fin 3) (Fin 3) ℝ) :=
-                  invOf_mul_self (a := Q.toMatrixᵀ)
-                rw [h1, mul_invOf_self, one_mul]
+                have h1 : (⅟ Q.toMatrix)ᵀ * Q.toMatrixᵀ = (1 : Matrix (Fin 3) (Fin 3) ℝ) := by
+                  change (⅟ (Q.toMatrixᵀ)) * Q.toMatrixᵀ = (1 : Matrix (Fin 3) (Fin 3) ℝ)
+                  exact invOf_mul_self (a := Q.toMatrixᵀ)
+                have h2 : Q.toMatrix * ⅟ Q.toMatrix = (1 : Matrix (Fin 3) (Fin 3) ℝ) :=
+                  mul_invOf_self (a := Q.toMatrix)
+                -- avoid `simp` rewriting `⅟` into `⁻¹`
+                calc
+                  ((⅟ Q.toMatrix)ᵀ * Q.toMatrixᵀ) * (Q.toMatrix * ⅟ Q.toMatrix)
+                      = (1 : Matrix (Fin 3) (Fin 3) ℝ) * (1 : Matrix (Fin 3) (Fin 3) ℝ) := by
+                          rw [h1, h2]
+                  _   = 1 := by simp
     -- Bundle `A` as a linear isometry.
     let f : Euc(3) →ₗ[ℝ] Euc(3) := A.toEuclideanLin
     have hf_inner : ∀ x y : Euc(3), ⟪f x, f y⟫ = ⟪x, y⟫ := by
@@ -62,7 +73,8 @@ lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)
       -- goal: `A *ᵥ y.ofLp ⬝ᵥ A *ᵥ x.ofLp = y.ofLp ⬝ᵥ x.ofLp`
       calc
         A *ᵥ y.ofLp ⬝ᵥ A *ᵥ x.ofLp
-            = (A *ᵥ y.ofLp) ᵥ* A ⬝ᵥ x.ofLp := Matrix.dotProduct_mulVec _ _ _
+            = (A *ᵥ y.ofLp) ᵥ* A ⬝ᵥ x.ofLp := by
+                simpa using (Matrix.dotProduct_mulVec (v := A *ᵥ y.ofLp) (A := A) (w := x.ofLp))
         _   = y.ofLp ᵥ* (Aᵀ * A) ⬝ᵥ x.ofLp := by
                 simpa using congrArg (fun t => t ⬝ᵥ x.ofLp)
                   (Matrix.vecMul_mulVec (A := A) (B := A) (x := y.ofLp))
@@ -85,6 +97,10 @@ lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)
                 simp [hAQ]
     have h_mulVec' : A *ᵥ (Q i).ofLp = (P i).ofLp := by
       simpa [Triangle.toMatrix_col] using h_mulVec
+    -- `L` and `f` have the same underlying function, and `f` acts by `mulVec` on `ofLp`.
     ext j
-    have : (L (Q i)).ofLp = (P i).ofLp := by simp [L, f, h_mulVec']
-    exact (congrFun this j).symm
+    have hLj : (L (Q i)).ofLp = A *ᵥ (Q i).ofLp := by
+      simp [L, f]
+    -- use `hLj` and `h_mulVec'` pointwise
+    have : (L (Q i)).ofLp j = (A *ᵥ (Q i).ofLp) j := congrArg (fun v => v j) hLj
+    simpa [h_mulVec'] using this.symm

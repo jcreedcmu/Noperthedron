@@ -43,6 +43,24 @@ To run a server hosting the html, run
 leanblueprint serve
 ```
 
+## Certificate formats
+
+The solution-table checker is designed to accept external certificates for the heavy rational checks, while
+keeping verification in Lean.
+
+Local certificates:
+- `Noperthedron/SolutionTable/RationalLocalCheck.lean` defines `LocalPrecheckCertificateData` and
+  `LocalPrecheckCertificate`, which carry per-row Boolean results plus size guarantees and soundness proofs.
+  It also defines per-inequality certificate structures (`BoundRℚCert`, `BoundDeltaℚCert`, `AεℚCert`,
+  `κSpanningCert`, `BεℚCert`) and a `LocalPrecheckRowCert` bundle, plus `LocalPrecheckRowCerts` to
+  assemble table-level certificates from row certificates.
+
+Global certificates:
+- `Noperthedron/SolutionTable/RationalGlobalCheck.lean` defines `GlobalPrecheckCertificateData` and
+  `GlobalPrecheckCertificate`, which carry per-row choices of inner-shadow vertex `S` and the global
+  inequality checks.
+  The `GlobalExceedsCert` structure is the per-row certificate for the `Gℚ > maxHℚ` inequality.
+
 ## License Information
 
 Portions of this project use Apache License 2.0–licensed code from
