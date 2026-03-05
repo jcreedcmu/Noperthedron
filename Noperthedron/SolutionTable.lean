@@ -1,4 +1,5 @@
 import Noperthedron.SolutionTable.Basic
+import Noperthedron.SolutionTable.Congruence
 import Noperthedron.SolutionTable.Validity
 import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Global
