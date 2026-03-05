@@ -53,4 +53,41 @@ def checkAeTriSq (verts : Fin 3 → (Fin 3 → ℚ)) (X : Fin 3 → ℚ) (ε : �
   -- Try σ = 1 (negative sign): all negated dots must pass
   (checkAeVertexSq (-(dots 0)) ε && checkAeVertexSq (-(dots 1)) ε && checkAeVertexSq (-(dots 2)) ε)
 
+/-! ### Computable κSpanning check -/
+
+/-- Apply rotMℚ matrix to a ℚ³ vector, returning ℚ² result. -/
+def rotMQ_apply (θ φ : ℚ) (P : Fin 3 → ℚ) : Fin 2 → ℚ :=
+  fun
+  | 0 => -(sinℚ θ) * P 0 + (cosℚ θ) * P 1
+  | 1 => -(cosℚ θ) * (cosℚ φ) * P 0 - (sinℚ θ) * (cosℚ φ) * P 1 + (sinℚ φ) * P 2
+
+/-- Apply 90° rotation in ℚ². -/
+def rotR_pi2_apply (v : Fin 2 → ℚ) : Fin 2 → ℚ :=
+  fun
+  | 0 => -(v 1)
+  | 1 => v 0
+
+/-- Rational dot product of two ℚ² vectors. -/
+def dotQ2 (a b : Fin 2 → ℚ) : ℚ := a 0 * b 0 + a 1 * b 1
+
+/-- Compute the κSpanning inner product ⟪rotR(π/2)(rotMℚ θ φ P_i), rotMℚ θ φ P_{i+1}⟫
+    as a rational number. -/
+def spanInnerQ (θ φ : ℚ) (Pi Pj : Fin 3 → ℚ) : ℚ :=
+  dotQ2 (rotR_pi2_apply (rotMQ_apply θ φ Pi)) (rotMQ_apply θ φ Pj)
+
+/-- Check κSpanning inequality for a single pair via squaring trick.
+    Checks: inner > 2ε(√2+ε) + 12κ (extra 6κ for vertex approximation margin).
+    Rearranged: (inner - 2ε² - 12κ) > 0 ∧ (inner - 2ε² - 12κ)² > 8ε². -/
+def checkSpanPairSq (inner : ℚ) (ε : ℚ) : Bool :=
+  let κ : ℚ := 1 / 10^10
+  let shifted := inner - 2 * ε ^ 2 - 12 * κ
+  shifted > 0 && shifted ^ 2 > 8 * ε ^ 2
+
+/-- Check κSpanning for a triangle given rational vertex coordinates.
+    Checks all 3 pairs (i, i+1 mod 3). -/
+def checkSpanTriSq (θ φ : ℚ) (verts : Fin 3 → (Fin 3 → ℚ)) (ε : ℚ) : Bool :=
+  checkSpanPairSq (spanInnerQ θ φ (verts 0) (verts 1)) ε &&
+  checkSpanPairSq (spanInnerQ θ φ (verts 1) (verts 2)) ε &&
+  checkSpanPairSq (spanInnerQ θ φ (verts 2) (verts 0)) ε
+
 end Solution
