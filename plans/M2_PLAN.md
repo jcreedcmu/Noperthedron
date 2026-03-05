@@ -119,84 +119,33 @@ agreement needs careful handling of Array↔Finset correspondence.
 
 ### D. κApproxPoly construction
 
+**See [M2D_PLAN.md](M2D_PLAN.md) for the detailed sub-plan.**
+
 **What:** Construct `κApproxPoly nopertVerts approxVerts` where
 `approxVerts` is the Finset of rational vertex approximations (from
 `nopertListQ`) cast to ℝ³.
 
-```lean
-def approxPoly : ApproxGoodPoly := { ... }
-theorem nopert_kapprox : κApproxPoly nopertVerts approxPoly.vertices
+**Strategy:** Triangle inequality via an intermediate rational list
+`nopertListℚ` that uses `sinQ`/`cosQ` at rational angle arguments
+(with a rational π approximation `piQ`):
+
+```
+nopertListQ <──calculate──> nopertListℚ <──prove──> nopertList
 ```
 
-This requires:
-1. A bijection `nopertVerts ≃ approxVerts`
-2. For each pair, `‖real_vertex - approx_vertex‖ ≤ κ`
+- Left leg (Q vs ℚ): decidable ℚ comparison, verified by `native_decide`
+- Right leg (ℚ vs real): uniform bound via Taylor remainder + π
+  approximation error
 
-**Sub-structure of the bound proof:**
+**Phased approach:** Start with just the first coordinate of the first
+vertex (k=0 case, where the right leg vanishes and the entire bound
+is a pure ℚ comparison), then generalize.
 
-For each vertex `v` in `nopertVerts` (defined via exact trig: `cos(2πk/15)`,
-`sin(2πk/15)`, and rational base coordinates C1/C2/C3), the corresponding
-rational approximation `v_` in `nopertListQ` satisfies `‖v - v_‖ ≤ κ`.
+**Difficulty:** HIGH overall. The k=0 case is low difficulty. The
+general case requires proving tighter π bounds (~12 digits) than
+Mathlib currently provides (~7 digits).
 
-The error decomposes as:
-```
-‖v - v_‖ ≤ √3 · max_coord_error
-```
-where the per-coordinate error is:
-```
-|cos(2πk/15)·Cij - hardcoded_coord/10^16|
-  ≤ |cos(2πk/15) - cosℚ(2πk/15)|·|Cij|     -- Taylor remainder
-    + |cosℚ(2πk/15)·Cij - hardcoded/10^16|  -- truncation
-```
-
-The Taylor remainder `|cos(x) - cosℚ(x)| ≤ |x|^26/26!` at
-`x = 2π ≈ 6.28` gives ~10⁻²⁵, and `|Cij| ≤ 1`, so the first
-term is negligible. The truncation error is ≤ 10⁻¹⁶ by construction.
-Total: `√3 · 10⁻¹⁶ ≈ 1.7 · 10⁻¹⁶ ≪ κ = 10⁻¹⁰`.
-
-**Approach options:**
-
-1. **Abstract bound**: Prove a general lemma that any floor-truncated
-   Taylor-polynomial evaluation of a trig function at a real argument
-   is within some explicit bound of the true value. Then instantiate
-   for each vertex. This is clean but requires:
-   - Taylor remainder bounds (may exist in Mathlib or in existing
-     `TrigLemmas.lean`)
-   - π bounds (Mathlib has `Real.pi_lt_3141593`)
-
-2. **Per-vertex interval arithmetic**: For each of the 90 vertices,
-   set up a computable rational bound check. E.g., show that for the
-   kth vertex's x-coordinate:
-   ```
-   |cosℚ(2·piQ·k/15)·Cij - hardcoded/10^16| ≤ bound
-   ```
-   where `piQ` is a rational approximation of π, and `bound` is
-   chosen so that `√3 · (Taylor_remainder + bound) ≤ κ`.
-   This can be partly automated via `native_decide` on rational
-   comparisons.
-
-**Difficulty:** HIGH. This is the hardest sub-goal. The error analysis
-is straightforward mathematically but the formal Lean proof requires
-careful engineering.
-
-**Possible simplification:** Since the BoundsKappa module already proves
-`‖rotM θ φ - rotMℚ θ φ‖ ≤ κ_matrix` type bounds, maybe we can
-leverage those to get per-vertex bounds more directly?
-
-Actually, looking more carefully: the existing `BoundsKappa` bounds
-relate `rotM` (real trig) to `rotMℚ` (Taylor polynomial, same angles).
-These DON'T directly give us vertex approximation bounds, because
-`κApproxPoly` is about the vertex positions themselves, not about
-rotation matrices.
-
-However, `nopertList` already provides `nopertList.toFinset = nopertVerts`
-(from `NopertList.lean`). So the bijection part is handled: the real
-vertices are enumerated by `nopertList`, and the rational vertices by
-`nopertListQ`. We need `‖nopertList[i] - ↑(nopertListQ[i])‖ ≤ κ` for
-each i ∈ [0,90).
-
-**File:** New file, perhaps `Checker/KappaApprox.lean` or
-`RationalApprox/NopertApprox.lean`.
+**File:** `Checker/KappaApprox.lean`
 
 ### E. ApproxGoodPoly construction
 
