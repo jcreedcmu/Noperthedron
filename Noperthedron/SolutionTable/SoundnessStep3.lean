@@ -80,6 +80,20 @@ theorem vecXQ_norm_bound (θ φ : ℝ)
     _ = 1 + ‖vecX θ φ - vecXℚ θ φ‖ := by rw [vecX_norm_one]
     _ ≤ 1 + κ := by gcongr; exact vecX_sub_vecXℚ_norm_le' θ φ hθ hφ
 
+/-! ### Squaring trick soundness (ℚ → ℝ) -/
+
+/-- Generic squaring trick: if `t < dot` and `(dot-t)² > 2ε²` in ℚ,
+    then `dot > √2·ε + t` in ℝ. -/
+theorem sq_trick_sound (dot t ε : ℚ)
+    (hpos : t < dot) (hsq : 2 * ε ^ 2 < (dot - t) ^ 2) :
+    (dot : ℝ) > √2 * (ε : ℝ) + (t : ℝ) := by
+  have hpos_r : (t : ℝ) < (dot : ℝ) := by exact_mod_cast hpos
+  have hsq_r : 2 * (ε : ℝ) ^ 2 < ((dot : ℝ) - (t : ℝ)) ^ 2 := by exact_mod_cast hsq
+  by_contra h'
+  push_neg at h'
+  nlinarith [sq_nonneg (√2 * (ε : ℝ) - ((dot : ℝ) - (t : ℝ))),
+             Real.sq_sqrt (show (2:ℝ) ≥ 0 by norm_num)]
+
 /-! ### End-to-end soundness (sketched) -/
 
 -- The full soundness theorem would be:
