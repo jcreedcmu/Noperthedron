@@ -1,4 +1,5 @@
 import Noperthedron.SolutionTable.WitnessData
+import Noperthedron.RationalApprox.NewtonSqrt
 
 /-!
 # Witness assembly for exists_solution_table
@@ -19,24 +20,48 @@ These are in the fast file so that filling oracle sorries (Phase B) doesn't
 require rebuilding the expensive native_decide checks.
 -/
 
-/-- Upper sqrt approximation oracle (Phase B trust boundary). -/
-noncomputable def witnessSu : RationalApprox.UpperSqrt := sorry
+/-- Upper sqrt approximation via Newton iteration. -/
+noncomputable def witnessSu : RationalApprox.UpperSqrt := RationalApprox.newtonUpperSqrt
 
-/-- Lower sqrt approximation oracle (Phase B trust boundary). -/
-noncomputable def witnessSl : RationalApprox.LowerSqrt := sorry
+/-- Lower sqrt approximation via Newton iteration. -/
+noncomputable def witnessSl : RationalApprox.LowerSqrt := RationalApprox.newtonLowerSqrt
+
+/-- S array: maps each row's S_index to the corresponding noperthedron vertex. -/
+noncomputable def witnessS : Array ℝ³ :=
+  Array.ofFn fun (i : Fin solutionTable.size) =>
+    Row.indexPoint (solutionTable[i].S_index)
+
+/-- Global certificate data with proper S array populated from witness data. -/
+noncomputable def globalCertDataWithS : GlobalPrecheckCertificateData :=
+  { S := witnessS, exceeds_ok := exceedsOkData }
+
+/-- `globalPreconditionCheckBoolFromData` only depends on the `exceeds_ok` field. -/
+private theorem globalFromData_exceeds_only (row : Row)
+    (d1 d2 : GlobalPrecheckCertificateData)
+    (h : d1.exceeds_ok = d2.exceeds_ok) :
+    row.globalPreconditionCheckBoolFromData d1 =
+    row.globalPreconditionCheckBoolFromData d2 := by
+  simp [Row.globalPreconditionCheckBoolFromData, h]
 
 /-- Global precheck certificate with oracle soundness assumptions. -/
 noncomputable def globalCert : GlobalPrecheckCertificate solutionTable where
-  data := globalCertData
-  forTable := sorry  -- data sizes match tab.size
-  S_in_poly := sorry -- oracle trust: external verifier validated S ∈ vertices
+  data := globalCertDataWithS
+  forTable := { S := by unfold globalCertDataWithS witnessS; exact Array.size_ofFn
+                exceeds := rfl }
+  S_in_poly := fun _row h => by
+    unfold globalCertDataWithS witnessS
+    dsimp only []
+    show (Array.ofFn fun i => Row.indexPoint (solutionTable[i].S_index))[_row.ID] ∈ _
+    rw [Array.getElem_ofFn]
+    exact Row.indexPoint_mem_nopertVerts _
   exceeds_sound := sorry -- oracle trust: external verifier validated Gℚ > maxHℚ
 
 /-- Local precheck certificate with oracle soundness assumptions. -/
 noncomputable def localCert :
     LocalPrecheckCertificate solutionTable witnessSu witnessSl where
   data := localCertData
-  forTable := sorry -- 7 size equalities
+  forTable := { boundR := rfl, boundDelta := rfl, ae1 := rfl,
+                ae2 := rfl, span1 := rfl, span2 := rfl, be := rfl }
   boundR_sound := sorry -- oracle trust
   boundDelta_sound := sorry -- oracle trust
   ae1_sound := sorry -- oracle trust
@@ -63,7 +88,12 @@ theorem solutionTable_precheck :
   apply Table.Precheck_of_parts
   · intro i; constructor
     · intro h1
-      exact globalFromData_imp_globalCheckBool _ globalCert (witnessLeafGlobal i h1)
+      -- witnessLeafGlobal gives us `...FromData globalCertData = true`
+      -- but globalCert.data = globalCertDataWithS, so we bridge via exceeds_only
+      have hFromData := witnessLeafGlobal i h1
+      have hBridge := globalFromData_exceeds_only (solutionTable[i]) globalCertData
+        globalCertDataWithS rfl
+      exact globalFromData_imp_globalCheckBool _ globalCert (hBridge ▸ hFromData)
     · intro h2
       exact ⟨localFromData_imp_localCheckBool _ localCert (witnessLeafLocal i h2).1,
              (witnessLeafLocal i h2).2⟩
