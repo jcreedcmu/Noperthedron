@@ -160,6 +160,14 @@ theorem globalPreconditionCheckBoolFromCert_sound (row : Row)
   intro h
   exact globalPreconditionCheckBool_sound row (GlobalPrecheckCertificate.toAlg cert) h
 
+def Row.globalPreconditionCheckBoolFromData (row : Row)
+    (data : GlobalPrecheckCertificateData) : Bool :=
+  decide (row.nodeType = 1) &&
+    row.globalPoseInFourIntervalBool &&
+    row.globalEpsPosBool &&
+    row.wUnitCheckBool &&
+    oracleGet data.exceeds_ok row.ID
+
 end
 
 end Solution

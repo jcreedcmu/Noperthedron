@@ -29,6 +29,20 @@ def Row.localPreconditionCheckBool (row : Row)
                   (alg.span1 row &&
                     (alg.span2 row && alg.be row)))))))))
 
+def Row.localPreconditionCheckBoolFromData (row : Row)
+    (data : LocalPrecheckCertificateData) : Bool :=
+  decide (row.nodeType = 2) &&
+    row.localPoseInFourIntervalBool &&
+    row.localEpsPosBool &&
+    row.localRPosBool &&
+    oracleGet data.boundR_ok row.ID &&
+    oracleGet data.boundDelta_ok row.ID &&
+    oracleGet data.ae1_ok row.ID &&
+    oracleGet data.ae2_ok row.ID &&
+    oracleGet data.span1_ok row.ID &&
+    oracleGet data.span2_ok row.ID &&
+    oracleGet data.be_ok row.ID
+
 def Row.localPreconditionCheckBoolFromCert (row : Row)
     {tab : Table} {su : RationalApprox.UpperSqrt} {sl : RationalApprox.LowerSqrt}
     (cert : LocalPrecheckCertificate tab su sl) : Bool :=

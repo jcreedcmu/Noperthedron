@@ -116,33 +116,33 @@ structure LocalPrecheckCertificate (tab : Table)
   data : LocalPrecheckCertificateData
   forTable : LocalPrecheckCertificateData.ForTable tab data
   boundR_sound :
-    ∀ row (h : row.ID < tab.size),
+    ∀ row (_h : row.ID < tab.size),
       oracleGet data.boundR_ok row.ID = true →
         RationalApprox.LocalTheorem.BoundRℚ (row.localR) (row.localEps)
           row.localPose (Row.QTriangle row) sl
   boundDelta_sound :
-    ∀ row (h : row.ID < tab.size),
+    ∀ row (_h : row.ID < tab.size),
       oracleGet data.boundDelta_ok row.ID = true →
         RationalApprox.LocalTheorem.BoundDeltaℚ (row.localDelta su) row.localPose
           (Row.PTriangle row) (Row.QTriangle row) su
   ae1_sound :
-    ∀ row (h : row.ID < tab.size),
+    ∀ row (_h : row.ID < tab.size),
       oracleGet data.ae1_ok row.ID = true →
         (Row.PTriangle row).Aεℚ row.localPose.vecX₁ℚ row.localEps
   ae2_sound :
-    ∀ row (h : row.ID < tab.size),
+    ∀ row (_h : row.ID < tab.size),
       oracleGet data.ae2_ok row.ID = true →
         (Row.QTriangle row).Aεℚ row.localPose.vecX₂ℚ row.localEps
   span1_sound :
-    ∀ row (h : row.ID < tab.size),
+    ∀ row (_h : row.ID < tab.size),
       oracleGet data.span1_ok row.ID = true →
         (Row.PTriangle row).κSpanning row.localPose.θ₁ row.localPose.φ₁ row.localEps
   span2_sound :
-    ∀ row (h : row.ID < tab.size),
+    ∀ row (_h : row.ID < tab.size),
       oracleGet data.span2_ok row.ID = true →
         (Row.QTriangle row).κSpanning row.localPose.θ₂ row.localPose.φ₂ row.localEps
   be_sound :
-    ∀ row (h : row.ID < tab.size),
+    ∀ row (_h : row.ID < tab.size),
       oracleGet data.be_ok row.ID = true →
         (Row.QTriangle row).Bεℚ Nopert.poly.vertices row.localPose row.localEps
           (row.localDelta su) (row.localR) su

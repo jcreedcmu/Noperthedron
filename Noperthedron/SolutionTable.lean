@@ -6,6 +6,8 @@ import Noperthedron.SolutionTable.Global
 import Noperthedron.SolutionTable.RationalLocalCheck
 import Noperthedron.SolutionTable.RationalGlobalCheck
 import Noperthedron.SolutionTable.LeafCertificates
+import Noperthedron.SolutionTable.PrecheckBridge
+import Noperthedron.SolutionTable.TightSubset
 import Noperthedron.Nopert
 
 namespace Solution
