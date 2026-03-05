@@ -36,11 +36,25 @@ def piApprox : ℚ := 31415926535897932385 / 10^19
 
 /-! ### Computable trig at rotation angles -/
 
-/-- sinℚ evaluated at the rational approximation of `2πk/15`. -/
-def sinQAt (k : ℕ) : ℚ := sinℚ (2 * piApprox * k / 15)
+/-- Reduced rotation index: folds k to [0, 7] via k' = 15 - k for k > 7.
+    This keeps the angle `2πk'/15` in `[-4, 4]` where `sinℚ_approx'` applies. -/
+def reduceK (k : ℕ) : ℕ := if k % 15 ≤ 7 then k % 15 else 15 - k % 15
 
-/-- cosℚ evaluated at the rational approximation of `2πk/15`. -/
-def cosQAt (k : ℕ) : ℚ := cosℚ (2 * piApprox * k / 15)
+/-- Whether the angle reduction flips the sin sign. -/
+def sinFlipped (k : ℕ) : Bool := k % 15 > 7
+
+/-- sinℚ at the reduced angle, with sign correction.
+    For k ≤ 7: `sinℚ(2πk/15)` directly.
+    For k > 7: `-sinℚ(2π(15-k)/15)` since `sin(2π-x) = -sin(x)`. -/
+def sinQAt (k : ℕ) : ℚ :=
+  let s := sinℚ (2 * piApprox * (reduceK k) / 15)
+  if sinFlipped k then -s else s
+
+/-- cosℚ at the reduced angle.
+    For k ≤ 7: `cosℚ(2πk/15)` directly.
+    For k > 7: `cosℚ(2π(15-k)/15)` since `cos(2π-x) = cos(x)`. -/
+def cosQAt (k : ℕ) : ℚ :=
+  cosℚ (2 * piApprox * (reduceK k) / 15)
 
 /-! ### Computable approximate vertices -/
 
