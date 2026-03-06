@@ -50,6 +50,22 @@ def BoundDeltaℚ (δ : ℝ) (p : Pose) (P Q : Triangle) (su : UpperSqrt) : Prop
 def BoundRℚ (r ε : ℝ) (p : Pose) (Q : Triangle) (sl : LowerSqrt) : Prop :=
   ∀ i : Fin 3, sl.norm (p.rotM₂ℚ (Q i)) > r + √2 * ε + 3 * κ
 
+structure RationalLocalTheoremPrecondition (poly poly_ : GoodPoly)
+    (hpoly : κApproxPoly poly.vertices poly_.vertices)
+    (P Q : Triangle) (p_ : Pose) (ε δ r : ℝ) (su : UpperSqrt) (sl : LowerSqrt) : Type where
+  hP : ∀ i, P i ∈ poly.vertices
+  hQ : ∀ i, Q i ∈ poly.vertices
+  p_in_4 : fourInterval.contains p_
+  hε : 0 < ε
+  hr : 0 < r
+  boundR : BoundRℚ r ε p_ (transportTri hQ hpoly) sl
+  boundDelta : BoundDeltaℚ δ p_ (transportTri hP hpoly) (transportTri hQ hpoly) su
+  ae₁ : (transportTri hP hpoly).Aεℚ p_.vecX₁ℚ ε
+  ae₂ : (transportTri hQ hpoly).Aεℚ p_.vecX₂ℚ ε
+  span₁ : (transportTri hP hpoly).κSpanning p_.θ₁ p_.φ₁ ε
+  span₂ : (transportTri hQ hpoly).κSpanning p_.θ₂ p_.φ₂ ε
+  be : (transportTri hQ hpoly).Bεℚ poly_.vertices p_ ε δ r su
+
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"
 -/
@@ -280,3 +296,12 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
   -- Apply local_theorem
   exact Local.local_theorem P Q cong_tri poly.vertices poly.nonempty hP hQ
     poly.radius_eq_one p_ ε δ r hε hr hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
+
+theorem rational_local_of_precondition (poly poly_ : GoodPoly)
+    (hpoly : κApproxPoly poly.vertices poly_.vertices)
+    (P Q : Triangle) (p_ : Pose) (ε δ r : ℝ) (su : UpperSqrt) (sl : LowerSqrt)
+    (cong_tri : P.Congruent Q)
+    (pc : RationalLocalTheoremPrecondition poly poly_ hpoly P Q p_ ε δ r su sl) :
+    ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull :=
+  rational_local poly poly_ hpoly P Q cong_tri pc.hP pc.hQ p_ pc.p_in_4 ε δ r pc.hε pc.hr su sl
+    pc.boundR pc.boundDelta pc.ae₁ pc.ae₂ pc.span₁ pc.span₂ pc.be
