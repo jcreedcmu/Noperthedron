@@ -1,11 +1,8 @@
-import Mathlib.Data.Real.Basic
+import Noperthedron.SolutionTable.Defs
 import Noperthedron.PoseInterval
 import Noperthedron.Nopert
 
 namespace Solution
-
-inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
-deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype
 
 def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .θ₁ => q.θ₁
@@ -14,6 +11,7 @@ def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .φ₂ => q.φ₂
 | .α => q.α
 
+<<<<<<< HEAD
 structure Interval where
   min : Param → ℤ
   max : Param → ℤ
@@ -270,15 +268,6 @@ def Row.ValidBinarySplit (tab : Table) (row : Row) : Prop :=
    (row.split = 5 ∧ row.ValidSplitParam tab .α))
 deriving Decidable
 
-/--
-`cubeFold fs b as`, takes a list of functions `fs` and a starting value `b` and a list of
-coordinates `as` and returns a list of length `|fs|^|as|` consisting of all the ways
-of folding the initial value `b` through some sequence of functions in `fs`, using values from `as`.
--/
-def cubeFold {α β : Type} (fs : List (α → β → β)) (b : β) : List α → List β
-| [] => [b]
-| (h :: tl) => fs.flatMap (fun f => cubeFold fs (f h b) tl)
-
 /-
 Equivalently I probably could have done
 
@@ -396,20 +385,9 @@ lemma has_intervals_concat (tab : Table) (start : ℕ) (ivs1 ivs2 : List Interva
     intro i
     if h : i < ivs1.length then
       specialize h1 ⟨i, h⟩
-      simp only [Fin.getElem_fin] at h1 ⊢
-      obtain ⟨h1a, h1b⟩ := h1
-      use h1a
-      rw [h1b]
-      exact List.getElem_append_left' h ivs2
+      simp_all
     else
       replace h := Nat.le_of_not_lt h
       have : (i : ℕ) - ivs1.length < ivs2.length := by grind
       specialize h2 ⟨(i : ℕ) - ivs1.length, this⟩
-      simp only [Fin.getElem_fin] at h2 ⊢
-      obtain ⟨h2a, h2b⟩ := h2
-      have : ivs1.length + (↑i - ivs1.length) = i := Nat.add_sub_of_le h
-      conv at h2a => lhs; rw [add_assoc, this]
-      conv at h2b => enter [1, 1, 2]; rw [add_assoc, this]
-      use h2a
-      rw [h2b]
-      rw [List.getElem_append_right h]
+      simp_all

@@ -27,11 +27,8 @@ First half of [SY25] Lemma 13.
 theorem norm_M_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε) :
     ‖rotM θ φ - rotM θ_ φ_‖ < √2 * ε := by
   by_cases h₁ : θ = θ_ ∧ φ = φ_
-  · have h₂ : ‖rotM θ φ - rotM θ_ φ_‖ = 0 := by
-      obtain ⟨hθ₁, hφ₁⟩ := h₁
-      simp [hθ₁, hφ₁]
-    rw [h₂]
-    positivity
+  · obtain ⟨hθ₁, hφ₁⟩ := h₁
+    simp [hθ₁, hφ₁, hε]
   simp only [rotM_identity, ←ContinuousLinearMap.comp_sub]
   grw [ContinuousLinearMap.opNorm_comp_le, reduceL_norm, one_mul]
   rw [←Ry_preserves_op_norm (-φ), ContinuousLinearMap.comp_sub]
@@ -189,13 +186,9 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     rw [one_mul]
     exact this
   let Φ := (φ * |θ - θ_| + φ_ * |α - α_|) / (|α - α_| + |θ - θ_|)
-  have h₆ :
-      ‖(RzL (α - α_)).comp (RyL φ) - RyL Φ‖ + ‖ RyL Φ - (RyL φ_).comp (RzL (θ - θ_))‖
-      ≥ ‖(RzL (α - α_)).comp (RyL φ) - (RyL φ_).comp (RzL (θ - θ_))‖ := by
-    have :=
-      ContinuousLinearMap.opNorm_add_le ((RzL (α - α_)).comp (RyL φ) - RyL Φ)
-        (RyL Φ - (RyL φ_).comp (RzL (θ - θ_)))
-    rwa [sub_add_sub_cancel] at this
+  have h₆ : ‖(RzL (α - α_)).comp (RyL φ) - RyL Φ‖ + ‖ RyL Φ - (RyL φ_).comp (RzL (θ - θ_))‖
+      ≥ ‖(RzL (α - α_)).comp (RyL φ) - (RyL φ_).comp (RzL (θ - θ_))‖ :=
+    norm_sub_le_norm_sub_add_norm_sub _ _ _
   grw [←h₆]; clear h₆
   nth_rw 1 [←Ry_comp_right_preserves_op_norm (-Φ)]
   nth_rw 2 [←Ry_preserves_op_norm (-Φ)]
@@ -227,9 +220,8 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     obtain h₁ | h₁ : θ ≠ θ_ ∨ α ≠ α_ := Decidable.not_and_iff_or_not.mp h₁
     · have h₁₂ : ¬ (φ_ - Φ = 0 ∧ θ - θ_ = 0) := by
         push_neg
-        intro _ H
-        have : θ = θ_ := by linarith only [H]
-        contradiction
+        intro _
+        exact sub_ne_zero_of_ne h₁
       have := lt_of_le_of_ne h₉ (h₉'.not.mpr h₁₂)
       linarith
     · have h₁₂ : ¬(α - α_ = 0 ∧ φ - Φ = 0) := by

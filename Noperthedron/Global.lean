@@ -40,7 +40,7 @@ private lemma extract_constant {n : ℕ} {V : Finset (E n)} (w : E n → ℝ)
 
 theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (f : E n →ₗ[ℝ] ℝ) :
-    f S ≤ (V.image f).max' (by simp [Finset.image_nonempty]; exact Vne) := by
+    f S ≤ (V.image f).max' (Finset.image_nonempty.mpr Vne) := by
   have Vine : (V.image f).Nonempty := by simp [Finset.image_nonempty]; exact Vne
   have hs_orig := hs
   rw [Finset.convexHull_eq] at hs
@@ -50,12 +50,12 @@ theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty)
     _       = ∑ x ∈ V, w x * f x := by simp
     _       ≤ ∑ x ∈ V, w x * ((Finset.image f V).max' Vine) := f_le_max Vne w hw1 f
     _       = (∑ x ∈ V, w x) * ((Finset.image f V).max' Vine) := by rw [← Finset.sum_mul]
-    _       = (Finset.image f V).max' (by simp [Finset.image_nonempty]; exact Vne) := by rw [hw2]; simp
+    _       = (Finset.image f V).max' _ := by rw [hw2]; simp
 
 /- [SY25] Lemma 18 -/
 theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (w : E n) :
-    ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) (by simp [Finset.image_nonempty]; exact Vne) := by
+    ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) (Finset.image_nonempty.mpr Vne) := by
   exact finset_hull_linear_max Vne S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
 
 -- rotproj_inner, rotproj_inner_unit, rotproj_outer_unit, rotation_partials_exist,
@@ -65,7 +65,6 @@ theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
 -- rotation_partials_bounded, rotation_partials_bounded_outer ([SY25] Lemma 19) are now
 -- imported from Noperthedron.Global.RotationPartials (via SecondPartialInner/SecondPartialOuter)
 
-/- FIXME: the paper has `- 9 * ε²/2` rather than `+ 9 * ε²/2` below. Did we mess something up here? -/
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
 -/

@@ -27,10 +27,7 @@ def C3R : EuclideanSpace ℝ (Fin 3) := WithLp.toLp 2 (fun i => C3 i)
 
 theorem c1_norm_one : ‖C1R‖ = 1 := by
   rw [EuclideanSpace.norm_eq]
-  have lez : 0 ≤ ∑ i, ‖C1R i‖ ^ 2 := by
-    apply Finset.sum_nonneg
-    intro i _
-    exact sq_nonneg (‖C1R i‖)
+  have lez : 0 ≤ ∑ i, ‖C1R i‖ ^ 2 := by positivity
   rw [← Real.sq_sqrt lez]
   simp only [Real.norm_eq_abs, sq_abs]
   unfold C1R C1
@@ -237,7 +234,7 @@ theorem pointsymmetrize_pres_radius {vs : Finset ℝ³} (vsne : vs.Nonempty) :
   · intro v hv
     rw [pointsymmetrize_mem] at hv
     match hv with
-    | .inl v_in_vs => apply rest_le_r; assumption
+    | .inl v_in_vs => exact rest_le_r _ v_in_vs
     | .inr mv_in_vs =>
       specialize rest_le_r (-v) mv_in_vs
       rw [norm_neg] at rest_le_r

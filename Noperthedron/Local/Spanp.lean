@@ -138,4 +138,4 @@ theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
     _     = ‖Z‖^2 := by rw [real_inner_self_eq_norm_sq Z]
 
   rw [show ‖Y‖^2 = ‖Z‖^2 from congrFun (congrArg HPow.hPow hYZ) 2] at hz
-  simp_all only [lt_self_iff_false]
+  exact lt_irrefl _ hz

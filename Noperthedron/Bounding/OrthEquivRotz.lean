@@ -295,7 +295,7 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
   obtain ⟨γ, γb⟩ := SO3_fixing_z_is_Rz B B_in_SO3 (by convert B_fixes_z; simp)
   refine ⟨U, U_SO3.1, γ, ?_⟩
   simp only [← γb, B, ← mul_assoc, Matrix.mul_nonsing_inv U U_det_unit, one_mul]
-  rw [mul_assoc, Matrix.mul_nonsing_inv U U_det_unit, mul_one]
+  exact (U.mul_nonsing_inv_cancel_right A U_det_unit).symm
 
 lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_mat γ' := by
   use π - Real.emod (π - γ) (2 * π)
@@ -303,10 +303,7 @@ lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_ma
   · have := Real.emod_in_interval (a := π - γ) (b := 2 * π) two_pi_pos
     grind
   · obtain ⟨k, hk⟩ := Real.emod_exists_multiple (π - γ) (2 * π) two_pi_pos
-    rw [hk]
-    convert_to Rz_mat γ = Rz_mat (γ + (↑(-k) : ℝ) * (2 * π))
-    · push_cast; ring_nf
-    rw [Rz_mat_add_int_mul_two_pi (-k) γ]
+    simp [hk]
 
 lemma SO3_is_conj_Rz_within_pi (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ),
@@ -341,11 +338,7 @@ lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3))
   have (qq : Euc(3) ≃ₗ[ℝ] Euc(3)) : ((Matrix.toEuclideanLin.symm (qq.toLinearMap)).toEuclideanLin v) =
       (Matrix.toEuclideanLin.symm (qq.toLinearMap)).mulVec v := by rfl
   simp only [LinearEquiv.apply_symm_apply, LinearEquiv.coe_coe] at this
-  specialize this u.symm
-  have xx : WithLp.toLp 2 ((u.symm v).ofLp) =
-      WithLp.toLp 2 ((Matrix.toEuclideanLin.symm ↑u.symm).mulVec v.ofLp) := by
-    congr
-  simpa using xx
+  rw [←this]
 
 lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
