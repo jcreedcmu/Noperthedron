@@ -219,13 +219,13 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
     simp only [rot3] at h₈ h₉ h₈' h₉'
     obtain h₁ | h₁ : θ ≠ θ_ ∨ α ≠ α_ := Decidable.not_and_iff_or_not.mp h₁
     · have h₁₂ : ¬ (φ_ - Φ = 0 ∧ θ - θ_ = 0) := by
-        push_neg
+        push Not
         intro _
         exact sub_ne_zero_of_ne h₁
       have := lt_of_le_of_ne h₉ (h₉'.not.mpr h₁₂)
       linarith
     · have h₁₂ : ¬(α - α_ = 0 ∧ φ - Φ = 0) := by
-        push_neg
+        push Not
         intro H
         have : α = α_ := by linarith only [H]
         contradiction
