@@ -37,7 +37,7 @@ namespace RationalApprox.LocalTheorem
 If we have a triangle `P` in `poly`, yield the corresponding
 triangle in `poly_` which κ-approximates P.
 -/
-def transportTri {poly : GoodPoly} {poly_ : ApproxGoodPoly} {P : Triangle}
+def transportTri {poly poly_ : GoodPoly} {P : Triangle}
     (hP : ∀ i, P i ∈ poly.vertices)
     (hpoly : κApproxPoly poly.vertices poly_.vertices) : Triangle :=
   fun i => hpoly.bijection ⟨P i, hP i⟩
@@ -50,10 +50,26 @@ def BoundDeltaℚ (δ : ℝ) (p : Pose) (P Q : Triangle) (su : UpperSqrt) : Prop
 def BoundRℚ (r ε : ℝ) (p : Pose) (Q : Triangle) (sl : LowerSqrt) : Prop :=
   ∀ i : Fin 3, sl.norm (p.rotM₂ℚ (Q i)) > r + √2 * ε + 3 * κ
 
+structure RationalLocalTheoremPrecondition (poly poly_ : GoodPoly)
+    (hpoly : κApproxPoly poly.vertices poly_.vertices)
+    (P Q : Triangle) (p_ : Pose) (ε δ r : ℝ) (su : UpperSqrt) (sl : LowerSqrt) : Type where
+  hP : ∀ i, P i ∈ poly.vertices
+  hQ : ∀ i, Q i ∈ poly.vertices
+  p_in_4 : fourInterval.contains p_
+  hε : 0 < ε
+  hr : 0 < r
+  boundR : BoundRℚ r ε p_ (transportTri hQ hpoly) sl
+  boundDelta : BoundDeltaℚ δ p_ (transportTri hP hpoly) (transportTri hQ hpoly) su
+  ae₁ : (transportTri hP hpoly).Aεℚ p_.vecX₁ℚ ε
+  ae₂ : (transportTri hQ hpoly).Aεℚ p_.vecX₂ℚ ε
+  span₁ : (transportTri hP hpoly).κSpanning p_.θ₁ p_.φ₁ ε
+  span₂ : (transportTri hQ hpoly).κSpanning p_.θ₂ p_.φ₂ ε
+  be : (transportTri hQ hpoly).Bεℚ poly_.vertices p_ ε δ r su
+
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"
 -/
-theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
+theorem rational_local (poly poly_ : GoodPoly)
     (hpoly : κApproxPoly poly.vertices poly_.vertices)
     (P Q : Triangle)
     (cong_tri : P.Congruent Q)
@@ -198,7 +214,8 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
         (su.norm (p_.rotM₂ℚ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ) := by
       have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚ (Q_ i))) (UpperSqrt_norm_le su _)
       have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚ (Q_ i - v_))) (UpperSqrt_norm_le su _)
-      positivity
+      have h_sε : 0 < √2 * ε := mul_pos (Real.sqrt_pos.mpr (by norm_num : (0:ℝ) < 2)) hε
+      apply mul_pos <;> linarith
     -- Extract positivity of Bεℚ numerator
     have hBεℚ_num_pos : 0 < ⟪p_.rotM₂ℚ (Q_ i), p_.rotM₂ℚ (Q_ i - v_)⟫ - 10 * κ -
         2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
@@ -206,7 +223,8 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
         have := hδ 0
         linarith [le_trans (norm_nonneg _)
           (UpperSqrt_norm_le su (p_.rotR (p_.rotM₁ℚ (P_ 0)) - p_.rotM₂ℚ (Q_ 0)))]
-      have h0 : 0 < (δ + √5 * ε) / r := by positivity
+      have h0 : 0 < (δ + √5 * ε) / r :=
+        div_pos (by nlinarith [Real.sqrt_pos.mpr (show (0:ℝ) < 5 by norm_num)]) hr
       exact (div_pos_iff_of_pos_right hden_pos).mp (h0.trans hbe)
     -- su.norm ≥ ‖·‖ means numBεℚ ≤ numAℚ (subtracted term is bigger with su.norm)
     have hAℚ_num_pos : 0 < ⟪(rotMℚ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ -
@@ -216,7 +234,7 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
       have h_sub_le : 2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
           2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
         apply mul_le_mul_of_nonneg_right
-        · exact mul_le_mul_of_nonneg_left (by grw [hsu_ge]) (by linarith)
+        · exact mul_le_mul_of_nonneg_left (by linarith [hsu_ge]) (by linarith)
         · positivity
       linarith [hBεℚ_num_pos]
     -- From inner_product_bound_10kappa: |innerA - innerAℚ| ≤ 10κ
@@ -235,12 +253,12 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
     have h_norm_QR : ‖Q i - v‖ ≤ ‖Q_ i - v_‖ + 2 * κ :=
       calc ‖Q i - v‖
         _ ≤ ‖Q_ i - v_‖ + ‖(Q i - v) - (Q_ i - v_)‖ := norm_le_insert' _ _
-        _ ≤ ‖Q_ i - v_‖ + 2 * κ := by grw [hQv_approx]
+        _ ≤ ‖Q_ i - v_‖ + 2 * κ := by linarith [hQv_approx]
     have hA_nonneg : 0 ≤ ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ -
         2 * ε * ‖Q i - v‖ * (√2 + ε) := by
       have h_inner_le : ⟪(rotMℚ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ ≤
-          ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ :=
-        sub_le_of_abs_sub_le_left h_inner_10
+          ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ := by
+        rw [abs_le] at h_inner_10; linarith [h_inner_10.1]
       have h_eps_term : 2 * ε * ‖Q i - v‖ * (√2 + ε) ≤
           2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) := by
         apply mul_le_mul_of_nonneg_right
@@ -267,9 +285,9 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
       have h_sub_le : 2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
           2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
         apply mul_le_mul_of_nonneg_right
-        · exact mul_le_mul_of_nonneg_left (by grw [hsu_ge]) (by linarith)
+        · exact mul_le_mul_of_nonneg_left (by linarith [hsu_ge]) (by linarith)
         · positivity
-      grw [h_sub_le]
+      linarith [h_sub_le]
     -- bounds_kappa4_A = Bε.lhs (definitionally: rotM ↑θ₂ ↑φ₂ = p_.rotM₂)
     have hA_eq : bounds_kappa4_A (Q i) v θ₂ φ₂ ε = Local.Triangle.Bε.lhs (Q i) v p_ ε := rfl
     -- Combine
@@ -280,3 +298,12 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
   -- Apply local_theorem
   exact Local.local_theorem P Q cong_tri poly.vertices poly.nonempty hP hQ
     poly.radius_eq_one p_ ε δ r hε hr hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
+
+theorem rational_local_of_precondition (poly poly_ : GoodPoly)
+    (hpoly : κApproxPoly poly.vertices poly_.vertices)
+    (P Q : Triangle) (p_ : Pose) (ε δ r : ℝ) (su : UpperSqrt) (sl : LowerSqrt)
+    (cong_tri : P.Congruent Q)
+    (pc : RationalLocalTheoremPrecondition poly poly_ hpoly P Q p_ ε δ r su sl) :
+    ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull :=
+  rational_local poly poly_ hpoly P Q cong_tri pc.hP pc.hQ p_ pc.p_in_4 ε δ r pc.hε pc.hr su sl
+    pc.boundR pc.boundDelta pc.ae₁ pc.ae₂ pc.span₁ pc.span₂ pc.be
