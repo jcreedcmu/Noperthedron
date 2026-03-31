@@ -20,7 +20,6 @@ private lemma f_le_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty) (w : E n 
     refine Finset.le_max' _ _ ?_
     simp only [Finset.mem_image]
     exact ⟨x, Finset.coe_mem x, rfl⟩
-  push_cast
   refine Finset.sum_le_sum ?_
   intro x hx
   grw [fx_le_fvmax ⟨x, hx⟩]
@@ -288,7 +287,7 @@ private lemma nth_partial_rotproj_outer_0 (pbar : Pose) (P : ℝ³) (w : ℝ²) 
     ((Differentiable.rotM_outer P).differentiableAt)]
   congr 1
   rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
-  ext i; simp [rotM'_apply, EuclideanSpace.single_apply]
+  ext i; simp [rotM'_apply]
 
 private lemma nth_partial_rotproj_outer_1 (pbar : Pose) (P : ℝ³) (w : ℝ²) :
     nth_partial 1 (rotproj_outer P w) pbar.outerParams = ⟪rotMφ pbar.θ₂ pbar.φ₂ P, w⟫ := by
@@ -297,7 +296,7 @@ private lemma nth_partial_rotproj_outer_1 (pbar : Pose) (P : ℝ³) (w : ℝ²) 
     ((Differentiable.rotM_outer P).differentiableAt)]
   congr 1
   rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
-  ext i; simp [rotM'_apply, EuclideanSpace.single_apply]
+  ext i; simp [rotM'_apply]
 
 lemma partials_helper3 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
@@ -339,7 +338,6 @@ lemma partials_helper_outer {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     |⟪pbar.rotM₂θ P, pc.w⟫| + |⟪pbar.rotM₂φ P, pc.w⟫| =
     ‖P‖ * ∑ i, |nth_partial i (pc.fu_outer P) pbar.outerParams| := by
   rw [Finset.mul_sum, Fin.sum_univ_two, ← abs_norm, ← abs_mul, ← abs_mul]
-  simp only [Fin.isValue]
   rw [partials_helper3 pc P, partials_helper4 pc P]
 
 theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}

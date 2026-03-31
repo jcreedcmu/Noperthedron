@@ -9,14 +9,9 @@ weak.linter.style.multiGoal = true
 weak.linter.style.cdot = true
 
 [[require]]
-name = "mathlib"
-git = "https://github.com/leanprover-community/mathlib4"
-rev = "v4.28.0"
-
-[[require]]
 name = "«doc-gen4»"
 git = "https://github.com/leanprover/doc-gen4"
-rev = "v4.28.0"
+rev = "v4.29.0"
 
 [[require]]
 name = "checkdecls"
@@ -25,7 +20,12 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "tryAtEachStep"
 git = "https://github.com/dwrensha/tryAtEachStep"
-rev = "71f32ffe3df4d4cf0bdcc1a4c3f4a5d1e74922b3"
+rev = "lean-v4.29.0"
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "v4.29.0"
 
 [[lean_lib]]
 name = "Noperthedron"

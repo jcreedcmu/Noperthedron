@@ -152,7 +152,7 @@ theorem lemma7_1 (θ φ : ℝ) :
   change (RzC (-(θ + 2 / 15 * π))) '' nopert.vertices = (RzC (-θ)) '' nopert.vertices
   ring_nf
   conv => enter [1, 1, a]; simp only [AddChar.map_add_eq_mul]
-  rw [ContinuousLinearMap.coe_mul, Set.image_comp,
+  rw [ContinuousLinearMap.coe_mul', Set.image_comp,
     show π * (-2 / 15) = 2 * π * (-1:ℤ) / 15 by ring_nf,
     nopert_vertices_rotation_invariant]
 

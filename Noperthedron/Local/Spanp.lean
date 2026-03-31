@@ -1,5 +1,5 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Data.Real.CompleteField
+import Mathlib.Data.Real.Hom
 
 import Noperthedron.EuclideanSpaceNotation
 
@@ -29,7 +29,8 @@ end Vec3
 
 theorem V_apply (i : Fin 3) (V : Vec3) (X : Euc(3)): (V.matᵀ *ᵥ X) i = ⟪V i, X⟫ := by
   simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue, inner,
-    RCLike.inner_apply, Real.ringHom_apply, Matrix.transpose, Fin.isValue, Matrix.of_apply, Vec3.mat]
+    Real.ringHom_apply, Matrix.transpose, Matrix.of_apply, Vec3.mat,
+    RCLike.mul_re, RCLike.re_to_real, RCLike.im_to_real]
   ring_nf
 
 instance : Coe (Matrix (Fin 1) (Fin 1) ℝ) ℝ where

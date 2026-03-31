@@ -144,8 +144,7 @@ lemma coord_ei_same (i : Fin 3) (y : E 3) (t : ℝ) :
 @[simp]
 lemma coord_ei_at_other (i j : Fin 3) (hij : j ≠ i) (y : E 3) (t : ℝ) :
     (y + t • (EuclideanSpace.single i 1 : E 3)).ofLp j = y.ofLp j := by
-  simp only [EuclideanSpace.single, PiLp.add_apply, PiLp.smul_apply, Pi.single_apply, hij,
-    ↓reduceIte, smul_eq_mul, mul_zero, add_zero]
+  simp [hij]
 
 /-- Shorthand for coord_ei_same 0 -/
 abbrev coord_e0_same := coord_ei_same 0

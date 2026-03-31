@@ -1,4 +1,4 @@
-import Mathlib.Data.Real.CompleteField
+import Mathlib.Data.Real.Hom
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import Noperthedron.Basic
@@ -16,9 +16,11 @@ theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
     EuclideanSpace.norm_sq_eq, Matrix.ofLp_toLpLin, Matrix.toLin'_apply, Matrix.mulVec,
     Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_fin_one, Real.norm_eq_abs, sq_abs,
     Fin.sum_univ_succ, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_dotProduct, Matrix.vecHead,
-    Matrix.vecTail, zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Finset.univ_unique,
-    Fin.default_eq_zero, Matrix.cons_val_succ, Finset.sum_singleton, Fin.succ_zero_eq_one,
-    Fin.succ_one_eq_two, inner, vecX, RCLike.inner_apply, Real.ringHom_apply]
+    Matrix.vecTail, Nat.succ_eq_add_one, Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one,
+    Fin.succ_one_eq_two, zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Finset.univ_unique,
+    Fin.default_eq_zero, Matrix.cons_val_succ, Finset.sum_const, Finset.card_singleton, one_smul,
+    Finset.sum_singleton, inner, vecX, Real.ringHom_apply, RCLike.mul_re, RCLike.re_to_real,
+    RCLike.im_to_real, mul_zero, sub_zero]
   grind [Real.sin_sq]
 
 /-- [SY25] Lemma 24 -/

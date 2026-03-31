@@ -314,7 +314,7 @@ lemma SO3_is_conj_Rz_within_pi (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matr
 
 end AristotleLemmas
 
-def Matrix.OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
+noncomputable def Matrix.OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
     : Euc(n) ≃ₗ[ℝ] Euc(n) :=
   WithLp.linearEquiv 2 ℝ (Fin n → ℝ) ≪≫ₗ
     Matrix.UnitaryGroup.toLinearEquiv A ≪≫ₗ

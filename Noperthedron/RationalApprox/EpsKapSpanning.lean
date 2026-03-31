@@ -27,6 +27,7 @@ structure _root_.Local.Triangle.κSpanning (P : Triangle) (θ φ ε : ℝ) : Pro
 def κApproxTri (A A' : Triangle) : Prop :=
   ∀ i, ‖A i - A' i‖ ≤ κ
 
+set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma norm_transpose_euc_lin {n m : ℕ} (M : Matrix (Fin n) (Fin m) ℝ) :
     ‖Mᵀ.toEuclideanLin.toContinuousLinearMap‖ = ‖M.toEuclideanLin.toContinuousLinearMap‖ := by
@@ -43,16 +44,17 @@ noncomputable
 def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) :=
   (innerSL ℝ (EuclideanSpace.single 0 (1 : ℝ))).smulRight v
 
+set_option backward.isDefEq.respectTransparency false in
 private lemma mapOfCovec_apply {n : ℕ} (v : Euc(n)) (c : Euc(1)) : mapOfCovec v c = c 0 • v := by
   simp [mapOfCovec, ContinuousLinearMap.smulRight_apply, EuclideanSpace.inner_single_left]
 
 @[simp]
 lemma norm_map_covec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfCovec v‖ = ‖v‖ := by
-  simp [mapOfCovec, ContinuousLinearMap.norm_smulRight_apply, EuclideanSpace.norm_single]
+  simp [mapOfCovec, ContinuousLinearMap.norm_smulRight_apply]
 
 @[simp]
 lemma norm_map_vec_eq_norm_vec {n : ℕ} (v : Euc(n)) : ‖mapOfVec v‖ = ‖v‖ := by
-  simp [mapOfVec, ContinuousLinearMap.norm_smulRight_apply, EuclideanSpace.norm_single]
+  simp [mapOfVec, ContinuousLinearMap.norm_smulRight_apply]
 
 lemma bound_rotM (θ φ : ℝ) : ‖rotM θ φ‖ ≤ 1 + κ := by
   norm_num [Bounding.rotM_norm_one, κ]
@@ -81,7 +83,7 @@ private lemma mapOfVec_apply {n : ℕ} (v x : Euc(n)) : (mapOfVec v x) 0 = ⟪v,
 @[simp]
 private lemma mapOfCovec_single {n : ℕ} (v : Euc(n)) :
     mapOfCovec v (EuclideanSpace.single 0 1) = v := by
-  simp [mapOfCovec_apply, EuclideanSpace.single_apply]
+  simp [mapOfCovec_apply]
 
 private lemma rotM_transpose_adjoint (θ φ : ℝ) :
     (rotM_mat θ φ)ᵀ.toEuclideanLin.toContinuousLinearMap = (rotM θ φ).adjoint := by

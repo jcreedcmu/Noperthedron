@@ -1,4 +1,4 @@
-import Mathlib.Data.Real.CompleteField
+import Mathlib.Data.Real.Hom
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import Noperthedron.Basic
@@ -22,6 +22,7 @@ lemma det2_eq_inner_rot (u v : EuclideanSpace ℝ (Fin 2)) : det2 u v = ⟪rotR 
   -- By definition of determinant, we know that
   simp only [det2, Fin.isValue, rotR, rotR_mat, AddChar.coe_mk, Real.cos_pi_div_two,
     Real.sin_pi_div_two, LinearMap.coe_toContinuousLinearMap']
+  set_option backward.isDefEq.respectTransparency false in
   rw [EuclideanSpace.inner_eq_star_dotProduct]
   simp only [Fin.isValue, Matrix.ofLp_toLpLin, Matrix.toLin'_apply, Matrix.cons_mulVec,
     Matrix.cons_dotProduct, zero_mul, neg_mul, one_mul, Matrix.dotProduct_of_isEmpty, add_zero,

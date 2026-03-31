@@ -31,7 +31,7 @@ private lemma vecX_sub_vecXℚ_norm_le (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 
   calc ‖(vecXL θ φ - vecXLℚ θ φ) (EuclideanSpace.single 0 1)‖
     _ ≤ ‖vecXL θ φ - vecXLℚ θ φ‖ * ‖EuclideanSpace.single (𝕜 := ℝ) 0 (1 : ℝ)‖ :=
         ContinuousLinearMap.le_opNorm _ _
-    _ = ‖vecXL θ φ - vecXLℚ θ φ‖ * 1 := by rw [EuclideanSpace.norm_single, norm_one]
+    _ = ‖vecXL θ φ - vecXLℚ θ φ‖ * 1 := by rw [PiLp.norm_single, norm_one]
     _ = ‖vecXL θ φ - vecXLℚ θ φ‖ := mul_one _
     _ ≤ κ := X_difference_norm_bounded θ φ hθ hφ
 

@@ -34,13 +34,13 @@ def MatVec.DiffBoundedBy {n m : ℕ} (mv : MatVec n m) (κ : ℝ) : Prop :=
   | .cons tl A B => tl.DiffBoundedBy κ ∧  ‖A - B‖ ≤ κ
 
 @[simp]
-def MatVec.compA {n m : ℕ} (mv : MatVec n m) : Euc(m) →L[ℝ] Euc(n) :=
+noncomputable def MatVec.compA {n m : ℕ} (mv : MatVec n m) : Euc(m) →L[ℝ] Euc(n) :=
   match mv with
   | nil  => ContinuousLinearMap.id ℝ Euc(n)
   | cons tl A _ => tl.compA ∘L A
 
 @[simp]
-def MatVec.compB {n m : ℕ} (mv : MatVec n m) : Euc(m) →L[ℝ] Euc(n) :=
+noncomputable def MatVec.compB {n m : ℕ} (mv : MatVec n m) : Euc(m) →L[ℝ] Euc(n) :=
   match mv with
   | nil  => ContinuousLinearMap.id ℝ Euc(n)
   | cons tl _ B => tl.compB ∘L B
@@ -124,7 +124,7 @@ lemma norm_sub_le_prod {n m : ℕ} (mv : MatVec n m)
          grw [this]
          ring_nf
          apply le_refl
-    simp [le_refl]
+    simp
 
 lemma allNormsBelow_def {n m : ℕ} (mv : MatVec n m)
     {bs : List ℝ} (hbs1 : ∀ b ∈ bs, 1 ≤ b) (hb : mv.allNormsBelow bs) :
