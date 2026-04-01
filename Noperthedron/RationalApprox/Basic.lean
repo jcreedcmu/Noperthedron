@@ -64,6 +64,13 @@ structure κApproxPoly (A B : Finset ℝ³) where
   bijection : A ≃ B
   approx : ∀ a : A, ‖(a : ℝ³) - bijection a‖ ≤ κ
 
+def κApproxPoly.refl (poly : GoodPoly) : κApproxPoly poly.vertices poly.vertices :=
+  { bijection := Equiv.refl _
+    approx := by
+      intro a
+      have hκ : (0 : ℝ) ≤ κ := by norm_num [κ]
+      simpa using hκ }
+
 end
 
 noncomputable
