@@ -66,11 +66,8 @@ lemma proj_rm_eq_m (θ φ : ℝ) (v : ℝ³) :
   ext i
   simp [proj_xyL, proj_xy_mat, RyL, RzL, rotRM, rotM,
         Matrix.vecHead, Matrix.vecTail, rotM_mat]
-  fin_cases i <;> {
-    simp only [Fin.isValue, Fin.zero_eta, Fin.isValue, Fin.mk_one,
-               Matrix.cons_val_one, Matrix.cons_val_fin_one, Matrix.cons_val_zero]
-    try ring_nf
-  }
+  congr 2
+  ring
 
 /--
 If we have a convex polyhedron with p being a pose witness of the

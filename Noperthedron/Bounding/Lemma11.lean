@@ -164,7 +164,7 @@ theorem one_plus_cos_mul_one_plus_cos_ge'' {a b : ℝ} (a_nonneg : 0 ≤ a) (a_l
       · positivity
       · positivity
       · ring
-    _ = f ((x - y)^2) + f ((x + y)^2) := by field_simp
+    _ = f ((x - y)^2) + f ((x + y)^2) := by ring
     _ = cos √((x - y)^2) + cos √((x + y)^2) := by simp [f]
     _ = cos |x - y| + cos |x + y| := by simp [sqrt_sq_eq_abs]
     _ = cos (x - y) + cos (x + y) := by simp

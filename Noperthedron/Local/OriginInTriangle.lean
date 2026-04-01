@@ -38,7 +38,7 @@ lemma det2_identity (A B C : EuclideanSpace ℝ (Fin 2)) :
   fin_cases i
   · simp only [det2, Fin.isValue, Fin.zero_eta, PiLp.add_apply, PiLp.smul_apply, smul_eq_mul,
       PiLp.zero_apply]
-    linarith
+    ring
   · simp only [det2, Fin.isValue, Fin.mk_one, PiLp.add_apply, PiLp.smul_apply, smul_eq_mul,
       PiLp.zero_apply]
     ring

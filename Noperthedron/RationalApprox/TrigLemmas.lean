@@ -102,7 +102,7 @@ theorem cos_approx_aux (x : ℝ) (n : ℕ) :
     obtain ⟨c, hc₁, hc₂⟩ :=
       taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n + 1) hx Real.contDiff_cos.contDiffOn
     simp only [taylorWithinEval_cos hx, sub_zero] at hc₂
-    simp only [hc₂, show 2 * n + 1 + 1 = 2 * (n + 1) by linarith]
+    simp only [hc₂, show 2 * n + 1 + 1 = 2 * (n + 1) by ring]
     simp only [Real.iteratedDeriv_even_cos, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply,
       abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
     exact Real.abs_cos_le_one c

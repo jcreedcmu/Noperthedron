@@ -77,7 +77,7 @@ lemma rotM'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotM' pbar P d) i = d 0 * (rotMθ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
-  fin_cases i <;> ring
+  simp only [mul_comm (d.ofLp _)]
 
 lemma Differentiable.rotM_outer (P : ℝ³) :
     Differentiable ℝ fun (x : ℝ²) => (rotM (x 0) (x 1)) P := by
@@ -189,7 +189,7 @@ lemma rotMθ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotMθ' pbar P d) i = d 0 * (rotMθθ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMθφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
-  fin_cases i <;> ring
+  simp only [mul_comm (d.ofLp _)]
 
 lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMθ (x.ofLp 0) (x.ofLp 1)) P) (rotMθ' pbar P) pbar.outerParams := by
@@ -279,7 +279,7 @@ lemma rotMφ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotMφ' pbar P d) i = d 0 * (rotMθφ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMφφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
-  fin_cases i <;> ring
+  simp only [mul_comm (d.ofLp _)]
 
 lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMφ (x.ofLp 0) (x.ofLp 1)) P) (rotMφ' pbar P) pbar.outerParams := by
