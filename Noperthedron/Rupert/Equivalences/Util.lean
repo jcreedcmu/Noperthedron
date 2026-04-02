@@ -20,15 +20,10 @@ def proj_xy_linear : ℝ³ →ₗ[ℝ] ℝ² :=
 noncomputable
 def rotation_affine (rot : SO3) : ℝ³ →ᵃ[ℝ] ℝ³ := (Matrix.toEuclideanLin rot).toAffineMap
 
-/-- Translating is affine. -/
-noncomputable
-def offset_affine (off : E 2) : ℝ² →ᵃ[ℝ] ℝ² :=
-  {toFun v := off + v, linear := LinearMap.id, map_vadd' p v := add_vadd_comm v off p }
-
 noncomputable
 def proj_xy_rotation_is_affine (rot : SO3) : ℝ³ →ᵃ[ℝ] ℝ² :=
   AffineMap.comp proj_xy_linear.toAffineMap (rotation_affine rot)
 
 noncomputable
 def full_transform_affine (off : E 2) (rot : SO3) : ℝ³ →ᵃ[ℝ] ℝ² :=
-  AffineMap.comp (offset_affine off) (proj_xy_rotation_is_affine rot)
+  AffineMap.comp (AffineEquiv.constVAdd ℝ (E 2) off) (proj_xy_rotation_is_affine rot)
