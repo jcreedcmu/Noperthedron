@@ -9,11 +9,6 @@ weak.linter.style.multiGoal = true
 weak.linter.style.cdot = true
 
 [[require]]
-name = "«doc-gen4»"
-git = "https://github.com/leanprover/doc-gen4"
-rev = "v4.29.0"
-
-[[require]]
 name = "checkdecls"
 git = "https://github.com/PatrickMassot/checkdecls.git"
 
