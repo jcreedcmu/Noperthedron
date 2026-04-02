@@ -86,8 +86,6 @@ namespace PreferComp
   @[simp] def comp_image S (g : B →L[R] C) (f : A →L[R] B) : ⇑(g ∘L f) '' S = ⇑g '' (⇑f '' S) := by ext p; simp
 end PreferComp
 
-open PreferComp
-
 theorem lemma12_2a {d d' : Fin 3} {α β : ℝ} (dne : d ≠ d') :
     ‖(rot3 d (2 * α)) ∘L (rot3 d' (2 * β)) - (rot3 d α) ∘L (rot3 d' β)‖  =
         ‖((rot3 d α) ∘L (rot3 d α)) ∘L ((rot3 d' β) ∘L (rot3 d' β)) - (rot3 d α) ∘L (rot3 d' β)‖  := by
