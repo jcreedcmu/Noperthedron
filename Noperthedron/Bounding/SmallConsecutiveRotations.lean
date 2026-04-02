@@ -83,7 +83,6 @@ namespace PreferComp
   variable [AddCommMonoid A] [Module R A] [TopologicalSpace A]
   variable [AddCommMonoid B] [Module R B] [TopologicalSpace B]
   variable [AddCommMonoid C] [Module R C] [TopologicalSpace C]
-  def mul_eq_comp {f g : A →L[R] A} : g * f = g ∘L f := by rfl
   @[simp] def comp_image S (g : B →L[R] C) (f : A →L[R] B) : ⇑(g ∘L f) '' S = ⇑g '' (⇑f '' S) := by ext p; simp
 end PreferComp
 
@@ -95,7 +94,7 @@ theorem lemma12_2a {d d' : Fin 3} {α β : ℝ} (dne : d ≠ d') :
   fin_cases d, d' <;> {
     try contradiction
     try simp only [rot3]
-    try repeat rw [two_mul, AddChar.map_add_eq_mul, mul_eq_comp]
+    try repeat rw [two_mul, AddChar.map_add_eq_mul, ContinuousLinearMap.mul_def]
   }
 
 theorem lemma12_2 {d d' : Fin 3} {α β : ℝ} :
