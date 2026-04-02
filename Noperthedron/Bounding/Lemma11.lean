@@ -78,13 +78,8 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
     apply DifferentiableOn.congr (f := (-((sin ·) / (2 * ·)) ∘ sqrt))
     · simp only [differentiableOn_neg_iff]
       apply DifferentiableOn.comp (t:=Set.Ioi 0)
-      · apply DifferentiableOn.div
-        · fun_prop
-        · fun_prop
-        · grind
-      · apply DifferentiableOn.sqrt
-        · fun_prop
-        · grind
+      · fun_prop (disch := grind)
+      · fun_prop (disch := grind)
       · apply Set.mapsTo_iff_subset_preimage.mpr
         simp only [Set.subset_def, Set.mem_Ioo, Set.mem_preimage, Set.mem_Ioi, sqrt_pos, and_imp]
         grind
