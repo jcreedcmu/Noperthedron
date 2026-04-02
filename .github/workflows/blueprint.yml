@@ -53,7 +53,8 @@ jobs:
           use-github-cache: false
 
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
+        # uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
+        uses: jcreedcmu/docgen-action@cache-more
         with:
           blueprint: true
           homepage: home_page
