@@ -138,16 +138,10 @@ theorem one_plus_cos_mul_one_plus_cos_ge'' {a b : ℝ} (a_nonneg : 0 ≤ a) (a_l
         constructor
         · positivity
         · apply sq_le_sq.mpr
-          field_simp
-          simp only [abs_div, Nat.abs_ofNat]
-          field_simp
-          apply le_of_lt
-          calc
-            |a - b| = _ := by rfl
-            _ ≤ |a| + |b| := by apply abs_sub
-            _ ≤ 2 * 3 := by (repeat rw [abs_of_nonneg]) <;> linarith
-            _ < 2 * π := by simp [pi_gt_three]
-            _ = 2 * |π| := by rw [abs_of_nonneg] ; positivity
+          grw [abs_sub]
+          repeat rw [abs_of_nonneg (by positivity)]
+          grw [a_le, b_le, ← pi_gt_three]
+          norm_num
       · simp
         constructor
         · positivity
