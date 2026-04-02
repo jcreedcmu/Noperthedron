@@ -152,15 +152,9 @@ theorem one_plus_cos_mul_one_plus_cos_ge'' {a b : ℝ} (a_nonneg : 0 ≤ a) (a_l
         constructor
         · positivity
         · apply sq_le_sq.mpr
-          repeat rw [abs_of_nonneg]
-          · field_simp
-            apply le_of_lt
-            calc
-              a + b = _ := by rfl
-              _ ≤ 2 * 3 := by linarith
-              _ < 2 * π := by simp [pi_gt_three]
-          · positivity
-          · positivity
+          repeat rw [abs_of_nonneg (by positivity)]
+          grw [a_le, b_le, ← pi_gt_three]
+          norm_num
       · positivity
       · positivity
       · ring
