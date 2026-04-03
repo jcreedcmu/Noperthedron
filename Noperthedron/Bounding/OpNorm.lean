@@ -27,10 +27,7 @@ theorem rotR_preserves_norm (α : ℝ) :
     Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_fin_one,
     Matrix.vec2_dotProduct, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
     Real.norm_eq_abs, sq_abs, Fin.sum_univ_two, neg_mul]
-  ring_nf
-  convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2) = _
-  · ring_nf
-  simp
+  grind [Real.sin_sq]
 
 theorem rotR_norm_one (α : ℝ) : ‖rotR α‖ = 1 :=
   norm_one_of_preserves_norm (rotR_preserves_norm α)
@@ -86,11 +83,10 @@ theorem rotMφ_norm_le_one (θ φ : ℝ) : ‖rotMφ θ φ‖ ≤ 1 := by
     set w := s * v 0 - c * v 1
     have h₁ : c^2 + s^2 = 1 := Real.cos_sq_add_sin_sq θ
     have h₂ : sφ^2 + cφ^2 = 1 := Real.sin_sq_add_cos_sq φ
-    have huw : v 0 ^ 2 + v 1 ^ 2 = u^2 + w^2 :=
-      by nlinarith [sq_nonneg c, sq_nonneg s, sq_nonneg (v 0), sq_nonneg (v 1)]
+    have huw : v 0 ^ 2 + v 1 ^ 2 = u^2 + w^2 := by grind [Real.sin_sq]
     have heq : c * sφ * v 0 + s * sφ * v 1 + cφ * v 2 = sφ * u + cφ * v 2 := by ring
-    have hrot : u^2 + v 2 ^2 = (sφ * u + cφ * v 2)^2 + (cφ * u - sφ * v 2)^2 :=
-      by nlinarith [sq_nonneg cφ, sq_nonneg sφ, sq_nonneg u, sq_nonneg (v 2)]
+    have hrot : u^2 + v 2 ^2 = (sφ * u + cφ * v 2)^2 + (cφ * u - sφ * v 2)^2 := by
+      grind [Real.sin_sq]
     have hw : 0 ≤ w^2 := sq_nonneg w
     have hcomp : 0 ≤ (cφ * u - sφ * v 2)^2 := sq_nonneg _
     simp only [heq, pow_two] at *
