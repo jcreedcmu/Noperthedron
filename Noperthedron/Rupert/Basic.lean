@@ -2,13 +2,6 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import Noperthedron.EuclideanSpaceNotation
 
-open scoped Matrix
-
-/-
-Convenience conversions from raw vectors to Lₚ space elements.
-Could have made these Coe instances?
--/
-
 abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
 abbrev SO3 := Matrix.specialOrthogonalGroup (Fin 3) ℝ
@@ -24,11 +17,3 @@ def IsRupert (vertices : Finset ℝ³) : Prop :=
    let inner_shadow := { inner_offset + proj_xy (inner_rotation.toEuclideanLin p) | p ∈ hull }
    let outer_shadow := { proj_xy (outer_rotation.toEuclideanLin p) | p ∈ hull }
    inner_shadow ⊆ interior outer_shadow
-
-/-- Alternate formulation of the Rupert Property. This is equivalent to IsRupert and
-    should be easier to prove. -/
-def IsRupert' (vertices : Finset ℝ³) : Prop :=
-   ∃ inner_rotation ∈ SO3, ∃ inner_offset : ℝ², ∃ outer_rotation ∈ SO3,
-   let inner_shadow := { inner_offset + proj_xy (inner_rotation.toEuclideanLin v) | v ∈ vertices }
-   let outer_shadow := { proj_xy (outer_rotation.toEuclideanLin v) | v ∈ vertices }
-   inner_shadow ⊆ interior (convexHull ℝ outer_shadow)
