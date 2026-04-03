@@ -2,8 +2,6 @@ import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.RingTheory.RootsOfUnity.Complex
 import Mathlib.RingTheory.SimpleRing.Principal
 
-import Noperthedron.PushLeft
-
 open Real
 open Complex
 
@@ -41,16 +39,10 @@ def q5 : 1 + z ^ 3 + z ^ 6 + z ^ 9 + z ^ 12 = 0 := by
   exact qq
 
 def q3a : z ^ 13 = - z ^ 8 - z ^ 3 := by
-  have h1 := congrArg (z ^ 3 * ·) q3
-  push_lefta h1
+  linear_combination z ^ 3 * q3
 
 def q3b : z ^ 10 = - z ^ 5 - 1 := by
-  have h1 := q3
-  push_lefta h1
+  linear_combination q3
 
-def q5' : z ^ 8 = -1 + z - z ^ 3 + z ^ 4 -z ^ 5 + z ^ 7 := by
-  have h' := congrArg (z * ·) q5
-  ring_nf at h'
-  rw [q3a, q3b] at h'
-  have h'' := congrArg (-1 * ·) h'
-  push_lefta h''
+def q5' : z ^ 8 = -1 + z - z ^ 3 + z ^ 4 - z ^ 5 + z ^ 7 := by
+  linear_combination q3a + q3b - z * q5
