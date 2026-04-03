@@ -17,18 +17,18 @@ abbrev SO3 := Matrix.specialOrthogonalGroup (Fin 3) ℝ
 def proj_xy {k : Type} (v : EuclideanSpace k (Fin 3)) : EuclideanSpace k (Fin 2) :=
   !₂[v 0, v 1]
 
-/-- The Rupert Property for a convex polyhedron given as an indexed finite set of vertices. -/
-def IsRupert {ι : Type} [Fintype ι] (vertices : ι → ℝ³) : Prop :=
+/-- The Rupert Property for a convex polyhedron given as a finite set of vertices. -/
+def IsRupert (vertices : Finset ℝ³) : Prop :=
    ∃ inner_rotation ∈ SO3, ∃ inner_offset : ℝ², ∃ outer_rotation ∈ SO3,
-   let hull := convexHull ℝ { vertices i | i }
+   let hull := convexHull ℝ vertices
    let inner_shadow := { inner_offset + proj_xy (inner_rotation.toEuclideanLin p) | p ∈ hull }
    let outer_shadow := { proj_xy (outer_rotation.toEuclideanLin p) | p ∈ hull }
    inner_shadow ⊆ interior outer_shadow
 
 /-- Alternate formulation of the Rupert Property. This is equivalent to IsRupert and
     should be easier to prove. -/
-def IsRupert' {ι : Type} [Fintype ι] (vertices : ι → ℝ³) : Prop :=
+def IsRupert' (vertices : Finset ℝ³) : Prop :=
    ∃ inner_rotation ∈ SO3, ∃ inner_offset : ℝ², ∃ outer_rotation ∈ SO3,
-   let inner_shadow := { inner_offset + proj_xy (inner_rotation.toEuclideanLin (vertices i)) | i }
-   let outer_shadow := { proj_xy (outer_rotation.toEuclideanLin (vertices i)) | i }
+   let inner_shadow := { inner_offset + proj_xy (inner_rotation.toEuclideanLin v) | v ∈ vertices }
+   let outer_shadow := { proj_xy (outer_rotation.toEuclideanLin v) | v ∈ vertices }
    inner_shadow ⊆ interior (convexHull ℝ outer_shadow)
