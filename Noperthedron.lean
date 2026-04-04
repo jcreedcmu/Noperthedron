@@ -40,7 +40,6 @@ import Noperthedron.PointSym
 import Noperthedron.Pose
 import Noperthedron.PoseClasses
 import Noperthedron.PoseInterval
-import Noperthedron.PushLeft
 import Noperthedron.RationalApprox
 import Noperthedron.RationalApprox.ApproximableMatrices
 import Noperthedron.RationalApprox.Basic
