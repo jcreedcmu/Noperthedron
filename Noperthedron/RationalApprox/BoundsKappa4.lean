@@ -138,11 +138,7 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
     have h_inner : |⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) (P - Q)⟫ -
         ⟪(rotMℚ ↑θ ↑φ) P_, (rotMℚ ↑θ ↑φ) (P_ - Q_)⟫| ≤ 10 * κ :=
       inner_product_bound_10kappa hP hPQ_norm Papprox hPQ_approx
-    -- From |a - b| ≤ 10κ we get b - 10κ ≤ a
-    have h_inner_le : ⟪(rotMℚ ↑θ ↑φ) P_, (rotMℚ ↑θ ↑φ) (P_ - Q_)⟫ - 10 * κ ≤
-        ⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) (P - Q)⟫ := by
-      rw [abs_le] at h_inner; linarith [h_inner.1]
-    -- Bound the norm term: ‖P - Q‖ ≤ ‖P_ - Q_‖ + 2κ
+    replace h_inner := sub_le_of_abs_sub_le_left h_inner
     have h_norm_PQ : ‖P - Q‖ ≤ ‖P_ - Q_‖ + 2 * κ := by
       calc ‖P - Q‖
         _ ≤ ‖P_ - Q_‖ + ‖(P - Q) - (P_ - Q_)‖ := norm_le_insert' _ _
@@ -156,7 +152,7 @@ lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - 
     have h_eps_term : 2 * ε * ‖P - Q‖ * (√2 + ε) ≤ 2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε) :=
       mul_le_mul_of_nonneg_right
         (mul_le_mul_of_nonneg_left h_norm_PQ (by linarith)) (by positivity)
-    linarith [h_inner_le, h_eps_term]
+    linarith [h_inner, h_eps_term]
   -- Step 2: denA ≤ denAℚ
   have h_denA_le : denA ≤ denAℚ := by
     -- Factor 1: ‖rotM P‖ + √2ε ≤ s.norm(rotMℚ P_) + √2ε + 3κ
