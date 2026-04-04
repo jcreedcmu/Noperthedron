@@ -1,3 +1,4 @@
+import Mathlib.LinearAlgebra.Trace
 import Noperthedron.Basic
 import Noperthedron.Bounding.OpNorm
 import Noperthedron.Bounding.RaRa

@@ -1,5 +1,4 @@
 import Noperthedron.Rupert.Basic
-import Noperthedron.PushLeft
 
 open scoped Matrix
 
