@@ -33,6 +33,7 @@ import Noperthedron.Local.LocallyMaximallyDistant
 import Noperthedron.Local.OriginInTriangle
 import Noperthedron.Local.Prelims
 import Noperthedron.Local.Spanp
+import Noperthedron.MainTheorem
 import Noperthedron.MatrixPose
 import Noperthedron.Nopert
 import Noperthedron.PointSym
