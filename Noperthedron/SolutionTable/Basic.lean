@@ -1,6 +1,6 @@
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.PoseInterval
-import Noperthedron.Checker.Global
+import Noperthedron.Nopert
 
 namespace Solution
 
@@ -11,44 +11,260 @@ def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .φ₂ => q.φ₂
 | .α => q.α
 
-def Row.ValidGlobal (_tab : Table) (row : Row) : Prop :=
-  Checker.checkGlobal row = true
+structure Interval where
+  min : Param → ℤ
+  max : Param → ℤ
+deriving DecidableEq
 
-instance (_tab : Table) (row : Row) : Decidable (Row.ValidGlobal _tab row) :=
-  inferInstanceAs (Decidable (_ = true))
+instance : Repr Interval where
+  reprPrec i _ :=
+    let params := [Param.θ₁, Param.φ₁, Param.θ₂, Param.φ₂, Param.α]
+    let entries := params.map fun p =>
+      s!"{repr p}: [{i.min p}, {i.max p}]"
+    "{" ++ String.intercalate ",\n" entries ++ "}"
 
-def Row.ValidLocal (tab : Table) (row : Row) : Prop :=
-  row.nodeType = 2 ∧ sorry
+/--
+A `Solution.Row` aims to closely model of exactly the data in Steininger and Yurkevich's big CSV file.
+IDs start from zero. See [SY25] §7.1 for the meaning of all these fields.
+-/
+structure Row : Type where
+   ID : ℕ
+   nodeType : ℕ
+   nrChildren : ℕ
+   IDfirstChild : ℕ
+   split : ℕ
+   interval : Interval
+   S_index : Fin 90
+   wx_numerator : ℤ
+   wy_numerator : ℤ
+   w_denominator : ℕ
+   P1_index : ℕ
+   P2_index : ℕ
+   P3_index : ℕ
+   Q1_index : ℕ
+   Q2_index : ℕ
+   Q3_index : ℕ
+   r : ℤ
+   sigma_Q : Finset.Icc 0 1
 
-instance (tab : Table) (row : Row) : Decidable (Row.ValidLocal tab row) := by
-  sorry
+abbrev Table : Type := Array Row
+
+def decodeI (idx : ℕ) : ℕ := (idx % 45) / 15
+
+def decodeK (idx : ℕ) : ℕ := idx % 15
+
+def decodeL (idx : ℕ) : ℕ := idx / 45
+
+def Row.decodeI (_row : Row) (idx : ℕ) : ℕ := Solution.decodeI idx
+
+def Row.decodeK (_row : Row) (idx : ℕ) : ℕ := Solution.decodeK idx
+
+def Row.decodeL (_row : Row) (idx : ℕ) : ℕ := Solution.decodeL idx
+
+def Row.dl (row : Row) : ℕ := (row.decodeL row.P1_index + row.decodeL row.Q1_index) % 2
+
+def Row.dkRot (row : Row) : ℕ := (row.decodeK row.P1_index + 15 - row.decodeK row.Q1_index) % 15
+
+def Row.dkRef (row : Row) : ℕ := (row.decodeK row.P1_index + row.decodeK row.Q1_index) % 15
+
+/--
+The common denominator of θ₁, θ₂, φ₁, φ₂, α rational
+representation in the table. See [SY25 §7.2]
+-/
+def DENOM : ℝ := 15360000
+
+noncomputable
+def Interval.toPoseInterval (iv : Interval) : PoseInterval where
+  min := { θ₁ := iv.min .θ₁ / DENOM
+           θ₂ := iv.min .θ₂ / DENOM
+           φ₁ := iv.min .φ₁ / DENOM
+           φ₂ := iv.min .φ₂ / DENOM
+           α := iv.min .α / DENOM}
+  max := { θ₁ := iv.max .θ₁ / DENOM
+           θ₂ := iv.max .θ₂ / DENOM
+           φ₁ := iv.max .φ₁ / DENOM
+           φ₂ := iv.max .φ₂ / DENOM
+           α := iv.max .α / DENOM}
+
+noncomputable
+def Row.toPoseInterval (row : Row) : PoseInterval :=
+  row.interval.toPoseInterval
+
+noncomputable
+def Row.w (row : Row) : ℝ² :=
+  !₂[(row.wx_numerator : ℝ) / row.w_denominator, (row.wy_numerator : ℝ) / row.w_denominator]
+
+def Row.wUnitCheck (row : Row) : Prop :=
+  row.w_denominator ≠ 0 ∧
+    row.wx_numerator * row.wx_numerator + row.wy_numerator * row.wy_numerator =
+      (row.w_denominator : ℤ) * (row.w_denominator : ℤ)
+deriving Decidable
+
+lemma Row.w_unit_of_wUnitCheck (row : Row) (h : row.wUnitCheck) : ‖row.w‖ = 1 := by
+  rcases h with ⟨hden0, hpyth⟩
+  have hdenR : (row.w_denominator : ℝ) ≠ 0 := by
+    exact_mod_cast hden0
+  have hpythR :
+      (row.wx_numerator : ℝ) * (row.wx_numerator : ℝ) +
+          (row.wy_numerator : ℝ) * (row.wy_numerator : ℝ) =
+        (row.w_denominator : ℝ) * (row.w_denominator : ℝ) := by
+    have := congrArg (fun z : ℤ => (z : ℝ)) hpyth
+    simpa [Int.cast_add, Int.cast_mul] using this
+  have hnormsq : ‖row.w‖ ^ 2 = 1 := by
+    -- Expand the Euclidean norm on `ℝ²` and use the Pythagorean identity stored in the row.
+    rw [EuclideanSpace.norm_sq_eq]
+    simp only [Row.w, Fin.sum_univ_two, Real.norm_eq_abs, sq_abs]
+    simp only [pow_two]
+    -- Reduce to the real equality `(wx^2 + wy^2) / denom^2 = 1`.
+    have hdenR2 : (row.w_denominator : ℝ) * (row.w_denominator : ℝ) ≠ 0 :=
+      mul_ne_zero hdenR hdenR
+    calc
+      (row.wx_numerator : ℝ) / (row.w_denominator : ℝ) *
+            ((row.wx_numerator : ℝ) / (row.w_denominator : ℝ)) +
+      (row.wy_numerator : ℝ) / (row.w_denominator : ℝ) *
+            ((row.wy_numerator : ℝ) / (row.w_denominator : ℝ)) =
+          ((row.wx_numerator : ℝ) * (row.wx_numerator : ℝ) +
+                (row.wy_numerator : ℝ) * (row.wy_numerator : ℝ)) /
+              ((row.w_denominator : ℝ) * (row.w_denominator : ℝ)) := by
+        field_simp [hdenR]
+      _ =
+          ((row.w_denominator : ℝ) * (row.w_denominator : ℝ)) /
+            ((row.w_denominator : ℝ) * (row.w_denominator : ℝ)) := by
+        simp [hpythR]
+      _ = 1 := by
+        simp [div_self, hdenR2]
+  have hsq : ‖row.w‖ ^ 2 = (1 : ℝ) ^ 2 := by
+    simpa using hnormsq
+  rcases (sq_eq_sq_iff_eq_or_eq_neg).1 hsq with hpos | hneg
+  · exact hpos
+  · have hnonneg : (0 : ℝ) ≤ ‖row.w‖ := norm_nonneg _
+    have hlt : ‖row.w‖ < 0 := by
+      simp [hneg]
+    exact (not_lt_of_ge hnonneg hlt).elim
+
+/--
+Best-effort, decidable check that a local-theorem row’s `(P,Q)` triangle indices are related by a
+simple dihedral-style symmetry on the 15-fold rotation index, plus an optional global sign flip.
+
+Empirically (on the published `solution_tree.parquet`), every `nodeType=2` row satisfies this with
+the vertex encoding `idx = k + 15*i + 45*l` (`k ∈ {0..14}`, `i ∈ {0,1,2}`, `l ∈ {0,1}`).
+
+This is intended as a bridge toward a fully decidable Lean-side local-row checker: once we have a
+formalization of how such symmetries induce `Triangle.Congruent`, this predicate can supply the
+congruence witness needed by the (rational) local theorem.
+-/
+def Row.localCongruenceIndexCheck (row : Row) : Prop :=
+  let p := (row.P1_index, row.P2_index, row.P3_index)
+  let q := (row.Q1_index, row.Q2_index, row.Q3_index)
+
+  -- Bound the indices into the 90-vertex encoding.
+  (p.1 < 90 ∧ p.2.1 < 90 ∧ p.2.2 < 90 ∧ q.1 < 90 ∧ q.2.1 < 90 ∧ q.2.2 < 90) ∧
+  -- Orbit indices must match position-wise.
+  (row.decodeI p.1 = row.decodeI q.1 ∧
+   row.decodeI p.2.1 = row.decodeI q.2.1 ∧
+   row.decodeI p.2.2 = row.decodeI q.2.2) ∧
+  -- l-parity differs by a single bit (global sign flip).
+  ((row.decodeL q.1 + row.dl) % 2 = row.decodeL p.1 ∧
+   (row.decodeL q.2.1 + row.dl) % 2 = row.decodeL p.2.1 ∧
+   (row.decodeL q.2.2 + row.dl) % 2 = row.decodeL p.2.2) ∧
+  -- And either a pure rotation on k (mod 15) or a reflection+rotation.
+  (((row.decodeK q.1 + row.dkRot) % 15 = row.decodeK p.1 ∧
+    (row.decodeK q.2.1 + row.dkRot) % 15 = row.decodeK p.2.1 ∧
+    (row.decodeK q.2.2 + row.dkRot) % 15 = row.decodeK p.2.2) ∨
+   ((row.dkRef + 15 - row.decodeK q.1) % 15 = row.decodeK p.1 ∧
+    (row.dkRef + 15 - row.decodeK q.2.1) % 15 = row.decodeK p.2.1 ∧
+    (row.dkRef + 15 - row.decodeK q.2.2) % 15 = row.decodeK p.2.2 ∧
+    row.decodeI p.1 = row.decodeI p.2.1 ∧
+    row.decodeI p.1 = row.decodeI p.2.2))
+deriving Decidable
+
+def Table.HasIntervals (tab : Table) (start : ℕ) (intervals : List Interval) : Prop :=
+  ∀ i : Fin intervals.length,
+    ∃ (h : start + i.val < tab.size), tab[start + i.val].interval = intervals[i]
+deriving Decidable
+
+/-
+Do we want to write this validity checker instead as a manifestly
+computational program returning Bool?
+-/
+
+structure Row.ValidGlobal (tab : Table) (row : Row) : Prop where
+  nodeType : row.nodeType = 1
+  no_rupert : ¬ ∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull
+
+structure Row.ValidLocal (tab : Table) (row : Row) : Prop where
+  nodeType : row.nodeType = 2
+  congruence_check : row.localCongruenceIndexCheck
+  no_rupert : ¬ ∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull
+
+def Interval.lower_half (param : Param) (interval : Interval) : Interval := {
+  min := interval.min
+  max := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.max p
+}
+
+def Interval.upper_half (param : Param) (interval : Interval) : Interval := {
+  min := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.min p
+  max := interval.max
+}
+
+def Interval.splitStep (param : Param) (parts : ℕ) (interval : Interval) : ℤ :=
+  (interval.max param - interval.min param) / (parts : ℤ)
+
+def Interval.splitIntoParts (param : Param) (parts : ℕ) (interval : Interval) : List Interval :=
+  let lo := interval.min param
+  let step := interval.splitStep param parts
+  List.ofFn fun i : Fin parts =>
+    { min := fun p => if p == param then lo + (i.1 : ℤ) * step else interval.min p
+      max := fun p => if p == param then lo + ((i.1 + 1 : ℕ) : ℤ) * step else interval.max p }
+
+def Row.splitCodeForParam : Param → ℕ
+| .θ₁ => 1
+| .φ₁ => 2
+| .θ₂ => 3
+| .φ₂ => 4
+| .α => 5
+
+def Row.partsForSplitCode : ℕ → ℕ
+| 1 => 4
+| 2 => 30
+| 3 => 4
+| 4 => 15
+| 5 => 30
+| _ => 0
 
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
-  split : row.split = 1
+  split : row.split = Row.splitCodeForParam param
+  parts : row.nrChildren = Row.partsForSplitCode row.split
+  step_ok :
+    row.interval.min param +
+      (Row.partsForSplitCode row.split : ℤ) *
+        row.interval.splitStep param (Row.partsForSplitCode row.split) =
+      row.interval.max param
   bound0 : row.ID < row.IDfirstChild
-  bound1 : row.IDfirstChild < Array.size tab
-  bound2 : row.IDfirstChild + 1 < Array.size tab
-  first_child_good : tab[row.IDfirstChild].interval = row.interval.lower_half param
-  second_child_good : tab[row.IDfirstChild + 1].interval = row.interval.upper_half param
+  intervals_good :
+    tab.HasIntervals row.IDfirstChild
+      (row.interval.splitIntoParts param (Row.partsForSplitCode row.split))
 
 instance (tab : Table) (row : Row) (param : Param) : Decidable (Row.ValidSplitParam tab row param) :=
   decidable_of_iff
-    (row.split = 1 ∧
-     ∃ (bound0 : row.ID < row.IDfirstChild),
-     ∃ (bound1 : row.IDfirstChild < Array.size tab),
-     ∃ (bound2 : row.IDfirstChild + 1 < Array.size tab),
-     tab[row.IDfirstChild].interval = row.interval.lower_half param ∧
-     tab[row.IDfirstChild + 1].interval = row.interval.upper_half param)
-    ⟨fun ⟨h1, h2, h3, h4, h5, h6⟩ => ⟨h1, h2, h3, h4, h5, h6⟩,
-     fun ⟨h1, h2, h3, h4, h5, h6⟩ => ⟨h1, h2, h3, h4, h5, h6⟩⟩
+    (row.split = Row.splitCodeForParam param ∧
+     row.nrChildren = Row.partsForSplitCode row.split ∧
+     row.interval.min param +
+        (Row.partsForSplitCode row.split : ℤ) *
+          row.interval.splitStep param (Row.partsForSplitCode row.split) =
+        row.interval.max param ∧
+     ∃ (_bound0 : row.ID < row.IDfirstChild),
+     tab.HasIntervals row.IDfirstChild
+       (row.interval.splitIntoParts param (Row.partsForSplitCode row.split)))
+    ⟨fun ⟨h1, h2, h3, h4, h5⟩ => ⟨h1, h2, h3, h4, h5⟩,
+     fun ⟨h1, h2, h3, h4, h5⟩ => ⟨h1, h2, h3, h4, h5⟩⟩
 
 def Row.ValidBinarySplit (tab : Table) (row : Row) : Prop :=
-  row.nrChildren = 2 ∧
-    ((row.split = 1 ∧ row.ValidSplitParam tab .θ₁) ∨
-     (row.split = 2 ∧ row.ValidSplitParam tab .φ₁) ∨
-     (row.split = 3 ∧ row.ValidSplitParam tab .θ₂) ∨
-     (row.split = 4 ∧ row.ValidSplitParam tab .φ₂) ∨
-     (row.split = 5 ∧ row.ValidSplitParam tab .α))
+  ((row.split = 1 ∧ row.ValidSplitParam tab .θ₁) ∨
+   (row.split = 2 ∧ row.ValidSplitParam tab .φ₁) ∨
+   (row.split = 3 ∧ row.ValidSplitParam tab .θ₂) ∨
+   (row.split = 4 ∧ row.ValidSplitParam tab .φ₂) ∨
+   (row.split = 5 ∧ row.ValidSplitParam tab .α))
 deriving Decidable
 
 /-
@@ -104,11 +320,6 @@ info: [{Solution.Param.θ₁: [100, 108],
 
 end Test
 
-def Table.HasIntervals (tab : Table) (start : ℕ) (intervals : List Interval) : Prop :=
-  ∀ i : Fin intervals.length,
-    ∃ (h : start + i.val < tab.size), tab[start + i.val].interval = intervals[i]
-deriving Decidable
-
 def Row.ValidFullSplit (tab : Table) (row : Row) : Prop :=
   row.nrChildren = 32 ∧ row.split = 6 ∧ row.IDfirstChild > row.ID ∧
   tab.HasIntervals row.IDfirstChild (cubeFold [Interval.lower_half, Interval.upper_half] row.interval [.θ₁, .φ₁, .θ₂, .φ₂, .α])
@@ -117,61 +328,6 @@ deriving Decidable
 def Row.ValidSplit (tab : Table) (row : Row) : Prop :=
   (row.nodeType = (3 : ℕ)) ∧ (row.ValidBinarySplit tab ∨ row.ValidFullSplit tab)
 deriving Decidable
-
-inductive Row.Valid (tab : Table) (row : Row) : Prop where
-  | asSplit : row.ValidSplit tab → Row.Valid tab row
-  | asGlobal : row.ValidGlobal tab → Row.Valid tab row
-  | asLocal : row.ValidLocal tab → Row.Valid tab row
-
-instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) := by
-  apply decidable_of_iff (row.ValidSplit tab ∨ row.ValidGlobal tab ∨ row.ValidLocal tab)
-  constructor
-  · intro h; rcases h with h | h | h
-    · exact .asSplit h
-    · exact .asGlobal h
-    · exact .asLocal h
-  · exact fun h =>
-      match h with
-      | Row.Valid.asSplit h => Or.inl h
-      | Row.Valid.asGlobal h => Or.inr (Or.inl h)
-      | Row.Valid.asLocal h => Or.inr (Or.inr h)
-
-def Row.ValidIx (tab : Table) (i : ℕ) (row : Row) : Prop :=
-  row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size
-deriving Decidable
-
-def Table.Valid (tab : Table) : Prop :=
-  ∀ i : Fin (tab.size), tab[i].ValidIx tab i
-deriving Decidable
-
-lemma Table.Valid.valid_at {tab : Table} (htab : tab.Valid) {i : ℕ} (hi : i < tab.size) :
-    tab[i].ValidIx tab i := htab ⟨i, hi⟩
-
-def Table.valid_decidable (tab : Table) : Decidable tab.Valid := by
-  exact inferInstance
-
-/--
-The common denominator of θ₁, θ₂, φ₁, φ₂, α rational
-representation in the table. See [SY25 §7.2]
--/
-def DENOM : ℝ := 15360000
-
-noncomputable
-def Interval.toPoseInterval (iv : Interval) : PoseInterval where
-  min := { θ₁ := iv.min .θ₁ / DENOM
-           θ₂ := iv.min .θ₂ / DENOM
-           φ₁ := iv.min .φ₁ / DENOM
-           φ₂ := iv.min .φ₂ / DENOM
-           α := iv.min .α / DENOM}
-  max := { θ₁ := iv.max .θ₁ / DENOM
-           θ₂ := iv.max .θ₂ / DENOM
-           φ₁ := iv.max .φ₁ / DENOM
-           φ₂ := iv.max .φ₂ / DENOM
-           α := iv.max .α / DENOM}
-
-noncomputable
-def Row.toPoseInterval (row : Row) : PoseInterval :=
-  row.interval.toPoseInterval
 
 instance : Coe Interval (Set Pose) where
   coe iv := { q : Pose | q ∈ iv.toPoseInterval }
