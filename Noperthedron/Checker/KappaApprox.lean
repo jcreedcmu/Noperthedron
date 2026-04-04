@@ -239,7 +239,7 @@ private lemma Cpt_cast (i : Fin 3) (j : Fin 3) : (Cpt i) j = (↑(Crat i j) : �
 /-- The first two coordinates of each base vertex satisfy x² + y² ≤ 1. -/
 private lemma Crat_xy_sq_le_one (i : Fin 3) :
     (↑(Crat i 0) : ℝ) ^ 2 + (↑(Crat i 1) : ℝ) ^ 2 ≤ 1 := by
-  fin_cases i <;> simp [Crat, C1, C2, C3, Pi.mul_apply, Matrix.cons_val] <;> push_cast <;> norm_num
+  fin_cases i <;> simp [Crat, C1, C2, C3, Pi.mul_apply] <;> norm_num
 
 /-- Angle reduction for cos: cos(2πk/15) = cos(2πk'/15) where k' is the reduced index. -/
 private lemma cos_reduced_angle (k : ℕ) (hk : k < 15) :
