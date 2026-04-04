@@ -20,7 +20,18 @@ However, our first goal is to formalize the *rest* of the math in the paper.
 See the [dependency graph](https://jcreedcmu.github.io/Noperthedron/blueprint/dep_graph_document.html) for a quick overview
 of our current progress.
 
-## Getting started
+## Project Structure
+
+The definition of the main theorem proposition lives in [MainTheorem.lean](Noperthedron/MainTheorem.lean).
+The proof of the main theorem, given existence of a valid solution table, will live in
+[ProofOfMainTheoremWithHole.lean](Noperthedron/ProofOfMainTheoremWithHole.lean).
+
+The final proof of the main theorem will live in
+[NoperthedronExpensiveProof.lean](NoperthedronExpensiveProof.lean).
+This is not part of the main `Noperthedron` build target, because we expect that
+compiling it will be expensive.
+
+## Getting Started
 
 [Install Lean](https://lean-lang.org/install/manual/), clone this project, then build it with:
 

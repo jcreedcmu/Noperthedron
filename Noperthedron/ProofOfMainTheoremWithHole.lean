@@ -1,0 +1,14 @@
+import Noperthedron.Final
+import Noperthedron.MainTheorem
+
+theorem valid_table_imples_exists_not_rupert {tab : Solution.Table}
+    (ht : tab.Valid)
+    (hz : 0 < tab.size)
+    (hi : tightInterval ⊆ tab[0].toPoseInterval) :
+    ExistsNotRupert := by
+  sorry
+
+/-
+Here we want to allow only [propext, Classical.choice, Quot.sound].
+-/
+#print axioms valid_table_imples_exists_not_rupert
