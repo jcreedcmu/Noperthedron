@@ -11,7 +11,6 @@ def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .φ₂ => q.φ₂
 | .α => q.α
 
-<<<<<<< HEAD
 structure Interval where
   min : Param → ℤ
   max : Param → ℤ
