@@ -63,3 +63,56 @@ of folding the initial value `b` through some sequence of functions in `fs`, usi
 def cubeFold {α β : Type} (fs : List (α → β → β)) (b : β) : List α → List β
 | [] => [b]
 | (h :: tl) => fs.flatMap (fun f => cubeFold fs (f h b) tl)
+
+/-
+Equivalently I probably could have done
+
+def cubeFold {α β : Type} (fs : List (α → β → β)) (b : β) : List α → List β
+| [] => pure b
+| (h :: tl) => do  cubeFold fs ((← fs) h b) tl
+
+but I imagine it might be less annoying to do reasoning on the expanded-out nonmonadic version.
+-/
+section Test
+
+def example_interval : Interval := {
+  min := fun
+  | .θ₁ => 100
+  | .θ₂ => 200
+  | .φ₁ => 300
+  | .φ₂ => 400
+  | .α => 16
+  max := fun
+  | .θ₁ => 116
+  | .θ₂ => 216
+  | .φ₁ => 316
+  | .φ₂ => 416
+  | .α => 32
+}
+
+/--
+info: [{Solution.Param.θ₁: [100, 108],
+ Solution.Param.φ₁: [300, 316],
+ Solution.Param.θ₂: [200, 208],
+ Solution.Param.φ₂: [400, 416],
+ Solution.Param.α: [16, 32]},
+ {Solution.Param.θ₁: [100, 108],
+ Solution.Param.φ₁: [300, 316],
+ Solution.Param.θ₂: [208, 216],
+ Solution.Param.φ₂: [400, 416],
+ Solution.Param.α: [16, 32]},
+ {Solution.Param.θ₁: [108, 116],
+ Solution.Param.φ₁: [300, 316],
+ Solution.Param.θ₂: [200, 208],
+ Solution.Param.φ₂: [400, 416],
+ Solution.Param.α: [16, 32]},
+ {Solution.Param.θ₁: [108, 116],
+ Solution.Param.φ₁: [300, 316],
+ Solution.Param.θ₂: [208, 216],
+ Solution.Param.φ₂: [400, 416],
+ Solution.Param.α: [16, 32]}]
+-/
+#guard_msgs in
+#eval cubeFold (α := Param) (β := Interval) [Interval.lower_half, Interval.upper_half] example_interval [.θ₁, .θ₂]
+
+end Test
