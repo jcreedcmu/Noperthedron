@@ -5,7 +5,7 @@ import Mathlib.Tactic.DeriveFintype
 namespace Solution
 
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
-deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype
+deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq
 
 structure Interval where
   min : Param → ℤ
@@ -47,11 +47,11 @@ abbrev Table : Type := Array Row
 
 def Interval.lower_half (param : Param) (interval : Interval) : Interval := {
   min := interval.min
-  max := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.max p
+  max := Function.update interval.max param ((interval.min param + interval.max param)/2)
 }
 
 def Interval.upper_half (param : Param) (interval : Interval) : Interval := {
-  min := fun p => if p == param then (interval.min p + interval.max p)/2 else interval.min p
+  min := Function.update interval.min param ((interval.min param + interval.max param)/2)
   max := interval.max
 }
 
