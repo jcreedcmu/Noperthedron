@@ -138,7 +138,7 @@ decreasing_by left; exact Nat.sub_lt_sub_left _hlt _hgt
 theorem valid_param_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
     (p : Param) (h : Row.ValidSplitParam tab row p) :
     ¬∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull := by
-  obtain ⟨_, h0, h1, h2, iv1, iv2⟩ := h
+  obtain ⟨h0, h1, h2, iv1, iv2⟩ := h
   let r1 := tab[row.IDfirstChild]
   let r2 := tab[row.IDfirstChild + 1]
   have m1 := r1.valid_imp_not_rupert_ix tab (row.IDfirstChild) htab (htab.valid_at h1)

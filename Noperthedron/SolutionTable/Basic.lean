@@ -24,7 +24,6 @@ instance (tab : Table) (row : Row) : Decidable (Row.ValidLocal tab row) := by
   sorry
 
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
-  split : row.split = 1
   bound0 : row.ID < row.IDfirstChild
   bound1 : row.IDfirstChild < Array.size tab
   bound2 : row.IDfirstChild + 1 < Array.size tab
@@ -33,14 +32,13 @@ structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop w
 
 instance (tab : Table) (row : Row) (param : Param) : Decidable (Row.ValidSplitParam tab row param) :=
   decidable_of_iff
-    (row.split = 1 ∧
-     ∃ (bound0 : row.ID < row.IDfirstChild),
+    (∃ (bound0 : row.ID < row.IDfirstChild),
      ∃ (bound1 : row.IDfirstChild < Array.size tab),
      ∃ (bound2 : row.IDfirstChild + 1 < Array.size tab),
      tab[row.IDfirstChild].interval = row.interval.lower_half param ∧
      tab[row.IDfirstChild + 1].interval = row.interval.upper_half param)
-    ⟨fun ⟨h1, h2, h3, h4, h5, h6⟩ => ⟨h1, h2, h3, h4, h5, h6⟩,
-     fun ⟨h1, h2, h3, h4, h5, h6⟩ => ⟨h1, h2, h3, h4, h5, h6⟩⟩
+    ⟨fun ⟨h1, h2, h3, h4, h5⟩ => ⟨h1, h2, h3, h4, h5⟩,
+     fun ⟨h1, h2, h3, h4, h5⟩ => ⟨h1, h2, h3, h4, h5⟩⟩
 
 def Row.ValidBinarySplit (tab : Table) (row : Row) : Prop :=
   row.nrChildren = 2 ∧
