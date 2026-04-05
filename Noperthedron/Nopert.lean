@@ -183,7 +183,7 @@ lemma pointsymmetrize_is_pointsym (vs : Finset ℝ³) :
     PointSym (pointsymmetrize vs : Set ℝ³) := by
   intro a ha
   simp only [SetLike.mem_coe]
-  have z :  a ∈ vs ∨ -a ∈ vs :=  pointsymmetrize_mem vs a |>.mp ha
+  have z : a ∈ vs ∨ -a ∈ vs := pointsymmetrize_mem vs a |>.mp ha
   have z' : -a ∈ vs ∨ -(-a) ∈ vs := cast (by rw [or_comm, neg_neg]) z
   exact pointsymmetrize_mem vs (-a) |>.mpr z'
 
