@@ -27,9 +27,7 @@ The proof of the main theorem, given existence of a valid solution table, will l
 [ProofOfMainTheoremWithHole.lean](Noperthedron/ProofOfMainTheoremWithHole.lean).
 
 The final proof of the main theorem will live in
-[NoperthedronExpensiveProof.lean](NoperthedronExpensiveProof.lean).
-This is not part of the main `Noperthedron` build target, because we expect that
-compiling it will be expensive.
+[ProofOfMainTheorem.lean](Noperthedron/ProofOfMainTheorem.lean).
 
 ## Getting Started
 
