@@ -118,12 +118,12 @@ def contains.φ₂Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
 def contains.αBound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
     p.α ∈ Set.Icc iv.min.α iv.max.α := c.2.2.2.2
 
-def center (iv : PoseInterval) : Pose where
-  θ₁ := (iv.min.θ₁ + iv.max.θ₁)
-  θ₂ := (iv.min.θ₂ + iv.max.θ₂)
-  φ₁ := (iv.min.φ₁ + iv.max.φ₁)
-  φ₂ := (iv.min.φ₂ + iv.max.φ₂)
-  α := (iv.min.α + iv.max.α)
+noncomputable def center (iv : PoseInterval) : Pose where
+  θ₁ := (iv.min.θ₁ + iv.max.θ₁) / 2
+  θ₂ := (iv.min.θ₂ + iv.max.θ₂) / 2
+  φ₁ := (iv.min.φ₁ + iv.max.φ₁) / 2
+  φ₂ := (iv.min.φ₂ + iv.max.φ₂) / 2
+  α := (iv.min.α + iv.max.α) / 2
 
 end PoseInterval
 
