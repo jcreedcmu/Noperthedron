@@ -125,6 +125,13 @@ noncomputable def center (iv : PoseInterval) : Pose where
   φ₂ := (iv.min.φ₂ + iv.max.φ₂) / 2
   α := (iv.min.α + iv.max.α) / 2
 
+noncomputable def radius (iv : PoseInterval) : ℝ :=
+  ((iv.max.θ₁ - iv.min.θ₁) ⊔
+   (iv.max.φ₁ - iv.min.φ₁) ⊔
+   (iv.max.θ₂ - iv.min.θ₂) ⊔
+   (iv.max.φ₂ - iv.min.φ₂) ⊔
+   (iv.max.α - iv.min.α)) / 2
+
 end PoseInterval
 
 instance : Membership Pose PoseInterval where
