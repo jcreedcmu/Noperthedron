@@ -375,19 +375,17 @@ theorem left_leg_norm (j : Fin 90) :
 theorem vertex_close_index (j : Fin 90) :
     ‖toR3 (nopertListQ[j.val]!) -
       (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ ≤ κ := by
-  have key : ‖toR3 (nopertListQ[j.val]!) -
-      (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ ≤ κ / 2 + κ / 2 := by
-    calc ‖toR3 (nopertListQ[j.val]!) -
-          (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖
-        = ‖(toR3 (nopertListQ[j.val]!) - toR3 (nopertListℚ[j.val]!)) +
-           (toR3 (nopertListℚ[j.val]!) -
-            (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt)))‖ := by
-          congr 1; abel
-      _ ≤ ‖toR3 (nopertListQ[j.val]!) - toR3 (nopertListℚ[j.val]!)‖ +
-          ‖toR3 (nopertListℚ[j.val]!) -
-            (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ :=
-          norm_add_le _ _
-      _ ≤ κ / 2 + κ / 2 := add_le_add (left_leg_norm j) (right_leg_all j)
-  linarith [show κ / 2 + κ / 2 = κ from by ring]
+  calc ‖toR3 (nopertListQ[j.val]!) -
+        (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖
+      = ‖(toR3 (nopertListQ[j.val]!) - toR3 (nopertListℚ[j.val]!)) +
+         (toR3 (nopertListℚ[j.val]!) -
+          (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt)))‖ := by
+        congr 1; abel
+    _ ≤ ‖toR3 (nopertListQ[j.val]!) - toR3 (nopertListℚ[j.val]!)‖ +
+        ‖toR3 (nopertListℚ[j.val]!) -
+          (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ :=
+        norm_add_le _ _
+    _ ≤ κ / 2 + κ / 2 := add_le_add (left_leg_norm j) (right_leg_all j)
+    _ = κ := by ring
 
 end KappaApprox
