@@ -51,7 +51,7 @@ structure RationalGlobalTheoremPrecondition (poly : GoodPoly) (poly_ : ApproxGoo
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
 
-private lemma Gℚ_le_G {pbar : Pose} {ε : ℝ} (hε : ε > 0)
+private lemma Gℚ_le_G {pbar : Pose} {ε : ℝ} (hε : 0 ≤ ε)
     {S S_ : ℝ³} {w : ℝ²}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
     (hp : fourInterval.contains pbar) :
@@ -95,7 +95,7 @@ private lemma Gℚ_le_G {pbar : Pose} {ε : ℝ} (hε : ε > 0)
   have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
   nlinarith
 
-private lemma H_le_Hℚ {pbar : Pose} {ε : ℝ} (hε : ε > 0)
+private lemma H_le_Hℚ {pbar : Pose} {ε : ℝ} (hε : 0 ≤ ε)
     {P P_ : ℝ³} {w : ℝ²}
     (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1)
     (hp : fourInterval.contains pbar) :
@@ -127,7 +127,7 @@ private lemma H_le_Hℚ {pbar : Pose} {ε : ℝ} (hε : ε > 0)
 /--
 [SY25] Theorem 43
 -/
-theorem rational_global (pbar : Pose) (ε : ℝ) (hε : ε > 0)
+theorem rational_global (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
     (poly : GoodPoly) (poly_ : ApproxGoodPoly)
     (happrox : κApproxPoly poly.vertices poly_.vertices)
     (_poly_pointsym : PointSym poly.hull)

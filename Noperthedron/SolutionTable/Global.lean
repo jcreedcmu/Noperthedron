@@ -10,4 +10,5 @@ theorem valid_global_imp_no_rupert (tab : Table) (row : Row)
   let iv := row.toPoseInterval
   let pbar := iv.center
   let ε := iv.radius
+  rintro ⟨q, hqi, hqr⟩
   sorry

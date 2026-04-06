@@ -358,7 +358,7 @@ lemma rotproj_helper {pbar p : Pose} {ε : ℝ} {poly : GoodPoly}
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
-lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : 0 < ε)
+lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
     (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -382,7 +382,7 @@ lemma global_theorem_inequality_ii (pbar p : Pose) (ε : ℝ) (hε : 0 < ε)
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
-lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : 0 < ε)
+lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
     (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -425,7 +425,7 @@ lemma global_theorem_inequality_iv (pbar p : Pose) (ε : ℝ) (hε : 0 < ε)
 /--
 Here we run through the "sequence of inequalities [which yield] the desired contradiction"
 -/
-theorem global_theorem_gt_reasoning (pbar p : Pose) (ε : ℝ) (hε : 0 < ε)
+theorem global_theorem_gt_reasoning (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
     (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -445,7 +445,7 @@ theorem global_theorem_gt_reasoning (pbar p : Pose) (ε : ℝ) (hε : 0 < ε)
 /--
 The Global Theorem, [SY25] Theorem 17
 -/
-theorem global_theorem (pbar : Pose) (ε : ℝ) (hε : 0 < ε)
+theorem global_theorem (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
     (poly : GoodPoly)
     (_poly_pointsym : PointSym poly.hull)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -458,7 +458,7 @@ theorem global_theorem (pbar : Pose) (ε : ℝ) (hε : 0 < ε)
 /--
 The Global Theorem specialized to the noperthedron.
 -/
-theorem global_theorem_nopert (pbar : Pose) (ε : ℝ) (hε : 0 < ε)
+theorem global_theorem_nopert (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
     (pc : GlobalTheoremPrecondition Nopert.poly pbar ε) :
     ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p nopert.hull :=
   global_theorem pbar ε hε Nopert.poly
