@@ -1,7 +1,13 @@
 \chapter{Computational Step}
 
+\begin{definition}\label{def:nopertQ}\leanok
+  We define rational approximations of the 90 noperthedron vertices
+  by $\lfloor x \cdot 10^{16} \rfloor/10^{16}$.
+\end{definition}
+
 \begin{theorem}
 \label{thm:nopertQ_approximate}
+\uses{def:nopertQ}
 \tt{nopertQ} is a $\kappa$-rational approximation of the Noperthedron.
 \end{theorem}
 \begin{proof}
@@ -20,7 +26,7 @@ There exists a valid solution table whose zeroth row covers
 \end{align*}
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\uses{def:nopertQ}
 By exhibiting the table and running the validity checking algorithm.
 \end{proof}
 
