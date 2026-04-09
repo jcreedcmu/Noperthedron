@@ -1,6 +1,13 @@
 \chapter{Computational Step}
 
 \begin{theorem}
+\label{thm:nopertQ_approximate}
+\tt{nopertQ} is a $\kappa$-rational approximation of the Noperthedron.
+\end{theorem}
+\begin{proof}
+\end{proof}
+
+\begin{theorem}
 \lean{exists_solution_table}
 \leanok
 \label{thm:exists_solution_table}
@@ -25,7 +32,7 @@ If a global node in the solution tree is valid, then there is no Rupert solution
 \end{theorem}
 
 \begin{proof}
-\uses{thm:global_rational}
+\uses{thm:global_rational,thm:nopertQ_approximate}
 \end{proof}
 
 \begin{theorem}
@@ -36,7 +43,7 @@ If a local node in the solution tree is valid, then there is no Rupert solution 
 \end{theorem}
 
 \begin{proof}
-\uses{thm:local_rational,lem:radius_noperthedron_one,lem:congruent}
+\uses{thm:local_rational,lem:radius_noperthedron_one,lem:congruent,thm:nopertQ_approximate}
 \end{proof}
 
 
