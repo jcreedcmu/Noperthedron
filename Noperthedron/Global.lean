@@ -104,7 +104,7 @@ structure GlobalTheoremPrecondition (poly : GoodPoly) (p : Pose) (ε : ℝ) : Ty
 noncomputable
 def GlobalTheoremPrecondition.Sval
     {poly : GoodPoly} {p : Pose} {ε : ℝ}
-    (hp : GlobalTheoremPrecondition poly p ε) (q : Pose) : ℝ:=
+    (hp : GlobalTheoremPrecondition poly p ε) (q : Pose) : ℝ :=
     ⟪hp.w, q.inner hp.S⟫
 
 theorem GlobalTheoremPrecondition.norm_S_le_one
@@ -215,7 +215,7 @@ theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
   rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
 theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose} {ε : ℝ} {poly : GoodPoly}
-    (pc : GlobalTheoremPrecondition poly pbar ε) {P : ℝ³} (hP : ‖P‖ ≠ 0):
+    (pc : GlobalTheoremPrecondition poly pbar ε) {P : ℝ³} (hP : ‖P‖ ≠ 0) :
     pc.fu_outer P p.outerParams * ‖P‖ = ⟪pc.w, p.outer P⟫ := by
   simp only [GlobalTheoremPrecondition.fu_outer, rotproj_outer_unit, Pose.outer, outerProj,
            PoseLike.outer, Pose.outerParams, Matrix.cons_val,
@@ -238,7 +238,7 @@ lemma fderiv_rotproj_inner_unit (pbar : Pose) (S : ℝ³) (w : ℝ²) :
 lemma partials_helper0a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 0 1) =
-    ‖pc.S‖⁻¹ * ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫  := by
+    ‖pc.S‖⁻¹ * ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
   simp [rotproj_inner']
 
@@ -253,7 +253,7 @@ lemma partials_helper0 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
 lemma partials_helper1a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 1 1) =
-    ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫  := by
+    ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫ := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
   simp [rotproj_inner']
 
@@ -268,7 +268,7 @@ lemma partials_helper1 {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
 lemma partials_helper2a {pbar : Pose} {ε : ℝ} {poly : GoodPoly}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 2 1) =
-    ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫  := by
+    ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫ := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
   simp [rotproj_inner']
 
@@ -429,12 +429,10 @@ theorem global_theorem_gt_reasoning (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
     (p_near_pbar : p ∈ pbar.closed_ball ε)
     (poly : GoodPoly)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
-     maxInner p poly pc.w > maxOuter p poly pc.w
-    := by
+    maxInner p poly pc.w > maxOuter p poly pc.w := by
   have sval_in_img_inner : pc.Sval p ∈ imgInner p poly.vertices pc.w := by
     simp only [Finset.mem_image, imgInner, GlobalTheoremPrecondition.Sval]
     use pc.S, pc.S_in_poly
-
   calc
     maxInner p poly pc.w
     _ ≥ pc.Sval p := Finset.le_max' (H2 := sval_in_img_inner)
