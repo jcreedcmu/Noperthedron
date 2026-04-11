@@ -70,6 +70,6 @@ import Noperthedron.Tightening
 import Noperthedron.Util
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.ExactList
+import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Taylor
 import Noperthedron.Vertices.Trig
-import Noperthedron.Vertices.Truncated

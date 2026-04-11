@@ -1,7 +1,7 @@
 import Mathlib.Data.Rat.Defs
 import Noperthedron.Vertices.Exact
+import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Trig
-import Noperthedron.Vertices.Truncated
 
 namespace Noperthedron
 

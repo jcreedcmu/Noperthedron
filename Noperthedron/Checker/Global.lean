@@ -1,6 +1,6 @@
 import Noperthedron.SolutionTable.Defs
+import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Trig
-import Noperthedron.Vertices.Truncated
 
 /-!
 # Global Validity Checker

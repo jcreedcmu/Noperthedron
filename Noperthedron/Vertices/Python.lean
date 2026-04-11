@@ -4,8 +4,9 @@ namespace Noperthedron
 
 /-! ## Rational vertex data
 
-90 rational approximations of the noperthedron vertices, hard-coded from
-Python's `⌊exact·10¹⁶⌋/10¹⁶` computation. Indexing convention:
+Rational approximations of the 90 noperthedron vertices, matching
+the values used in SY25's Python code. This is intended to be
+equal to the truncation `⌊exact·10¹⁶⌋/10¹⁶`. Indexing convention:
 `index = k + 15·i + 45·ℓ` where k ∈ [0,15), i ∈ {0,1,2}, ℓ ∈ {0,1}.
 -/
 
