@@ -1,7 +1,7 @@
-import Noperthedron.SolutionTable.NopertList
 import Noperthedron.Checker.Global
 import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.TrigLemmas
+import Noperthedron.Vertices.ExactList
 import Mathlib.Analysis.Real.Pi.Bounds
 
 /-!

@@ -1,7 +1,6 @@
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.InnerProductSpace.Calculus
-import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 
 open scoped RealInnerProductSpace

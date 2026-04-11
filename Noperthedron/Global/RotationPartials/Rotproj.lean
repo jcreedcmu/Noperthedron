@@ -7,7 +7,6 @@ import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
 import Noperthedron.RotationDerivs
-import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 import Noperthedron.Global.Definitions
 

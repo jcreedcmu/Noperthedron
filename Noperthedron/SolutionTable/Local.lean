@@ -1,6 +1,6 @@
 import Noperthedron.SolutionTable.Basic
-import Noperthedron.Nopert
 import Noperthedron.Local.Congruent
+import Noperthedron.Vertices.Exact
 
 namespace Solution
 

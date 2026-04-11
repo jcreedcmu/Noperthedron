@@ -1,4 +1,4 @@
-import Noperthedron.Nopert
+import Noperthedron.Vertices.Exact
 
 namespace Nopert
 open Real

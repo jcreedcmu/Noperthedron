@@ -1,6 +1,6 @@
 import Noperthedron.PoseInterval
-import Noperthedron.Nopert
 import Noperthedron.SolutionTable
+import Noperthedron.Vertices.Exact
 
 theorem exists_solution_table :
     ∃ (tab : Solution.Table) (tab_valid : tab.Valid)

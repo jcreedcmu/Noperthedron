@@ -1,7 +1,7 @@
 import Noperthedron.SolutionTable.Basic
 import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Global
-import Noperthedron.Nopert
+import Noperthedron.Vertices.Exact
 
 namespace Solution
 

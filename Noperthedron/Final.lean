@@ -1,11 +1,11 @@
 import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
 import Noperthedron.Basic
-import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 import Noperthedron.Tightening
 import Noperthedron.ConvertPose
 import Noperthedron.CommonCenter
 import Noperthedron.ComputationalStep
+import Noperthedron.Vertices.Exact
 
 open scoped Matrix
 

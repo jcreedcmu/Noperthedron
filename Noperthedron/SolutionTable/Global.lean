@@ -1,6 +1,6 @@
 import Noperthedron.RationalApprox.RationalGlobal
 import Noperthedron.SolutionTable.Basic
-import Noperthedron.Nopert
+import Noperthedron.Vertices.Exact
 
 namespace Solution
 

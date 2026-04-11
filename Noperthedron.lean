@@ -35,7 +35,6 @@ import Noperthedron.Local.Prelims
 import Noperthedron.Local.Spanp
 import Noperthedron.MainTheorem
 import Noperthedron.MatrixPose
-import Noperthedron.Nopert
 import Noperthedron.PointSym
 import Noperthedron.Pose
 import Noperthedron.PoseClasses
@@ -67,6 +66,7 @@ import Noperthedron.SolutionTable.Basic
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.SolutionTable.Global
 import Noperthedron.SolutionTable.Local
-import Noperthedron.SolutionTable.NopertList
 import Noperthedron.Tightening
 import Noperthedron.Util
+import Noperthedron.Vertices.Exact
+import Noperthedron.Vertices.ExactList

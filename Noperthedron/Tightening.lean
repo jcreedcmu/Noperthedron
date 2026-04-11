@@ -1,10 +1,10 @@
 import Noperthedron.Rupert.Basic
 import Noperthedron.PoseClasses
 import Noperthedron.Basic
-import Noperthedron.Nopert
 import Noperthedron.PoseInterval
 import Noperthedron.PointSym
 import Noperthedron.RealMod
+import Noperthedron.Vertices.Exact
 
 open Real
 namespace Tightening
