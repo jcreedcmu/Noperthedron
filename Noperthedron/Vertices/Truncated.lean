@@ -2,11 +2,6 @@ import Mathlib.Data.Rat.Defs
 
 namespace Noperthedron
 
-/-! ## Constants -/
-
-def DENOMQ : ℚ := 15360000
-def κQ : ℚ := 1 / 10 ^ 10
-
 /-! ## Computable sine and cosine (Taylor polynomials in Horner form)
 
 `sinQ x` computes the degree-25 Taylor polynomial of sin:

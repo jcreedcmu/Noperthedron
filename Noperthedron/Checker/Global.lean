@@ -14,6 +14,11 @@ reimplements sin/cos Taylor polynomials (which are noncomputable in
 namespace Noperthedron
 namespace Solution.Checker
 
+/-! ## Constants -/
+
+def DENOMQ : ℚ := 15360000
+def κQ : ℚ := 1 / 10 ^ 10
+
 /-! ## Matrix-vector application
 
 Computable versions of the 2×3 and 2×2 matrix-vector products from
