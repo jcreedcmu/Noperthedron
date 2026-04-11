@@ -1,4 +1,5 @@
 import Noperthedron.SolutionTable.Defs
+import Noperthedron.Vertices.Trig
 import Noperthedron.Vertices.Truncated
 
 /-!
