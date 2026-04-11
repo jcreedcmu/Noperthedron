@@ -13,10 +13,10 @@ are within distance κ = 10⁻¹⁰ of the real noperthedron vertices.
 See `plans/M2D_PLAN.md` for the overall strategy.
 -/
 
-open Nopert RationalApprox Solution.Checker Real
+open Nopert RationalApprox Noperthedron.Solution.Checker Real
 open scoped Nat
 
-namespace KappaApprox
+namespace Noperthedron.KappaApprox
 
 /-! ## Phase 0: First vertex (k=0) -/
 

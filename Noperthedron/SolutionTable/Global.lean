@@ -2,7 +2,7 @@ import Noperthedron.RationalApprox.RationalGlobal
 import Noperthedron.SolutionTable.Basic
 import Noperthedron.Vertices.Exact
 
-namespace Solution
+namespace Noperthedron.Solution
 
 theorem valid_global_imp_no_rupert (tab : Table) (row : Row)
     (hr : row.ValidGlobal tab) :

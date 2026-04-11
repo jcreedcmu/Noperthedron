@@ -2,7 +2,7 @@ import Mathlib.Data.Real.Basic
 import Mathlib.Order.Interval.Finset.Nat
 import Mathlib.Tactic.DeriveFintype
 
-namespace Solution
+namespace Noperthedron.Solution
 
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
 deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq
@@ -91,26 +91,26 @@ def example_interval : Interval := {
 }
 
 /--
-info: [{Solution.Param.θ₁: [100, 108],
- Solution.Param.φ₁: [300, 316],
- Solution.Param.θ₂: [200, 208],
- Solution.Param.φ₂: [400, 416],
- Solution.Param.α: [16, 32]},
- {Solution.Param.θ₁: [100, 108],
- Solution.Param.φ₁: [300, 316],
- Solution.Param.θ₂: [208, 216],
- Solution.Param.φ₂: [400, 416],
- Solution.Param.α: [16, 32]},
- {Solution.Param.θ₁: [108, 116],
- Solution.Param.φ₁: [300, 316],
- Solution.Param.θ₂: [200, 208],
- Solution.Param.φ₂: [400, 416],
- Solution.Param.α: [16, 32]},
- {Solution.Param.θ₁: [108, 116],
- Solution.Param.φ₁: [300, 316],
- Solution.Param.θ₂: [208, 216],
- Solution.Param.φ₂: [400, 416],
- Solution.Param.α: [16, 32]}]
+info: [{Noperthedron.Solution.Param.θ₁: [100, 108],
+ Noperthedron.Solution.Param.φ₁: [300, 316],
+ Noperthedron.Solution.Param.θ₂: [200, 208],
+ Noperthedron.Solution.Param.φ₂: [400, 416],
+ Noperthedron.Solution.Param.α: [16, 32]},
+ {Noperthedron.Solution.Param.θ₁: [100, 108],
+ Noperthedron.Solution.Param.φ₁: [300, 316],
+ Noperthedron.Solution.Param.θ₂: [208, 216],
+ Noperthedron.Solution.Param.φ₂: [400, 416],
+ Noperthedron.Solution.Param.α: [16, 32]},
+ {Noperthedron.Solution.Param.θ₁: [108, 116],
+ Noperthedron.Solution.Param.φ₁: [300, 316],
+ Noperthedron.Solution.Param.θ₂: [200, 208],
+ Noperthedron.Solution.Param.φ₂: [400, 416],
+ Noperthedron.Solution.Param.α: [16, 32]},
+ {Noperthedron.Solution.Param.θ₁: [108, 116],
+ Noperthedron.Solution.Param.φ₁: [300, 316],
+ Noperthedron.Solution.Param.θ₂: [208, 216],
+ Noperthedron.Solution.Param.φ₂: [400, 416],
+ Noperthedron.Solution.Param.α: [16, 32]}]
 -/
 #guard_msgs in
 #eval cubeFold (α := Param) (β := Interval) [Interval.lower_half, Interval.upper_half] example_interval [.θ₁, .θ₂]

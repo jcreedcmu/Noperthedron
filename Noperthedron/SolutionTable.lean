@@ -3,7 +3,7 @@ import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Global
 import Noperthedron.Vertices.Exact
 
-namespace Solution
+namespace Noperthedron.Solution
 
 lemma mem_pose_interval_iff (q : Pose) (iv : Interval) :
     q ∈ iv.toPoseInterval ↔

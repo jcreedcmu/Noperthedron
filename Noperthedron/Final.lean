@@ -9,6 +9,8 @@ import Noperthedron.Vertices.Exact
 
 open scoped Matrix
 
+namespace Noperthedron
+
 /--
 There is no tight pose that makes the Noperthedron have the Rupert property
 -/

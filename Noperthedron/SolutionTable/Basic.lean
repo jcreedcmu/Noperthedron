@@ -2,7 +2,7 @@ import Noperthedron.SolutionTable.Defs
 import Noperthedron.PoseInterval
 import Noperthedron.Checker.Global
 
-namespace Solution
+namespace Noperthedron.Solution
 
 def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .θ₁ => q.θ₁
