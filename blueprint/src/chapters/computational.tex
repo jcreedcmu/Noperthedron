@@ -14,7 +14,7 @@
 \end{proof}
 
 \begin{theorem}
-\lean{exists_solution_table}
+\lean{Noperthedron.exists_solution_table}
 \leanok
 \label{thm:exists_solution_table}
 There exists a valid solution table whose zeroth row covers
@@ -34,7 +34,7 @@ By exhibiting the table and running the validity checking algorithm.
 \label{thm:solution_global}
 If a global node in the solution tree is valid, then there is no Rupert solution for its interval.
 \leanok
-\lean{Solution.valid_global_imp_no_rupert}
+\lean{Noperthedron.Solution.valid_global_imp_no_rupert}
 \end{theorem}
 
 \begin{proof}
@@ -45,7 +45,7 @@ If a global node in the solution tree is valid, then there is no Rupert solution
 \label{thm:solution_local}
 If a local node in the solution tree is valid, then there is no Rupert solution for its interval.
 \leanok
-\lean{Solution.valid_local_imp_no_rupert}
+\lean{Noperthedron.Solution.valid_local_imp_no_rupert}
 \end{theorem}
 
 \begin{proof}
@@ -55,11 +55,11 @@ If a local node in the solution tree is valid, then there is no Rupert solution 
 
 \begin{theorem}
 \leanok
-\lean{Solution.Row.valid_imp_not_rupert_ix,
-Solution.valid_split_imp_no_rupert,
-Solution.valid_binary_split_imp_no_rupert,
-Solution.valid_full_split_imp_no_rupert,
-Solution.valid_param_split_imp_no_rupert
+\lean{Noperthedron.Solution.Row.valid_imp_not_rupert_ix,
+Noperthedron.Solution.valid_split_imp_no_rupert,
+Noperthedron.Solution.valid_binary_split_imp_no_rupert,
+Noperthedron.Solution.valid_full_split_imp_no_rupert,
+Noperthedron.Solution.valid_param_split_imp_no_rupert
 }
 \label{thm:row_valid_imp_not_rupert_ix}
 \uses{def:noperthedron}
@@ -78,7 +78,7 @@ the tree, or appeal to Theorem~\ref{thm:solution_global} or Theorem~\ref{thm:sol
 
 \begin{corollary}
 \leanok
-\lean{Solution.Row.valid_imp_not_rupert}
+\lean{Noperthedron.Solution.Row.valid_imp_not_rupert}
 \label{thm:row_valid_imp_not_rupert}
 \uses{def:noperthedron}
 If we have a valid solution table, then there is no Rupert solution of the interval of its zeroth row.
