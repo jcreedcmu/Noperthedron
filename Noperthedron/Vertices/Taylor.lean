@@ -20,7 +20,7 @@ def Crat : Fin 3 → (Fin 3 → ℚ)
     2π(15-k)/15 instead of 2πk/15, using cos(2π-x) = cos(x) and
     sin(2π-x) = -sin(x). This keeps all Taylor evaluations at
     angles ≤ 2π·7/15 ≈ 2.93, where the degree-25 remainder is tiny. -/
-def nopertPtℚ (k ℓ : ℕ) (i : Fin 3) : Fin 3 → ℚ :=
+def taylorPt (k ℓ : ℕ) (i : Fin 3) : Fin 3 → ℚ :=
   let k' := if k ≤ 7 then k else 15 - k
   let θ := 2 * piQ * k' / 15
   let c := cosQ θ
@@ -34,4 +34,4 @@ def nopertPtℚ (k ℓ : ℕ) (i : Fin 3) : Fin 3 → ℚ :=
 
 /-- The full rational intermediate vertex list (90 entries). -/
 def taylorVertex (j : Fin 90) : Fin 3 → ℚ :=
-  nopertPtℚ (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩
+  taylorPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩

@@ -252,7 +252,7 @@ private lemma RzL_apply_2 (θ : ℝ) (v : ℝ³) :
 /-- The core analytical bound: each vertex of nopertPtℚ is within κ/2 of the
     corresponding real nopertPt vertex. -/
 theorem nopertPtℚ_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
-    ‖toR3 (nopertPtℚ k ℓ i) - nopertPt k ℓ i‖ ≤ κ / 2 := by
+    ‖toR3 (taylorPt k ℓ i) - nopertPt k ℓ i‖ ≤ κ / 2 := by
   -- Set up reduced angle
   set k' := if k ≤ 7 then k else 15 - k with hk'_def
   have hk'_le : k' ≤ 7 := reduced_le_seven k hk
@@ -266,10 +266,10 @@ theorem nopertPtℚ_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
   set b := (↑(Crat i 1) : ℝ) with hb_def
   have hab : a ^ 2 + b ^ 2 ≤ 1 := Crat_xy_sq_le_one i
   -- Set up the difference vector
-  set d := toR3 (nopertPtℚ k ℓ i) - nopertPt k ℓ i with hd_def
+  set d := toR3 (taylorPt k ℓ i) - nopertPt k ℓ i with hd_def
   -- z-component is 0 (both sides use the same rational base coord)
   have hz : d 2 = 0 := by
-    simp only [hd_def, toR3, nopertPtℚ, nopertPt]
+    simp only [hd_def, toR3, taylorPt, nopertPt]
     simp [RzL_apply_2, Cpt_cast]
   -- x,y squared norm = (ce² + se²)(a² + b²) via rotation algebra identity
   -- Both k ≤ 7 and k > 7 give the same squared norm due to cross-term cancellation
@@ -304,7 +304,7 @@ theorem right_leg_all (j : Fin 90) :
       (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ ≤ κ / 2 := by
   -- Relate nopertListℚ[j] to nopertPtℚ
   have hℚ : taylorVertex j =
-      nopertPtℚ (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩ := by
+      taylorPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩ := by
     simp [taylorVertex]
   -- Relate nopertList[j] to nopertPt
   have hR := nopertList_index j
