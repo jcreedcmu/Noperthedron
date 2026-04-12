@@ -33,6 +33,5 @@ def nopertPtℚ (k ℓ : ℕ) (i : Fin 3) : Fin 3 → ℚ :=
   | 2 => sgn * ci 2
 
 /-- The full rational intermediate vertex list (90 entries). -/
-def nopertListℚ : Array (Fin 3 → ℚ) :=
-  Array.ofFn fun (j : Fin 90) =>
-    nopertPtℚ (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩
+def taylorVertex (j : Fin 90) : Fin 3 → ℚ :=
+  nopertPtℚ (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩

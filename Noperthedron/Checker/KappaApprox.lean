@@ -110,9 +110,9 @@ theorem cosQ_approx (q : ℚ) : |Real.cos q - (cosQ q : ℝ)| ≤ |↑q| ^ 26 / 
     `nopertListℚ` to within squared distance κ² = 10⁻²⁰ per vertex. -/
 lemma left_leg_all :
     ∀ j : Fin 90,
-    (nopertListQ[j.val]! 0 - nopertListℚ[j.val]! 0) ^ 2 +
-    (nopertListQ[j.val]! 1 - nopertListℚ[j.val]! 1) ^ 2 +
-    (nopertListQ[j.val]! 2 - nopertListℚ[j.val]! 2) ^ 2 ≤
+    (nopertListQ[j.val]! 0 - taylorVertex j 0) ^ 2 +
+    (nopertListQ[j.val]! 1 - taylorVertex j 1) ^ 2 +
+    (nopertListQ[j.val]! 2 - taylorVertex j 2) ^ 2 ≤
     (1 : ℚ) / 10 ^ 28 := by
   native_decide
 
@@ -300,12 +300,12 @@ private lemma nopertList_index (j : Fin 90) :
     the real noperthedron vertices. Uses Taylor remainder + MVT + π bounds.
     The actual error is ~10⁻¹⁵, well within κ/2 = 5·10⁻¹¹. -/
 theorem right_leg_all (j : Fin 90) :
-    ‖toR3 (nopertListℚ[j.val]!) -
+    ‖toR3 (taylorVertex j) -
       (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ ≤ κ / 2 := by
   -- Relate nopertListℚ[j] to nopertPtℚ
-  have hℚ : nopertListℚ[j.val]! =
+  have hℚ : taylorVertex j =
       nopertPtℚ (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩ := by
-    simp [nopertListℚ]
+    simp [taylorVertex]
   -- Relate nopertList[j] to nopertPt
   have hR := nopertList_index j
   rw [hℚ, hR]
@@ -320,7 +320,7 @@ private lemma toR3_sub_apply (v₁ v₂ : Fin 3 → ℚ) (k : Fin 3) :
 
 /-- Left-leg ℝ³ norm bound derived from the ℚ squared distance bound. -/
 theorem left_leg_norm (j : Fin 90) :
-    ‖toR3 (nopertListQ[j.val]!) - toR3 (nopertListℚ[j.val]!)‖ ≤ κ / 2 := by
+    ‖toR3 (nopertListQ[j.val]!) - toR3 (taylorVertex j)‖ ≤ κ / 2 := by
   have hκ2 : (0 : ℝ) ≤ κ / 2 := by unfold κ; positivity
   have h := left_leg_all j
   rw [EuclideanSpace.norm_eq, ← sqrt_sq hκ2]
@@ -328,12 +328,12 @@ theorem left_leg_norm (j : Fin 90) :
   simp only [Fin.sum_univ_three, norm_eq_abs, sq_abs, toR3_sub_apply]
   -- Goal: (↑(Q 0) - ↑(ℚ 0))² + ... ≤ (κ/2)²
   -- Rewrite differences to pull casts outside
-  have heq : ((↑(nopertListQ[j.val]! 0) : ℝ) - ↑(nopertListℚ[j.val]! 0)) ^ 2 +
-       ((↑(nopertListQ[j.val]! 1) : ℝ) - ↑(nopertListℚ[j.val]! 1)) ^ 2 +
-       ((↑(nopertListQ[j.val]! 2) : ℝ) - ↑(nopertListℚ[j.val]! 2)) ^ 2
-      = ((nopertListQ[j.val]! 0 - nopertListℚ[j.val]! 0) ^ 2 +
-         (nopertListQ[j.val]! 1 - nopertListℚ[j.val]! 1) ^ 2 +
-         (nopertListQ[j.val]! 2 - nopertListℚ[j.val]! 2) ^ 2 : ℚ) := by
+  have heq : ((↑(nopertListQ[j.val]! 0) : ℝ) - ↑(taylorVertex j 0)) ^ 2 +
+       ((↑(nopertListQ[j.val]! 1) : ℝ) - ↑(taylorVertex j 1)) ^ 2 +
+       ((↑(nopertListQ[j.val]! 2) : ℝ) - ↑(taylorVertex j 2)) ^ 2
+      = ((nopertListQ[j.val]! 0 - taylorVertex j 0) ^ 2 +
+         (nopertListQ[j.val]! 1 - taylorVertex j 1) ^ 2 +
+         (nopertListQ[j.val]! 2 - taylorVertex j 2) ^ 2 : ℚ) := by
     push_cast; ring
   rw [heq]
   -- Goal: (↑(ℚ sum) : ℝ) ≤ (κ / 2) ^ 2
@@ -346,12 +346,12 @@ theorem vertex_close_index (j : Fin 90) :
       (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ ≤ κ := by
   calc ‖toR3 (nopertListQ[j.val]!) -
         (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖
-      = ‖(toR3 (nopertListQ[j.val]!) - toR3 (nopertListℚ[j.val]!)) +
-         (toR3 (nopertListℚ[j.val]!) -
+      = ‖(toR3 (nopertListQ[j.val]!) - toR3 (taylorVertex j)) +
+         (toR3 (taylorVertex j) -
           (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt)))‖ := by
         congr 1; abel
-    _ ≤ ‖toR3 (nopertListQ[j.val]!) - toR3 (nopertListℚ[j.val]!)‖ +
-        ‖toR3 (nopertListℚ[j.val]!) -
+    _ ≤ ‖toR3 (nopertListQ[j.val]!) - toR3 (taylorVertex j)‖ +
+        ‖toR3 (taylorVertex j) -
           (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ :=
         norm_add_le _ _
     _ ≤ κ / 2 + κ / 2 := add_le_add (left_leg_norm j) (right_leg_all j)
