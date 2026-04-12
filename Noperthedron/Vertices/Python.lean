@@ -1,3 +1,4 @@
+import Mathlib.Data.Fin.VecNotation
 import Mathlib.Data.Rat.Defs
 
 namespace Noperthedron
@@ -15,7 +16,7 @@ private def d : ℚ := 10^16
 private def mkV (a b c : ℤ) : Fin 3 → ℚ :=
   fun | 0 => ↑a / d | 1 => ↑b / d | 2 => ↑c / d
 
-def nopertListQ : Array (Fin 3 → ℚ) := #[
+def pythonVertex : Fin 90 → Fin 3 → ℚ := ![
   mkV     5861195714524832                    0     8102245663767282, -- [0] ℓ=0 i=0 k=0
   mkV     5354468721358439     2383963069336096     8102245663767282, -- [1] ℓ=0 i=0 k=1
   mkV     3921905442447942     4355717266359407     8102245663767282, -- [2] ℓ=0 i=0 k=2
@@ -107,7 +108,3 @@ def nopertListQ : Array (Fin 3 → ℚ) := #[
   mkV    (-9420190652138347)     2544123413231156    (-1230614493000000), -- [88] ℓ=1 i=2 k=13
   mkV    (-9640560597056464)    (-1507364335145272)    (-1230614493000000)  -- [89] ℓ=1 i=2 k=14
 ]
-
-/-- Get vertex by index, defaulting to zero for out-of-bounds. -/
-def getVertex (idx : ℕ) : Fin 3 → ℚ :=
-  nopertListQ.getD idx (fun _ => 0)

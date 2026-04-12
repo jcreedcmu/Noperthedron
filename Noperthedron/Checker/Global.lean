@@ -78,6 +78,7 @@ def computeGQ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) 
   let inner := dot2 (applyR α m1S) w
   let t1 := |dot2 (applyR' α m1S) w|
   let t2 := |dot2 (applyR α (applyMθ θ₁ φ₁ S)) w|
+
   let t3 := |dot2 (applyR α (applyMφ θ₁ φ₁ S)) w|
   inner - ε * (t1 + t2 + t3) - 9 * ε ^ 2 / 2 - 4 * κQ * (1 + 3 * ε)
 
@@ -91,8 +92,8 @@ def computeHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : �
 
 /-- Maximum H over all 90 vertices. -/
 def computeMaxHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
-  let values := nopertListQ.map (computeHQ θ₂ φ₂ ε w)
-  values.foldl max (values.getD 0 0)
+  let values := (computeHQ θ₂ φ₂ ε w) ∘ pythonVertex
+  (Array.ofFn values).foldl max (values 0)
 
 /-! ## The main checker -/
 
@@ -106,7 +107,7 @@ def checkGlobal (row : Row) : Bool :=
   let φ₂ := centerQ iv .φ₂
   let α := centerQ iv .α
   let ε := epsilonQ iv
-  let S := getVertex row.S_index.val
+  let S := pythonVertex row.S_index
   let w : Fin 2 → ℚ := fun
     | 0 => row.wx_numerator / row.w_denominator
     | 1 => row.wy_numerator / row.w_denominator

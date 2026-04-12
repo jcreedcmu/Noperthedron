@@ -36,25 +36,25 @@ lemma nopertList_0 : nopertList[0] = C1R :=
 /-! ## Phase 1: Full first vertex norm bound -/
 
 -- Extract concrete rational values of nopertListQ[0]
-private lemma nlq0_0 : nopertListQ[0]! 0 = (5861195714524832 : ℚ) / 10000000000000000 := by
+private lemma nlq0_0 : pythonVertex 0 0 = (5861195714524832 : ℚ) / 10000000000000000 := by
   native_decide
-private lemma nlq0_1 : nopertListQ[0]! 1 = 0 := by native_decide
-private lemma nlq0_2 : nopertListQ[0]! 2 = (8102245663767282 : ℚ) / 10000000000000000 := by
+private lemma nlq0_1 : pythonVertex 0 1 = 0 := by native_decide
+private lemma nlq0_2 : pythonVertex 0 2 = (8102245663767282 : ℚ) / 10000000000000000 := by
   native_decide
 
 /-- The ℝ³ norm of the difference between the first rational vertex
     and C1R is at most κ. -/
 lemma first_vertex_close :
-    ‖(WithLp.toLp 2 (fun i => (nopertListQ[0]! i : ℝ)) : ℝ³) - C1R‖ ≤ κ := by
+    ‖(WithLp.toLp 2 (fun i => (pythonVertex 0 i : ℝ)) : ℝ³) - C1R‖ ≤ κ := by
   have hκ : (0 : ℝ) ≤ κ := by unfold κ; positivity
   rw [EuclideanSpace.norm_eq]
-  calc sqrt (∑ i : Fin 3, ‖(WithLp.toLp 2 (fun i => (nopertListQ[0]! i : ℝ)) - C1R) i‖ ^ 2)
+  calc sqrt (∑ i : Fin 3, ‖(WithLp.toLp 2 (fun i => (pythonVertex 0 i : ℝ)) - C1R) i‖ ^ 2)
       ≤ sqrt (κ ^ 2) := by
         apply sqrt_le_sqrt
         simp only [norm_eq_abs, sq_abs, Fin.sum_univ_three]
-        show ((↑(nopertListQ[0]! 0) : ℝ) - C1R 0) ^ 2 +
-             ((↑(nopertListQ[0]! 1) : ℝ) - C1R 1) ^ 2 +
-             ((↑(nopertListQ[0]! 2) : ℝ) - C1R 2) ^ 2 ≤ κ ^ 2
+        show ((↑(pythonVertex 0 0) : ℝ) - C1R 0) ^ 2 +
+             ((↑(pythonVertex 0 1) : ℝ) - C1R 1) ^ 2 +
+             ((↑(pythonVertex 0 2) : ℝ) - C1R 2) ^ 2 ≤ κ ^ 2
         simp only [nlq0_0, nlq0_1, nlq0_2]
         unfold C1R C1 κ
         simp only [Pi.mul_apply, Matrix.cons_val]
@@ -110,9 +110,9 @@ theorem cosQ_approx (q : ℚ) : |Real.cos q - (cosQ q : ℝ)| ≤ |↑q| ^ 26 / 
     `nopertListℚ` to within squared distance κ² = 10⁻²⁰ per vertex. -/
 lemma left_leg_all :
     ∀ j : Fin 90,
-    (nopertListQ[j.val]! 0 - taylorVertex j 0) ^ 2 +
-    (nopertListQ[j.val]! 1 - taylorVertex j 1) ^ 2 +
-    (nopertListQ[j.val]! 2 - taylorVertex j 2) ^ 2 ≤
+    (pythonVertex j 0 - taylorVertex j 0) ^ 2 +
+    (pythonVertex j 1 - taylorVertex j 1) ^ 2 +
+    (pythonVertex j 2 - taylorVertex j 2) ^ 2 ≤
     (1 : ℚ) / 10 ^ 28 := by
   native_decide
 
@@ -320,7 +320,7 @@ private lemma toR3_sub_apply (v₁ v₂ : Fin 3 → ℚ) (k : Fin 3) :
 
 /-- Left-leg ℝ³ norm bound derived from the ℚ squared distance bound. -/
 theorem left_leg_norm (j : Fin 90) :
-    ‖toR3 (nopertListQ[j.val]!) - toR3 (taylorVertex j)‖ ≤ κ / 2 := by
+    ‖toR3 (pythonVertex j) - toR3 (taylorVertex j)‖ ≤ κ / 2 := by
   have hκ2 : (0 : ℝ) ≤ κ / 2 := by unfold κ; positivity
   have h := left_leg_all j
   rw [EuclideanSpace.norm_eq, ← sqrt_sq hκ2]
@@ -328,12 +328,12 @@ theorem left_leg_norm (j : Fin 90) :
   simp only [Fin.sum_univ_three, norm_eq_abs, sq_abs, toR3_sub_apply]
   -- Goal: (↑(Q 0) - ↑(ℚ 0))² + ... ≤ (κ/2)²
   -- Rewrite differences to pull casts outside
-  have heq : ((↑(nopertListQ[j.val]! 0) : ℝ) - ↑(taylorVertex j 0)) ^ 2 +
-       ((↑(nopertListQ[j.val]! 1) : ℝ) - ↑(taylorVertex j 1)) ^ 2 +
-       ((↑(nopertListQ[j.val]! 2) : ℝ) - ↑(taylorVertex j 2)) ^ 2
-      = ((nopertListQ[j.val]! 0 - taylorVertex j 0) ^ 2 +
-         (nopertListQ[j.val]! 1 - taylorVertex j 1) ^ 2 +
-         (nopertListQ[j.val]! 2 - taylorVertex j 2) ^ 2 : ℚ) := by
+  have heq : ((↑(pythonVertex j 0) : ℝ) - ↑(taylorVertex j 0)) ^ 2 +
+       ((↑(pythonVertex j 1) : ℝ) - ↑(taylorVertex j 1)) ^ 2 +
+       ((↑(pythonVertex j 2) : ℝ) - ↑(taylorVertex j 2)) ^ 2
+      = ((pythonVertex j 0 - taylorVertex j 0) ^ 2 +
+         (pythonVertex j 1 - taylorVertex j 1) ^ 2 +
+         (pythonVertex j 2 - taylorVertex j 2) ^ 2 : ℚ) := by
     push_cast; ring
   rw [heq]
   -- Goal: (↑(ℚ sum) : ℝ) ≤ (κ / 2) ^ 2
@@ -342,15 +342,15 @@ theorem left_leg_norm (j : Fin 90) :
 /-- The hard-coded rational vertices are within κ of the real vertices,
     for each index in [0, 90). -/
 theorem vertex_close_index (j : Fin 90) :
-    ‖toR3 (nopertListQ[j.val]!) -
+    ‖toR3 (pythonVertex j) -
       (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ ≤ κ := by
-  calc ‖toR3 (nopertListQ[j.val]!) -
+  calc ‖toR3 (pythonVertex j) -
         (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖
-      = ‖(toR3 (nopertListQ[j.val]!) - toR3 (taylorVertex j)) +
+      = ‖(toR3 (pythonVertex j) - toR3 (taylorVertex j)) +
          (toR3 (taylorVertex j) -
           (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt)))‖ := by
         congr 1; abel
-    _ ≤ ‖toR3 (nopertListQ[j.val]!) - toR3 (taylorVertex j)‖ +
+    _ ≤ ‖toR3 (pythonVertex j) - toR3 (taylorVertex j)‖ +
         ‖toR3 (taylorVertex j) -
           (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ :=
         norm_add_le _ _
