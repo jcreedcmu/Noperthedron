@@ -9,7 +9,7 @@ structure VertexIndex : Type where
   k : Fin 15
   ℓ : Fin 2
   i : Fin 3
-deriving Fintype, DecidableEq, Repr
+deriving Fintype, DecidableEq, Repr, Nonempty
 
 def VertexIndex.ofFin90 (j : Fin 90) : VertexIndex :=
  ⟨⟨j.val % 15, by omega⟩, ⟨j.val / 45, by omega⟩, ⟨(j.val % 45) / 15, by omega⟩⟩

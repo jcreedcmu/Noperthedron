@@ -60,9 +60,10 @@ def κApproxMat {m n : ℕ}
 def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
   ‖(A - A').toEuclideanLin.toContinuousLinearMap‖ ≤ κ
 
-structure κApproxPoly (A B : Finset ℝ³) where
-  bijection : A ≃ B
-  approx : ∀ a : A, ‖(a : ℝ³) - bijection a‖ ≤ κ
+structure κApproxPoly {ι₁ ι₂ : Type} [Fintype ι₁] [Fintype ι₂]
+    (A : IndexedVertices ι₁) (B : IndexedVertices ι₂) where
+  bijection : ι₁ ≃ ι₂
+  approx : ∀ a : ι₁, ‖(A.v a : ℝ³) - B.v (bijection a)‖ ≤ κ
 
 end
 

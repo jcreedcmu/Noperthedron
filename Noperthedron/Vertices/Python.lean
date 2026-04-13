@@ -1,6 +1,7 @@
 import Mathlib.Data.Fin.VecNotation
 import Mathlib.Data.Rat.Defs
 
+import Noperthedron.Basic
 import Noperthedron.Vertices.Index
 
 namespace Noperthedron
@@ -112,3 +113,15 @@ def pythonVertexCurried : Fin 2 → Fin 3 → Fin 15 → Fin 3 → ℚ := ![
 ]
 
 def pythonVertex (idx : VertexIndex) : Fin 3 → ℚ := pythonVertexCurried idx.ℓ idx.i idx.k
+
+/-- Cast a `Fin 3 → ℚ` to an `ℝ³` point. -/
+noncomputable def toR3 (v : Fin 3 → ℚ) : ℝ³ :=
+  WithLp.toLp 2 (fun i => (v i : ℝ))
+
+noncomputable
+def pythonPoly : ApproxGoodPoly VertexIndex := {
+  vertices := ⟨toR3 ∘ pythonVertex⟩,
+  nontriv := by
+    intro j
+    sorry
+}

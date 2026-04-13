@@ -30,14 +30,14 @@ lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
   rw [this, Set.image_comp]
   exact neg_image_eq_if_pointsym (rotR α '' X) (rotR_preserves_pointsymmetry X hX)
 
-lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ exactPoly.vertices) (k : ℤ) :
-    RzC (2 * π * k / 15) x ∈ exactPoly.vertices := by
-  simp only [exactPoly, exactVerts, exactVertex,
+lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ exactVerts) (k : ℤ) :
+    RzC (2 * π * k / 15) x ∈ exactVerts := by
+  simp only [exactVerts, exactVertex,
     Finset.mem_image, Finset.mem_univ, true_and] at hx
   obtain ⟨⟨k, ℓ, i⟩, hb⟩ := hx
   rename_i K
   subst hb
-  simp only [exactPoly, exactVerts, exactVertex, Finset.mem_image, Finset.mem_univ, true_and]
+  simp only [exactVerts, exactVertex, Finset.mem_image, Finset.mem_univ, true_and]
   rw [ContinuousLinearMap.map_smul_of_tower]
   simp only [← RzC_coe, ← ContinuousLinearMap.mul_apply, ← AddChar.map_add_eq_mul RzC]
   refine ⟨⟨⟨(((↑↑k : ℤ) + K) % 15).toNat, by omega⟩, ℓ, i⟩, ?_⟩
