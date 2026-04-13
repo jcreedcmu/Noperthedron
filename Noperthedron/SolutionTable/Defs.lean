@@ -2,6 +2,8 @@ import Mathlib.Data.Real.Basic
 import Mathlib.Order.Interval.Finset.Nat
 import Mathlib.Tactic.DeriveFintype
 
+import Noperthedron.Vertices.Index
+
 namespace Noperthedron.Solution
 
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
@@ -30,16 +32,16 @@ structure Row : Type where
    IDfirstChild : ℕ
    split : ℕ
    interval : Interval
-   S_index : Fin 90
+   S_index : VertexIndex
    wx_numerator : ℤ
    wy_numerator : ℤ
    w_denominator : ℕ
-   P1_index : ℕ
-   P2_index : ℕ
-   P3_index : ℕ
-   Q1_index : ℕ
-   Q2_index : ℕ
-   Q3_index : ℕ
+   P1_index : VertexIndex
+   P2_index : VertexIndex
+   P3_index : VertexIndex
+   Q1_index : VertexIndex
+   Q2_index : VertexIndex
+   Q3_index : VertexIndex
    r : ℤ
    sigma_Q : Finset.Icc 0 1
 

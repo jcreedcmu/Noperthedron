@@ -69,6 +69,7 @@ import Noperthedron.SolutionTable.Local
 import Noperthedron.Tightening
 import Noperthedron.Util
 import Noperthedron.Vertices.Exact
+import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Taylor
 import Noperthedron.Vertices.Trig
