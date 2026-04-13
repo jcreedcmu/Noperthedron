@@ -38,10 +38,10 @@ lemma exactVertex_0 : exactVertex 0 = C1R :=
 
 -- Extract concrete rational values of nopertListQ[0]
 private lemma nlq0_0 : pythonVertex 0 0 = (5861195714524832 : ℚ) / 10000000000000000 := by
-  native_decide
-private lemma nlq0_1 : pythonVertex 0 1 = 0 := by native_decide
+  decide +kernel
+private lemma nlq0_1 : pythonVertex 0 1 = 0 := by decide +kernel
 private lemma nlq0_2 : pythonVertex 0 2 = (8102245663767282 : ℚ) / 10000000000000000 := by
-  native_decide
+  decide +kernel
 
 /-- The ℝ³ norm of the difference between the first rational vertex
     and C1R is at most κ. -/
@@ -107,15 +107,15 @@ theorem cosQ_approx (q : ℚ) : |Real.cos q - (cosQ q : ℝ)| ≤ |↑q| ^ 26 / 
 /-! ## Left-leg validation: k > 0 vertex -/
 
 /-- Left-leg squared distance for ALL 90 vertices.
-    The hard-coded `nopertListQ` agrees with the Taylor-polynomial
-    `nopertListℚ` to within squared distance κ² = 10⁻²⁰ per vertex. -/
+    The hard-coded `pythonVertex` agrees with the Taylor-polynomial
+    `taylorVertex` to within squared distance κ² = 10⁻²⁰ per vertex. -/
 lemma left_leg_all :
     ∀ j : Fin 90,
     (pythonVertex j 0 - taylorVertex j 0) ^ 2 +
     (pythonVertex j 1 - taylorVertex j 1) ^ 2 +
     (pythonVertex j 2 - taylorVertex j 2) ^ 2 ≤
     (1 : ℚ) / 10 ^ 28 := by
-  native_decide
+  decide +kernel
 
 /-! ## Right-leg bound: nopertListℚ vs nopertList -/
 
@@ -252,7 +252,7 @@ private lemma RzL_apply_2 (θ : ℝ) (v : ℝ³) :
 
 /-- The core analytical bound: each vertex of nopertPtℚ is within κ/2 of the
     corresponding real nopertPt vertex. -/
-theorem nopertPtℚ_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
+theorem taylorPt_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
     ‖toR3 (taylorPt k ℓ i) - exactPt k ℓ i‖ ≤ κ / 2 := by
   -- Set up reduced angle
   set k' := if k ≤ 7 then k else 15 - k with hk'_def
@@ -308,7 +308,7 @@ theorem right_leg_all (j : Fin 90) :
     simp [taylorVertex]
   -- Relate nopertList[j] to nopertPt
   rw [hℚ, exactVertex_index]
-  exact nopertPtℚ_close (j.val % 15) (by omega) (j.val / 45) _
+  exact taylorPt_close (j.val % 15) (by omega) (j.val / 45) _
 
 /-! ## Combined bound via triangle inequality -/
 
