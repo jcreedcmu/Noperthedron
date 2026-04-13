@@ -15,7 +15,7 @@ namespace Noperthedron
 There is no tight pose that makes the Noperthedron have the Rupert property
 -/
 theorem no_nopert_tight_pose : ¬ ∃ v : Pose,
-    tightInterval.contains v ∧ RupertPose v nopert.hull := by
+    tightInterval.contains v ∧ RupertPose v exactShape.hull := by
   rintro ⟨v, h1, h2⟩
   let ⟨tab, htab, hz, tight⟩ := exists_solution_table
   exact Solution.Row.valid_imp_not_rupert tab htab hz ⟨v, tight v h1, h2⟩
@@ -23,7 +23,7 @@ theorem no_nopert_tight_pose : ¬ ∃ v : Pose,
 /--
 There is no pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_pose : ¬ ∃ v : Pose, RupertPose v nopert.hull := by
+theorem no_nopert_pose : ¬ ∃ v : Pose, RupertPose v exactShape.hull := by
   intro r
   obtain ⟨p, r⟩ := r
   exact no_nopert_tight_pose (Tightening.rupert_tightening p r)
@@ -31,22 +31,22 @@ theorem no_nopert_pose : ¬ ∃ v : Pose, RupertPose v nopert.hull := by
 /--
 There is no purely rotational pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, RupertPose p.zeroOffset nopert.hull := by
+theorem no_nopert_rot_pose : ¬ ∃ p : MatrixPose, RupertPose p.zeroOffset exactShape.hull := by
   rintro ⟨p, r⟩
   obtain ⟨δ, v, e⟩ := pose_of_matrix_pose p
-  exact no_nopert_pose ⟨v, (converted_pose_rupert_iff v nopert.hull).mpr <|
-    e ▸ (MatrixPose.RupertPose_rotateBy_iff p.zeroOffset δ nopert.hull).mpr r⟩
+  exact no_nopert_pose ⟨v, (converted_pose_rupert_iff v exactShape.hull).mpr <|
+    e ▸ (MatrixPose.RupertPose_rotateBy_iff p.zeroOffset δ exactShape.hull).mpr r⟩
 
 /--
 There is no pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_matrix_pose : ¬ ∃ p : MatrixPose, RupertPose p nopert.hull := by
+theorem no_nopert_matrix_pose : ¬ ∃ p : MatrixPose, RupertPose p exactShape.hull := by
   intro r
   obtain ⟨p, r⟩ := r
-  have hconvex : Convex ℝ nopert.hull := by
+  have hconvex : Convex ℝ exactShape.hull := by
     unfold Shape.hull
-    exact convex_convexHull ℝ (↑nopert.vertices : Set ℝ³)
-  have r' := rupert_implies_rot_rupert nopert_point_symmetric hconvex p r
+    exact convex_convexHull ℝ (↑exactShape.vertices : Set ℝ³)
+  have r' := rupert_implies_rot_rupert exactShape_point_symmetric hconvex p r
   exact no_nopert_rot_pose ⟨p, r'⟩
 
 /--
@@ -67,13 +67,13 @@ lemma rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
 /--
 The Noperthedron (as a subset of ℝ³) is not Rupert
 -/
-theorem nopert_not_rupert_set : ¬ IsRupertSet nopert.hull := fun r =>
+theorem nopert_not_rupert_set : ¬ IsRupertSet exactShape.hull := fun r =>
   no_nopert_matrix_pose (rupert_set_implies_pose_rupert r)
 
 /--
 The Noperthedron is not Rupert.
 -/
-theorem nopert_not_rupert : ¬ IsRupert nopertVerts := by
+theorem nopert_not_rupert : ¬ IsRupert exactVerts := by
   intro r
   refine nopert_not_rupert_set ?_
-  exact rupert_iff_rupert_set nopertVerts |>.mp r
+  exact rupert_iff_rupert_set exactVerts |>.mp r

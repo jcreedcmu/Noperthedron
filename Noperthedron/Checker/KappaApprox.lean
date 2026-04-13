@@ -1,7 +1,7 @@
 import Noperthedron.Checker.Global
 import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.TrigLemmas
-import Noperthedron.Vertices.ExactList
+import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Taylor
 import Mathlib.Analysis.Real.Pi.Bounds
 
@@ -26,12 +26,13 @@ private lemma RzL_zero_eq_one : RzL (0 : ℝ) = 1 :=
   AddChar.map_zero_eq_one RzC
 
 /-- The first vertex of nopertList is C1R (rotation at k=0 is identity). -/
-lemma nopertPt_0_0_0 : nopertPt 0 0 0 = C1R := by
-  simp only [nopertPt, Cpt, pow_zero, one_smul, Nat.cast_zero, mul_zero, zero_div]
+lemma exactPt_0_0_0 : exactPt 0 0 0 = C1R := by
+  simp only [exactPt, Int.reduceNeg, pow_zero, CharP.cast_eq_zero, mul_zero, zero_div, Cpt,
+    one_smul]
   rw [RzL_zero_eq_one, ContinuousLinearMap.one_apply]
 
-lemma nopertList_0 : nopertList[0] = C1R :=
-  nopert_list_test_0 ▸ nopertPt_0_0_0 ▸ rfl
+lemma exactVertex_0 : exactVertex 0 = C1R :=
+  by simp [exactVertex, exactPt, Cpt, RzL_zero_eq_one]
 
 /-! ## Phase 1: Full first vertex norm bound -/
 
@@ -252,7 +253,7 @@ private lemma RzL_apply_2 (θ : ℝ) (v : ℝ³) :
 /-- The core analytical bound: each vertex of nopertPtℚ is within κ/2 of the
     corresponding real nopertPt vertex. -/
 theorem nopertPtℚ_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
-    ‖toR3 (taylorPt k ℓ i) - nopertPt k ℓ i‖ ≤ κ / 2 := by
+    ‖toR3 (taylorPt k ℓ i) - exactPt k ℓ i‖ ≤ κ / 2 := by
   -- Set up reduced angle
   set k' := if k ≤ 7 then k else 15 - k with hk'_def
   have hk'_le : k' ≤ 7 := reduced_le_seven k hk
@@ -266,10 +267,10 @@ theorem nopertPtℚ_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
   set b := (↑(Crat i 1) : ℝ) with hb_def
   have hab : a ^ 2 + b ^ 2 ≤ 1 := Crat_xy_sq_le_one i
   -- Set up the difference vector
-  set d := toR3 (taylorPt k ℓ i) - nopertPt k ℓ i with hd_def
+  set d := toR3 (taylorPt k ℓ i) - exactPt k ℓ i with hd_def
   -- z-component is 0 (both sides use the same rational base coord)
   have hz : d 2 = 0 := by
-    simp only [hd_def, toR3, taylorPt, nopertPt]
+    simp only [hd_def, toR3, taylorPt, exactPt]
     simp [RzL_apply_2, Cpt_cast]
   -- x,y squared norm = (ce² + se²)(a² + b²) via rotation algebra identity
   -- Both k ≤ 7 and k > 7 give the same squared norm due to cross-term cancellation
@@ -290,25 +291,23 @@ theorem nopertPtℚ_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
       ≤ 2 * (κ / 7) ^ 2 * 1 := mul_le_mul (by linarith) hab (by positivity) (by positivity)
     _ ≤ (κ / 2) ^ 2 := by unfold κ; norm_num
 
-/-- Index correspondence: nopertList[j] = nopertPt with computed indices. -/
-private lemma nopertList_index (j : Fin 90) :
-    nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt) =
-    nopertPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩ := by
-  fin_cases j <;> simp [nopertList, List.range, List.range.loop]
+/-- Index correspondence: exactVertex j = exactPt with computed indices. -/
+private lemma exactVertex_index (j : Fin 90) :
+    exactVertex j =
+    exactPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩ := by
+  rfl
 
 /-- Right-leg bound: the Taylor-polynomial intermediate list is close to
     the real noperthedron vertices. Uses Taylor remainder + MVT + π bounds.
     The actual error is ~10⁻¹⁵, well within κ/2 = 5·10⁻¹¹. -/
 theorem right_leg_all (j : Fin 90) :
-    ‖toR3 (taylorVertex j) -
-      (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ ≤ κ / 2 := by
+    ‖toR3 (taylorVertex j) - exactVertex j‖ ≤ κ / 2 := by
   -- Relate nopertListℚ[j] to nopertPtℚ
   have hℚ : taylorVertex j =
       taylorPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩ := by
     simp [taylorVertex]
   -- Relate nopertList[j] to nopertPt
-  have hR := nopertList_index j
-  rw [hℚ, hR]
+  rw [hℚ, exactVertex_index]
   exact nopertPtℚ_close (j.val % 15) (by omega) (j.val / 45) _
 
 /-! ## Combined bound via triangle inequality -/
@@ -342,17 +341,13 @@ theorem left_leg_norm (j : Fin 90) :
 /-- The hard-coded rational vertices are within κ of the real vertices,
     for each index in [0, 90). -/
 theorem vertex_close_index (j : Fin 90) :
-    ‖toR3 (pythonVertex j) -
-      (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ ≤ κ := by
-  calc ‖toR3 (pythonVertex j) -
-        (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖
+    ‖toR3 (pythonVertex j) - exactVertex j‖ ≤ κ := by
+  calc ‖toR3 (pythonVertex j) - exactVertex j‖
       = ‖(toR3 (pythonVertex j) - toR3 (taylorVertex j)) +
-         (toR3 (taylorVertex j) -
-          (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt)))‖ := by
+         (toR3 (taylorVertex j) - exactVertex j)‖ := by
         congr 1; abel
     _ ≤ ‖toR3 (pythonVertex j) - toR3 (taylorVertex j)‖ +
-        ‖toR3 (taylorVertex j) -
-          (nopertList[j.val]'(by rw [nopert_list_length]; exact j.isLt))‖ :=
+        ‖toR3 (taylorVertex j) - exactVertex j‖ :=
         norm_add_le _ _
     _ ≤ κ / 2 + κ / 2 := add_le_add (left_leg_norm j) (right_leg_all j)
     _ = κ := by ring

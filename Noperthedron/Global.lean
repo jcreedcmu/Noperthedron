@@ -457,9 +457,9 @@ theorem global_theorem (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
 The Global Theorem specialized to the noperthedron.
 -/
 theorem global_theorem_nopert (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
-    (pc : GlobalTheoremPrecondition Nopert.poly pbar ε) :
-    ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p nopert.hull :=
-  global_theorem pbar ε hε Nopert.poly
-      nopert_point_symmetric pc
+    (pc : GlobalTheoremPrecondition Noperthedron.exactPoly pbar ε) :
+    ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p Noperthedron.exactShape.hull :=
+  global_theorem pbar ε hε Noperthedron.exactPoly
+      Noperthedron.exactShape_point_symmetric pc
 
 end GlobalTheorem

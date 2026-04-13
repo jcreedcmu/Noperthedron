@@ -70,230 +70,110 @@ theorem c3_norm_le_one : ‖C3R‖ ≤ 1 := by
   grw [c3_norm_bound.2]
   norm_num
 
-/-- This is half of the C30 defined in [SY25]. In order
-to see that this is pointsymmetric, it's convenient to
-do explicit pointsymmetrization later. -/
-noncomputable
-def C15 (pt : ℝ³) : Finset ℝ³ :=
-  Finset.range 15 |> .image fun (k : ℕ)  =>
-    RzL (2 * π * (k : ℝ) / 15) pt
-
-lemma C15_nonempty (pt : ℝ³) : (C15 pt).Nonempty := by
-  use (RzL 0 pt)
-  have z : 0 ∈ Finset.range 15 := Finset.insert_eq_self.mp rfl
-  simp only [C15, Finset.mem_image, Finset.mem_range]
-  use 0
-  simp only [Nat.ofNat_pos, CharP.cast_eq_zero, mul_zero, zero_div, and_self]
-
-lemma C15_pres_norm (pt v : ℝ³) (hv : v ∈ C15 pt) : ‖v‖ = ‖pt‖ := by
-  simp only [C15, Finset.mem_image, Finset.mem_range] at hv
-  obtain ⟨a, ⟨ha, ha'⟩⟩ := hv
-  rw [← ha', Bounding.Rz_preserves_norm _]
-
 end Nopert
 
-/--
-Half of the vertices of the noperthedron
--/
-noncomputable
-def halfNopertVerts : Finset ℝ³ :=
-    Nopert.C15 Nopert.C1R ∪
-    Nopert.C15 Nopert.C2R ∪
-    Nopert.C15 Nopert.C3R
-
-lemma half_nopert_verts_nonempty : halfNopertVerts.Nonempty := by
-  apply Finset.Nonempty.inl
-  apply Finset.Nonempty.inl
-  apply Nopert.C15_nonempty
+namespace Noperthedron
+open Real
 
 noncomputable
-def halfNopertNorms : Finset ℝ :=
-  halfNopertVerts.image (‖·‖)
+def Cpt : Fin 3 → ℝ³
+| 0 => Nopert.C1R
+| 1 => Nopert.C2R
+| 2 => Nopert.C3R
 
-lemma half_nopert_norms_nonempty : halfNopertNorms.Nonempty := by
-  simp only [halfNopertNorms, Finset.image_nonempty]
-  exact half_nopert_verts_nonempty
+noncomputable
+def exactPt (k ℓ : ℕ) (i : Fin 3) :=
+  (-1)^ℓ • RzL (2 * π * (k : ℝ) / 15) (Cpt i)
 
-lemma half_nopert_verts_norm_le_one : ∀ v ∈ halfNopertVerts, ‖v‖ ≤ 1 := by
+noncomputable
+def exactVertex (j : Fin 90) : ℝ³ :=
+  exactPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩
+
+noncomputable
+def exactVerts : Finset ℝ³ := Finset.image exactVertex Finset.univ
+
+lemma exactVerts_nonempty : exactVerts.Nonempty := by simp [exactVerts]
+
+def exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
   intro v hv
-  simp only [halfNopertVerts, Finset.union_assoc, Finset.mem_union] at hv
-  rcases hv with h | h | h
-  · rw [show ‖v‖ = ‖Nopert.C1R‖ from Nopert.C15_pres_norm Nopert.C1R v h, Nopert.c1_norm_one]
-  · rw [show ‖v‖ = ‖Nopert.C2R‖ from Nopert.C15_pres_norm Nopert.C2R v h]
-    exact Nopert.c2_norm_le_one
-  · rw [show ‖v‖ = ‖Nopert.C3R‖ from Nopert.C15_pres_norm Nopert.C3R v h]
-    exact Nopert.c3_norm_le_one
+  simp only [exactVerts, Finset.mem_image, Finset.mem_univ, true_and] at hv ⊢
+  obtain ⟨j, hj⟩ := hv
+  rw [← hj]
+  simp only [exactVertex, exactPt, Int.reduceNeg]
+  rw [norm_smul, norm_pow, norm_neg, norm_one, one_pow, one_mul]
+  rw [Bounding.Rz_preserves_norm]
+  generalize h : (⟨(j.val % 45) / 15, by omega⟩ : Fin 3) = s
+  fin_cases s
+  · simp [Cpt, Nopert.c1_norm_one]
+  · simp only [Cpt]
+    grind [Nopert.c2_norm_bound]
+  · simp only [Cpt]
+    grind [Nopert.c3_norm_bound]
 
-@[simp]
-noncomputable
-def pointsymmetrize (vs : Finset ℝ³) : Finset ℝ³ := vs ∪ vs.image (-·)
-
-lemma pointsymmetrize_mem (vs : Finset ℝ³) (x : ℝ³)  :
-    (x ∈ pointsymmetrize vs) ↔ (x ∈ vs ∨ -x ∈ vs) := by
-  constructor
-  · intro hx
-    simp_all only [pointsymmetrize]
-    let z :=  Finset.mem_union.mp hx
-    simp only [Finset.mem_image] at z
-    match z with
-    | .inl h => left; assumption
-    | .inr ⟨y, ⟨hy, hy'⟩⟩  => rw [← hy']; right; simpa
-  · intro hq
-    simp only [pointsymmetrize, Finset.mem_union, Finset.mem_image]
-    match hq with
-    | .inl h => left; exact h
-    | .inr h => right; use -x; simpa
+def exactVertSet : Set ℝ³ := exactVerts
 
 noncomputable
-def nopertVerts : Finset ℝ³ :=
-  pointsymmetrize halfNopertVerts
+def exactShape : Shape where
+  vertices := exactVerts
 
-/--
-The noperthedron, given as a set of vertices.
--/
-noncomputable
-def nopertVertSet : Set ℝ³ := nopertVerts
-
-lemma nopert_verts_nonempty : nopertVerts.Nonempty := by
-  simp only [nopertVerts]
-  apply Finset.Nonempty.inl
-  apply half_nopert_verts_nonempty
-
-def half_nopert_verts_nontriv : ∀ v ∈ halfNopertVerts, 0 < ‖v‖ := by
-  intro v hv
-  simp_all only [halfNopertVerts, Finset.union_assoc, Finset.mem_union]
-  rcases hv with hv | hv | hv
-  all_goals rw [Nopert.C15_pres_norm _ _ hv]
-  · exact Nopert.c1_norm_one ▸ Real.zero_lt_one
-  · linarith [Nopert.c2_norm_bound.1]
-  · linarith [Nopert.c3_norm_bound.1]
-
-def nopert_verts_nontriv : ∀ v ∈ nopertVerts, 0 < ‖v‖ := by
-  simp only [nopertVerts, pointsymmetrize, Finset.mem_union, Finset.mem_image]
-  intro v hv
-  rcases hv with hv | ⟨a, ha₁, ha₂⟩
-  · exact half_nopert_verts_nontriv v hv
-  · rw [← ha₂]; simp only [norm_neg]; exact half_nopert_verts_nontriv a ha₁
-
-noncomputable
-def nopert : Shape where
-  vertices := nopertVerts
-
-lemma pointsymmetrize_is_pointsym (vs : Finset ℝ³) :
-    PointSym (pointsymmetrize vs : Set ℝ³) := by
-  intro a ha
-  simp only [SetLike.mem_coe]
-  have z : a ∈ vs ∨ -a ∈ vs := pointsymmetrize_mem vs a |>.mp ha
-  have z' : -a ∈ vs ∨ -(-a) ∈ vs := cast (by rw [or_comm, neg_neg]) z
-  exact pointsymmetrize_mem vs (-a) |>.mpr z'
-
-theorem nopert_verts_pointsym : PointSym nopertVertSet :=
-  pointsymmetrize_is_pointsym halfNopertVerts
-
-/--
-The noperthedron is pointsymmetric.
--/
-theorem nopert_point_symmetric : PointSym nopert.hull := by
-  exact hull_preserves_pointsym nopert_verts_pointsym
-
-/--
-The point C1R is in the half-noperthedron
--/
-lemma c1r_in_half_nopert_verts : Nopert.C1R ∈ halfNopertVerts := by
-    simp only [halfNopertVerts]
-    apply Finset.mem_union_left
-    apply Finset.mem_union_left
-    simp only [Nopert.C15, Finset.mem_image, Finset.mem_range]
-    use 0
-    rw [show RzL = ⇑RzC by rfl]
-    simp
-
-/--
-The radius of the half-noperthedron is 1.
--/
-theorem half_nopert_radius_one : polyhedronRadius halfNopertVerts half_nopert_verts_nonempty = 1 := by
-  apply polyhedron_radius_iff halfNopertVerts half_nopert_verts_nonempty |>.mpr
-  exact ⟨Exists.intro Nopert.C1R ⟨c1r_in_half_nopert_verts, Nopert.c1_norm_one⟩, half_nopert_verts_norm_le_one⟩
-
-/--
-Pointsymmetrization preserves the radius of any set
--/
-theorem pointsymmetrize_pres_radius {vs : Finset ℝ³} (vsne : vs.Nonempty) :
-    polyhedronRadius (pointsymmetrize vs) (by simpa) = polyhedronRadius vs vsne := by
-  let r := polyhedronRadius vs vsne
-  let r' := polyhedronRadius (pointsymmetrize vs) (by simpa)
-  have start : (∃ v ∈ vs, ‖v‖ = r) ∧ ∀ v ∈ vs, ‖v‖ ≤ r :=
-    polyhedron_radius_iff vs vsne |>.mp rfl
-  let ⟨ ⟨ v, v_in_vs,  v_norm_r⟩ , rest_le_r⟩ := start
-  suffices finish : (∃ v ∈ (pointsymmetrize vs), ‖v‖ = r) ∧ ∀ v ∈ (pointsymmetrize vs), ‖v‖ ≤ r by
-    exact polyhedron_radius_iff (pointsymmetrize vs) (by simpa) |>.mpr finish
-  constructor
-  · use v;
-    refine ⟨?_, v_norm_r⟩
-    simp only [pointsymmetrize]; apply Finset.mem_union_left; exact v_in_vs
-  · intro v hv
-    rw [pointsymmetrize_mem] at hv
-    match hv with
-    | .inl v_in_vs => exact rest_le_r _ v_in_vs
-    | .inr mv_in_vs =>
-      specialize rest_le_r (-v) mv_in_vs
-      rw [norm_neg] at rest_le_r
-      exact rest_le_r
+lemma exactPt_norm_le_one (k ℓ : ℕ) (i : Fin 3) : ‖exactPt k ℓ i‖ ≤ 1 := by
+  simp only [exactPt, norm_smul, norm_pow, norm_neg, norm_one, one_pow, one_mul]
+  rw [Bounding.Rz_preserves_norm]
+  fin_cases i
+  · simp [Cpt, Nopert.c1_norm_one]
+  · simp [Cpt, Nopert.c2_norm_le_one]
+  · simp [Cpt, Nopert.c3_norm_le_one]
 
 /--
 The radius of the noperthedron is 1.
 -/
-theorem Nopert.noperthedron_radius_one : polyhedronRadius nopertVerts nopert_verts_nonempty = 1 := by
-  simp only [nopertVerts, pointsymmetrize_pres_radius half_nopert_verts_nonempty]
-  exact half_nopert_radius_one
+theorem exactVerts_radius_one : polyhedronRadius exactVerts exactVerts_nonempty = 1 := by
+  simp only [exactVerts]
+  rw [polyhedron_radius_iff]
+  constructor
+  · simp only [Finset.mem_image, Finset.mem_univ, true_and, exists_exists_eq_and]
+    use 0
+    simp [exactVertex, exactPt, Cpt, Bounding.Rz_preserves_norm, Nopert.c1_norm_one]
+  · intro v hv
+    simp only [Finset.mem_image, Finset.mem_univ, exactVertex, true_and] at hv
+    obtain ⟨x, hx⟩ := hv
+    rw [←hx]
+    exact exactPt_norm_le_one _ _ _
 
 noncomputable
-def Nopert.poly : GoodPoly := {
-  vertices := nopertVerts,
-  nonempty := nopert_verts_nonempty,
-  nontriv := nopert_verts_nontriv,
-  radius_eq_one := Nopert.noperthedron_radius_one,
+def exactPoly : GoodPoly := {
+  vertices := exactVerts,
+  nonempty := exactVerts_nonempty,
+  nontriv := exactVerts_nontriv,
+  radius_eq_one := exactVerts_radius_one
 }
 
-section Nopert
-
-lemma pointsym_c1r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C1R) ⊆ nopert.vertices := by
-  simp only [nopert, nopertVerts, pointsymmetrize, halfNopertVerts]
+theorem exactVerts_pointsym : PointSym exactVertSet := by
   intro x hx
-  simp only [Finset.mem_union] at hx ⊢
-  rcases hx with h | h
-  · exact Or.inl (Or.inl (Or.inl h))
-  · right
-    simp_all only [Finset.mem_image]
-    obtain ⟨y, hy, hy2⟩ := h
-    use y
-    simp only [Finset.mem_union]
-    exact ⟨Or.inl (Or.inl hy), hy2⟩
+  simp only [exactVertSet, exactVerts, Finset.coe_image, exactVertex, exactPt, Int.reduceNeg,
+    Finset.coe_univ, Set.image_univ, Set.mem_range] at *
+  obtain ⟨y, hy⟩ := hx
+  by_cases h : y.val < 45
+  · refine ⟨⟨y.val + 45, by omega⟩, ?_⟩
+    rw [← hy]
+    have h1 : (y.val + 45) / 45 = 1 := by omega
+    have h2 : y.val / 45 = 0 := by omega
+    have h3 : (y.val + 45) % 15 = y.val % 15 := by omega
+    have h4 : (y.val + 45) % 45 / 15 = y.val % 45 / 15 := by omega
+    simp only [h1, h2, h3, h4]
+    simp [pow_one, pow_zero, one_smul]
+  · push Not at h
+    refine ⟨⟨y.val - 45, by omega⟩, ?_⟩
+    rw [← hy]
+    have h1 : (y.val - 45) / 45 = 0 := by omega
+    have h2 : y.val / 45 = 1 := by omega
+    have h3 : (y.val - 45) % 15 = y.val % 15 := by omega
+    have h4 : (y.val - 45) % 45 / 15 = y.val % 45 / 15 := by omega
+    simp only [h1, h2, h3, h4]
+    simp [pow_one, pow_zero, one_smul]
 
-lemma pointsym_c2r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C2R) ⊆ nopert.vertices := by
-  simp only [nopert, nopertVerts, pointsymmetrize, halfNopertVerts]
-  intro x hx
-  simp only [Finset.mem_union] at hx ⊢
-  rcases hx with h | h
-  · exact Or.inl (Or.inl (Or.inr h))
-  · right
-    simp_all only [Finset.mem_image]
-    obtain ⟨y, hy, hy2⟩ := h
-    use y
-    simp only [Finset.mem_union]
-    exact ⟨Or.inl (Or.inr hy), hy2⟩
-
-lemma pointsym_c3r_sub_nopert : pointsymmetrize (Nopert.C15 Nopert.C3R) ⊆ nopert.vertices := by
-  simp only [nopert, nopertVerts, pointsymmetrize, halfNopertVerts]
-  intro x hx
-  simp only [Finset.mem_union] at hx ⊢
-  rcases hx with h | h
-  · exact Or.inl (Or.inr h)
-  · right
-    simp_all only [Finset.mem_image]
-    obtain ⟨y, hy, hy2⟩ := h
-    use y
-    simp only [Finset.mem_union]
-    exact ⟨Or.inr hy, hy2⟩
-
-end Nopert
+/--
+The noperthedron is pointsymmetric.
+-/
+theorem exactShape_point_symmetric : PointSym exactShape.hull := by
+  exact hull_preserves_pointsym exactVerts_pointsym

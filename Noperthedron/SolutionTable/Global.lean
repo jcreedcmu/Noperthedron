@@ -6,7 +6,7 @@ namespace Noperthedron.Solution
 
 theorem valid_global_imp_no_rupert (tab : Table) (row : Row)
     (hr : row.ValidGlobal tab) :
-    ¬ ∃ q ∈ row.toPoseInterval, RupertPose q nopert.hull := by
+    ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactShape.hull := by
   let iv := row.toPoseInterval
   let pbar := iv.center
   let ε := iv.radius
