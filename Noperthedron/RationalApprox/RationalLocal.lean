@@ -25,9 +25,10 @@ def Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) (su : UpperSqrt) : ℝ
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
-def Bεℚ (Q : Triangle) (poly : Finset Euc(3)) (p : Pose) (ε δ r : ℝ) (su : UpperSqrt) : Prop :=
-  ∀ i : Fin 3, ∀ v ∈ poly, v ≠ Q i →
-    (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q i) v p ε su
+def Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
+    (v_ : ι → Euc(3)) (p : Pose) (ε δ r : ℝ) (su : UpperSqrt) : Prop :=
+  ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
+    (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε su
 
 end Local.Triangle
 
@@ -68,9 +69,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (ae₁ : (transportTri Pi hpoly).Aεℚ p_.vecX₁ℚ ε) (ae₂ : (transportTri Qi hpoly).Aεℚ p_.vecX₂ℚ ε)
     (span₁ : (transportTri Pi hpoly).κSpanning p_.θ₁ p_.φ₁ ε)
     (span₂ : (transportTri Qi hpoly).κSpanning p_.θ₂ p_.φ₂ ε)
-    (be : ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
-        (δ + √5 * ε) / r < Local.Triangle.Bεℚ.lhs ((transportTri Qi hpoly) i)
-          (poly_.vertices.v (hpoly.bijection k)) p_ ε su)
+    (be : (transportTri Qi hpoly).Bεℚ Qi
+          (fun k => poly_.vertices.v (hpoly.bijection k)) p_ ε δ r su)
     : ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull := by
   -- Define the triangles from indices
   let P : Triangle := fun i => poly.vertices.v (Pi i)
