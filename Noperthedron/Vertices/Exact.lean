@@ -1,6 +1,7 @@
 import Noperthedron.Basic
 import Noperthedron.Bounding
 import Noperthedron.PointSym
+import Noperthedron.Vertices.Index
 
 /-
 This file covers [SY25] §2.1.
@@ -82,27 +83,25 @@ def Cpt : Fin 3 → ℝ³
 | 2 => Nopert.C3R
 
 noncomputable
-def exactPt (k ℓ : ℕ) (i : Fin 3) :=
-  (-1)^ℓ • RzL (2 * π * (k : ℝ) / 15) (Cpt i)
-
-noncomputable
-def exactVertex (j : Fin 90) : ℝ³ :=
-  exactPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩
+def exactVertex (idx : VertexIndex) :=
+  (-1)^idx.ℓ.val • RzL (2 * π * (idx.k : ℝ) / 15) (Cpt idx.i)
 
 noncomputable
 def exactVerts : Finset ℝ³ := Finset.image exactVertex Finset.univ
 
-lemma exactVerts_nonempty : exactVerts.Nonempty := by simp [exactVerts]
+lemma exactVerts_nonempty : exactVerts.Nonempty := by
+  use exactVertex 0
+  simp [exactVerts]
 
 def exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
   intro v hv
   simp only [exactVerts, Finset.mem_image, Finset.mem_univ, true_and] at hv ⊢
   obtain ⟨j, hj⟩ := hv
   rw [← hj]
-  simp only [exactVertex, exactPt, Int.reduceNeg]
+  simp only [exactVertex, Int.reduceNeg]
   rw [norm_smul, norm_pow, norm_neg, norm_one, one_pow, one_mul]
   rw [Bounding.Rz_preserves_norm]
-  generalize h : (⟨(j.val % 45) / 15, by omega⟩ : Fin 3) = s
+  generalize h : j.i = s
   fin_cases s
   · simp [Cpt, Nopert.c1_norm_one]
   · simp only [Cpt]
@@ -116,10 +115,11 @@ noncomputable
 def exactShape : Shape where
   vertices := exactVerts
 
-lemma exactPt_norm_le_one (k ℓ : ℕ) (i : Fin 3) : ‖exactPt k ℓ i‖ ≤ 1 := by
-  simp only [exactPt, norm_smul, norm_pow, norm_neg, norm_one, one_pow, one_mul]
+lemma exactVertex_norm_le_one (j : VertexIndex) : ‖exactVertex j‖ ≤ 1 := by
+  simp only [exactVertex, norm_smul, norm_pow, norm_neg, norm_one, one_pow, one_mul]
   rw [Bounding.Rz_preserves_norm]
-  fin_cases i
+  generalize h : j.i = s
+  fin_cases s
   · simp [Cpt, Nopert.c1_norm_one]
   · simp [Cpt, Nopert.c2_norm_le_one]
   · simp [Cpt, Nopert.c3_norm_le_one]
@@ -132,13 +132,13 @@ theorem exactVerts_radius_one : polyhedronRadius exactVerts exactVerts_nonempty 
   rw [polyhedron_radius_iff]
   constructor
   · simp only [Finset.mem_image, Finset.mem_univ, true_and, exists_exists_eq_and]
-    use 0
-    simp [exactVertex, exactPt, Cpt, Bounding.Rz_preserves_norm, Nopert.c1_norm_one]
+    use ⟨0,0,0⟩
+    simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, Nopert.c1_norm_one]
   · intro v hv
     simp only [Finset.mem_image, Finset.mem_univ, exactVertex, true_and] at hv
     obtain ⟨x, hx⟩ := hv
     rw [←hx]
-    exact exactPt_norm_le_one _ _ _
+    exact exactVertex_norm_le_one _
 
 noncomputable
 def exactPoly : GoodPoly := {
@@ -150,27 +150,11 @@ def exactPoly : GoodPoly := {
 
 theorem exactVerts_pointsym : PointSym exactVertSet := by
   intro x hx
-  simp only [exactVertSet, exactVerts, Finset.coe_image, exactVertex, exactPt, Int.reduceNeg,
+  simp only [exactVertSet, exactVerts, Finset.coe_image, exactVertex, Int.reduceNeg,
     Finset.coe_univ, Set.image_univ, Set.mem_range] at *
   obtain ⟨y, hy⟩ := hx
-  by_cases h : y.val < 45
-  · refine ⟨⟨y.val + 45, by omega⟩, ?_⟩
-    rw [← hy]
-    have h1 : (y.val + 45) / 45 = 1 := by omega
-    have h2 : y.val / 45 = 0 := by omega
-    have h3 : (y.val + 45) % 15 = y.val % 15 := by omega
-    have h4 : (y.val + 45) % 45 / 15 = y.val % 45 / 15 := by omega
-    simp only [h1, h2, h3, h4]
-    simp [pow_one, pow_zero, one_smul]
-  · push Not at h
-    refine ⟨⟨y.val - 45, by omega⟩, ?_⟩
-    rw [← hy]
-    have h1 : (y.val - 45) / 45 = 0 := by omega
-    have h2 : y.val / 45 = 1 := by omega
-    have h3 : (y.val - 45) % 15 = y.val % 15 := by omega
-    have h4 : (y.val - 45) % 45 / 15 = y.val % 45 / 15 := by omega
-    simp only [h1, h2, h3, h4]
-    simp [pow_one, pow_zero, one_smul]
+  obtain ⟨k, ℓ, i⟩ := y
+  exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hy]; fin_cases ℓ <;> simp [neg_smul]⟩
 
 /--
 The noperthedron is pointsymmetric.

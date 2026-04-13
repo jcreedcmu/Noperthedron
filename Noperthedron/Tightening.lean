@@ -33,48 +33,24 @@ lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
 lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ exactPoly.vertices) (k : ℤ) :
     RzC (2 * π * k / 15) x ∈ exactPoly.vertices := by
   simp only [exactPoly, exactVerts, exactVertex,
-    exactPt, Finset.mem_image, Finset.mem_univ, true_and] at hx
-  obtain ⟨b, hb⟩:= hx
-  generalize hℓ : b.val / 45 = ℓ at *
-  generalize hk' : b.val % 15 = k' at *
-  generalize hi : (⟨(b.val % 45) / 15, by omega⟩ : Fin 3) = i at *
-  simp only [exactPoly, exactVerts, exactVertex,
-    Finset.mem_image, Finset.mem_univ, true_and, exactPt]
-  rw [← hb, ContinuousLinearMap.map_smul_of_tower, ←RzC_coe]
-  refine ⟨⟨45 * ℓ + 15 * i.val + ((↑k' : ℤ) + k).natMod 15, ?_⟩, ?_⟩
-  · have hb_lt := b.isLt
-    have hnatmod : ((↑k' : ℤ) + k).natMod 15 < 15 := Int.natMod_lt (by norm_num)
-    have hi_val : i.val = ↑b % 45 / 15 := by
-      have := Fin.val_eq_of_eq hi.symm; simpa
-    have hℓ_le : ℓ ≤ 1 := by omega
-    have hi_le : i.val ≤ 2 := by omega
-    omega
-  · have hb_lt := b.isLt
-    have hnatmod : ((↑k' : ℤ) + k).natMod 15 < 15 := Int.natMod_lt (by norm_num)
-    have hi_val : i.val = ↑b % 45 / 15 := by
-      have := Fin.val_eq_of_eq hi.symm; simpa
-    have hℓ_le : ℓ ≤ 1 := by omega
-    have hi_le : i.val ≤ 2 := by omega
-    have h1 : (45 * ℓ + 15 * i.val + ((↑k' : ℤ) + k).natMod 15) / 45 = ℓ := by omega
-    have h2 : (45 * ℓ + 15 * i.val + ((↑k' : ℤ) + k).natMod 15) % 15 = ((↑k' : ℤ) + k).natMod 15 := by omega
-    have h3 : (45 * ℓ + 15 * i.val + ((↑k' : ℤ) + k).natMod 15) % 45 / 15 = i.val := by omega
-    simp only [h1, h2, h3, Fin.eta]
-    congr 1
-    change (RzC (2 * π * ↑((↑k' + k).natMod 15) / 15)) (Cpt i) = (RzC (2 * π * ↑k / 15) * RzC (2 * π * ↑k' / 15)) (Cpt i)
-    rw [← AddChar.map_add_eq_mul RzC]
-    rw [show 2 * π * ↑k / 15 + 2 * π * ↑k' / 15 = 2 * π * (↑k' + ↑k) / 15 by ring_nf]
-    congr 1
-    rw [show (↑((↑k' + k).natMod 15) : ℝ) = (↑((↑((↑k' + k).natMod 15)) : ℤ) : ℝ) from by push_cast; ring_nf]
-    have natmod_eq (z : ℤ) : (z.natMod 15 : ℤ) = z % 15 := by
-      simp only [Int.natMod]; grind
-    rw [natmod_eq]
-    rw [Int.emod_def]; push_cast; rw [mul_sub, sub_div]
-    have :
-        2 * π * (↑k' + ↑k) / 15 - 2 * π * (15 * (↑((↑k' + k) / 15) : ℝ)) / 15 =
-        2 * π * (↑k' + ↑k) / 15 + 2 * π * ((↑(-((↑k' + k) / 15)) : ℝ)) := by
-      push_cast; ring_nf
-    rw [this, AddChar.map_add_eq_mul, RzC_two_pi (-((↑k' + k) / 15))]
-    simp
+    Finset.mem_image, Finset.mem_univ, true_and] at hx
+  obtain ⟨⟨k, ℓ, i⟩, hb⟩ := hx
+  rename_i K
+  subst hb
+  simp only [exactPoly, exactVerts, exactVertex, Finset.mem_image, Finset.mem_univ, true_and]
+  rw [ContinuousLinearMap.map_smul_of_tower]
+  simp only [← RzC_coe, ← ContinuousLinearMap.mul_apply, ← AddChar.map_add_eq_mul RzC]
+  refine ⟨⟨⟨(((↑↑k : ℤ) + K) % 15).toNat, by omega⟩, ℓ, i⟩, ?_⟩
+  congr 1
+  simp only [RzC, RzL, AddChar.coe_mk]
+  congr 1; congr 1
+  rw [← Rz_mat_add_int_mul_two_pi ((↑↑k + K) / 15)]
+  congr 1; congr 1
+  have hnn := Int.emod_nonneg (↑↑k + K) (show (15 : ℤ) ≠ 0 by omega)
+  field_simp
+  norm_cast
+  rw [Int.toNat_of_nonneg hnn]
+  omega
 
 lemma nopert_vertices_rotation_invariant (k : ℤ) :
     (RzC (2 * π * k / 15)) '' exactShape.vertices = exactShape.vertices := by

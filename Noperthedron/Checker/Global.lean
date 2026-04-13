@@ -1,3 +1,5 @@
+import Mathlib.Data.Finset.Max
+
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Trig
@@ -93,7 +95,8 @@ def computeHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : �
 /-- Maximum H over all 90 vertices. -/
 def computeMaxHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
   let values := (computeHQ θ₂ φ₂ ε w) ∘ pythonVertex
-  (Array.ofFn values).foldl max (values 0)
+  let range := Finset.image values Finset.univ
+  range.max' (by use values 0; simp_all [range])
 
 /-! ## The main checker -/
 
@@ -137,7 +140,7 @@ def testGlobalRow : Row := {
                             | .φ₂ => 808960 | .α => -23459840,
                 max := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 1612800
                             | .φ₂ => 1617920 | .α => -22650880 },
-  S_index := ⟨39, by omega⟩,
+  S_index := VertexIndex.ofFin90 ⟨39, by omega⟩,
   wx_numerator := 5319166373, wy_numerator := 15662395164,
   w_denominator := 16540984045,
   P1_index := 0, P2_index := 0, P3_index := 0,

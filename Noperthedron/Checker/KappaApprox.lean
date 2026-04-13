@@ -26,17 +26,14 @@ private lemma RzL_zero_eq_one : RzL (0 : ℝ) = 1 :=
   AddChar.map_zero_eq_one RzC
 
 /-- The first vertex of nopertList is C1R (rotation at k=0 is identity). -/
-lemma exactPt_0_0_0 : exactPt 0 0 0 = C1R := by
-  simp only [exactPt, Int.reduceNeg, pow_zero, CharP.cast_eq_zero, mul_zero, zero_div, Cpt,
-    one_smul]
+lemma exactVertex_0 : exactVertex ⟨0, 0, 0⟩ = C1R := by
+  simp only [exactVertex, Int.reduceNeg, Fin.isValue, Fin.coe_ofNat_eq_mod, Nat.zero_mod, pow_zero,
+    CharP.cast_eq_zero, mul_zero, zero_div, Cpt, one_smul]
   rw [RzL_zero_eq_one, ContinuousLinearMap.one_apply]
-
-lemma exactVertex_0 : exactVertex 0 = C1R :=
-  by simp [exactVertex, exactPt, Cpt, RzL_zero_eq_one]
 
 /-! ## Phase 1: Full first vertex norm bound -/
 
--- Extract concrete rational values of nopertListQ[0]
+-- Extract concrete rational values of pythonVertex 0
 private lemma nlq0_0 : pythonVertex 0 0 = (5861195714524832 : ℚ) / 10000000000000000 := by
   decide +kernel
 private lemma nlq0_1 : pythonVertex 0 1 = 0 := by decide +kernel
@@ -110,7 +107,7 @@ theorem cosQ_approx (q : ℚ) : |Real.cos q - (cosQ q : ℝ)| ≤ |↑q| ^ 26 / 
     The hard-coded `pythonVertex` agrees with the Taylor-polynomial
     `taylorVertex` to within squared distance κ² = 10⁻²⁰ per vertex. -/
 lemma left_leg_all :
-    ∀ j : Fin 90,
+    ∀ j : VertexIndex,
     (pythonVertex j 0 - taylorVertex j 0) ^ 2 +
     (pythonVertex j 1 - taylorVertex j 1) ^ 2 +
     (pythonVertex j 2 - taylorVertex j 2) ^ 2 ≤
@@ -250,13 +247,14 @@ private lemma RzL_apply_2 (θ : ℝ) (v : ℝ³) :
     (RzL θ v) 2 = v 2 := by
   simp [RzL, Rz_mat, Matrix.vecHead, Matrix.vecTail]
 
-/-- The core analytical bound: each vertex of nopertPtℚ is within κ/2 of the
-    corresponding real nopertPt vertex. -/
-theorem taylorPt_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
-    ‖toR3 (taylorPt k ℓ i) - exactPt k ℓ i‖ ≤ κ / 2 := by
+/-- The core analytical bound: each taylorVertex is within κ/2 of the corresponding exactVertex.
+    Uses Taylor remainder + MVT + π bounds. The actual error is ~10⁻¹⁵, well within κ/2 = 5·10⁻¹¹.
+-/
+theorem taylorVertex_close (j : VertexIndex) : ‖toR3 (taylorVertex j) - exactVertex j‖ ≤ κ / 2 := by
+  let ⟨k, ℓ, i⟩ := j
   -- Set up reduced angle
-  set k' := if k ≤ 7 then k else 15 - k with hk'_def
-  have hk'_le : k' ≤ 7 := reduced_le_seven k hk
+  set k' := if k.val ≤ 7 then k.val else 15 - k.val with hk'_def
+  have hk'_le : k' ≤ 7 := reduced_le_seven k k.2
   -- Trig errors
   set ce := (↑(cosQ (2 * piQ * k' / 15)) : ℝ) - Real.cos (2 * π * k' / 15) with hce_def
   set se := (↑(sinQ (2 * piQ * k' / 15)) : ℝ) - Real.sin (2 * π * k' / 15) with hse_def
@@ -267,10 +265,10 @@ theorem taylorPt_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
   set b := (↑(Crat i 1) : ℝ) with hb_def
   have hab : a ^ 2 + b ^ 2 ≤ 1 := Crat_xy_sq_le_one i
   -- Set up the difference vector
-  set d := toR3 (taylorPt k ℓ i) - exactPt k ℓ i with hd_def
+  set d := toR3 (taylorVertex ⟨k, ℓ, i⟩) - exactVertex ⟨k, ℓ, i⟩ with hd_def
   -- z-component is 0 (both sides use the same rational base coord)
   have hz : d 2 = 0 := by
-    simp only [hd_def, toR3, taylorPt, exactPt]
+    simp only [hd_def, toR3, taylorVertex, exactVertex]
     simp [RzL_apply_2, Cpt_cast]
   -- x,y squared norm = (ce² + se²)(a² + b²) via rotation algebra identity
   -- Both k ≤ 7 and k > 7 give the same squared norm due to cross-term cancellation
@@ -291,25 +289,6 @@ theorem taylorPt_close (k : ℕ) (hk : k < 15) (ℓ : ℕ) (i : Fin 3) :
       ≤ 2 * (κ / 7) ^ 2 * 1 := mul_le_mul (by linarith) hab (by positivity) (by positivity)
     _ ≤ (κ / 2) ^ 2 := by unfold κ; norm_num
 
-/-- Index correspondence: exactVertex j = exactPt with computed indices. -/
-private lemma exactVertex_index (j : Fin 90) :
-    exactVertex j =
-    exactPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩ := by
-  rfl
-
-/-- Right-leg bound: the Taylor-polynomial intermediate list is close to
-    the real noperthedron vertices. Uses Taylor remainder + MVT + π bounds.
-    The actual error is ~10⁻¹⁵, well within κ/2 = 5·10⁻¹¹. -/
-theorem right_leg_all (j : Fin 90) :
-    ‖toR3 (taylorVertex j) - exactVertex j‖ ≤ κ / 2 := by
-  -- Relate nopertListℚ[j] to nopertPtℚ
-  have hℚ : taylorVertex j =
-      taylorPt (j.val % 15) (j.val / 45) ⟨(j.val % 45) / 15, by omega⟩ := by
-    simp [taylorVertex]
-  -- Relate nopertList[j] to nopertPt
-  rw [hℚ, exactVertex_index]
-  exact taylorPt_close (j.val % 15) (by omega) (j.val / 45) _
-
 /-! ## Combined bound via triangle inequality -/
 
 /-- Componentwise unfolding of toR3 difference. -/
@@ -318,7 +297,7 @@ private lemma toR3_sub_apply (v₁ v₂ : Fin 3 → ℚ) (k : Fin 3) :
   simp [toR3]
 
 /-- Left-leg ℝ³ norm bound derived from the ℚ squared distance bound. -/
-theorem left_leg_norm (j : Fin 90) :
+theorem left_leg_norm (j : VertexIndex) :
     ‖toR3 (pythonVertex j) - toR3 (taylorVertex j)‖ ≤ κ / 2 := by
   have hκ2 : (0 : ℝ) ≤ κ / 2 := by unfold κ; positivity
   have h := left_leg_all j
@@ -340,7 +319,7 @@ theorem left_leg_norm (j : Fin 90) :
 
 /-- The hard-coded rational vertices are within κ of the real vertices,
     for each index in [0, 90). -/
-theorem vertex_close_index (j : Fin 90) :
+theorem vertex_close_index (j : VertexIndex) :
     ‖toR3 (pythonVertex j) - exactVertex j‖ ≤ κ := by
   calc ‖toR3 (pythonVertex j) - exactVertex j‖
       = ‖(toR3 (pythonVertex j) - toR3 (taylorVertex j)) +
@@ -349,7 +328,7 @@ theorem vertex_close_index (j : Fin 90) :
     _ ≤ ‖toR3 (pythonVertex j) - toR3 (taylorVertex j)‖ +
         ‖toR3 (taylorVertex j) - exactVertex j‖ :=
         norm_add_le _ _
-    _ ≤ κ / 2 + κ / 2 := add_le_add (left_leg_norm j) (right_leg_all j)
+    _ ≤ κ / 2 + κ / 2 := add_le_add (left_leg_norm j) (taylorVertex_close j)
     _ = κ := by ring
 
 end KappaApprox
