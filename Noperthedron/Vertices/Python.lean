@@ -123,5 +123,14 @@ def pythonPoly : ApproxGoodPoly VertexIndex := {
   vertices := ⟨toR3 ∘ pythonVertex⟩,
   nontriv := by
     intro j
-    sorry
+    rw [norm_pos_iff]
+    simp only [Function.comp_apply, ne_eq, toR3, WithLp.toLp_eq_zero]
+    suffices H : ¬(fun i ↦ pythonVertex j i) = 0 by
+      rw [funext_iff] at *
+      dsimp at *
+      contrapose! H
+      intro x
+      specialize H x
+      norm_cast at H
+    fin_cases j <;> decide +kernel
 }
