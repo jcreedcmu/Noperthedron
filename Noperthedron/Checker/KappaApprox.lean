@@ -116,10 +116,6 @@ lemma left_leg_all :
 
 /-! ## Right-leg bound: nopertListℚ vs nopertList -/
 
-/-- Cast a `Fin 3 → ℚ` to an `ℝ³` point. -/
-noncomputable def toR3 (v : Fin 3 → ℚ) : ℝ³ :=
-  WithLp.toLp 2 (fun i => (v i : ℝ))
-
 /-- The reduced angle index k' = min(k, 15-k) satisfies k' ≤ 7. -/
 private lemma reduced_le_seven (k : ℕ) (hk : k < 15) :
     (if k ≤ 7 then k else 15 - k) ≤ 7 := by
@@ -330,5 +326,13 @@ theorem vertex_close_index (j : VertexIndex) :
         norm_add_le _ _
     _ ≤ κ / 2 + κ / 2 := add_le_add (left_leg_norm j) (taylorVertex_close j)
     _ = κ := by ring
+
+def exact_κApprox_python : κApproxPoly ⟨exactVertex⟩ ⟨toR3 ∘ pythonVertex⟩ := {
+  bijection := Equiv.refl _
+  approx a := by
+    simp only [Equiv.refl_apply, Function.comp_apply]
+    rw [norm_sub_rev]
+    exact vertex_close_index a
+}
 
 end KappaApprox

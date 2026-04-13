@@ -141,11 +141,19 @@ theorem exactVerts_radius_one : polyhedronRadius exactVerts exactVerts_nonempty 
     exact exactVertex_norm_le_one _
 
 noncomputable
-def exactPoly : GoodPoly := {
-  vertices := exactVerts,
-  nonempty := exactVerts_nonempty,
-  nontriv := exactVerts_nontriv,
-  radius_eq_one := exactVerts_radius_one
+def exactPoly : GoodPoly VertexIndex := {
+  vertices := ⟨exactVertex⟩,
+  nontriv := by
+    rintro j
+    refine exactVerts_nontriv _ ?_
+    simp [exactVerts]
+  radius_eq_one := by
+    rw [indexed_vertices_radius_iff]
+    constructor
+    · use ⟨0, 0, 0⟩
+      simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, Nopert.c1_norm_one]
+    · intro j
+      exact exactVertex_norm_le_one j
 }
 
 theorem exactVerts_pointsym : PointSym exactVertSet := by

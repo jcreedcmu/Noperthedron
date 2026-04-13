@@ -34,54 +34,65 @@ end Local.Triangle
 namespace RationalApprox.LocalTheorem
 
 /--
-If we have a triangle `P` in `poly`, yield the corresponding
-triangle in `poly_` which κ-approximates P.
+If we have indices `Pi` for a triangle in `poly`, yield the corresponding
+triangle in `poly_` which κ-approximates it.
 -/
-def transportTri {poly : GoodPoly} {poly_ : ApproxGoodPoly} {P : Triangle}
-    (hP : ∀ i, P i ∈ poly.vertices)
-    (hpoly : κApproxPoly poly.vertices poly_.vertices) : Triangle :=
-  fun i => hpoly.bijection ⟨P i, hP i⟩
+def transportTri {ι : Type} [Fintype ι]
+    {A : IndexedVertices ι} {B : IndexedVertices ι}
+    (Pi : Fin 3 → ι)
+    (hpoly : κApproxPoly A B) : Triangle :=
+  fun i => B.v (hpoly.bijection (Pi i))
 
 /-- The condition on δ -/
-def BoundDeltaℚ (δ : ℝ) (p : Pose) (P Q : Triangle) (su : UpperSqrt) : Prop :=
-  ∀ i : Fin 3, δ ≥ su.norm (p.rotR (p.rotM₁ℚ (P i)) - p.rotM₂ℚ (Q i))/2 + 3 * κ
+def BoundDeltaℚ (δ : ℝ) (p : Pose) (P_ Q_ : Triangle) (su : UpperSqrt) : Prop :=
+  ∀ i : Fin 3, δ ≥ su.norm (p.rotR (p.rotM₁ℚ (P_ i)) - p.rotM₂ℚ (Q_ i))/2 + 3 * κ
 
 /-- The condition on r -/
-def BoundRℚ (r ε : ℝ) (p : Pose) (Q : Triangle) (sl : LowerSqrt) : Prop :=
-  ∀ i : Fin 3, sl.norm (p.rotM₂ℚ (Q i)) > r + √2 * ε + 3 * κ
+def BoundRℚ (r ε : ℝ) (p : Pose) (Q_ : Triangle) (sl : LowerSqrt) : Prop :=
+  ∀ i : Fin 3, sl.norm (p.rotM₂ℚ (Q_ i)) > r + √2 * ε + 3 * κ
 
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"
 -/
-theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
+theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
+    (poly : GoodPoly ι) (poly_ : ApproxGoodPoly ι)
     (hpoly : κApproxPoly poly.vertices poly_.vertices)
-    (P Q : Triangle)
-    (cong_tri : P.Congruent Q)
-    (hP : ∀ i, P i ∈ poly.vertices) (hQ : ∀ i, Q i ∈ poly.vertices)
+    (Pi Qi : Fin 3 → ι)
+    (cong_tri : Triangle.Congruent (fun i => poly.vertices.v (Pi i))
+                (fun i => poly.vertices.v (Qi i)))
     (p_ : Pose) (hp : fourInterval.contains p_)
     (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
-    (hr₁ : BoundRℚ r ε p_ (transportTri hQ hpoly) sl)
-    (hδ : BoundDeltaℚ δ p_ (transportTri hP hpoly) (transportTri hQ hpoly) su)
-    (ae₁ : (transportTri hP hpoly).Aεℚ p_.vecX₁ℚ ε) (ae₂ : (transportTri hQ hpoly).Aεℚ p_.vecX₂ℚ ε)
-    (span₁ : (transportTri hP hpoly).κSpanning p_.θ₁ p_.φ₁ ε)
-    (span₂ : (transportTri hQ hpoly).κSpanning p_.θ₂ p_.φ₂ ε)
-    (be : (transportTri hQ hpoly).Bεℚ poly_.vertices p_ ε δ r su)
+    (hr₁ : BoundRℚ r ε p_ (transportTri Qi hpoly) sl)
+    (hδ : BoundDeltaℚ δ p_ (transportTri Pi hpoly) (transportTri Qi hpoly) su)
+    (ae₁ : (transportTri Pi hpoly).Aεℚ p_.vecX₁ℚ ε) (ae₂ : (transportTri Qi hpoly).Aεℚ p_.vecX₂ℚ ε)
+    (span₁ : (transportTri Pi hpoly).κSpanning p_.θ₁ p_.φ₁ ε)
+    (span₂ : (transportTri Qi hpoly).κSpanning p_.θ₂ p_.φ₂ ε)
+    (be : ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
+        (δ + √5 * ε) / r < Local.Triangle.Bεℚ.lhs ((transportTri Qi hpoly) i)
+          (poly_.vertices.v (hpoly.bijection k)) p_ ε su)
     : ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull := by
+  -- Define the triangles from indices
+  let P : Triangle := fun i => poly.vertices.v (Pi i)
+  let Q : Triangle := fun i => poly.vertices.v (Qi i)
   -- Abbreviations for transported triangles
-  set P_ := transportTri hP hpoly
-  set Q_ := transportTri hQ hpoly
+  set P_ := transportTri Pi hpoly
+  set Q_ := transportTri Qi hpoly
+  -- The finset of vertices
+  let verts := Finset.image poly.vertices.v Finset.univ
+  have verts_ne : verts.Nonempty :=
+    Finset.image_nonempty.mpr (Finset.univ_nonempty_iff.mpr ‹_›)
   -- Angle subtypes
   set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₁, hp.1⟩
   set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₁, hp.2.2.1⟩
   set θ₂ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₂, hp.2.1⟩
   set φ₂ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₂, hp.2.2.2.1⟩
   -- Vertex norm bounds
-  have hPnorm (i : Fin 3) : ‖P i‖ ≤ 1 := poly.vertex_radius_le_one _ (hP i)
-  have hQnorm (i : Fin 3) : ‖Q i‖ ≤ 1 := poly.vertex_radius_le_one _ (hQ i)
+  have hPnorm (i : Fin 3) : ‖P i‖ ≤ 1 := poly.vertex_radius_le_one (Pi i)
+  have hQnorm (i : Fin 3) : ‖Q i‖ ≤ 1 := poly.vertex_radius_le_one (Qi i)
   -- Approximation bounds
-  have hPapprox (i : Fin 3) : ‖P i - P_ i‖ ≤ κ := hpoly.approx ⟨P i, hP i⟩
-  have hQapprox (i : Fin 3) : ‖Q i - Q_ i‖ ≤ κ := hpoly.approx ⟨Q i, hQ i⟩
+  have hPapprox (i : Fin 3) : ‖P i - P_ i‖ ≤ κ := hpoly.approx (Pi i)
+  have hQapprox (i : Fin 3) : ‖Q i - Q_ i‖ ≤ κ := hpoly.approx (Qi i)
   -- Bridge: κSpanning → Spanning
   have span₁' : P.Spanning p_.θ₁ p_.φ₁ ε :=
     ek_spanning_imp_e_spanning P P_ (fun i => hPapprox i) hPnorm hp.1 hp.2.2.1 span₁
@@ -175,21 +186,22 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
     have h6k : 4 * κ + 2 * κ ^ 2 ≤ 6 * κ := by unfold κ; norm_num
     linarith [hsu]
   -- Bridge: Bεℚ → Bε
-  have be' : Q.Bε poly.vertices p_ ε δ r := by
+  have hP_mem (i : Fin 3) : P i ∈ verts := Finset.mem_image.mpr ⟨Pi i, Finset.mem_univ _, rfl⟩
+  have hQ_mem (i : Fin 3) : Q i ∈ verts := Finset.mem_image.mpr ⟨Qi i, Finset.mem_univ _, rfl⟩
+  have be' : Q.Bε verts p_ ε δ r := by
     intro i v hv hne
     -- Map v to v_ in poly_
-    let bij_v := hpoly.bijection ⟨v, hv⟩
-    have hv_ : (bij_v : ℝ³) ∈ poly_.vertices := bij_v.property
-    have hne_ : (bij_v : ℝ³) ≠ Q_ i := by
-      intro h; apply hne
-      have h1 : bij_v = hpoly.bijection ⟨Q i, hQ i⟩ := Subtype.coe_injective h
-      exact congr_arg Subtype.val (hpoly.bijection.injective h1)
-    have hvapprox : ‖v - (bij_v : ℝ³)‖ ≤ κ := hpoly.approx ⟨v, hv⟩
-    have hvnorm : ‖v‖ ≤ 1 := poly.vertex_radius_le_one v hv
-    set v_ : ℝ³ := (bij_v : ℝ³)
+    simp only [verts, Finset.mem_image, Finset.mem_univ, true_and] at hv
+    obtain ⟨k, rfl⟩ := hv
+    -- v is poly.vertices.v k; map to poly_.vertices.v (bijection k)
+    let k' := hpoly.bijection k
+    set v_ : ℝ³ := poly_.vertices.v k'
+    have hvapprox : ‖poly.vertices.v k - v_‖ ≤ κ := hpoly.approx k
+    have hvnorm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
     -- Get the Bεℚ hypothesis
-    have hbe := be i v_ hv_ hne_
-    show (δ + √5 * ε) / r < Local.Triangle.Bε.lhs (Q i) v p_ ε
+    have hne_k : k ≠ Qi i := fun h => hne (congr_arg poly.vertices.v h)
+    have hbe := be i k hne_k
+    show (δ + √5 * ε) / r < Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
     -- Helper facts
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
     have hsu_ge : su.norm (Q_ i - v_) ≥ ‖Q_ i - v_‖ := UpperSqrt_norm_le su _
@@ -220,28 +232,28 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
         · positivity
       linarith [hBεℚ_num_pos]
     -- From inner_product_bound_10kappa: |innerA - innerAℚ| ≤ 10κ
-    have hQv_norm : ‖Q i - v‖ ≤ 2 := calc
-      ‖Q i - v‖ ≤ ‖Q i‖ + ‖v‖ := norm_sub_le _ _
+    have hQv_norm : ‖Q i - poly.vertices.v k‖ ≤ 2 := calc
+      ‖Q i - poly.vertices.v k‖ ≤ ‖Q i‖ + ‖poly.vertices.v k‖ := norm_sub_le _ _
       _ ≤ 1 + 1 := add_le_add (hQnorm i) hvnorm
       _ = 2 := by ring
-    have hQv_approx : ‖(Q i - v) - (Q_ i - v_)‖ ≤ 2 * κ := calc
-      ‖(Q i - v) - (Q_ i - v_)‖ = ‖(Q i - Q_ i) - (v - v_)‖ := by congr 1; abel
-      _ ≤ ‖Q i - Q_ i‖ + ‖v - v_‖ := norm_sub_le _ _
+    have hQv_approx : ‖(Q i - poly.vertices.v k) - (Q_ i - v_)‖ ≤ 2 * κ := calc
+      ‖(Q i - poly.vertices.v k) - (Q_ i - v_)‖ = ‖(Q i - Q_ i) - (poly.vertices.v k - v_)‖ := by congr 1; abel
+      _ ≤ ‖Q i - Q_ i‖ + ‖poly.vertices.v k - v_‖ := norm_sub_le _ _
       _ ≤ κ + κ := add_le_add (hQapprox i) hvapprox
       _ = 2 * κ := by ring
-    have h_inner_10 : |⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ -
+    have h_inner_10 : |⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - poly.vertices.v k)⟫ -
         ⟪(rotMℚ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫| ≤ 10 * κ :=
       inner_product_bound_10kappa (θ := θ₂) (φ := φ₂) (hQnorm i) hQv_norm (hQapprox i) hQv_approx
-    have h_norm_QR : ‖Q i - v‖ ≤ ‖Q_ i - v_‖ + 2 * κ :=
-      calc ‖Q i - v‖
-        _ ≤ ‖Q_ i - v_‖ + ‖(Q i - v) - (Q_ i - v_)‖ := norm_le_insert' _ _
+    have h_norm_QR : ‖Q i - poly.vertices.v k‖ ≤ ‖Q_ i - v_‖ + 2 * κ :=
+      calc ‖Q i - poly.vertices.v k‖
+        _ ≤ ‖Q_ i - v_‖ + ‖(Q i - poly.vertices.v k) - (Q_ i - v_)‖ := norm_le_insert' _ _
         _ ≤ ‖Q_ i - v_‖ + 2 * κ := by grw [hQv_approx]
-    have hA_nonneg : 0 ≤ ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ -
-        2 * ε * ‖Q i - v‖ * (√2 + ε) := by
+    have hA_nonneg : 0 ≤ ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - poly.vertices.v k)⟫ -
+        2 * ε * ‖Q i - poly.vertices.v k‖ * (√2 + ε) := by
       have h_inner_le : ⟪(rotMℚ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ ≤
-          ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - v)⟫ :=
+          ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - poly.vertices.v k)⟫ :=
         sub_le_of_abs_sub_le_left h_inner_10
-      have h_eps_term : 2 * ε * ‖Q i - v‖ * (√2 + ε) ≤
+      have h_eps_term : 2 * ε * ‖Q i - poly.vertices.v k‖ * (√2 + ε) ≤
           2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) := by
         apply mul_le_mul_of_nonneg_right
         · exact mul_le_mul_of_nonneg_left h_norm_QR (by linarith)
@@ -249,8 +261,8 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
       linarith [hAℚ_num_pos]
     -- Apply bounds_kappa4 (note: P Q P_ Q_ θ φ are explicit in bounds_kappa4)
     have hbk4 : bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su ≤
-        bounds_kappa4_A (Q i) v θ₂ φ₂ ε :=
-      bounds_kappa4 (Q i) v (Q_ i) v_ θ₂ φ₂ (hQnorm i) hvnorm (hQapprox i) hvapprox ε hε su hA_nonneg
+        bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε :=
+      bounds_kappa4 (Q i) (poly.vertices.v k) (Q_ i) v_ θ₂ φ₂ (hQnorm i) hvnorm (hQapprox i) hvapprox ε hε su hA_nonneg
     -- Bεℚ.lhs ≤ bounds_kappa4_Aℚ (su.norm ≥ ‖·‖ in numerator, denominators def. equal)
     have hBεℚ_le : Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε su ≤
         bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su := by
@@ -271,12 +283,26 @@ theorem rational_local (poly : GoodPoly) (poly_ : ApproxGoodPoly)
         · positivity
       grw [h_sub_le]
     -- bounds_kappa4_A = Bε.lhs (definitionally: rotM ↑θ₂ ↑φ₂ = p_.rotM₂)
-    have hA_eq : bounds_kappa4_A (Q i) v θ₂ φ₂ ε = Local.Triangle.Bε.lhs (Q i) v p_ ε := rfl
+    have hA_eq : bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := rfl
     -- Combine
     calc (δ + √5 * ε) / r < Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε su := hbe
       _ ≤ bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su := hBεℚ_le
-      _ ≤ bounds_kappa4_A (Q i) v θ₂ φ₂ ε := hbk4
-      _ = Local.Triangle.Bε.lhs (Q i) v p_ ε := hA_eq
+      _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
+      _ = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := hA_eq
   -- Apply local_theorem
-  exact Local.local_theorem P Q cong_tri poly.vertices poly.nonempty hP hQ
-    poly.radius_eq_one p_ ε δ r hε hr hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
+  -- Need to convert hull: poly.hull = (Local.shape_of verts).hull
+  have hull_eq : (Local.shape_of verts).hull = poly.hull := by
+    simp only [Local.shape_of, Shape.hull, GoodPoly.hull, verts]
+    congr 1; ext x; simp [Set.mem_range]
+  have radius_eq : polyhedronRadius verts verts_ne = 1 := by
+    rw [polyhedron_radius_iff]
+    constructor
+    · obtain ⟨i, hi⟩ := (indexed_vertices_radius_iff poly.vertices).mp poly.radius_eq_one |>.1
+      exact ⟨poly.vertices.v i, Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩, hi⟩
+    · intro v hv
+      simp only [verts, Finset.mem_image, Finset.mem_univ, true_and] at hv
+      obtain ⟨k, rfl⟩ := hv
+      exact poly.vertex_radius_le_one k
+  rw [← hull_eq]
+  exact Local.local_theorem P Q cong_tri verts verts_ne hP_mem hQ_mem
+    radius_eq p_ ε δ r hε hr hr₁' hδ' ae₁' ae₂' span₁' span₂' be'

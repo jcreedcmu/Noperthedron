@@ -375,6 +375,24 @@ lemma rotM_periodic_φ {θ φ : ℝ} {k : ℤ} :
   ext v i; fin_cases i <;>
   · simp [rotM, rotM_mat]
 
+structure IndexedVertices (ι : Type) [Fintype ι] where
+  v : ι → ℝ³
+
+noncomputable
+def IndexedVertices.radius {ι : Type} [Fintype ι] [ne : Nonempty ι] (iv : IndexedVertices ι) : ℝ :=
+  (Finset.image (fun x ↦ ‖iv.v x‖) Finset.univ).max'
+    (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty_iff.mpr ne)
+
+theorem indexed_vertices_radius_iff {r : ℝ} {ι : Type} [Fintype ι] [ne : Nonempty ι]
+    (iv : IndexedVertices ι) :
+    iv.radius = r ↔ (∃ i, ‖iv.v i‖ = r) ∧ ∀ i, ‖iv.v i‖ ≤ r := by
+  constructor
+  · intro h
+    simp only [IndexedVertices.radius, Finset.max'_eq_iff] at h
+    grind
+  · intro h
+    simpa [IndexedVertices.radius, Finset.max'_eq_iff]
+
 noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
   (S.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)
@@ -396,17 +414,17 @@ theorem polyhedron_vertex_norm_le_radius {n : ℕ} (S : Finset (E n))
   apply Finset.le_max'
   exact Finset.mem_image_of_mem _ hv
 
-structure ApproxGoodPoly : Type where
-  vertices : Finset ℝ³
-  nonempty : vertices.Nonempty
-  nontriv : ∀ v ∈ vertices, ‖v‖ > 0
+structure ApproxGoodPoly (ι : Type) [Fintype ι] [Nonempty ι] : Type where
+  vertices : IndexedVertices ι
+  nontriv : ∀ i, 0 < ‖vertices.v i‖
 
-structure GoodPoly extends ApproxGoodPoly where
-  radius_eq_one : polyhedronRadius vertices nonempty = 1
+structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] extends ApproxGoodPoly ι where
+  radius_eq_one : vertices.radius = 1
 
-def GoodPoly.hull (poly : GoodPoly) : Set ℝ³ :=
-  convexHull ℝ poly.vertices
+def GoodPoly.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) : Set ℝ³ :=
+  convexHull ℝ { poly.vertices.v i | i }
 
-theorem GoodPoly.vertex_radius_le_one (poly : GoodPoly) : ∀ v ∈ poly.vertices, ‖v‖ ≤ 1 := by
+theorem GoodPoly.vertex_radius_le_one {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) :
+    ∀ i, ‖poly.vertices.v i‖ ≤ 1 := by
   have := poly.radius_eq_one
-  simp_all only [polyhedron_radius_iff, implies_true]
+  rw [indexed_vertices_radius_iff] at this; exact this.2
