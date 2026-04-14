@@ -3,8 +3,16 @@ import Noperthedron.Bounding
 import Noperthedron.PointSym
 import Noperthedron.Vertices.Index
 
-/-
-This file covers [SY25] §2.1.
+/-!
+This file covers [SY25] §2.1, defining the Noperthedron vertices.
+
+## Main definitions
+
+- `Noperthedron.exactVertex`: The exact Noperthedron vertices, as a function
+  from `VertexIndex` to `ℝ³`.
+
+- `Noperthedron.exactPoly: The vertices as a `GoodPoly`.
+
 -/
 
 open scoped Matrix
