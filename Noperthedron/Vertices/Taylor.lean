@@ -3,6 +3,18 @@ import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.Trig
 
+/-!
+Taylor series approximations of the Noperthedron vertices. These are provably near to both
+the exact vertices and the python-generated approximate vertices, and as such provide
+a convenient bridge between them.
+
+## Main definitions
+
+- `Noperthedron.taylorVertex`: The exact Noperthedron vertices, as a function
+  from `Noperthedron.VertexIndex` to `ℝ³`.
+
+-/
+
 namespace Noperthedron
 
 /-- Rational approximation of π, matching Mathlib's `pi_gt_d20` bound. -/
