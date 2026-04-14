@@ -86,6 +86,24 @@ noncomputable
 def exactVertex (idx : VertexIndex) :=
   (-1)^idx.ℓ.val • RzL (2 * π * (idx.k : ℝ) / 15) (Cpt idx.i)
 
+lemma exactVertex_eq_vec (k : Fin 15) (ℓ : Fin 2) (i : Fin 3) :
+    let θ := 2 * π * (k : ℝ) / 15
+    exactVertex ⟨k, ℓ, i⟩ =
+      (-1)^ℓ.val •
+        !₂[cos θ * Cpt i 0 - sin θ * Cpt i 1,
+           sin θ * Cpt i 0 + cos θ * Cpt i 1,
+           Cpt i 2] := by
+  simp only [exactVertex, Int.reduceNeg, RzL, Matrix.toEuclideanLin, Matrix.toLpLin, Rz_mat,
+    LinearEquiv.trans_apply, LinearMap.coe_toContinuousLinearMap', LinearEquiv.arrowCongr_apply,
+    LinearEquiv.symm_symm, WithLp.linearEquiv_apply, AddEquiv.toEquiv_eq_coe, Equiv.toFun_as_coe,
+    EquivLike.coe_coe, WithLp.addEquiv_apply, Matrix.toLin'_apply, Matrix.cons_mulVec,
+    Matrix.cons_dotProduct, Matrix.vecHead, Fin.isValue, Matrix.vecTail, Nat.succ_eq_add_one,
+    Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one, neg_mul, Fin.succ_one_eq_two,
+    zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, one_mul, zero_add, Matrix.empty_mulVec,
+    WithLp.linearEquiv_symm_apply, Equiv.invFun_as_coe, AddEquiv.coe_toEquiv_symm,
+    WithLp.addEquiv_symm_apply]
+  ring_nf
+
 noncomputable
 def exactVerts : Finset ℝ³ := Finset.image exactVertex Finset.univ
 

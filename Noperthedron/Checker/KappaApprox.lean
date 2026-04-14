@@ -116,18 +116,26 @@ lemma left_leg_all :
 
 /-! ## Right-leg bound: nopertListℚ vs nopertList -/
 
-/-- The reduced angle index k' = min(k, 15-k) satisfies k' ≤ 7. -/
+/-- The reduced angle index k' satisfies k' ≤ 7. -/
 private lemma reduced_le_seven (k : ℕ) (hk : k < 15) :
-    (if k ≤ 7 then k else 15 - k) ≤ 7 := by
-  split_ifs with h <;> omega
+    (if k ≤ 7 then (k : ℚ) else k - 15) ≤ 7 := by
+  split_ifs with h
+  · norm_cast
+  · norm_cast; lia
+
+/-- The reduced angle index k' satisfies 0 ≤ k'. -/
+private lemma reduced_ge_neg_seven (k : ℕ) :
+    -7 ≤ (if k ≤ 7 then (k : ℚ) else k - 15) := by
+  norm_cast; lia
 
 /-- The rational angle 2·piQ·k'/15 has absolute value < 3 when k' ≤ 7. -/
-private lemma piQ_angle_abs_lt_three (k' : ℕ) (hk : k' ≤ 7) :
+private lemma piQ_angle_abs_lt_three (k' : ℚ) (hkn : -7 ≤ k') (hk : k' ≤ 7) :
     |(2 * piQ * k' / 15 : ℚ)| < 3 := by
   rw [abs_lt]
   constructor
-  · have : (0 : ℚ) ≤ 2 * piQ * ↑k' / 15 := by unfold piQ; positivity
-    linarith
+  · unfold piQ
+    calc  (-3 : ℚ) < 2 * 3.14159265358979323846 * (-7) / 15 := by norm_num
+                 _ ≤ 2 * 3.14159265358979323846 * k' / 15 := by gcongr
   · have : (k' : ℚ) ≤ 7 := by exact_mod_cast hk
     unfold piQ
     calc 2 * 3.14159265358979323846 * (k' : ℚ) / 15
@@ -135,64 +143,86 @@ private lemma piQ_angle_abs_lt_three (k' : ℕ) (hk : k' ≤ 7) :
       _ < 3 := by norm_num
 
 /-- Combined trig error for cosQ at a reduced rational angle vs cos at the real angle. -/
-private lemma cosQ_combined_error (k' : ℕ) (hk : k' ≤ 7) :
-    |↑(cosQ (2 * piQ * k' / 15)) - Real.cos (2 * π * k' / 15)| ≤ κ / 7 := by
+private lemma cosQ_combined_error (k : Fin 15) :
+    |↑(cosQ (2 * piQ * (if k ≤ 7 then (k : ℚ) else k - 15) / 15)) -
+       Real.cos (2 * π * k / 15)| ≤ κ / 7 := by
+  set k' : ℚ := if k ≤ 7 then k else k - 15 with hk'_def
+  have hk'_ge : -7 ≤ k' := reduced_ge_neg_seven k
+  have hk'_le : k' ≤ 7 := reduced_le_seven k k.2
   set q : ℚ := 2 * piQ * k' / 15 with hq_def
-  have taylor := cosQ_approx q
-  have habs : |(↑q : ℝ)| < 3 := by exact_mod_cast piQ_angle_abs_lt_three k' hk
-  have hq_eq : (↑q : ℝ) = 2 * (piQ : ℝ) * k' / 15 := by
+  have hq_eq : (↑q : ℝ) = 2 * (piQ : ℝ) * (k' : ℝ) / 15 := by
     simp only [hq_def]; push_cast; ring
-  have mvt : |Real.cos ↑q - Real.cos (2 * π * k' / 15)| ≤
-      |↑q - 2 * π * k' / 15| := by rw [hq_eq]; exact abs_cos_sub_cos_le _ _
-  have hpi := pi_sub_piQ_lt
-  have hk7 : (k' : ℝ) ≤ 7 := by exact_mod_cast hk
-  -- Bound on |↑q - 2πk'/15|
+  have hcos_eq : Real.cos (2 * π * ↑↑k / 15) = Real.cos (2 * π * (k' : ℝ) / 15) := by
+    simp only [hk'_def]; split_ifs with h
+    · push_cast; simp
+    · push_cast
+      rw [show 2 * π * ((↑↑k : ℝ) - 15) / 15 = 2 * π * ↑↑k / 15 - 2 * π from by ring]
+      exact (cos_sub_two_pi _).symm
+  rw [hcos_eq]
+  have taylor := cosQ_approx q
+  have mvt : |Real.cos ↑q - Real.cos (2 * π * (k' : ℝ) / 15)| ≤
+      |↑q - 2 * π * (k' : ℝ) / 15| := abs_cos_sub_cos_le _ _
   have hpi_pos : 0 ≤ π - (piQ : ℝ) := le_of_lt (sub_pos.mpr piQ_lt_pi)
-  have hdiff : |↑q - 2 * π * k' / 15| ≤ 14 / 15 * (1 / 10 ^ 20) := by
-    rw [hq_eq, show 2 * (piQ : ℝ) * k' / 15 - 2 * π * k' / 15 =
-        -(2 * k' / 15 * (π - (piQ : ℝ))) from by ring, abs_neg,
-        abs_of_nonneg (mul_nonneg (by positivity) hpi_pos)]
-    exact mul_le_mul (by linarith) (le_of_lt hpi) hpi_pos (by positivity)
-  calc |(↑(cosQ q) : ℝ) - Real.cos (2 * π * k' / 15)|
-      = |(↑(cosQ q) - Real.cos ↑q) + (Real.cos ↑q - Real.cos (2 * π * k' / 15))| := by
+  have habs : |(↑q : ℝ)| < 3 := by exact_mod_cast piQ_angle_abs_lt_three k' hk'_ge hk'_le
+  have hk_abs : |(k' : ℝ)| ≤ 7 := by
+    rw [abs_le]; exact ⟨by exact_mod_cast hk'_ge, by exact_mod_cast hk'_le⟩
+  have hdiff : |↑q - 2 * π * (k' : ℝ) / 15| ≤ 14 / 15 * (1 / 10 ^ 20) := by
+    rw [hq_eq, show 2 * (piQ : ℝ) * (k' : ℝ) / 15 - 2 * π * (k' : ℝ) / 15 =
+        -(2 * (k' : ℝ) / 15 * (π - (piQ : ℝ))) from by ring, abs_neg, abs_mul, abs_div, abs_mul]
+    rw [abs_of_nonneg hpi_pos]
+    grw [hk_abs]
+    gcongr <;> (norm_num; try linarith [pi_sub_piQ_lt])
+  calc |(↑(cosQ q) : ℝ) - Real.cos (2 * π * (k' : ℝ) / 15)|
+      = |(↑(cosQ q) - Real.cos ↑q) + (Real.cos ↑q - Real.cos (2 * π * (k' : ℝ) / 15))| := by
         congr 1; ring
-    _ ≤ |↑(cosQ q) - Real.cos ↑q| + |Real.cos ↑q - Real.cos (2 * π * k' / 15)| :=
+    _ ≤ |↑(cosQ q) - Real.cos ↑q| + |Real.cos ↑q - Real.cos (2 * π * (k' : ℝ) / 15)| :=
         abs_add_le _ _
-    _ ≤ |(↑q : ℝ)| ^ 26 / 26! + |↑q - 2 * π * k' / 15| :=
+    _ ≤ |(↑q : ℝ)| ^ 26 / 26! + |↑q - 2 * π * (k' : ℝ) / 15| :=
         add_le_add (by rw [abs_sub_comm]; exact taylor) mvt
     _ ≤ 3 ^ 26 / 26! + (14 / 15 * (1 / 10 ^ 20)) :=
         add_le_add (by gcongr) hdiff
     _ ≤ κ / 7 := by unfold κ; norm_num
 
 /-- Same bound for sinQ. -/
-private lemma sinQ_combined_error (k' : ℕ) (hk : k' ≤ 7) :
-    |↑(sinQ (2 * piQ * k' / 15)) - Real.sin (2 * π * k' / 15)| ≤ κ / 7 := by
+private lemma sinQ_combined_error (k : Fin 15) :
+    |↑(sinQ (2 * piQ * (if k ≤ 7 then (k : ℚ) else k - 15) / 15)) -
+      Real.sin (2 * π * k / 15)| ≤ κ / 7 := by
+  set k' : ℚ := if k ≤ 7 then k else k - 15 with hk'_def
+  have hk'_ge : -7 ≤ k' := reduced_ge_neg_seven k
+  have hk'_le : k' ≤ 7 := reduced_le_seven k k.2
   set q : ℚ := 2 * piQ * k' / 15 with hq_def
-  have taylor := sinQ_approx q
-  have habs : |(↑q : ℝ)| < 3 := by exact_mod_cast piQ_angle_abs_lt_three k' hk
-  have hq_eq : (↑q : ℝ) = 2 * (piQ : ℝ) * k' / 15 := by
+  have hq_eq : (↑q : ℝ) = 2 * (piQ : ℝ) * (k' : ℝ) / 15 := by
     simp only [hq_def]; push_cast; ring
-  have mvt : |Real.sin ↑q - Real.sin (2 * π * k' / 15)| ≤
-      |↑q - 2 * π * k' / 15| := by rw [hq_eq]; exact abs_sin_sub_sin_le _ _
-  have hpi := pi_sub_piQ_lt
-  have hk7 : (k' : ℝ) ≤ 7 := by exact_mod_cast hk
+  have hsin_eq : Real.sin (2 * π * ↑↑k / 15) = Real.sin (2 * π * (k' : ℝ) / 15) := by
+    simp only [hk'_def]; split_ifs with h
+    · push_cast; simp
+    · push_cast
+      rw [show 2 * π * ((↑↑k : ℝ) - 15) / 15 = 2 * π * ↑↑k / 15 - 2 * π from by ring]
+      exact (sin_sub_two_pi _).symm
+  rw [hsin_eq]
+  have taylor := sinQ_approx q
+  have mvt : |Real.sin ↑q - Real.sin (2 * π * (k' : ℝ) / 15)| ≤
+      |↑q - 2 * π * (k' : ℝ) / 15| := abs_sin_sub_sin_le _ _
   have hpi_pos : 0 ≤ π - (piQ : ℝ) := le_of_lt (sub_pos.mpr piQ_lt_pi)
-  have hdiff : |↑q - 2 * π * k' / 15| ≤ 14 / 15 * (1 / 10 ^ 20) := by
-    rw [hq_eq, show 2 * (piQ : ℝ) * k' / 15 - 2 * π * k' / 15 =
-        -(2 * k' / 15 * (π - (piQ : ℝ))) from by ring, abs_neg,
-        abs_of_nonneg (mul_nonneg (by positivity) hpi_pos)]
-    exact mul_le_mul (by linarith) (le_of_lt hpi) hpi_pos (by positivity)
-  calc |(↑(sinQ q) : ℝ) - Real.sin (2 * π * k' / 15)|
-      = |(↑(sinQ q) - Real.sin ↑q) + (Real.sin ↑q - Real.sin (2 * π * k' / 15))| := by
+  have habs : |(↑q : ℝ)| < 3 := by exact_mod_cast piQ_angle_abs_lt_three k' hk'_ge hk'_le
+  have hk_abs : |(k' : ℝ)| ≤ 7 := by
+    rw [abs_le]; exact ⟨by exact_mod_cast hk'_ge, by exact_mod_cast hk'_le⟩
+  have hdiff : |↑q - 2 * π * (k' : ℝ) / 15| ≤ 14 / 15 * (1 / 10 ^ 20) := by
+    rw [hq_eq, show 2 * (piQ : ℝ) * (k' : ℝ) / 15 - 2 * π * (k' : ℝ) / 15 =
+        -(2 * (k' : ℝ) / 15 * (π - (piQ : ℝ))) from by ring, abs_neg, abs_mul, abs_div, abs_mul]
+    rw [abs_of_nonneg hpi_pos]
+    grw [hk_abs]
+    gcongr <;> (norm_num; try linarith [pi_sub_piQ_lt])
+  calc |(↑(sinQ q) : ℝ) - Real.sin (2 * π * (k' : ℝ) / 15)|
+      = |(↑(sinQ q) - Real.sin ↑q) + (Real.sin ↑q - Real.sin (2 * π * (k' : ℝ) / 15))| := by
         congr 1; ring
-    _ ≤ |↑(sinQ q) - Real.sin ↑q| + |Real.sin ↑q - Real.sin (2 * π * k' / 15)| :=
+    _ ≤ |↑(sinQ q) - Real.sin ↑q| + |Real.sin ↑q - Real.sin (2 * π * (k' : ℝ) / 15)| :=
         abs_add_le _ _
-    _ ≤ |(↑q : ℝ)| ^ 27 / 27! + |↑q - 2 * π * k' / 15| :=
+    _ ≤ |(↑q : ℝ)| ^ 27 / 27! + |↑q - 2 * π * (k' : ℝ) / 15| :=
         add_le_add (by rw [abs_sub_comm]; exact taylor) mvt
     _ ≤ 3 ^ 27 / 27! + (14 / 15 * (1 / 10 ^ 20)) :=
         add_le_add (by gcongr) hdiff
     _ ≤ κ / 7 := by unfold κ; norm_num
-
 /-! ### Helper lemmas for right-leg bound -/
 
 /-- `Cpt i j` (real base vertex coordinate) equals `↑(Crat i j)`. -/
@@ -243,19 +273,24 @@ private lemma RzL_apply_2 (θ : ℝ) (v : ℝ³) :
     (RzL θ v) 2 = v 2 := by
   simp [RzL, Rz_mat, Matrix.vecHead, Matrix.vecTail]
 
+private lemma R3_sub (x₁ y₁ z₁ x₂ y₂ z₂ : ℝ) :
+    !₂[x₁, y₁, z₁] - !₂[x₂, y₂, z₂] = !₂[x₁ - x₂, y₁ - y₂, z₁ - z₂] := by
+  ext i; fin_cases i <;> simp
+
 /-- The core analytical bound: each taylorVertex is within κ/2 of the corresponding exactVertex.
     Uses Taylor remainder + MVT + π bounds. The actual error is ~10⁻¹⁵, well within κ/2 = 5·10⁻¹¹.
 -/
 theorem taylorVertex_close (j : VertexIndex) : ‖toR3 (taylorVertex j) - exactVertex j‖ ≤ κ / 2 := by
   let ⟨k, ℓ, i⟩ := j
   -- Set up reduced angle
-  set k' := if k.val ≤ 7 then k.val else 15 - k.val with hk'_def
+  set k' : ℚ := if k ≤ 7 then k.val else k.val - 15 with hk'_def
+  have hk'_ge : -7 ≤ k' := reduced_ge_neg_seven k
   have hk'_le : k' ≤ 7 := reduced_le_seven k k.2
   -- Trig errors
-  set ce := (↑(cosQ (2 * piQ * k' / 15)) : ℝ) - Real.cos (2 * π * k' / 15) with hce_def
-  set se := (↑(sinQ (2 * piQ * k' / 15)) : ℝ) - Real.sin (2 * π * k' / 15) with hse_def
-  have hce : |ce| ≤ κ / 7 := cosQ_combined_error k' hk'_le
-  have hse : |se| ≤ κ / 7 := sinQ_combined_error k' hk'_le
+  set ce := (↑(cosQ (2 * piQ * k' / 15)) : ℝ) - Real.cos (2 * π * k / 15) with hce_def
+  set se := (↑(sinQ (2 * piQ * k' / 15)) : ℝ) - Real.sin (2 * π * k / 15) with hse_def
+  have hce : |ce| ≤ κ / 7 := cosQ_combined_error k
+  have hse : |se| ≤ κ / 7 := sinQ_combined_error k
   -- Base coordinates
   set a := (↑(Crat i 0) : ℝ) with ha_def
   set b := (↑(Crat i 1) : ℝ) with hb_def
@@ -269,7 +304,24 @@ theorem taylorVertex_close (j : VertexIndex) : ‖toR3 (taylorVertex j) - exactV
   -- x,y squared norm = (ce² + se²)(a² + b²) via rotation algebra identity
   -- Both k ≤ 7 and k > 7 give the same squared norm due to cross-term cancellation
   have hsq : d 0 ^ 2 + d 1 ^ 2 = (ce ^ 2 + se ^ 2) * (a ^ 2 + b ^ 2) := by
-    sorry
+    rw [exactVertex_eq_vec, taylorVertex_eq_vec] at hd_def
+    generalize hkk : (2 * piQ * k') / 15 = kk at *
+    have h₁ : toR3 ((-1) ^ ℓ.val • ![cosQ kk * Crat i 0 - sinQ kk * Crat i 1,
+                                  sinQ kk * Crat i 0 + cosQ kk * Crat i 1,
+                                  Crat i 2]) =
+           (-1) ^ ℓ.val • !₂[cosQ kk * Cpt i 0 - sinQ kk * Cpt i 1,
+                             sinQ kk * Cpt i 0 + cosQ kk * Cpt i 1,
+                             Cpt i 2] := by
+       simp [toR3]
+       ext j; fin_cases j <;> simp [Cpt_cast, mul_add]
+    rw [h₁] at hd_def; clear h₁
+    rw [← smul_sub, R3_sub, sub_self, ← WithLp.toLp_smul, Matrix.smul_vec3, smul_zero] at hd_def
+    rw [hd_def]
+    simp only [Fin.isValue, Nat.succ_eq_add_one, Nat.reduceAdd, Int.reduceNeg, zsmul_eq_mul,
+      Int.cast_pow, Int.cast_neg, Int.cast_one, Matrix.cons_val_zero, Matrix.cons_val_one]
+    simp only [mul_pow, ←pow_mul]
+    simp only [even_two, Even.mul_left, Even.neg_pow, one_pow, Fin.isValue, one_mul]
+    simp only [hce_def, hse_def, ha_def, hb_def, Cpt_cast]; ring
   -- Norm bound via sqrt
   have hκ2 : (0 : ℝ) ≤ κ / 2 := by unfold κ; positivity
   rw [EuclideanSpace.norm_eq, ← sqrt_sq hκ2]
