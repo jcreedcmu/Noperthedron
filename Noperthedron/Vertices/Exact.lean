@@ -9,9 +9,9 @@ This file covers [SY25] §2.1, defining the Noperthedron vertices.
 ## Main definitions
 
 - `Noperthedron.exactVertex`: The exact Noperthedron vertices, as a function
-  from `VertexIndex` to `ℝ³`.
+  from `Noperthedron.VertexIndex` to `ℝ³`.
 
-- `Noperthedron.exactPoly: The vertices as a `GoodPoly`.
+- `Noperthedron.exactPoly`: The vertices as a `GoodPoly`.
 
 -/
 
