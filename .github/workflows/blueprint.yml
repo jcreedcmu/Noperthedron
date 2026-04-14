@@ -58,8 +58,8 @@ jobs:
           lake exe mk_all --lib Noperthedron --check
 
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
+        #uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
+        uses:  dwrensha/docgen-action@14471241e1040836f16e3db50db8e409b311cef6
         with:
           blueprint: true
-          api-docs: false
           homepage: home_page
