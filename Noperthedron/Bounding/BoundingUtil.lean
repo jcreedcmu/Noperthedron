@@ -42,8 +42,10 @@ theorem dist_rot3_apply {d : Fin 3} {α α' : ℝ} {v : ℝ³} :
           calc
             _ = (v (ix 1) * cos α + -(v (ix 2) * sin α) - (v (ix 1) * cos α' + -(v (ix 2) * sin α'))) ^ 2 +
               (v (ix 1) * sin α + v (ix 2) * cos α - (v (ix 1) * sin α' + v (ix 2) * cos α')) ^ 2 := by simp [ix]
-            _ = (v (ix 1) * (cos α - cos α') - v (ix 2) * (sin α - sin α')) ^ 2 + (v (ix 1) * (sin α - sin α') + v (ix 2) * (cos α - cos α')) ^ 2 := by ring_nf
-            _ = 4 * (v (ix 1) ^ 2 + v (ix 2) ^ 2) * (sin ((α - α') / 2)) ^ 2 * ((sin ((α + α') / 2)) ^ 2 + (cos ((α + α') / 2)) ^ 2) := by
+            _ = (v (ix 1) * (cos α - cos α') - v (ix 2) * (sin α - sin α')) ^ 2 +
+                (v (ix 1) * (sin α - sin α') + v (ix 2) * (cos α - cos α')) ^ 2 := by ring_nf
+            _ = 4 * (v (ix 1) ^ 2 + v (ix 2) ^ 2) * (sin ((α - α') / 2)) ^ 2 *
+                ((sin ((α + α') / 2)) ^ 2 + (cos ((α + α') / 2)) ^ 2) := by
               simp [sin_sub_sin, cos_sub_cos, sq]
               ring_nf
             _ = 4 * (v (ix 1) ^ 2 + v (ix 2) ^ 2) * (sin ((α - α') / 2)) ^ 2 := by simp [sin_sq_add_cos_sq]
@@ -61,7 +63,7 @@ theorem dist_rot3 {d : Fin 3} {α α' : ℝ} :
       rw [dist_rot3_apply]
       by_cases h : |sin ((α - α') / 2)| = 0
       · rw [h]; simp
-      · field_simp
+      · simp only [fieldLe]
         simp [PiLp.norm_eq_sum, Fin.sum_univ_three]
         apply rpow_le_rpow
         · positivity
@@ -84,7 +86,7 @@ theorem dist_rot3 {d : Fin 3} {α α' : ℝ} :
           _ = ‖(rot3 d' α - rot3 d' α') v‖ := by
             rw [dist_rot3_apply]
             simp [v, d', PiLp.norm_eq_sum, Fin.removeNth_apply, Fin.succAbove]
-          _ ≤ N * ‖v‖ := by assumption
+          _ ≤ N * ‖v‖ := h
           _ = N := by simp [norm_v_one]
       }
 
@@ -105,8 +107,10 @@ theorem dist_rot2_apply {α α' : ℝ} {v : ℝ²} :
         calc
           (v 0 * cos α + -(v 1 * sin α) - (v 0 * cos α' + -(v 1 * sin α'))) ^ 2 +
             (v 0 * sin α + v 1 * cos α - (v 0 * sin α' + v 1 * cos α')) ^ 2 = _ := by rfl
-          _ = (v 0 * (cos α - cos α') - v 1 * (sin α - sin α')) ^ 2 + (v 0 * (sin α - sin α') + v 1 * (cos α - cos α')) ^ 2 := by ring_nf
-          _ = 4 * (v 0 ^ 2 + v 1 ^ 2) * (sin ((α - α') / 2)) ^ 2 * ((sin ((α + α') / 2)) ^ 2 + (cos ((α + α') / 2)) ^ 2) := by
+          _ = (v 0 * (cos α - cos α') - v 1 * (sin α - sin α')) ^ 2 +
+              (v 0 * (sin α - sin α') + v 1 * (cos α - cos α')) ^ 2 := by ring_nf
+          _ = 4 * (v 0 ^ 2 + v 1 ^ 2) * (sin ((α - α') / 2)) ^ 2 *
+              ((sin ((α + α') / 2)) ^ 2 + (cos ((α + α') / 2)) ^ 2) := by
             simp only [Fin.isValue, cos_sub_cos, neg_mul, mul_neg, sin_sub_sin, sq]
             ring_nf
           _ = 4 * (v 0 ^ 2 + v 1 ^ 2) * (sin ((α - α') / 2)) ^ 2 := by simp [sin_sq_add_cos_sq]
