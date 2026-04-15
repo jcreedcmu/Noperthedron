@@ -14,7 +14,7 @@ are within distance κ = 10⁻¹⁰ of the real noperthedron vertices.
 See `plans/M2D_PLAN.md` for the overall strategy.
 -/
 
-open Nopert RationalApprox Noperthedron.Solution.Checker Real
+open RationalApprox Noperthedron.Solution.Checker Real
 open scoped Nat
 
 namespace Noperthedron.KappaApprox

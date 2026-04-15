@@ -22,9 +22,9 @@ def piQ : ℚ := 3.14159265358979323846
 
 /-- The rational base coordinates of the noperthedron, as a function of i. -/
 def Crat : Fin 3 → (Fin 3 → ℚ)
-  | 0 => Nopert.C1
-  | 1 => Nopert.C2
-  | 2 => Nopert.C3
+  | 0 => C1
+  | 1 => C2
+  | 2 => C3
 
 /-- Rational vertex approximation using Taylor-polynomial trig at rational angles.
     This is the intermediate list `nopertListℚ` from `M2D_PLAN.md`.

@@ -17,7 +17,7 @@ This file covers [SY25] §2.1, defining the Noperthedron vertices.
 
 open scoped Matrix
 
-namespace Nopert
+namespace Noperthedron
 
 open Real
 
@@ -79,16 +79,11 @@ theorem c3_norm_le_one : ‖C3R‖ ≤ 1 := by
   grw [c3_norm_bound.2]
   norm_num
 
-end Nopert
-
-namespace Noperthedron
-open Real
-
 noncomputable
 def Cpt : Fin 3 → ℝ³
-| 0 => Nopert.C1R
-| 1 => Nopert.C2R
-| 2 => Nopert.C3R
+| 0 => C1R
+| 1 => C2R
+| 2 => C3R
 
 noncomputable
 def exactVertex (idx : VertexIndex) :=
@@ -129,11 +124,11 @@ def exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
   rw [Bounding.Rz_preserves_norm]
   generalize h : j.i = s
   fin_cases s
-  · simp [Cpt, Nopert.c1_norm_one]
+  · simp [Cpt, c1_norm_one]
   · simp only [Cpt]
-    grind [Nopert.c2_norm_bound]
+    grind [c2_norm_bound]
   · simp only [Cpt]
-    grind [Nopert.c3_norm_bound]
+    grind [c3_norm_bound]
 
 def exactVertSet : Set ℝ³ := exactVerts
 
@@ -146,9 +141,9 @@ lemma exactVertex_norm_le_one (j : VertexIndex) : ‖exactVertex j‖ ≤ 1 := b
   rw [Bounding.Rz_preserves_norm]
   generalize h : j.i = s
   fin_cases s
-  · simp [Cpt, Nopert.c1_norm_one]
-  · simp [Cpt, Nopert.c2_norm_le_one]
-  · simp [Cpt, Nopert.c3_norm_le_one]
+  · simp [Cpt, c1_norm_one]
+  · simp [Cpt, c2_norm_le_one]
+  · simp [Cpt, c3_norm_le_one]
 
 /--
 The radius of the noperthedron is 1.
@@ -159,7 +154,7 @@ theorem exactVerts_radius_one : polyhedronRadius exactVerts exactVerts_nonempty 
   constructor
   · simp only [Finset.mem_image, Finset.mem_univ, true_and, exists_exists_eq_and]
     use ⟨0,0,0⟩
-    simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, Nopert.c1_norm_one]
+    simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, c1_norm_one]
   · intro v hv
     simp only [Finset.mem_image, Finset.mem_univ, exactVertex, true_and] at hv
     obtain ⟨x, hx⟩ := hv
@@ -177,7 +172,7 @@ def exactPoly : GoodPoly VertexIndex := {
     rw [indexed_vertices_radius_iff]
     constructor
     · use ⟨0, 0, 0⟩
-      simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, Nopert.c1_norm_one]
+      simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, c1_norm_one]
     · intro j
       exact exactVertex_norm_le_one j
 }
