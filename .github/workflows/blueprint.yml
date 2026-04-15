@@ -59,7 +59,7 @@ jobs:
 
       - name: Compile blueprint and documentation
         #uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
-        uses:  dwrensha/docgen-action@2e7ec676db2cf1aa9a9edf293e0f7d87020e1fd6
+        uses:  dwrensha/docgen-action@f813c5abe81c7577ef0c8c23401d2ed5459c8cc3
         with:
           blueprint: true
           homepage: home_page
