@@ -11,7 +11,6 @@ Material for [SY25] Lemma 12.
 
 namespace Bounding
 open Real
-open scoped Real
 
 theorem dist_rot3_apply {d : Fin 3} {α α' : ℝ} {v : ℝ³} :
   ‖(rot3 d α - rot3 d α') v‖ = 2 * |sin ((α - α') / 2)| * ‖(WithLp.toLp 2 (Fin.removeNth d v) : ℝ²)‖ := by
