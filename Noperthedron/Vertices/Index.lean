@@ -5,6 +5,10 @@ import Mathlib.Tactic.DeriveFintype
 
 namespace Noperthedron
 
+/--
+Identifier for a Noperthedron vertex.
+Corresponds to the point at `(-1)^ℓ • Rz(2π k / 15) (C i)`
+-/
 structure VertexIndex : Type where
   k : Fin 15
   ℓ : Fin 2
