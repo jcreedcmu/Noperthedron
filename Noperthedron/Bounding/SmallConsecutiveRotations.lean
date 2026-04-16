@@ -76,15 +76,6 @@ theorem norm_RxRy_minus_id_le_wlog {d d' : Fin 3} {α β : ℝ} :
     grw [dist_rot3_eq_dist_rot (d := 2), dist_rot2_le_dist, sub_zero, Real.norm_eq_abs]
   _ ≤ √(α^2 + β^2) := h
 
-namespace PreferComp
-  variable {R A B C : Type*}
-  variable [Semiring R]
-  variable [AddCommMonoid A] [Module R A] [TopologicalSpace A]
-  variable [AddCommMonoid B] [Module R B] [TopologicalSpace B]
-  variable [AddCommMonoid C] [Module R C] [TopologicalSpace C]
-  @[simp] def comp_image S (g : B →L[R] C) (f : A →L[R] B) : ⇑(g ∘L f) '' S = ⇑g '' (⇑f '' S) := by ext p; simp
-end PreferComp
-
 theorem lemma12_2a {d d' : Fin 3} {α β : ℝ} (dne : d ≠ d') :
     ‖(rot3 d (2 * α)) ∘L (rot3 d' (2 * β)) - (rot3 d α) ∘L (rot3 d' β)‖  =
         ‖((rot3 d α) ∘L (rot3 d α)) ∘L ((rot3 d' β) ∘L (rot3 d' β)) - (rot3 d α) ∘L (rot3 d' β)‖  := by
