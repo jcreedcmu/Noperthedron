@@ -14,12 +14,11 @@ Material for [SY25] Lemma 12.
 
 namespace Bounding
 open Real
-open scoped Real
 
 noncomputable abbrev tr := LinearMap.trace ℝ ℝ³
 noncomputable abbrev tr' := LinearMap.trace ℝ (Fin 3 → ℝ)
 
-lemma tr_rot3_rot3  {d d' : Fin 3} {α β : ℝ} : d ≠ d' → tr (rot3 d α ∘L rot3 d' β) = cos α + cos β + cos α * cos β := by
+lemma tr_rot3_rot3 {d d' : Fin 3} {α β : ℝ} : d ≠ d' → tr (rot3 d α ∘L rot3 d' β) = cos α + cos β + cos α * cos β := by
   intro d_ne_d'
   calc tr (rot3 d α ∘L rot3 d' β)
   _ = tr ((rot3_mat d α).toEuclideanLin.toContinuousLinearMap ∘L (rot3_mat d' β).toEuclideanLin.toContinuousLinearMap) := by simp [rot3_eq_rot3_mat_toEuclideanLin]
@@ -56,7 +55,6 @@ theorem norm_RxRy_minus_id_le_wlog {d d' : Fin 3} {α β : ℝ} :
       · simp only [Set.mem_Icc, abs_nonneg, abs_le, true_and]
         obtain ⟨le_γ, γ_lt⟩ := γ_in
         constructor <;> linarith
-
     suffices 2 * (1 + cos √(α^2 + β^2)) ≤ 2 * (1 + cos γ) by grind
     calc 2 * (1 + cos √(α^2 + β^2))
     _ ≤ (1 + cos α) * (1 + cos β) := by linarith [one_plus_cos_mul_one_plus_cos_ge α_le β_le]
