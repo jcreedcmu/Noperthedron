@@ -17,11 +17,6 @@ reimplements sin/cos Taylor polynomials (which are noncomputable in
 namespace Noperthedron
 namespace Solution.Checker
 
-/-! ## Constants -/
-
-def DENOMQ : ℚ := 15360000
-def κQ : ℚ := 1 / 10 ^ 10
-
 /-! ## Matrix-vector application
 
 Computable versions of the 2×3 and 2×2 matrix-vector products from
@@ -53,17 +48,6 @@ def applyR (α : ℚ) (u : Fin 2 → ℚ) : Fin 2 → ℚ
 def applyR' (α : ℚ) (u : Fin 2 → ℚ) : Fin 2 → ℚ
   | 0 => -(sinQ α) * u 0 - cosQ α * u 1
   | 1 => cosQ α * u 0 - sinQ α * u 1
-
-/-! ## Helper functions -/
-
-/-- Center of an interval box along one parameter, as a rational. -/
-def centerQ (iv : Interval) (p : Param) : ℚ :=
-  (iv.min p + iv.max p) / (2 * DENOMQ)
-
-/-- Max half-width of an interval box across all 5 parameters. -/
-def epsilonQ (iv : Interval) : ℚ :=
-  let hw (p : Param) := (iv.max p - iv.min p) / (2 * DENOMQ)
-  max (hw .θ₁) (max (hw .φ₁) (max (hw .θ₂) (max (hw .φ₂) (hw .α))))
 
 /-! ## Gℚ and Hℚ computation
 
@@ -101,12 +85,12 @@ def computeMaxHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
 global theorem. Returns `true` iff all preconditions are satisfied. -/
 def checkGlobal (row : Row) : Bool :=
   let iv := row.interval
-  let θ₁ := centerQ iv .θ₁
-  let φ₁ := centerQ iv .φ₁
-  let θ₂ := centerQ iv .θ₂
-  let φ₂ := centerQ iv .φ₂
-  let α := centerQ iv .α
-  let ε := epsilonQ iv
+  let θ₁ := iv.center .θ₁
+  let φ₁ := iv.center .φ₁
+  let θ₂ := iv.center .θ₂
+  let φ₂ := iv.center .φ₂
+  let α := iv.center .α
+  let ε := iv.epsilon
   let S := pythonVertex row.S_index
   let w : Fin 2 → ℚ := fun
     | 0 => row.wx_numerator / row.w_denominator

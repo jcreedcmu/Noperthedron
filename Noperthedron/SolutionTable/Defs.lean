@@ -6,6 +6,11 @@ import Noperthedron.Vertices.Index
 
 namespace Noperthedron.Solution
 
+/-! ## Constants -/
+
+def DENOMQ : ℚ := 15360000
+def κQ : ℚ := 1 / 10 ^ 10
+
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
 deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq
 
@@ -56,6 +61,15 @@ def Interval.upper_half (param : Param) (interval : Interval) : Interval := {
   min := Function.update interval.min param ((interval.min param + interval.max param)/2)
   max := interval.max
 }
+
+/-- Center of an interval box along one parameter, as a rational. -/
+def Interval.center (iv : Interval) (p : Param) : ℚ :=
+  (iv.min p + iv.max p) / (2 * DENOMQ)
+
+/-- Max half-width of an interval box across all 5 parameters. -/
+def Interval.epsilon (iv : Interval) : ℚ :=
+  let hw (p : Param) := (iv.max p - iv.min p) / (2 * DENOMQ)
+  Max.max (hw .θ₁) (Max.max (hw .φ₁) (Max.max (hw .θ₂) (Max.max (hw .φ₂) (hw .α))))
 
 /--
 `cubeFold fs b as`, takes a list of functions `fs` and a starting value `b` and a list of
