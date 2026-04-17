@@ -56,7 +56,6 @@ lemma first_vertex_close :
         simp only [nlq0_0, nlq0_1, nlq0_2]
         unfold C1R C1 κ
         simp only [Pi.mul_apply, Matrix.cons_val]
-        push_cast
         norm_num
     _ = κ := sqrt_sq hκ
 
@@ -69,8 +68,7 @@ lemma piQ_lt_pi : (piQ : ℝ) < π := pi_gt_d20
 lemma pi_sub_piQ_lt : π - (piQ : ℝ) < 1 / 10 ^ 20 := by
   have h := pi_lt_d20  -- π < 3.14159265358979323847
   -- 3.14159265358979323847 = piQ + 1/10^20
-  have : (3.14159265358979323847 : ℝ) = (piQ : ℝ) + 1 / 10 ^ 20 := by
-    unfold piQ; push_cast; norm_num
+  have : (3.14159265358979323847 : ℝ) = (piQ : ℝ) + 1 / 10 ^ 20 := by norm_num [piQ]
   linarith
 
 /-! ## sinQ/cosQ agreement with sinℚ/cosℚ -/
@@ -119,9 +117,8 @@ lemma left_leg_all :
 /-- The reduced angle index k' satisfies k' ≤ 7. -/
 private lemma reduced_le_seven (k : ℕ) (hk : k < 15) :
     (if k ≤ 7 then (k : ℚ) else k - 15) ≤ 7 := by
-  split_ifs with h
-  · norm_cast
-  · norm_cast; lia
+  norm_cast
+  lia
 
 /-- The reduced angle index k' satisfies 0 ≤ k'. -/
 private lemma reduced_ge_neg_seven (k : ℕ) :
@@ -134,8 +131,8 @@ private lemma piQ_angle_abs_lt_three (k' : ℚ) (hkn : -7 ≤ k') (hk : k' ≤ 7
   rw [abs_lt]
   constructor
   · unfold piQ
-    calc  (-3 : ℚ) < 2 * 3.14159265358979323846 * (-7) / 15 := by norm_num
-                 _ ≤ 2 * 3.14159265358979323846 * k' / 15 := by gcongr
+    calc (-3 : ℚ) < 2 * 3.14159265358979323846 * (-7) / 15 := by norm_num
+                _ ≤ 2 * 3.14159265358979323846 * k' / 15 := by gcongr
   · have : (k' : ℚ) ≤ 7 := by exact_mod_cast hk
     unfold piQ
     calc 2 * 3.14159265358979323846 * (k' : ℚ) / 15
@@ -154,7 +151,7 @@ private lemma cosQ_combined_error (k : Fin 15) :
     simp only [hq_def]; push_cast; ring
   have hcos_eq : Real.cos (2 * π * ↑↑k / 15) = Real.cos (2 * π * (k' : ℝ) / 15) := by
     simp only [hk'_def]; split_ifs with h
-    · push_cast; simp
+    · norm_cast
     · push_cast
       rw [show 2 * π * ((↑↑k : ℝ) - 15) / 15 = 2 * π * ↑↑k / 15 - 2 * π from by ring]
       exact (cos_sub_two_pi _).symm
@@ -179,9 +176,8 @@ private lemma cosQ_combined_error (k : Fin 15) :
         abs_add_le _ _
     _ ≤ |(↑q : ℝ)| ^ 26 / 26! + |↑q - 2 * π * (k' : ℝ) / 15| :=
         add_le_add (by rw [abs_sub_comm]; exact taylor) mvt
-    _ ≤ 3 ^ 26 / 26! + (14 / 15 * (1 / 10 ^ 20)) :=
-        add_le_add (by gcongr) hdiff
-    _ ≤ κ / 7 := by unfold κ; norm_num
+    _ ≤ 3 ^ 26 / 26! + (14 / 15 * (1 / 10 ^ 20)) := by gcongr
+    _ ≤ κ / 7 := by norm_num [κ]
 
 /-- Same bound for sinQ. -/
 private lemma sinQ_combined_error (k : Fin 15) :
@@ -195,7 +191,7 @@ private lemma sinQ_combined_error (k : Fin 15) :
     simp only [hq_def]; push_cast; ring
   have hsin_eq : Real.sin (2 * π * ↑↑k / 15) = Real.sin (2 * π * (k' : ℝ) / 15) := by
     simp only [hk'_def]; split_ifs with h
-    · push_cast; simp
+    · norm_cast
     · push_cast
       rw [show 2 * π * ((↑↑k : ℝ) - 15) / 15 = 2 * π * ↑↑k / 15 - 2 * π from by ring]
       exact (sin_sub_two_pi _).symm
@@ -220,9 +216,8 @@ private lemma sinQ_combined_error (k : Fin 15) :
         abs_add_le _ _
     _ ≤ |(↑q : ℝ)| ^ 27 / 27! + |↑q - 2 * π * (k' : ℝ) / 15| :=
         add_le_add (by rw [abs_sub_comm]; exact taylor) mvt
-    _ ≤ 3 ^ 27 / 27! + (14 / 15 * (1 / 10 ^ 20)) :=
-        add_le_add (by gcongr) hdiff
-    _ ≤ κ / 7 := by unfold κ; norm_num
+    _ ≤ 3 ^ 27 / 27! + (14 / 15 * (1 / 10 ^ 20)) := by gcongr
+    _ ≤ κ / 7 := by norm_num [κ]
 /-! ### Helper lemmas for right-leg bound -/
 
 /-- `Cpt i j` (real base vertex coordinate) equals `↑(Crat i j)`. -/
@@ -335,14 +330,9 @@ theorem taylorVertex_close (j : VertexIndex) : ‖toR3 (taylorVertex j) - exactV
   have hse_sq : se ^ 2 ≤ (κ / 7) ^ 2 := sq_le_sq' (abs_le.mp hse).1 (abs_le.mp hse).2
   calc (ce ^ 2 + se ^ 2) * (a ^ 2 + b ^ 2)
       ≤ 2 * (κ / 7) ^ 2 * 1 := mul_le_mul (by linarith) hab (by positivity) (by positivity)
-    _ ≤ (κ / 2) ^ 2 := by unfold κ; norm_num
+    _ ≤ (κ / 2) ^ 2 := by norm_num [κ]
 
 /-! ## Combined bound via triangle inequality -/
-
-/-- Componentwise unfolding of toR3 difference. -/
-private lemma toR3_sub_apply (v₁ v₂ : Fin 3 → ℚ) (k : Fin 3) :
-    (toR3 v₁ - toR3 v₂) k = (↑(v₁ k) : ℝ) - ↑(v₂ k) := by
-  simp [toR3]
 
 /-- Left-leg ℝ³ norm bound derived from the ℚ squared distance bound. -/
 theorem left_leg_norm (j : VertexIndex) :
@@ -350,7 +340,7 @@ theorem left_leg_norm (j : VertexIndex) :
   have hκ2 : (0 : ℝ) ≤ κ / 2 := by norm_num [κ]
   rw [EuclideanSpace.norm_eq, ← sqrt_sq hκ2]
   apply sqrt_le_sqrt
-  simp only [Fin.sum_univ_three, norm_eq_abs, sq_abs, toR3_sub_apply]
+  simp only [Fin.sum_univ_three, norm_eq_abs, sq_abs, toR3, PiLp.sub_apply]
   norm_cast
   grw [left_leg_all j]
   norm_num [κ]
