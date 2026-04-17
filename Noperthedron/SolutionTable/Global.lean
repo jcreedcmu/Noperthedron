@@ -14,6 +14,14 @@ theorem valid_global_imp_no_rupert (tab : Table) (row : Row)
   have hε : 0 ≤ ε := by sorry
   rintro ⟨q, hqi, hqr⟩
   have hq := q ∈ pbar.closed_ball ε
-  have := RationalApprox.GlobalTheorem.rational_global
-            pbar ε hε exactPoly pythonPoly KappaApprox.exact_κApprox_python
-  sorry
+  have hrg := RationalApprox.GlobalTheorem.rational_global
+                 pbar ε hε exactPoly pythonPoly
+                 KappaApprox.exact_κApprox_python exactPoly_point_symmetric
+  have hqε : q ∈ pbar.closed_ball ε := sorry
+  have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
+             exactPoly pythonPoly KappaApprox.exact_κApprox_python pbar ε := sorry
+  replace hqr : RupertPose q exactPoly.hull := by
+    sorry
+  specialize hrg pc
+  push Not at hrg
+  exact hrg q hqε hqr

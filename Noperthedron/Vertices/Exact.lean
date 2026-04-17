@@ -190,3 +190,11 @@ The noperthedron is pointsymmetric.
 -/
 theorem exactShape_point_symmetric : PointSym exactShape.hull := by
   exact hull_preserves_pointsym exactVerts_pointsym
+
+theorem exactPoly_point_symmetric : PointSym exactPoly.hull := by
+  simp only [exactPoly, GoodPoly.hull]
+  simp only [exactVertex, Int.reduceNeg] at *
+  refine hull_preserves_pointsym ?_
+  rintro x ⟨j, hj⟩
+  obtain ⟨k, ℓ, i⟩ := j
+  exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hj]; fin_cases ℓ <;> simp [neg_smul]⟩
