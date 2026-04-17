@@ -57,23 +57,14 @@ def Row.ValidSplit (tab : Table) (row : Row) : Prop :=
   (row.nodeType = (3 : ℕ)) ∧ (row.ValidBinarySplit tab ∨ row.ValidFullSplit tab)
 deriving Decidable
 
+@[mk_iff]
 inductive Row.Valid (tab : Table) (row : Row) : Prop where
   | asSplit : row.ValidSplit tab → Row.Valid tab row
   | asGlobal : row.ValidGlobal tab → Row.Valid tab row
   | asLocal : row.ValidLocal tab → Row.Valid tab row
 
-instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) := by
-  apply decidable_of_iff (row.ValidSplit tab ∨ row.ValidGlobal tab ∨ row.ValidLocal tab)
-  constructor
-  · intro h; rcases h with h | h | h
-    · exact .asSplit h
-    · exact .asGlobal h
-    · exact .asLocal h
-  · exact fun h =>
-      match h with
-      | Row.Valid.asSplit h => Or.inl h
-      | Row.Valid.asGlobal h => Or.inr (Or.inl h)
-      | Row.Valid.asLocal h => Or.inr (Or.inr h)
+instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) :=
+  decidable_of_iff _ (Row.valid_iff tab row).symm
 
 def Row.ValidIx (tab : Table) (i : ℕ) (row : Row) : Prop :=
   row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size
