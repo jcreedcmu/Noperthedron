@@ -65,9 +65,6 @@ def epsilonQ (iv : Interval) : ℚ :=
   let hw (p : Param) := (iv.max p - iv.min p) / (2 * DENOMQ)
   max (hw .θ₁) (max (hw .φ₁) (max (hw .θ₂) (max (hw .φ₂) (hw .α))))
 
-/-- 2D dot product. -/
-def dot2 (u w : Fin 2 → ℚ) : ℚ := u 0 * w 0 + u 1 * w 1
-
 /-! ## Gℚ and Hℚ computation
 
 Direct rational computation matching the formulas in
@@ -77,19 +74,19 @@ Direct rational computation matching the formulas in
 /-- Rational G function: measures how far inner-shadow vertex S sticks out. -/
 def computeGQ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) : ℚ :=
   let m1S := applyM θ₁ φ₁ S
-  let inner := dot2 (applyR α m1S) w
-  let t1 := |dot2 (applyR' α m1S) w|
-  let t2 := |dot2 (applyR α (applyMθ θ₁ φ₁ S)) w|
+  let inner := (applyR α m1S) ⬝ᵥ w
+  let t1 := |(applyR' α m1S) ⬝ᵥ w|
+  let t2 := |(applyR α (applyMθ θ₁ φ₁ S)) ⬝ᵥ w|
 
-  let t3 := |dot2 (applyR α (applyMφ θ₁ φ₁ S)) w|
+  let t3 := |(applyR α (applyMφ θ₁ φ₁ S)) ⬝ᵥ w|
   inner - ε * (t1 + t2 + t3) - 9 * ε ^ 2 / 2 - 4 * κQ * (1 + 3 * ε)
 
 /-- Rational H function: measures how far outer-shadow vertex P reaches. -/
 def computeHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : ℚ :=
   let m2P := applyM θ₂ φ₂ P
-  let outer := dot2 m2P w
-  let t1 := |dot2 (applyMθ θ₂ φ₂ P) w|
-  let t2 := |dot2 (applyMφ θ₂ φ₂ P) w|
+  let outer := m2P ⬝ᵥ w
+  let t1 := |(applyMθ θ₂ φ₂ P) ⬝ᵥ w|
+  let t2 := |(applyMφ θ₂ φ₂ P) ⬝ᵥ w|
   outer + ε * (t1 + t2) + 2 * ε ^ 2 + 3 * κQ * (1 + 2 * ε)
 
 /-- Maximum H over all 90 vertices. -/
