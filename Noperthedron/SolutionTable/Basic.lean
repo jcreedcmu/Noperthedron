@@ -23,6 +23,7 @@ def Row.ValidLocal (tab : Table) (row : Row) : Prop :=
 instance (tab : Table) (row : Row) : Decidable (Row.ValidLocal tab row) := by
   sorry
 
+@[mk_iff]
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
   bound0 : row.ID < row.IDfirstChild
   bound1 : row.IDfirstChild < Array.size tab
@@ -31,14 +32,7 @@ structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop w
   second_child_good : tab[row.IDfirstChild + 1].interval = row.interval.upper_half param
 
 instance (tab : Table) (row : Row) (param : Param) : Decidable (Row.ValidSplitParam tab row param) :=
-  decidable_of_iff
-    (∃ (bound0 : row.ID < row.IDfirstChild),
-     ∃ (bound1 : row.IDfirstChild < Array.size tab),
-     ∃ (bound2 : row.IDfirstChild + 1 < Array.size tab),
-     tab[row.IDfirstChild].interval = row.interval.lower_half param ∧
-     tab[row.IDfirstChild + 1].interval = row.interval.upper_half param)
-    ⟨fun ⟨h1, h2, h3, h4, h5⟩ => ⟨h1, h2, h3, h4, h5⟩,
-     fun ⟨h1, h2, h3, h4, h5⟩ => ⟨h1, h2, h3, h4, h5⟩⟩
+  decidable_of_iff _ (Row.validSplitParam_iff tab row param).symm
 
 def Row.ValidBinarySplit (tab : Table) (row : Row) : Prop :=
   row.nrChildren = 2 ∧
