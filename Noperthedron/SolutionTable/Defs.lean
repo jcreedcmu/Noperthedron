@@ -1,3 +1,4 @@
+import Mathlib.Data.Finset.Max
 import Mathlib.Data.Real.Basic
 import Mathlib.Order.Interval.Finset.Nat
 import Mathlib.Tactic.DeriveFintype
@@ -12,7 +13,7 @@ def DENOMQ : ℚ := 15360000
 def κQ : ℚ := 1 / 10 ^ 10
 
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
-deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq
+deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq, Nonempty
 
 structure Interval where
   min : Param → ℤ
@@ -69,7 +70,8 @@ def Interval.center (iv : Interval) (p : Param) : ℚ :=
 /-- Max half-width of an interval box across all 5 parameters. -/
 def Interval.epsilon (iv : Interval) : ℚ :=
   let hw (p : Param) := (iv.max p - iv.min p) / (2 * DENOMQ)
-  Max.max (hw .θ₁) (Max.max (hw .φ₁) (Max.max (hw .θ₂) (Max.max (hw .φ₂) (hw .α))))
+  (Finset.image hw Finset.univ).max'
+    (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty)
 
 /--
 `cubeFold fs b as`, takes a list of functions `fs` and a starting value `b` and a list of
