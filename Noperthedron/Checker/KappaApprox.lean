@@ -347,23 +347,13 @@ private lemma toR3_sub_apply (v₁ v₂ : Fin 3 → ℚ) (k : Fin 3) :
 /-- Left-leg ℝ³ norm bound derived from the ℚ squared distance bound. -/
 theorem left_leg_norm (j : VertexIndex) :
     ‖toR3 (pythonVertex j) - toR3 (taylorVertex j)‖ ≤ κ / 2 := by
-  have hκ2 : (0 : ℝ) ≤ κ / 2 := by unfold κ; positivity
-  have h := left_leg_all j
+  have hκ2 : (0 : ℝ) ≤ κ / 2 := by norm_num [κ]
   rw [EuclideanSpace.norm_eq, ← sqrt_sq hκ2]
   apply sqrt_le_sqrt
   simp only [Fin.sum_univ_three, norm_eq_abs, sq_abs, toR3_sub_apply]
-  -- Goal: (↑(Q 0) - ↑(ℚ 0))² + ... ≤ (κ/2)²
-  -- Rewrite differences to pull casts outside
-  have heq : ((↑(pythonVertex j 0) : ℝ) - ↑(taylorVertex j 0)) ^ 2 +
-       ((↑(pythonVertex j 1) : ℝ) - ↑(taylorVertex j 1)) ^ 2 +
-       ((↑(pythonVertex j 2) : ℝ) - ↑(taylorVertex j 2)) ^ 2
-      = ((pythonVertex j 0 - taylorVertex j 0) ^ 2 +
-         (pythonVertex j 1 - taylorVertex j 1) ^ 2 +
-         (pythonVertex j 2 - taylorVertex j 2) ^ 2 : ℚ) := by
-    push_cast; ring
-  rw [heq]
-  -- Goal: (↑(ℚ sum) : ℝ) ≤ (κ / 2) ^ 2
-  exact le_trans (Rat.cast_le.mpr h) (by unfold κ; push_cast; norm_num)
+  norm_cast
+  grw [left_leg_all j]
+  norm_num [κ]
 
 /-- The hard-coded rational vertices are within κ of the real vertices,
     for each index in [0, 90). -/
