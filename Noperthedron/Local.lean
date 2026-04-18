@@ -63,9 +63,10 @@ def Triangle.Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) : ℝ :=
 /--
 Condition B_ε from [SY25] Theorem 36
 -/
-def Triangle.Bε (Q : Triangle) (poly : Finset Euc(3)) (p : Pose) (ε δ r : ℝ) : Prop :=
-  ∀ i : Fin 3, ∀ v ∈ poly, v ≠ Q i →
-    (δ + √5 * ε) / r < Triangle.Bε.lhs (Q i) v p ε
+def Triangle.Bε {ι : Type} (Q : Triangle) (Qi : Fin 3 → ι)
+    (v : ι → Euc(3)) (p : Pose) (ε δ r : ℝ) : Prop :=
+  ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
+    (δ + √5 * ε) / r < Triangle.Bε.lhs (Q i) (v k) p ε
 
 --instance : Membership Triangle (Finset ℝ³) where
 --  mem set tri := ∀ i : Fin 3, (tri i) ∈ set
@@ -87,25 +88,34 @@ def shape_of (S : Finset ℝ³) : Shape where
 -- predicate in a way that is suitable for the computational step's
 -- tree check.
 
--- TODO: refactor to use GoodPoly?
-
 /--
   [SY25] Theorem 36
 -/
-theorem local_theorem (P Q : Triangle)
-    (cong_tri : P.Congruent Q)
-    (poly : Finset ℝ³) (ne : poly.Nonempty)
-    (hP : ∀ i, P i ∈ poly) (hQ : ∀ i, Q i ∈ poly)
-    (radius_one : polyhedronRadius poly ne = 1)
+theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
+    (poly : GoodPoly ι)
+    (Pi Qi : Fin 3 → ι)
+    (cong_tri : Triangle.Congruent
+      ((poly.vertices.v ∘ Pi : Triangle)) (poly.vertices.v ∘ Qi))
     (p_ : Pose)
     (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
-    (hr₁ : BoundR r ε p_ Q)
-    (hδ : BoundDelta δ p_ P Q)
-    (ae₁ : P.Aε p_.vecX₁ ε) (ae₂ : Q.Aε p_.vecX₂ ε)
-    (span₁ : P.Spanning p_.θ₁ p_.φ₁ ε)
-    (span₂ : Q.Spanning p_.θ₂ p_.φ₂ ε)
-    (be : Q.Bε poly p_ ε δ r)
-    : ¬∃ p ∈ p_.closed_ball ε, RupertPose p (shape_of poly |>.hull) := by
+    (hr₁ : BoundR r ε p_ (poly.vertices.v ∘ Qi))
+    (hδ : BoundDelta δ p_ (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
+    (ae₁ : Triangle.Aε p_.vecX₁ (poly.vertices.v ∘ Pi) ε)
+    (ae₂ : Triangle.Aε p_.vecX₂ (poly.vertices.v ∘ Qi) ε)
+    (span₁ : Triangle.Spanning (poly.vertices.v ∘ Pi) p_.θ₁ p_.φ₁ ε)
+    (span₂ : Triangle.Spanning (poly.vertices.v ∘ Qi) p_.θ₂ p_.φ₂ ε)
+    (be : Triangle.Bε (poly.vertices.v ∘ Qi) Qi poly.vertices.v p_ ε δ r)
+    : ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull := by
+  let P : Triangle := poly.vertices.v ∘ Pi
+  let Q : Triangle := poly.vertices.v ∘ Qi
+  change Triangle.Congruent P Q at cong_tri
+  change Triangle.Aε p_.vecX₁ P ε at ae₁
+  change Triangle.Aε p_.vecX₂ Q ε at ae₂
+  change Triangle.Spanning P p_.θ₁ p_.φ₁ ε at span₁
+  change Triangle.Spanning Q p_.θ₂ p_.φ₂ ε at span₂
+  change Triangle.Bε Q Qi poly.vertices.v p_ ε δ r at be
+  change BoundR r ε p_ Q at hr₁
+  change BoundDelta δ p_ P Q at hδ
   rintro ⟨p, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL⟩ := cong_tri
   obtain ⟨σP, hσP₁, hσP₂⟩ := ae₁
@@ -126,12 +136,14 @@ theorem local_theorem (P Q : Triangle)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
   have hP_ (i) : ‖P_ i‖ ≤ 1 := by
     rw [norm_smul, Real.norm_eq_abs]
-    grw [polyhedron_vertex_norm_le_radius poly ne (hP i)]
-    simp [radius_one]
+    show |(-1 : ℝ) ^ σP| * ‖poly.vertices.v (Pi i)‖ ≤ 1
+    grw [poly.vertex_radius_le_one (Pi i)]
+    simp
   have hQ_ (i) : ‖Q_ i‖ ≤ 1 := by
     rw [norm_smul, Real.norm_eq_abs]
-    grw [polyhedron_vertex_norm_le_radius poly ne (hQ i)]
-    simp [radius_one]
+    show |(-1 : ℝ) ^ σQ| * ‖poly.vertices.v (Qi i)‖ ≤ 1
+    grw [poly.vertex_radius_le_one (Qi i)]
+    simp
   have hPQ_ (i) : P_ i = K (Q_ i) := by
     simp [P_, Q_, K]
     rw [smul_smul, hL]
@@ -165,8 +177,7 @@ theorem local_theorem (P Q : Triangle)
     simp only [real_inner_comm Y, real_inner_comm Z] at h₃
     obtain h₃ | h₃ | h₃ := h₃ <;> exact lt_iff_not_ge.mp (h₂ _) h₃
   intro i
-  rw [polyhedron_radius_iff] at radius_one
-  have hQ₁ := radius_one.2 _ (hQ i)
+  have hQ₁ : ‖Q i‖ ≤ 1 := poly.vertex_radius_le_one (Qi i)
   -- apply lemma 15
   have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
   let T (i) : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
@@ -176,50 +187,64 @@ theorem local_theorem (P Q : Triangle)
     specialize hδ i
     linarith
   -- apply lemma 30
-  have hP₁ := radius_one.2 _ (hP i)
+  have hP₁ : ‖P i‖ ≤ 1 := poly.vertex_radius_le_one (Pi i)
   obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
   -- apply lemma 33
-  have h₅ (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :=
-    coss (Q := Qⱼ) hQ₁ (radius_one.2 _ hQⱼ₁) hε hθ₂ hφ₂ ?pos
+  have h₅ (k : ι) (hkQ : k ≠ Qi i) :=
+    coss (Q := poly.vertices.v k) hQ₁ (poly.vertex_radius_le_one k) hε hθ₂ hφ₂ ?pos
   case pos =>
-    have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
+    have h₆ := be i k hkQ
     unfold Triangle.Bε.lhs at h₆
     have h₇ : 0 < (δ + √5 * ε) / r := by positivity
     unfold Pose.rotM₂ at h₆
     exact h₇.trans h₆
-  have h₅' (Qⱼ : Euc(3)) (hQⱼ₁ : Qⱼ ∈ poly) (hQⱼ₂ : Qⱼ ≠ Q i) :
+  have h₅' (k : ι) (hkQ : k ≠ Qi i) :
       (δ + √5 * ε) / r <
-        ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - Qⱼ)⟫ /
-        (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - Qⱼ)‖) := by
-    have h₆ := be i Qⱼ hQⱼ₁ hQⱼ₂
+        ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - poly.vertices.v k)⟫ /
+        (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - poly.vertices.v k)‖) := by
+    have h₆ := be i k hkQ
     unfold Triangle.Bε.lhs Pose.rotM₂ at h₆
-    specialize h₅ Qⱼ hQⱼ₁ hQⱼ₂
+    specialize h₅ k hkQ
     linarith only [h₅, h₆]
   -- apply lemma 32
-  let pm : Finset Euc(2) := Finset.image (rotM p.θ₂ p.φ₂) poly
+  let pm : Finset Euc(2) :=
+    Finset.image (rotM p.θ₂ p.φ₂) (Finset.image poly.vertices.v Finset.univ)
   have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) (T i) pm := by
     refine inner_ge_implies_LMD (r := r) ?_ ?_ hr h₃ ?_
-    · exact Finset.mem_image_of_mem _ (hQ i)
+    · exact Finset.mem_image_of_mem _
+        (Finset.mem_image.mpr ⟨Qi i, Finset.mem_univ _, rfl⟩)
     · simp only [T, Pose.rotR, Pose.rotM₁, Pose.rotM₂]
       rw [Metric.mem_ball, dist_eq_norm, norm_sub_rev] at hd₂
       rw [add_comm, norm_sub_rev]
       exact hd₂
     · intro Pᵢ hPᵢ hPᵢQ
       simp only [Finset.mem_image, pm] at hPᵢ
-      obtain ⟨q, hq₁, hq₂⟩ := hPᵢ
-      have hqQ : q ≠ Q i := by grind
-      rw [← hq₂, ← map_sub]
-      linarith [h₅' q hq₁ hqQ]
+      obtain ⟨q, hq₁, rfl⟩ := hPᵢ
+      simp only [Finset.mem_univ, true_and] at hq₁
+      obtain ⟨k, rfl⟩ := hq₁
+      have hkQ : k ≠ Qi i := fun h => hPᵢQ (by rw [h]; rfl)
+      rw [← map_sub]
+      linarith [h₅' k hkQ]
   -- Step 1: Show rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (interior of pm)
   have h_in_interior_outer : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ interior (convexHull ℝ (↑pm : Set ℝ²)) := by
-    have h_inner_in_closure : p.inner (P i) ∈ closure (innerShadow p (shape_of poly).hull) := by
+    have h_inner_in_closure : p.inner (P i) ∈ closure (innerShadow p poly.hull) := by
       rw [Pose.inner_shadow_eq_img_inner]
-      exact subset_closure (Set.mem_image_of_mem _ (subset_convexHull ℝ _ (hP i)))
-    have h_outer_eq : outerShadow p (shape_of poly).hull = convexHull ℝ (↑pm : Set ℝ²) := by
+      refine subset_closure (Set.mem_image_of_mem _ (subset_convexHull ℝ _ ?_))
+      exact ⟨Pi i, rfl⟩
+    have h_outer_eq : outerShadow p poly.hull = convexHull ℝ (↑pm : Set ℝ²) := by
       rw [Pose.outer_shadow_eq_M]
-      have hpm : (↑pm : Set ℝ²) = p.rotM₂ '' ↑poly := by simp only [pm, Finset.coe_image, Pose.rotM₂]
+      have hpoly_hull : poly.hull =
+          convexHull ℝ (↑(Finset.image poly.vertices.v Finset.univ) : Set ℝ³) := by
+        unfold GoodPoly.hull
+        congr 1
+        ext x
+        simp [Set.mem_range]
+      rw [hpoly_hull]
+      have hpm : (↑pm : Set ℝ²) =
+          p.rotM₂ '' ↑(Finset.image poly.vertices.v Finset.univ) := by
+        simp only [pm, Finset.coe_image, Pose.rotM₂]
       rw [hpm]
-      exact AffineMap.image_convexHull p.rotM₂.toAffineMap (↑poly)
+      exact AffineMap.image_convexHull p.rotM₂.toAffineMap _
     have h_inner_eq : p.inner (P i) = rotR p.α (rotM p.θ₁ p.φ₁ (P i)) := by
       simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
     rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
@@ -247,7 +272,7 @@ theorem local_theorem (P Q : Triangle)
     exact Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂ (by rw [h_eq]; exact hσQ₂ i)
   -- ⟪Z, P_ i⟫ = (-1)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ and ⟪Y, P_ i⟫ = (-1)^σP * ⟪Y, P i⟫
   have h_ZP : ⟪Z, P_ i⟫ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
-    simp only [Z, K, P_, ContinuousLinearMap.coe_smul', Pi.smul_apply,
+    simp only [Z, K, P_, ContinuousLinearMap.coe_smul', _root_.Pi.smul_apply,
       LinearIsometry.coe_toContinuousLinearMap, inner_smul_left, real_inner_smul_right, RCLike.conj_to_real]
     rw [hL i, L.inner_map_map]
     have h_exp : (-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP = (-1 : ℝ)^σQ := by

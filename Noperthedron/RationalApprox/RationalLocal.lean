@@ -77,10 +77,6 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
   -- Abbreviations for transported triangles
   set P_ := transportTri Pi hpoly
   set Q_ := transportTri Qi hpoly
-  -- The finset of vertices
-  let verts := Finset.image poly.vertices.v Finset.univ
-  have verts_ne : verts.Nonempty :=
-    Finset.image_nonempty.mpr (Finset.univ_nonempty_iff.mpr ‹_›)
   -- Angle subtypes
   set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₁, hp.1⟩
   set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₁, hp.2.2.1⟩
@@ -185,20 +181,14 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have h6k : 4 * κ + 2 * κ ^ 2 ≤ 6 * κ := by unfold κ; norm_num
     linarith [hsu]
   -- Bridge: Bεℚ → Bε
-  have hP_mem (i : Fin 3) : P i ∈ verts := Finset.mem_image.mpr ⟨Pi i, Finset.mem_univ _, rfl⟩
-  have hQ_mem (i : Fin 3) : Q i ∈ verts := Finset.mem_image.mpr ⟨Qi i, Finset.mem_univ _, rfl⟩
-  have be' : Q.Bε verts p_ ε δ r := by
-    intro i v hv hne
-    -- Map v to v_ in poly_
-    simp only [verts, Finset.mem_image, Finset.mem_univ, true_and] at hv
-    obtain ⟨k, rfl⟩ := hv
-    -- v is poly.vertices.v k; map to poly_.vertices.v (bijection k)
+  have be' : Triangle.Bε Q Qi poly.vertices.v p_ ε δ r := by
+    intro i k hne_k
+    -- Map k to v_ in poly_
     let k' := hpoly.bijection k
     set v_ : ℝ³ := poly_.vertices.v k'
     have hvapprox : ‖poly.vertices.v k - v_‖ ≤ κ := hpoly.approx k
     have hvnorm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
     -- Get the Bεℚ hypothesis
-    have hne_k : k ≠ Qi i := fun h => hne (congr_arg poly.vertices.v h)
     have hbe := be i k hne_k
     show (δ + √5 * ε) / r < Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
     -- Helper facts
@@ -289,19 +279,5 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
       _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
       _ = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := hA_eq
   -- Apply local_theorem
-  -- Need to convert hull: poly.hull = (Local.shape_of verts).hull
-  have hull_eq : (Local.shape_of verts).hull = poly.hull := by
-    simp only [Local.shape_of, Shape.hull, GoodPoly.hull, verts]
-    congr 1; ext x; simp [Set.mem_range]
-  have radius_eq : polyhedronRadius verts verts_ne = 1 := by
-    rw [polyhedron_radius_iff]
-    constructor
-    · obtain ⟨i, hi⟩ := (indexed_vertices_radius_iff poly.vertices).mp poly.radius_eq_one |>.1
-      exact ⟨poly.vertices.v i, Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩, hi⟩
-    · intro v hv
-      simp only [verts, Finset.mem_image, Finset.mem_univ, true_and] at hv
-      obtain ⟨k, rfl⟩ := hv
-      exact poly.vertex_radius_le_one k
-  rw [← hull_eq]
-  exact Local.local_theorem P Q cong_tri verts verts_ne hP_mem hQ_mem
-    radius_eq p_ ε δ r hε hr hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
+  exact Local.local_theorem poly Pi Qi cong_tri p_ ε δ r hε hr
+    hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
