@@ -157,12 +157,17 @@ theorem exactVertex_radius_one : Polyhedron.radius ⟨exactVertex⟩ = 1 := by
     exact exactVertex_norm_le_one j
 
 noncomputable
+def exactPolyhedron : Polyhedron VertexIndex := {
+  v := exactVertex
+}
+
+noncomputable
 def exactPoly : GoodPoly VertexIndex := {
-  vertices := ⟨exactVertex⟩,
+  vertices := exactPolyhedron,
   nontriv := by
     rintro j
     refine exactVerts_nontriv _ ?_
-    simp [exactVerts]
+    simp [exactVerts, exactPolyhedron]
   radius_eq_one := exactVertex_radius_one
 }
 
@@ -182,7 +187,7 @@ theorem exactShape_point_symmetric : PointSym exactShape.hull := by
 
 theorem exactPoly_point_symmetric : PointSym exactPoly.hull := by
   simp only [exactPoly, GoodPoly.hull, Polyhedron.hull]
-  simp only [exactVertex, Int.reduceNeg] at *
+  simp only [exactVertex, exactPolyhedron, Int.reduceNeg] at *
   refine hull_preserves_pointsym ?_
   rintro x ⟨j, hj⟩
   obtain ⟨k, ℓ, i⟩ := j
