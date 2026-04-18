@@ -140,18 +140,6 @@ instance : Membership Pose PoseInterval where
 instance : HasSubset PoseInterval where
   Subset a b := ∀ p, p ∈ a → p ∈ b
 
-structure TightViewPose : Type where
-  θ₁ : Set.Icc 0 (2 * π / 15)
-  θ₂ : Set.Icc 0 (2 * π / 15)
-  φ₁ : Set.Icc 0 π
-  φ₂ : Set.Icc 0 (π/2)
-  α : Set.Icc (-π/2) (π/2)
-
-noncomputable
-instance : PoseLike TightViewPose where
-  inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
-  outer vp := (rotRM vp.θ₂ vp.φ₂ 0).toAffineMap
-
 lemma closed_ball_imp_inner_params_near {p q : Pose} {ε : ℝ}
     (hq : q ∈ p.closed_ball ε) :
     ∀ i, |p.innerParams.ofLp i - q.innerParams.ofLp i| ≤ ε := by
