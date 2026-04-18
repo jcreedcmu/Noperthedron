@@ -10,16 +10,17 @@ theorem valid_global_imp_no_rupert (tab : Table) (row : Row)
     ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactPolyhedron.hull := by
   let iv := row.toPoseInterval
   let pbar := iv.center
-  let ε := iv.radius
-  have hε : 0 ≤ ε := by sorry
+  let r := iv.radius
+  have hr : 0 ≤ r := by sorry
   rintro ⟨q, hqi, hqr⟩
-  have hq := q ∈ pbar.closed_ball ε
+  have hq := q ∈ pbar.closed_ball r
   have hrg := RationalApprox.GlobalTheorem.rational_global
-                 pbar ε hε exactPoly pythonPoly
+                 pbar r hr exactPoly pythonPoly
                  KappaApprox.exact_κApprox_python exactPoly_point_symmetric
-  have hqε : q ∈ pbar.closed_ball ε := sorry
+  have hqε : q ∈ pbar.closed_ball r := by
+    sorry
   have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
-             exactPoly pythonPoly KappaApprox.exact_κApprox_python pbar ε := sorry
+             exactPoly pythonPoly KappaApprox.exact_κApprox_python pbar r := sorry
   specialize hrg pc
   push Not at hrg
   exact hrg q hqε hqr
