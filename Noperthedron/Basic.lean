@@ -384,7 +384,7 @@ def Polyhedron.radius {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Polyhedro
   (Finset.image (fun x ↦ ‖p.v x‖) Finset.univ).max'
     (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty_iff.mpr ne)
 
-theorem indexed_vertices_radius_iff {r : ℝ} {ι : Type} [Fintype ι] [ne : Nonempty ι]
+theorem Polyhedron.radius_iff {r : ℝ} {ι : Type} [Fintype ι] [ne : Nonempty ι]
     (iv : Polyhedron ι) :
     iv.radius = r ↔ (∃ i, ‖iv.v i‖ = r) ∧ ∀ i, ‖iv.v i‖ ≤ r := by
   constructor
@@ -407,4 +407,4 @@ def GoodPoly.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) : 
 theorem GoodPoly.vertex_radius_le_one {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) :
     ∀ i, ‖poly.vertices.v i‖ ≤ 1 := by
   have := poly.radius_eq_one
-  rw [indexed_vertices_radius_iff] at this; exact this.2
+  rw [Polyhedron.radius_iff] at this; exact this.2

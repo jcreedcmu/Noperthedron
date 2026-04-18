@@ -149,7 +149,7 @@ lemma exactVertex_norm_le_one (j : VertexIndex) : ‖exactVertex j‖ ≤ 1 := b
 The radius of the noperthedron is 1.
 -/
 theorem exactVertex_radius_one : Polyhedron.radius ⟨exactVertex⟩ = 1 := by
-  rw [indexed_vertices_radius_iff]
+  rw [Polyhedron.radius_iff]
   constructor
   · use ⟨0, 0, 0⟩
     simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, c1_norm_one]
