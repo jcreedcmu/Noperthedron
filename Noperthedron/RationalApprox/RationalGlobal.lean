@@ -141,8 +141,8 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
   let i := happrox.bijection.symm j
   let S_real := poly.vertices.v i
   have hS_in : S_real ∈ Set.range poly.vertices.v := ⟨i, rfl⟩
-  have hS_approx : ‖S_real - pc.S‖ ≤ κ := by
-    rw [← hj]; show ‖poly.vertices.v (happrox.bijection.symm j) - poly_.vertices.v j‖ ≤ κ
+  have hS_approx : ‖S_real - poly_.vertices.v j‖ ≤ κ := by
+    show ‖poly.vertices.v (happrox.bijection.symm j) - poly_.vertices.v j‖ ≤ κ
     have := happrox.approx (happrox.bijection.symm j)
     rwa [Equiv.apply_symm_apply] at this
   have hS_norm : ‖S_real‖ ≤ 1 := poly.vertex_radius_le_one i
