@@ -53,7 +53,7 @@ lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ exactVerts) (k 
   omega
 
 lemma nopert_vertices_rotation_invariant (k : ℤ) :
-    (RzC (2 * π * k / 15)) '' exactShape.vertices = exactShape.vertices := by
+    (RzC (2 * π * k / 15)) '' exactVerts = exactVerts := by
   ext x
   constructor
   · intro hx
@@ -87,7 +87,7 @@ theorem lemma7_1 (θ φ : ℝ) :
     push_cast
     repeat rw [Set.image_comp]
     rw [h]
-  change (RzC (-(θ + 2 / 15 * π))) '' exactShape.vertices = (RzC (-θ)) '' exactShape.vertices
+  change (RzC (-(θ + 2 / 15 * π))) '' exactVerts = (RzC (-θ)) '' exactVerts
   ring_nf
   conv => enter [1, 1, a]; simp only [AddChar.map_add_eq_mul]
   rw [ContinuousLinearMap.coe_mul', Set.image_comp,
