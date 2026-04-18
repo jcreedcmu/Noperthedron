@@ -397,18 +397,6 @@ noncomputable
 def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
   (S.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)
 
-theorem polyhedron_radius_iff {n : ℕ} {r : ℝ} (S : Finset (E n)) (ne : S.Nonempty) :
-    polyhedronRadius S ne = r ↔ (∃ v ∈ S, ‖v‖ = r) ∧ ∀ v ∈ S, ‖v‖ ≤ r := by
-  constructor
-  · intro h
-    simp only [polyhedronRadius, Finset.max'_eq_iff] at h
-    let ⟨h1, h2⟩ := h
-    simp only [Finset.mem_image] at h1 h2
-    simp only [forall_exists_index, and_imp, forall_apply_eq_imp_iff₂] at h2
-    exact ⟨h1, h2⟩
-  · intro h
-    simpa [polyhedronRadius, Finset.max'_eq_iff]
-
 theorem polyhedron_vertex_norm_le_radius {n : ℕ} (S : Finset (E n))
     (ne : S.Nonempty) {v : E n} (hv : v ∈ S) : ‖v‖ ≤ polyhedronRadius S ne := by
   apply Finset.le_max'
