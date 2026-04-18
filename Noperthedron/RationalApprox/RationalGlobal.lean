@@ -44,12 +44,11 @@ other outer-shadow vertices P (which the calculation of H iterates over) in the 
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : ApproxGoodPoly ι)
     (happrox : κApproxPoly poly.vertices poly_.vertices) (p : Pose) (ε : ℝ) : Type where
-  S : ℝ³
-  S_in_poly : S ∈ Set.range poly_.vertices.v
+  j : ι
   p_in_4 : fourInterval.contains p
   w : ℝ²
   w_unit : ‖w‖ = 1
-  exceeds : Gℚ p ε S w > maxHℚ p poly_ ε w
+  exceeds : Gℚ p ε (poly_.vertices.v j) w > maxHℚ p poly_ ε w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
@@ -138,7 +137,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox pbar ε) :
     ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p poly.hull := by
   -- Step 1: Map S from poly_ to poly via the bijection
-  obtain ⟨j, hj⟩ := pc.S_in_poly  -- j : ι, hj : poly_.vertices.v j = pc.S
+  let j := pc.j
   let i := happrox.bijection.symm j
   let S_real := poly.vertices.v i
   have hS_in : S_real ∈ Set.range poly.vertices.v := ⟨i, rfl⟩
