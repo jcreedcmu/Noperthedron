@@ -148,18 +148,13 @@ lemma exactVertex_norm_le_one (j : VertexIndex) : ‖exactVertex j‖ ≤ 1 := b
 /--
 The radius of the noperthedron is 1.
 -/
-theorem exactVerts_radius_one : polyhedronRadius exactVerts exactVerts_nonempty = 1 := by
-  simp only [exactVerts]
-  rw [polyhedron_radius_iff]
+theorem exactVertex_radius_one : IndexedVertices.radius ⟨exactVertex⟩ = 1 := by
+  rw [indexed_vertices_radius_iff]
   constructor
-  · simp only [Finset.mem_image, Finset.mem_univ, true_and, exists_exists_eq_and]
-    use ⟨0,0,0⟩
+  · use ⟨0, 0, 0⟩
     simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, c1_norm_one]
-  · intro v hv
-    simp only [Finset.mem_image, Finset.mem_univ, exactVertex, true_and] at hv
-    obtain ⟨x, hx⟩ := hv
-    rw [←hx]
-    exact exactVertex_norm_le_one _
+  · intro j
+    exact exactVertex_norm_le_one j
 
 noncomputable
 def exactPoly : GoodPoly VertexIndex := {
@@ -168,13 +163,7 @@ def exactPoly : GoodPoly VertexIndex := {
     rintro j
     refine exactVerts_nontriv _ ?_
     simp [exactVerts]
-  radius_eq_one := by
-    rw [indexed_vertices_radius_iff]
-    constructor
-    · use ⟨0, 0, 0⟩
-      simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, c1_norm_one]
-    · intro j
-      exact exactVertex_norm_le_one j
+  radius_eq_one := exactVertex_radius_one
 }
 
 theorem exactVerts_pointsym : PointSym exactVertSet := by
