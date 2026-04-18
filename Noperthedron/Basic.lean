@@ -393,15 +393,6 @@ theorem indexed_vertices_radius_iff {r : ℝ} {ι : Type} [Fintype ι] [ne : Non
   · intro h
     simpa [IndexedVertices.radius, Finset.max'_eq_iff]
 
-noncomputable
-def polyhedronRadius {n : ℕ} (S : Finset (E n)) (ne : S.Nonempty) : ℝ :=
-  (S.image (‖·‖)).max' (by simp [Finset.image_nonempty]; exact ne)
-
-theorem polyhedron_vertex_norm_le_radius {n : ℕ} (S : Finset (E n))
-    (ne : S.Nonempty) {v : E n} (hv : v ∈ S) : ‖v‖ ≤ polyhedronRadius S ne := by
-  apply Finset.le_max'
-  exact Finset.mem_image_of_mem _ hv
-
 structure ApproxGoodPoly (ι : Type) [Fintype ι] [Nonempty ι] : Type where
   vertices : IndexedVertices ι
   nontriv : ∀ i, 0 < ‖vertices.v i‖
