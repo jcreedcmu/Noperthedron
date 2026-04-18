@@ -375,26 +375,27 @@ lemma rotM_periodic_φ {θ φ : ℝ} {k : ℤ} :
   ext v i; fin_cases i <;>
   · simp [rotM, rotM_mat]
 
-structure IndexedVertices (ι : Type) [Fintype ι] where
+/-- A convex polyhedron, given as a finite indexed set of vertices. -/
+structure Polyhedron (ι : Type) [Fintype ι] where
   v : ι → ℝ³
 
 noncomputable
-def IndexedVertices.radius {ι : Type} [Fintype ι] [ne : Nonempty ι] (iv : IndexedVertices ι) : ℝ :=
-  (Finset.image (fun x ↦ ‖iv.v x‖) Finset.univ).max'
+def Polyhedron.radius {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Polyhedron ι) : ℝ :=
+  (Finset.image (fun x ↦ ‖p.v x‖) Finset.univ).max'
     (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty_iff.mpr ne)
 
 theorem indexed_vertices_radius_iff {r : ℝ} {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (iv : IndexedVertices ι) :
+    (iv : Polyhedron ι) :
     iv.radius = r ↔ (∃ i, ‖iv.v i‖ = r) ∧ ∀ i, ‖iv.v i‖ ≤ r := by
   constructor
   · intro h
-    simp only [IndexedVertices.radius, Finset.max'_eq_iff] at h
+    simp only [Polyhedron.radius, Finset.max'_eq_iff] at h
     grind
   · intro h
-    simpa [IndexedVertices.radius, Finset.max'_eq_iff]
+    simpa [Polyhedron.radius, Finset.max'_eq_iff]
 
 structure ApproxGoodPoly (ι : Type) [Fintype ι] [Nonempty ι] : Type where
-  vertices : IndexedVertices ι
+  vertices : Polyhedron ι
   nontriv : ∀ i, 0 < ‖vertices.v i‖
 
 structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] extends ApproxGoodPoly ι where
