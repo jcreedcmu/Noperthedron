@@ -379,6 +379,9 @@ lemma rotM_periodic_φ {θ φ : ℝ} {k : ℤ} :
 structure Polyhedron (ι : Type) [Fintype ι] where
   v : ι → ℝ³
 
+def Polyhedron.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : Polyhedron ι) : Set ℝ³ :=
+  convexHull ℝ { poly.v i | i }
+
 noncomputable
 def Polyhedron.radius {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Polyhedron ι) : ℝ :=
   (Finset.image (fun x ↦ ‖p.v x‖) Finset.univ).max'
@@ -402,7 +405,7 @@ structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] extends ApproxGoodPoly
   radius_eq_one : vertices.radius = 1
 
 def GoodPoly.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) : Set ℝ³ :=
-  convexHull ℝ { poly.vertices.v i | i }
+  poly.vertices.hull
 
 theorem GoodPoly.vertex_radius_le_one {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) :
     ∀ i, ‖poly.vertices.v i‖ ≤ 1 := by

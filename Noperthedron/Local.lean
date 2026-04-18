@@ -231,9 +231,8 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
       have hpoly_hull : poly.hull =
           convexHull ℝ (↑(Finset.image poly.vertices.v Finset.univ) : Set ℝ³) := by
         unfold GoodPoly.hull
+        simp only [Polyhedron.hull, Finset.coe_image, Finset.coe_univ, Set.image_univ]
         congr 1
-        ext x
-        simp [Set.mem_range]
       rw [hpoly_hull]
       have hpm : (↑pm : Set ℝ²) =
           p.rotM₂ '' ↑(Finset.image poly.vertices.v Finset.univ) := by

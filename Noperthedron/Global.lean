@@ -154,10 +154,8 @@ max_{P} ⟪ R(α) M(θ₁, φ₁), P, w ⟫ < max_{P} ⟪ M(θ₂, φ₂), P, w 
 private lemma hull_eq_convexHull_finset {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) :
     poly.hull = convexHull ℝ ↑(Finset.image poly.vertices.v Finset.univ) := by
-  unfold GoodPoly.hull
+  simp only [GoodPoly.hull, Polyhedron.hull, Finset.coe_image, Finset.coe_univ, Set.image_univ]
   congr 1
-  ext x
-  simp [Set.mem_range]
 
 theorem global_theorem_le_reasoning {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose)
     (poly : GoodPoly ι)
@@ -491,9 +489,9 @@ theorem global_theorem_nopert (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
     ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p Noperthedron.exactShape.hull := by
   have : Noperthedron.exactPoly.hull = Noperthedron.exactShape.hull := by
     unfold GoodPoly.hull Noperthedron.exactPoly Noperthedron.exactShape Shape.hull
+    simp only [Polyhedron.hull, Noperthedron.exactVerts, Finset.coe_image, Finset.coe_univ,
+      Set.image_univ]
     congr 1
-    ext x
-    simp [Set.mem_range, Noperthedron.exactVerts]
   rw [← this]
   exact global_theorem pbar ε hε Noperthedron.exactPoly
       (this ▸ Noperthedron.exactShape_point_symmetric) pc
