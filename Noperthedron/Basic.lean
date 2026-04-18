@@ -2,18 +2,6 @@ import Noperthedron.Rupert.Basic
 
 open scoped Matrix
 
-/--
-A finite collection of vertices in ℝ³
--/
-structure Shape : Type where
-  vertices : Finset ℝ³
-
-namespace Shape
-
-def hull (s : Shape) : Set ℝ³ := convexHull ℝ (s.vertices)
-
-end Shape
-
 open Real
 
 -- flip about y-axis
@@ -379,7 +367,7 @@ lemma rotM_periodic_φ {θ φ : ℝ} {k : ℤ} :
 structure Polyhedron (ι : Type) [Fintype ι] where
   v : ι → ℝ³
 
-def Polyhedron.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : Polyhedron ι) : Set ℝ³ :=
+def Polyhedron.hull {ι : Type} [Fintype ι] (poly : Polyhedron ι) : Set ℝ³ :=
   convexHull ℝ { poly.v i | i }
 
 noncomputable

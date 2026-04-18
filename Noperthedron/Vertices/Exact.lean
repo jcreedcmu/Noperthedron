@@ -133,8 +133,7 @@ def exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
 def exactVertSet : Set ℝ³ := exactVerts
 
 noncomputable
-def exactShape : Shape where
-  vertices := exactVerts
+abbrev exactHull : Set ℝ³ := convexHull ℝ exactVerts
 
 lemma exactVertex_norm_le_one (j : VertexIndex) : ‖exactVertex j‖ ≤ 1 := by
   simp only [exactVertex, norm_smul, norm_pow, norm_neg, norm_one, one_pow, one_mul]
@@ -169,6 +168,11 @@ theorem exactPolyhedron_point_symmetric : PointSym exactPolyhedron.hull := by
   obtain ⟨k, ℓ, i⟩ := j
   exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hj]; fin_cases ℓ <;> simp [neg_smul]⟩
 
+lemma exactPolyhedron_hull : exactPolyhedron.hull = exactHull := by
+  simp only [Polyhedron.hull, exactPolyhedron, exactHull, exactVerts, Finset.coe_image,
+    Finset.coe_univ, Set.image_univ]
+  congr
+
 noncomputable
 def exactPoly : GoodPoly VertexIndex := {
   vertices := exactPolyhedron,
@@ -190,9 +194,6 @@ theorem exactVerts_pointsym : PointSym exactVertSet := by
 /--
 The noperthedron is pointsymmetric.
 -/
-theorem exactShape_point_symmetric : PointSym exactShape.hull := by
-  exact hull_preserves_pointsym exactVerts_pointsym
-
 theorem exactPoly_point_symmetric : PointSym exactPoly.hull := by
   simp only [exactPoly, GoodPoly.hull, Polyhedron.hull]
   simp only [exactVertex, exactPolyhedron, Int.reduceNeg] at *

@@ -26,15 +26,7 @@ There is no pose that makes the Noperthedron have the Rupert property
 theorem no_nopert_pose : ¬ ∃ v : Pose, RupertPose v exactPolyhedron.hull := by
   intro r
   obtain ⟨p, r⟩ := r
-  have he : exactPolyhedron.hull = exactShape.hull := by
-    simp only [Polyhedron.hull, exactPolyhedron, Shape.hull, exactShape, exactVerts,
-      Finset.coe_image, Finset.coe_univ, Set.image_univ]
-    congr
-  rw [he] at r
-  have h := Tightening.rupert_tightening p r
-  rw [←he] at h
-  exact no_nopert_tight_pose h
-
+  exact no_nopert_tight_pose (Tightening.rupert_tightening p r)
 
 /--
 There is no purely rotational pose that makes the Noperthedron have the Rupert property
