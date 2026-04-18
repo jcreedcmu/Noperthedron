@@ -481,19 +481,4 @@ theorem global_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have hle := global_theorem_le_reasoning p poly p_is_rupert pc.w
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
 
-/--
-The Global Theorem specialized to the noperthedron.
--/
-theorem global_theorem_nopert (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
-    (pc : GlobalTheoremPrecondition Noperthedron.exactPoly pbar ε) :
-    ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p Noperthedron.exactShape.hull := by
-  have : Noperthedron.exactPoly.hull = Noperthedron.exactShape.hull := by
-    unfold GoodPoly.hull Noperthedron.exactPoly Noperthedron.exactShape Shape.hull
-    simp only [Polyhedron.hull, Noperthedron.exactVerts, Finset.coe_image, Finset.coe_univ,
-      Set.image_univ]
-    congr 1
-  rw [← this]
-  exact global_theorem pbar ε hε Noperthedron.exactPoly
-      (this ▸ Noperthedron.exactShape_point_symmetric) pc
-
 end GlobalTheorem
