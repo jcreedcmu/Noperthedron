@@ -7,7 +7,7 @@ namespace Noperthedron.Solution
 
 theorem valid_global_imp_no_rupert (tab : Table) (row : Row)
     (hr : row.ValidGlobal tab) :
-    ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactShape.hull := by
+    ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactPolyhedron.hull := by
   let iv := row.toPoseInterval
   let pbar := iv.center
   let ε := iv.radius
@@ -20,8 +20,6 @@ theorem valid_global_imp_no_rupert (tab : Table) (row : Row)
   have hqε : q ∈ pbar.closed_ball ε := sorry
   have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
              exactPoly pythonPoly KappaApprox.exact_κApprox_python pbar ε := sorry
-  replace hqr : RupertPose q exactPoly.hull := by
-    sorry
   specialize hrg pc
   push Not at hrg
   exact hrg q hqε hqr

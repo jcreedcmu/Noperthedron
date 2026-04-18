@@ -5,5 +5,5 @@ import Noperthedron.Vertices.Exact
 namespace Noperthedron.Solution
 
 theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
-    (hr : row.ValidLocal tab) : ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactShape.hull := by
+    (hr : row.ValidLocal tab) : ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactPolyhedron.hull := by
   sorry

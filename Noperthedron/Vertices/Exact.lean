@@ -161,6 +161,14 @@ def exactPolyhedron : Polyhedron VertexIndex := {
   v := exactVertex
 }
 
+theorem exactPolyhedron_point_symmetric : PointSym exactPolyhedron.hull := by
+  simp only [exactPolyhedron, Polyhedron.hull]
+  simp only [exactVertex, Int.reduceNeg] at *
+  refine hull_preserves_pointsym ?_
+  rintro x ⟨j, hj⟩
+  obtain ⟨k, ℓ, i⟩ := j
+  exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hj]; fin_cases ℓ <;> simp [neg_smul]⟩
+
 noncomputable
 def exactPoly : GoodPoly VertexIndex := {
   vertices := exactPolyhedron,
