@@ -89,8 +89,7 @@ def BoundR (r ε : ℝ) (p : Pose) (Q : Triangle): Prop :=
 theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι)
     (Pi Qi : Fin 3 → ι)
-    (cong_tri : Triangle.Congruent
-      ((poly.vertices.v ∘ Pi : Triangle)) (poly.vertices.v ∘ Qi))
+    (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
     (p_ : Pose)
     (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (hr₁ : BoundR r ε p_ (poly.vertices.v ∘ Qi))
