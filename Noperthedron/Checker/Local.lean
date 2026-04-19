@@ -1,6 +1,8 @@
 import Mathlib.Data.Finset.Max
 
+import Noperthedron.Local.Congruent
 import Noperthedron.SolutionTable.Defs
+import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Trig
 
@@ -13,6 +15,21 @@ here is computable — no `noncomputable` keyword.
 -/
 
 namespace Noperthedron.Solution
+
+noncomputable
+abbrev Row.P (r : Row) : Local.Triangle :=
+![exactVertex r.P1_index, exactVertex r.P2_index, exactVertex r.P3_index]
+
+noncomputable
+abbrev Row.Q (r : Row) : Local.Triangle :=
+![exactVertex r.Q1_index, exactVertex r.Q2_index, exactVertex r.Q3_index]
+
+/--
+TODO
+[SY25] use SageMath for this.
+-/
+instance (P Q : Local.Triangle) : Decidable (P.Congruent Q) :=
+.isTrue (sorry : P.Congruent Q)
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
 @[mk_iff]
@@ -28,6 +45,7 @@ structure Row.ValidLocal (row : Row) : Prop where
   φ₂_ub : row.φ₂ ≤ 4
   α_lb : -4 ≤ row.α
   α_ub : row.α ≤ 4
+--  PQ_congruent : row.P.Congruent row.Q
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
   decidable_of_iff _ (Row.validLocal_iff row).symm
@@ -68,3 +86,4 @@ def testLocalRow : Row := {
 /-- info: true -/
 #guard_msgs in
 #eval testLocalRow.ValidLocal
+
