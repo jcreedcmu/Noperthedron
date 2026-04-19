@@ -157,6 +157,13 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval) (p : Pose) (hp : p ∈
   refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;>
     simp only [Pose.closed_ball, PoseInterval.center] <;> linarith
 
+theorem nonempty_closed_ball_radius_nonneg (p q : Pose) (r : ℝ)
+    (hpq : p ∈ q.closed_ball r) :
+    0 ≤ r := by
+  obtain ⟨⟨h1l, h1h⟩, _⟩ := hpq
+  simp only [Pose.closed_ball] at h1l h1h
+  linarith
+
 lemma closed_ball_imp_inner_params_near {p q : Pose} {ε : ℝ}
     (hq : q ∈ p.closed_ball ε) :
     ∀ i, |p.innerParams.ofLp i - q.innerParams.ofLp i| ≤ ε := by
