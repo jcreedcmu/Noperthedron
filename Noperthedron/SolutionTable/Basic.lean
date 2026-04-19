@@ -11,12 +11,6 @@ def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .φ₂ => q.φ₂
 | .α => q.α
 
-def Row.ValidGlobal (_tab : Table) (row : Row) : Prop :=
-  Checker.checkGlobal row = true
-
-instance (_tab : Table) (row : Row) : Decidable (Row.ValidGlobal _tab row) :=
-  inferInstanceAs (Decidable (_ = true))
-
 def Row.ValidLocal (tab : Table) (row : Row) : Prop :=
   row.nodeType = 2 ∧ sorry
 
@@ -60,7 +54,7 @@ deriving Decidable
 @[mk_iff]
 inductive Row.Valid (tab : Table) (row : Row) : Prop where
   | asSplit : row.ValidSplit tab → Row.Valid tab row
-  | asGlobal : row.ValidGlobal tab → Row.Valid tab row
+  | asGlobal : row.ValidGlobal → Row.Valid tab row
   | asLocal : row.ValidLocal tab → Row.Valid tab row
 
 instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) :=
