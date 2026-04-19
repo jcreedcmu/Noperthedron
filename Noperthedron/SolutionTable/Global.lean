@@ -6,19 +6,17 @@ import Noperthedron.Vertices.Exact
 namespace Noperthedron.Solution
 
 theorem valid_global_imp_no_rupert (tab : Table) (row : Row)
-    (hr : row.ValidGlobal tab) :
+    (hrow : row.ValidGlobal tab) :
     ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactPolyhedron.hull := by
   let iv := row.toPoseInterval
   let pbar := iv.center
   let r := iv.radius
   have hr : 0 ≤ r := by sorry
   rintro ⟨q, hqi, hqr⟩
-  have hq := q ∈ pbar.closed_ball r
   have hrg := RationalApprox.GlobalTheorem.rational_global
                  pbar r hr exactPoly pythonPoly
                  KappaApprox.exact_κApprox_python exactPoly_point_symmetric
-  have hqε : q ∈ pbar.closed_ball r := by
-    sorry
+  have hqε : q ∈ pbar.closed_ball r := mem_closed_ball_center_of_mem iv q hqi
   have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
              exactPoly pythonPoly KappaApprox.exact_κApprox_python pbar r := sorry
   specialize hrg pc
