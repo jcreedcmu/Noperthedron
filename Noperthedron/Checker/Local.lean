@@ -4,6 +4,7 @@ import Noperthedron.Local.Congruent
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Python
+import Noperthedron.Vertices.Symmetry
 import Noperthedron.Vertices.Trig
 
 /-!
@@ -16,20 +17,19 @@ here is computable — no `noncomputable` keyword.
 
 namespace Noperthedron.Solution
 
+abbrev Row.Pi (r : Row) : Fin 3 → VertexIndex :=
+  ![r.P1_index, r.P2_index, r.P3_index]
+
+abbrev Row.Qi (r : Row) : Fin 3 → VertexIndex :=
+  ![r.Q1_index, r.Q2_index, r.Q3_index]
+
 noncomputable
 abbrev Row.P (r : Row) : Local.Triangle :=
-![exactVertex r.P1_index, exactVertex r.P2_index, exactVertex r.P3_index]
+  ![exactVertex r.P1_index, exactVertex r.P2_index, exactVertex r.P3_index]
 
 noncomputable
 abbrev Row.Q (r : Row) : Local.Triangle :=
-![exactVertex r.Q1_index, exactVertex r.Q2_index, exactVertex r.Q3_index]
-
-/--
-TODO
-[SY25] use SageMath for this.
--/
-instance (P Q : Local.Triangle) : Decidable (P.Congruent Q) :=
-.isTrue (sorry : P.Congruent Q)
+  ![exactVertex r.Q1_index, exactVertex r.Q2_index, exactVertex r.Q3_index]
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
 @[mk_iff]
@@ -45,7 +45,9 @@ structure Row.ValidLocal (row : Row) : Prop where
   φ₂_ub : row.φ₂ ≤ 4
   α_lb : -4 ≤ row.α
   α_ub : row.α ≤ 4
---  PQ_congruent : row.P.Congruent row.Q
+  exists_symmetry : ∃ s : TriangleSymmetry,
+    s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
+  -- ...
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
   decidable_of_iff _ (Row.validLocal_iff row).symm
@@ -86,4 +88,33 @@ def testLocalRow : Row := {
 /-- info: true -/
 #guard_msgs in
 #eval testLocalRow.ValidLocal
+
+/-
+ID=2738018 from the full solution tree — a local leaf that requires
+a reflection (k → -k) symmetry rather than just a rotation.
+All vertices have i=1 (C2 orbit).
+
+2738018,2,,,,0,403200,36691200,37094400,1209600,1612800,
+11325440,11729920,-808960,-404480,
+15,61,70,19,63,69,928,1,,,,
+-/
+def testLocalRowReflection : Row := {
+  ID := 2738018, nodeType := 2, nrChildren := 0, IDfirstChild := 0, split := 0,
+  interval := { min := fun | .θ₁ => 0 | .φ₁ => 36691200 | .θ₂ => 1209600
+                            | .φ₂ => 11325440 | .α => -808960,
+                max := fun | .θ₁ => 403200 | .φ₁ => 37094400 | .θ₂ => 1612800
+                            | .φ₂ => 11729920 | .α => -404480 },
+  S_index := 0, wx_numerator := 0, wy_numerator := 0, w_denominator := 0,
+  P1_index := VertexIndex.ofFin90 ⟨15, by lia⟩,
+  P2_index := VertexIndex.ofFin90 ⟨61, by lia⟩,
+  P3_index := VertexIndex.ofFin90 ⟨70, by lia⟩,
+  Q1_index := VertexIndex.ofFin90 ⟨19, by lia⟩,
+  Q2_index := VertexIndex.ofFin90 ⟨63, by lia⟩,
+  Q3_index := VertexIndex.ofFin90 ⟨69, by lia⟩,
+  r := 928, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
+}
+
+/-- info: true -/
+#guard_msgs in
+#eval testLocalRowReflection.ValidLocal
 
