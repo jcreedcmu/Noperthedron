@@ -1,6 +1,7 @@
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.PoseInterval
 import Noperthedron.Checker.Global
+import Noperthedron.Checker.Local
 
 namespace Noperthedron.Solution
 
@@ -10,12 +11,6 @@ def _root_.Pose.getParam (q : Pose) : Param → ℝ
 | .θ₂ => q.θ₂
 | .φ₂ => q.φ₂
 | .α => q.α
-
-def Row.ValidLocal (tab : Table) (row : Row) : Prop :=
-  row.nodeType = 2 ∧ sorry
-
-instance (tab : Table) (row : Row) : Decidable (Row.ValidLocal tab row) := by
-  sorry
 
 @[mk_iff]
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
@@ -55,7 +50,7 @@ deriving Decidable
 inductive Row.Valid (tab : Table) (row : Row) : Prop where
   | asSplit : row.ValidSplit tab → Row.Valid tab row
   | asGlobal : row.ValidGlobal → Row.Valid tab row
-  | asLocal : row.ValidLocal tab → Row.Valid tab row
+  | asLocal : row.ValidLocal → Row.Valid tab row
 
 instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) :=
   decidable_of_iff _ (Row.valid_iff tab row).symm

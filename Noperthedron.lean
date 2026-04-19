@@ -9,6 +9,7 @@ import Noperthedron.Bounding.SmallConsecutiveRotations
 import Noperthedron.Checker.Agreement
 import Noperthedron.Checker.Global
 import Noperthedron.Checker.KappaApprox
+import Noperthedron.Checker.Local
 import Noperthedron.CommonCenter
 import Noperthedron.ComputationalStep
 import Noperthedron.ConvertPose

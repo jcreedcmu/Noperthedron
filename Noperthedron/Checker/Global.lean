@@ -9,9 +9,7 @@ import Noperthedron.Vertices.Trig
 
 A computable, pure-ℚ checker that verifies whether a decision-tree row
 satisfies the preconditions of the rational global theorem. Everything
-here is computable — no `noncomputable` keyword. This file deliberately
-reimplements sin/cos Taylor polynomials (which are noncomputable in
-`RationalApprox/Basic.lean`) as computable functions over ℚ.
+here is computable — no `noncomputable` keyword.
 -/
 
 namespace Noperthedron.Solution
