@@ -6,6 +6,7 @@ import Noperthedron.Bounding.OpNorm
 import Noperthedron.Bounding.OrthEquivRotz
 import Noperthedron.Bounding.RaRa
 import Noperthedron.Bounding.SmallConsecutiveRotations
+import Noperthedron.Checker.Agreement
 import Noperthedron.Checker.Global
 import Noperthedron.Checker.KappaApprox
 import Noperthedron.CommonCenter

@@ -14,8 +14,7 @@ reimplements sin/cos Taylor polynomials (which are noncomputable in
 `RationalApprox/Basic.lean`) as computable functions over ℚ.
 -/
 
-namespace Noperthedron
-namespace Solution.Checker
+namespace Noperthedron.Solution
 
 /-! ## Matrix-vector application
 
@@ -79,38 +78,32 @@ def computeMaxHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
   let range := Finset.image values Finset.univ
   range.max' (by use values 0; simp_all [range])
 
+abbrev _root_.Noperthedron.Solution.Row.G_gt_maxH (r : Row) : Prop :=
+  computeGQ r.θ₁ r.φ₁ r.α r.epsilon r.S r.w > computeMaxHQ r.θ₂ r.φ₂ r.epsilon r.w
+
 /-! ## The main checker -/
 
-/-- Check whether a row constitutes a valid application of the rational
-global theorem. Returns `true` iff all preconditions are satisfied. -/
-def checkGlobal (row : Row) : Bool :=
-  let iv := row.interval
-  let θ₁ := iv.center .θ₁
-  let φ₁ := iv.center .φ₁
-  let θ₂ := iv.center .θ₂
-  let φ₂ := iv.center .φ₂
-  let α := iv.center .α
-  let ε := iv.epsilon
-  let S := pythonVertex row.S_index
-  let w : Fin 2 → ℚ := fun
-    | 0 => row.wx_numerator / row.w_denominator
-    | 1 => row.wy_numerator / row.w_denominator
-  -- (1) Node type must be global
-  row.nodeType == 1
-  -- (2) Unit vector: wx² + wy² = w_denom²
-  && row.wx_numerator ^ 2 + row.wy_numerator ^ 2 == (row.w_denominator : ℤ) ^ 2
-  -- (3) w_denominator is positive
-  && decide (row.w_denominator > 0)
-  -- (4) Center pose in [-4, 4]⁵
-  && decide (-4 ≤ θ₁) && decide (θ₁ ≤ 4)
-  && decide (-4 ≤ φ₁) && decide (φ₁ ≤ 4)
-  && decide (-4 ≤ θ₂) && decide (θ₂ ≤ 4)
-  && decide (-4 ≤ φ₂) && decide (φ₂ ≤ 4)
-  && decide (-4 ≤ α) && decide (α ≤ 4)
-  -- (5) Positive epsilon
-  && decide (ε > 0)
-  -- (6) G > maxH inequality
-  && decide (computeGQ θ₁ φ₁ α ε S w > computeMaxHQ θ₂ φ₂ ε w)
+/-- Assertion that a row constitutes a valid application of the rational global theorem. -/
+@[mk_iff]
+structure Row.ValidGlobal (row : Row) : Prop where
+  nodeType_eq : row.nodeType = 1
+  w_unit : row.wx_numerator ^ 2 + row.wy_numerator ^ 2 = (row.w_denominator : ℤ) ^ 2
+  w_denominator_pos : 0 < row.w_denominator
+  θ₁_lb : -4 ≤ row.θ₁
+  θ₁_ub : row.θ₁ ≤ 4
+  φ₁_lb : -4 ≤ row.φ₁
+  φ₁_ub : row.φ₁ ≤ 4
+  θ₂_lb : -4 ≤ row.θ₂
+  θ₂_ub : row.θ₂ ≤ 4
+  φ₂_lb : -4 ≤ row.φ₂
+  φ₂_ub : row.φ₂ ≤ 4
+  α_lb : -4 ≤ row.α
+  α_ub : row.α ≤ 4
+  epsilon_pos : 0 < row.epsilon
+  G_gt_maxH : row.G_gt_maxH
+
+instance (row : Row) : Decidable (Row.ValidGlobal row) :=
+  decidable_of_iff _ (Row.validGlobal_iff row).symm
 
 /-! ## Smoke test -/
 
@@ -131,6 +124,5 @@ def testGlobalRow : Row := {
 
 /-- info: true -/
 #guard_msgs in
-#eval checkGlobal testGlobalRow
+#eval testGlobalRow.ValidGlobal
 
-end Solution.Checker
