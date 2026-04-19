@@ -4,6 +4,7 @@ import Noperthedron.Local.Congruent
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Python
+import Noperthedron.Vertices.Symmetry
 import Noperthedron.Vertices.Trig
 
 /-!
@@ -16,20 +17,19 @@ here is computable — no `noncomputable` keyword.
 
 namespace Noperthedron.Solution
 
+abbrev Row.Pi (r : Row) : Fin 3 → VertexIndex :=
+  ![r.P1_index, r.P2_index, r.P3_index]
+
+abbrev Row.Qi (r : Row) : Fin 3 → VertexIndex :=
+  ![r.Q1_index, r.Q2_index, r.Q3_index]
+
 noncomputable
 abbrev Row.P (r : Row) : Local.Triangle :=
-![exactVertex r.P1_index, exactVertex r.P2_index, exactVertex r.P3_index]
+  ![exactVertex r.P1_index, exactVertex r.P2_index, exactVertex r.P3_index]
 
 noncomputable
 abbrev Row.Q (r : Row) : Local.Triangle :=
-![exactVertex r.Q1_index, exactVertex r.Q2_index, exactVertex r.Q3_index]
-
-/--
-TODO
-[SY25] use SageMath for this.
--/
-instance (P Q : Local.Triangle) : Decidable (P.Congruent Q) :=
-.isTrue (sorry : P.Congruent Q)
+  ![exactVertex r.Q1_index, exactVertex r.Q2_index, exactVertex r.Q3_index]
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
 @[mk_iff]
@@ -45,7 +45,8 @@ structure Row.ValidLocal (row : Row) : Prop where
   φ₂_ub : row.φ₂ ≤ 4
   α_lb : -4 ≤ row.α
   α_ub : row.α ≤ 4
---  PQ_congruent : row.P.Congruent row.Q
+  exists_symmetry : ∃ g : SymmetryGroup, ∀ i, row.Pi i = g • row.Qi i
+  -- ...
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
   decidable_of_iff _ (Row.validLocal_iff row).symm
