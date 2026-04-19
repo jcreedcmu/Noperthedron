@@ -229,8 +229,6 @@ theorem computeMaxHQ_eq_maxHℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ)
     intro j
     rw [computeHQ_eq_Hℚ θ₂ φ₂ ε w (pythonVertex j) p hθ₂ hφ₂]
     rfl
-  have h_cast_mono : Monotone (fun q : ℚ => (q : ℝ)) := by
-    intro a b h; show (a : ℝ) ≤ (b : ℝ); exact_mod_cast h
   have h_image_eq :
       Finset.image (fun q : ℚ => (q : ℝ))
         (Finset.image (computeHQ θ₂ φ₂ ε w ∘ pythonVertex) Finset.univ) =
@@ -241,7 +239,7 @@ theorem computeMaxHQ_eq_maxHℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ)
     intro j _
     exact h_pointwise j
   unfold computeMaxHQ maxHℚ
-  rw [h_cast_mono.map_finset_max']
+  rw [Rat.cast_mono.map_finset_max']
   congr
 
 /-! ## Bridge `row.epsilon` to `PoseInterval.radius` -/
@@ -265,10 +263,8 @@ private lemma param_image_max'_eq {α : Type} [LinearOrder α] (f : Param → α
     of the corresponding `PoseInterval`. -/
 theorem row_epsilon_cast_eq_radius (row : Row) :
     ((row.epsilon : ℚ) : ℝ) = row.toPoseInterval.radius := by
-  have h_cast_mono : Monotone (fun q : ℚ => (q : ℝ)) := by
-    intro a b h; show (a : ℝ) ≤ (b : ℝ); exact_mod_cast h
   unfold Row.epsilon Interval.epsilon
-  rw [h_cast_mono.map_finset_max']
+  rw [Rat.cast_mono.map_finset_max']
   simp only [Finset.image_image]
   rw [param_image_max'_eq]
   simp only [Function.comp_apply]
