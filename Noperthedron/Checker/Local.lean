@@ -69,9 +69,9 @@ structure Row.ValidLocal (row : Row) : Prop where
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
   X₁_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
                      (row.X₁.transpose *ᵥ (pythonVertex (row.Pi i))) 0
---  X₂_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
---                     (-1) ^ row.sigma_Q.val *
---                       (row.X₂.transpose *ᵥ (pythonVertex (row.Pi i))) 0
+  X₂_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
+                     (-1) ^ row.sigma_Q.val *
+                       (row.X₂.transpose *ᵥ (pythonVertex (row.Qi i))) 0
   -- ...
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
@@ -107,7 +107,7 @@ def testLocalRow : Row := {
   Q1_index := VertexIndex.ofFin90 ⟨79, by lia⟩,
   Q2_index := VertexIndex.ofFin90 ⟨80, by lia⟩,
   Q3_index := VertexIndex.ofFin90 ⟨87, by lia⟩,
-  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+  r := 0, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
 }
 
 /-- info: true -/
