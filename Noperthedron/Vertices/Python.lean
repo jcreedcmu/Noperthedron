@@ -114,5 +114,8 @@ def pythonVertexCurried : Fin 2 → Fin 3 → Fin 15 → Fin 3 → ℚ := ![
 
 def pythonVertex (idx : VertexIndex) : Fin 3 → ℚ := pythonVertexCurried idx.ℓ idx.i idx.k
 
+def pythonPolyQ : Polyhedron VertexIndex (Fin 3 → ℚ) := ⟨pythonVertex⟩
+
 noncomputable
-def pythonPoly : Polyhedron VertexIndex ℝ³ := ⟨toR3 ∘ pythonVertex⟩
+def pythonPoly : Polyhedron VertexIndex ℝ³ := pythonPolyQ.toReal
+
