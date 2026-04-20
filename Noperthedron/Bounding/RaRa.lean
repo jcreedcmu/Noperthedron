@@ -24,7 +24,7 @@ theorem norm_sub_rotR_le (α β : ℝ) : ‖rotR α - rotR β‖ ≤ 2 * |Real.s
 theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
     ‖rotR α - rotR α_‖ < ε := by
   wlog H : 0 ≤ α - α_
-  · grind [abs_sub_comm, norm_sub_rev]
+  · rw [norm_sub_rev]; exact this hε (abs_sub_comm α α_ ▸ hα) (by linarith)
   apply lt_of_le_of_lt (norm_sub_rotR_le α α_)
   obtain h | rfl := lt_or_eq_of_le hα
   · grw [Real.abs_sin_le_abs]

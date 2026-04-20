@@ -28,9 +28,9 @@ def mat (V : Vec3) : Matrix (Fin 3) (Fin 3) ℝ := fun i j => V j i
 end Vec3
 
 theorem V_apply (i : Fin 3) (V : Vec3) (X : Euc(3)): (V.matᵀ *ᵥ X) i = ⟪V i, X⟫ := by
-  simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.isValue, inner,
-    Real.ringHom_apply, Matrix.transpose, Matrix.of_apply, Vec3.mat,
-    RCLike.mul_re, RCLike.re_to_real, RCLike.im_to_real]
+  simp only [Matrix.mulVec, dotProduct, Matrix.transpose, Vec3.mat, Matrix.of_apply,
+    Fin.sum_univ_three, Fin.isValue, inner, star_trivial, RCLike.mul_re, RCLike.re_to_real,
+    RCLike.im_to_real, mul_zero, sub_zero]
   ring_nf
 
 instance : Coe (Matrix (Fin 1) (Fin 1) ℝ) ℝ where

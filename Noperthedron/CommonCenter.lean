@@ -36,11 +36,10 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
     (b_convex : Convex ℝ B)
     (v : ℝ²) (hin : (· + v) '' A ⊆ B) : A ⊆ B := by
   intro a ha
-  have h1 : a + v ∈ B := by
-    grind only [= Set.mem_image, = Set.subset_def]
+  have h1 : a + v ∈ B := hin ⟨a, ha, rfl⟩
   have h2 : a - v ∈ B := by
     have han : -a ∈ A := psa a ha
-    have hnav : -a + v ∈ B := by grind only [= Set.mem_image, = Set.subset_def]
+    have hnav : -a + v ∈ B := hin ⟨-a, han, rfl⟩
     have hnn : -(-a + v) ∈ B := psb (-a + v) hnav
     have e : -(-a + v) = a - v := by grind only
     rw [e] at hnn

@@ -19,9 +19,9 @@ theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
     Matrix.vecTail, Nat.succ_eq_add_one, Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one,
     Fin.succ_one_eq_two, zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Finset.univ_unique,
     Fin.default_eq_zero, Matrix.cons_val_succ, Finset.sum_const, Finset.card_singleton, one_smul,
-    Finset.sum_singleton, inner, vecX, Real.ringHom_apply, RCLike.mul_re, RCLike.re_to_real,
+    Finset.sum_singleton, inner, vecX, RCLike.mul_re, RCLike.re_to_real,
     RCLike.im_to_real, mul_zero, sub_zero]
-  grind [Real.sin_sq]
+  grind [Real.sin_sq, star_trivial]
 
 /-- [SY25] Lemma 24 -/
 theorem abs_sub_inner_bars_le {m n : ℕ} (A B A_ B_ : Euc(m) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(m)) :
@@ -37,7 +37,7 @@ theorem abs_sub_inner_bars_le {m n : ℕ} (A B A_ B_ : Euc(m) →L[ℝ] Euc(n)) 
   -- the Cauchy-Schwarz inequality and the submultiplicativity of ‖.‖:
   calc
     _ ≤ |⟪(A - A_) P₁, B_ P₂⟫| + |⟪A_ P₁, (B - B_) P₂⟫| + |⟪(A - A_) P₁, (B - B_) P₂⟫| :=
-      by grind
+      by rw [h₁]; ring_nf; exact abs_add_three _ _ _
     _ ≤ ‖(A - A_) P₁‖ * ‖B_ P₂‖ + ‖A_ P₁‖ * ‖(B - B_) P₂‖ + ‖(A - A_) P₁‖ * ‖(B - B_) P₂‖ :=
       by simp only [←Real.norm_eq_abs]
          grw [norm_inner_le_norm, norm_inner_le_norm, norm_inner_le_norm]
@@ -52,13 +52,18 @@ theorem abs_sub_inner_le {m n : ℕ} (A B : Euc(m) →L[ℝ] Euc(n)) (P₁ P₂ 
   -- Exactly the same proof as the one for `abs_sub_inner_bars_le` yields:
   have h₁ : |⟪A P₁, A P₂⟫ - ⟪B P₁, B P₂⟫| ≤
       ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (2 * ‖B‖ + ‖A - B‖) := by
-    grind [abs_sub_inner_bars_le]
+    have := abs_sub_inner_bars_le A A B B P₁ P₂
+    linarith [mul_comm ‖A - B‖ ‖B‖]
   -- Exchanging A and B, however, also gives the same inequality with 2 * ‖A‖ instead
   -- of 2 * ‖B‖.
   have h₂ : |⟪A P₁, A P₂⟫ - ⟪B P₁, B P₂⟫| ≤
       ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (2 * ‖A‖ + ‖A - B‖) := by
     simp only [norm_sub_rev A B, abs_sub_comm ⟪A P₁, A P₂⟫ ⟪B P₁, B P₂⟫]
-    grind [abs_sub_inner_bars_le]
+    have := abs_sub_inner_bars_le B B A A P₁ P₂
+    linarith [mul_comm ‖B - A‖ ‖A‖]
   -- Taking the arithmetic mean of these two upper bounds produces the desired
   -- symmetric inequality.
-  grind
+  have heq : ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (2 * ‖B‖ + ‖A - B‖) +
+      ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (2 * ‖A‖ + ‖A - B‖) =
+      2 * (‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (‖A‖ + ‖B‖ + ‖A - B‖)) := by ring
+  linarith

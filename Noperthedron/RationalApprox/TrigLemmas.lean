@@ -63,8 +63,8 @@ theorem sin_approx_aux (x : ℝ) (n : ℕ) :
         sub_neg_eq_add]
       grind
   obtain ⟨c, -, hc₂⟩ :=
-      taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n) hx Real.contDiff_sin.contDiffOn
-  simp only [taylorWithinEval_sin hx, sub_zero] at hc₂
+      taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n) hx.ne Real.contDiff_sin.contDiffOn
+  rw [Set.uIcc_of_lt hx, taylorWithinEval_sin hx, sub_zero] at hc₂
   simp only [hc₂, Real.iteratedDeriv_add_one_sin, Real.iteratedDeriv_even_cos, Pi.mul_apply,
     Pi.pow_apply, Pi.neg_apply, Pi.ofNat_apply]
   simp only [abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
@@ -100,8 +100,8 @@ theorem cos_approx_aux (x : ℝ) (n : ℕ) :
       · specialize H (-x) n (by linarith)
         simpa using H
     obtain ⟨c, hc₁, hc₂⟩ :=
-      taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n + 1) hx Real.contDiff_cos.contDiffOn
-    simp only [taylorWithinEval_cos hx, sub_zero] at hc₂
+      taylor_mean_remainder_lagrange_iteratedDeriv (n := 2 * n + 1) hx.ne Real.contDiff_cos.contDiffOn
+    rw [Set.uIcc_of_lt hx, taylorWithinEval_cos hx, sub_zero] at hc₂
     simp only [hc₂, show 2 * n + 1 + 1 = 2 * (n + 1) by ring]
     simp only [Real.iteratedDeriv_even_cos, Pi.mul_apply, Pi.pow_apply, Pi.neg_apply, Pi.one_apply,
       abs_div, abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul, Nat.abs_cast, fieldLe]
