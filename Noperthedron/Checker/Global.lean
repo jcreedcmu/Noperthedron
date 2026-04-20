@@ -117,7 +117,7 @@ def testGlobalRow : Row := {
   w_denominator := 16540984045,
   P1_index := 0, P2_index := 0, P3_index := 0,
   Q1_index := 0, Q2_index := 0, Q3_index := 0,
-  r := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
+  r' := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩
 }
 
 /-- info: true -/

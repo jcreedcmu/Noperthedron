@@ -52,6 +52,9 @@ abbrev Row.X₂ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
 abbrev rot90 : Matrix (Fin 2) (Fin 2) ℚ :=
   !![0, -1; 1, 0]
 
+abbrev Row.r (row : Row) : ℚ :=
+  row.r' / 1000
+
 open scoped Matrix
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
@@ -118,7 +121,7 @@ def testLocalRow : Row := {
   Q1_index := VertexIndex.ofFin90 ⟨79, by lia⟩,
   Q2_index := VertexIndex.ofFin90 ⟨80, by lia⟩,
   Q3_index := VertexIndex.ofFin90 ⟨87, by lia⟩,
-  r := 0, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
+  r' := 0, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
 }
 
 /-- info: true -/
@@ -147,7 +150,7 @@ def testLocalRowReflection : Row := {
   Q1_index := VertexIndex.ofFin90 ⟨19, by lia⟩,
   Q2_index := VertexIndex.ofFin90 ⟨63, by lia⟩,
   Q3_index := VertexIndex.ofFin90 ⟨69, by lia⟩,
-  r := 928, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
+  r' := 928, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
 }
 
 /-- info: true -/

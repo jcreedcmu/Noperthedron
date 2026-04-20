@@ -49,7 +49,7 @@ structure Row : Type where
    Q1_index : VertexIndex
    Q2_index : VertexIndex
    Q3_index : VertexIndex
-   r : ℤ
+   r' : ℤ
    sigma_Q : Finset.Icc 0 1
 
 abbrev Table : Type := Array Row
