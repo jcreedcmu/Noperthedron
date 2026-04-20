@@ -42,13 +42,13 @@ the direction we're projecting ℝ² → ℝ to find that S "sticks out too far"
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
-    (poly : GoodPoly ι) (poly_ : Polyhedron ι ℝ³)
-    (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℚ) (ε : ℝ) : Type where
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
+    (happrox : κApproxPoly poly.vertices poly_.toReal) (p : Pose ℚ) (ε : ℝ) : Type where
   j : ι
   p_in_4 : p ∈ fourInterval ℚ
   w : ℝ²
   w_unit : ‖w‖ = 1
-  exceeds : Gℚ p.toReal ε (poly_.v j) w > maxHℚ p.toReal poly_ ε w
+  exceeds : Gℚ p.toReal ε (poly_.toReal.v j) w > maxHℚ p.toReal poly_.toReal ε w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
@@ -131,8 +131,8 @@ private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
 -/
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (p : Pose ℚ) (ε : ℝ) (hε : 0 ≤ ε)
-    (poly : GoodPoly ι) (poly_ : Polyhedron ι ℝ³)
-    (happrox : κApproxPoly poly.vertices poly_)
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
+    (happrox : κApproxPoly poly.vertices poly_.toReal)
     (_poly_pointsym : PointSym poly.hull)
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p ε) :
     ¬ ∃ q ∈ Metric.closedBall p.toReal ε, RupertPose q poly.hull := by
@@ -143,13 +143,13 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
   let i := happrox.bijection.symm j
   let S_real := poly.vertices.v i
   have hS_in : S_real ∈ Set.range poly.vertices.v := ⟨i, rfl⟩
-  have hS_approx : ‖S_real - poly_.v j‖ ≤ κ := by
-    show ‖poly.vertices.v (happrox.bijection.symm j) - poly_.v j‖ ≤ κ
+  have hS_approx : ‖S_real - poly_.toReal.v j‖ ≤ κ := by
+    show ‖poly.vertices.v (happrox.bijection.symm j) - poly_.toReal.v j‖ ≤ κ
     have := happrox.approx (happrox.bijection.symm j)
     rwa [Equiv.apply_symm_apply] at this
   have hS_norm : ‖S_real‖ ≤ 1 := poly.vertex_radius_le_one i
   -- Step 2: Show maxH_real ≤ maxHℚ
-  have h_maxH_le : GlobalTheorem.maxH pbar poly ε pc.w ≤ maxHℚ pbar poly_ ε pc.w := by
+  have h_maxH_le : GlobalTheorem.maxH pbar poly ε pc.w ≤ maxHℚ pbar poly_.toReal ε pc.w := by
     unfold GlobalTheorem.maxH maxHℚ
     apply Finset.max'_le
     simp only [Function.comp, Finset.mem_image, Finset.mem_univ, true_and]
@@ -157,12 +157,12 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     -- Map vertex k to approximate vertex
     let k' := happrox.bijection k
     have hk_norm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
-    have hk_approx : ‖poly.vertices.v k - poly_.v k'‖ ≤ κ := happrox.approx k
+    have hk_approx : ‖poly.vertices.v k - poly_.toReal.v k'‖ ≤ κ := happrox.approx k
     calc GlobalTheorem.H pbar ε pc.w (poly.vertices.v k)
-      _ ≤ Hℚ pbar ε pc.w (poly_.v k') :=
+      _ ≤ Hℚ pbar ε pc.w (poly_.toReal.v k') :=
           H_le_Hℚ hε hk_norm hk_approx pc.w_unit hp4
       _ ≤ _ := by
-          show (Hℚ pbar ε pc.w ∘ poly_.v) k' ≤ _
+          show (Hℚ pbar ε pc.w ∘ poly_.toReal.v) k' ≤ _
           exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ k'))
   -- Step 3: Build the precondition and apply global_theorem
   exact GlobalTheorem.global_theorem pbar ε hε poly _poly_pointsym {
