@@ -364,19 +364,27 @@ lemma rotM_periodic_φ {θ φ : ℝ} {k : ℤ} :
   · simp [rotM, rotM_mat]
 
 /-- A convex polyhedron, given as a finite indexed set of vertices. -/
-structure Polyhedron (ι : Type) [Fintype ι] where
-  v : ι → ℝ³
+structure Polyhedron (ι X : Type) where
+  v : ι → X
 
-def Polyhedron.hull {ι : Type} [Fintype ι] (poly : Polyhedron ι) : Set ℝ³ :=
+/-- Cast a `Fin 3 → ℚ` to an `ℝ³` point. -/
+noncomputable def toR3 (v : Fin 3 → ℚ) : ℝ³ :=
+  WithLp.toLp 2 (fun i => (v i : ℝ))
+
+noncomputable
+def Polyhedron.toReal {ι : Type} (p : Polyhedron ι (Fin 3 → ℚ)) : Polyhedron ι ℝ³ :=
+  ⟨fun j => toR3 (p.v j)⟩
+
+def Polyhedron.hull {ι : Type} [Fintype ι] (poly : Polyhedron ι ℝ³) : Set ℝ³ :=
   convexHull ℝ { poly.v i | i }
 
 noncomputable
-def Polyhedron.radius {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Polyhedron ι) : ℝ :=
+def Polyhedron.radius {ι X : Type} [Fintype ι] [ne : Nonempty ι] [Norm X] (p : Polyhedron ι X) : ℝ :=
   (Finset.image (fun x ↦ ‖p.v x‖) Finset.univ).max'
     (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty_iff.mpr ne)
 
-theorem Polyhedron.radius_iff {r : ℝ} {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (iv : Polyhedron ι) :
+theorem Polyhedron.radius_iff {r : ℝ} {ι X : Type} [Fintype ι] [ne : Nonempty ι] [Norm X]
+    (iv : Polyhedron ι X) :
     iv.radius = r ↔ (∃ i, ‖iv.v i‖ = r) ∧ ∀ i, ‖iv.v i‖ ≤ r := by
   constructor
   · intro h
@@ -386,7 +394,7 @@ theorem Polyhedron.radius_iff {r : ℝ} {ι : Type} [Fintype ι] [ne : Nonempty 
     simpa [Polyhedron.radius, Finset.max'_eq_iff]
 
 structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] where
-  vertices : Polyhedron ι
+  vertices : Polyhedron ι ℝ³
   nontriv : ∀ i, 0 < ‖vertices.v i‖
   radius_eq_one : vertices.radius = 1
 

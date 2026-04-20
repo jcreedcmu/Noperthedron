@@ -61,7 +61,7 @@ def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
   ‖(A - A').toEuclideanLin.toContinuousLinearMap‖ ≤ κ
 
 structure κApproxPoly {ι₁ ι₂ : Type} [Fintype ι₁] [Fintype ι₂]
-    (A : Polyhedron ι₁) (B : Polyhedron ι₂) where
+    (A : Polyhedron ι₁ ℝ³) (B : Polyhedron ι₂ ℝ³) where
   bijection : ι₁ ≃ ι₂
   approx : ∀ a : ι₁, ‖(A.v a : ℝ³) - B.v (bijection a)‖ ≤ κ
 

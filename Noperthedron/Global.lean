@@ -83,7 +83,8 @@ def H (p : Pose ℝ) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
-def maxH {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose ℝ) (poly : GoodPoly ι) (ε : ℝ) (w : ℝ²) : ℝ :=
+def maxH {ι : Type} [Fintype ι] [ne : Nonempty ι]
+    (p : Pose ℝ) (poly : GoodPoly ι) (ε : ℝ) (w : ℝ²) : ℝ :=
   Finset.image (H p ε w ∘ poly.vertices.v) Finset.univ |>.max' <| by
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
@@ -132,7 +133,8 @@ def imgInner (p : Pose ℝ) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
   V.image fun P => ⟪w, p.inner P⟫
 
 noncomputable
-def maxInner {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose ℝ) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
+def maxInner {ι : Type} [Fintype ι] [ne : Nonempty ι]
+    (p : Pose ℝ) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
   (imgInner p (Finset.image poly.vertices.v Finset.univ) w).max' (by
     simp only [imgInner, Finset.image_nonempty, Finset.univ_nonempty_iff]; exact ne)
 
@@ -141,7 +143,8 @@ def imgOuter (p : Pose ℝ) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
   V.image fun P => ⟪w, p.outer P⟫
 
 noncomputable
-def maxOuter {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose ℝ) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
+def maxOuter {ι : Type} [Fintype ι] [ne : Nonempty ι]
+    (p : Pose ℝ) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
   (imgOuter p (Finset.image poly.vertices.v Finset.univ) w).max' (by
     simp only [imgOuter, Finset.image_nonempty, Finset.univ_nonempty_iff]; exact ne)
 
@@ -199,8 +202,7 @@ It always returns a unit vector.
 -/
 noncomputable
 def GlobalTheoremPrecondition.fu {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
-    {poly : GoodPoly ι}
-    (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ³ → ℝ :=
+    {poly : GoodPoly ι} (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ³ → ℝ :=
   rotproj_inner_unit pc.S pc.w
 
 /--

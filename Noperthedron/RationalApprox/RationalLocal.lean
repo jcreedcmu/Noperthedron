@@ -39,7 +39,7 @@ If we have indices `Pi` for a triangle in `poly`, yield the corresponding
 triangle in `poly_` which κ-approximates it.
 -/
 def transportTri {ι : Type} [Fintype ι]
-    {A : Polyhedron ι} {B : Polyhedron ι}
+    {A : Polyhedron ι ℝ³} {B : Polyhedron ι ℝ³}
     (Pi : Fin 3 → ι)
     (hpoly : κApproxPoly A B) : Triangle :=
   fun i => B.v (hpoly.bijection (Pi i))
@@ -56,7 +56,7 @@ def BoundRℚ (r ε : ℝ) (p : Pose ℝ) (Q_ : Triangle) (sl : LowerSqrt) : Pro
 [SY25] Theorem 48 "The Rational Local Theorem"
 -/
 theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
-    (poly : GoodPoly ι) (poly_ : Polyhedron ι)
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι ℝ³)
     (hpoly : κApproxPoly poly.vertices poly_)
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))

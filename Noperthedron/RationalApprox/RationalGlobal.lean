@@ -30,7 +30,7 @@ A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
 def maxHℚ {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (p : Pose ℝ) (poly : Polyhedron ι) (ε : ℝ) (w : ℝ²) : ℝ :=
+    (p : Pose ℝ) (poly : Polyhedron ι ℝ³) (ε : ℝ) (w : ℝ²) : ℝ :=
   Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ  |>.max' <| by
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
@@ -42,7 +42,7 @@ the direction we're projecting ℝ² → ℝ to find that S "sticks out too far"
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
-    (poly : GoodPoly ι) (poly_ : Polyhedron ι)
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι ℝ³)
     (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℚ) (ε : ℝ) : Type where
   j : ι
   p_in_4 : p ∈ fourInterval ℚ
@@ -131,7 +131,7 @@ private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
 -/
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (p : Pose ℚ) (ε : ℝ) (hε : 0 ≤ ε)
-    (poly : GoodPoly ι) (poly_ : Polyhedron ι)
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι ℝ³)
     (happrox : κApproxPoly poly.vertices poly_)
     (_poly_pointsym : PointSym poly.hull)
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p ε) :
