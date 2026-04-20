@@ -60,7 +60,6 @@ def tightInterval : PoseInterval where
 An interval we need to constrain poses to sometimes for the purposes
 of rational approximation reasoning.
 -/
-noncomputable
 def fourInterval : PoseInterval where
   min := {
     θ₁ := -4

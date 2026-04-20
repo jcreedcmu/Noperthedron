@@ -1,6 +1,7 @@
 import Mathlib.Data.Finset.Max
 
 import Noperthedron.Local.Congruent
+import Noperthedron.RationalApprox.Basic
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Python
@@ -17,6 +18,8 @@ here is computable — no `noncomputable` keyword.
 
 namespace Noperthedron.Solution
 
+abbrev sqrt_twoℚ : ℚ := 142 / 100
+
 abbrev Row.Pi (r : Row) : Fin 3 → VertexIndex :=
   ![r.P1_index, r.P2_index, r.P3_index]
 
@@ -30,6 +33,23 @@ abbrev Row.P (r : Row) : Local.Triangle :=
 noncomputable
 abbrev Row.Q (r : Row) : Local.Triangle :=
   ![exactVertex r.Q1_index, exactVertex r.Q2_index, exactVertex r.Q3_index]
+
+abbrev Row.M₁_ (r : Row) : Matrix (Fin 2) (Fin 3) ℚ :=
+  RationalApprox.rotMℚ_mat r.θ₁ r.φ₁
+
+abbrev Row.M₂_ (r : Row) : Matrix (Fin 2) (Fin 3) ℚ :=
+  RationalApprox.rotMℚ_mat r.θ₂ r.φ₂
+
+abbrev Row.rotRℚ (r : Row) : Matrix (Fin 2) (Fin 2) ℚ :=
+  RationalApprox.rotRℚ_mat r.α
+
+abbrev Row.X₁ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
+  RationalApprox.vecXℚ_mat r.θ₁ r.φ₁
+
+abbrev Row.X₂ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
+  RationalApprox.vecXℚ_mat r.θ₂ r.φ₂
+
+open scoped Matrix
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
 @[mk_iff]
@@ -47,6 +67,11 @@ structure Row.ValidLocal (row : Row) : Prop where
   α_ub : row.α ≤ 4
   exists_symmetry : ∃ s : TriangleSymmetry,
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
+  X₁_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
+                     (row.X₁.transpose *ᵥ (pythonVertex (row.Pi i))) 0
+--  X₂_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
+--                     (-1) ^ row.sigma_Q.val *
+--                       (row.X₂.transpose *ᵥ (pythonVertex (row.Pi i))) 0
   -- ...
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=

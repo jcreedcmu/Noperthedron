@@ -67,29 +67,23 @@ structure κApproxPoly {ι₁ ι₂ : Type} [Fintype ι₁] [Fintype ι₂]
 
 end
 
-noncomputable
 def rotMℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
   !![-sinℚ θ, cosℚ θ, 0; -cosℚ θ * cosℚ φ, -sinℚ θ * cosℚ φ, sinℚ φ]
 
-noncomputable
 def rotMθℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
   !![-cosℚ θ, -sinℚ θ, 0; sinℚ θ * cosℚ φ, -cosℚ θ * cosℚ φ, 0]
 
-noncomputable
 def rotMφℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
   !![0, 0, 0; cosℚ θ * sinℚ φ, sinℚ θ * sinℚ φ, cosℚ φ]
 
-noncomputable
 def rotRℚ_mat {k : Type} [Field k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
   !![cosℚ α, -sinℚ α;
      sinℚ α,  cosℚ α]
 
-noncomputable
 def rotR'ℚ_mat {k : Type} [Field k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
   !![-sinℚ α, -cosℚ α;
      cosℚ α,  -sinℚ α]
 
-noncomputable
 def vecXℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 3) (Fin 1) k :=
   !![ cosℚ θ * sinℚ φ; sinℚ θ * sinℚ φ; cosℚ φ ]
 
