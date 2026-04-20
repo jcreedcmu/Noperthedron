@@ -76,7 +76,7 @@ def computeMaxHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
   let range := Finset.image values Finset.univ
   range.max' (by use values 0; simp_all [range])
 
-abbrev _root_.Noperthedron.Solution.Row.G_gt_maxH (r : Row) : Prop :=
+abbrev Row.G_gt_maxH (r : Row) : Prop :=
   computeGQ r.θ₁ r.φ₁ r.α r.epsilon r.S r.w > computeMaxHQ r.θ₂ r.φ₂ r.epsilon r.w
 
 /-! ## The main checker -/
