@@ -49,6 +49,9 @@ abbrev Row.X₁ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
 abbrev Row.X₂ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
   RationalApprox.vecXℚ_mat r.θ₂ r.φ₂
 
+abbrev rot90 : Matrix (Fin 2) (Fin 2) ℚ :=
+  !![0, -1; 1, 0]
+
 open scoped Matrix
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
@@ -72,6 +75,14 @@ structure Row.ValidLocal (row : Row) : Prop where
   X₂_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
                      (-1) ^ row.sigma_Q.val *
                        (row.X₂.transpose *ᵥ (pythonVertex (row.Qi i))) 0
+  P_spanning : ∀ i : Fin 3,
+    2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
+    (rot90 *ᵥ (row.M₁_ *ᵥ (pythonVertex (row.Pi i)))) ⬝ᵥ
+      (row.M₁_ *ᵥ (pythonVertex ((row.Pi (i + 1)))))
+  Q_spanning : ∀ i : Fin 3,
+    2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
+    (rot90 *ᵥ (row.M₂_ *ᵥ (pythonVertex (row.Qi i)))) ⬝ᵥ
+      (row.M₂_ *ᵥ (pythonVertex ((row.Qi (i + 1)))))
   -- ...
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
