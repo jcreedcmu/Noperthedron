@@ -58,7 +58,6 @@ def computeGQ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) 
   let inner := (applyR α m1S) ⬝ᵥ w
   let t1 := |(applyR' α m1S) ⬝ᵥ w|
   let t2 := |(applyR α (applyMθ θ₁ φ₁ S)) ⬝ᵥ w|
-
   let t3 := |(applyR α (applyMφ θ₁ φ₁ S)) ⬝ᵥ w|
   inner - ε * (t1 + t2 + t3) - 9 * ε ^ 2 / 2 - 4 * κQ * (1 + 3 * ε)
 
