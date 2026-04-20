@@ -110,6 +110,7 @@ lemma norm_diff_bound_6kappa
     (clm_approx_apply_sub₂ hMdiff hMℚnorm hPQ_norm hPQ_approx).trans (by unfold κ; norm_num)
   linarith [norm_le_insert' ((rotM ↑θ ↑φ) (P - Q)) ((rotMℚ ↑θ ↑φ) (P_ - Q_))]
 
+/-- [SY25] Corollary 51 -/
 lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ κ)
     (ε : ℝ) (hε : 0 < ε) (s : UpperSqrt)
     (hA_nonneg : 0 ≤ ⟪rotM θ φ P, rotM θ φ (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)) :
