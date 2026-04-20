@@ -15,7 +15,7 @@ A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
 def Gℚ (p : Pose ℝ) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
-  ⟪p.innerℚ S, w⟫ - (ε * (|⟪p.rotR'ℚ (p.rotM₁ℚ S), w⟫| + |⟪p.rotRℚ (p.rotM₁θℚ S), w⟫| + |⟪p.rotRℚ (p.rotM₁φℚ S), w⟫|)
+  ⟪p.innerℚℝ S, w⟫ - (ε * (|⟪p.rotR'ℚℝ (p.rotM₁ℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁θℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁φℚℝ S), w⟫|)
   + 9 * ε^2 / 2 + 4 * κ * (1 + 3 * ε))
 
 /--
@@ -23,7 +23,7 @@ A measure of how far an outer-shadow vertex P can "reach" along w.
 -/
 noncomputable
 def Hℚ (p : Pose ℝ) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
-  ⟪p.rotM₂ℚ P, w⟫ + ε * (|⟪p.rotM₂θℚ P, w⟫| + |⟪p.rotM₂φℚ P, w⟫|) + 2 * ε^2 + 3 * κ * (1 + 2 * ε)
+  ⟪p.rotM₂ℚℝ P, w⟫ + ε * (|⟪p.rotM₂θℚℝ P, w⟫| + |⟪p.rotM₂φℚℝ P, w⟫|) + 2 * ε^2 + 3 * κ * (1 + 2 * ε)
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
@@ -65,31 +65,31 @@ private lemma Gℚ_le_G {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
   set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₁, hp.φ₁Bound⟩
   set α_ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.α, hp.αBound⟩
   -- inner ≈ innerℚ with 4κ bound
-  have h_inner : ‖⟪pbar.rotR (pbar.rotM₁ S), w⟫ - ⟪pbar.rotRℚ (pbar.rotM₁ℚ S_), w⟫‖ ≤ 4 * κ := by
-    show ‖⟪rotR ↑α_ (rotM ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚ ↑α_ (rotMℚ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
+  have h_inner : ‖⟪pbar.rotR (pbar.rotM₁ S), w⟫ - ⟪pbar.rotRℚℝ (pbar.rotM₁ℚℝ S_), w⟫‖ ≤ 4 * κ := by
+    show ‖⟪rotR ↑α_ (rotM ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚℝ ↑α_ (rotMℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
     exact bounds_kappa_RM hS hS_approx hw
   -- The inner is ⟪pbar.inner S, w⟫ = ⟪pbar.rotR (pbar.rotM₁ S), w⟫
   have h_inner_eq : ⟪(pbar.inner S : ℝ²), w⟫ = ⟪pbar.rotR (pbar.rotM₁ S), w⟫ := by
     simp [Pose.inner_eq_RM pbar]
   -- innerℚ = rotRℚ ∘ rotM₁ℚ
-  have h_innerQ_eq : ⟪pbar.innerℚ S_, w⟫ = ⟪pbar.rotRℚ (pbar.rotM₁ℚ S_), w⟫ := by
-    simp [Pose.innerℚ, ContinuousLinearMap.comp_apply]
+  have h_innerQ_eq : ⟪pbar.innerℚℝ S_, w⟫ = ⟪pbar.rotRℚℝ (pbar.rotM₁ℚℝ S_), w⟫ := by
+    simp [Pose.innerℚℝ, ContinuousLinearMap.comp_apply]
   -- R'M bound
-  have h_R'M : ‖⟪pbar.rotR' (pbar.rotM₁ S), w⟫ - ⟪pbar.rotR'ℚ (pbar.rotM₁ℚ S_), w⟫‖ ≤ 4 * κ := by
-    show ‖⟪rotR' ↑α_ (rotM ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotR'ℚ ↑α_ (rotMℚ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
+  have h_R'M : ‖⟪pbar.rotR' (pbar.rotM₁ S), w⟫ - ⟪pbar.rotR'ℚℝ (pbar.rotM₁ℚℝ S_), w⟫‖ ≤ 4 * κ := by
+    show ‖⟪rotR' ↑α_ (rotM ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotR'ℚℝ ↑α_ (rotMℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
     exact bounds_kappa_R'M hS hS_approx hw
   -- RMθ bound
-  have h_RMθ : ‖⟪pbar.rotR (pbar.rotM₁θ S), w⟫ - ⟪pbar.rotRℚ (pbar.rotM₁θℚ S_), w⟫‖ ≤ 4 * κ := by
-    show ‖⟪rotR ↑α_ (rotMθ ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚ ↑α_ (rotMθℚ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
+  have h_RMθ : ‖⟪pbar.rotR (pbar.rotM₁θ S), w⟫ - ⟪pbar.rotRℚℝ (pbar.rotM₁θℚℝ S_), w⟫‖ ≤ 4 * κ := by
+    show ‖⟪rotR ↑α_ (rotMθ ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚℝ ↑α_ (rotMθℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
     exact bounds_kappa_RMθ hS hS_approx hw
   -- RMφ bound
-  have h_RMφ : ‖⟪pbar.rotR (pbar.rotM₁φ S), w⟫ - ⟪pbar.rotRℚ (pbar.rotM₁φℚ S_), w⟫‖ ≤ 4 * κ := by
-    show ‖⟪rotR ↑α_ (rotMφ ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚ ↑α_ (rotMφℚ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
+  have h_RMφ : ‖⟪pbar.rotR (pbar.rotM₁φ S), w⟫ - ⟪pbar.rotRℚℝ (pbar.rotM₁φℚℝ S_), w⟫‖ ≤ 4 * κ := by
+    show ‖⟪rotR ↑α_ (rotMφ ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚℝ ↑α_ (rotMφℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
     exact bounds_kappa_RMφ hS hS_approx hw
   -- Now combine: Gℚ ≤ G
   rw [h_inner_eq, h_innerQ_eq]
   -- inner bound: real ≥ rational - 4κ
-  have hi_le : ⟪pbar.rotRℚ (pbar.rotM₁ℚ S_), w⟫ ≤ ⟪pbar.rotR (pbar.rotM₁ S), w⟫ + 4 * κ := by
+  have hi_le : ⟪pbar.rotRℚℝ (pbar.rotM₁ℚℝ S_), w⟫ ≤ ⟪pbar.rotR (pbar.rotM₁ S), w⟫ + 4 * κ := by
     have := (Real.norm_eq_abs _).symm ▸ h_inner; rw [abs_le] at this; linarith [this.1]
   -- |abs_real| ≤ |abs_rational| + 4κ for the three ε-coefficient terms
   have hR'_abs := abs_le_abs_add_of_norm_sub_le h_R'M
@@ -106,20 +106,20 @@ private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
   set θ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₂, hp.θ₂Bound⟩
   set φ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₂, hp.φ₂Bound⟩
   -- M bound
-  have h_M : ‖⟪pbar.rotM₂ P, w⟫ - ⟪pbar.rotM₂ℚ P_, w⟫‖ ≤ 3 * κ := by
-    show ‖⟪rotM ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMℚ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
+  have h_M : ‖⟪pbar.rotM₂ P, w⟫ - ⟪pbar.rotM₂ℚℝ P_, w⟫‖ ≤ 3 * κ := by
+    show ‖⟪rotM ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMℚℝ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
     exact bounds_kappa_M hP hP_approx hw
   -- Mθ bound
-  have h_Mθ : ‖⟪pbar.rotM₂θ P, w⟫ - ⟪pbar.rotM₂θℚ P_, w⟫‖ ≤ 3 * κ := by
-    show ‖⟪rotMθ ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMθℚ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
+  have h_Mθ : ‖⟪pbar.rotM₂θ P, w⟫ - ⟪pbar.rotM₂θℚℝ P_, w⟫‖ ≤ 3 * κ := by
+    show ‖⟪rotMθ ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMθℚℝ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
     exact bounds_kappa_Mθ hP hP_approx hw
   -- Mφ bound
-  have h_Mφ : ‖⟪pbar.rotM₂φ P, w⟫ - ⟪pbar.rotM₂φℚ P_, w⟫‖ ≤ 3 * κ := by
-    show ‖⟪rotMφ ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMφℚ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
+  have h_Mφ : ‖⟪pbar.rotM₂φ P, w⟫ - ⟪pbar.rotM₂φℚℝ P_, w⟫‖ ≤ 3 * κ := by
+    show ‖⟪rotMφ ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMφℚℝ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
     exact bounds_kappa_Mφ hP hP_approx hw
   -- Combine: H ≤ Hℚ
   -- Extract scalar bounds from norm bounds
-  have hm_le : ⟪pbar.rotM₂ P, w⟫ ≤ ⟪pbar.rotM₂ℚ P_, w⟫ + 3 * κ := by
+  have hm_le : ⟪pbar.rotM₂ P, w⟫ ≤ ⟪pbar.rotM₂ℚℝ P_, w⟫ + 3 * κ := by
     have := (Real.norm_eq_abs _).symm ▸ h_M; rw [abs_le] at this; linarith [this.2]
   -- Absolute value bounds: |real| ≤ |rational| + 3κ
   have hθ_abs := abs_le_abs_add_of_norm_sub_le h_Mθ

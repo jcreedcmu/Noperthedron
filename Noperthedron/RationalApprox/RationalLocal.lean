@@ -19,8 +19,8 @@ def Aεℚ (X : ℝ³) (P_ : Triangle) (ε : ℝ) : Prop :=
 
 noncomputable
 def Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) (su : UpperSqrt) : ℝ :=
-   (⟪p.rotM₂ℚ v₁, p.rotM₂ℚ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (su.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
-   / ((su.norm (p.rotM₂ℚ v₁) + √2 * ε + 3 * κ) * (su.norm (p.rotM₂ℚ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
+   (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (su.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
+   / ((su.norm (p.rotM₂ℚℝ v₁) + √2 * ε + 3 * κ) * (su.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
 
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
@@ -46,11 +46,11 @@ def transportTri {ι : Type} [Fintype ι]
 
 /-- The condition on δ -/
 def BoundDeltaℚ (δ : ℝ) (p : Pose ℝ) (P_ Q_ : Triangle) (su : UpperSqrt) : Prop :=
-  ∀ i : Fin 3, δ ≥ su.norm (p.rotR (p.rotM₁ℚ (P_ i)) - p.rotM₂ℚ (Q_ i))/2 + 3 * κ
+  ∀ i : Fin 3, δ ≥ su.norm (p.rotR (p.rotM₁ℚℝ (P_ i)) - p.rotM₂ℚℝ (Q_ i))/2 + 3 * κ
 
 /-- The condition on r -/
 def BoundRℚ (r ε : ℝ) (p : Pose ℝ) (Q_ : Triangle) (sl : LowerSqrt) : Prop :=
-  ∀ i : Fin 3, sl.norm (p.rotM₂ℚ (Q_ i)) > r + √2 * ε + 3 * κ
+  ∀ i : Fin 3, sl.norm (p.rotM₂ℚℝ (Q_ i)) > r + √2 * ε + 3 * κ
 
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"
@@ -65,8 +65,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (su : UpperSqrt) (sl : LowerSqrt)
     (hr₁ : BoundRℚ r ε p_.toReal (transportTri Qi hpoly) sl)
     (hδ : BoundDeltaℚ δ p_.toReal (transportTri Pi hpoly) (transportTri Qi hpoly) su)
-    (ae₁ : (transportTri Pi hpoly).Aεℚ p_.toReal.vecX₁ℚ ε)
-    (ae₂ : (transportTri Qi hpoly).Aεℚ p_.toReal.vecX₂ℚ ε)
+    (ae₁ : (transportTri Pi hpoly).Aεℚ p_.toReal.vecX₁ℚℝ ε)
+    (ae₂ : (transportTri Qi hpoly).Aεℚ p_.toReal.vecX₂ℚℝ ε)
     (span₁ : (transportTri Pi hpoly).κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
     (span₂ : (transportTri Qi hpoly).κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
     (be : (transportTri Qi hpoly).Bεℚ Qi
@@ -104,40 +104,40 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
   have ae₁' : P.Aε p_.vecX₁ ε := by
     obtain ⟨σ, hσ₁, hσ₂⟩ := ae₁
     refine ⟨σ, hσ₁, fun i => ?_⟩
-    have hX : ‖⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚ ↑θ₁ ↑φ₁, P_ i⟫‖ ≤ 3 * κ :=
+    have hX : ‖⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫‖ ≤ 3 * κ :=
       bounds_kappa3_X (θ := θ₁) (φ := φ₁) (hPnorm i) (hPapprox i)
     change (-1) ^ σ * ⟪vecX ↑θ₁ ↑φ₁, P i⟫ > √2 * ε
-    have hσ₂i : (-1) ^ σ * ⟪vecXℚ ↑θ₁ ↑φ₁, P_ i⟫ > √2 * ε + 3 * κ := hσ₂ i
+    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫ > √2 * ε + 3 * κ := hσ₂ i
     rw [Real.norm_eq_abs] at hX
     have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_zpow σ
-    have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚ ↑θ₁ ↑φ₁, P_ i⟫)| ≤ 3 * κ := by
+    have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫)| ≤ 3 * κ := by
       rw [abs_mul, habs, one_mul]; exact hX
     rw [abs_le] at hdiff
-    linarith [hdiff.1, mul_sub ((-1 : ℝ) ^ σ) ⟪vecX ↑θ₁ ↑φ₁, P i⟫ ⟪vecXℚ ↑θ₁ ↑φ₁, P_ i⟫]
+    linarith [hdiff.1, mul_sub ((-1 : ℝ) ^ σ) ⟪vecX ↑θ₁ ↑φ₁, P i⟫ ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫]
   have ae₂' : Q.Aε p_.vecX₂ ε := by
     obtain ⟨σ, hσ₁, hσ₂⟩ := ae₂
     refine ⟨σ, hσ₁, fun i => ?_⟩
-    have hX : ‖⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚ ↑θ₂ ↑φ₂, Q_ i⟫‖ ≤ 3 * κ :=
+    have hX : ‖⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫‖ ≤ 3 * κ :=
       bounds_kappa3_X (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
     change (-1) ^ σ * ⟪vecX ↑θ₂ ↑φ₂, Q i⟫ > √2 * ε
-    have hσ₂i : (-1) ^ σ * ⟪vecXℚ ↑θ₂ ↑φ₂, Q_ i⟫ > √2 * ε + 3 * κ := hσ₂ i
+    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫ > √2 * ε + 3 * κ := hσ₂ i
     rw [Real.norm_eq_abs] at hX
     have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_zpow σ
-    have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚ ↑θ₂ ↑φ₂, Q_ i⟫)| ≤ 3 * κ := by
+    have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫)| ≤ 3 * κ := by
       rw [abs_mul, habs, one_mul]; exact hX
     rw [abs_le] at hdiff
-    linarith [hdiff.1, mul_sub ((-1 : ℝ) ^ σ) ⟪vecX ↑θ₂ ↑φ₂, Q i⟫ ⟪vecXℚ ↑θ₂ ↑φ₂, Q_ i⟫]
+    linarith [hdiff.1, mul_sub ((-1 : ℝ) ^ σ) ⟪vecX ↑θ₂ ↑φ₂, Q i⟫ ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫]
   -- Bridge: BoundRℚ → BoundR
   have hr₁' : Local.BoundR r ε p_ Q := by
     intro i
-    have hsl : sl.norm ((rotMℚ ↑θ₂ ↑φ₂) (Q_ i)) ≤ ‖(rotMℚ ↑θ₂ ↑φ₂) (Q_ i)‖ := by
-      show sl.f _ ≤ _; calc sl.f (‖(rotMℚ ↑θ₂ ↑φ₂) (Q_ i)‖ ^ 2)
-        _ ≤ √(‖(rotMℚ ↑θ₂ ↑φ₂) (Q_ i)‖ ^ 2) := sl.bound _ (sq_nonneg _)
-        _ = ‖(rotMℚ ↑θ₂ ↑φ₂) (Q_ i)‖ := Real.sqrt_sq (norm_nonneg _)
-    have hMQ : |(‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ - ‖(rotMℚ ↑θ₂ ↑φ₂) (Q_ i)‖)| ≤ 3 * κ :=
+    have hsl : sl.norm ((rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)) ≤ ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := by
+      show sl.f _ ≤ _; calc sl.f (‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ ^ 2)
+        _ ≤ √(‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ ^ 2) := sl.bound _ (sq_nonneg _)
+        _ = ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := Real.sqrt_sq (norm_nonneg _)
+    have hMQ : |(‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ - ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖)| ≤ 3 * κ :=
       bounds_kappa3_MQ (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
     show ‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ > r + √2 * ε
-    have hr₁i : sl.norm ((rotMℚ ↑θ₂ ↑φ₂) (Q_ i)) > r + √2 * ε + 3 * κ := hr₁ i
+    have hr₁i : sl.norm ((rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)) > r + √2 * ε + 3 * κ := hr₁ i
     rw [abs_le] at hMQ
     linarith [hMQ.1]
   -- Bridge: BoundDeltaℚ → BoundDelta
@@ -145,46 +145,46 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     intro i
     have := hδ i
     -- su.norm ≥ ‖·‖
-    have hsu : ‖p_.rotR (p_.rotM₁ℚ (P_ i)) - p_.rotM₂ℚ (Q_ i)‖ ≤
-        su.norm (p_.rotR (p_.rotM₁ℚ (P_ i)) - p_.rotM₂ℚ (Q_ i)) := by
+    have hsu : ‖p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i)‖ ≤
+        su.norm (p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i)) := by
       exact UpperSqrt_norm_le su _
     -- ‖real - rational‖ ≤ 6κ
-    have hM₁diff : ‖rotM (↑θ₁ : ℝ) ↑φ₁ - rotMℚ ↑θ₁ ↑φ₁‖ ≤ κ :=
+    have hM₁diff : ‖rotM (↑θ₁ : ℝ) ↑φ₁ - rotMℚℝ ↑θ₁ ↑φ₁‖ ≤ κ :=
       M_difference_norm_bounded _ _ θ₁.property φ₁.property
-    have hM₁ℚnorm : ‖rotMℚ (↑θ₁ : ℝ) ↑φ₁‖ ≤ 1 + κ :=
+    have hM₁ℚnorm : ‖rotMℚℝ (↑θ₁ : ℝ) ↑φ₁‖ ≤ 1 + κ :=
       Mℚ_norm_bounded θ₁.property φ₁.property
-    have hM₂diff : ‖rotM (↑θ₂ : ℝ) ↑φ₂ - rotMℚ ↑θ₂ ↑φ₂‖ ≤ κ :=
+    have hM₂diff : ‖rotM (↑θ₂ : ℝ) ↑φ₂ - rotMℚℝ ↑θ₂ ↑φ₂‖ ≤ κ :=
       M_difference_norm_bounded _ _ θ₂.property φ₂.property
-    have hM₂ℚnorm : ‖rotMℚ (↑θ₂ : ℝ) ↑φ₂‖ ≤ 1 + κ :=
+    have hM₂ℚnorm : ‖rotMℚℝ (↑θ₂ : ℝ) ↑φ₂‖ ≤ 1 + κ :=
       Mℚ_norm_bounded θ₂.property φ₂.property
-    have h₁ : ‖(rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚ ↑θ₁ ↑φ₁) (P_ i)‖ ≤ 2 * κ + κ ^ 2 :=
+    have h₁ : ‖(rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚℝ ↑θ₁ ↑φ₁) (P_ i)‖ ≤ 2 * κ + κ ^ 2 :=
       clm_approx_apply_sub hM₁diff hM₁ℚnorm (hPnorm i) (hPapprox i)
-    have h₂ : ‖(rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚ ↑θ₂ ↑φ₂) (Q_ i)‖ ≤ 2 * κ + κ ^ 2 :=
+    have h₂ : ‖(rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ ≤ 2 * κ + κ ^ 2 :=
       clm_approx_apply_sub hM₂diff hM₂ℚnorm (hQnorm i) (hQapprox i)
     have hdiff : ‖(p_.rotR (p_.rotM₁ (P i)) - p_.rotM₂ (Q i)) -
-        (p_.rotR (p_.rotM₁ℚ (P_ i)) - p_.rotM₂ℚ (Q_ i))‖ ≤ 4 * κ + 2 * κ ^ 2 := by
+        (p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i))‖ ≤ 4 * κ + 2 * κ ^ 2 := by
       show ‖(rotR p_.α ((rotM ↑θ₁ ↑φ₁) (P i)) - (rotM ↑θ₂ ↑φ₂) (Q i)) -
-            (rotR p_.α ((rotMℚ ↑θ₁ ↑φ₁) (P_ i)) - (rotMℚ ↑θ₂ ↑φ₂) (Q_ i))‖ ≤ _
+            (rotR p_.α ((rotMℚℝ ↑θ₁ ↑φ₁) (P_ i)) - (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i))‖ ≤ _
       have hrw : rotR p_.α ((rotM ↑θ₁ ↑φ₁) (P i)) - (rotM ↑θ₂ ↑φ₂) (Q i) -
-            (rotR p_.α ((rotMℚ ↑θ₁ ↑φ₁) (P_ i)) - (rotMℚ ↑θ₂ ↑φ₂) (Q_ i)) =
-            rotR p_.α ((rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚ ↑θ₁ ↑φ₁) (P_ i)) -
-            ((rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚ ↑θ₂ ↑φ₂) (Q_ i)) := by
+            (rotR p_.α ((rotMℚℝ ↑θ₁ ↑φ₁) (P_ i)) - (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)) =
+            rotR p_.α ((rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚℝ ↑θ₁ ↑φ₁) (P_ i)) -
+            ((rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)) := by
         simp [map_sub]; abel
       rw [hrw]
-      calc ‖rotR p_.α ((rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚ ↑θ₁ ↑φ₁) (P_ i)) -
-              ((rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚ ↑θ₂ ↑φ₂) (Q_ i))‖
-        _ ≤ ‖rotR p_.α ((rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚ ↑θ₁ ↑φ₁) (P_ i))‖ +
-            ‖(rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚ ↑θ₂ ↑φ₂) (Q_ i)‖ := norm_sub_le _ _
-        _ = ‖(rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚ ↑θ₁ ↑φ₁) (P_ i)‖ +
-            ‖(rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚ ↑θ₂ ↑φ₂) (Q_ i)‖ := by
+      calc ‖rotR p_.α ((rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚℝ ↑θ₁ ↑φ₁) (P_ i)) -
+              ((rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i))‖
+        _ ≤ ‖rotR p_.α ((rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚℝ ↑θ₁ ↑φ₁) (P_ i))‖ +
+            ‖(rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := norm_sub_le _ _
+        _ = ‖(rotM ↑θ₁ ↑φ₁) (P i) - (rotMℚℝ ↑θ₁ ↑φ₁) (P_ i)‖ +
+            ‖(rotM ↑θ₂ ↑φ₂) (Q i) - (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := by
           rw [Bounding.rotR_preserves_norm]
         _ ≤ (2 * κ + κ ^ 2) + (2 * κ + κ ^ 2) := add_le_add h₁ h₂
         _ = 4 * κ + 2 * κ ^ 2 := by ring
     show δ ≥ ‖p_.rotR (p_.rotM₁ (P i)) - p_.rotM₂ (Q i)‖ / 2
     have hnorm_le : ‖p_.rotR (p_.rotM₁ (P i)) - p_.rotM₂ (Q i)‖ ≤
-        ‖p_.rotR (p_.rotM₁ℚ (P_ i)) - p_.rotM₂ℚ (Q_ i)‖ + (4 * κ + 2 * κ ^ 2) := by
+        ‖p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i)‖ + (4 * κ + 2 * κ ^ 2) := by
       linarith [norm_le_insert' (p_.rotR (p_.rotM₁ (P i)) - p_.rotM₂ (Q i))
-        (p_.rotR (p_.rotM₁ℚ (P_ i)) - p_.rotM₂ℚ (Q_ i))]
+        (p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i))]
     have h6k : 4 * κ + 2 * κ ^ 2 ≤ 6 * κ := by unfold κ; norm_num
     linarith [hsu]
   -- Bridge: Bεℚ → Bε
@@ -202,24 +202,24 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
     have hsu_ge : su.norm (Q_ i - v_) ≥ ‖Q_ i - v_‖ := UpperSqrt_norm_le su _
     -- Denominator positivity (su.norm ≥ ‖·‖ ≥ 0, and √2*ε + 3κ > 0)
-    have hden_pos : 0 < (su.norm (p_.rotM₂ℚ (Q_ i)) + √2 * ε + 3 * κ) *
-        (su.norm (p_.rotM₂ℚ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ) := by
-      have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚ (Q_ i))) (UpperSqrt_norm_le su _)
-      have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚ (Q_ i - v_))) (UpperSqrt_norm_le su _)
+    have hden_pos : 0 < (su.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
+        (su.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ) := by
+      have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i))) (UpperSqrt_norm_le su _)
+      have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i - v_))) (UpperSqrt_norm_le su _)
       positivity
     -- Extract positivity of Bεℚ numerator
-    have hBεℚ_num_pos : 0 < ⟪p_.rotM₂ℚ (Q_ i), p_.rotM₂ℚ (Q_ i - v_)⟫ - 10 * κ -
+    have hBεℚ_num_pos : 0 < ⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
         2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
       have hδ_pos : 0 < δ := by
         have := hδ 0
         linarith [le_trans (norm_nonneg _)
-          (UpperSqrt_norm_le su (p_.rotR (p_.rotM₁ℚ (P_ 0)) - p_.rotM₂ℚ (Q_ 0)))]
+          (UpperSqrt_norm_le su (p_.rotR (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0)))]
       have h0 : 0 < (δ + √5 * ε) / r := by positivity
       exact (div_pos_iff_of_pos_right hden_pos).mp (h0.trans hbe)
     -- su.norm ≥ ‖·‖ means numBεℚ ≤ numAℚ (subtracted term is bigger with su.norm)
-    have hAℚ_num_pos : 0 < ⟪(rotMℚ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ -
+    have hAℚ_num_pos : 0 < ⟪(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ -
         2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) := by
-      show 0 < ⟪p_.rotM₂ℚ (Q_ i), p_.rotM₂ℚ (Q_ i - v_)⟫ - 10 * κ -
+      show 0 < ⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
           2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε)
       have h_sub_le : 2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
           2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
@@ -238,7 +238,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
       _ ≤ κ + κ := add_le_add (hQapprox i) hvapprox
       _ = 2 * κ := by ring
     have h_inner_10 : |⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - poly.vertices.v k)⟫ -
-        ⟪(rotMℚ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫| ≤ 10 * κ :=
+        ⟪(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫| ≤ 10 * κ :=
       inner_product_bound_10kappa (θ := θ₂) (φ := φ₂) (hQnorm i) hQv_norm (hQapprox i) hQv_approx
     have h_norm_QR : ‖Q i - poly.vertices.v k‖ ≤ ‖Q_ i - v_‖ + 2 * κ :=
       calc ‖Q i - poly.vertices.v k‖
@@ -246,7 +246,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
         _ ≤ ‖Q_ i - v_‖ + 2 * κ := by grw [hQv_approx]
     have hA_nonneg : 0 ≤ ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - poly.vertices.v k)⟫ -
         2 * ε * ‖Q i - poly.vertices.v k‖ * (√2 + ε) := by
-      have h_inner_le : ⟪(rotMℚ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ ≤
+      have h_inner_le : ⟪(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ ≤
           ⟪(rotM ↑θ₂ ↑φ₂) (Q i), (rotM ↑θ₂ ↑φ₂) (Q i - poly.vertices.v k)⟫ :=
         sub_le_of_abs_sub_le_left h_inner_10
       have h_eps_term : 2 * ε * ‖Q i - poly.vertices.v k‖ * (√2 + ε) ≤
@@ -263,14 +263,14 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hBεℚ_le : Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε su ≤
         bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su := by
       -- Express both sides using p_.rotM₂ℚ (which is def. equal to rotMℚ ↑θ₂ ↑φ₂)
-      show (⟪p_.rotM₂ℚ (Q_ i), p_.rotM₂ℚ (Q_ i - v_)⟫ - 10 * κ -
+      show (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
             2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε)) /
-          ((su.norm (p_.rotM₂ℚ (Q_ i)) + √2 * ε + 3 * κ) *
-            (su.norm (p_.rotM₂ℚ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ)) ≤
-          (⟪p_.rotM₂ℚ (Q_ i), p_.rotM₂ℚ (Q_ i - v_)⟫ - 10 * κ -
+          ((su.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
+            (su.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ)) ≤
+          (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
             2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε)) /
-          ((su.norm (p_.rotM₂ℚ (Q_ i)) + √2 * ε + 3 * κ) *
-            (su.norm (p_.rotM₂ℚ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ))
+          ((su.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
+            (su.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ))
       apply div_le_div_of_nonneg_right _ (le_of_lt hden_pos)
       have h_sub_le : 2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
           2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
