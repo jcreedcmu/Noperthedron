@@ -119,18 +119,4 @@ noncomputable def toR3 (v : Fin 3 → ℚ) : ℝ³ :=
   WithLp.toLp 2 (fun i => (v i : ℝ))
 
 noncomputable
-def pythonPoly : ApproxGoodPoly VertexIndex := {
-  vertices := ⟨toR3 ∘ pythonVertex⟩,
-  nontriv := by
-    intro j
-    rw [norm_pos_iff]
-    simp only [Function.comp_apply, ne_eq, toR3, WithLp.toLp_eq_zero]
-    suffices H : ¬(fun i ↦ pythonVertex j i) = 0 by
-      rw [funext_iff] at *
-      dsimp at *
-      contrapose! H
-      intro x
-      specialize H x
-      norm_cast at H
-    fin_cases j <;> decide +kernel
-}
+def pythonPoly : Polyhedron VertexIndex := ⟨toR3 ∘ pythonVertex⟩

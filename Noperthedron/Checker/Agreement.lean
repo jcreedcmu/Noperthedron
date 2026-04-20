@@ -225,14 +225,14 @@ theorem computeMaxHQ_eq_maxHℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ)
     maxHℚ p pythonPoly (ε : ℝ) (WithLp.toLp 2 (castℝ w)) := by
   have h_pointwise : ∀ j : VertexIndex,
       ((computeHQ θ₂ φ₂ ε w (pythonVertex j) : ℚ) : ℝ) =
-      Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) (pythonPoly.vertices.v j) := by
+      Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) (pythonPoly.v j) := by
     intro j
     rw [computeHQ_eq_Hℚ θ₂ φ₂ ε w (pythonVertex j) p hθ₂ hφ₂]
     rfl
   have h_image_eq :
       Finset.image (fun q : ℚ => (q : ℝ))
         (Finset.image (computeHQ θ₂ φ₂ ε w ∘ pythonVertex) Finset.univ) =
-      Finset.image (Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) ∘ pythonPoly.vertices.v)
+      Finset.image (Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) ∘ pythonPoly.v)
         Finset.univ := by
     rw [Finset.image_image]
     apply Finset.image_congr

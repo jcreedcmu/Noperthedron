@@ -385,11 +385,9 @@ theorem Polyhedron.radius_iff {r : ℝ} {ι : Type} [Fintype ι] [ne : Nonempty 
   · intro h
     simpa [Polyhedron.radius, Finset.max'_eq_iff]
 
-structure ApproxGoodPoly (ι : Type) [Fintype ι] [Nonempty ι] : Type where
+structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] where
   vertices : Polyhedron ι
   nontriv : ∀ i, 0 < ‖vertices.v i‖
-
-structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] extends ApproxGoodPoly ι where
   radius_eq_one : vertices.radius = 1
 
 def GoodPoly.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) : Set ℝ³ :=

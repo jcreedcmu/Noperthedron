@@ -30,8 +30,8 @@ A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
 def maxHℚ {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (p : Pose) (poly : ApproxGoodPoly ι) (ε : ℝ) (w : ℝ²) : ℝ :=
-  Finset.image (Hℚ p ε w ∘ poly.vertices.v) Finset.univ  |>.max' <| by
+    (p : Pose) (poly : Polyhedron ι) (ε : ℝ) (w : ℝ²) : ℝ :=
+  Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ  |>.max' <| by
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
 
@@ -42,13 +42,13 @@ the direction we're projecting ℝ² → ℝ to find that S "sticks out too far"
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
-    (poly : GoodPoly ι) (poly_ : ApproxGoodPoly ι)
-    (happrox : κApproxPoly poly.vertices poly_.vertices) (p : Pose) (ε : ℝ) : Type where
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι)
+    (happrox : κApproxPoly poly.vertices poly_) (p : Pose) (ε : ℝ) : Type where
   j : ι
   p_in_4 : fourInterval.contains p
   w : ℝ²
   w_unit : ‖w‖ = 1
-  exceeds : Gℚ p ε (poly_.vertices.v j) w > maxHℚ p poly_ ε w
+  exceeds : Gℚ p ε (poly_.v j) w > maxHℚ p poly_ ε w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
@@ -131,8 +131,8 @@ private lemma H_le_Hℚ {pbar : Pose} {ε : ℝ} (hε : 0 ≤ ε)
 -/
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
-    (poly : GoodPoly ι) (poly_ : ApproxGoodPoly ι)
-    (happrox : κApproxPoly poly.vertices poly_.vertices)
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι)
+    (happrox : κApproxPoly poly.vertices poly_)
     (_poly_pointsym : PointSym poly.hull)
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox pbar ε) :
     ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p poly.hull := by
@@ -141,8 +141,8 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
   let i := happrox.bijection.symm j
   let S_real := poly.vertices.v i
   have hS_in : S_real ∈ Set.range poly.vertices.v := ⟨i, rfl⟩
-  have hS_approx : ‖S_real - poly_.vertices.v j‖ ≤ κ := by
-    show ‖poly.vertices.v (happrox.bijection.symm j) - poly_.vertices.v j‖ ≤ κ
+  have hS_approx : ‖S_real - poly_.v j‖ ≤ κ := by
+    show ‖poly.vertices.v (happrox.bijection.symm j) - poly_.v j‖ ≤ κ
     have := happrox.approx (happrox.bijection.symm j)
     rwa [Equiv.apply_symm_apply] at this
   have hS_norm : ‖S_real‖ ≤ 1 := poly.vertex_radius_le_one i
@@ -155,12 +155,12 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     -- Map vertex k to approximate vertex
     let k' := happrox.bijection k
     have hk_norm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
-    have hk_approx : ‖poly.vertices.v k - poly_.vertices.v k'‖ ≤ κ := happrox.approx k
+    have hk_approx : ‖poly.vertices.v k - poly_.v k'‖ ≤ κ := happrox.approx k
     calc GlobalTheorem.H pbar ε pc.w (poly.vertices.v k)
-      _ ≤ Hℚ pbar ε pc.w (poly_.vertices.v k') :=
+      _ ≤ Hℚ pbar ε pc.w (poly_.v k') :=
           H_le_Hℚ hε hk_norm hk_approx pc.w_unit pc.p_in_4
       _ ≤ _ := by
-          show (Hℚ pbar ε pc.w ∘ poly_.vertices.v) k' ≤ _
+          show (Hℚ pbar ε pc.w ∘ poly_.v) k' ≤ _
           exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ k'))
   -- Step 3: Build the precondition and apply global_theorem
   exact GlobalTheorem.global_theorem pbar ε hε poly _poly_pointsym {

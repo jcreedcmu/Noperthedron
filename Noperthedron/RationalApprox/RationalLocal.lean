@@ -56,8 +56,8 @@ def BoundRℚ (r ε : ℝ) (p : Pose) (Q_ : Triangle) (sl : LowerSqrt) : Prop :=
 [SY25] Theorem 48 "The Rational Local Theorem"
 -/
 theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
-    (poly : GoodPoly ι) (poly_ : ApproxGoodPoly ι)
-    (hpoly : κApproxPoly poly.vertices poly_.vertices)
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι)
+    (hpoly : κApproxPoly poly.vertices poly_)
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
     (p_ : Pose) (hp : fourInterval.contains p_)
@@ -69,7 +69,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (span₁ : (transportTri Pi hpoly).κSpanning p_.θ₁ p_.φ₁ ε)
     (span₂ : (transportTri Qi hpoly).κSpanning p_.θ₂ p_.φ₂ ε)
     (be : (transportTri Qi hpoly).Bεℚ Qi
-          (fun k => poly_.vertices.v (hpoly.bijection k)) p_ ε δ r su)
+          (fun k => poly_.v (hpoly.bijection k)) p_ ε δ r su)
     : ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull := by
   -- Define the triangles from indices
   let P : Triangle := fun i => poly.vertices.v (Pi i)
@@ -185,7 +185,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     intro i k hne_k
     -- Map k to v_ in poly_
     let k' := hpoly.bijection k
-    set v_ : ℝ³ := poly_.vertices.v k'
+    set v_ : ℝ³ := poly_.v k'
     have hvapprox : ‖poly.vertices.v k - v_‖ ≤ κ := hpoly.approx k
     have hvnorm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
     -- Get the Bεℚ hypothesis
