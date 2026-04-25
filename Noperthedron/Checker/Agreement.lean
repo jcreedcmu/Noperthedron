@@ -261,8 +261,8 @@ private lemma param_image_max'_eq {α : Type} [LinearOrder α] (f : Param → α
 
 /-- The rational `row.epsilon` (cast to `ℝ`) equals `PoseInterval.radius`
     of the corresponding `PoseInterval`. -/
-theorem row_epsilon_cast_eq_radius (row : Row) :
-    ((row.epsilon : ℚ) : ℝ) = row.toPoseInterval.radius := by
+theorem row_epsilon_cast_eq_radius (row : Row) (hwf : row.WellFormed) :
+    ((row.epsilon : ℚ) : ℝ) = (row.toPoseInterval hwf).radius := by
   unfold Row.epsilon Interval.epsilon
   rw [Rat.cast_mono.map_finset_max']
   simp only [Finset.image_image]
@@ -273,7 +273,7 @@ theorem row_epsilon_cast_eq_radius (row : Row) :
     show (a ⊔ b) * (2 : ℝ)⁻¹ = a * 2⁻¹ ⊔ b * 2⁻¹
     rw [max_mul_of_nonneg _ _ (by norm_num : (0:ℝ) ≤ 2⁻¹)]
   unfold Row.toPoseInterval Interval.toPoseInterval PoseInterval.radius
-  simp only []
+  simp only [PoseInterval.min, PoseInterval.max, Interval.minPose, Interval.maxPose]
   rw [h_div, h_div, h_div, h_div]
   have hcomp : ∀ p : Param,
       ((((row.interval.max p : ℚ) - (row.interval.min p : ℚ)) / (2 * DENOMQ) : ℚ) : ℝ) =

@@ -55,8 +55,11 @@ inductive Row.Valid (tab : Table) (row : Row) : Prop where
 instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) :=
   decidable_of_iff _ (Row.valid_iff tab row).symm
 
+/-- A row is well-formed when its rational interval has `min ≤ max` componentwise. -/
+abbrev Row.WellFormed (row : Row) : Prop := row.interval.WellFormed
+
 def Row.ValidIx (tab : Table) (i : ℕ) (row : Row) : Prop :=
-  row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size
+  row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size ∧ row.WellFormed
 deriving Decidable
 
 def Table.Valid (tab : Table) : Prop :=
@@ -75,25 +78,47 @@ representation in the table. See [SY25 §7.2]
 -/
 def DENOM : ℝ := 15360000
 
+/-- The minimum endpoint of an `Interval`, viewed as a `Pose` (each coordinate divided
+    by the common denominator `DENOM`). -/
 noncomputable
-def Interval.toPoseInterval (iv : Interval) : PoseInterval where
-  min := { θ₁ := iv.min .θ₁ / DENOM
-           θ₂ := iv.min .θ₂ / DENOM
-           φ₁ := iv.min .φ₁ / DENOM
-           φ₂ := iv.min .φ₂ / DENOM
-           α := iv.min .α / DENOM}
-  max := { θ₁ := iv.max .θ₁ / DENOM
-           θ₂ := iv.max .θ₂ / DENOM
-           φ₁ := iv.max .φ₁ / DENOM
-           φ₂ := iv.max .φ₂ / DENOM
-           α := iv.max .α / DENOM}
+def Interval.minPose (iv : Interval) : Pose where
+  θ₁ := iv.min .θ₁ / DENOM
+  θ₂ := iv.min .θ₂ / DENOM
+  φ₁ := iv.min .φ₁ / DENOM
+  φ₂ := iv.min .φ₂ / DENOM
+  α := iv.min .α / DENOM
+
+/-- The maximum endpoint of an `Interval`, viewed as a `Pose`. -/
+noncomputable
+def Interval.maxPose (iv : Interval) : Pose where
+  θ₁ := iv.max .θ₁ / DENOM
+  θ₂ := iv.max .θ₂ / DENOM
+  φ₁ := iv.max .φ₁ / DENOM
+  φ₂ := iv.max .φ₂ / DENOM
+  α := iv.max .α / DENOM
+
+private lemma Interval.minPose_le_maxPose {iv : Interval} (h : iv.WellFormed) :
+    iv.minPose ≤ iv.maxPose := by
+  rw [Pose.le_iff]
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+    (simp only [Interval.minPose, Interval.maxPose]
+     exact div_le_div_of_nonneg_right (by exact_mod_cast h _) (by norm_num [DENOM]))
 
 noncomputable
-def Row.toPoseInterval (row : Row) : PoseInterval :=
-  row.interval.toPoseInterval
+def Interval.toPoseInterval (iv : Interval) (h : iv.WellFormed) : PoseInterval :=
+  PoseInterval.mk iv.minPose iv.maxPose (iv.minPose_le_maxPose h)
 
+noncomputable
+def Row.toPoseInterval (row : Row) (h : row.interval.WellFormed) : PoseInterval :=
+  row.interval.toPoseInterval h
+
+/-- The set of poses lying in the rational interval (regardless of well-formedness;
+    if `iv` is not well-formed this is empty along the offending axis). Defined directly
+    as `Set.Icc` of the min/max endpoints so it does not depend on a well-formedness
+    hypothesis, agreeing definitionally with `iv.toPoseInterval h` whenever `h` exists. -/
+noncomputable
 instance : Coe Interval (Set Pose) where
-  coe iv := { q : Pose | q ∈ iv.toPoseInterval }
+  coe iv := Set.Icc iv.minPose iv.maxPose
 
 lemma cube_fold_nonempty_aux {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :
    0 < (cubeFold fs b as).length := by

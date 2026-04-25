@@ -1,3 +1,4 @@
+import Mathlib.Order.Interval.Basic
 import Noperthedron.Rupert.Basic
 import Noperthedron.PoseClasses
 import Noperthedron.Basic
@@ -7,32 +8,39 @@ open scoped Matrix
 open scoped Real
 
 /--
-Represents a closed 5d box in parameter space.
+Represents a closed 5d box in parameter space. A `PoseInterval` is a
+`NonemptyInterval Pose` (a pair `min ≤ max` of poses, with the order being
+componentwise on the five parameters).
 -/
-structure PoseInterval : Type where
-  min : Pose
-  max : Pose
+@[reducible]
+def PoseInterval : Type := NonemptyInterval Pose
+
+namespace PoseInterval
+
+/-- Build a `PoseInterval` from explicit `min`/`max` endpoints together with a
+componentwise `min ≤ max` proof. -/
+abbrev mk (min max : Pose) (h : min ≤ max) : PoseInterval :=
+  NonemptyInterval.mk ⟨min, max⟩ h
+
+abbrev min (iv : PoseInterval) : Pose := iv.fst
+abbrev max (iv : PoseInterval) : Pose := iv.snd
+abbrev min_le_max (iv : PoseInterval) : iv.min ≤ iv.max := iv.fst_le_snd
+
+end PoseInterval
 
 /--
 The 5d box in parameter space that represents what constraints we can
 impose on angles merely from general considerations about rotations.
 -/
 noncomputable
-def mediumInterval : PoseInterval where
-  min := {
-    θ₁ := 0
-    θ₂ := 0
-    φ₁ := 0
-    φ₂ := 0
-    α := -π
-  }
-  max := {
-    θ₁ := 2 * π
-    θ₂ := 2 * π
-    φ₁ := π
-    φ₂ := π
-    α := π
-  }
+def mediumInterval : PoseInterval :=
+  PoseInterval.mk
+    { θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := -π }
+    { θ₁ := 2 * π, θ₂ := 2 * π, φ₁ := π, φ₂ := π, α := π }
+    (by
+      rw [Pose.le_iff]
+      have hπ := Real.pi_pos.le
+      refine ⟨?_, ?_, hπ, hπ, ?_⟩ <;> linarith [Real.pi_pos])
 
 /--
 The 5d box in parameter space that represents what constraints we can
@@ -40,45 +48,37 @@ impose on angles taking advantage of the particular symmetries of the
 Noperthedron.
 -/
 noncomputable
-def tightInterval : PoseInterval where
-  min := {
-    θ₁ := 0
-    θ₂ := 0
-    φ₁ := 0
-    φ₂ := 0
-    α := -(π / 2)
-  }
-  max := {
-    θ₁ := 2 * π / 15
-    θ₂ := 2 * π / 15
-    φ₁ := π
-    φ₂ := π / 2
-    α := π / 2
-  }
+def tightInterval : PoseInterval :=
+  PoseInterval.mk
+    { θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := -(π / 2) }
+    { θ₁ := 2 * π / 15, θ₂ := 2 * π / 15, φ₁ := π, φ₂ := π / 2, α := π / 2 }
+    (by
+      rw [Pose.le_iff]
+      have hπ := Real.pi_pos
+      refine ⟨?_, ?_, hπ.le, ?_, ?_⟩ <;> linarith)
 
 /--
 An interval we need to constrain poses to sometimes for the purposes
 of rational approximation reasoning.
 -/
-def fourInterval : PoseInterval where
-  min := {
-    θ₁ := -4
-    θ₂ := -4
-    φ₁ := -4
-    φ₂ := -4
-    α := -4
-  }
-  max := {
-    θ₁ := 4
-    θ₂ := 4
-    φ₁ := 4
-    φ₂ := 4
-    α := 4
-  }
+def fourInterval : PoseInterval :=
+  PoseInterval.mk
+    { θ₁ := -4, θ₂ := -4, φ₁ := -4, φ₂ := -4, α := -4 }
+    { θ₁ := 4, θ₂ := 4, φ₁ := 4, φ₂ := 4, α := 4 }
+    (by rw [Pose.le_iff]; refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num)
+
+@[simp] lemma fourInterval_min :
+    fourInterval.min = { θ₁ := -4, θ₂ := -4, φ₁ := -4, φ₂ := -4, α := -4 } := rfl
+
+@[simp] lemma fourInterval_max :
+    fourInterval.max = { θ₁ := 4, θ₂ := 4, φ₁ := 4, φ₂ := 4, α := 4 } := rfl
 
 namespace PoseInterval
 
-def contains (iv : PoseInterval) (vp : Pose) : Prop := vp ∈ Set.Icc iv.min iv.max
+/-- `iv.contains p` ↔ `p ∈ Set.Icc iv.min iv.max` ↔ `p ∈ iv`. Provided as a
+named alias for legibility at call sites; `iv.contains p` and `p ∈ iv` are
+definitionally equal. -/
+def contains (iv : PoseInterval) (vp : Pose) : Prop := vp ∈ iv
 
 lemma contains_iff_components {iv : PoseInterval} {p : Pose} :
     iv.contains p ↔
@@ -87,7 +87,7 @@ lemma contains_iff_components {iv : PoseInterval} {p : Pose} :
       (p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁) ∧
       (p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂) ∧
       (p.α ∈ Set.Icc iv.min.α iv.max.α) := by
-  simp only [contains, Set.mem_Icc, Pose.le_iff, Set.mem_Icc]
+  simp only [contains, NonemptyInterval.mem_def, Set.mem_Icc, Pose.le_iff]
   grind
 
 def contains.θ₁Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
@@ -116,12 +116,6 @@ noncomputable def radius (iv : PoseInterval) : ℝ :=
    (iv.max.α - iv.min.α)) / 2
 
 end PoseInterval
-
-instance : Membership Pose PoseInterval where
-  mem iv vp := iv.contains vp
-
-instance : HasSubset PoseInterval where
-  Subset a b := ∀ p, p ∈ a → p ∈ b
 
 theorem mem_closed_ball_center_of_mem (iv : PoseInterval) (p : Pose) (hp : p ∈ iv) :
     p ∈ Metric.closedBall iv.center iv.radius := by

@@ -8,9 +8,9 @@ import Noperthedron.Vertices.Symmetry
 namespace Noperthedron.Solution
 
 theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
-    (hrow : row.ValidLocal) :
-    ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactPolyhedron.hull := by
-  let iv := row.toPoseInterval
+    (hwf : row.WellFormed) (hrow : row.ValidLocal) :
+    ¬ ∃ q ∈ (row.interval : Set Pose), RupertPose q exactPolyhedron.hull := by
+  let iv := row.toPoseInterval hwf
   let pbar := iv.center
   let r := iv.radius
   rintro ⟨q, hqi, hqr⟩

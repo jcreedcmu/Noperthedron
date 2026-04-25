@@ -18,7 +18,7 @@ theorem no_nopert_tight_pose : ¬ ∃ v : Pose,
     tightInterval.contains v ∧ RupertPose v exactPolyhedron.hull := by
   rintro ⟨v, h1, h2⟩
   let ⟨tab, htab, hz, tight⟩ := exists_solution_table
-  exact Solution.Row.valid_imp_not_rupert tab htab hz ⟨v, tight v h1, h2⟩
+  exact Solution.Row.valid_imp_not_rupert tab htab hz ⟨v, tight h1, h2⟩
 
 /--
 There is no pose that makes the Noperthedron have the Rupert property

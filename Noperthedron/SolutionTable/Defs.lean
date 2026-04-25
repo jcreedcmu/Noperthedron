@@ -64,6 +64,32 @@ def Interval.upper_half (param : Param) (interval : Interval) : Interval := {
   max := interval.max
 }
 
+/-- An `Interval` is well-formed when its `min` is componentwise ≤ its `max`. -/
+def Interval.WellFormed (iv : Interval) : Prop := ∀ p : Param, iv.min p ≤ iv.max p
+
+instance (iv : Interval) : Decidable iv.WellFormed :=
+  inferInstanceAs (Decidable (∀ p : Param, _))
+
+lemma Interval.WellFormed.lower_half {iv : Interval} (h : iv.WellFormed) (p : Param) :
+    (iv.lower_half p).WellFormed := by
+  intro q
+  by_cases hq : q = p
+  · subst hq
+    simp [Interval.lower_half, Function.update_self]
+    have := h q; omega
+  · simp [Interval.lower_half, Function.update_of_ne hq]
+    exact h q
+
+lemma Interval.WellFormed.upper_half {iv : Interval} (h : iv.WellFormed) (p : Param) :
+    (iv.upper_half p).WellFormed := by
+  intro q
+  by_cases hq : q = p
+  · subst hq
+    simp [Interval.upper_half, Function.update_self]
+    have := h q; omega
+  · simp [Interval.upper_half, Function.update_of_ne hq]
+    exact h q
+
 /-- Center of an interval box along one parameter, as a rational. -/
 def Interval.center (iv : Interval) (p : Param) : ℚ :=
   (iv.min p + iv.max p) / (2 * DENOMQ)
