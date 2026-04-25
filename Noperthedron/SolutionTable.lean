@@ -48,7 +48,7 @@ lemma mem_interval_imp_mem_union_halves (q : Pose) (iv : Interval) (p : Param)
 lemma interval_sub_union_halves (iv : Interval) (p : Param) :
     (iv : Set Pose) ⊆ (iv.lower_half p : Set Pose) ∪ iv.upper_half p := by
   intro q
-  simp only [Set.mem_setOf_eq, Set.mem_union]
+  simp only [Set.mem_union]
   exact mem_interval_imp_mem_union_halves q iv p
 
 lemma non_rupert_halves_imp_non_rupert {p : Param} {iv : Interval}
