@@ -24,7 +24,7 @@ def equivPi {R : Type} : Pose R ≃ (Fin 5 → R) where
   left_inv p := by cases p; rfl
   right_inv f := by ext i; fin_cases i <;> rfl
 
-/-- Sup-norm transferred from `Fin 4 → R`. -/
+/-- Sup-norm transferred from `Fin 5 → R`. -/
 instance {R} [MetricSpace R] : MetricSpace (Pose R) :=
   MetricSpace.induced equivPi equivPi.injective inferInstance
 
