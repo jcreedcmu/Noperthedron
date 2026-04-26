@@ -134,7 +134,7 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp
   have he : iv.max.α - iv.min.α ≤ s := le_sup_right
   rw [Pose.mem_closedBall_iff]
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
-    (simp only [PoseInterval.center, abs_sub_le_iff]; constructor <;> linarith)
+    (simp only [PoseInterval.center, Real.dist_eq, abs_sub_le_iff]; constructor <;> linarith)
 
 theorem nonempty_closed_ball_radius_nonneg (p q : Pose ℝ) (r : ℝ)
     (hpq : p ∈ Metric.closedBall q r) :

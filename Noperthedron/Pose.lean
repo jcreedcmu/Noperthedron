@@ -37,22 +37,17 @@ lemma le_iff {R} [PartialOrder R] (p q : Pose R) :
   rintro ⟨h1, h2, h3, h4, h5⟩ i
   fin_cases i <;> assumption
 
-lemma mem_closedBall_iff {p q : Pose ℝ} {ε : ℝ} :
+lemma mem_closedBall_iff {R} [MetricSpace R] {p q : Pose R} {ε : ℝ} :
     p ∈ Metric.closedBall q ε ↔
-      |p.θ₁ - q.θ₁| ≤ ε ∧ |p.θ₂ - q.θ₂| ≤ ε ∧
-      |p.φ₁ - q.φ₁| ≤ ε ∧ |p.φ₂ - q.φ₂| ≤ ε ∧ |p.α - q.α| ≤ ε := by
+      dist p.θ₁ q.θ₁ ≤ ε ∧ dist p.θ₂ q.θ₂ ≤ ε ∧
+      dist p.φ₁ q.φ₁ ≤ ε ∧ dist p.φ₂ q.φ₂ ≤ ε ∧ dist p.α q.α ≤ ε := by
   rw [Metric.mem_closedBall,
       show dist p q = dist (equivPi p) (equivPi q) from rfl,
       dist_pi_le_iff']
   refine ⟨fun h => ?_, ?_⟩
-  · refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
-      [exact (Real.dist_eq _ _ ▸ h 0); exact (Real.dist_eq _ _ ▸ h 1);
-       exact (Real.dist_eq _ _ ▸ h 2); exact (Real.dist_eq _ _ ▸ h 3);
-       exact (Real.dist_eq _ _ ▸ h 4)]
+  · exact ⟨h 0, h 1, h 2, h 3, h 4⟩
   · rintro ⟨h1, h2, h3, h4, h5⟩ i
-    rw [Real.dist_eq]
-    fin_cases i <;>
-      first | exact h1 | exact h2 | exact h3 | exact h4 | exact h5
+    fin_cases i <;> assumption
 
 end Pose
 
