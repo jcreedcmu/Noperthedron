@@ -101,11 +101,11 @@ theorem Row.valid_imp_not_rupert_ix
    (tab : Solution.Table) (i : ℕ) (tab_valid : tab.Valid)
    (row : Solution.Row) (row_valid : row.ValidIx tab i) :
     ¬ ∃ q ∈ (row.interval : Set (Pose ℝ)), RupertPose q exactPolyhedron.hull :=
-  let ⟨_rv1, rv2, rv3, rv4⟩ := row_valid
+  let ⟨_rv1, rv2, rv3⟩ := row_valid
   match rv2 with
   | .asSplit y => valid_split_imp_no_rupert tab row tab_valid y rv3
-  | .asGlobal y => valid_global_imp_no_rupert tab row rv4 y
-  | .asLocal y => valid_local_imp_no_rupert tab row rv4 y
+  | .asGlobal y => valid_global_imp_no_rupert tab row y
+  | .asLocal y => valid_local_imp_no_rupert tab row y
 termination_by (tab.size - i, 3, 0)
 decreasing_by rw [_rv1]; grind
 

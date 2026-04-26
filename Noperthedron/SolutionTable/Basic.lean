@@ -48,11 +48,8 @@ inductive Row.Valid (tab : Table) (row : Row) : Prop where
 instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) :=
   decidable_of_iff _ (Row.valid_iff tab row).symm
 
-/-- A row is well-formed when its rational interval has `min ≤ max` componentwise. -/
-abbrev Row.WellFormed (row : Row) : Prop := row.interval.WellFormed
-
 def Row.ValidIx (tab : Table) (i : ℕ) (row : Row) : Prop :=
-  row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size ∧ row.WellFormed
+  row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size
 deriving Decidable
 
 def Table.Valid (tab : Table) : Prop :=
@@ -89,16 +86,14 @@ private lemma Interval.minPose_le_maxPose (iv : Interval) :
   exact ⟨by exact_mod_cast h1, by exact_mod_cast h2, by exact_mod_cast h3,
          by exact_mod_cast h4, by exact_mod_cast h5⟩
 
-def Interval.toPoseInterval (iv : Interval) (_h : iv.WellFormed) : PoseInterval ℝ :=
+def Interval.toReal (iv : Interval) : PoseInterval ℝ :=
   PoseInterval.mk iv.minPose iv.maxPose iv.minPose_le_maxPose
 
-def Row.toPoseInterval (row : Row) (h : row.interval.WellFormed) : PoseInterval ℝ :=
-  row.interval.toPoseInterval h
+def Row.toRealInterval (row : Row) : PoseInterval ℝ :=
+  row.interval.toReal
 
-/-- The set of poses lying in the rational interval (regardless of well-formedness;
-    if `iv` is not well-formed this is empty along the offending axis). Defined directly
-    as `Set.Icc` of the min/max endpoints so it does not depend on a well-formedness
-    hypothesis, agreeing definitionally with `iv.toPoseInterval h` whenever `h` exists. -/
+/-- The set of poses lying in the rational interval, defined as `Set.Icc` of the
+    min/max endpoints; agrees definitionally with `iv.toReal`. -/
 noncomputable
 instance : Coe Interval (Set (Pose ℝ)) where
   coe iv := Set.Icc iv.minPose iv.maxPose

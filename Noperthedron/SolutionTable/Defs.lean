@@ -114,20 +114,6 @@ def Interval.upper_half (param : Param) (iv : Interval) : Interval :=
       · simp; linarith [h b]
       · simpa [Pose.getParam_setParam_of_ne _ hne] using h b)
 
-/-- An `Interval` is well-formed by construction (a `PoseInterval ℚ` carries
-`min ≤ max` in its data), so this predicate is trivially true. It remains as a
-named alias for compatibility with code that takes a well-formedness hypothesis. -/
-def Interval.WellFormed (_iv : Interval) : Prop := True
-
-instance (iv : Interval) : Decidable iv.WellFormed :=
-  inferInstanceAs (Decidable True)
-
-lemma Interval.WellFormed.lower_half {iv : Interval} (_h : iv.WellFormed) (_p : Param) :
-    (iv.lower_half _p).WellFormed := trivial
-
-lemma Interval.WellFormed.upper_half {iv : Interval} (_h : iv.WellFormed) (_p : Param) :
-    (iv.upper_half _p).WellFormed := trivial
-
 /-- Build an `Interval` from `Pose ℤ` endpoints holding the raw `DENOMQ`-scaled
 integer numerators (the form used in the SY25 CSV). The constructor divides each
 component by `DENOMQ` so the resulting `Interval` carries actual angle values. -/
