@@ -120,18 +120,18 @@ def vecXℚ (θ : ℝ) (φ : ℝ) : ℝ³ :=
   !₂[ cosℚ θ * sinℚ φ, sinℚ θ * sinℚ φ, cosℚ φ ]
 
 noncomputable section
-def _root_.Pose.rotRℚ (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotRℚ p.α
-def _root_.Pose.rotR'ℚ (p : Pose) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotR'ℚ p.α
-def _root_.Pose.rotM₁ℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMℚ p.θ₁ p.φ₁
-def _root_.Pose.rotM₂ℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMℚ p.θ₂ p.φ₂
-def _root_.Pose.rotM₁θℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMθℚ p.θ₁ p.φ₁
-def _root_.Pose.rotM₂θℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMθℚ p.θ₂ p.φ₂
-def _root_.Pose.rotM₁φℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚ p.θ₁ p.φ₁
-def _root_.Pose.rotM₂φℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚ p.θ₂ p.φ₂
-def _root_.Pose.innerℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := p.rotRℚ ∘L p.rotM₁ℚ
-def _root_.Pose.outerℚ (p : Pose) : ℝ³ →L[ℝ] ℝ² := p.rotM₂
-def _root_.Pose.vecX₁ℚ (p : Pose) : ℝ³ := vecXℚ (p.θ₁) (p.φ₁)
-def _root_.Pose.vecX₂ℚ (p : Pose) : ℝ³ := vecXℚ (p.θ₂) (p.φ₂)
+def _root_.Pose.rotRℚ (p : Pose ℝ) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotRℚ p.α
+def _root_.Pose.rotR'ℚ (p : Pose ℝ) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotR'ℚ p.α
+def _root_.Pose.rotM₁ℚ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMℚ p.θ₁ p.φ₁
+def _root_.Pose.rotM₂ℚ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMℚ p.θ₂ p.φ₂
+def _root_.Pose.rotM₁θℚ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMθℚ p.θ₁ p.φ₁
+def _root_.Pose.rotM₂θℚ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMθℚ p.θ₂ p.φ₂
+def _root_.Pose.rotM₁φℚ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚ p.θ₁ p.φ₁
+def _root_.Pose.rotM₂φℚ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚ p.θ₂ p.φ₂
+def _root_.Pose.innerℚ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := p.rotRℚ ∘L p.rotM₁ℚ
+def _root_.Pose.outerℚ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := p.rotM₂
+def _root_.Pose.vecX₁ℚ (p : Pose ℝ) : ℝ³ := vecXℚ (p.θ₁) (p.φ₁)
+def _root_.Pose.vecX₂ℚ (p : Pose ℝ) : ℝ³ := vecXℚ (p.θ₂) (p.φ₂)
 end
 
 structure UpperSqrt where

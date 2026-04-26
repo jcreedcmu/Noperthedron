@@ -14,7 +14,7 @@ namespace Noperthedron
 /--
 There is no tight pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_tight_pose : ¬ ∃ v : Pose,
+theorem no_nopert_tight_pose : ¬ ∃ v : Pose ℝ,
     tightInterval.contains v ∧ RupertPose v exactPolyhedron.hull := by
   rintro ⟨v, h1, h2⟩
   let ⟨tab, htab, hz, tight⟩ := exists_solution_table
@@ -23,7 +23,7 @@ theorem no_nopert_tight_pose : ¬ ∃ v : Pose,
 /--
 There is no pose that makes the Noperthedron have the Rupert property
 -/
-theorem no_nopert_pose : ¬ ∃ v : Pose, RupertPose v exactPolyhedron.hull := by
+theorem no_nopert_pose : ¬ ∃ v : Pose ℝ, RupertPose v exactPolyhedron.hull := by
   intro r
   obtain ⟨p, r⟩ := r
   exact no_nopert_tight_pose (Tightening.rupert_tightening p r)
@@ -78,4 +78,3 @@ theorem nopert_not_rupert : ¬ IsRupert exactVerts := by
   refine nopert_not_rupert_set ?_
   have := rupert_iff_rupert_set exactVerts |>.mp r
   simpa [exactVerts, exactPolyhedron, Polyhedron.hull] using this
-

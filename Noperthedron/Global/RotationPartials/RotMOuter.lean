@@ -24,8 +24,8 @@ private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 private noncomputable abbrev proj0 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) 0
 private noncomputable abbrev proj1 : ℝ² →L[ℝ] ℝ := PiLp.proj (𝕜 := ℝ) 2 (fun _ : Fin 2 => ℝ) 1
 
-private lemma outerParams_0 (pbar : Pose) : pbar.outerParams.ofLp 0 = pbar.θ₂ := by simp [Pose.outerParams]
-private lemma outerParams_1 (pbar : Pose) : pbar.outerParams.ofLp 1 = pbar.φ₂ := by simp [Pose.outerParams]
+private lemma outerParams_0 (pbar : Pose ℝ) : pbar.outerParams.ofLp 0 = pbar.θ₂ := by simp [Pose.outerParams]
+private lemma outerParams_1 (pbar : Pose ℝ) : pbar.outerParams.ofLp 1 = pbar.φ₂ := by simp [Pose.outerParams]
 
 private lemma rotMθ_apply_0 (θ φ : ℝ) (P : ℝ³) :
     (rotMθ θ φ P) 0 = -Real.cos θ * P 0 - Real.sin θ * P 1 := by
@@ -66,14 +66,14 @@ private lemma rotMφφ_apply_1 (θ φ : ℝ) (P : ℝ³) :
 
 /-- The fderiv of rotM applied to a fixed vector P, as a function of (θ, φ). -/
 noncomputable
-def rotM' (pbar : Pose) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
+def rotM' (pbar : Pose ℝ) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
   let M : Matrix (Fin 2) (Fin 2) ℝ := Matrix.of fun i j =>
     match j with
     | 0 => (rotMθ pbar.θ₂ pbar.φ₂ P) i
     | 1 => (rotMφ pbar.θ₂ pbar.φ₂ P) i
   M.toEuclideanLin.toContinuousLinearMap
 
-lemma rotM'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+lemma rotM'_apply (pbar : Pose ℝ) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotM' pbar P d) i = d 0 * (rotMθ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotM', LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
@@ -85,7 +85,7 @@ lemma Differentiable.rotM_outer (P : ℝ³) :
   intro i
   fin_cases i <;> simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
 
-lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
+lemma HasFDerivAt.rotM_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
   rw [hasStrictFDerivAt_piLp]
@@ -178,20 +178,20 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose) (P : ℝ³) :
     exact hf
 
 -- Fréchet derivative of rotMθ: columns are [rotMθθ, rotMθφ]
-noncomputable def rotMθ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
+noncomputable def rotMθ' (pbar : Pose ℝ) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
   let M : Matrix (Fin 2) (Fin 2) ℝ := Matrix.of fun i j =>
     match j with
     | 0 => (rotMθθ pbar.θ₂ pbar.φ₂ P) i
     | 1 => (rotMθφ pbar.θ₂ pbar.φ₂ P) i
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
 
-lemma rotMθ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+lemma rotMθ'_apply (pbar : Pose ℝ) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotMθ' pbar P d) i = d 0 * (rotMθθ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMθφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotMθ', LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
   simp only [mul_comm (d.ofLp _)]
 
-lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
+lemma HasFDerivAt.rotMθ_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMθ (x.ofLp 0) (x.ofLp 1)) P) (rotMθ' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
   rw [hasStrictFDerivAt_piLp]
@@ -268,20 +268,20 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose) (P : ℝ³) :
 
 -- Fréchet derivative of rotMφ as a function of (θ, φ)
 -- Columns: [rotMθφ, rotMφφ] (derivatives w.r.t. θ, φ respectively)
-noncomputable def rotMφ' (pbar : Pose) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
+noncomputable def rotMφ' (pbar : Pose ℝ) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
   let M : Matrix (Fin 2) (Fin 2) ℝ := Matrix.of fun i j =>
     match j with
     | 0 => (rotMθφ pbar.θ₂ pbar.φ₂ P) i
     | 1 => (rotMφφ pbar.θ₂ pbar.φ₂ P) i
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin M)
 
-lemma rotMφ'_apply (pbar : Pose) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
+lemma rotMφ'_apply (pbar : Pose ℝ) (P : ℝ³) (d : ℝ²) (i : Fin 2) :
     (rotMφ' pbar P d) i = d 0 * (rotMθφ pbar.θ₂ pbar.φ₂ P) i + d 1 * (rotMφφ pbar.θ₂ pbar.φ₂ P) i := by
   simp only [rotMφ', LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Matrix.of_apply, Fin.isValue]
   simp only [mul_comm (d.ofLp _)]
 
-lemma HasFDerivAt.rotMφ_outer (pbar : Pose) (P : ℝ³) :
+lemma HasFDerivAt.rotMφ_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMφ (x.ofLp 0) (x.ofLp 1)) P) (rotMφ' pbar P) pbar.outerParams := by
   apply HasStrictFDerivAt.hasFDerivAt
   rw [hasStrictFDerivAt_piLp]

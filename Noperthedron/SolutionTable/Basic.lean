@@ -5,7 +5,7 @@ import Noperthedron.Checker.Local
 
 namespace Noperthedron.Solution
 
-def _root_.Pose.getParam (q : Pose) : Param → ℝ
+def _root_.Pose.getParam (q : Pose ℝ) : Param → ℝ
 | .θ₁ => q.θ₁
 | .φ₁ => q.φ₁
 | .θ₂ => q.θ₂
@@ -81,7 +81,7 @@ def DENOM : ℝ := 15360000
 /-- The minimum endpoint of an `Interval`, viewed as a `Pose` (each coordinate divided
     by the common denominator `DENOM`). -/
 noncomputable
-def Interval.minPose (iv : Interval) : Pose where
+def Interval.minPose (iv : Interval) : Pose ℝ where
   θ₁ := iv.min .θ₁ / DENOM
   θ₂ := iv.min .θ₂ / DENOM
   φ₁ := iv.min .φ₁ / DENOM
@@ -90,7 +90,7 @@ def Interval.minPose (iv : Interval) : Pose where
 
 /-- The maximum endpoint of an `Interval`, viewed as a `Pose`. -/
 noncomputable
-def Interval.maxPose (iv : Interval) : Pose where
+def Interval.maxPose (iv : Interval) : Pose ℝ where
   θ₁ := iv.max .θ₁ / DENOM
   θ₂ := iv.max .θ₂ / DENOM
   φ₁ := iv.max .φ₁ / DENOM
@@ -105,11 +105,11 @@ private lemma Interval.minPose_le_maxPose {iv : Interval} (h : iv.WellFormed) :
      exact div_le_div_of_nonneg_right (by exact_mod_cast h _) (by norm_num [DENOM]))
 
 noncomputable
-def Interval.toPoseInterval (iv : Interval) (h : iv.WellFormed) : PoseInterval :=
+def Interval.toPoseInterval (iv : Interval) (h : iv.WellFormed) : PoseInterval ℝ :=
   PoseInterval.mk iv.minPose iv.maxPose (iv.minPose_le_maxPose h)
 
 noncomputable
-def Row.toPoseInterval (row : Row) (h : row.interval.WellFormed) : PoseInterval :=
+def Row.toPoseInterval (row : Row) (h : row.interval.WellFormed) : PoseInterval ℝ :=
   row.interval.toPoseInterval h
 
 /-- The set of poses lying in the rational interval (regardless of well-formedness;
@@ -117,7 +117,7 @@ def Row.toPoseInterval (row : Row) (h : row.interval.WellFormed) : PoseInterval 
     as `Set.Icc` of the min/max endpoints so it does not depend on a well-formedness
     hypothesis, agreeing definitionally with `iv.toPoseInterval h` whenever `h` exists. -/
 noncomputable
-instance : Coe Interval (Set Pose) where
+instance : Coe Interval (Set (Pose ℝ)) where
   coe iv := Set.Icc iv.minPose iv.maxPose
 
 lemma cube_fold_nonempty_aux {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :

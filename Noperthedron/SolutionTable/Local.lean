@@ -9,7 +9,7 @@ namespace Noperthedron.Solution
 
 theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
     (hwf : row.WellFormed) (hrow : row.ValidLocal) :
-    ¬ ∃ q ∈ (row.interval : Set Pose), RupertPose q exactPolyhedron.hull := by
+    ¬ ∃ q ∈ (row.interval : Set (Pose ℝ)), RupertPose q exactPolyhedron.hull := by
   let iv := row.toPoseInterval hwf
   let pbar := iv.center
   let r := iv.radius

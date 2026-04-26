@@ -14,7 +14,7 @@ namespace RationalApprox.GlobalTheorem
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
-def Gℚ (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
+def Gℚ (p : Pose ℝ) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
   ⟪p.innerℚ S, w⟫ - (ε * (|⟪p.rotR'ℚ (p.rotM₁ℚ S), w⟫| + |⟪p.rotRℚ (p.rotM₁θℚ S), w⟫| + |⟪p.rotRℚ (p.rotM₁φℚ S), w⟫|)
   + 9 * ε^2 / 2 + 4 * κ * (1 + 3 * ε))
 
@@ -22,7 +22,7 @@ def Gℚ (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
 A measure of how far an outer-shadow vertex P can "reach" along w.
 -/
 noncomputable
-def Hℚ (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
+def Hℚ (p : Pose ℝ) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
   ⟪p.rotM₂ℚ P, w⟫ + ε * (|⟪p.rotM₂θℚ P, w⟫| + |⟪p.rotM₂φℚ P, w⟫|) + 2 * ε^2 + 3 * κ * (1 + 2 * ε)
 
 /--
@@ -30,7 +30,7 @@ A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
 def maxHℚ {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (p : Pose) (poly : Polyhedron ι) (ε : ℝ) (w : ℝ²) : ℝ :=
+    (p : Pose ℝ) (poly : Polyhedron ι) (ε : ℝ) (w : ℝ²) : ℝ :=
   Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ  |>.max' <| by
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
@@ -43,7 +43,7 @@ other outer-shadow vertices P (which the calculation of H iterates over) in the 
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι)
-    (happrox : κApproxPoly poly.vertices poly_) (p : Pose) (ε : ℝ) : Type where
+    (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℝ) (ε : ℝ) : Type where
   j : ι
   p_in_4 : fourInterval.contains p
   w : ℝ²
@@ -53,7 +53,7 @@ structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty �
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
 
-private lemma Gℚ_le_G {pbar : Pose} {ε : ℝ} (hε : 0 ≤ ε)
+private lemma Gℚ_le_G {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
     {S S_ : ℝ³} {w : ℝ²}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
     (hp : fourInterval.contains pbar) :
@@ -97,7 +97,7 @@ private lemma Gℚ_le_G {pbar : Pose} {ε : ℝ} (hε : 0 ≤ ε)
   have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
   nlinarith
 
-private lemma H_le_Hℚ {pbar : Pose} {ε : ℝ} (hε : 0 ≤ ε)
+private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
     {P P_ : ℝ³} {w : ℝ²}
     (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1)
     (hp : fourInterval.contains pbar) :
@@ -130,7 +130,7 @@ private lemma H_le_Hℚ {pbar : Pose} {ε : ℝ} (hε : 0 ≤ ε)
 [SY25] Theorem 43
 -/
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
-    (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
+    (pbar : Pose ℝ) (ε : ℝ) (hε : 0 ≤ ε)
     (poly : GoodPoly ι) (poly_ : Polyhedron ι)
     (happrox : κApproxPoly poly.vertices poly_)
     (_poly_pointsym : PointSym poly.hull)

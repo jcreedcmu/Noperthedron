@@ -190,7 +190,7 @@ lemma κQ_cast : ((κQ : ℚ) : ℝ) = κ := by
 /-! ## Main agreement: computeGQ ↔ Gℚ and computeHQ ↔ Hℚ -/
 
 theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ)
-    (p : Pose) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
+    (p : Pose ℝ) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
     (hα : (α : ℝ) = p.α) :
     ((computeGQ θ₁ φ₁ α ε S w : ℚ) : ℝ) =
     Gℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ S)) (WithLp.toLp 2 (castℝ w)) := by
@@ -206,7 +206,7 @@ theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin
   ring
 
 theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ)
-    (p : Pose) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
+    (p : Pose ℝ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
     ((computeHQ θ₂ φ₂ ε w P : ℚ) : ℝ) =
     Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) (WithLp.toLp 2 (castℝ P)) := by
   unfold computeHQ Hℚ
@@ -220,7 +220,7 @@ theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 
 /-! ## Bridge for the maximum over all 90 vertices -/
 
 theorem computeMaxHQ_eq_maxHℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ)
-    (p : Pose) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
+    (p : Pose ℝ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
     ((computeMaxHQ θ₂ φ₂ ε w : ℚ) : ℝ) =
     maxHℚ p pythonPoly (ε : ℝ) (WithLp.toLp 2 (castℝ w)) := by
   have h_pointwise : ∀ j : VertexIndex,

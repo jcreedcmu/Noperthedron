@@ -53,7 +53,7 @@ lemma outer_second_partial_A_norm_le (θ φ : ℝ) (i j : Fin 2) :
 ## Helper lemmas: partials of ⟪rotM S, w⟫ in coordinate directions
 -/
 
-private lemma outerPbar (x : E 2) : (⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ : Pose).outerParams = x := by
+private lemma outerPbar (x : E 2) : (⟨0, x.ofLp 0, 0, x.ofLp 1, 0⟩ : Pose ℝ).outerParams = x := by
   ext i; fin_cases i <;> simp [Pose.outerParams]
 
 private lemma fderiv_rotM_outer_eq (S : ℝ³) (x : E 2) :

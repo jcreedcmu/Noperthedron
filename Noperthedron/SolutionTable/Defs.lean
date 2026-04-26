@@ -68,7 +68,7 @@ def Interval.upper_half (param : Param) (interval : Interval) : Interval := {
 def Interval.WellFormed (iv : Interval) : Prop := ∀ p : Param, iv.min p ≤ iv.max p
 
 instance (iv : Interval) : Decidable iv.WellFormed :=
-  inferInstanceAs (Decidable (∀ p : Param, _))
+  inferInstanceAs (Decidable (∀ _ : Param, _))
 
 lemma Interval.WellFormed.lower_half {iv : Interval} (h : iv.WellFormed) (p : Param) :
     (iv.lower_half p).WellFormed := by

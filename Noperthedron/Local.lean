@@ -56,7 +56,7 @@ def Triangle.Aε (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
   ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > √2 * ε
 
 noncomputable
-def Triangle.Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) : ℝ :=
+def Triangle.Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) : ℝ :=
    (⟪p.rotM₂ v₁, p.rotM₂ (v₁ - v₂)⟫ - 2 * ε * ‖v₁ - v₂‖ * (√2 + ε))
    / ((‖p.rotM₂ v₁‖ + √2 * ε) * (‖p.rotM₂ (v₁ - v₂)‖ + 2 * √2 * ε))
 
@@ -64,7 +64,7 @@ def Triangle.Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) : ℝ :=
 Condition B_ε from [SY25] Theorem 36
 -/
 def Triangle.Bε {ι : Type} (Q : Triangle) (Qi : Fin 3 → ι)
-    (v : ι → Euc(3)) (p : Pose) (ε δ r : ℝ) : Prop :=
+    (v : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℝ) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + √5 * ε) / r < Triangle.Bε.lhs (Q i) (v k) p ε
 
@@ -72,11 +72,11 @@ def Triangle.Bε {ι : Type} (Q : Triangle) (Qi : Fin 3 → ι)
 --  mem set tri := ∀ i : Fin 3, (tri i) ∈ set
 
 /-- The condition on δ in the Local Theorem -/
-def BoundDelta (δ : ℝ) (p : Pose) (P Q : Triangle) : Prop :=
+def BoundDelta (δ : ℝ) (p : Pose ℝ) (P Q : Triangle) : Prop :=
   ∀ i : Fin 3, δ ≥ ‖p.rotR (p.rotM₁ (P i)) - p.rotM₂ (Q i)‖/2
 
 /-- The condition on r in the Local Theorem -/
-def BoundR (r ε : ℝ) (p : Pose) (Q : Triangle): Prop :=
+def BoundR (r ε : ℝ) (p : Pose ℝ) (Q : Triangle): Prop :=
   ∀ i : Fin 3, ‖p.rotM₂ (Q i)‖ > r + √2 * ε
 
 -- TODO: Somehow separate out the "local theorem precondition"
@@ -90,7 +90,7 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι)
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
-    (p_ : Pose)
+    (p_ : Pose ℝ)
     (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (hr₁ : BoundR r ε p_ (poly.vertices.v ∘ Qi))
     (hδ : BoundDelta δ p_ (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))

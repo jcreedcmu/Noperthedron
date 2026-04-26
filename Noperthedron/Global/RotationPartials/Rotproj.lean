@@ -42,7 +42,7 @@ Components:
 - index 2 (φ): rotR α (rotMφ θ φ S)
 -/
 noncomputable
-def rotprojRM' (pbar : Pose) (S : ℝ³) : ℝ³ →L[ℝ] ℝ² :=
+def rotprojRM' (pbar : Pose ℝ) (S : ℝ³) : ℝ³ →L[ℝ] ℝ² :=
   let M : Matrix (Fin 2) (Fin 3) ℝ := Matrix.of fun i j =>
     match j with
     | 0 => (pbar.rotR' (pbar.rotM₁ S)) i
@@ -55,21 +55,21 @@ The Fréchet derivative of `rotproj_inner S w` at `pbar.innerParams`.
 Defined as the composition of the inner product derivative with the rotprojRM derivative.
 -/
 noncomputable
-def rotproj_inner' (pbar : Pose) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :=
+def rotproj_inner' (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] ℝ :=
   (fderivInnerCLM ℝ ((rotprojRM pbar.θ₁ pbar.φ₁ pbar.α) S, w)).comp ((rotprojRM' pbar S).prod 0)
 
 @[simp]
-lemma rotprojRM'_single_0 (pbar : Pose) (S : ℝ³) :
+lemma rotprojRM'_single_0 (pbar : Pose ℝ) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 0 1) = pbar.rotR' (pbar.rotM₁ S) := by
   ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
 
 @[simp]
-lemma rotprojRM'_single_1 (pbar : Pose) (S : ℝ³) :
+lemma rotprojRM'_single_1 (pbar : Pose ℝ) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 1 1) = pbar.rotR (pbar.rotM₁θ S) := by
   ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
 
 @[simp]
-lemma rotprojRM'_single_2 (pbar : Pose) (S : ℝ³) :
+lemma rotprojRM'_single_2 (pbar : Pose ℝ) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 2 1) = pbar.rotR (pbar.rotM₁φ S) := by
   ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
 
@@ -113,7 +113,7 @@ private lemma rotMφ_apply_1 (θ φ : ℝ) (S : ℝ³) :
     (rotMφ θ φ S) 1 = Real.cos θ * Real.sin φ * S 0 + Real.sin θ * Real.sin φ * S 1 + Real.cos φ * S 2 := by
   simp [rotMφ, rotMφ_mat, Matrix.vecHead, Matrix.vecTail]; ring
 
-private lemma rotprojRM'_apply_0 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
+private lemma rotprojRM'_apply_0 (pbar : Pose ℝ) (S : ℝ³) (d : ℝ³) :
     ((rotprojRM' pbar S) d) 0 =
       d 0 * (pbar.rotR' (pbar.rotM₁ S)) 0 +
       d 1 * (pbar.rotR (pbar.rotM₁θ S)) 0 +
@@ -122,7 +122,7 @@ private lemma rotprojRM'_apply_0 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply]
   ring
 
-private lemma rotprojRM'_apply_1 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
+private lemma rotprojRM'_apply_1 (pbar : Pose ℝ) (S : ℝ³) (d : ℝ³) :
     ((rotprojRM' pbar S) d) 1 =
       d 0 * (pbar.rotR' (pbar.rotM₁ S)) 1 +
       d 1 * (pbar.rotR (pbar.rotM₁θ S)) 1 +
@@ -131,7 +131,7 @@ private lemma rotprojRM'_apply_1 (pbar : Pose) (S : ℝ³) (d : ℝ³) :
     Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.of_apply]
   ring
 
-private lemma rotprojRM'_apply_0_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) :
+private lemma rotprojRM'_apply_0_expanded (pbar : Pose ℝ) (S : ℝ³) (d : ℝ³) :
     ((rotprojRM' pbar S) d) 0 =
       d 0 * (-Real.sin pbar.α * (-Real.sin pbar.θ₁ * S 0 + Real.cos pbar.θ₁ * S 1) -
              Real.cos pbar.α * (-Real.cos pbar.θ₁ * Real.cos pbar.φ₁ * S 0 -
@@ -146,7 +146,7 @@ private lemma rotprojRM'_apply_0_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) 
   rw [rotR'_apply_0, rotR_apply_0, rotR_apply_0, rotM_apply_0, rotM_apply_1,
       rotMθ_apply_0, rotMθ_apply_1, rotMφ_apply_0, rotMφ_apply_1]
 
-private lemma rotprojRM'_apply_1_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) :
+private lemma rotprojRM'_apply_1_expanded (pbar : Pose ℝ) (S : ℝ³) (d : ℝ³) :
     ((rotprojRM' pbar S) d) 1 =
       d 0 * (Real.cos pbar.α * (-Real.sin pbar.θ₁ * S 0 + Real.cos pbar.θ₁ * S 1) -
              Real.sin pbar.α * (-Real.cos pbar.θ₁ * Real.cos pbar.φ₁ * S 0 -
@@ -161,7 +161,7 @@ private lemma rotprojRM'_apply_1_expanded (pbar : Pose) (S : ℝ³) (d : ℝ³) 
   rw [rotR'_apply_1, rotR_apply_1, rotR_apply_1, rotM_apply_0, rotM_apply_1,
       rotMθ_apply_0, rotMθ_apply_1, rotMφ_apply_0, rotMφ_apply_1]
 
-lemma HasFDerivAt.rotproj_inner (pbar : Pose) (S : ℝ³) (w : ℝ²) :
+lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
     HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams := by
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S) (rotprojRM' pbar S) pbar.innerParams := by
     apply HasStrictFDerivAt.hasFDerivAt
