@@ -58,20 +58,24 @@ def tightInterval : PoseInterval ℝ :=
       refine ⟨?_, ?_, hπ.le, ?_, ?_⟩ <;> linarith)
 
 /--
-An interval we need to constrain poses to sometimes for the purposes
-of rational approximation reasoning.
+The `[-4, 4]^5` box, used to constrain poses for rational approximation reasoning.
+Polymorphic over the value type so the same name works at both `ℚ` and `ℝ`.
 -/
-def fourInterval : PoseInterval ℝ :=
+def fourInterval (R : Type) [Field R] [LinearOrder R] [IsStrictOrderedRing R] : PoseInterval R :=
   PoseInterval.mk
     { θ₁ := -4, θ₂ := -4, φ₁ := -4, φ₂ := -4, α := -4 }
     { θ₁ := 4, θ₂ := 4, φ₁ := 4, φ₂ := 4, α := 4 }
     (by rw [Pose.le_iff]; refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num)
 
-@[simp] lemma fourInterval_min :
-    fourInterval.min = { θ₁ := -4, θ₂ := -4, φ₁ := -4, φ₂ := -4, α := -4 } := rfl
+@[simp] lemma fourInterval_min {R : Type} [Field R] [LinearOrder R] [IsStrictOrderedRing R] :
+    (fourInterval R).min = { θ₁ := -4, θ₂ := -4, φ₁ := -4, φ₂ := -4, α := -4 } := rfl
 
-@[simp] lemma fourInterval_max :
-    fourInterval.max = { θ₁ := 4, θ₂ := 4, φ₁ := 4, φ₂ := 4, α := 4 } := rfl
+@[simp] lemma fourInterval_max {R : Type} [Field R] [LinearOrder R] [IsStrictOrderedRing R] :
+    (fourInterval R).max = { θ₁ := 4, θ₂ := 4, φ₁ := 4, φ₂ := 4, α := 4 } := rfl
+
+instance {α : Type*} [Preorder α] [DecidableLE α] (p : α) (iv : NonemptyInterval α) :
+    Decidable (p ∈ iv) :=
+  decidable_of_iff _ NonemptyInterval.mem_def.symm
 
 namespace PoseInterval
 

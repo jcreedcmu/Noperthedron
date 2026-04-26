@@ -45,7 +45,7 @@ structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty �
     (poly : GoodPoly ι) (poly_ : Polyhedron ι)
     (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℝ) (ε : ℝ) : Type where
   j : ι
-  p_in_4 : fourInterval.contains p
+  p_in_4 : (fourInterval ℝ).contains p
   w : ℝ²
   w_unit : ‖w‖ = 1
   exceeds : Gℚ p ε (poly_.v j) w > maxHℚ p poly_ ε w
@@ -56,7 +56,7 @@ private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C
 private lemma Gℚ_le_G {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
     {S S_ : ℝ³} {w : ℝ²}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
-    (hp : fourInterval.contains pbar) :
+    (hp : (fourInterval ℝ).contains pbar) :
     Gℚ pbar ε S_ w ≤ GlobalTheorem.G pbar ε S w := by
   -- Unfold both G definitions
   unfold Gℚ GlobalTheorem.G
@@ -100,7 +100,7 @@ private lemma Gℚ_le_G {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
 private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
     {P P_ : ℝ³} {w : ℝ²}
     (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1)
-    (hp : fourInterval.contains pbar) :
+    (hp : (fourInterval ℝ).contains pbar) :
     GlobalTheorem.H pbar ε w P ≤ Hℚ pbar ε w P_ := by
   unfold GlobalTheorem.H Hℚ
   set θ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₂, hp.θ₂Bound⟩

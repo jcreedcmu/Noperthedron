@@ -136,6 +136,14 @@ def Interval.ofIntPose (mn mx : Pose ℤ) (h : mn ≤ mx) : Interval :=
 def Interval.center (iv : Interval) (p : Param) : ℚ :=
   (iv.min.getParam p + iv.max.getParam p) / 2
 
+/-- Center of an interval box, as a `Pose ℚ`. -/
+def Interval.centerPose (iv : Interval) : Pose ℚ where
+  θ₁ := iv.center .θ₁
+  θ₂ := iv.center .θ₂
+  φ₁ := iv.center .φ₁
+  φ₂ := iv.center .φ₂
+  α  := iv.center .α
+
 /-- Max half-width of an interval box across all 5 parameters. -/
 def Interval.epsilon (iv : Interval) : ℚ :=
   let hw (p : Param) := (iv.max.getParam p - iv.min.getParam p) / 2

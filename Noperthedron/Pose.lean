@@ -38,6 +38,9 @@ lemma le_iff {R} [PartialOrder R] (p q : Pose R) :
   rintro ⟨h1, h2, h3, h4, h5⟩ i
   fin_cases i <;> assumption
 
+instance {R} [PartialOrder R] [DecidableLE R] : DecidableLE (Pose R) :=
+  fun p q => decidable_of_iff _ (le_iff p q).symm
+
 lemma mem_closedBall_iff {R} [MetricSpace R] {p q : Pose R} {ε : ℝ} :
     p ∈ Metric.closedBall q ε ↔
       dist p.θ₁ q.θ₁ ≤ ε ∧ dist p.θ₂ q.θ₂ ≤ ε ∧

@@ -92,6 +92,43 @@ def Interval.toReal (iv : Interval) : PoseInterval ℝ :=
 def Row.toRealInterval (row : Row) : PoseInterval ℝ :=
   row.interval.toReal
 
+/-- Each component of `iv.toReal.center` (real) is the `Rat.cast` of the corresponding
+`iv.center` (rational). -/
+lemma Interval.toReal_center_getParam (iv : Interval) (p : Param) :
+    iv.toReal.center.getParam p = ((iv.center p : ℚ) : ℝ) := by
+  cases p <;>
+    simp [Interval.toReal, Interval.minPose, Interval.maxPose, Interval.center,
+          PoseInterval.center, PoseInterval.min, PoseInterval.max, Pose.getParam]
+
+@[simp] lemma Interval.toReal_center_θ₁ (iv : Interval) :
+    iv.toReal.center.θ₁ = ((iv.center .θ₁ : ℚ) : ℝ) := iv.toReal_center_getParam .θ₁
+@[simp] lemma Interval.toReal_center_θ₂ (iv : Interval) :
+    iv.toReal.center.θ₂ = ((iv.center .θ₂ : ℚ) : ℝ) := iv.toReal_center_getParam .θ₂
+@[simp] lemma Interval.toReal_center_φ₁ (iv : Interval) :
+    iv.toReal.center.φ₁ = ((iv.center .φ₁ : ℚ) : ℝ) := iv.toReal_center_getParam .φ₁
+@[simp] lemma Interval.toReal_center_φ₂ (iv : Interval) :
+    iv.toReal.center.φ₂ = ((iv.center .φ₂ : ℚ) : ℝ) := iv.toReal_center_getParam .φ₂
+@[simp] lemma Interval.toReal_center_α (iv : Interval) :
+    iv.toReal.center.α = ((iv.center .α : ℚ) : ℝ) := iv.toReal_center_getParam .α
+
+/-- Bridge the rational `centerPose ∈ fourInterval ℚ` condition (decidable) to the
+real `(fourInterval ℝ).contains` form (used downstream by the rational global/local
+theorems). -/
+theorem fourInterval_contains_toReal_center {iv : Interval}
+    (h : iv.centerPose ∈ fourInterval ℚ) : (fourInterval ℝ).contains iv.toReal.center := by
+  obtain ⟨hlow, hhigh⟩ := h
+  rw [Pose.le_iff] at hlow hhigh
+  simp only [fourInterval_min, fourInterval_max, Interval.centerPose] at hlow hhigh
+  rw [PoseInterval.contains_iff_components]
+  simp only [fourInterval_min, fourInterval_max, Interval.toReal_center_θ₁,
+             Interval.toReal_center_θ₂, Interval.toReal_center_φ₁,
+             Interval.toReal_center_φ₂, Interval.toReal_center_α, Set.mem_Icc]
+  exact ⟨⟨mod_cast hlow.1,         mod_cast hhigh.1⟩,
+         ⟨mod_cast hlow.2.1,       mod_cast hhigh.2.1⟩,
+         ⟨mod_cast hlow.2.2.1,     mod_cast hhigh.2.2.1⟩,
+         ⟨mod_cast hlow.2.2.2.1,   mod_cast hhigh.2.2.2.1⟩,
+         ⟨mod_cast hlow.2.2.2.2,   mod_cast hhigh.2.2.2.2⟩⟩
+
 /-- The set of poses lying in the rational interval, defined as `Set.Icc` of the
     min/max endpoints; agrees definitionally with `iv.toReal`. -/
 noncomputable

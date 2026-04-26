@@ -61,16 +61,7 @@ open scoped Matrix
 @[mk_iff]
 structure Row.ValidLocal (row : Row) : Prop where
   nodeType_eq : row.nodeType = 2
-  θ₁_lb : -4 ≤ row.θ₁
-  θ₁_ub : row.θ₁ ≤ 4
-  φ₁_lb : -4 ≤ row.φ₁
-  φ₁_ub : row.φ₁ ≤ 4
-  θ₂_lb : -4 ≤ row.θ₂
-  θ₂_ub : row.θ₂ ≤ 4
-  φ₂_lb : -4 ≤ row.φ₂
-  φ₂_ub : row.φ₂ ≤ 4
-  α_lb : -4 ≤ row.α
-  α_ub : row.α ≤ 4
+  center_in_fourQ : row.interval.centerPose ∈ fourInterval ℚ
   exists_symmetry : ∃ s : TriangleSymmetry,
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
   X₁_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <

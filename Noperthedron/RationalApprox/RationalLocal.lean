@@ -60,7 +60,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (hpoly : κApproxPoly poly.vertices poly_)
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
-    (p_ : Pose ℝ) (hp : fourInterval.contains p_)
+    (p_ : Pose ℝ) (hp : (fourInterval ℝ).contains p_)
     (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
     (hr₁ : BoundRℚ r ε p_ (transportTri Qi hpoly) sl)

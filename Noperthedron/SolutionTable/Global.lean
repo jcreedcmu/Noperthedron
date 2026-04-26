@@ -36,20 +36,7 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
              exactPoly pythonPoly KappaApprox.exact_κApprox_python pbar r := {
     j := row.S_index
-    p_in_4 := by
-      rw [PoseInterval.contains_iff_components]
-      refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;>
-        simp only [fourInterval]
-      · rw [← hθ₁]; exact_mod_cast hrow.θ₁_lb
-      · rw [← hθ₁]; exact_mod_cast hrow.θ₁_ub
-      · rw [← hθ₂]; exact_mod_cast hrow.θ₂_lb
-      · rw [← hθ₂]; exact_mod_cast hrow.θ₂_ub
-      · rw [← hφ₁]; exact_mod_cast hrow.φ₁_lb
-      · rw [← hφ₁]; exact_mod_cast hrow.φ₁_ub
-      · rw [← hφ₂]; exact_mod_cast hrow.φ₂_lb
-      · rw [← hφ₂]; exact_mod_cast hrow.φ₂_ub
-      · rw [← hα]; exact_mod_cast hrow.α_lb
-      · rw [← hα]; exact_mod_cast hrow.α_ub
+    p_in_4 := fourInterval_contains_toReal_center hrow.center_in_fourQ
     w := WithLp.toLp 2 (fun i : Fin 2 => ((row.w i : ℝ)))
     w_unit := by
       have h_wd : (0 : ℝ) < (row.w_denominator : ℝ) := by exact_mod_cast hrow.w_denominator_pos

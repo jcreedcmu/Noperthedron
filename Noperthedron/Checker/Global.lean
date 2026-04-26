@@ -86,16 +86,7 @@ structure Row.ValidGlobal (row : Row) : Prop where
   nodeType_eq : row.nodeType = 1
   w_unit : row.wx_numerator ^ 2 + row.wy_numerator ^ 2 = (row.w_denominator : ℤ) ^ 2
   w_denominator_pos : 0 < row.w_denominator
-  θ₁_lb : -4 ≤ row.θ₁
-  θ₁_ub : row.θ₁ ≤ 4
-  φ₁_lb : -4 ≤ row.φ₁
-  φ₁_ub : row.φ₁ ≤ 4
-  θ₂_lb : -4 ≤ row.θ₂
-  θ₂_ub : row.θ₂ ≤ 4
-  φ₂_lb : -4 ≤ row.φ₂
-  φ₂_ub : row.φ₂ ≤ 4
-  α_lb : -4 ≤ row.α
-  α_ub : row.α ≤ 4
+  center_in_fourQ : row.interval.centerPose ∈ fourInterval ℚ
   epsilon_pos : 0 < row.epsilon
   G_gt_maxH : row.G_gt_maxH
 
