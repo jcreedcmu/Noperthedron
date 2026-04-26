@@ -118,4 +118,3 @@ def pythonPolyQ : Polyhedron VertexIndex (Fin 3 → ℚ) := ⟨pythonVertex⟩
 
 noncomputable
 def pythonPoly : Polyhedron VertexIndex ℝ³ := pythonPolyQ.toReal
-
