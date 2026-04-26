@@ -5,13 +5,6 @@ import Noperthedron.Checker.Local
 
 namespace Noperthedron.Solution
 
-def _root_.Pose.getParam (q : Pose ℝ) : Param → ℝ
-| .θ₁ => q.θ₁
-| .φ₁ => q.φ₁
-| .θ₂ => q.θ₂
-| .φ₂ => q.φ₂
-| .α => q.α
-
 @[mk_iff]
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
   bound0 : row.ID < row.IDfirstChild
@@ -72,43 +65,33 @@ lemma Table.Valid.valid_at {tab : Table} (htab : tab.Valid) {i : ℕ} (hi : i < 
 def Table.valid_decidable (tab : Table) : Decidable tab.Valid := by
   exact inferInstance
 
-/--
-The common denominator of θ₁, θ₂, φ₁, φ₂, α rational
-representation in the table. See [SY25 §7.2]
--/
-def DENOM : ℝ := 15360000
-
-/-- The minimum endpoint of an `Interval`, viewed as a `Pose` (each coordinate divided
-    by the common denominator `DENOM`). -/
-noncomputable
+/-- The minimum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
 def Interval.minPose (iv : Interval) : Pose ℝ where
-  θ₁ := iv.min .θ₁ / DENOM
-  θ₂ := iv.min .θ₂ / DENOM
-  φ₁ := iv.min .φ₁ / DENOM
-  φ₂ := iv.min .φ₂ / DENOM
-  α := iv.min .α / DENOM
+  θ₁ := iv.min.θ₁
+  θ₂ := iv.min.θ₂
+  φ₁ := iv.min.φ₁
+  φ₂ := iv.min.φ₂
+  α := iv.min.α
 
-/-- The maximum endpoint of an `Interval`, viewed as a `Pose`. -/
-noncomputable
+/-- The maximum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
 def Interval.maxPose (iv : Interval) : Pose ℝ where
-  θ₁ := iv.max .θ₁ / DENOM
-  θ₂ := iv.max .θ₂ / DENOM
-  φ₁ := iv.max .φ₁ / DENOM
-  φ₂ := iv.max .φ₂ / DENOM
-  α := iv.max .α / DENOM
+  θ₁ := iv.max.θ₁
+  θ₂ := iv.max.θ₂
+  φ₁ := iv.max.φ₁
+  φ₂ := iv.max.φ₂
+  α := iv.max.α
 
-private lemma Interval.minPose_le_maxPose {iv : Interval} (h : iv.WellFormed) :
+private lemma Interval.minPose_le_maxPose (iv : Interval) :
     iv.minPose ≤ iv.maxPose := by
+  obtain ⟨h1, h2, h3, h4, h5⟩ := (Pose.le_iff iv.min iv.max).mp iv.fst_le_snd
   rw [Pose.le_iff]
-  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
-    (simp only [Interval.minPose, Interval.maxPose]
-     exact div_le_div_of_nonneg_right (by exact_mod_cast h _) (by norm_num [DENOM]))
+  simp only [Interval.minPose, Interval.maxPose]
+  exact ⟨by exact_mod_cast h1, by exact_mod_cast h2, by exact_mod_cast h3,
+         by exact_mod_cast h4, by exact_mod_cast h5⟩
 
-noncomputable
-def Interval.toPoseInterval (iv : Interval) (h : iv.WellFormed) : PoseInterval ℝ :=
-  PoseInterval.mk iv.minPose iv.maxPose (iv.minPose_le_maxPose h)
+def Interval.toPoseInterval (iv : Interval) (_h : iv.WellFormed) : PoseInterval ℝ :=
+  PoseInterval.mk iv.minPose iv.maxPose iv.minPose_le_maxPose
 
-noncomputable
 def Row.toPoseInterval (row : Row) (h : row.interval.WellFormed) : PoseInterval ℝ :=
   row.interval.toPoseInterval h
 

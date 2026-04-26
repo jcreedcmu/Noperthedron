@@ -110,10 +110,10 @@ wx_nominator,wy_nominator,w_denominator,S_index
 /-- Row 245 from `data/solution_tree_300.csv` — the first local leaf. -/
 def testLocalRow : Row := {
   ID := 91, nodeType := 2, nrChildren := 0, IDfirstChild := 0, split := 0,
-  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 0
-                            | .φ₂ => 0 | .α => -22853120,
-                max := fun | .θ₁ => 201600 | .φ₁ => 201600 | .θ₂ => 201600
-                            | .φ₂ => 202240 | .α => -22650880 },
+  interval := Interval.ofIntPose
+    { θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := -22853120 }
+    { θ₁ := 201600, θ₂ := 201600, φ₁ := 201600, φ₂ := 202240, α := -22650880 }
+    (by rw [Pose.le_iff]; refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num),
   S_index := 0, wx_numerator := 0, wy_numerator := 0, w_denominator := 0,
   P1_index := VertexIndex.ofFin90 ⟨30, by lia⟩,
   P2_index := VertexIndex.ofFin90 ⟨31, by lia⟩,
@@ -139,10 +139,10 @@ All vertices have i=1 (C2 orbit).
 -/
 def testLocalRowReflection : Row := {
   ID := 2738018, nodeType := 2, nrChildren := 0, IDfirstChild := 0, split := 0,
-  interval := { min := fun | .θ₁ => 0 | .φ₁ => 36691200 | .θ₂ => 1209600
-                            | .φ₂ => 11325440 | .α => -808960,
-                max := fun | .θ₁ => 403200 | .φ₁ => 37094400 | .θ₂ => 1612800
-                            | .φ₂ => 11729920 | .α => -404480 },
+  interval := Interval.ofIntPose
+    { θ₁ := 0, θ₂ := 1209600, φ₁ := 36691200, φ₂ := 11325440, α := -808960 }
+    { θ₁ := 403200, θ₂ := 1612800, φ₁ := 37094400, φ₂ := 11729920, α := -404480 }
+    (by rw [Pose.le_iff]; refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num),
   S_index := 0, wx_numerator := 0, wy_numerator := 0, w_denominator := 0,
   P1_index := VertexIndex.ofFin90 ⟨15, by lia⟩,
   P2_index := VertexIndex.ofFin90 ⟨61, by lia⟩,

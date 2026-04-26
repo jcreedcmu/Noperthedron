@@ -20,10 +20,9 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
                  pbar r hr exactPoly pythonPoly
                  KappaApprox.exact_κApprox_python exactPoly_point_symmetric
   have center_eq : ∀ p : Param, ((row.interval.center p : ℚ) : ℝ) =
-      ((row.interval.min p : ℝ) / DENOM + (row.interval.max p : ℝ) / DENOM) / 2 := by
+      ((row.interval.min.getParam p : ℝ) + (row.interval.max.getParam p : ℝ)) / 2 := by
     intro p
-    simp [Interval.center, DENOM, DENOMQ]
-    ring
+    simp [Interval.center]
   have hθ₁ : (row.θ₁ : ℝ) = pbar.θ₁ := by
     rw [show (row.θ₁ : ℝ) = ((row.interval.center .θ₁ : ℚ) : ℝ) from rfl, center_eq]; rfl
   have hφ₁ : (row.φ₁ : ℝ) = pbar.φ₁ := by

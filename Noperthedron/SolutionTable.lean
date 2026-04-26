@@ -7,11 +7,11 @@ namespace Noperthedron.Solution
 
 lemma mem_pose_interval_iff (q : Pose ℝ) (iv : Interval) :
     q ∈ (iv : Set (Pose ℝ)) ↔
-      q.θ₁ ∈ Set.Icc (iv.min .θ₁ / DENOM) (iv.max .θ₁ / DENOM) ∧
-      q.φ₁ ∈ Set.Icc (iv.min .φ₁ / DENOM) (iv.max .φ₁ / DENOM) ∧
-      q.θ₂ ∈ Set.Icc (iv.min .θ₂ / DENOM) (iv.max .θ₂ / DENOM) ∧
-      q.φ₂ ∈ Set.Icc (iv.min .φ₂ / DENOM) (iv.max .φ₂ / DENOM) ∧
-      q.α ∈ Set.Icc (iv.min .α / DENOM) (iv.max .α / DENOM)
+      q.θ₁ ∈ Set.Icc (iv.min.θ₁ : ℝ) (iv.max.θ₁ : ℝ) ∧
+      q.φ₁ ∈ Set.Icc (iv.min.φ₁ : ℝ) (iv.max.φ₁ : ℝ) ∧
+      q.θ₂ ∈ Set.Icc (iv.min.θ₂ : ℝ) (iv.max.θ₂ : ℝ) ∧
+      q.φ₂ ∈ Set.Icc (iv.min.φ₂ : ℝ) (iv.max.φ₂ : ℝ) ∧
+      q.α ∈ Set.Icc (iv.min.α : ℝ) (iv.max.α : ℝ)
       := by
   show q ∈ Set.Icc iv.minPose iv.maxPose ↔ _
   simp only [Set.mem_Icc, Pose.le_iff, Interval.minPose, Interval.maxPose, Set.mem_Icc]
@@ -19,27 +19,26 @@ lemma mem_pose_interval_iff (q : Pose ℝ) (iv : Interval) :
 
 lemma mem_lower_half (q : Pose ℝ) (iv : Interval) (p : Param)
     (hq : q ∈ (iv : Set (Pose ℝ)))
-    (lower : q.getParam p ≤ ((iv.min p + iv.max p) / 2 : ℤ) / DENOM) :
+    (lower : q.getParam p ≤ (((iv.min.getParam p + iv.max.getParam p) / 2 : ℚ) : ℝ)) :
     q ∈ ((iv.lower_half p) : Set (Pose ℝ)) := by
   rw [mem_pose_interval_iff] at hq ⊢
   have ⟨_, _, _, _, _⟩ := hq
   fin_cases p <;>
-  · simp_all [Interval.lower_half]; exact lower
+  · simp_all [Interval.lower_half, Pose.getParam, Pose.setParam]
 
 lemma mem_upper_half (q : Pose ℝ) (iv : Interval) (p : Param)
     (hq : q ∈ (iv : Set (Pose ℝ)))
-    (upper : ((iv.min p + iv.max p) / 2 : ℤ) / DENOM ≤ q.getParam p ) :
+    (upper : (((iv.min.getParam p + iv.max.getParam p) / 2 : ℚ) : ℝ) ≤ q.getParam p) :
     q ∈ ((iv.upper_half p) : Set (Pose ℝ)) := by
   rw [mem_pose_interval_iff] at hq ⊢
   have ⟨_, _, _, _, _⟩ := hq
   fin_cases p <;>
-  · simp_all [Interval.upper_half]; exact upper
+  · simp_all [Interval.upper_half, Pose.getParam, Pose.setParam]
 
 lemma mem_interval_imp_mem_union_halves (q : Pose ℝ) (iv : Interval) (p : Param)
      (hq : q ∈ (iv : Set (Pose ℝ))) :
      q ∈ ((iv.lower_half p) : Set (Pose ℝ)) ∨ q ∈ ((iv.upper_half p) : Set (Pose ℝ)) := by
-  let midn : ℤ := (iv.min p + iv.max p) / 2
-  let midr : ℝ := midn / DENOM
+  let midr : ℝ := (((iv.min.getParam p + iv.max.getParam p) / 2 : ℚ) : ℝ)
   if h : q.getParam p ≤ midr then
     left; exact mem_lower_half q iv p hq h
   else

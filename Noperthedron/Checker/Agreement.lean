@@ -276,12 +276,12 @@ theorem row_epsilon_cast_eq_radius (row : Row) (hwf : row.WellFormed) :
   simp only [PoseInterval.min, PoseInterval.max, Interval.minPose, Interval.maxPose]
   rw [h_div, h_div, h_div, h_div]
   have hcomp : ∀ p : Param,
-      ((((row.interval.max p : ℚ) - (row.interval.min p : ℚ)) / (2 * DENOMQ) : ℚ) : ℝ) =
-      ((row.interval.max p : ℝ) / DENOM - (row.interval.min p : ℝ) / DENOM) / 2 := by
+      ((((row.interval.max.getParam p : ℚ) - (row.interval.min.getParam p : ℚ)) / 2 : ℚ) : ℝ) =
+      ((row.interval.max.getParam p : ℝ) - (row.interval.min.getParam p : ℝ)) / 2 := by
     intro p
-    simp only [DENOM, DENOMQ]
     push_cast
     ring
   rw [hcomp .θ₁, hcomp .φ₁, hcomp .θ₂, hcomp .φ₂, hcomp .α]
+  simp [Pose.getParam, PoseInterval.min, PoseInterval.max]
 
 end Noperthedron.Solution.Agreement
