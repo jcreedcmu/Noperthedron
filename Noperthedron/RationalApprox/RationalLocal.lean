@@ -18,7 +18,7 @@ def Aεℚ (X : ℝ³) (P_ : Triangle) (ε : ℝ) : Prop :=
   ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P_ i⟫ > √2 * ε + 3 * κ
 
 noncomputable
-def Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) (su : UpperSqrt) : ℝ :=
+def Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) (su : UpperSqrt) : ℝ :=
    (⟪p.rotM₂ℚ v₁, p.rotM₂ℚ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (su.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
    / ((su.norm (p.rotM₂ℚ v₁) + √2 * ε + 3 * κ) * (su.norm (p.rotM₂ℚ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
 
@@ -26,7 +26,7 @@ def Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose) (ε : ℝ) (su : UpperSqrt) : ℝ
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
 def Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
-    (v_ : ι → Euc(3)) (p : Pose) (ε δ r : ℝ) (su : UpperSqrt) : Prop :=
+    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℝ) (su : UpperSqrt) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε su
 
@@ -45,11 +45,11 @@ def transportTri {ι : Type} [Fintype ι]
   fun i => B.v (hpoly.bijection (Pi i))
 
 /-- The condition on δ -/
-def BoundDeltaℚ (δ : ℝ) (p : Pose) (P_ Q_ : Triangle) (su : UpperSqrt) : Prop :=
+def BoundDeltaℚ (δ : ℝ) (p : Pose ℝ) (P_ Q_ : Triangle) (su : UpperSqrt) : Prop :=
   ∀ i : Fin 3, δ ≥ su.norm (p.rotR (p.rotM₁ℚ (P_ i)) - p.rotM₂ℚ (Q_ i))/2 + 3 * κ
 
 /-- The condition on r -/
-def BoundRℚ (r ε : ℝ) (p : Pose) (Q_ : Triangle) (sl : LowerSqrt) : Prop :=
+def BoundRℚ (r ε : ℝ) (p : Pose ℝ) (Q_ : Triangle) (sl : LowerSqrt) : Prop :=
   ∀ i : Fin 3, sl.norm (p.rotM₂ℚ (Q_ i)) > r + √2 * ε + 3 * κ
 
 /--
@@ -60,7 +60,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (hpoly : κApproxPoly poly.vertices poly_)
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
-    (p_ : Pose) (hp : fourInterval.contains p_)
+    (p_ : Pose ℝ) (hp : (fourInterval ℝ).contains p_)
     (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
     (hr₁ : BoundRℚ r ε p_ (transportTri Qi hpoly) sl)

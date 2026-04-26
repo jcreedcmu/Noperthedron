@@ -86,16 +86,7 @@ structure Row.ValidGlobal (row : Row) : Prop where
   nodeType_eq : row.nodeType = 1
   w_unit : row.wx_numerator ^ 2 + row.wy_numerator ^ 2 = (row.w_denominator : ℤ) ^ 2
   w_denominator_pos : 0 < row.w_denominator
-  θ₁_lb : -4 ≤ row.θ₁
-  θ₁_ub : row.θ₁ ≤ 4
-  φ₁_lb : -4 ≤ row.φ₁
-  φ₁_ub : row.φ₁ ≤ 4
-  θ₂_lb : -4 ≤ row.θ₂
-  θ₂_ub : row.θ₂ ≤ 4
-  φ₂_lb : -4 ≤ row.φ₂
-  φ₂_ub : row.φ₂ ≤ 4
-  α_lb : -4 ≤ row.α
-  α_ub : row.α ≤ 4
+  center_in_fourQ : row.interval.centerPose ∈ fourInterval ℚ
   epsilon_pos : 0 < row.epsilon
   G_gt_maxH : row.G_gt_maxH
 
@@ -107,10 +98,10 @@ instance (row : Row) : Decidable (Row.ValidGlobal row) :=
 /-- Row 91 from `data/solution_tree_300.csv` — the first global leaf. -/
 def testGlobalRow : Row := {
   ID := 91, nodeType := 1, nrChildren := 0, IDfirstChild := 0, split := 0,
-  interval := { min := fun | .θ₁ => 0 | .φ₁ => 0 | .θ₂ => 806400
-                            | .φ₂ => 808960 | .α => -23459840,
-                max := fun | .θ₁ => 806400 | .φ₁ => 806400 | .θ₂ => 1612800
-                            | .φ₂ => 1617920 | .α => -22650880 },
+  interval := Interval.ofIntPose
+    { θ₁ := 0, θ₂ := 806400, φ₁ := 0, φ₂ := 808960, α := -23459840 }
+    { θ₁ := 806400, θ₂ := 1612800, φ₁ := 806400, φ₂ := 1617920, α := -22650880 }
+    (by decide),
   S_index := VertexIndex.ofFin90 ⟨39, by omega⟩,
   wx_numerator := 5319166373, wy_numerator := 15662395164,
   w_denominator := 16540984045,

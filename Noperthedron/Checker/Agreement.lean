@@ -190,7 +190,7 @@ lemma κQ_cast : ((κQ : ℚ) : ℝ) = κ := by
 /-! ## Main agreement: computeGQ ↔ Gℚ and computeHQ ↔ Hℚ -/
 
 theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ)
-    (p : Pose) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
+    (p : Pose ℝ) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
     (hα : (α : ℝ) = p.α) :
     ((computeGQ θ₁ φ₁ α ε S w : ℚ) : ℝ) =
     Gℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ S)) (WithLp.toLp 2 (castℝ w)) := by
@@ -206,7 +206,7 @@ theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin
   ring
 
 theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ)
-    (p : Pose) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
+    (p : Pose ℝ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
     ((computeHQ θ₂ φ₂ ε w P : ℚ) : ℝ) =
     Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) (WithLp.toLp 2 (castℝ P)) := by
   unfold computeHQ Hℚ
@@ -220,7 +220,7 @@ theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 
 /-! ## Bridge for the maximum over all 90 vertices -/
 
 theorem computeMaxHQ_eq_maxHℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ)
-    (p : Pose) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
+    (p : Pose ℝ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
     ((computeMaxHQ θ₂ φ₂ ε w : ℚ) : ℝ) =
     maxHℚ p pythonPoly (ε : ℝ) (WithLp.toLp 2 (castℝ w)) := by
   have h_pointwise : ∀ j : VertexIndex,
@@ -262,7 +262,7 @@ private lemma param_image_max'_eq {α : Type} [LinearOrder α] (f : Param → α
 /-- The rational `row.epsilon` (cast to `ℝ`) equals `PoseInterval.radius`
     of the corresponding `PoseInterval`. -/
 theorem row_epsilon_cast_eq_radius (row : Row) :
-    ((row.epsilon : ℚ) : ℝ) = row.toPoseInterval.radius := by
+    ((row.epsilon : ℚ) : ℝ) = row.toRealInterval.radius := by
   unfold Row.epsilon Interval.epsilon
   rw [Rat.cast_mono.map_finset_max']
   simp only [Finset.image_image]
@@ -272,16 +272,16 @@ theorem row_epsilon_cast_eq_radius (row : Row) :
     intro a b
     show (a ⊔ b) * (2 : ℝ)⁻¹ = a * 2⁻¹ ⊔ b * 2⁻¹
     rw [max_mul_of_nonneg _ _ (by norm_num : (0:ℝ) ≤ 2⁻¹)]
-  unfold Row.toPoseInterval Interval.toPoseInterval PoseInterval.radius
-  simp only []
+  unfold Row.toRealInterval Interval.toReal PoseInterval.radius
+  simp only [PoseInterval.min, PoseInterval.max, Interval.minPose, Interval.maxPose]
   rw [h_div, h_div, h_div, h_div]
   have hcomp : ∀ p : Param,
-      ((((row.interval.max p : ℚ) - (row.interval.min p : ℚ)) / (2 * DENOMQ) : ℚ) : ℝ) =
-      ((row.interval.max p : ℝ) / DENOM - (row.interval.min p : ℝ) / DENOM) / 2 := by
+      ((((row.interval.max.getParam p : ℚ) - (row.interval.min.getParam p : ℚ)) / 2 : ℚ) : ℝ) =
+      ((row.interval.max.getParam p : ℝ) - (row.interval.min.getParam p : ℝ)) / 2 := by
     intro p
-    simp only [DENOM, DENOMQ]
     push_cast
     ring
   rw [hcomp .θ₁, hcomp .φ₁, hcomp .θ₂, hcomp .φ₂, hcomp .α]
+  simp [Pose.getParam, PoseInterval.min, PoseInterval.max]
 
 end Noperthedron.Solution.Agreement

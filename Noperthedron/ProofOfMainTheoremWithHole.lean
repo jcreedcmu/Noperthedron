@@ -6,7 +6,7 @@ namespace Noperthedron
 theorem valid_table_imples_exists_not_rupert {tab : Solution.Table}
     (ht : tab.Valid)
     (hz : 0 < tab.size)
-    (hi : tightInterval ⊆ tab[0].toPoseInterval) :
+    (hi : (tightInterval : Set (Pose ℝ)) ⊆ (tab[0].interval : Set (Pose ℝ))) :
     ExistsNotRupert := by
   sorry
 

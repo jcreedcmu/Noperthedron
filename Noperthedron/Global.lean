@@ -68,7 +68,7 @@ theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
-def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
+def G (p : Pose ℝ) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
   ⟪p.inner S, w⟫ - (ε * (|⟪p.rotR' (p.rotM₁ S), w⟫| + |⟪p.rotR (p.rotM₁θ S), w⟫| + |⟪p.rotR (p.rotM₁φ S), w⟫|)
   + 9 * ε^2 / 2)
 
@@ -76,14 +76,14 @@ def G (p : Pose) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
 A measure of how far an outer-shadow vertex P can "reach" along w.
 -/
 noncomputable
-def H (p : Pose) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
+def H (p : Pose ℝ) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
   ⟪p.rotM₂ P, w⟫ + ε * (|⟪p.rotM₂θ P, w⟫| + |⟪p.rotM₂φ P, w⟫|) + 2 * ε^2
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 noncomputable
-def maxH {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose) (poly : GoodPoly ι) (ε : ℝ) (w : ℝ²) : ℝ :=
+def maxH {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose ℝ) (poly : GoodPoly ι) (ε : ℝ) (w : ℝ²) : ℝ :=
   Finset.image (H p ε w ∘ poly.vertices.v) Finset.univ |>.max' <| by
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
@@ -95,7 +95,7 @@ the direction we're projecting ℝ² → ℝ to find that S "sticks out too far"
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
 structure GlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
-    (poly : GoodPoly ι) (p : Pose) (ε : ℝ) : Type where
+    (poly : GoodPoly ι) (p : Pose ℝ) (ε : ℝ) : Type where
   S : ℝ³
   S_in_poly : S ∈ Set.range poly.vertices.v
   w : ℝ²
@@ -105,43 +105,43 @@ structure GlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
 noncomputable
 def GlobalTheoremPrecondition.Sval
     {ι : Type} [Fintype ι] [Nonempty ι]
-    {poly : GoodPoly ι} {p : Pose} {ε : ℝ}
-    (hp : GlobalTheoremPrecondition poly p ε) (q : Pose) : ℝ :=
+    {poly : GoodPoly ι} {p : Pose ℝ} {ε : ℝ}
+    (hp : GlobalTheoremPrecondition poly p ε) (q : Pose ℝ) : ℝ :=
     ⟪hp.w, q.inner hp.S⟫
 
 theorem GlobalTheoremPrecondition.norm_S_le_one
     {ι : Type} [Fintype ι] [Nonempty ι]
-    {poly : GoodPoly ι} {p : Pose} {ε : ℝ}
+    {poly : GoodPoly ι} {p : Pose ℝ} {ε : ℝ}
     (hp : GlobalTheoremPrecondition poly p ε) : ‖hp.S‖ ≤ 1 := by
   obtain ⟨i, hi⟩ := hp.S_in_poly; rw [← hi]; exact poly.vertex_radius_le_one i
 
 theorem GlobalTheoremPrecondition.norm_S_gt_zero
     {ι : Type} [Fintype ι] [Nonempty ι]
-    {poly : GoodPoly ι} {p : Pose} {ε : ℝ}
+    {poly : GoodPoly ι} {p : Pose ℝ} {ε : ℝ}
     (hp : GlobalTheoremPrecondition poly p ε) : 0 < ‖hp.S‖ := by
   obtain ⟨i, hi⟩ := hp.S_in_poly; rw [← hi]; exact poly.nontriv i
 
 theorem GlobalTheoremPrecondition.norm_S_ne_zero
     {ι : Type} [Fintype ι] [Nonempty ι]
-    {poly : GoodPoly ι} {p : Pose} {ε : ℝ}
+    {poly : GoodPoly ι} {p : Pose ℝ} {ε : ℝ}
     (hp : GlobalTheoremPrecondition poly p ε) : 0 ≠ ‖hp.S‖ :=
   ne_of_lt hp.norm_S_gt_zero
 
 noncomputable
-def imgInner (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
+def imgInner (p : Pose ℝ) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
   V.image fun P => ⟪w, p.inner P⟫
 
 noncomputable
-def maxInner {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
+def maxInner {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose ℝ) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
   (imgInner p (Finset.image poly.vertices.v Finset.univ) w).max' (by
     simp only [imgInner, Finset.image_nonempty, Finset.univ_nonempty_iff]; exact ne)
 
 noncomputable
-def imgOuter (p : Pose) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
+def imgOuter (p : Pose ℝ) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
   V.image fun P => ⟪w, p.outer P⟫
 
 noncomputable
-def maxOuter {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
+def maxOuter {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose ℝ) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
   (imgOuter p (Finset.image poly.vertices.v Finset.univ) w).max' (by
     simp only [imgOuter, Finset.image_nonempty, Finset.univ_nonempty_iff]; exact ne)
 
@@ -157,7 +157,7 @@ private lemma hull_eq_convexHull_finset {ι : Type} [Fintype ι] [Nonempty ι]
   simp only [GoodPoly.hull, Polyhedron.hull, Finset.coe_image, Finset.coe_univ, Set.image_univ]
   congr 1
 
-theorem global_theorem_le_reasoning {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose)
+theorem global_theorem_le_reasoning {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose ℝ)
     (poly : GoodPoly ι)
     (h_rupert : RupertPose p poly.hull) (w : ℝ²) :
     maxInner p poly w ≤ maxOuter p poly w
@@ -185,7 +185,7 @@ theorem global_theorem_le_reasoning {ι : Type} [Fintype ι] [ne : Nonempty ι] 
   simp only [Finset.coe_image, V, S]
   exact p.is_rupert_imp_inner_in_outer verts h_rupert' v hv
 
-lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose) : rotproj_inner S w p.innerParams = ⟪p.inner S, w⟫ := by
+lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose ℝ) : rotproj_inner S w p.innerParams = ⟪p.inner S, w⟫ := by
   simp only [rotproj_inner, Pose.inner, innerProj, PoseLike.inner, Pose.innerParams,
              Matrix.cons_val_zero, Matrix.cons_val, AffineMap.coe_comp,
              LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
@@ -198,7 +198,7 @@ This is the function that Theorem 17's proof calls `f`.
 It always returns a unit vector.
 -/
 noncomputable
-def GlobalTheoremPrecondition.fu {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
+def GlobalTheoremPrecondition.fu {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
     {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ³ → ℝ :=
   rotproj_inner_unit pc.S pc.w
@@ -207,7 +207,7 @@ def GlobalTheoremPrecondition.fu {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype �
 This is an outer-shadow analog of `fu`
 -/
 noncomputable
-def GlobalTheoremPrecondition.fu_outer {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
+def GlobalTheoremPrecondition.fu_outer {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
     {poly : GoodPoly ι} (P : ℝ³)
     (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ² → ℝ :=
   rotproj_outer_unit P pc.w
@@ -216,24 +216,24 @@ def GlobalTheoremPrecondition.fu_outer {pbar : Pose} {ε : ℝ} {ι : Type} [Fin
 This is the function that Theorem 17's proof calls `f`, but multiplied by ‖S‖.
 -/
 noncomputable
-def GlobalTheoremPrecondition.f {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
+def GlobalTheoremPrecondition.f {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
     {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) : ℝ³ → ℝ :=
   rotproj_inner pc.S pc.w
 
-theorem f_pose_eq_sval {p pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+theorem f_pose_eq_sval {p pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     pc.f p.innerParams = pc.Sval p := by
   simp only [GlobalTheoremPrecondition.f, GlobalTheoremPrecondition.Sval]
   rw [rotproj_inner_pose_eq]
   apply real_inner_comm
 
-theorem f_pose_eq_inner {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+theorem f_pose_eq_inner {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     pc.f pbar.innerParams = ⟪pbar.inner pc.S, pc.w⟫ := by
   rw [f_pose_eq_sval, GlobalTheoremPrecondition.Sval, real_inner_comm]
 
-theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) {P : ℝ³} (hP : ‖P‖ ≠ 0) :
     pc.fu_outer P p.outerParams * ‖P‖ = ⟪pc.w, p.outer P⟫ := by
   simp only [GlobalTheoremPrecondition.fu_outer, rotproj_outer_unit, Pose.outer, outerProj,
@@ -245,7 +245,7 @@ theorem GlobalTheoremPrecondition.fu_pose_eq_outer {p pbar : Pose} {ε : ℝ} {�
 -- Differentiable.rotprojRM, Differentiable.rotproj_inner, rotproj_inner', rotprojRM',
 -- HasFDerivAt.rotproj_inner are now imported from Noperthedron.Global.RotationPartials.Rotproj
 
-lemma fderiv_rotproj_inner_unit (pbar : Pose) (S : ℝ³) (w : ℝ²) :
+lemma fderiv_rotproj_inner_unit (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
     fderiv ℝ (rotproj_inner_unit S w) pbar.innerParams = ‖S‖⁻¹ • (rotproj_inner' pbar S w) := by
   unfold rotproj_inner_unit rotprojRM
   have heq : (fun x => ⟪((rotR (x.ofLp 0)).comp (rotM (x.ofLp 1) (x.ofLp 2))) S, w⟫ / ‖S‖) =
@@ -254,14 +254,14 @@ lemma fderiv_rotproj_inner_unit (pbar : Pose) (S : ℝ³) (w : ℝ²) :
   rw [heq, (Differentiable.rotproj_inner S w).differentiableAt.hasFDerivAt.const_smul ‖S‖⁻¹ |>.fderiv,
     HasFDerivAt.rotproj_inner pbar S w |>.fderiv]
 
-lemma partials_helper0a {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper0a {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 0 1) =
     ‖pc.S‖⁻¹ * ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
   simp [rotproj_inner']
 
-lemma partials_helper0 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper0 {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 0 pc.fu pbar.innerParams =
     ⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫ := by
@@ -269,14 +269,14 @@ lemma partials_helper0 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonemp
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper0a]
   field_simp
 
-lemma partials_helper1a {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper1a {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 1 1) =
     ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫ := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
   simp [rotproj_inner']
 
-lemma partials_helper1 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper1 {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 1 pc.fu pbar.innerParams =
     ⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫ := by
@@ -284,14 +284,14 @@ lemma partials_helper1 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonemp
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper1a]
   field_simp
 
-lemma partials_helper2a {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper2a {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     (fderiv ℝ (rotproj_inner_unit pc.S pc.w) pbar.innerParams) (EuclideanSpace.single 2 1) =
     ‖pc.S‖⁻¹ * ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫ := by
   rw [fderiv_rotproj_inner_unit pbar pc.S pc.w]
   simp [rotproj_inner']
 
-lemma partials_helper2 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper2 {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ‖pc.S‖ * nth_partial 2 pc.fu pbar.innerParams =
     ⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫ := by
@@ -299,7 +299,7 @@ lemma partials_helper2 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonemp
   simp only [nth_partial, GlobalTheoremPrecondition.fu, Fin.isValue, partials_helper2a]
   field_simp
 
-private lemma nth_partial_rotproj_outer_0 (pbar : Pose) (P : ℝ³) (w : ℝ²) :
+private lemma nth_partial_rotproj_outer_0 (pbar : Pose ℝ) (P : ℝ³) (w : ℝ²) :
     nth_partial 0 (rotproj_outer P w) pbar.outerParams = ⟪rotMθ pbar.θ₂ pbar.φ₂ P, w⟫ := by
   unfold nth_partial rotproj_outer
   rw [fderiv_inner_const _ w pbar.outerParams (EuclideanSpace.single 0 1)
@@ -308,7 +308,7 @@ private lemma nth_partial_rotproj_outer_0 (pbar : Pose) (P : ℝ³) (w : ℝ²) 
   rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
   ext i; simp [rotM'_apply]
 
-private lemma nth_partial_rotproj_outer_1 (pbar : Pose) (P : ℝ³) (w : ℝ²) :
+private lemma nth_partial_rotproj_outer_1 (pbar : Pose ℝ) (P : ℝ³) (w : ℝ²) :
     nth_partial 1 (rotproj_outer P w) pbar.outerParams = ⟪rotMφ pbar.θ₂ pbar.φ₂ P, w⟫ := by
   unfold nth_partial rotproj_outer
   rw [fderiv_inner_const _ w pbar.outerParams (EuclideanSpace.single 1 1)
@@ -317,7 +317,7 @@ private lemma nth_partial_rotproj_outer_1 (pbar : Pose) (P : ℝ³) (w : ℝ²) 
   rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
   ext i; simp [rotM'_apply]
 
-lemma partials_helper3 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper3 {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
     ‖P‖ * nth_partial 0 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
     ⟪pbar.rotM₂θ P, pc.w⟫ := by
@@ -331,7 +331,7 @@ lemma partials_helper3 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonemp
     simp only [Pose.rotM₂θ]
     field_simp
 
-lemma partials_helper4 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper4 {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
     ‖P‖ * nth_partial 1 (GlobalTheoremPrecondition.fu_outer P pc) pbar.outerParams =
     ⟪pbar.rotM₂φ P, pc.w⟫ := by
@@ -345,28 +345,28 @@ lemma partials_helper4 {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonemp
     simp only [Pose.rotM₂φ]
     field_simp
 
-lemma partials_helper {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     |⟪pbar.rotR' (pbar.rotM₁ pc.S), pc.w⟫| + |⟪pbar.rotR (pbar.rotM₁θ pc.S), pc.w⟫| +
       |⟪pbar.rotR (pbar.rotM₁φ pc.S), pc.w⟫| = (‖pc.S‖ * ∑ i, |nth_partial i pc.fu pbar.innerParams|) := by
   rw [Finset.mul_sum, Fin.sum_univ_three, ← abs_norm, ← abs_mul, ← abs_mul, ← abs_mul,
     partials_helper0, partials_helper1, partials_helper2]
 
-lemma partials_helper_outer {pbar : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma partials_helper_outer {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
     |⟪pbar.rotM₂θ P, pc.w⟫| + |⟪pbar.rotM₂φ P, pc.w⟫| =
     ‖P‖ * ∑ i, |nth_partial i (pc.fu_outer P) pbar.outerParams| := by
   rw [Finset.mul_sum, Fin.sum_univ_two, ← abs_norm, ← abs_mul, ← abs_mul]
   rw [partials_helper3 pc P, partials_helper4 pc P]
 
-theorem fu_times_norm_S_eq_f {pbar p : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+theorem fu_times_norm_S_eq_f {pbar p : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     pc.fu p.innerParams * ‖pc.S‖ = pc.f p.innerParams := by
   have := pc.norm_S_ne_zero
   simp only [GlobalTheoremPrecondition.fu, GlobalTheoremPrecondition.f, rotproj_inner_unit, rotproj_inner]
   field_simp
 
-lemma rotproj_helper {pbar p : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
+lemma rotproj_helper {pbar p : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     |pc.fu pbar.innerParams - pc.fu p.innerParams| * ‖pc.S‖ = |⟪pbar.inner pc.S, pc.w⟫ - pc.Sval p| := by
   rw [← f_pose_eq_sval, ← f_pose_eq_inner]
@@ -378,7 +378,7 @@ lemma rotproj_helper {pbar p : Pose} {ε : ℝ} {ι : Type} [Fintype ι] [Nonemp
 Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
 lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
-    (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
+    (pbar p : Pose ℝ) (ε : ℝ) (hε : 0 ≤ ε)
     (p_near_pbar : p ∈ Metric.closedBall pbar ε)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -403,7 +403,7 @@ lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
 Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
 lemma global_theorem_inequality_iv {ι : Type} [Fintype ι] [Nonempty ι]
-    (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
+    (pbar p : Pose ℝ) (ε : ℝ) (hε : 0 ≤ ε)
     (p_near_pbar : p ∈ Metric.closedBall pbar ε)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -450,7 +450,7 @@ lemma global_theorem_inequality_iv {ι : Type} [Fintype ι] [Nonempty ι]
 Here we run through the "sequence of inequalities [which yield] the desired contradiction"
 -/
 theorem global_theorem_gt_reasoning {ι : Type} [Fintype ι] [Nonempty ι]
-    (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
+    (pbar p : Pose ℝ) (ε : ℝ) (hε : 0 ≤ ε)
     (p_near_pbar : p ∈ Metric.closedBall pbar ε)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
@@ -471,7 +471,7 @@ theorem global_theorem_gt_reasoning {ι : Type} [Fintype ι] [Nonempty ι]
 The Global Theorem, [SY25] Theorem 17
 -/
 theorem global_theorem {ι : Type} [Fintype ι] [Nonempty ι]
-    (pbar : Pose) (ε : ℝ) (hε : 0 ≤ ε)
+    (pbar : Pose ℝ) (ε : ℝ) (hε : 0 ≤ ε)
     (poly : GoodPoly ι)
     (_poly_pointsym : PointSym poly.hull)
     (pc : GlobalTheoremPrecondition poly pbar ε) :

@@ -59,7 +59,7 @@ lemma rotproj_outer_unit_eq (S : ℝ³) (w : ℝ²) (x : ℝ²) :
 An explicit formula for the full derivative of rotproj_outer as a function ℝ² → ℝ
 -/
 noncomputable
-def rotproj_outer' (pbar : Pose) (P : ℝ³) (w : ℝ²) : ℝ² →L[ℝ] ℝ :=
+def rotproj_outer' (pbar : Pose ℝ) (P : ℝ³) (w : ℝ²) : ℝ² →L[ℝ] ℝ :=
   let grad : Fin 2 → ℝ := ![
     ⟪pbar.rotM₂θ P, w⟫,
     ⟪pbar.rotM₂φ P, w⟫

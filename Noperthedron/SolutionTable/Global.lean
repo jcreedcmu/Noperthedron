@@ -8,21 +8,21 @@ namespace Noperthedron.Solution
 
 theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
     (hrow : row.ValidGlobal) :
-    ¬ ∃ q ∈ row.toPoseInterval, RupertPose q exactPolyhedron.hull := by
-  let iv := row.toPoseInterval
+    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
+  let iv := row.toRealInterval
   let pbar := iv.center
   let r := iv.radius
   rintro ⟨q, hqi, hqr⟩
+  have hqi : q ∈ iv := hqi
   have hqε : q ∈ Metric.closedBall pbar r := mem_closed_ball_center_of_mem iv q hqi
   have hr : 0 ≤ r := nonempty_closed_ball_radius_nonneg q pbar r hqε
   have hrg := RationalApprox.GlobalTheorem.rational_global
                  pbar r hr exactPoly pythonPoly
                  KappaApprox.exact_κApprox_python exactPoly_point_symmetric
   have center_eq : ∀ p : Param, ((row.interval.center p : ℚ) : ℝ) =
-      ((row.interval.min p : ℝ) / DENOM + (row.interval.max p : ℝ) / DENOM) / 2 := by
+      ((row.interval.min.getParam p : ℝ) + (row.interval.max.getParam p : ℝ)) / 2 := by
     intro p
-    simp [Interval.center, DENOM, DENOMQ]
-    ring
+    simp [Interval.center]
   have hθ₁ : (row.θ₁ : ℝ) = pbar.θ₁ := by
     rw [show (row.θ₁ : ℝ) = ((row.interval.center .θ₁ : ℚ) : ℝ) from rfl, center_eq]; rfl
   have hφ₁ : (row.φ₁ : ℝ) = pbar.φ₁ := by
@@ -36,20 +36,7 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
              exactPoly pythonPoly KappaApprox.exact_κApprox_python pbar r := {
     j := row.S_index
-    p_in_4 := by
-      rw [PoseInterval.contains_iff_components]
-      refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;>
-        simp only [fourInterval]
-      · rw [← hθ₁]; exact_mod_cast hrow.θ₁_lb
-      · rw [← hθ₁]; exact_mod_cast hrow.θ₁_ub
-      · rw [← hθ₂]; exact_mod_cast hrow.θ₂_lb
-      · rw [← hθ₂]; exact_mod_cast hrow.θ₂_ub
-      · rw [← hφ₁]; exact_mod_cast hrow.φ₁_lb
-      · rw [← hφ₁]; exact_mod_cast hrow.φ₁_ub
-      · rw [← hφ₂]; exact_mod_cast hrow.φ₂_lb
-      · rw [← hφ₂]; exact_mod_cast hrow.φ₂_ub
-      · rw [← hα]; exact_mod_cast hrow.α_lb
-      · rw [← hα]; exact_mod_cast hrow.α_ub
+    p_in_4 := fourInterval_contains_toReal_center hrow.center_in_fourQ
     w := WithLp.toLp 2 (fun i : Fin 2 => ((row.w i : ℝ)))
     w_unit := by
       have h_wd : (0 : ℝ) < (row.w_denominator : ℝ) := by exact_mod_cast hrow.w_denominator_pos

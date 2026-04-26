@@ -5,13 +5,6 @@ import Noperthedron.Checker.Local
 
 namespace Noperthedron.Solution
 
-def _root_.Pose.getParam (q : Pose) : Param → ℝ
-| .θ₁ => q.θ₁
-| .φ₁ => q.φ₁
-| .θ₂ => q.θ₂
-| .φ₂ => q.φ₂
-| .α => q.α
-
 @[mk_iff]
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
   bound0 : row.ID < row.IDfirstChild
@@ -69,31 +62,78 @@ lemma Table.Valid.valid_at {tab : Table} (htab : tab.Valid) {i : ℕ} (hi : i < 
 def Table.valid_decidable (tab : Table) : Decidable tab.Valid := by
   exact inferInstance
 
-/--
-The common denominator of θ₁, θ₂, φ₁, φ₂, α rational
-representation in the table. See [SY25 §7.2]
--/
-def DENOM : ℝ := 15360000
+/-- The minimum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
+def Interval.minPose (iv : Interval) : Pose ℝ where
+  θ₁ := iv.min.θ₁
+  θ₂ := iv.min.θ₂
+  φ₁ := iv.min.φ₁
+  φ₂ := iv.min.φ₂
+  α := iv.min.α
 
+/-- The maximum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
+def Interval.maxPose (iv : Interval) : Pose ℝ where
+  θ₁ := iv.max.θ₁
+  θ₂ := iv.max.θ₂
+  φ₁ := iv.max.φ₁
+  φ₂ := iv.max.φ₂
+  α := iv.max.α
+
+private lemma Interval.minPose_le_maxPose (iv : Interval) :
+    iv.minPose ≤ iv.maxPose := by
+  obtain ⟨h1, h2, h3, h4, h5⟩ := (Pose.le_iff iv.min iv.max).mp iv.fst_le_snd
+  rw [Pose.le_iff]
+  simp only [Interval.minPose, Interval.maxPose]
+  exact ⟨by exact_mod_cast h1, by exact_mod_cast h2, by exact_mod_cast h3,
+         by exact_mod_cast h4, by exact_mod_cast h5⟩
+
+def Interval.toReal (iv : Interval) : PoseInterval ℝ :=
+  PoseInterval.mk iv.minPose iv.maxPose iv.minPose_le_maxPose
+
+def Row.toRealInterval (row : Row) : PoseInterval ℝ :=
+  row.interval.toReal
+
+/-- Each component of `iv.toReal.center` (real) is the `Rat.cast` of the corresponding
+`iv.center` (rational). -/
+lemma Interval.toReal_center_getParam (iv : Interval) (p : Param) :
+    iv.toReal.center.getParam p = ((iv.center p : ℚ) : ℝ) := by
+  cases p <;>
+    simp [Interval.toReal, Interval.minPose, Interval.maxPose, Interval.center,
+          PoseInterval.center, PoseInterval.min, PoseInterval.max, Pose.getParam]
+
+@[simp] lemma Interval.toReal_center_θ₁ (iv : Interval) :
+    iv.toReal.center.θ₁ = ((iv.center .θ₁ : ℚ) : ℝ) := iv.toReal_center_getParam .θ₁
+@[simp] lemma Interval.toReal_center_θ₂ (iv : Interval) :
+    iv.toReal.center.θ₂ = ((iv.center .θ₂ : ℚ) : ℝ) := iv.toReal_center_getParam .θ₂
+@[simp] lemma Interval.toReal_center_φ₁ (iv : Interval) :
+    iv.toReal.center.φ₁ = ((iv.center .φ₁ : ℚ) : ℝ) := iv.toReal_center_getParam .φ₁
+@[simp] lemma Interval.toReal_center_φ₂ (iv : Interval) :
+    iv.toReal.center.φ₂ = ((iv.center .φ₂ : ℚ) : ℝ) := iv.toReal_center_getParam .φ₂
+@[simp] lemma Interval.toReal_center_α (iv : Interval) :
+    iv.toReal.center.α = ((iv.center .α : ℚ) : ℝ) := iv.toReal_center_getParam .α
+
+/-- Bridge the rational `centerPose ∈ fourInterval ℚ` condition (decidable) to the
+real `(fourInterval ℝ).contains` form (used downstream by the rational global/local
+theorems). -/
+theorem fourInterval_contains_toReal_center {iv : Interval}
+    (h : iv.centerPose ∈ fourInterval ℚ) : (fourInterval ℝ).contains iv.toReal.center := by
+  obtain ⟨hlow, hhigh⟩ := h
+  rw [Pose.le_iff] at hlow hhigh
+  simp only [fourInterval_min, fourInterval_max, Interval.centerPose] at hlow hhigh
+  rw [PoseInterval.contains_iff_components]
+  simp only [fourInterval_min, fourInterval_max, Interval.toReal_center_θ₁,
+             Interval.toReal_center_θ₂, Interval.toReal_center_φ₁,
+             Interval.toReal_center_φ₂, Interval.toReal_center_α, Set.mem_Icc]
+  exact ⟨⟨mod_cast hlow.1,         mod_cast hhigh.1⟩,
+         ⟨mod_cast hlow.2.1,       mod_cast hhigh.2.1⟩,
+         ⟨mod_cast hlow.2.2.1,     mod_cast hhigh.2.2.1⟩,
+         ⟨mod_cast hlow.2.2.2.1,   mod_cast hhigh.2.2.2.1⟩,
+         ⟨mod_cast hlow.2.2.2.2,   mod_cast hhigh.2.2.2.2⟩⟩
+
+/-- The set of poses lying in the rational interval, defined as `Set.Icc` of the
+    min/max endpoints; agrees definitionally with `iv.toReal`. -/
 noncomputable
-def Interval.toPoseInterval (iv : Interval) : PoseInterval where
-  min := { θ₁ := iv.min .θ₁ / DENOM
-           θ₂ := iv.min .θ₂ / DENOM
-           φ₁ := iv.min .φ₁ / DENOM
-           φ₂ := iv.min .φ₂ / DENOM
-           α := iv.min .α / DENOM}
-  max := { θ₁ := iv.max .θ₁ / DENOM
-           θ₂ := iv.max .θ₂ / DENOM
-           φ₁ := iv.max .φ₁ / DENOM
-           φ₂ := iv.max .φ₂ / DENOM
-           α := iv.max .α / DENOM}
-
-noncomputable
-def Row.toPoseInterval (row : Row) : PoseInterval :=
-  row.interval.toPoseInterval
-
-instance : Coe Interval (Set Pose) where
-  coe iv := { q : Pose | q ∈ iv.toPoseInterval }
+instance : Coe Interval (Set (Pose ℝ)) where
+  coe iv := Set.Icc iv.minPose iv.maxPose
 
 lemma cube_fold_nonempty_aux {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :
    0 < (cubeFold fs b as).length := by

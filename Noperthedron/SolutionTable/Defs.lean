@@ -3,6 +3,7 @@ import Mathlib.Data.Real.Basic
 import Mathlib.Order.Interval.Finset.Nat
 import Mathlib.Tactic.DeriveFintype
 
+import Noperthedron.PoseInterval
 import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.Python
 
@@ -16,17 +17,52 @@ def κQ : ℚ := 1 / 10 ^ 10
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
 deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq, Nonempty
 
-structure Interval where
-  min : Param → ℤ
-  max : Param → ℤ
-deriving DecidableEq
+end Noperthedron.Solution
 
-instance : Repr Interval where
-  reprPrec i _ :=
-    let params := [Param.θ₁, Param.φ₁, Param.θ₂, Param.φ₂, Param.α]
-    let entries := params.map fun p =>
-      s!"{repr p}: [{i.min p}, {i.max p}]"
-    "{" ++ String.intercalate ",\n" entries ++ "}"
+/-! ## `Param`-indexed access on `Pose` -/
+
+namespace Pose
+variable {R : Type}
+
+/-- Read the component of a `Pose` selected by a `Solution.Param`. -/
+def getParam (p : Pose R) : Noperthedron.Solution.Param → R
+  | .θ₁ => p.θ₁
+  | .θ₂ => p.θ₂
+  | .φ₁ => p.φ₁
+  | .φ₂ => p.φ₂
+  | .α  => p.α
+
+/-- Replace the component of a `Pose` selected by a `Solution.Param`. -/
+def setParam (p : Pose R) : Noperthedron.Solution.Param → R → Pose R
+  | .θ₁, x => { p with θ₁ := x }
+  | .θ₂, x => { p with θ₂ := x }
+  | .φ₁, x => { p with φ₁ := x }
+  | .φ₂, x => { p with φ₂ := x }
+  | .α,  x => { p with α  := x }
+
+@[simp] lemma getParam_setParam_self (p : Pose R) (a : Noperthedron.Solution.Param) (x : R) :
+    (p.setParam a x).getParam a = x := by cases a <;> rfl
+
+@[simp] lemma getParam_setParam_of_ne (p : Pose R) {a b : Noperthedron.Solution.Param}
+    (h : b ≠ a) (x : R) :
+    (p.setParam a x).getParam b = p.getParam b := by
+  cases a <;> cases b <;> first | rfl | (exact absurd rfl h)
+
+lemma le_iff_forall_getParam [PartialOrder R] (p q : Pose R) :
+    p ≤ q ↔ ∀ a : Noperthedron.Solution.Param, p.getParam a ≤ q.getParam a := by
+  rw [le_iff]
+  refine ⟨fun ⟨h1, h2, h3, h4, h5⟩ a => by cases a <;> assumption,
+          fun h => ⟨h .θ₁, h .θ₂, h .φ₁, h .φ₂, h .α⟩⟩
+
+end Pose
+
+namespace Noperthedron.Solution
+
+/-- A solution-table interval is a `PoseInterval ℚ`: a `min ≤ max` pair of rational
+poses bounding a 5d box in parameter space. Stored values are the actual angle values
+(post-DENOMQ division); the loader for the SY25 CSV is responsible for dividing the
+raw integer numerators by `DENOMQ` when constructing the interval. -/
+abbrev Interval : Type := PoseInterval ℚ
 
 /--
 A `Solution.Row` aims to closely model of exactly the data in Steininger and Yurkevich's big CSV file.
@@ -54,23 +90,63 @@ structure Row : Type where
 
 abbrev Table : Type := Array Row
 
-def Interval.lower_half (param : Param) (interval : Interval) : Interval := {
-  min := interval.min
-  max := Function.update interval.max param ((interval.min param + interval.max param)/2)
-}
+def Interval.lower_half (param : Param) (iv : Interval) : Interval :=
+  PoseInterval.mk
+    iv.min
+    (iv.max.setParam param ((iv.min.getParam param + iv.max.getParam param) / 2))
+    (by
+      rw [Pose.le_iff_forall_getParam]
+      intro b
+      have h := (Pose.le_iff_forall_getParam iv.min iv.max).mp iv.fst_le_snd
+      rcases eq_or_ne b param with rfl | hne
+      · simp; linarith [h b]
+      · simpa [Pose.getParam_setParam_of_ne _ hne] using h b)
 
-def Interval.upper_half (param : Param) (interval : Interval) : Interval := {
-  min := Function.update interval.min param ((interval.min param + interval.max param)/2)
-  max := interval.max
-}
+def Interval.upper_half (param : Param) (iv : Interval) : Interval :=
+  PoseInterval.mk
+    (iv.min.setParam param ((iv.min.getParam param + iv.max.getParam param) / 2))
+    iv.max
+    (by
+      rw [Pose.le_iff_forall_getParam]
+      intro b
+      have h := (Pose.le_iff_forall_getParam iv.min iv.max).mp iv.fst_le_snd
+      rcases eq_or_ne b param with rfl | hne
+      · simp; linarith [h b]
+      · simpa [Pose.getParam_setParam_of_ne _ hne] using h b)
+
+/-- Build an `Interval` from `Pose ℤ` endpoints holding the raw `DENOMQ`-scaled
+integer numerators (the form used in the SY25 CSV). The constructor divides each
+component by `DENOMQ` so the resulting `Interval` carries actual angle values. -/
+def Interval.ofIntPose (mn mx : Pose ℤ) (h : mn ≤ mx) : Interval :=
+  PoseInterval.mk
+    { θ₁ := (mn.θ₁ : ℚ) / DENOMQ, θ₂ := (mn.θ₂ : ℚ) / DENOMQ,
+      φ₁ := (mn.φ₁ : ℚ) / DENOMQ, φ₂ := (mn.φ₂ : ℚ) / DENOMQ,
+      α  := (mn.α  : ℚ) / DENOMQ }
+    { θ₁ := (mx.θ₁ : ℚ) / DENOMQ, θ₂ := (mx.θ₂ : ℚ) / DENOMQ,
+      φ₁ := (mx.φ₁ : ℚ) / DENOMQ, φ₂ := (mx.φ₂ : ℚ) / DENOMQ,
+      α  := (mx.α  : ℚ) / DENOMQ }
+    (by
+      have hD : (0 : ℚ) ≤ DENOMQ := by norm_num [DENOMQ]
+      obtain ⟨h1, h2, h3, h4, h5⟩ := (Pose.le_iff mn mx).mp h
+      rw [Pose.le_iff]
+      refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+        exact div_le_div_of_nonneg_right (by exact_mod_cast ‹_›) hD)
 
 /-- Center of an interval box along one parameter, as a rational. -/
 def Interval.center (iv : Interval) (p : Param) : ℚ :=
-  (iv.min p + iv.max p) / (2 * DENOMQ)
+  (iv.min.getParam p + iv.max.getParam p) / 2
+
+/-- Center of an interval box, as a `Pose ℚ`. -/
+def Interval.centerPose (iv : Interval) : Pose ℚ where
+  θ₁ := iv.center .θ₁
+  θ₂ := iv.center .θ₂
+  φ₁ := iv.center .φ₁
+  φ₂ := iv.center .φ₂
+  α  := iv.center .α
 
 /-- Max half-width of an interval box across all 5 parameters. -/
 def Interval.epsilon (iv : Interval) : ℚ :=
-  let hw (p : Param) := (iv.max p - iv.min p) / (2 * DENOMQ)
+  let hw (p : Param) := (iv.max.getParam p - iv.min.getParam p) / 2
   (Finset.image hw Finset.univ).max'
     (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty)
 
@@ -107,44 +183,21 @@ but I imagine it might be less annoying to do reasoning on the expanded-out nonm
 -/
 section Test
 
-def example_interval : Interval := {
-  min := fun
-  | .θ₁ => 100
-  | .θ₂ => 200
-  | .φ₁ => 300
-  | .φ₂ => 400
-  | .α => 16
-  max := fun
-  | .θ₁ => 116
-  | .θ₂ => 216
-  | .φ₁ => 316
-  | .φ₂ => 416
-  | .α => 32
-}
+def example_interval : Interval :=
+  PoseInterval.mk
+    { θ₁ := 100, θ₂ := 200, φ₁ := 300, φ₂ := 400, α := 16 }
+    { θ₁ := 116, θ₂ := 216, φ₁ := 316, φ₂ := 416, α := 32 }
+    (by decide)
 
 /--
-info: [{Noperthedron.Solution.Param.θ₁: [100, 108],
- Noperthedron.Solution.Param.φ₁: [300, 316],
- Noperthedron.Solution.Param.θ₂: [200, 208],
- Noperthedron.Solution.Param.φ₂: [400, 416],
- Noperthedron.Solution.Param.α: [16, 32]},
- {Noperthedron.Solution.Param.θ₁: [100, 108],
- Noperthedron.Solution.Param.φ₁: [300, 316],
- Noperthedron.Solution.Param.θ₂: [208, 216],
- Noperthedron.Solution.Param.φ₂: [400, 416],
- Noperthedron.Solution.Param.α: [16, 32]},
- {Noperthedron.Solution.Param.θ₁: [108, 116],
- Noperthedron.Solution.Param.φ₁: [300, 316],
- Noperthedron.Solution.Param.θ₂: [200, 208],
- Noperthedron.Solution.Param.φ₂: [400, 416],
- Noperthedron.Solution.Param.α: [16, 32]},
- {Noperthedron.Solution.Param.θ₁: [108, 116],
- Noperthedron.Solution.Param.φ₁: [300, 316],
- Noperthedron.Solution.Param.θ₂: [208, 216],
- Noperthedron.Solution.Param.φ₂: [400, 416],
- Noperthedron.Solution.Param.α: [16, 32]}]
+info: [({ θ₁ := 100, θ₂ := 200, φ₁ := 300, φ₂ := 400, α := 16 }, { θ₁ := 108, θ₂ := 208, φ₁ := 316, φ₂ := 416, α := 32 }),
+ ({ θ₁ := 100, θ₂ := 208, φ₁ := 300, φ₂ := 400, α := 16 }, { θ₁ := 108, θ₂ := 216, φ₁ := 316, φ₂ := 416, α := 32 }),
+ ({ θ₁ := 108, θ₂ := 200, φ₁ := 300, φ₂ := 400, α := 16 }, { θ₁ := 116, θ₂ := 208, φ₁ := 316, φ₂ := 416, α := 32 }),
+ ({ θ₁ := 108, θ₂ := 208, φ₁ := 300, φ₂ := 400, α := 16 }, { θ₁ := 116, θ₂ := 216, φ₁ := 316, φ₂ := 416, α := 32 })]
 -/
 #guard_msgs in
-#eval cubeFold (α := Param) (β := Interval) [Interval.lower_half, Interval.upper_half] example_interval [.θ₁, .θ₂]
+#eval (cubeFold (α := Param) (β := Interval)
+        [Interval.lower_half, Interval.upper_half] example_interval [.θ₁, .θ₂]).map
+      (·.toProd)
 
 end Test

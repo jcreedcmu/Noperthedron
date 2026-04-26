@@ -50,20 +50,20 @@ lemma inject_xy_zero : inject_xy (0 : ℝ²) = (0 : ℝ³) := by
   ext i; fin_cases i <;> simp [inject_xy]
 
 /-- Convert a Pose to a MatrixPose. -/
-noncomputable def Pose.matrixPoseOfPose (p : Pose) : MatrixPose where
+noncomputable def Pose.matrixPoseOfPose (p : Pose ℝ) : MatrixPose where
   innerRot := ⟨rotRM_mat p.θ₁ p.φ₁ p.α, rotRM_mat_mem_SO3 _ _ _⟩
   outerRot := ⟨rotRM_mat p.θ₂ p.φ₂ 0, rotRM_mat_mem_SO3 _ _ _⟩
   innerOffset := 0
 
-theorem converted_pose_inner_shadow_eq (v : Pose) (S : Set ℝ³) :
+theorem converted_pose_inner_shadow_eq (v : Pose ℝ) (S : Set ℝ³) :
     innerShadow v S = innerShadow (v.matrixPoseOfPose) S := by
   simp [innerShadow, PoseLike.inner, Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
 
-theorem converted_pose_outer_shadow_eq (v : Pose) (S : Set ℝ³) :
+theorem converted_pose_outer_shadow_eq (v : Pose ℝ) (S : Set ℝ³) :
     outerShadow v S = outerShadow (v.matrixPoseOfPose) S := by
   simp [outerShadow, PoseLike.outer, Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
 
-theorem converted_pose_rupert_iff (v : Pose) (S : Set ℝ³) :
+theorem converted_pose_rupert_iff (v : Pose ℝ) (S : Set ℝ³) :
     RupertPose v S ↔ RupertPose (v.matrixPoseOfPose) S := by
   simp [RupertPose, converted_pose_inner_shadow_eq, converted_pose_outer_shadow_eq]
 
@@ -81,7 +81,7 @@ lemma SO3_to_rotRM_params (M : Matrix (Fin 3) (Fin 3) ℝ)
 an equivalent Pose. -/
 lemma pose_of_matrix_pose_with_outer_form (p : MatrixPose)
     (h_outer : ∃ θ₂ φ₂, p.outerRot.val = rotRM_mat θ₂ φ₂ 0) :
-    ∃ pp : Pose, pp.matrixPoseOfPose = p.zeroOffset := by
+    ∃ pp : Pose ℝ, pp.matrixPoseOfPose = p.zeroOffset := by
   obtain ⟨θ₂, φ₂, h_out⟩ := h_outer
   obtain ⟨θ₁, φ₁, α, h_in⟩ := SO3_to_rotRM_params p.innerRot.val p.innerRot.property
   use { θ₁ := θ₁, θ₂ := θ₂, φ₁ := φ₁, φ₂ := φ₂, α := α }
@@ -91,7 +91,7 @@ lemma pose_of_matrix_pose_with_outer_form (p : MatrixPose)
 /-- For any MatrixPose p, after rotating by the right δ, there exists a Pose
 that equals the rotated zeroOffset. -/
 theorem pose_of_matrix_pose (p : MatrixPose) :
-    ∃ δ : ℝ, ∃ pp : Pose, pp.matrixPoseOfPose = (p.zeroOffset.rotateBy δ) := by
+    ∃ δ : ℝ, ∃ pp : Pose ℝ, pp.matrixPoseOfPose = (p.zeroOffset.rotateBy δ) := by
   obtain ⟨δ, θ, φ, h_form⟩ := exists_Rz_to_rotRM_form p.outerRot
   use δ
   have h_outer : ∃ θ₂ φ₂, (p.zeroOffset.rotateBy δ).outerRot.val = rotRM_mat θ₂ φ₂ 0 :=
