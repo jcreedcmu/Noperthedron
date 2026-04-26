@@ -78,9 +78,9 @@ namespace PoseInterval
 /-- `iv.contains p` ↔ `p ∈ Set.Icc iv.min iv.max` ↔ `p ∈ iv`. Provided as a
 named alias for legibility at call sites; `iv.contains p` and `p ∈ iv` are
 definitionally equal. -/
-def contains (iv : PoseInterval ℝ) (vp : Pose ℝ) : Prop := vp ∈ iv
+def contains {R} [PartialOrder R] (iv : PoseInterval R) (vp : Pose R) : Prop := vp ∈ iv
 
-lemma contains_iff_components {iv : PoseInterval ℝ} {p : Pose ℝ} :
+lemma contains_iff_components {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} :
     iv.contains p ↔
       (p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁) ∧
       (p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂) ∧
@@ -90,15 +90,15 @@ lemma contains_iff_components {iv : PoseInterval ℝ} {p : Pose ℝ} :
   simp only [contains, NonemptyInterval.mem_def, Set.mem_Icc, Pose.le_iff]
   grind
 
-def contains.θ₁Bound {iv : PoseInterval ℝ} {p : Pose ℝ} (c : contains iv p) :
+def contains.θ₁Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁ := (contains_iff_components.mp c).1
-def contains.θ₂Bound {iv : PoseInterval ℝ} {p : Pose ℝ} (c : contains iv p) :
+def contains.θ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂ := (contains_iff_components.mp c).2.1
-def contains.φ₁Bound {iv : PoseInterval ℝ} {p : Pose ℝ} (c : contains iv p) :
+def contains.φ₁Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁ := (contains_iff_components.mp c).2.2.1
-def contains.φ₂Bound {iv : PoseInterval ℝ} {p : Pose ℝ} (c : contains iv p) :
+def contains.φ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂ := (contains_iff_components.mp c).2.2.2.1
-def contains.αBound {iv : PoseInterval ℝ} {p : Pose ℝ} (c : contains iv p) :
+def contains.αBound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.α ∈ Set.Icc iv.min.α iv.max.α := (contains_iff_components.mp c).2.2.2.2
 
 noncomputable def center (iv : PoseInterval ℝ) : Pose ℝ where
