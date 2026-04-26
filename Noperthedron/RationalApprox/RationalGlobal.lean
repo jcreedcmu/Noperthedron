@@ -43,12 +43,12 @@ other outer-shadow vertices P (which the calculation of H iterates over) in the 
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι)
-    (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℝ) (ε : ℝ) : Type where
+    (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℚ) (ε : ℝ) : Type where
   j : ι
-  p_in_4 : (fourInterval ℝ).contains p
+  p_in_4 : p ∈ fourInterval ℚ
   w : ℝ²
   w_unit : ‖w‖ = 1
-  exceeds : Gℚ p ε (poly_.v j) w > maxHℚ p poly_ ε w
+  exceeds : Gℚ p.toReal ε (poly_.v j) w > maxHℚ p.toReal poly_ ε w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
@@ -130,12 +130,14 @@ private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
 [SY25] Theorem 43
 -/
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
-    (pbar : Pose ℝ) (ε : ℝ) (hε : 0 ≤ ε)
+    (p : Pose ℚ) (ε : ℝ) (hε : 0 ≤ ε)
     (poly : GoodPoly ι) (poly_ : Polyhedron ι)
     (happrox : κApproxPoly poly.vertices poly_)
     (_poly_pointsym : PointSym poly.hull)
-    (pc : RationalGlobalTheoremPrecondition poly poly_ happrox pbar ε) :
-    ¬ ∃ p ∈ Metric.closedBall pbar ε, RupertPose p poly.hull := by
+    (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p ε) :
+    ¬ ∃ q ∈ Metric.closedBall p.toReal ε, RupertPose q poly.hull := by
+  set pbar := p.toReal
+  have hp4 : (fourInterval ℝ).contains pbar := fourInterval_contains_toReal pc.p_in_4
   -- Step 1: Map S from poly_ to poly via the bijection
   let j := pc.j
   let i := happrox.bijection.symm j
@@ -158,7 +160,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     have hk_approx : ‖poly.vertices.v k - poly_.v k'‖ ≤ κ := happrox.approx k
     calc GlobalTheorem.H pbar ε pc.w (poly.vertices.v k)
       _ ≤ Hℚ pbar ε pc.w (poly_.v k') :=
-          H_le_Hℚ hε hk_norm hk_approx pc.w_unit pc.p_in_4
+          H_le_Hℚ hε hk_norm hk_approx pc.w_unit hp4
       _ ≤ _ := by
           show (Hℚ pbar ε pc.w ∘ poly_.v) k' ≤ _
           exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ k'))
@@ -168,5 +170,5 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     S_in_poly := hS_in
     w := pc.w
     w_unit := pc.w_unit
-    exceeds := by linarith [pc.exceeds, Gℚ_le_G hε hS_norm hS_approx pc.w_unit pc.p_in_4]
+    exceeds := by linarith [pc.exceeds, Gℚ_le_G hε hS_norm hS_approx pc.w_unit hp4]
   }

@@ -60,17 +60,24 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (hpoly : κApproxPoly poly.vertices poly_)
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
-    (p_ : Pose ℝ) (hp : (fourInterval ℝ).contains p_)
+    (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)
     (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
-    (hr₁ : BoundRℚ r ε p_ (transportTri Qi hpoly) sl)
-    (hδ : BoundDeltaℚ δ p_ (transportTri Pi hpoly) (transportTri Qi hpoly) su)
-    (ae₁ : (transportTri Pi hpoly).Aεℚ p_.vecX₁ℚ ε) (ae₂ : (transportTri Qi hpoly).Aεℚ p_.vecX₂ℚ ε)
-    (span₁ : (transportTri Pi hpoly).κSpanning p_.θ₁ p_.φ₁ ε)
-    (span₂ : (transportTri Qi hpoly).κSpanning p_.θ₂ p_.φ₂ ε)
+    (hr₁ : BoundRℚ r ε p_.toReal (transportTri Qi hpoly) sl)
+    (hδ : BoundDeltaℚ δ p_.toReal (transportTri Pi hpoly) (transportTri Qi hpoly) su)
+    (ae₁ : (transportTri Pi hpoly).Aεℚ p_.toReal.vecX₁ℚ ε)
+    (ae₂ : (transportTri Qi hpoly).Aεℚ p_.toReal.vecX₂ℚ ε)
+    (span₁ : (transportTri Pi hpoly).κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
+    (span₂ : (transportTri Qi hpoly).κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
     (be : (transportTri Qi hpoly).Bεℚ Qi
-          (fun k => poly_.v (hpoly.bijection k)) p_ ε δ r su)
-    : ¬∃ p ∈ Metric.closedBall p_ ε, RupertPose p poly.hull := by
+          (fun k => poly_.v (hpoly.bijection k)) p_.toReal ε δ r su)
+    : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
+  set p_ := p_.toReal
+  have hp : (fourInterval ℝ).contains p_ := fourInterval_contains_toReal hp
+  -- The rational `p_.θ₁` (cast to ℝ) is defeq to `p_.θ₁`, so the spanning hypotheses
+  -- can be reinterpreted in terms of the real `p_`:
+  change (transportTri Pi hpoly).κSpanning p_.θ₁ p_.φ₁ ε at span₁
+  change (transportTri Qi hpoly).κSpanning p_.θ₂ p_.φ₂ ε at span₂
   -- Define the triangles from indices
   let P : Triangle := fun i => poly.vertices.v (Pi i)
   let Q : Triangle := fun i => poly.vertices.v (Qi i)

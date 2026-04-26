@@ -73,6 +73,20 @@ def fourInterval (R : Type) [Field R] [LinearOrder R] [IsStrictOrderedRing R] : 
 @[simp] lemma fourInterval_max {R : Type} [Field R] [LinearOrder R] [IsStrictOrderedRing R] :
     (fourInterval R).max = { θ₁ := 4, θ₂ := 4, φ₁ := 4, φ₂ := 4, α := 4 } := rfl
 
+/-- View a `Pose ℚ` as a `Pose ℝ` by `Rat.cast`-ing each component. -/
+def Pose.toReal (p : Pose ℚ) : Pose ℝ where
+  θ₁ := (p.θ₁ : ℝ)
+  θ₂ := (p.θ₂ : ℝ)
+  φ₁ := (p.φ₁ : ℝ)
+  φ₂ := (p.φ₂ : ℝ)
+  α := (p.α : ℝ)
+
+@[simp] lemma Pose.toReal_θ₁ (p : Pose ℚ) : p.toReal.θ₁ = (p.θ₁ : ℝ) := rfl
+@[simp] lemma Pose.toReal_θ₂ (p : Pose ℚ) : p.toReal.θ₂ = (p.θ₂ : ℝ) := rfl
+@[simp] lemma Pose.toReal_φ₁ (p : Pose ℚ) : p.toReal.φ₁ = (p.φ₁ : ℝ) := rfl
+@[simp] lemma Pose.toReal_φ₂ (p : Pose ℚ) : p.toReal.φ₂ = (p.φ₂ : ℝ) := rfl
+@[simp] lemma Pose.toReal_α (p : Pose ℚ) : p.toReal.α = (p.α : ℝ) := rfl
+
 instance {α : Type*} [Preorder α] [DecidableLE α] (p : α) (iv : NonemptyInterval α) :
     Decidable (p ∈ iv) :=
   decidable_of_iff _ NonemptyInterval.mem_def.symm
@@ -120,6 +134,22 @@ noncomputable def radius {R} [Field R] [LinearOrder R] (iv : PoseInterval R) : R
    (iv.max.α - iv.min.α)) / 2
 
 end PoseInterval
+
+/-- Bridge the decidable rational membership `p ∈ fourInterval ℚ` to the real form
+`(fourInterval ℝ).contains p.toReal`. -/
+theorem fourInterval_contains_toReal {p : Pose ℚ}
+    (h : p ∈ fourInterval ℚ) : (fourInterval ℝ).contains p.toReal := by
+  obtain ⟨hlow, hhigh⟩ := h
+  rw [Pose.le_iff] at hlow hhigh
+  simp only [fourInterval_min, fourInterval_max] at hlow hhigh
+  rw [PoseInterval.contains_iff_components]
+  simp only [fourInterval_min, fourInterval_max, Pose.toReal_θ₁, Pose.toReal_θ₂,
+             Pose.toReal_φ₁, Pose.toReal_φ₂, Pose.toReal_α, Set.mem_Icc]
+  exact ⟨⟨mod_cast hlow.1,         mod_cast hhigh.1⟩,
+         ⟨mod_cast hlow.2.1,       mod_cast hhigh.2.1⟩,
+         ⟨mod_cast hlow.2.2.1,     mod_cast hhigh.2.2.1⟩,
+         ⟨mod_cast hlow.2.2.2.1,   mod_cast hhigh.2.2.2.1⟩,
+         ⟨mod_cast hlow.2.2.2.2,   mod_cast hhigh.2.2.2.2⟩⟩
 
 theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp : p ∈ iv) :
     p ∈ Metric.closedBall iv.center iv.radius := by

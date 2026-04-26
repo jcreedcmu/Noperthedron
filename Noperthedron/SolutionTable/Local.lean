@@ -33,13 +33,10 @@ theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
   have hα : (row.α : ℝ) = pbar.α := by
     rw [show (row.α : ℝ) = ((row.interval.center .α : ℚ) : ℝ) from rfl, center_eq]
     rfl
-  have hfi : (fourInterval ℝ).contains pbar :=
-    fourInterval_contains_toReal_center hrow.center_in_fourQ
-
   obtain ⟨s, hs₁, hs₂⟩ := hrow.exists_symmetry
   have := RationalApprox.LocalTheorem.rational_local
            exactPoly pythonPoly KappaApprox.exact_κApprox_python
            row.Pi row.Qi
            (Noperthedron.TriangleSymmetry.congruent_of_apply s row.Pi row.Qi hs₁ hs₂)
-           pbar hfi
+           row.interval.centerPose hrow.center_in_fourQ
   sorry
