@@ -64,13 +64,6 @@ poses bounding a 5d box in parameter space. Stored values are the actual angle v
 raw integer numerators by `DENOMQ` when constructing the interval. -/
 abbrev Interval : Type := PoseInterval ℚ
 
-instance : Repr Interval where
-  reprPrec i _ :=
-    let params := [Param.θ₁, Param.φ₁, Param.θ₂, Param.φ₂, Param.α]
-    let entries := params.map fun p =>
-      s!"{repr p}: [{i.min.getParam p}, {i.max.getParam p}]"
-    "{" ++ String.intercalate ",\n" entries ++ "}"
-
 /--
 A `Solution.Row` aims to closely model of exactly the data in Steininger and Yurkevich's big CSV file.
 IDs start from zero. See [SY25] §7.1 for the meaning of all these fields.
@@ -203,28 +196,14 @@ def example_interval : Interval :=
     (by rw [Pose.le_iff]; refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num)
 
 /--
-info: [{Noperthedron.Solution.Param.θ₁: [100, 108],
- Noperthedron.Solution.Param.φ₁: [300, 316],
- Noperthedron.Solution.Param.θ₂: [200, 208],
- Noperthedron.Solution.Param.φ₂: [400, 416],
- Noperthedron.Solution.Param.α: [16, 32]},
- {Noperthedron.Solution.Param.θ₁: [100, 108],
- Noperthedron.Solution.Param.φ₁: [300, 316],
- Noperthedron.Solution.Param.θ₂: [208, 216],
- Noperthedron.Solution.Param.φ₂: [400, 416],
- Noperthedron.Solution.Param.α: [16, 32]},
- {Noperthedron.Solution.Param.θ₁: [108, 116],
- Noperthedron.Solution.Param.φ₁: [300, 316],
- Noperthedron.Solution.Param.θ₂: [200, 208],
- Noperthedron.Solution.Param.φ₂: [400, 416],
- Noperthedron.Solution.Param.α: [16, 32]},
- {Noperthedron.Solution.Param.θ₁: [108, 116],
- Noperthedron.Solution.Param.φ₁: [300, 316],
- Noperthedron.Solution.Param.θ₂: [208, 216],
- Noperthedron.Solution.Param.φ₂: [400, 416],
- Noperthedron.Solution.Param.α: [16, 32]}]
+info: [({ θ₁ := 100, θ₂ := 200, φ₁ := 300, φ₂ := 400, α := 16 }, { θ₁ := 108, θ₂ := 208, φ₁ := 316, φ₂ := 416, α := 32 }),
+ ({ θ₁ := 100, θ₂ := 208, φ₁ := 300, φ₂ := 400, α := 16 }, { θ₁ := 108, θ₂ := 216, φ₁ := 316, φ₂ := 416, α := 32 }),
+ ({ θ₁ := 108, θ₂ := 200, φ₁ := 300, φ₂ := 400, α := 16 }, { θ₁ := 116, θ₂ := 208, φ₁ := 316, φ₂ := 416, α := 32 }),
+ ({ θ₁ := 108, θ₂ := 208, φ₁ := 300, φ₂ := 400, α := 16 }, { θ₁ := 116, θ₂ := 216, φ₁ := 316, φ₂ := 416, α := 32 })]
 -/
 #guard_msgs in
-#eval cubeFold (α := Param) (β := Interval) [Interval.lower_half, Interval.upper_half] example_interval [.θ₁, .θ₂]
+#eval (cubeFold (α := Param) (β := Interval)
+        [Interval.lower_half, Interval.upper_half] example_interval [.θ₁, .θ₂]).map
+      (·.toProd)
 
 end Test

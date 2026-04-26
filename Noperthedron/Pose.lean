@@ -7,7 +7,7 @@ structure Pose (R : Type) : Type where
   φ₁ : R
   φ₂ : R
   α : R
-deriving DecidableEq
+deriving DecidableEq, Repr
 
 noncomputable
 instance : PoseLike (Pose ℝ) where
