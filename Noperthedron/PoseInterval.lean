@@ -101,14 +101,14 @@ def contains.φ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} 
 def contains.αBound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.α ∈ Set.Icc iv.min.α iv.max.α := (contains_iff_components.mp c).2.2.2.2
 
-noncomputable def center (iv : PoseInterval ℝ) : Pose ℝ where
+noncomputable def center {R} [Field R] [PartialOrder R] (iv : PoseInterval R) : Pose R where
   θ₁ := (iv.min.θ₁ + iv.max.θ₁) / 2
   θ₂ := (iv.min.θ₂ + iv.max.θ₂) / 2
   φ₁ := (iv.min.φ₁ + iv.max.φ₁) / 2
   φ₂ := (iv.min.φ₂ + iv.max.φ₂) / 2
   α := (iv.min.α + iv.max.α) / 2
 
-noncomputable def radius (iv : PoseInterval ℝ) : ℝ :=
+noncomputable def radius {R} [Field R] [LinearOrder R] (iv : PoseInterval R) : R :=
   ((iv.max.θ₁ - iv.min.θ₁) ⊔
    (iv.max.φ₁ - iv.min.φ₁) ⊔
    (iv.max.θ₂ - iv.min.θ₂) ⊔
