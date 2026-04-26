@@ -99,7 +99,7 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     (span₁ : Triangle.Spanning (poly.vertices.v ∘ Pi) p_.θ₁ p_.φ₁ ε)
     (span₂ : Triangle.Spanning (poly.vertices.v ∘ Qi) p_.θ₂ p_.φ₂ ε)
     (be : Triangle.Bε (poly.vertices.v ∘ Qi) Qi poly.vertices.v p_ ε δ r)
-    : ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull := by
+    : ¬∃ p ∈ Metric.closedBall p_ ε, RupertPose p poly.hull := by
   let P : Triangle := poly.vertices.v ∘ Pi
   let Q : Triangle := poly.vertices.v ∘ Qi
   change Triangle.Congruent P Q at cong_tri

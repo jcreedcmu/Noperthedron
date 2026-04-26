@@ -363,8 +363,9 @@ theorem rupert_post_tightening (p : Pose) (r : RupertPose p exactPolyhedron.hull
   let p2 := {p with θ₁, θ₂}
   obtain ⟨α, hα, eq2⟩ := tighten_α p2
   use {p2 with α}
-  use ⟨Set.Ico_subset_Icc_self hθ₁, Set.Ico_subset_Icc_self hθ₂,
-       hφ₁, hφ₂, hα⟩
+  use PoseInterval.contains_iff_components.mpr
+        ⟨Set.Ico_subset_Icc_self hθ₁, Set.Ico_subset_Icc_self hθ₂,
+         hφ₁, hφ₂, hα⟩
   exact eq2.mp (eq.mp r)
 
 -- [SY25] Corollary 8 (§2.2)

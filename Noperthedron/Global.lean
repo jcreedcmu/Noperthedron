@@ -379,7 +379,7 @@ Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
 lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
     (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
-    (p_near_pbar : p ∈ pbar.closed_ball ε)
+    (p_near_pbar : p ∈ Metric.closedBall pbar ε)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     G pbar ε pc.S pc.w ≤ pc.Sval p := by
@@ -404,7 +404,7 @@ Use the analytic bounds on rotations, Lemmas 19 and 20.
 -/
 lemma global_theorem_inequality_iv {ι : Type} [Fintype ι] [Nonempty ι]
     (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
-    (p_near_pbar : p ∈ pbar.closed_ball ε)
+    (p_near_pbar : p ∈ Metric.closedBall pbar ε)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     maxOuter p poly pc.w ≤ maxH pbar poly ε pc.w := by
@@ -451,7 +451,7 @@ Here we run through the "sequence of inequalities [which yield] the desired cont
 -/
 theorem global_theorem_gt_reasoning {ι : Type} [Fintype ι] [Nonempty ι]
     (pbar p : Pose) (ε : ℝ) (hε : 0 ≤ ε)
-    (p_near_pbar : p ∈ pbar.closed_ball ε)
+    (p_near_pbar : p ∈ Metric.closedBall pbar ε)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     maxInner p poly pc.w > maxOuter p poly pc.w := by
@@ -475,7 +475,7 @@ theorem global_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι)
     (_poly_pointsym : PointSym poly.hull)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
-    ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p poly.hull := by
+    ¬ ∃ p ∈ Metric.closedBall pbar ε, RupertPose p poly.hull := by
   rintro ⟨p, p_near_pbar, p_is_rupert⟩
   have hgt := global_theorem_gt_reasoning pbar p ε hε p_near_pbar poly pc
   have hle := global_theorem_le_reasoning p poly p_is_rupert pc.w

@@ -14,7 +14,7 @@ lemma mem_pose_interval_iff (q : Pose) (iv : Interval) :
       q.α ∈ Set.Icc (iv.min .α / DENOM) (iv.max .α / DENOM)
       := by
   constructor <;>
-  · simp_all [Interval.toPoseInterval, Membership.mem, PoseInterval.contains]
+  · simp_all [Interval.toPoseInterval, Membership.mem, PoseInterval.contains_iff_components]
 
 lemma mem_lower_half (q : Pose) (iv : Interval) (p : Param)
     (hq : q ∈ iv.toPoseInterval)

@@ -135,7 +135,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (happrox : κApproxPoly poly.vertices poly_)
     (_poly_pointsym : PointSym poly.hull)
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox pbar ε) :
-    ¬ ∃ p ∈ pbar.closed_ball ε, RupertPose p poly.hull := by
+    ¬ ∃ p ∈ Metric.closedBall pbar ε, RupertPose p poly.hull := by
   -- Step 1: Map S from poly_ to poly via the bijection
   let j := pc.j
   let i := happrox.bijection.symm j

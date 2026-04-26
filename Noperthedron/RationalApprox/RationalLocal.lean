@@ -70,7 +70,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (span₂ : (transportTri Qi hpoly).κSpanning p_.θ₂ p_.φ₂ ε)
     (be : (transportTri Qi hpoly).Bεℚ Qi
           (fun k => poly_.v (hpoly.bijection k)) p_ ε δ r su)
-    : ¬∃ p ∈ p_.closed_ball ε, RupertPose p poly.hull := by
+    : ¬∃ p ∈ Metric.closedBall p_ ε, RupertPose p poly.hull := by
   -- Define the triangles from indices
   let P : Triangle := fun i => poly.vertices.v (Pi i)
   let Q : Triangle := fun i => poly.vertices.v (Qi i)
@@ -78,10 +78,10 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
   set P_ := transportTri Pi hpoly
   set Q_ := transportTri Qi hpoly
   -- Angle subtypes
-  set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₁, hp.1⟩
-  set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₁, hp.2.2.1⟩
-  set θ₂ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₂, hp.2.1⟩
-  set φ₂ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₂, hp.2.2.2.1⟩
+  set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₁, hp.θ₁Bound⟩
+  set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₁, hp.φ₁Bound⟩
+  set θ₂ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₂, hp.θ₂Bound⟩
+  set φ₂ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₂, hp.φ₂Bound⟩
   -- Vertex norm bounds
   have hPnorm (i : Fin 3) : ‖P i‖ ≤ 1 := poly.vertex_radius_le_one (Pi i)
   have hQnorm (i : Fin 3) : ‖Q i‖ ≤ 1 := poly.vertex_radius_le_one (Qi i)
@@ -90,9 +90,9 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
   have hQapprox (i : Fin 3) : ‖Q i - Q_ i‖ ≤ κ := hpoly.approx (Qi i)
   -- Bridge: κSpanning → Spanning
   have span₁' : P.Spanning p_.θ₁ p_.φ₁ ε :=
-    ek_spanning_imp_e_spanning P P_ (fun i => hPapprox i) hPnorm hp.1 hp.2.2.1 span₁
+    ek_spanning_imp_e_spanning P P_ (fun i => hPapprox i) hPnorm hp.θ₁Bound hp.φ₁Bound span₁
   have span₂' : Q.Spanning p_.θ₂ p_.φ₂ ε :=
-    ek_spanning_imp_e_spanning Q Q_ (fun i => hQapprox i) hQnorm hp.2.1 hp.2.2.2.1 span₂
+    ek_spanning_imp_e_spanning Q Q_ (fun i => hQapprox i) hQnorm hp.θ₂Bound hp.φ₂Bound span₂
   -- Bridge: Aεℚ → Aε
   have ae₁' : P.Aε p_.vecX₁ ε := by
     obtain ⟨σ, hσ₁, hσ₂⟩ := ae₁

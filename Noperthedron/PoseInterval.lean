@@ -76,46 +76,30 @@ def fourInterval : PoseInterval where
     α := 4
   }
 
-namespace Pose
-
-def closed_ball (p : Pose) (ε : ℝ) : PoseInterval := {
-  min := {
-    θ₁ := p.θ₁ - ε
-    θ₂ := p.θ₂ - ε
-    φ₁ := p.φ₁ - ε
-    φ₂ := p.φ₂ - ε
-    α := p.α - ε
-  }
-  max := {
-    θ₁ := p.θ₁ + ε
-    θ₂ := p.θ₂ + ε
-    φ₁ := p.φ₁ + ε
-    φ₂ := p.φ₂ + ε
-    α := p.α + ε
-  }
-}
-
-end Pose
-
 namespace PoseInterval
 
-def contains (iv : PoseInterval) (vp : Pose) : Prop :=
-  (vp.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁) ∧
-  (vp.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂) ∧
-  (vp.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁) ∧
-  (vp.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂) ∧
-  (vp.α ∈ Set.Icc iv.min.α iv.max.α)
+def contains (iv : PoseInterval) (vp : Pose) : Prop := vp ∈ Set.Icc iv.min iv.max
+
+lemma contains_iff_components {iv : PoseInterval} {p : Pose} :
+    iv.contains p ↔
+      (p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁) ∧
+      (p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂) ∧
+      (p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁) ∧
+      (p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂) ∧
+      (p.α ∈ Set.Icc iv.min.α iv.max.α) := by
+  simp only [contains, Set.mem_Icc, Pose.le_iff, Set.mem_Icc]
+  grind
 
 def contains.θ₁Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
-    p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁ := c.1
+    p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁ := (contains_iff_components.mp c).1
 def contains.θ₂Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
-    p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂ := c.2.1
+    p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂ := (contains_iff_components.mp c).2.1
 def contains.φ₁Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
-    p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁ := c.2.2.1
+    p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁ := (contains_iff_components.mp c).2.2.1
 def contains.φ₂Bound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
-    p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂ := c.2.2.2.1
+    p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂ := (contains_iff_components.mp c).2.2.2.1
 def contains.αBound {iv : PoseInterval} {p : Pose} (c : contains iv p) :
-    p.α ∈ Set.Icc iv.min.α iv.max.α := c.2.2.2.2
+    p.α ∈ Set.Icc iv.min.α iv.max.α := (contains_iff_components.mp c).2.2.2.2
 
 noncomputable def center (iv : PoseInterval) : Pose where
   θ₁ := (iv.min.θ₁ + iv.max.θ₁) / 2
@@ -140,8 +124,9 @@ instance : HasSubset PoseInterval where
   Subset a b := ∀ p, p ∈ a → p ∈ b
 
 theorem mem_closed_ball_center_of_mem (iv : PoseInterval) (p : Pose) (hp : p ∈ iv) :
-    p ∈ iv.center.closed_ball iv.radius := by
-  obtain ⟨⟨h1l, h1h⟩, ⟨h2l, h2h⟩, ⟨h3l, h3h⟩, ⟨h4l, h4h⟩, ⟨h5l, h5h⟩⟩ := hp
+    p ∈ Metric.closedBall iv.center iv.radius := by
+  obtain ⟨⟨h1l, h1h⟩, ⟨h2l, h2h⟩, ⟨h3l, h3h⟩, ⟨h4l, h4h⟩, ⟨h5l, h5h⟩⟩ :=
+    PoseInterval.contains_iff_components.mp hp
   simp only [PoseInterval.radius]
   set s := (iv.max.θ₁ - iv.min.θ₁) ⊔ (iv.max.φ₁ - iv.min.φ₁) ⊔
     (iv.max.θ₂ - iv.min.θ₂) ⊔ (iv.max.φ₂ - iv.min.φ₂) ⊔ (iv.max.α - iv.min.α) with hs
@@ -153,58 +138,50 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval) (p : Pose) (hp : p ∈
     le_sup_of_le_left (le_sup_of_le_left le_sup_right)
   have hd : iv.max.φ₂ - iv.min.φ₂ ≤ s := le_sup_of_le_left le_sup_right
   have he : iv.max.α - iv.min.α ≤ s := le_sup_right
-  refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;>
-    simp only [Pose.closed_ball, PoseInterval.center] <;> linarith
+  rw [Pose.mem_closedBall_iff]
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+    (simp only [PoseInterval.center, abs_sub_le_iff]; constructor <;> linarith)
 
 theorem nonempty_closed_ball_radius_nonneg (p q : Pose) (r : ℝ)
-    (hpq : p ∈ q.closed_ball r) :
-    0 ≤ r := by
-  obtain ⟨⟨h1l, h1h⟩, _⟩ := hpq
-  simp only [Pose.closed_ball] at h1l h1h
-  linarith
+    (hpq : p ∈ Metric.closedBall q r) :
+    0 ≤ r := le_trans dist_nonneg hpq
 
 lemma closed_ball_imp_inner_params_near {p q : Pose} {ε : ℝ}
-    (hq : q ∈ p.closed_ball ε) :
+    (hq : q ∈ Metric.closedBall p ε) :
     ∀ i, |p.innerParams.ofLp i - q.innerParams.ofLp i| ≤ ε := by
+  rw [Pose.mem_closedBall_iff] at hq
+  obtain ⟨h1, -, h3, -, h5⟩ := hq
   intro i
-  simp [Pose.closed_ball, Membership.mem, PoseInterval.contains] at hq
-  obtain ⟨⟨_, _⟩, _, ⟨_, _⟩, _, ⟨_, _⟩⟩ := hq
-  fin_cases i <;> (simp [Pose.innerParams, abs_sub_le_iff]; grind)
+  simp only [Pose.innerParams, WithLp.ofLp_toLp]
+  rw [abs_sub_comm]
+  fin_cases i <;> assumption
 
 lemma mem_closed_ball_abs_sub_α {p q : Pose} {ε : ℝ}
-    (hq : p ∈ q.closed_ball ε) : |p.α - q.α| ≤ ε := by
-  have := closed_ball_imp_inner_params_near hq 0
-  rw [abs_sub_comm] at this
-  simpa [Pose.innerParams] using this
+    (hq : p ∈ Metric.closedBall q ε) : |p.α - q.α| ≤ ε :=
+  ((Pose.mem_closedBall_iff.mp hq).2.2.2.2)
 
 lemma mem_closed_ball_abs_sub_θ₁ {p q : Pose} {ε : ℝ}
-    (hq : p ∈ q.closed_ball ε) : |p.θ₁ - q.θ₁| ≤ ε := by
-  have := closed_ball_imp_inner_params_near hq 1
-  rw [abs_sub_comm] at this
-  simpa [Pose.innerParams] using this
+    (hq : p ∈ Metric.closedBall q ε) : |p.θ₁ - q.θ₁| ≤ ε :=
+  (Pose.mem_closedBall_iff.mp hq).1
 
 lemma mem_closed_ball_abs_sub_φ₁ {p q : Pose} {ε : ℝ}
-    (hq : p ∈ q.closed_ball ε) : |p.φ₁ - q.φ₁| ≤ ε := by
-  have := closed_ball_imp_inner_params_near hq 2
-  rw [abs_sub_comm] at this
-  simpa [Pose.innerParams] using this
+    (hq : p ∈ Metric.closedBall q ε) : |p.φ₁ - q.φ₁| ≤ ε :=
+  (Pose.mem_closedBall_iff.mp hq).2.2.1
 
 lemma closed_ball_imp_outer_params_near {p q : Pose} {ε : ℝ}
-    (hq : q ∈ p.closed_ball ε) :
+    (hq : q ∈ Metric.closedBall p ε) :
     ∀ i, |p.outerParams.ofLp i - q.outerParams.ofLp i| ≤ ε := by
+  rw [Pose.mem_closedBall_iff] at hq
+  obtain ⟨-, h2, -, h4, -⟩ := hq
   intro i
-  simp [Pose.closed_ball, Membership.mem, PoseInterval.contains] at hq
-  obtain ⟨_, ⟨_, _⟩, _, ⟨_, _⟩, _⟩ := hq
-  fin_cases i <;> (simp [Pose.outerParams, abs_sub_le_iff]; grind)
+  simp only [Pose.outerParams, WithLp.ofLp_toLp]
+  rw [abs_sub_comm]
+  fin_cases i <;> assumption
 
 lemma mem_closed_ball_abs_sub_θ₂ {p q : Pose} {ε : ℝ}
-    (hq : p ∈ q.closed_ball ε) : |p.θ₂ - q.θ₂| ≤ ε := by
-  have := closed_ball_imp_outer_params_near hq 0
-  rw [abs_sub_comm] at this
-  simpa [Pose.innerParams] using this
+    (hq : p ∈ Metric.closedBall q ε) : |p.θ₂ - q.θ₂| ≤ ε :=
+  (Pose.mem_closedBall_iff.mp hq).2.1
 
 lemma mem_closed_ball_abs_sub_φ₂ {p q : Pose} {ε : ℝ}
-    (hq : p ∈ q.closed_ball ε) : |p.φ₂ - q.φ₂| ≤ ε := by
-  have := closed_ball_imp_outer_params_near hq 1
-  rw [abs_sub_comm] at this
-  simpa [Pose.innerParams] using this
+    (hq : p ∈ Metric.closedBall q ε) : |p.φ₂ - q.φ₂| ≤ ε :=
+  (Pose.mem_closedBall_iff.mp hq).2.2.2.1

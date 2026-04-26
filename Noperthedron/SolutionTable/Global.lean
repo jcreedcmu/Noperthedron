@@ -13,7 +13,7 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   let pbar := iv.center
   let r := iv.radius
   rintro ⟨q, hqi, hqr⟩
-  have hqε : q ∈ pbar.closed_ball r := mem_closed_ball_center_of_mem iv q hqi
+  have hqε : q ∈ Metric.closedBall pbar r := mem_closed_ball_center_of_mem iv q hqi
   have hr : 0 ≤ r := nonempty_closed_ball_radius_nonneg q pbar r hqε
   have hrg := RationalApprox.GlobalTheorem.rational_global
                  pbar r hr exactPoly pythonPoly
@@ -37,6 +37,7 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
              exactPoly pythonPoly KappaApprox.exact_κApprox_python pbar r := {
     j := row.S_index
     p_in_4 := by
+      rw [PoseInterval.contains_iff_components]
       refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;>
         simp only [fourInterval]
       · rw [← hθ₁]; exact_mod_cast hrow.θ₁_lb

@@ -15,6 +15,49 @@ instance : PoseLike Pose where
 
 namespace Pose
 
+/-- Bijection between `Pose` and `Fin 5 → ℝ`, used to transfer
+the (sup-norm) `MetricSpace` instance from the Pi type. -/
+def equivPi : Pose ≃ (Fin 5 → ℝ) where
+  toFun p := ![p.θ₁, p.θ₂, p.φ₁, p.φ₂, p.α]
+  invFun f := ⟨f 0, f 1, f 2, f 3, f 4⟩
+  left_inv p := by cases p; rfl
+  right_inv f := by ext i; fin_cases i <;> rfl
+
+/-- Sup-norm transferred from `Fin 4 → ℝ`. -/
+instance : MetricSpace Pose :=
+  MetricSpace.induced equivPi equivPi.injective inferInstance
+
+instance : PartialOrder Pose := PartialOrder.lift equivPi equivPi.injective
+
+lemma le_iff (p q : Pose) :
+    p ≤ q ↔ p.θ₁ ≤ q.θ₁ ∧ p.θ₂ ≤ q.θ₂ ∧ p.φ₁ ≤ q.φ₁ ∧ p.φ₂ ≤ q.φ₂ ∧ p.α ≤ q.α := by
+  show equivPi p ≤ equivPi q ↔ _
+  rw [Pi.le_def]
+  refine ⟨fun h => ⟨h 0, h 1, h 2, h 3, h 4⟩, ?_⟩
+  rintro ⟨h1, h2, h3, h4, h5⟩ i
+  fin_cases i <;> assumption
+
+lemma mem_closedBall_iff {p q : Pose} {ε : ℝ} :
+    p ∈ Metric.closedBall q ε ↔
+      |p.θ₁ - q.θ₁| ≤ ε ∧ |p.θ₂ - q.θ₂| ≤ ε ∧
+      |p.φ₁ - q.φ₁| ≤ ε ∧ |p.φ₂ - q.φ₂| ≤ ε ∧ |p.α - q.α| ≤ ε := by
+  rw [Metric.mem_closedBall,
+      show dist p q = dist (equivPi p) (equivPi q) from rfl,
+      dist_pi_le_iff']
+  refine ⟨fun h => ?_, ?_⟩
+  · refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+      [exact (Real.dist_eq _ _ ▸ h 0); exact (Real.dist_eq _ _ ▸ h 1);
+       exact (Real.dist_eq _ _ ▸ h 2); exact (Real.dist_eq _ _ ▸ h 3);
+       exact (Real.dist_eq _ _ ▸ h 4)]
+  · rintro ⟨h1, h2, h3, h4, h5⟩ i
+    rw [Real.dist_eq]
+    fin_cases i <;>
+      first | exact h1 | exact h2 | exact h3 | exact h4 | exact h5
+
+end Pose
+
+namespace Pose
+
 -- Some convenience functions for doing rotations with dot notation
 -- Maybe the rotations in basic could be inlined here? It depends on whether
 -- we actually use them not in the context of a Pose.

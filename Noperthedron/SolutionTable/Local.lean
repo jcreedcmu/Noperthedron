@@ -35,6 +35,7 @@ theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
     rw [show (row.α : ℝ) = ((row.interval.center .α : ℚ) : ℝ) from rfl, center_eq]
     rfl
   have hfi : fourInterval.contains pbar := by
+      rw [PoseInterval.contains_iff_components]
       refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;>
         simp only [fourInterval]
       · rw [← hθ₁]; exact_mod_cast hrow.θ₁_lb
