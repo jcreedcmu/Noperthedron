@@ -195,10 +195,10 @@ theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin
     ((computeGQ θ₁ φ₁ α ε S w : ℚ) : ℝ) =
     Gℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ S)) (WithLp.toLp 2 (castℝ w)) := by
   unfold computeGQ Gℚ
-  simp only [Pose.innerℚ, Pose.rotRℚ, Pose.rotR'ℚ,
-             Pose.rotM₁ℚ, Pose.rotM₁θℚ, Pose.rotM₁φℚ,
-             RationalApprox.rotRℚ, RationalApprox.rotR'ℚ,
-             RationalApprox.rotMℚ, RationalApprox.rotMθℚ, RationalApprox.rotMφℚ,
+  simp only [Pose.innerℚℝ, Pose.rotRℚℝ, Pose.rotR'ℚℝ,
+             Pose.rotM₁ℚℝ, Pose.rotM₁θℚℝ, Pose.rotM₁φℚℝ,
+             RationalApprox.rotRℚℝ, RationalApprox.rotR'ℚℝ,
+             RationalApprox.rotMℚℝ, RationalApprox.rotMθℚℝ, RationalApprox.rotMφℚℝ,
              ContinuousLinearMap.comp_apply]
   rw [← hθ₁, ← hφ₁, ← hα]
   rw [inner_RM_eq, inner_R'M_eq, inner_RMθ_eq, inner_RMφ_eq]
@@ -210,8 +210,8 @@ theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 
     ((computeHQ θ₂ φ₂ ε w P : ℚ) : ℝ) =
     Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) (WithLp.toLp 2 (castℝ P)) := by
   unfold computeHQ Hℚ
-  simp only [Pose.rotM₂ℚ, Pose.rotM₂θℚ, Pose.rotM₂φℚ,
-             RationalApprox.rotMℚ, RationalApprox.rotMθℚ, RationalApprox.rotMφℚ]
+  simp only [Pose.rotM₂ℚℝ, Pose.rotM₂θℚℝ, Pose.rotM₂φℚℝ,
+             RationalApprox.rotMℚℝ, RationalApprox.rotMθℚℝ, RationalApprox.rotMφℚℝ]
   rw [← hθ₂, ← hφ₂]
   rw [inner_M_eq, inner_Mθ_eq, inner_Mφ_eq]
   push_cast [κQ_cast]

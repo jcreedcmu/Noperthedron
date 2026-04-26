@@ -22,7 +22,7 @@ open Local (Triangle)
 structure _root_.Local.Triangle.κSpanning (P : Triangle) (θ φ ε : ℝ) : Prop where
   pos : 0 < ε
   lt : ∀ i : Fin 3, 2 * ε * (√2 + ε) + 6 * κ <
-      ⟪rotR (π / 2) (rotMℚ θ φ (P i)), rotMℚ θ φ (P (i + 1))⟫
+      ⟪rotR (π / 2) (rotMℚℝ θ φ (P i)), rotMℚℝ θ φ (P (i + 1))⟫
 
 def κApproxTri (A A' : Triangle) : Prop :=
   ∀ i, ‖A i - A' i‖ ≤ κ
@@ -92,7 +92,7 @@ private lemma rotM_transpose_adjoint (θ φ : ℝ) :
   rfl
 
 private lemma rotMℚ_transpose_adjoint (θ φ : ℝ) :
-    (rotMℚ_mat θ φ)ᵀ.toEuclideanLin.toContinuousLinearMap = (rotMℚ θ φ).adjoint := by
+    (rotMℚ_mat θ φ)ᵀ.toEuclideanLin.toContinuousLinearMap = (rotMℚℝ θ φ).adjoint := by
   rw [← Matrix.conjTranspose_eq_transpose_of_trivial (A := rotMℚ_mat θ φ),
       Matrix.toEuclideanLin_conjTranspose_eq_adjoint (A := rotMℚ_mat θ φ)]
   rfl
@@ -107,9 +107,9 @@ theorem ek_spanning_imp_e_spanning (P P' : Triangle)
   · have lt := hspan.lt
     intro i
     suffices h : |⟪(rotR (π / 2)) (rotM θ φ (P i)),  rotM θ φ (P (i + 1))⟫
-                 - ⟪(rotR (π / 2)) (rotMℚ θ φ (P' i)), rotMℚ θ φ (P' (i + 1))⟫| ≤ 6 * κ by
+                 - ⟪(rotR (π / 2)) (rotMℚℝ θ φ (P' i)), rotMℚℝ θ φ (P' (i + 1))⟫| ≤ 6 * κ by
       calc ⟪(rotR (π / 2)) ((rotM θ φ) (P i)), (rotM θ φ) (P (i + 1))⟫
-      _ ≥ ⟪(rotR (π / 2)) (rotMℚ θ φ (P' i)), rotMℚ θ φ (P' (i + 1))⟫ - 6 * κ :=
+      _ ≥ ⟪(rotR (π / 2)) (rotMℚℝ θ φ (P' i)), rotMℚℝ θ φ (P' (i + 1))⟫ - 6 * κ :=
         sub_le_of_abs_sub_le_left h
       _ > 2 * ε * (√2 + ε) := lt_tsub_of_add_lt_right (hspan.lt i)
 
@@ -122,7 +122,7 @@ theorem ek_spanning_imp_e_spanning (P P' : Triangle)
       (rotMℚ_mat θ φ)ᵀ.toEuclideanLin.toContinuousLinearMap,
       rotR (π / 2), rotR (π / 2),
       rotM θ φ,
-      rotMℚ θ φ,
+      rotMℚℝ θ φ,
       mapOfCovec (P i),
       mapOfCovec (P' i)
     ⟧
@@ -144,7 +144,7 @@ theorem ek_spanning_imp_e_spanning (P P' : Triangle)
     have hva : ⟪(rotR (π / 2)) ((rotM θ φ) (P i)), (rotM θ φ) (P (i + 1))⟫ = mv.valB := by
       simp [MatVec.valB, mv, mapOfCovec_single, rotM_transpose_adjoint, mapOfVec_apply,
         ContinuousLinearMap.adjoint_inner_right, real_inner_comm]
-    have hvb : ⟪(rotR (π / 2)) (rotMℚ θ φ (P' i)), rotMℚ θ φ (P' (i + 1))⟫ = mv.valA := by
+    have hvb : ⟪(rotR (π / 2)) (rotMℚℝ θ φ (P' i)), rotMℚℝ θ φ (P' (i + 1))⟫ = mv.valA := by
       simp [MatVec.valA, mv, mapOfCovec_single, rotMℚ_transpose_adjoint, mapOfVec_apply,
         ContinuousLinearMap.adjoint_inner_right, real_inner_comm]
     have hdbb : mv.DiffBoundedBy κ := by
@@ -163,8 +163,8 @@ theorem ek_spanning_imp_e_spanning (P P' : Triangle)
           simp only [← map_sub, Matrix.transpose_sub]
         rw [h, norm_transpose_euc_lin]
         calc ‖(rotMℚ_mat θ φ - rotM_mat θ φ).toEuclideanLin.toContinuousLinearMap‖
-          _ = ‖rotMℚ θ φ - rotM θ φ‖ := by simp [rotMℚ, rotM, ← map_sub]
-          _ = ‖rotM θ φ - rotMℚ θ φ‖ := norm_sub_rev _ _
+          _ = ‖rotMℚℝ θ φ - rotM θ φ‖ := by simp [rotMℚℝ, rotM, ← map_sub]
+          _ = ‖rotM θ φ - rotMℚℝ θ φ‖ := norm_sub_rev _ _
           _ ≤ κ := M_difference_norm_bounded θ φ hθ hφ
       · -- ‖rotR (π/2) - rotR (π/2)‖ ≤ κ  i.e., 0 ≤ κ
         norm_num [κ]

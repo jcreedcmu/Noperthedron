@@ -156,7 +156,7 @@ theorem exactVertex_radius_one : Polyhedron.radius ⟨exactVertex⟩ = 1 := by
     exact exactVertex_norm_le_one j
 
 noncomputable
-def exactPolyhedron : Polyhedron VertexIndex := {
+def exactPolyhedron : Polyhedron VertexIndex ℝ³ := {
   v := exactVertex
 }
 

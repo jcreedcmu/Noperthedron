@@ -26,7 +26,7 @@ def vecX_approx : Matrix (Fin 3) (Fin 1) DistLeKappaEntry :=
   !![ (.cos, .sin); (.sin, .sin); (.one, .cos) ]
 
 /-- Proof of [SY25] Corollary 41 -/
-theorem R_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR α - rotRℚ α‖ ≤ κ := by
+theorem R_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR α - rotRℚℝ α‖ ≤ κ := by
   let z_ : Set.Icc (-4 : ℝ) 4 := ⟨0, by norm_num⟩
   let α_ : Set.Icc (-4 : ℝ) 4 := ⟨α, hα⟩
 
@@ -36,15 +36,15 @@ theorem R_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
-  have h : rotRℚ α = clinApprox rotR_approx z_ α_ := by
-    simp [rotRℚ, rotRℚ_mat, clinApprox, rotR_approx, α_]
+  have h : rotRℚℝ α = clinApprox rotR_approx z_ α_ := by
+    simp [rotRℚℝ, rotRℚ_mat, clinApprox, rotR_approx, α_]
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
   exact norm_matrix_actual_approx_le_kappa (m := ⟨2, by norm_num⟩) (n := ⟨2, by norm_num⟩)
     rotR_approx z_ α_
 
-theorem R'_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR' α - rotR'ℚ α‖ ≤ κ := by
+theorem R'_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR' α - rotR'ℚℝ α‖ ≤ κ := by
   let z_ : Set.Icc (-4 : ℝ) 4 := ⟨0, by norm_num⟩
   let α_ : Set.Icc (-4 : ℝ) 4 := ⟨α, hα⟩
 
@@ -54,8 +54,8 @@ theorem R'_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : �
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
-  have h : rotR'ℚ α = clinApprox rotR'_approx z_ α_ := by
-    simp [rotR'ℚ, rotR'ℚ_mat, clinApprox, rotR'_approx, α_]
+  have h : rotR'ℚℝ α = clinApprox rotR'_approx z_ α_ := by
+    simp [rotR'ℚℝ, rotR'ℚ_mat, clinApprox, rotR'_approx, α_]
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
@@ -63,7 +63,7 @@ theorem R'_difference_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : �
     rotR'_approx z_ α_
 
 theorem M_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
-    (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotM θ φ - rotMℚ θ φ‖ ≤ κ := by
+    (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotM θ φ - rotMℚℝ θ φ‖ ≤ κ := by
   let θ_ : Set.Icc (-4 : ℝ) 4 := ⟨θ, hθ⟩
   let φ_ : Set.Icc (-4 : ℝ) 4 := ⟨φ, hφ⟩
 
@@ -73,8 +73,8 @@ theorem M_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
-  have h : rotMℚ θ φ = clinApprox rotM_approx θ_ φ_ := by
-    simp [rotMℚ, rotMℚ_mat, clinApprox, rotM_approx, θ_, φ_]
+  have h : rotMℚℝ θ φ = clinApprox rotM_approx θ_ φ_ := by
+    simp [rotMℚℝ, rotMℚ_mat, clinApprox, rotM_approx, θ_, φ_]
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
@@ -82,7 +82,7 @@ theorem M_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     rotM_approx θ_ φ_
 
 theorem Mθ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
-    (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotMθ θ φ - rotMθℚ θ φ‖ ≤ κ := by
+    (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotMθ θ φ - rotMθℚℝ θ φ‖ ≤ κ := by
   let θ_ : Set.Icc (-4 : ℝ) 4 := ⟨θ, hθ⟩
   let φ_ : Set.Icc (-4 : ℝ) 4 := ⟨φ, hφ⟩
 
@@ -92,8 +92,8 @@ theorem Mθ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
-  have h : rotMθℚ θ φ = clinApprox rotMθ_approx θ_ φ_ := by
-    simp [rotMθℚ, rotMθℚ_mat, clinApprox, rotMθ_approx, θ_, φ_]
+  have h : rotMθℚℝ θ φ = clinApprox rotMθ_approx θ_ φ_ := by
+    simp [rotMθℚℝ, rotMθℚ_mat, clinApprox, rotMθ_approx, θ_, φ_]
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
@@ -101,7 +101,7 @@ theorem Mθ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     rotMθ_approx θ_ φ_
 
 theorem Mφ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
-    (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotMφ θ φ - rotMφℚ θ φ‖ ≤ κ := by
+    (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotMφ θ φ - rotMφℚℝ θ φ‖ ≤ κ := by
   let θ_ : Set.Icc (-4 : ℝ) 4 := ⟨θ, hθ⟩
   let φ_ : Set.Icc (-4 : ℝ) 4 := ⟨φ, hφ⟩
 
@@ -111,8 +111,8 @@ theorem Mφ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
-  have h : rotMφℚ θ φ = clinApprox rotMφ_approx θ_ φ_ := by
-    simp [rotMφℚ, rotMφℚ_mat, clinApprox, rotMφ_approx, θ_, φ_]
+  have h : rotMφℚℝ θ φ = clinApprox rotMφ_approx θ_ φ_ := by
+    simp [rotMφℚℝ, rotMφℚ_mat, clinApprox, rotMφ_approx, θ_, φ_]
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
@@ -120,7 +120,7 @@ theorem Mφ_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     rotMφ_approx θ_ φ_
 
 theorem X_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
-    (hφ : φ ∈ Set.Icc (-4) 4) : ‖vecXL θ φ - vecXLℚ θ φ‖ ≤ κ := by
+    (hφ : φ ∈ Set.Icc (-4) 4) : ‖vecXL θ φ - vecXLℚℝ θ φ‖ ≤ κ := by
   let θ_ : Set.Icc (-4 : ℝ) 4 := ⟨θ, hθ⟩
   let φ_ : Set.Icc (-4 : ℝ) 4 := ⟨φ, hφ⟩
 
@@ -130,8 +130,8 @@ theorem X_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
 
-  have h : vecXLℚ θ φ = clinApprox vecX_approx θ_ φ_ := by
-    simp only [vecXLℚ, vecXℚ_mat, clinApprox, vecX_approx, θ_, φ_,
+  have h : vecXLℚℝ θ φ = clinApprox vecX_approx θ_ φ_ := by
+    simp only [vecXLℚℝ, vecXℚ_mat, clinApprox, vecX_approx, θ_, φ_,
         EmbeddingLike.apply_eq_iff_eq,]
     ext i j; fin_cases i <;> fin_cases j <;> simp
   rw [h]
@@ -139,36 +139,36 @@ theorem X_difference_norm_bounded (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
   exact norm_matrix_actual_approx_le_kappa (m := ⟨3, by norm_num⟩) (n := ⟨1, by norm_num⟩)
     vecX_approx θ_ φ_
 
-theorem Rℚ_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotRℚ α‖ ≤ 1 + κ := by
-  calc ‖rotRℚ α‖
-  _ ≤ ‖rotR α‖ + ‖rotR α - rotRℚ α‖ := norm_le_insert (rotR α) (rotRℚ α)
-  _ = 1        + ‖rotR α - rotRℚ α‖ := by rw [Bounding.rotR_norm_one]
+theorem Rℚ_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotRℚℝ α‖ ≤ 1 + κ := by
+  calc ‖rotRℚℝ α‖
+  _ ≤ ‖rotR α‖ + ‖rotR α - rotRℚℝ α‖ := norm_le_insert (rotR α) (rotRℚℝ α)
+  _ = 1        + ‖rotR α - rotRℚℝ α‖ := by rw [Bounding.rotR_norm_one]
   _ ≤ 1 + κ := by grw [R_difference_norm_bounded α hα]
 
-theorem Mℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotMℚ θ φ‖ ≤ 1 + κ := by
-  calc ‖rotMℚ θ φ‖
-  _ ≤ ‖rotM θ φ‖ + ‖rotM θ φ - rotMℚ θ φ‖ := norm_le_insert (rotM θ φ) (rotMℚ θ φ)
-  _ = 1        + ‖rotM θ φ - rotMℚ θ φ‖ := by rw [Bounding.rotM_norm_one]
+theorem Mℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4) : ‖rotMℚℝ θ φ‖ ≤ 1 + κ := by
+  calc ‖rotMℚℝ θ φ‖
+  _ ≤ ‖rotM θ φ‖ + ‖rotM θ φ - rotMℚℝ θ φ‖ := norm_le_insert (rotM θ φ) (rotMℚℝ θ φ)
+  _ = 1        + ‖rotM θ φ - rotMℚℝ θ φ‖ := by rw [Bounding.rotM_norm_one]
   _ ≤ 1 + κ := by grw [M_difference_norm_bounded θ φ hθ hφ]
 
-theorem R'ℚ_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR'ℚ α‖ ≤ 1 + κ := by
-  calc ‖rotR'ℚ α‖
-  _ ≤ ‖rotR' α‖ + ‖rotR' α - rotR'ℚ α‖ := norm_le_insert (rotR' α) (rotR'ℚ α)
-  _ = 1 + ‖rotR' α - rotR'ℚ α‖ := by rw [Bounding.rotR'_norm_one]
+theorem R'ℚ_norm_bounded (α : ℝ) (hα : α ∈ Set.Icc (-4) 4) : ‖rotR'ℚℝ α‖ ≤ 1 + κ := by
+  calc ‖rotR'ℚℝ α‖
+  _ ≤ ‖rotR' α‖ + ‖rotR' α - rotR'ℚℝ α‖ := norm_le_insert (rotR' α) (rotR'ℚℝ α)
+  _ = 1 + ‖rotR' α - rotR'ℚℝ α‖ := by rw [Bounding.rotR'_norm_one]
   _ ≤ 1 + κ := by grw [R'_difference_norm_bounded α hα]
 
 theorem Mθℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4) :
-    ‖rotMθℚ θ φ‖ ≤ 1 + κ := by
-  calc ‖rotMθℚ θ φ‖
-  _ ≤ ‖rotMθ θ φ‖ + ‖rotMθ θ φ - rotMθℚ θ φ‖ := norm_le_insert _ _
-  _ ≤ 1 + ‖rotMθ θ φ - rotMθℚ θ φ‖ := by gcongr; exact Bounding.rotMθ_norm_le_one _ _
+    ‖rotMθℚℝ θ φ‖ ≤ 1 + κ := by
+  calc ‖rotMθℚℝ θ φ‖
+  _ ≤ ‖rotMθ θ φ‖ + ‖rotMθ θ φ - rotMθℚℝ θ φ‖ := norm_le_insert _ _
+  _ ≤ 1 + ‖rotMθ θ φ - rotMθℚℝ θ φ‖ := by gcongr; exact Bounding.rotMθ_norm_le_one _ _
   _ ≤ 1 + κ := by gcongr; exact Mθ_difference_norm_bounded _ _ hθ hφ
 
 theorem Mφℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : φ ∈ Set.Icc (-4) 4) :
-    ‖rotMφℚ θ φ‖ ≤ 1 + κ := by
-  calc ‖rotMφℚ θ φ‖
-  _ ≤ ‖rotMφ θ φ‖ + ‖rotMφ θ φ - rotMφℚ θ φ‖ := norm_le_insert _ _
-  _ ≤ 1 + ‖rotMφ θ φ - rotMφℚ θ φ‖ := by gcongr; exact Bounding.rotMφ_norm_le_one _ _
+    ‖rotMφℚℝ θ φ‖ ≤ 1 + κ := by
+  calc ‖rotMφℚℝ θ φ‖
+  _ ≤ ‖rotMφ θ φ‖ + ‖rotMφ θ φ - rotMφℚℝ θ φ‖ := norm_le_insert _ _
+  _ ≤ 1 + ‖rotMφ θ φ - rotMφℚℝ θ φ‖ := by gcongr; exact Bounding.rotMφ_norm_le_one _ _
   _ ≤ 1 + κ := by gcongr; exact Mφ_difference_norm_bounded _ _ hθ hφ
 
 /-- Convert `Set.Icc` membership from `ℤ` bounds to `ℝ` bounds. -/
