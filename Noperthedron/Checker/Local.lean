@@ -104,7 +104,7 @@ def testLocalRow : Row := {
   interval := Interval.ofIntPose
     { θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := -22853120 }
     { θ₁ := 201600, θ₂ := 201600, φ₁ := 201600, φ₂ := 202240, α := -22650880 }
-    (by rw [Pose.le_iff]; refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num),
+    (by decide),
   S_index := 0, wx_numerator := 0, wy_numerator := 0, w_denominator := 0,
   P1_index := VertexIndex.ofFin90 ⟨30, by lia⟩,
   P2_index := VertexIndex.ofFin90 ⟨31, by lia⟩,
@@ -133,7 +133,7 @@ def testLocalRowReflection : Row := {
   interval := Interval.ofIntPose
     { θ₁ := 0, θ₂ := 1209600, φ₁ := 36691200, φ₂ := 11325440, α := -808960 }
     { θ₁ := 403200, θ₂ := 1612800, φ₁ := 37094400, φ₂ := 11729920, α := -404480 }
-    (by rw [Pose.le_iff]; refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num),
+    (by decide),
   S_index := 0, wx_numerator := 0, wy_numerator := 0, w_denominator := 0,
   P1_index := VertexIndex.ofFin90 ⟨15, by lia⟩,
   P2_index := VertexIndex.ofFin90 ⟨61, by lia⟩,

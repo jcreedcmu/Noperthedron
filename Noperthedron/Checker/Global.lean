@@ -101,7 +101,7 @@ def testGlobalRow : Row := {
   interval := Interval.ofIntPose
     { θ₁ := 0, θ₂ := 806400, φ₁ := 0, φ₂ := 808960, α := -23459840 }
     { θ₁ := 806400, θ₂ := 1612800, φ₁ := 806400, φ₂ := 1617920, α := -22650880 }
-    (by rw [Pose.le_iff]; refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> norm_num),
+    (by decide),
   S_index := VertexIndex.ofFin90 ⟨39, by omega⟩,
   wx_numerator := 5319166373, wy_numerator := 15662395164,
   w_denominator := 16540984045,
