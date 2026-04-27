@@ -126,7 +126,7 @@ noncomputable def center {R} [Field R] [PartialOrder R] (iv : PoseInterval R) : 
   φ₂ := (iv.min.φ₂ + iv.max.φ₂) / 2
   α := (iv.min.α + iv.max.α) / 2
 
-noncomputable def radius {R} [Field R] [LinearOrder R] (iv : PoseInterval R) : R :=
+def radius {R} [Field R] [LinearOrder R] (iv : PoseInterval R) : R :=
   ((iv.max.θ₁ - iv.min.θ₁) ⊔
    (iv.max.φ₁ - iv.min.φ₁) ⊔
    (iv.max.θ₂ - iv.min.θ₂) ⊔
