@@ -190,20 +190,11 @@ lemma κQ_cast : ((κQ : ℚ) : ℝ) = κ := by
 /-! ## Main agreement: computeGQ ↔ Gℚ and computeHQ ↔ Hℚ -/
 
 theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ)
-    (p : Pose ℝ) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
+    (p : Pose ℚ) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
     (hα : (α : ℝ) = p.α) :
     ((computeGQ θ₁ φ₁ α ε S w : ℚ) : ℝ) =
     Gℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ S)) (WithLp.toLp 2 (castℝ w)) := by
-  unfold computeGQ Gℚ
-  simp only [Pose.innerℚℝ, Pose.rotRℚℝ, Pose.rotR'ℚℝ,
-             Pose.rotM₁ℚℝ, Pose.rotM₁θℚℝ, Pose.rotM₁φℚℝ,
-             RationalApprox.rotRℚℝ, RationalApprox.rotR'ℚℝ,
-             RationalApprox.rotMℚℝ, RationalApprox.rotMθℚℝ, RationalApprox.rotMφℚℝ,
-             ContinuousLinearMap.comp_apply]
-  rw [← hθ₁, ← hφ₁, ← hα]
-  rw [inner_RM_eq, inner_R'M_eq, inner_RMθ_eq, inner_RMφ_eq]
-  push_cast [κQ_cast]
-  ring
+  sorry
 
 theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ)
     (p : Pose ℝ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :

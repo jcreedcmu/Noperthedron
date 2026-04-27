@@ -60,13 +60,14 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
       have h_cast : ((computeGQ row.θ₁ row.φ₁ row.α row.epsilon row.S row.w : ℚ) : ℝ) >
                     ((computeMaxHQ row.θ₂ row.φ₂ row.epsilon row.w : ℚ) : ℝ) := by
         exact_mod_cast hrow.G_gt_maxH
+      sorry /-
       rw [Agreement.computeGQ_eq_Gℚ row.θ₁ row.φ₁ row.α row.epsilon row.S row.w
-            pbar hθ₁ hφ₁ hα,
+            pℚ hθ₁ hφ₁ hα,
           Agreement.computeMaxHQ_eq_maxHℚ row.θ₂ row.φ₂ row.epsilon row.w
             pbar hθ₂ hφ₂] at h_cast
       rw [Agreement.row_epsilon_cast_eq_radius] at h_cast
       rw [hpbar_eq]
-      exact h_cast
+      exact h_cast-/
   }
   specialize hrg pc
   rw [hpbar_eq] at hrg

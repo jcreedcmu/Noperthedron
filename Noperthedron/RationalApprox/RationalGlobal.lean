@@ -14,7 +14,8 @@ namespace RationalApprox.GlobalTheorem
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
-def Gℚ (p : Pose ℝ) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
+def Gℚ (p : Pose ℚ) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
+  let p := p.toReal
   ⟪p.innerℚℝ S, w⟫ - (ε * (|⟪p.rotR'ℚℝ (p.rotM₁ℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁θℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁φℚℝ S), w⟫|)
   + 9 * ε^2 / 2 + 4 * κ * (1 + 3 * ε))
 
@@ -48,16 +49,17 @@ structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty �
   p_in_4 : p ∈ fourInterval ℚ
   w : ℝ²
   w_unit : ‖w‖ = 1
-  exceeds : Gℚ p.toReal ε (poly_.toReal.v j) w > maxHℚ p.toReal poly_.toReal ε w
+  exceeds : Gℚ p ε (poly_.toReal.v j) w > maxHℚ p.toReal poly_.toReal ε w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
 
-private lemma Gℚ_le_G {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
+private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℝ} (hε : 0 ≤ ε)
     {S S_ : ℝ³} {w : ℝ²}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
-    (hp : (fourInterval ℝ).contains pbar) :
-    Gℚ pbar ε S_ w ≤ GlobalTheorem.G pbar ε S w := by
+    (hp : (fourInterval ℝ).contains p_.toReal) :
+    Gℚ p_ ε S_ w ≤ GlobalTheorem.G p_.toReal ε S w := by
+  let pbar := p_.toReal
   -- Unfold both G definitions
   unfold Gℚ GlobalTheorem.G
   -- Key bounds from BoundsKappa
@@ -87,7 +89,9 @@ private lemma Gℚ_le_G {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
     show ‖⟪rotR ↑α_ (rotMφ ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚℝ ↑α_ (rotMφℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
     exact bounds_kappa_RMφ hS hS_approx hw
   -- Now combine: Gℚ ≤ G
-  rw [h_inner_eq, h_innerQ_eq]
+  rw [h_inner_eq]
+  dsimp only
+  rw [h_innerQ_eq]
   -- inner bound: real ≥ rational - 4κ
   have hi_le : ⟪pbar.rotRℚℝ (pbar.rotM₁ℚℝ S_), w⟫ ≤ ⟪pbar.rotR (pbar.rotM₁ S), w⟫ + 4 * κ := by
     have := (Real.norm_eq_abs _).symm ▸ h_inner; rw [abs_le] at this; linarith [this.1]
