@@ -1,10 +1,19 @@
-import Noperthedron.Checker.Agreement
 import Noperthedron.Checker.KappaApprox
 import Noperthedron.RationalApprox.RationalGlobal
 import Noperthedron.SolutionTable.Basic
 import Noperthedron.Vertices.Exact
 
 namespace Noperthedron.Solution
+
+/-- The rational `row.epsilon` (cast to `ℝ`) equals `PoseInterval.radius`
+    of the corresponding `PoseInterval`. -/
+theorem row_epsilon_cast_eq_radius (row : Row) :
+    ((row.epsilon : ℚ) : ℝ) = row.toRealInterval.radius := by
+  show ((row.interval.radius : ℚ) : ℝ) = row.interval.toReal.radius
+  unfold Interval.toReal PoseInterval.radius
+  simp only [PoseInterval.min, PoseInterval.max, Interval.minPose, Interval.maxPose]
+  push_cast
+  rfl
 
 theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
     (hrow : row.ValidGlobal) :
@@ -50,5 +59,5 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   refine hrg q ?_ hqr
   have hmem : q ∈ Metric.closedBall iv.center iv.radius :=
     mem_closed_ball_center_of_mem iv q hqi'
-  rw [(Agreement.row_epsilon_cast_eq_radius row).symm] at hmem
+  rw [(row_epsilon_cast_eq_radius row).symm] at hmem
   exact hmem
