@@ -58,9 +58,6 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
       field_simp
       linarith-/
     exceeds := by
-      have h_cast : ((computeGQ row.θ₁ row.φ₁ row.α row.epsilon row.S row.w : ℚ) : ℝ) >
-                    ((computeMaxHQ row.θ₂ row.φ₂ row.epsilon row.w : ℚ) : ℝ) := by
-        exact_mod_cast hrow.G_gt_maxH
       sorry /-
       rw [Agreement.computeGQ_eq_Gℚ row.θ₁ row.φ₁ row.α row.epsilon row.S row.w
             pℚ hθ₁ hφ₁ hα,

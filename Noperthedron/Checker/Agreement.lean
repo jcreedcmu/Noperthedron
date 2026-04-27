@@ -187,26 +187,6 @@ private lemma inner_Mφ_eq (θ φ : ℚ) (P : Fin 3 → ℚ) (w : Fin 2 → ℚ)
 lemma κQ_cast : ((κQ : ℚ) : ℝ) = κ := by
   unfold κQ κ; push_cast; norm_num
 
-/-! ## Main agreement: computeGQ ↔ Gℚ and computeHQ ↔ Hℚ -/
-
-theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ)
-    (p : Pose ℚ) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
-    (hα : (α : ℝ) = p.α) :
-    ((computeGQ θ₁ φ₁ α ε S w : ℚ) : ℝ) = Gℚ p ε S w := by
-  sorry
-
-theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ)
-    (p : Pose ℚ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
-    ((computeHQ θ₂ φ₂ ε w P : ℚ) : ℝ) = Hℚ p ε w P := by
-  sorry
-
-/-! ## Bridge for the maximum over all 90 vertices -/
-
-theorem computeMaxHQ_eq_maxHℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ)
-    (p : Pose ℚ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
-    ((computeMaxHQ θ₂ φ₂ ε w : ℚ) : ℝ) = maxHℚ p pythonPolyQ ε w := by
-  sorry
-
 /-! ## Bridge `row.epsilon` to `PoseInterval.radius` -/
 
 /-- Max over all 5 `Param`s as an explicit 5-fold sup. -/

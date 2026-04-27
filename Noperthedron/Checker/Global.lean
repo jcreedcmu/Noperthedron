@@ -3,6 +3,7 @@ import Mathlib.Data.Finset.Max
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Trig
+import Noperthedron.RationalApprox.RationalGlobal
 
 /-!
 # Global Validity Checker
@@ -46,37 +47,9 @@ def applyR' (α : ℚ) (u : Fin 2 → ℚ) : Fin 2 → ℚ
   | 0 => -(sinQ α) * u 0 - cosQ α * u 1
   | 1 => cosQ α * u 0 - sinQ α * u 1
 
-/-! ## Gℚ and Hℚ computation
-
-Direct rational computation matching the formulas in
-`RationalApprox/RationalGlobal.lean`.
--/
-
-/-- Rational G function: measures how far inner-shadow vertex S sticks out. -/
-def computeGQ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) : ℚ :=
-  let m1S := applyM θ₁ φ₁ S
-  let inner := (applyR α m1S) ⬝ᵥ w
-  let t1 := |(applyR' α m1S) ⬝ᵥ w|
-  let t2 := |(applyR α (applyMθ θ₁ φ₁ S)) ⬝ᵥ w|
-  let t3 := |(applyR α (applyMφ θ₁ φ₁ S)) ⬝ᵥ w|
-  inner - ε * (t1 + t2 + t3) - 9 * ε ^ 2 / 2 - 4 * κQ * (1 + 3 * ε)
-
-/-- Rational H function: measures how far outer-shadow vertex P reaches. -/
-def computeHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : ℚ :=
-  let m2P := applyM θ₂ φ₂ P
-  let outer := m2P ⬝ᵥ w
-  let t1 := |(applyMθ θ₂ φ₂ P) ⬝ᵥ w|
-  let t2 := |(applyMφ θ₂ φ₂ P) ⬝ᵥ w|
-  outer + ε * (t1 + t2) + 2 * ε ^ 2 + 3 * κQ * (1 + 2 * ε)
-
-/-- Maximum H over all 90 vertices. -/
-def computeMaxHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
-  let values := (computeHQ θ₂ φ₂ ε w) ∘ pythonVertex
-  let range := Finset.image values Finset.univ
-  range.max' (by use values 0; simp_all [range])
-
 abbrev Row.G_gt_maxH (r : Row) : Prop :=
-  computeGQ r.θ₁ r.φ₁ r.α r.epsilon r.S r.w > computeMaxHQ r.θ₂ r.φ₂ r.epsilon r.w
+  RationalApprox.GlobalTheorem.Gℚ r.interval.centerPose r.epsilon r.S r.w >
+    RationalApprox.GlobalTheorem.maxHℚ r.interval.centerPose pythonPolyQ r.epsilon r.w
 
 /-! ## The main checker -/
 
