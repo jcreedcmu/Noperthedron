@@ -13,24 +13,22 @@ namespace RationalApprox.GlobalTheorem
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
-noncomputable
-def Gℚ (p : Pose ℝ) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
-  ⟪p.innerℚℝ S, w⟫ - (ε * (|⟪p.rotR'ℚℝ (p.rotM₁ℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁θℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁φℚℝ S), w⟫|)
-  + 9 * ε^2 / 2 + 4 * κ * (1 + 3 * ε))
+def Gℚ (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) : ℚ :=
+  p.innerℚ S ⬝ᵥ w -
+   (ε * (|p.rotR'ℚ (p.rotM₁ℚ S) ⬝ᵥ w| + |p.rotRℚ (p.rotM₁θℚ S) ⬝ᵥ w| + |p.rotRℚ (p.rotM₁φℚ S) ⬝ᵥ w|)
+     + 9 * ε^2 / 2 + 4 * κℚ * (1 + 3 * ε))
 
 /--
 A measure of how far an outer-shadow vertex P can "reach" along w.
 -/
-noncomputable
-def Hℚ (p : Pose ℝ) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
-  ⟪p.rotM₂ℚℝ P, w⟫ + ε * (|⟪p.rotM₂θℚℝ P, w⟫| + |⟪p.rotM₂φℚℝ P, w⟫|) + 2 * ε^2 + 3 * κ * (1 + 2 * ε)
+def Hℚ (p : Pose ℚ) (ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : ℚ :=
+  p.rotM₂ℚ P ⬝ᵥ w + ε * (|p.rotM₂θℚ P ⬝ᵥ w| + |p.rotM₂φℚ P ⬝ᵥ w|) + 2 * ε^2 + 3 * κℚ * (1 + 2 * ε)
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
-noncomputable
 def maxHℚ {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (p : Pose ℝ) (poly : Polyhedron ι ℝ³) (ε : ℝ) (w : ℝ²) : ℝ :=
+    (p : Pose ℚ) (poly : Polyhedron ι (Fin 3 → ℚ)) (ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
   Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ  |>.max' <| by
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
@@ -43,94 +41,113 @@ other outer-shadow vertices P (which the calculation of H iterates over) in the 
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
-    (happrox : κApproxPoly poly.vertices poly_.toReal) (p : Pose ℚ) (ε : ℝ) : Type where
+    (happrox : κApproxPoly poly.vertices poly_.toReal) (p : Pose ℚ) (ε : ℚ) : Type where
   j : ι
   p_in_4 : p ∈ fourInterval ℚ
-  w : ℝ²
-  w_unit : ‖w‖ = 1
-  exceeds : Gℚ p.toReal ε (poly_.toReal.v j) w > maxHℚ p.toReal poly_.toReal ε w
+  w : Fin 2 → ℚ
+  w_unit : ‖toR2 w‖ = 1
+  exceeds : Gℚ p ε (poly_.v j) w > maxHℚ p poly_ ε w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
 
-private lemma Gℚ_le_G {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
-    {S S_ : ℝ³} {w : ℝ²}
-    (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
-    (hp : (fourInterval ℝ).contains pbar) :
-    Gℚ pbar ε S_ w ≤ GlobalTheorem.G pbar ε S w := by
-  -- Unfold both G definitions
+private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
+    {S : ℝ³} {S_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
+    (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - toR3 S_‖ ≤ κ) (hw : ‖toR2 w‖ = 1)
+    (hp : (fourInterval ℚ).contains p_) :
+    Gℚ p_ ε S_ w ≤ GlobalTheorem.G p_.toReal ε S (toR2 w) := by
+  set pbar := p_.toReal with hpbar
   unfold Gℚ GlobalTheorem.G
-  -- Key bounds from BoundsKappa
-  set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₁, hp.θ₁Bound⟩
-  set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₁, hp.φ₁Bound⟩
-  set α_ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.α, hp.αBound⟩
-  -- inner ≈ innerℚ with 4κ bound
-  have h_inner : ‖⟪pbar.rotR (pbar.rotM₁ S), w⟫ - ⟪pbar.rotRℚℝ (pbar.rotM₁ℚℝ S_), w⟫‖ ≤ 4 * κ := by
-    show ‖⟪rotR ↑α_ (rotM ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚℝ ↑α_ (rotMℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
-    exact bounds_kappa_RM hS hS_approx hw
-  -- The inner is ⟪pbar.inner S, w⟫ = ⟪pbar.rotR (pbar.rotM₁ S), w⟫
-  have h_inner_eq : ⟪(pbar.inner S : ℝ²), w⟫ = ⟪pbar.rotR (pbar.rotM₁ S), w⟫ := by
-    simp [Pose.inner_eq_RM pbar]
-  -- innerℚ = rotRℚ ∘ rotM₁ℚ
-  have h_innerQ_eq : ⟪pbar.innerℚℝ S_, w⟫ = ⟪pbar.rotRℚℝ (pbar.rotM₁ℚℝ S_), w⟫ := by
-    simp [Pose.innerℚℝ, ContinuousLinearMap.comp_apply]
-  -- R'M bound
-  have h_R'M : ‖⟪pbar.rotR' (pbar.rotM₁ S), w⟫ - ⟪pbar.rotR'ℚℝ (pbar.rotM₁ℚℝ S_), w⟫‖ ≤ 4 * κ := by
-    show ‖⟪rotR' ↑α_ (rotM ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotR'ℚℝ ↑α_ (rotMℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
-    exact bounds_kappa_R'M hS hS_approx hw
-  -- RMθ bound
-  have h_RMθ : ‖⟪pbar.rotR (pbar.rotM₁θ S), w⟫ - ⟪pbar.rotRℚℝ (pbar.rotM₁θℚℝ S_), w⟫‖ ≤ 4 * κ := by
-    show ‖⟪rotR ↑α_ (rotMθ ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚℝ ↑α_ (rotMθℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
-    exact bounds_kappa_RMθ hS hS_approx hw
-  -- RMφ bound
-  have h_RMφ : ‖⟪pbar.rotR (pbar.rotM₁φ S), w⟫ - ⟪pbar.rotRℚℝ (pbar.rotM₁φℚℝ S_), w⟫‖ ≤ 4 * κ := by
-    show ‖⟪rotR ↑α_ (rotMφ ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚℝ ↑α_ (rotMφℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
-    exact bounds_kappa_RMφ hS hS_approx hw
-  -- Now combine: Gℚ ≤ G
-  rw [h_inner_eq, h_innerQ_eq]
-  -- inner bound: real ≥ rational - 4κ
-  have hi_le : ⟪pbar.rotRℚℝ (pbar.rotM₁ℚℝ S_), w⟫ ≤ ⟪pbar.rotR (pbar.rotM₁ S), w⟫ + 4 * κ := by
-    have := (Real.norm_eq_abs _).symm ▸ h_inner; rw [abs_le] at this; linarith [this.1]
-  -- |abs_real| ≤ |abs_rational| + 4κ for the three ε-coefficient terms
+  rw [show pbar.inner S = pbar.rotR (pbar.rotM₁ S) by rw [Pose.inner_eq_RM]; rfl,
+      show p_.innerℚ S_ = rotRℚ p_.α (rotMℚ p_.θ₁ p_.φ₁ S_) by rfl]
+  show ⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
+        ((ε : ℝ) * (|⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    |⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    |⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫|) +
+         9 * (ε : ℝ)^2 / 2) ≥ _
+  have h_RM := bounds_kappa_RM
+                (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
+                hS hS_approx hw
+  have h_R'M : ‖⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
+                  ((rotR'ℚ p_.α (rotMℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    bounds_kappa_R'M
+      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
+      hS hS_approx hw
+  have h_RMθ : ‖⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
+                  ((rotRℚ p_.α (rotMθℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    bounds_kappa_RMθ
+      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
+      hS hS_approx hw
+  have h_RMφ : ‖⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
+                  ((rotRℚ p_.α (rotMφℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    bounds_kappa_RMφ
+      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
+      hS hS_approx hw
+  have hi_le : ((rotRℚ p_.α (rotMℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ) ≤
+               ⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ + 4 * κ := by
+    have := (Real.norm_eq_abs _).symm ▸ h_RM; rw [abs_le] at this
+    linarith [this.1]
   have hR'_abs := abs_le_abs_add_of_norm_sub_le h_R'M
   have hRθ_abs := abs_le_abs_add_of_norm_sub_le h_RMθ
   have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
-  nlinarith
+  have h_κ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; push_cast; norm_num
+  have hε_real : (0 : ℝ) ≤ ε := by exact_mod_cast hε
+  show _ ≤ _
+  push_cast
+  rw [h_κ]
+  show _ -
+        ((ε : ℝ) * (|((rotR'ℚ p_.α (rotMℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)| +
+                    |((rotRℚ p_.α (rotMθℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)| +
+                    |((rotRℚ p_.α (rotMφℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)|) +
+         9 * ((ε : ℝ))^2 / 2 + 4 * κ * (1 + 3 * ((ε : ℝ)))) ≤ _
+  nlinarith [hi_le, hR'_abs, hRθ_abs, hRφ_abs,
+             abs_nonneg (((rotR'ℚ p_.α (rotMℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)),
+             abs_nonneg (((rotRℚ p_.α (rotMθℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)),
+             abs_nonneg (((rotRℚ p_.α (rotMφℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ))]
 
-private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
-    {P P_ : ℝ³} {w : ℝ²}
-    (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1)
-    (hp : (fourInterval ℝ).contains pbar) :
-    GlobalTheorem.H pbar ε w P ≤ Hℚ pbar ε w P_ := by
-  unfold GlobalTheorem.H Hℚ
-  set θ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₂, hp.θ₂Bound⟩
-  set φ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₂, hp.φ₂Bound⟩
-  -- M bound
-  have h_M : ‖⟪pbar.rotM₂ P, w⟫ - ⟪pbar.rotM₂ℚℝ P_, w⟫‖ ≤ 3 * κ := by
-    show ‖⟪rotM ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMℚℝ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
-    exact bounds_kappa_M hP hP_approx hw
-  -- Mθ bound
-  have h_Mθ : ‖⟪pbar.rotM₂θ P, w⟫ - ⟪pbar.rotM₂θℚℝ P_, w⟫‖ ≤ 3 * κ := by
-    show ‖⟪rotMθ ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMθℚℝ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
-    exact bounds_kappa_Mθ hP hP_approx hw
-  -- Mφ bound
-  have h_Mφ : ‖⟪pbar.rotM₂φ P, w⟫ - ⟪pbar.rotM₂φℚℝ P_, w⟫‖ ≤ 3 * κ := by
-    show ‖⟪rotMφ ↑θ₂ ↑φ₂ P, w⟫ - ⟪rotMφℚℝ ↑θ₂ ↑φ₂ P_, w⟫‖ ≤ 3 * κ
-    exact bounds_kappa_Mφ hP hP_approx hw
-  -- Combine: H ≤ Hℚ
-  -- Extract scalar bounds from norm bounds
-  have hm_le : ⟪pbar.rotM₂ P, w⟫ ≤ ⟪pbar.rotM₂ℚℝ P_, w⟫ + 3 * κ := by
-    have := (Real.norm_eq_abs _).symm ▸ h_M; rw [abs_le] at this; linarith [this.2]
-  -- Absolute value bounds: |real| ≤ |rational| + 3κ
-  have hθ_abs := abs_le_abs_add_of_norm_sub_le h_Mθ
-  have hφ_abs := abs_le_abs_add_of_norm_sub_le h_Mφ
-  nlinarith
+private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
+    {P : ℝ³} {P_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
+    (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1)
+    (hp : (fourInterval ℚ).contains pbar) :
+    GlobalTheorem.H pbar.toReal ε (toR2 w) P ≤ Hℚ pbar ε w P_ := by
+  unfold GlobalTheorem.H Hℚ Pose.rotM₂ Pose.rotM₂θ Pose.rotM₂φ
+        Pose.rotM₂ℚ Pose.rotM₂θℚ Pose.rotM₂φℚ
+  show ⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ +
+        (ε : ℝ) * (|⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+                   |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫|) +
+        2 * (ε : ℝ)^2 ≤ _
+  have h_M := bounds_kappa_M
+                (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩)
+                hP hP_approx hw
+  have h_Mθ := bounds_kappa_Mθ
+                (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩)
+                hP hP_approx hw
+  have h_Mφ := bounds_kappa_Mφ
+                (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩)
+                hP hP_approx hw
+  have hm_le : ⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ ≤
+               ((rotMℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ) + 3 * κ := by
+    have := (Real.norm_eq_abs _).symm ▸ h_M; rw [abs_le] at this
+    linarith [this.2]
+  have hθ_abs : |⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| ≤
+                |((rotMθℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ)| + 3 * κ :=
+    abs_le_abs_add_of_norm_sub_le h_Mθ
+  have hφ_abs : |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| ≤
+                |((rotMφℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ)| + 3 * κ :=
+    abs_le_abs_add_of_norm_sub_le h_Mφ
+  have h_κ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; push_cast; norm_num
+  have hε_real : (0 : ℝ) ≤ ε := by exact_mod_cast hε
+  push_cast
+  rw [h_κ]
+  nlinarith [hm_le, hθ_abs, hφ_abs,
+             abs_nonneg (((rotMθℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ)),
+             abs_nonneg (((rotMφℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ))]
 
 /--
 [SY25] Theorem 43
 -/
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
-    (p : Pose ℚ) (ε : ℝ) (hε : 0 ≤ ε)
+    (p : Pose ℚ) (ε : ℚ) (hε : 0 ≤ ε)
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
     (happrox : κApproxPoly poly.vertices poly_.toReal)
     (_poly_pointsym : PointSym poly.hull)
@@ -149,26 +166,38 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     rwa [Equiv.apply_symm_apply] at this
   have hS_norm : ‖S_real‖ ≤ 1 := poly.vertex_radius_le_one i
   -- Step 2: Show maxH_real ≤ maxHℚ
-  have h_maxH_le : GlobalTheorem.maxH pbar poly ε pc.w ≤ maxHℚ pbar poly_.toReal ε pc.w := by
-    unfold GlobalTheorem.maxH maxHℚ
+  have h_maxH_le : GlobalTheorem.maxH pbar poly ε (toR2 pc.w) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := by
+    unfold GlobalTheorem.maxH
     apply Finset.max'_le
     simp only [Function.comp, Finset.mem_image, Finset.mem_univ, true_and]
     rintro _ ⟨k, rfl⟩
-    -- Map vertex k to approximate vertex
     let k' := happrox.bijection k
     have hk_norm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
     have hk_approx : ‖poly.vertices.v k - poly_.toReal.v k'‖ ≤ κ := happrox.approx k
-    calc GlobalTheorem.H pbar ε pc.w (poly.vertices.v k)
-      _ ≤ Hℚ pbar ε pc.w (poly_.toReal.v k') :=
-          H_le_Hℚ hε hk_norm hk_approx pc.w_unit hp4
-      _ ≤ _ := by
-          show (Hℚ pbar ε pc.w ∘ poly_.toReal.v) k' ≤ _
-          exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ k'))
+    have h_le_Hℚ : GlobalTheorem.H pbar ε (toR2 pc.w) (poly.vertices.v k) ≤
+                    Hℚ p ε pc.w (poly_.v k') := by
+      have := H_le_Hℚ hε hk_norm
+                (show ‖poly.vertices.v k - toR3 (poly_.v k')‖ ≤ κ from hk_approx)
+                pc.w_unit pc.p_in_4
+      exact this
+    have h_le_max : Hℚ p ε pc.w (poly_.v k') ≤ maxHℚ p poly_ ε pc.w := by
+      unfold maxHℚ
+      have : (Hℚ p ε pc.w ∘ poly_.v) k' ∈
+              Finset.image (Hℚ p ε pc.w ∘ poly_.v) Finset.univ :=
+        Finset.mem_image_of_mem _ (Finset.mem_univ k')
+      exact Finset.le_max' _ _ this
+    have h_le_max_real : ((Hℚ p ε pc.w (poly_.v k') : ℚ) : ℝ) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) :=
+      by exact_mod_cast h_le_max
+    linarith [h_le_Hℚ, h_le_max_real]
   -- Step 3: Build the precondition and apply global_theorem
-  exact GlobalTheorem.global_theorem pbar ε hε poly _poly_pointsym {
+  exact GlobalTheorem.global_theorem pbar ε (Rat.cast_nonneg.mpr hε) poly _poly_pointsym {
     S := S_real
     S_in_poly := hS_in
-    w := pc.w
+    w := toR2 pc.w
     w_unit := pc.w_unit
-    exceeds := by linarith [pc.exceeds, Gℚ_le_G hε hS_norm hS_approx pc.w_unit hp4]
+    exceeds := by
+      have hG_le := Gℚ_le_G hε hS_norm hS_approx pc.w_unit pc.p_in_4
+      have hexceeds_real : ((Gℚ p ε (poly_.v pc.j) pc.w : ℚ) : ℝ) >
+                            ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := by exact_mod_cast pc.exceeds
+      linarith [hG_le, hexceeds_real, h_maxH_le]
   }

@@ -3,6 +3,7 @@ import Mathlib.Data.Finset.Max
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Trig
+import Noperthedron.RationalApprox.RationalGlobal
 
 /-!
 # Global Validity Checker
@@ -14,69 +15,9 @@ here is computable — no `noncomputable` keyword.
 
 namespace Noperthedron.Solution
 
-/-! ## Matrix-vector application
-
-Computable versions of the 2×3 and 2×2 matrix-vector products from
-`RationalApprox/Basic.lean`. Each function applies a specific rotation
-matrix to a vector and returns the result.
--/
-
-/-- M(θ,φ) · v — the projection matrix. -/
-def applyM (θ φ : ℚ) (v : Fin 3 → ℚ) : Fin 2 → ℚ
-  | 0 => -(sinQ θ) * v 0 + cosQ θ * v 1
-  | 1 => -(cosQ θ) * cosQ φ * v 0 - sinQ θ * cosQ φ * v 1 + sinQ φ * v 2
-
-/-- Mθ(θ,φ) · v — ∂M/∂θ applied to v. -/
-def applyMθ (θ φ : ℚ) (v : Fin 3 → ℚ) : Fin 2 → ℚ
-  | 0 => -(cosQ θ) * v 0 - sinQ θ * v 1
-  | 1 => sinQ θ * cosQ φ * v 0 - cosQ θ * cosQ φ * v 1
-
-/-- Mφ(θ,φ) · v — ∂M/∂φ applied to v. -/
-def applyMφ (θ φ : ℚ) (v : Fin 3 → ℚ) : Fin 2 → ℚ
-  | 0 => 0
-  | 1 => cosQ θ * sinQ φ * v 0 + sinQ θ * sinQ φ * v 1 + cosQ φ * v 2
-
-/-- R(α) · u — in-plane rotation. -/
-def applyR (α : ℚ) (u : Fin 2 → ℚ) : Fin 2 → ℚ
-  | 0 => cosQ α * u 0 - sinQ α * u 1
-  | 1 => sinQ α * u 0 + cosQ α * u 1
-
-/-- R'(α) · u — derivative of in-plane rotation. -/
-def applyR' (α : ℚ) (u : Fin 2 → ℚ) : Fin 2 → ℚ
-  | 0 => -(sinQ α) * u 0 - cosQ α * u 1
-  | 1 => cosQ α * u 0 - sinQ α * u 1
-
-/-! ## Gℚ and Hℚ computation
-
-Direct rational computation matching the formulas in
-`RationalApprox/RationalGlobal.lean`.
--/
-
-/-- Rational G function: measures how far inner-shadow vertex S sticks out. -/
-def computeGQ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) : ℚ :=
-  let m1S := applyM θ₁ φ₁ S
-  let inner := (applyR α m1S) ⬝ᵥ w
-  let t1 := |(applyR' α m1S) ⬝ᵥ w|
-  let t2 := |(applyR α (applyMθ θ₁ φ₁ S)) ⬝ᵥ w|
-  let t3 := |(applyR α (applyMφ θ₁ φ₁ S)) ⬝ᵥ w|
-  inner - ε * (t1 + t2 + t3) - 9 * ε ^ 2 / 2 - 4 * κQ * (1 + 3 * ε)
-
-/-- Rational H function: measures how far outer-shadow vertex P reaches. -/
-def computeHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : ℚ :=
-  let m2P := applyM θ₂ φ₂ P
-  let outer := m2P ⬝ᵥ w
-  let t1 := |(applyMθ θ₂ φ₂ P) ⬝ᵥ w|
-  let t2 := |(applyMφ θ₂ φ₂ P) ⬝ᵥ w|
-  outer + ε * (t1 + t2) + 2 * ε ^ 2 + 3 * κQ * (1 + 2 * ε)
-
-/-- Maximum H over all 90 vertices. -/
-def computeMaxHQ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
-  let values := (computeHQ θ₂ φ₂ ε w) ∘ pythonVertex
-  let range := Finset.image values Finset.univ
-  range.max' (by use values 0; simp_all [range])
-
 abbrev Row.G_gt_maxH (r : Row) : Prop :=
-  computeGQ r.θ₁ r.φ₁ r.α r.epsilon r.S r.w > computeMaxHQ r.θ₂ r.φ₂ r.epsilon r.w
+  RationalApprox.GlobalTheorem.Gℚ r.interval.centerPose r.epsilon r.S r.w >
+    RationalApprox.GlobalTheorem.maxHℚ r.interval.centerPose pythonPolyQ r.epsilon r.w
 
 /-! ## The main checker -/
 

@@ -144,18 +144,14 @@ def Interval.centerPose (iv : Interval) : Pose ℚ where
   φ₂ := iv.center .φ₂
   α  := iv.center .α
 
-/-- Max half-width of an interval box across all 5 parameters. -/
-def Interval.epsilon (iv : Interval) : ℚ :=
-  let hw (p : Param) := (iv.max.getParam p - iv.min.getParam p) / 2
-  (Finset.image hw Finset.univ).max'
-    (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty)
-
 abbrev Row.θ₁ (r : Row) : ℚ := r.interval.center .θ₁
 abbrev Row.φ₁ (r : Row) : ℚ := r.interval.center .φ₁
 abbrev Row.θ₂ (r : Row) : ℚ := r.interval.center .θ₂
 abbrev Row.φ₂ (r : Row) : ℚ := r.interval.center .φ₂
 abbrev Row.α (r : Row) : ℚ := r.interval.center .α
-abbrev Row.epsilon (r : Row) : ℚ := r.interval.epsilon
+
+/-- Max half-width of the row's interval box across all 5 parameters. -/
+abbrev Row.epsilon (r : Row) : ℚ := r.interval.radius
 
 abbrev Row.S (r : Row) : Fin 3 → ℚ := pythonVertex r.S_index
 

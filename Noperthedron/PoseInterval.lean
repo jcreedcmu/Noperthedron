@@ -126,12 +126,22 @@ noncomputable def center {R} [Field R] [PartialOrder R] (iv : PoseInterval R) : 
   φ₂ := (iv.min.φ₂ + iv.max.φ₂) / 2
   α := (iv.min.α + iv.max.α) / 2
 
-noncomputable def radius {R} [Field R] [LinearOrder R] (iv : PoseInterval R) : R :=
+def radius {R} [Field R] [LinearOrder R] (iv : PoseInterval R) : R :=
   ((iv.max.θ₁ - iv.min.θ₁) ⊔
    (iv.max.φ₁ - iv.min.φ₁) ⊔
    (iv.max.θ₂ - iv.min.θ₂) ⊔
    (iv.max.φ₂ - iv.min.φ₂) ⊔
    (iv.max.α - iv.min.α)) / 2
+
+theorem radius_nonneg {R} [Field R] [LinearOrder R] [IsStrictOrderedRing R]
+    (iv : PoseInterval R) : 0 ≤ iv.radius := by
+  obtain ⟨h1, _, _, _, _⟩ := (Pose.le_iff iv.min iv.max).mp iv.min_le_max
+  unfold PoseInterval.radius
+  have hsub : (0:R) ≤ iv.max.θ₁ - iv.min.θ₁ := sub_nonneg.mpr h1
+  have hsup : (0:R) ≤ (iv.max.θ₁ - iv.min.θ₁) ⊔ (iv.max.φ₁ - iv.min.φ₁) ⊔
+      (iv.max.θ₂ - iv.min.θ₂) ⊔ (iv.max.φ₂ - iv.min.φ₂) ⊔ (iv.max.α - iv.min.α) :=
+    le_sup_of_le_left (le_sup_of_le_left (le_sup_of_le_left (le_sup_of_le_left hsub)))
+  linarith
 
 end PoseInterval
 
@@ -170,7 +180,7 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
     (simp only [PoseInterval.center, Real.dist_eq, abs_sub_le_iff]; constructor <;> linarith)
 
-theorem nonempty_closed_ball_radius_nonneg (p q : Pose ℝ) (r : ℝ)
+theorem nonempty_closed_ball_radius_nonneg {R} [MetricSpace R] (p q : Pose R) (r : ℝ)
     (hpq : p ∈ Metric.closedBall q r) :
     0 ≤ r := le_trans dist_nonneg hpq
 

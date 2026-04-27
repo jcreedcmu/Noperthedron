@@ -371,6 +371,10 @@ structure Polyhedron (ι X : Type) where
 noncomputable def toR3 (v : Fin 3 → ℚ) : ℝ³ :=
   WithLp.toLp 2 (fun i => (v i : ℝ))
 
+/-- Cast a `Fin 2 → ℚ` to an `ℝ²` point. -/
+noncomputable def toR2 (v : Fin 2 → ℚ) : ℝ² :=
+  WithLp.toLp 2 (fun i => (v i : ℝ))
+
 noncomputable
 def Polyhedron.toReal {ι : Type} (p : Polyhedron ι (Fin 3 → ℚ)) : Polyhedron ι ℝ³ :=
   ⟨fun j => toR3 (p.v j)⟩
