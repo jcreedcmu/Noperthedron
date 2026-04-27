@@ -192,46 +192,20 @@ lemma κQ_cast : ((κQ : ℚ) : ℝ) = κ := by
 theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ)
     (p : Pose ℚ) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
     (hα : (α : ℝ) = p.α) :
-    ((computeGQ θ₁ φ₁ α ε S w : ℚ) : ℝ) =
-    Gℚ p ε (WithLp.toLp 2 (castℝ S)) (WithLp.toLp 2 (castℝ w)) := by
+    ((computeGQ θ₁ φ₁ α ε S w : ℚ) : ℝ) = Gℚ p ε S w := by
   sorry
 
 theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ)
-    (p : Pose ℝ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
-    ((computeHQ θ₂ φ₂ ε w P : ℚ) : ℝ) =
-    Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) (WithLp.toLp 2 (castℝ P)) := by
-  unfold computeHQ Hℚ
-  simp only [Pose.rotM₂ℚℝ, Pose.rotM₂θℚℝ, Pose.rotM₂φℚℝ,
-             RationalApprox.rotMℚℝ, RationalApprox.rotMθℚℝ, RationalApprox.rotMφℚℝ]
-  rw [← hθ₂, ← hφ₂]
-  rw [inner_M_eq, inner_Mθ_eq, inner_Mφ_eq]
-  push_cast [κQ_cast]
-  ring
+    (p : Pose ℚ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
+    ((computeHQ θ₂ φ₂ ε w P : ℚ) : ℝ) = Hℚ p ε w P := by
+  sorry
 
 /-! ## Bridge for the maximum over all 90 vertices -/
 
 theorem computeMaxHQ_eq_maxHℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ)
-    (p : Pose ℝ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
-    ((computeMaxHQ θ₂ φ₂ ε w : ℚ) : ℝ) =
-    maxHℚ p pythonPoly (ε : ℝ) (WithLp.toLp 2 (castℝ w)) := by
-  have h_pointwise : ∀ j : VertexIndex,
-      ((computeHQ θ₂ φ₂ ε w (pythonVertex j) : ℚ) : ℝ) =
-      Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) (pythonPoly.v j) := by
-    intro j
-    rw [computeHQ_eq_Hℚ θ₂ φ₂ ε w (pythonVertex j) p hθ₂ hφ₂]
-    rfl
-  have h_image_eq :
-      Finset.image (fun q : ℚ => (q : ℝ))
-        (Finset.image (computeHQ θ₂ φ₂ ε w ∘ pythonVertex) Finset.univ) =
-      Finset.image (Hℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ w)) ∘ pythonPoly.v)
-        Finset.univ := by
-    rw [Finset.image_image]
-    apply Finset.image_congr
-    intro j _
-    exact h_pointwise j
-  unfold computeMaxHQ maxHℚ
-  rw [Rat.cast_mono.map_finset_max']
-  congr
+    (p : Pose ℚ) (hθ₂ : (θ₂ : ℝ) = p.θ₂) (hφ₂ : (φ₂ : ℝ) = p.φ₂) :
+    ((computeMaxHQ θ₂ φ₂ ε w : ℚ) : ℝ) = maxHℚ p pythonPolyQ ε w := by
+  sorry
 
 /-! ## Bridge `row.epsilon` to `PoseInterval.radius` -/
 

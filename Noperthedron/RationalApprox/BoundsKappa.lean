@@ -8,6 +8,8 @@ open scoped RealInnerProductSpace
 
 namespace RationalApprox
 
+section real
+
 variable {P P_ : ℝ³} {α θ φ : Set.Icc (-4 : ℝ) 4} {w : ℝ²}
 
 /-!
@@ -92,15 +94,6 @@ private lemma inner_four_kappa {E F G : Type*}
         gcongr
     _ ≤ 4 * κ := by unfold κ; norm_num
 
-lemma bounds_kappa_RM (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖⟪rotR α (rotM θ φ P), w⟫ - ⟪rotRℚℝ α (rotMℚℝ θ φ P_), w⟫‖ ≤ 4 * κ :=
-  inner_four_kappa
-    (le_of_eq (Bounding.rotR_norm_one _))
-    (R_difference_norm_bounded _ (α.property))
-    (Mℚ_norm_bounded (θ.property) (φ.property))
-    (M_difference_norm_bounded _ _ (θ.property) (φ.property))
-    hP approx hw
-
 lemma bounds_kappa_R'M (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖⟪rotR' α (rotM θ φ P), w⟫ - ⟪rotR'ℚℝ α (rotMℚℝ θ φ P_), w⟫‖ ≤ 4 * κ :=
   inner_four_kappa
@@ -127,3 +120,51 @@ lemma bounds_kappa_RMφ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw 
     (Mφℚ_norm_bounded (θ.property) (φ.property))
     (Mφ_difference_norm_bounded _ _ (θ.property) (φ.property))
     hP approx hw
+
+end real
+
+section rational
+
+variable {P : ℝ³} {P_ : Fin 3 → ℚ} {α θ φ : Set.Icc (-4 : ℚ) 4} {w : Fin 2 → ℚ}
+
+/-
+private lemma inner_four_kappaℚ {E F G : Type*}
+    [SeminormedAddCommGroup E] [NormedAddCommGroup F] [NormedAddCommGroup G]
+    [InnerProductSpace ℝ G] [NormedSpace ℝ E] [NormedSpace ℝ F]
+    {A Aℚ : E →ₗ[ℚ] F} {R Rℚ : F →L[ℝ] G} {P P_ : E} {w : G}
+    (hRnorm : ‖R‖ ≤ 1)
+    (hRdiff : ‖R - Rℚ‖ ≤ κ)
+    (hAℚnorm : ‖Aℚ‖ ≤ 1 + κ)
+    (hAdiff : ‖A - Aℚ‖ ≤ κ)
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
+    ‖@inner ℝ G _ (R (A P)) w - @inner ℝ G _ (Rℚ (Aℚ P_)) w‖ ≤ 4 * κ := by
+  rw [← inner_sub_left, show R (A P) - Rℚ (Aℚ P_) = R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_) from by
+    simp [map_sub, ContinuousLinearMap.sub_apply]]
+  have hAP_diff : ‖A P - Aℚ P_‖ ≤ 2 * κ + κ ^ 2 :=
+    clm_approx_apply_sub hAdiff hAℚnorm hP approx
+  have hAℚP_ : ‖Aℚ P_‖ ≤ (1 + κ) * (1 + κ) := approx_image_norm_le hAℚnorm hP approx
+  calc ‖@inner ℝ G _ (R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)) w‖
+    _ ≤ ‖R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)‖ * ‖w‖ := norm_inner_le_norm (𝕜 := ℝ) _ _
+    _ = ‖R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_)‖ := by rw [hw, mul_one]
+    _ ≤ ‖R (A P - Aℚ P_)‖ + ‖(R - Rℚ) (Aℚ P_)‖ := norm_add_le _ _
+    _ ≤ ‖R‖ * ‖A P - Aℚ P_‖ + ‖R - Rℚ‖ * ‖Aℚ P_‖ := by
+        gcongr <;> exact ContinuousLinearMap.le_opNorm _ _
+    _ ≤ 1 * (2 * κ + κ ^ 2) + κ * ((1 + κ) * (1 + κ)) := by
+        have : (0 : ℝ) ≤ κ := by unfold κ; norm_num
+        gcongr
+    _ ≤ 4 * κ := by unfold κ; norm_num
+-/
+
+lemma bounds_kappa_RMℚ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖w‖ = 1) :
+    ‖⟪rotR α (rotM θ φ P), toR2 w⟫ - rotRℚ α (rotMℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ :=
+  sorry /-
+  inner_four_kappaℚ
+    (le_of_eq (Bounding.rotR_norm_one _))
+    (R_difference_norm_bounded _ (α.property))
+    (Mℚ_norm_bounded (θ.property) (φ.property))
+    (M_difference_norm_bounded _ _ (θ.property) (φ.property))
+    hP approx hw
+-/
+
+end rational

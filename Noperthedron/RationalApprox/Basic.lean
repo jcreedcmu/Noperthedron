@@ -4,7 +4,6 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 
 namespace RationalApprox
 
-
 noncomputable section
 
 /- The below definitions are [SY25] Definition 37 -/
@@ -42,6 +41,7 @@ lemma cosℚ_match (x : ℚ) : cosℚ (k := ℚ) x = cosℚ (k := ℝ) x := by
 Frequently used constant for controlling the degree of approximation
 of rational versions to real counterparts.
 -/
+def κℚ : ℚ := 1 / 10^10
 def κ : ℝ := 1 / 10^10
 
 def κApproxMat {m n : ℕ}

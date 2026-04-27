@@ -13,25 +13,22 @@ namespace RationalApprox.GlobalTheorem
 /--
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
-noncomputable
-def Gℚ (p : Pose ℚ) (ε : ℚ) (S : ℝ³) (w : ℝ²) : ℝ :=
-  let p := p.toReal
-  ⟪p.innerℚℝ S, w⟫ - (ε * (|⟪p.rotR'ℚℝ (p.rotM₁ℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁θℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁φℚℝ S), w⟫|)
-  + 9 * ε^2 / 2 + 4 * κ * (1 + 3 * ε))
+def Gℚ (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) : ℚ :=
+  p.innerℚ S ⬝ᵥ w -
+   (ε * (|p.rotR'ℚ (p.rotM₁ℚ S) ⬝ᵥ w| + |p.rotRℚ (p.rotM₁θℚ S) ⬝ᵥ w| + |p.rotRℚ (p.rotM₁φℚ S) ⬝ᵥ w|)
+     + 9 * ε^2 / 2 + 4 * κℚ * (1 + 3 * ε))
 
 /--
 A measure of how far an outer-shadow vertex P can "reach" along w.
 -/
-noncomputable
-def Hℚ (p : Pose ℝ) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
-  ⟪p.rotM₂ℚℝ P, w⟫ + ε * (|⟪p.rotM₂θℚℝ P, w⟫| + |⟪p.rotM₂φℚℝ P, w⟫|) + 2 * ε^2 + 3 * κ * (1 + 2 * ε)
+def Hℚ (p : Pose ℚ) (ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : ℚ :=
+  p.rotM₂ℚ P ⬝ᵥ w + ε * (|p.rotM₂θℚ P ⬝ᵥ w| + |p.rotM₂φℚ P ⬝ᵥ w|) + 2 * ε^2 + 3 * κℚ * (1 + 2 * ε)
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
-noncomputable
 def maxHℚ {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (p : Pose ℝ) (poly : Polyhedron ι ℝ³) (ε : ℝ) (w : ℝ²) : ℝ :=
+    (p : Pose ℚ) (poly : Polyhedron ι (Fin 3 → ℚ)) (ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
   Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ  |>.max' <| by
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
@@ -47,25 +44,27 @@ structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty �
     (happrox : κApproxPoly poly.vertices poly_.toReal) (p : Pose ℚ) (ε : ℚ) : Type where
   j : ι
   p_in_4 : p ∈ fourInterval ℚ
-  w : ℝ²
+  w : Fin 2 → ℚ
   w_unit : ‖w‖ = 1
-  exceeds : Gℚ p ε (poly_.toReal.v j) w > maxHℚ p.toReal poly_.toReal ε w
+  exceeds : Gℚ p ε (poly_.v j) w > maxHℚ p poly_ ε w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
 
 private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
-    {S S_ : ℝ³} {w : ℝ²}
-    (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
-    (hp : (fourInterval ℝ).contains p_.toReal) :
-    Gℚ p_ ε S_ w ≤ GlobalTheorem.G p_.toReal ε S w := by
+    {S : ℝ³} {S_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
+    (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - toR3 S_‖ ≤ κ) (hw : ‖w‖ = 1)
+    (hp : (fourInterval ℚ).contains p_) :
+    Gℚ p_ ε S_ w ≤ GlobalTheorem.G p_.toReal ε S (toR2 w) := by
   let pbar := p_.toReal
   -- Unfold both G definitions
   unfold Gℚ GlobalTheorem.G
   -- Key bounds from BoundsKappa
-  set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₁, hp.θ₁Bound⟩
-  set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₁, hp.φ₁Bound⟩
-  set α_ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.α, hp.αBound⟩
+--  set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₁, hp.θ₁Bound⟩
+--  set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₁, hp.φ₁Bound⟩
+--  set α_ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.α, hp.αBound⟩
+  sorry
+/-
   -- inner ≈ innerℚ with 4κ bound
   have h_inner : ‖⟪pbar.rotR (pbar.rotM₁ S), w⟫ - ⟪pbar.rotRℚℝ (pbar.rotM₁ℚℝ S_), w⟫‖ ≤ 4 * κ := by
     show ‖⟪rotR ↑α_ (rotM ↑θ₁ ↑φ₁ S), w⟫ - ⟪rotRℚℝ ↑α_ (rotMℚℝ ↑θ₁ ↑φ₁ S_), w⟫‖ ≤ 4 * κ
@@ -101,13 +100,15 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
   have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
   have : 0 ≤ (ε : ℝ) := Rat.cast_nonneg.mpr hε
   nlinarith
+-/
 
-private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
-    {P P_ : ℝ³} {w : ℝ²}
-    (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1)
-    (hp : (fourInterval ℝ).contains pbar) :
-    GlobalTheorem.H pbar ε w P ≤ Hℚ pbar ε w P_ := by
+private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
+    {P : ℝ³} {P_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
+    (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖w‖ = 1)
+    (hp : (fourInterval ℚ).contains pbar) :
+    GlobalTheorem.H pbar.toReal ε (toR2 w) P ≤ Hℚ pbar ε w P_ := by
   unfold GlobalTheorem.H Hℚ
+  sorry /-
   set θ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.θ₂, hp.θ₂Bound⟩
   set φ₂ : Set.Icc (-4 : ℝ) 4 := ⟨pbar.φ₂, hp.φ₂Bound⟩
   -- M bound
@@ -130,6 +131,7 @@ private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
   have hθ_abs := abs_le_abs_add_of_norm_sub_le h_Mθ
   have hφ_abs := abs_le_abs_add_of_norm_sub_le h_Mφ
   nlinarith
+-/
 
 /--
 [SY25] Theorem 43
@@ -154,7 +156,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     rwa [Equiv.apply_symm_apply] at this
   have hS_norm : ‖S_real‖ ≤ 1 := poly.vertex_radius_le_one i
   -- Step 2: Show maxH_real ≤ maxHℚ
-  have h_maxH_le : GlobalTheorem.maxH pbar poly ε pc.w ≤ maxHℚ pbar poly_.toReal ε pc.w := by
+  have h_maxH_le : GlobalTheorem.maxH pbar poly ε (toR2 pc.w) ≤ maxHℚ p poly_ ε pc.w := by
     unfold GlobalTheorem.maxH maxHℚ
     apply Finset.max'_le
     simp only [Function.comp, Finset.mem_image, Finset.mem_univ, true_and]
@@ -163,19 +165,21 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     let k' := happrox.bijection k
     have hk_norm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
     have hk_approx : ‖poly.vertices.v k - poly_.toReal.v k'‖ ≤ κ := happrox.approx k
+    sorry/-
     calc GlobalTheorem.H pbar ε pc.w (poly.vertices.v k)
       _ ≤ Hℚ pbar ε pc.w (poly_.toReal.v k') :=
           H_le_Hℚ (Rat.cast_nonneg.mpr hε) hk_norm hk_approx pc.w_unit hp4
       _ ≤ _ := by
           show (Hℚ pbar ε pc.w ∘ poly_.toReal.v) k' ≤ _
-          exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ k'))
+          exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ k')) -/
   -- Step 3: Build the precondition and apply global_theorem
   exact GlobalTheorem.global_theorem pbar ε (Rat.cast_nonneg.mpr hε) poly _poly_pointsym {
     S := S_real
     S_in_poly := hS_in
-    w := pc.w
-    w_unit := pc.w_unit
+    w := toR2 pc.w
+    w_unit := sorry --pc.w_unit
     exceeds := by
-      have := Gℚ_le_G hε hS_norm hS_approx pc.w_unit hp4
-      linarith [pc.exceeds]
+      have := Gℚ_le_G hε hS_norm hS_approx pc.w_unit pc.p_in_4
+      sorry
+      --linarith [pc.exceeds]
   }

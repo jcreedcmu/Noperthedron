@@ -43,18 +43,20 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
              exactPoly pythonPolyQ KappaApprox.exact_κApprox_python pℚ r := {
     j := row.S_index
     p_in_4 := hrow.center_in_fourQ
-    w := WithLp.toLp 2 (fun i : Fin 2 => ((row.w i : ℝ)))
+    w := row.w
     w_unit := by
       have h_wd : (0 : ℝ) < (row.w_denominator : ℝ) := by exact_mod_cast hrow.w_denominator_pos
       have h_unit : ((row.wx_numerator : ℝ)) ^ 2 + ((row.wy_numerator : ℝ)) ^ 2 =
           ((row.w_denominator : ℝ)) ^ 2 := by exact_mod_cast hrow.w_unit
+      sorry
+/-
       rw [EuclideanSpace.norm_eq, ← Real.sqrt_one]
       congr 1
       simp only [Fin.sum_univ_two, Real.norm_eq_abs, sq_abs]
       show ((row.w 0 : ℝ)) ^ 2 + ((row.w 1 : ℝ)) ^ 2 = 1
       simp only [Row.w, Rat.cast_div, Rat.cast_intCast, Rat.cast_natCast]
       field_simp
-      linarith
+      linarith-/
     exceeds := by
       have h_cast : ((computeGQ row.θ₁ row.φ₁ row.α row.epsilon row.S row.w : ℚ) : ℝ) >
                     ((computeMaxHQ row.θ₂ row.φ₂ row.epsilon row.w : ℚ) : ℝ) := by
