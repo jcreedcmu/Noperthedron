@@ -13,12 +13,9 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   let iv := row.toRealInterval
   let pbar := iv.center
   let r := row.interval.radius
-  let r := row.interval.epsilon
   rintro ⟨q, hqi, hqr⟩
   have hqi : q ∈ iv := hqi
-  have hqε : q ∈ Metric.closedBall pbar r := sorry --mem_closed_ball_center_of_mem iv q hqi
-  have hr : 0 ≤ (r : ℝ) := nonempty_closed_ball_radius_nonneg q pbar r hqε
-  rw [Rat.cast_nonneg] at hr
+  have hr : 0 ≤ r := PoseInterval.radius_nonneg row.interval
   have hpbar_eq : pℚ.toReal = pbar := by
     show row.interval.centerPose.toReal = row.interval.toReal.center
     have h (p : Param) : ((row.interval.center p : ℚ) : ℝ) =
@@ -74,4 +71,4 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   specialize hrg pc
   rw [hpbar_eq] at hrg
   push Not at hrg
-  exact hrg q hqε hqr
+  exact hrg q (by sorry) hqr

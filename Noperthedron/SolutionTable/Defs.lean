@@ -150,6 +150,14 @@ def Interval.epsilon (iv : Interval) : ℚ :=
   (Finset.image hw Finset.univ).max'
     (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty)
 
+theorem Interval.epsilon_nonneg (iv : Interval) : 0 ≤ iv.epsilon := by
+  unfold Interval.epsilon
+  have h := (Pose.le_iff_forall_getParam iv.min iv.max).mp iv.fst_le_snd
+  have hmem : (iv.max.getParam .θ₁ - iv.min.getParam .θ₁) / 2 ∈
+      Finset.image (fun p => (iv.max.getParam p - iv.min.getParam p) / 2) Finset.univ :=
+    Finset.mem_image.mpr ⟨.θ₁, Finset.mem_univ _, rfl⟩
+  exact le_trans (by linarith [h .θ₁]) (Finset.le_max' _ _ hmem)
+
 abbrev Row.θ₁ (r : Row) : ℚ := r.interval.center .θ₁
 abbrev Row.φ₁ (r : Row) : ℚ := r.interval.center .φ₁
 abbrev Row.θ₂ (r : Row) : ℚ := r.interval.center .θ₂

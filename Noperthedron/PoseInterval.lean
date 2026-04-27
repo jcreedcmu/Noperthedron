@@ -133,6 +133,16 @@ noncomputable def radius {R} [Field R] [LinearOrder R] (iv : PoseInterval R) : R
    (iv.max.φ₂ - iv.min.φ₂) ⊔
    (iv.max.α - iv.min.α)) / 2
 
+theorem radius_nonneg {R} [Field R] [LinearOrder R] [IsStrictOrderedRing R]
+    (iv : PoseInterval R) : 0 ≤ iv.radius := by
+  obtain ⟨h1, _, _, _, _⟩ := (Pose.le_iff iv.min iv.max).mp iv.min_le_max
+  unfold PoseInterval.radius
+  have hsub : (0:R) ≤ iv.max.θ₁ - iv.min.θ₁ := sub_nonneg.mpr h1
+  have hsup : (0:R) ≤ (iv.max.θ₁ - iv.min.θ₁) ⊔ (iv.max.φ₁ - iv.min.φ₁) ⊔
+      (iv.max.θ₂ - iv.min.θ₂) ⊔ (iv.max.φ₂ - iv.min.φ₂) ⊔ (iv.max.α - iv.min.α) :=
+    le_sup_of_le_left (le_sup_of_le_left (le_sup_of_le_left (le_sup_of_le_left hsub)))
+  linarith
+
 end PoseInterval
 
 /-- Bridge the decidable rational membership `p ∈ fourInterval ℚ` to the real form
@@ -169,6 +179,27 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp
   rw [Pose.mem_closedBall_iff]
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
     (simp only [PoseInterval.center, Real.dist_eq, abs_sub_le_iff]; constructor <;> linarith)
+
+theorem mem_closed_ball_center_of_memℚ (iv : PoseInterval ℚ) (p : Pose ℚ) (hp : p ∈ iv) :
+    p ∈ Metric.closedBall iv.center iv.radius := by
+  obtain ⟨⟨h1l, h1h⟩, ⟨h2l, h2h⟩, ⟨h3l, h3h⟩, ⟨h4l, h4h⟩, ⟨h5l, h5h⟩⟩ :=
+    PoseInterval.contains_iff_components.mp hp
+  simp only [PoseInterval.radius]
+  set s := (iv.max.θ₁ - iv.min.θ₁) ⊔ (iv.max.φ₁ - iv.min.φ₁) ⊔
+    (iv.max.θ₂ - iv.min.θ₂) ⊔ (iv.max.φ₂ - iv.min.φ₂) ⊔ (iv.max.α - iv.min.α) with hs
+  have ha : iv.max.θ₁ - iv.min.θ₁ ≤ s :=
+    le_sup_of_le_left (le_sup_of_le_left (le_sup_of_le_left le_sup_left))
+  have hb : iv.max.φ₁ - iv.min.φ₁ ≤ s :=
+    le_sup_of_le_left (le_sup_of_le_left (le_sup_of_le_left le_sup_right))
+  have hc : iv.max.θ₂ - iv.min.θ₂ ≤ s :=
+    le_sup_of_le_left (le_sup_of_le_left le_sup_right)
+  have hd : iv.max.φ₂ - iv.min.φ₂ ≤ s := le_sup_of_le_left le_sup_right
+  have he : iv.max.α - iv.min.α ≤ s := le_sup_right
+  rw [Pose.mem_closedBall_iff]
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+    (simp only [Rat.dist_eq, PoseInterval.center, ← Rat.cast_sub, ← Rat.cast_abs, Rat.cast_le,
+        abs_sub_le_iff]
+     refine ⟨?_, ?_⟩ <;> linarith)
 
 theorem nonempty_closed_ball_radius_nonneg {R} [MetricSpace R] (p q : Pose R) (r : ℝ)
     (hpq : p ∈ Metric.closedBall q r) :
