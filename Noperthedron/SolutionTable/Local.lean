@@ -10,6 +10,7 @@ namespace Noperthedron.Solution
 theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
     (hrow : row.ValidLocal) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
+  let ε := row.interval.radius
   let iv := row.toRealInterval
   let pbar := iv.center
   let r := iv.radius
@@ -39,4 +40,5 @@ theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
            row.Pi row.Qi
            (Noperthedron.TriangleSymmetry.congruent_of_apply s row.Pi row.Qi hs₁ hs₂)
            row.interval.centerPose hrow.center_in_fourQ
+           ε
   sorry

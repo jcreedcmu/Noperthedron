@@ -61,7 +61,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
     (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)
-    (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
+    (ε : ℚ) (δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
     (hr₁ : BoundRℚ r ε p_.toReal (transportTri Qi hpoly) sl)
     (hδ : BoundDeltaℚ δ p_.toReal (transportTri Pi hpoly) (transportTri Qi hpoly) su)
@@ -72,6 +72,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (be : (transportTri Qi hpoly).Bεℚ Qi
           (fun k => poly_.toReal.v (hpoly.bijection k)) p_.toReal ε δ r su)
     : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
+  have hεℝ : 0 < (ε : ℝ) := span₁.pos
   set p_ := p_.toReal
   have hp : (fourInterval ℝ).contains p_ := fourInterval_contains_toReal hp
   -- The rational `p_.θ₁` (cast to ℝ) is defeq to `p_.θ₁`, so the spanning hypotheses
@@ -258,7 +259,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- Apply bounds_kappa4 (note: P Q P_ Q_ θ φ are explicit in bounds_kappa4)
     have hbk4 : bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su ≤
         bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε :=
-      bounds_kappa4 (Q i) (poly.vertices.v k) (Q_ i) v_ θ₂ φ₂ (hQnorm i) hvnorm (hQapprox i) hvapprox ε hε su hA_nonneg
+      bounds_kappa4 (Q i) (poly.vertices.v k) (Q_ i) v_ θ₂ φ₂ (hQnorm i) hvnorm (hQapprox i) hvapprox ε hεℝ su hA_nonneg
     -- Bεℚ.lhs ≤ bounds_kappa4_Aℚ (su.norm ≥ ‖·‖ in numerator, denominators def. equal)
     have hBεℚ_le : Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε su ≤
         bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su := by
@@ -286,5 +287,5 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
       _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
       _ = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := hA_eq
   -- Apply local_theorem
-  exact Local.local_theorem poly Pi Qi cong_tri p_ ε δ r hε hr
+  exact Local.local_theorem poly Pi Qi cong_tri p_ ε δ r hεℝ hr
     hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
