@@ -8,10 +8,6 @@ open scoped RealInnerProductSpace
 
 namespace RationalApprox
 
-section real
-
-variable {P P_ : ℝ³} {α θ φ : Set.Icc (-4 : ℝ) 4} {w : ℝ²}
-
 /-!
 ## Helper lemma
 
@@ -33,31 +29,6 @@ private lemma inner_three_kappa {E F : Type*}
     _ ≤ ‖A P - Aℚ P_‖ * ‖w‖ := norm_inner_le_norm (𝕜 := ℝ) _ _
     _ = ‖A P - Aℚ P_‖ := by rw [hw, mul_one]
     _ ≤ 3 * κ := (clm_approx_apply_sub hAdiff hAℚnorm hP approx).trans (by unfold κ; norm_num)
-
-/-!
-[SY25] Lemma 44
--/
-
-lemma bounds_kappa_M (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖⟪rotM θ φ P, w⟫ - ⟪rotMℚℝ θ φ P_, w⟫‖ ≤ 3 * κ :=
-  inner_three_kappa
-    (Mℚ_norm_bounded (θ.property) (φ.property))
-    (M_difference_norm_bounded _ _ (θ.property) (φ.property))
-    hP approx hw
-
-lemma bounds_kappa_Mθ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖⟪rotMθ θ φ P, w⟫ - ⟪rotMθℚℝ θ φ P_, w⟫‖ ≤ 3 * κ :=
-  inner_three_kappa
-    (Mθℚ_norm_bounded (θ.property) (φ.property))
-    (Mθ_difference_norm_bounded _ _ (θ.property) (φ.property))
-    hP approx hw
-
-lemma bounds_kappa_Mφ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖⟪rotMφ θ φ P, w⟫ - ⟪rotMφℚℝ θ φ P_, w⟫‖ ≤ 3 * κ :=
-  inner_three_kappa
-    (Mφℚ_norm_bounded (θ.property) (φ.property))
-    (Mφ_difference_norm_bounded _ _ (θ.property) (φ.property))
-    hP approx hw
 
 /-!
 ## 4κ bounds
@@ -93,35 +64,6 @@ private lemma inner_four_kappa {E F G : Type*}
         have : (0 : ℝ) ≤ κ := by unfold κ; norm_num
         gcongr
     _ ≤ 4 * κ := by unfold κ; norm_num
-
-lemma bounds_kappa_R'M (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖⟪rotR' α (rotM θ φ P), w⟫ - ⟪rotR'ℚℝ α (rotMℚℝ θ φ P_), w⟫‖ ≤ 4 * κ :=
-  inner_four_kappa
-    (le_of_eq (Bounding.rotR'_norm_one _))
-    (R'_difference_norm_bounded _ (α.property))
-    (Mℚ_norm_bounded (θ.property) (φ.property))
-    (M_difference_norm_bounded _ _ (θ.property) (φ.property))
-    hP approx hw
-
-lemma bounds_kappa_RMθ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖⟪rotR α (rotMθ θ φ P), w⟫ - ⟪rotRℚℝ α (rotMθℚℝ θ φ P_), w⟫‖ ≤ 4 * κ :=
-  inner_four_kappa
-    (le_of_eq (Bounding.rotR_norm_one _))
-    (R_difference_norm_bounded _ (α.property))
-    (Mθℚ_norm_bounded (θ.property) (φ.property))
-    (Mθ_difference_norm_bounded _ _ (θ.property) (φ.property))
-    hP approx hw
-
-lemma bounds_kappa_RMφ (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖⟪rotR α (rotMφ θ φ P), w⟫ - ⟪rotRℚℝ α (rotMφℚℝ θ φ P_), w⟫‖ ≤ 4 * κ :=
-  inner_four_kappa
-    (le_of_eq (Bounding.rotR_norm_one _))
-    (R_difference_norm_bounded _ (α.property))
-    (Mφℚ_norm_bounded (θ.property) (φ.property))
-    (Mφ_difference_norm_bounded _ _ (θ.property) (φ.property))
-    hP approx hw
-
-end real
 
 section rational
 
@@ -209,7 +151,7 @@ private lemma cast_Icc4_mem (a : Set.Icc (-4 : ℚ) 4) : (a : ℝ) ∈ Set.Icc (
   rw [Set.mem_Icc]
   exact ⟨by exact_mod_cast h.1, by exact_mod_cast h.2⟩
 
-/-! ## Rational `bounds_kappa` lemmas
+/-! ## Rational `bounds_kappa` lemmas ([SY25] Lemma 44)
 
 Each lemma bounds the difference between a real inner product (using the exact
 real rotations) and the cast of a rational dot product (using the rational
