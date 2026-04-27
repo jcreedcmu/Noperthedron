@@ -158,7 +158,7 @@ real rotations) and the cast of a rational dot product (using the rational
 matrix-mulVec versions).
 -/
 
-lemma bounds_kappa_RMℚ
+lemma bounds_kappa_RM
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
     ‖⟪rotR α (rotM θ φ P), toR2 w⟫ - rotRℚ α (rotMℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
   have h_bridge :
@@ -178,7 +178,7 @@ lemma bounds_kappa_RMℚ
     (M_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     hP approx hw
 
-lemma bounds_kappa_R'Mℚ
+lemma bounds_kappa_R'M
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
     ‖⟪rotR' α (rotM θ φ P), toR2 w⟫ - rotR'ℚ α (rotMℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
   have h_bridge :
@@ -198,7 +198,7 @@ lemma bounds_kappa_R'Mℚ
     (M_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     hP approx hw
 
-lemma bounds_kappa_RMθℚ
+lemma bounds_kappa_RMθ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
     ‖⟪rotR α (rotMθ θ φ P), toR2 w⟫ - rotRℚ α (rotMθℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
   have h_bridge :
@@ -218,7 +218,7 @@ lemma bounds_kappa_RMθℚ
     (Mθ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     hP approx hw
 
-lemma bounds_kappa_RMφℚ
+lemma bounds_kappa_RMφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
     ‖⟪rotR α (rotMφ θ φ P), toR2 w⟫ - rotRℚ α (rotMφℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
   have h_bridge :
@@ -238,7 +238,7 @@ lemma bounds_kappa_RMφℚ
     (Mφ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     hP approx hw
 
-lemma bounds_kappa_Mℚ
+lemma bounds_kappa_M
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
     ‖⟪rotM θ φ P, toR2 w⟫ - rotMℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
   have h_bridge :
@@ -254,7 +254,7 @@ lemma bounds_kappa_Mℚ
     (M_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     hP approx hw
 
-lemma bounds_kappa_Mθℚ
+lemma bounds_kappa_Mθ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
     ‖⟪rotMθ θ φ P, toR2 w⟫ - rotMθℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
   have h_bridge :
@@ -270,7 +270,7 @@ lemma bounds_kappa_Mθℚ
     (Mθ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     hP approx hw
 
-lemma bounds_kappa_Mφℚ
+lemma bounds_kappa_Mφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
     ‖⟪rotMφ θ φ P, toR2 w⟫ - rotMφℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
   have h_bridge :

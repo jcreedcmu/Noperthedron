@@ -65,22 +65,22 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
                     |⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
                     |⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫|) +
          9 * (ε : ℝ)^2 / 2) ≥ _
-  have h_RM := bounds_kappa_RMℚ
+  have h_RM := bounds_kappa_RM
                 (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
                 hS hS_approx hw
   have h_R'M : ‖⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
                   ((rotR'ℚ p_.α (rotMℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)‖ ≤ 4 * κ :=
-    bounds_kappa_R'Mℚ
+    bounds_kappa_R'M
       (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
       hS hS_approx hw
   have h_RMθ : ‖⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
                   ((rotRℚ p_.α (rotMθℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)‖ ≤ 4 * κ :=
-    bounds_kappa_RMθℚ
+    bounds_kappa_RMθ
       (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
       hS hS_approx hw
   have h_RMφ : ‖⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
                   ((rotRℚ p_.α (rotMφℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)‖ ≤ 4 * κ :=
-    bounds_kappa_RMφℚ
+    bounds_kappa_RMφ
       (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
       hS hS_approx hw
   have hi_le : ((rotRℚ p_.α (rotMℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ) ≤
@@ -116,13 +116,13 @@ private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
         (ε : ℝ) * (|⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
                    |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫|) +
         2 * (ε : ℝ)^2 ≤ _
-  have h_M := bounds_kappa_Mℚ
+  have h_M := bounds_kappa_M
                 (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩)
                 hP hP_approx hw
-  have h_Mθ := bounds_kappa_Mθℚ
+  have h_Mθ := bounds_kappa_Mθ
                 (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩)
                 hP hP_approx hw
-  have h_Mφ := bounds_kappa_Mφℚ
+  have h_Mφ := bounds_kappa_Mφ
                 (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩)
                 hP hP_approx hw
   have hm_le : ⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ ≤
