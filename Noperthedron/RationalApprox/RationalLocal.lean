@@ -38,7 +38,6 @@ namespace RationalApprox
 If we have indices `Pi` for a triangle in `poly`, yield the corresponding
 triangle in `poly_` which κ-approximates it.
 -/
-noncomputable
 def κApproxPoly.transportTri {ι : Type} [Fintype ι]
     {A : Polyhedron ι ℝ³} {B : Polyhedron ι (Fin 3 → ℚ)}
     (Pi : Fin 3 → ι)

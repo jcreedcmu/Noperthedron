@@ -368,11 +368,11 @@ structure Polyhedron (ι X : Type) where
   v : ι → X
 
 /-- Cast a `Fin 3 → ℚ` to an `ℝ³` point. -/
-noncomputable def toR3 (v : Fin 3 → ℚ) : ℝ³ :=
+def toR3 (v : Fin 3 → ℚ) : ℝ³ :=
   WithLp.toLp 2 (fun i => (v i : ℝ))
 
 /-- Cast a `Fin 2 → ℚ` to an `ℝ²` point. -/
-noncomputable def toR2 (v : Fin 2 → ℚ) : ℝ² :=
+def toR2 (v : Fin 2 → ℚ) : ℝ² :=
   WithLp.toLp 2 (fun i => (v i : ℝ))
 
 noncomputable
