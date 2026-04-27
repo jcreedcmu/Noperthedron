@@ -134,7 +134,7 @@ private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
 [SY25] Theorem 43
 -/
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
-    (p : Pose ℚ) (ε : ℝ) (hε : 0 ≤ ε)
+    (p : Pose ℚ) (ε : ℚ) (hε : 0 ≤ ε)
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
     (happrox : κApproxPoly poly.vertices poly_.toReal)
     (_poly_pointsym : PointSym poly.hull)
@@ -164,15 +164,15 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     have hk_approx : ‖poly.vertices.v k - poly_.toReal.v k'‖ ≤ κ := happrox.approx k
     calc GlobalTheorem.H pbar ε pc.w (poly.vertices.v k)
       _ ≤ Hℚ pbar ε pc.w (poly_.toReal.v k') :=
-          H_le_Hℚ hε hk_norm hk_approx pc.w_unit hp4
+          H_le_Hℚ (Rat.cast_nonneg.mpr hε) hk_norm hk_approx pc.w_unit hp4
       _ ≤ _ := by
           show (Hℚ pbar ε pc.w ∘ poly_.toReal.v) k' ≤ _
           exact Finset.le_max' _ _ (Finset.mem_image_of_mem _ (Finset.mem_univ k'))
   -- Step 3: Build the precondition and apply global_theorem
-  exact GlobalTheorem.global_theorem pbar ε hε poly _poly_pointsym {
+  exact GlobalTheorem.global_theorem pbar ε (Rat.cast_nonneg.mpr hε) poly _poly_pointsym {
     S := S_real
     S_in_poly := hS_in
     w := pc.w
     w_unit := pc.w_unit
-    exceeds := by linarith [pc.exceeds, Gℚ_le_G hε hS_norm hS_approx pc.w_unit hp4]
+    exceeds := by linarith [pc.exceeds, Gℚ_le_G (Rat.cast_nonneg.mpr hε) hS_norm hS_approx pc.w_unit hp4]
   }

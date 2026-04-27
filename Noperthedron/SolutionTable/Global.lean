@@ -12,11 +12,13 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   let pℚ := row.interval.centerPose
   let iv := row.toRealInterval
   let pbar := iv.center
-  let r := iv.radius
+  let r := row.interval.radius
+  let r := row.interval.epsilon
   rintro ⟨q, hqi, hqr⟩
   have hqi : q ∈ iv := hqi
-  have hqε : q ∈ Metric.closedBall pbar r := mem_closed_ball_center_of_mem iv q hqi
-  have hr : 0 ≤ r := nonempty_closed_ball_radius_nonneg q pbar r hqε
+  have hqε : q ∈ Metric.closedBall pbar r := sorry --mem_closed_ball_center_of_mem iv q hqi
+  have hr : 0 ≤ (r : ℝ) := nonempty_closed_ball_radius_nonneg q pbar r hqε
+  rw [Rat.cast_nonneg] at hr
   have hpbar_eq : pℚ.toReal = pbar := by
     show row.interval.centerPose.toReal = row.interval.toReal.center
     have h (p : Param) : ((row.interval.center p : ℚ) : ℝ) =

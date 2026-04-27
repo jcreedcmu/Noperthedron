@@ -170,7 +170,7 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
     (simp only [PoseInterval.center, Real.dist_eq, abs_sub_le_iff]; constructor <;> linarith)
 
-theorem nonempty_closed_ball_radius_nonneg (p q : Pose ℝ) (r : ℝ)
+theorem nonempty_closed_ball_radius_nonneg {R} [MetricSpace R] (p q : Pose R) (r : ℝ)
     (hpq : p ∈ Metric.closedBall q r) :
     0 ≤ r := le_trans dist_nonneg hpq
 
