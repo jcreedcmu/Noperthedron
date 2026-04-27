@@ -32,17 +32,19 @@ def Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
 
 end Local.Triangle
 
-namespace RationalApprox.LocalTheorem
+namespace RationalApprox
 
 /--
 If we have indices `Pi` for a triangle in `poly`, yield the corresponding
 triangle in `poly_` which κ-approximates it.
 -/
-def transportTri {ι : Type} [Fintype ι]
+def κApproxPoly.transportTri {ι : Type} [Fintype ι]
     {A : Polyhedron ι ℝ³} {B : Polyhedron ι ℝ³}
     (Pi : Fin 3 → ι)
     (hpoly : κApproxPoly A B) : Triangle :=
   fun i => B.v (hpoly.bijection (Pi i))
+
+namespace LocalTheorem
 
 /-- The condition on δ -/
 def BoundDeltaℚ (δ : ℝ) (p : Pose ℝ) (P_ Q_ : Triangle) (su : UpperSqrt) : Prop :=
@@ -63,13 +65,13 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)
     (ε : ℚ) (δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
-    (hr₁ : BoundRℚ r ε p_.toReal (transportTri Qi hpoly) sl)
-    (hδ : BoundDeltaℚ δ p_.toReal (transportTri Pi hpoly) (transportTri Qi hpoly) su)
-    (ae₁ : (transportTri Pi hpoly).Aεℚ p_.toReal.vecX₁ℚℝ ε)
-    (ae₂ : (transportTri Qi hpoly).Aεℚ p_.toReal.vecX₂ℚℝ ε)
-    (span₁ : (transportTri Pi hpoly).κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
-    (span₂ : (transportTri Qi hpoly).κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
-    (be : (transportTri Qi hpoly).Bεℚ Qi
+    (hr₁ : BoundRℚ r ε p_.toReal (hpoly.transportTri Qi) sl)
+    (hδ : BoundDeltaℚ δ p_.toReal (hpoly.transportTri Pi) (hpoly.transportTri Qi) su)
+    (ae₁ : (hpoly.transportTri Pi).Aεℚ p_.toReal.vecX₁ℚℝ ε)
+    (ae₂ : (hpoly.transportTri Qi).Aεℚ p_.toReal.vecX₂ℚℝ ε)
+    (span₁ : (hpoly.transportTri Pi).κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
+    (span₂ : (hpoly.transportTri Qi).κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
+    (be : (hpoly.transportTri Qi).Bεℚ Qi
           (fun k => poly_.toReal.v (hpoly.bijection k)) p_.toReal ε δ r su)
     : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
   have hεℝ : 0 < (ε : ℝ) := span₁.pos
@@ -77,14 +79,14 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
   have hp : (fourInterval ℝ).contains p_ := fourInterval_contains_toReal hp
   -- The rational `p_.θ₁` (cast to ℝ) is defeq to `p_.θ₁`, so the spanning hypotheses
   -- can be reinterpreted in terms of the real `p_`:
-  change (transportTri Pi hpoly).κSpanning p_.θ₁ p_.φ₁ ε at span₁
-  change (transportTri Qi hpoly).κSpanning p_.θ₂ p_.φ₂ ε at span₂
+  change (hpoly.transportTri Pi).κSpanning p_.θ₁ p_.φ₁ ε at span₁
+  change (hpoly.transportTri Qi).κSpanning p_.θ₂ p_.φ₂ ε at span₂
   -- Define the triangles from indices
   let P : Triangle := fun i => poly.vertices.v (Pi i)
   let Q : Triangle := fun i => poly.vertices.v (Qi i)
   -- Abbreviations for transported triangles
-  set P_ := transportTri Pi hpoly
-  set Q_ := transportTri Qi hpoly
+  set P_ := hpoly.transportTri Pi
+  set Q_ := hpoly.transportTri Qi
   -- Angle subtypes
   set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₁, hp.θ₁Bound⟩
   set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₁, hp.φ₁Bound⟩
