@@ -9,28 +9,33 @@ open scoped RealInnerProductSpace Real
 
 open RationalApprox (κ UpperSqrt)
 
-namespace Local.Triangle
+namespace Local
+
+def TriangleQ : Type := Fin 3 → Fin 3 → ℚ
+
+def TriangleQ.toReal (t : TriangleQ) : Triangle :=
+  fun i => toR3 (t i)
 
 /--
 Condition A_ε^ℚ from [SY25] Theorem 48
 -/
-def Aεℚ (X : ℝ³) (P_ : Triangle) (ε : ℝ) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P_ i⟫ > √2 * ε + 3 * κ
+def TriangleQ.Aεℚ (X : ℝ³) (P_ : TriangleQ) (ε : ℝ) : Prop :=
+  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P_.toReal i⟫ > √2 * ε + 3 * κ
 
 noncomputable
-def Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) (su : UpperSqrt) : ℝ :=
+def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) (su : UpperSqrt) : ℝ :=
    (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (su.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
    / ((su.norm (p.rotM₂ℚℝ v₁) + √2 * ε + 3 * κ) * (su.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
 
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
-def Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
+def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
     (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℝ) (su : UpperSqrt) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε su
 
-end Local.Triangle
+end Local
 
 namespace RationalApprox
 
@@ -41,8 +46,8 @@ triangle in `poly_` which κ-approximates it.
 def κApproxPoly.transportTri {ι : Type} [Fintype ι]
     {A : Polyhedron ι ℝ³} {B : Polyhedron ι (Fin 3 → ℚ)}
     (Pi : Fin 3 → ι)
-    (hpoly : κApproxPoly A B) : Triangle :=
-  fun i => toR3 (B.v (hpoly.bijection (Pi i)))
+    (hpoly : κApproxPoly A B) : Local.TriangleQ :=
+  fun i => B.v (hpoly.bijection (Pi i))
 
 namespace LocalTheorem
 
@@ -65,13 +70,13 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)
     (ε : ℚ) (δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
-    (hr₁ : BoundRℚ r ε p_.toReal (hpoly.transportTri Qi) sl)
-    (hδ : BoundDeltaℚ δ p_.toReal (hpoly.transportTri Pi) (hpoly.transportTri Qi) su)
+    (hr₁ : BoundRℚ r ε p_.toReal (hpoly.transportTri Qi).toReal sl)
+    (hδ : BoundDeltaℚ δ p_.toReal (hpoly.transportTri Pi).toReal (hpoly.transportTri Qi).toReal su)
     (ae₁ : (hpoly.transportTri Pi).Aεℚ p_.toReal.vecX₁ℚℝ ε)
     (ae₂ : (hpoly.transportTri Qi).Aεℚ p_.toReal.vecX₂ℚℝ ε)
-    (span₁ : (hpoly.transportTri Pi).κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
-    (span₂ : (hpoly.transportTri Qi).κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
-    (be : (hpoly.transportTri Qi).Bεℚ Qi
+    (span₁ : (hpoly.transportTri Pi).toReal.κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
+    (span₂ : (hpoly.transportTri Qi).toReal.κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
+    (be : (hpoly.transportTri Qi).toReal.Bεℚ Qi
           (fun k => poly_.toReal.v (hpoly.bijection k)) p_.toReal ε δ r su)
     : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
   have hεℝ : 0 < (ε : ℝ) := span₁.pos
@@ -79,14 +84,14 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
   have hp : (fourInterval ℝ).contains p_ := fourInterval_contains_toReal hp
   -- The rational `p_.θ₁` (cast to ℝ) is defeq to `p_.θ₁`, so the spanning hypotheses
   -- can be reinterpreted in terms of the real `p_`:
-  change (hpoly.transportTri Pi).κSpanning p_.θ₁ p_.φ₁ ε at span₁
-  change (hpoly.transportTri Qi).κSpanning p_.θ₂ p_.φ₂ ε at span₂
+  change (hpoly.transportTri Pi).toReal.κSpanning p_.θ₁ p_.φ₁ ε at span₁
+  change (hpoly.transportTri Qi).toReal.κSpanning p_.θ₂ p_.φ₂ ε at span₂
   -- Define the triangles from indices
   let P : Triangle := fun i => poly.vertices.v (Pi i)
   let Q : Triangle := fun i => poly.vertices.v (Qi i)
   -- Abbreviations for transported triangles
-  set P_ := hpoly.transportTri Pi
-  set Q_ := hpoly.transportTri Qi
+  set P_ := (hpoly.transportTri Pi).toReal
+  set Q_ := (hpoly.transportTri Qi).toReal
   -- Angle subtypes
   set θ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.θ₁, hp.θ₁Bound⟩
   set φ₁ : Set.Icc (-4 : ℝ) 4 := ⟨p_.φ₁, hp.φ₁Bound⟩
