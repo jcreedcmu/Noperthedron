@@ -24,56 +24,6 @@ abbrev castℝ {n : ℕ} (v : Fin n → ℚ) : Fin n → ℝ := fun i => (v i : 
 /-! ## Matrix mulvec agreement: each rational `apply*` cast equals
     the corresponding `rotMℚ_mat` (etc.) acting on the cast vector. -/
 
-lemma applyM_castℝ_eq (θ φ : ℚ) (S : Fin 3 → ℚ) :
-    castℝ (applyM θ φ S) =
-    (rotMℚ_mat (θ : ℝ) (φ : ℝ)).mulVec (castℝ S) := by
-  funext i
-  fin_cases i <;>
-  · show ((applyM θ φ S _ : ℚ) : ℝ) = _
-    simp only [applyM, rotMℚ_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-    push_cast [Noperthedron.KappaApprox.sinQ_cast, Noperthedron.KappaApprox.cosQ_cast]
-    simp; try ring
-
-lemma applyMθ_castℝ_eq (θ φ : ℚ) (S : Fin 3 → ℚ) :
-    castℝ (applyMθ θ φ S) =
-    (rotMθℚ_mat (θ : ℝ) (φ : ℝ)).mulVec (castℝ S) := by
-  funext i
-  fin_cases i <;>
-  · show ((applyMθ θ φ S _ : ℚ) : ℝ) = _
-    simp only [applyMθ, rotMθℚ_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-    push_cast [Noperthedron.KappaApprox.sinQ_cast, Noperthedron.KappaApprox.cosQ_cast]
-    simp; try ring
-
-lemma applyMφ_castℝ_eq (θ φ : ℚ) (S : Fin 3 → ℚ) :
-    castℝ (applyMφ θ φ S) =
-    (rotMφℚ_mat (θ : ℝ) (φ : ℝ)).mulVec (castℝ S) := by
-  funext i
-  fin_cases i <;>
-  · show ((applyMφ θ φ S _ : ℚ) : ℝ) = _
-    simp only [applyMφ, rotMφℚ_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-    push_cast [Noperthedron.KappaApprox.sinQ_cast, Noperthedron.KappaApprox.cosQ_cast]
-    simp; try ring
-
-lemma applyR_castℝ_eq (α : ℚ) (u : Fin 2 → ℚ) :
-    castℝ (applyR α u) =
-    (rotRℚ_mat (α : ℝ)).mulVec (castℝ u) := by
-  funext i
-  fin_cases i <;>
-  · show ((applyR α u _ : ℚ) : ℝ) = _
-    simp only [applyR, rotRℚ_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
-    push_cast [Noperthedron.KappaApprox.sinQ_cast, Noperthedron.KappaApprox.cosQ_cast]
-    simp; try ring
-
-lemma applyR'_castℝ_eq (α : ℚ) (u : Fin 2 → ℚ) :
-    castℝ (applyR' α u) =
-    (rotR'ℚ_mat (α : ℝ)).mulVec (castℝ u) := by
-  funext i
-  fin_cases i <;>
-  · show ((applyR' α u _ : ℚ) : ℝ) = _
-    simp only [applyR', rotR'ℚ_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
-    push_cast [Noperthedron.KappaApprox.sinQ_cast, Noperthedron.KappaApprox.cosQ_cast]
-    simp; try ring
-
 /-! ## Inner-product / dot-product bridge -/
 
 private lemma matrix_toCLM_toLp {m n : ℕ}
@@ -115,72 +65,6 @@ private lemma inner_one_matrix
   rw [Matrix.toLpLin_apply]
   have h := EuclideanSpace.inner_toLp_toLp (𝕜 := ℝ) (M.mulVec v) w
   simpa [star_trivial] using h
-
-/-- Inner product of `(M₂ ∘ M₁) S` against `w` equals the rational dot
-    product of `applyR α (applyM θ φ S)` against `w`. -/
-private lemma inner_RM_eq (θ φ α : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
-    @inner ℝ Euc(2) _
-      ((rotRℚ_mat (α : ℝ)).toEuclideanLin.toContinuousLinearMap
-        ((rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-          (WithLp.toLp 2 (castℝ S))))
-      (WithLp.toLp 2 (castℝ w)) =
-    ((applyR α (applyM θ φ S) ⬝ᵥ w : ℚ) : ℝ) := by
-  rw [inner_two_matrix, dotProduct_comm, dotProduct_castℝ,
-      applyR_castℝ_eq, applyM_castℝ_eq]
-
-private lemma inner_R'M_eq (θ φ α : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
-    @inner ℝ Euc(2) _
-      ((rotR'ℚ_mat (α : ℝ)).toEuclideanLin.toContinuousLinearMap
-        ((rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-          (WithLp.toLp 2 (castℝ S))))
-      (WithLp.toLp 2 (castℝ w)) =
-    ((applyR' α (applyM θ φ S) ⬝ᵥ w : ℚ) : ℝ) := by
-  rw [inner_two_matrix, dotProduct_comm, dotProduct_castℝ,
-      applyR'_castℝ_eq, applyM_castℝ_eq]
-
-private lemma inner_RMθ_eq (θ φ α : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
-    @inner ℝ Euc(2) _
-      ((rotRℚ_mat (α : ℝ)).toEuclideanLin.toContinuousLinearMap
-        ((rotMθℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-          (WithLp.toLp 2 (castℝ S))))
-      (WithLp.toLp 2 (castℝ w)) =
-    ((applyR α (applyMθ θ φ S) ⬝ᵥ w : ℚ) : ℝ) := by
-  rw [inner_two_matrix, dotProduct_comm, dotProduct_castℝ,
-      applyR_castℝ_eq, applyMθ_castℝ_eq]
-
-private lemma inner_RMφ_eq (θ φ α : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
-    @inner ℝ Euc(2) _
-      ((rotRℚ_mat (α : ℝ)).toEuclideanLin.toContinuousLinearMap
-        ((rotMφℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-          (WithLp.toLp 2 (castℝ S))))
-      (WithLp.toLp 2 (castℝ w)) =
-    ((applyR α (applyMφ θ φ S) ⬝ᵥ w : ℚ) : ℝ) := by
-  rw [inner_two_matrix, dotProduct_comm, dotProduct_castℝ,
-      applyR_castℝ_eq, applyMφ_castℝ_eq]
-
-private lemma inner_M_eq (θ φ : ℚ) (P : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
-    @inner ℝ Euc(2) _
-      ((rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-          (WithLp.toLp 2 (castℝ P)))
-      (WithLp.toLp 2 (castℝ w)) =
-    ((applyM θ φ P ⬝ᵥ w : ℚ) : ℝ) := by
-  rw [inner_one_matrix, dotProduct_comm, dotProduct_castℝ, applyM_castℝ_eq]
-
-private lemma inner_Mθ_eq (θ φ : ℚ) (P : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
-    @inner ℝ Euc(2) _
-      ((rotMθℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-          (WithLp.toLp 2 (castℝ P)))
-      (WithLp.toLp 2 (castℝ w)) =
-    ((applyMθ θ φ P ⬝ᵥ w : ℚ) : ℝ) := by
-  rw [inner_one_matrix, dotProduct_comm, dotProduct_castℝ, applyMθ_castℝ_eq]
-
-private lemma inner_Mφ_eq (θ φ : ℚ) (P : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
-    @inner ℝ Euc(2) _
-      ((rotMφℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-          (WithLp.toLp 2 (castℝ P)))
-      (WithLp.toLp 2 (castℝ w)) =
-    ((applyMφ θ φ P ⬝ᵥ w : ℚ) : ℝ) := by
-  rw [inner_one_matrix, dotProduct_comm, dotProduct_castℝ, applyMφ_castℝ_eq]
 
 /-! ## κQ ↔ κ -/
 

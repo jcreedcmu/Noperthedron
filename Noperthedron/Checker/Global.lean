@@ -15,38 +15,6 @@ here is computable — no `noncomputable` keyword.
 
 namespace Noperthedron.Solution
 
-/-! ## Matrix-vector application
-
-Computable versions of the 2×3 and 2×2 matrix-vector products from
-`RationalApprox/Basic.lean`. Each function applies a specific rotation
-matrix to a vector and returns the result.
--/
-
-/-- M(θ,φ) · v — the projection matrix. -/
-def applyM (θ φ : ℚ) (v : Fin 3 → ℚ) : Fin 2 → ℚ
-  | 0 => -(sinQ θ) * v 0 + cosQ θ * v 1
-  | 1 => -(cosQ θ) * cosQ φ * v 0 - sinQ θ * cosQ φ * v 1 + sinQ φ * v 2
-
-/-- Mθ(θ,φ) · v — ∂M/∂θ applied to v. -/
-def applyMθ (θ φ : ℚ) (v : Fin 3 → ℚ) : Fin 2 → ℚ
-  | 0 => -(cosQ θ) * v 0 - sinQ θ * v 1
-  | 1 => sinQ θ * cosQ φ * v 0 - cosQ θ * cosQ φ * v 1
-
-/-- Mφ(θ,φ) · v — ∂M/∂φ applied to v. -/
-def applyMφ (θ φ : ℚ) (v : Fin 3 → ℚ) : Fin 2 → ℚ
-  | 0 => 0
-  | 1 => cosQ θ * sinQ φ * v 0 + sinQ θ * sinQ φ * v 1 + cosQ φ * v 2
-
-/-- R(α) · u — in-plane rotation. -/
-def applyR (α : ℚ) (u : Fin 2 → ℚ) : Fin 2 → ℚ
-  | 0 => cosQ α * u 0 - sinQ α * u 1
-  | 1 => sinQ α * u 0 + cosQ α * u 1
-
-/-- R'(α) · u — derivative of in-plane rotation. -/
-def applyR' (α : ℚ) (u : Fin 2 → ℚ) : Fin 2 → ℚ
-  | 0 => -(sinQ α) * u 0 - cosQ α * u 1
-  | 1 => cosQ α * u 0 - sinQ α * u 1
-
 abbrev Row.G_gt_maxH (r : Row) : Prop :=
   RationalApprox.GlobalTheorem.Gℚ r.interval.centerPose r.epsilon r.S r.w >
     RationalApprox.GlobalTheorem.maxHℚ r.interval.centerPose pythonPolyQ r.epsilon r.w
