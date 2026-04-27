@@ -14,7 +14,7 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   let pbar := iv.center
   let r := row.interval.radius
   rintro ⟨q, hqi, hqr⟩
-  have hqi : q ∈ iv := hqi
+  have hqi' : q ∈ iv := hqi
   have hr : 0 ≤ r := PoseInterval.radius_nonneg row.interval
   have hpbar_eq : pℚ.toReal = pbar := by
     show row.interval.centerPose.toReal = row.interval.toReal.center

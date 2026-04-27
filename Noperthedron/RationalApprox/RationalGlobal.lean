@@ -14,7 +14,7 @@ namespace RationalApprox.GlobalTheorem
 A measure of how far an inner-shadow vertex S can "stick out"
 -/
 noncomputable
-def Gℚ (p : Pose ℚ) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
+def Gℚ (p : Pose ℚ) (ε : ℚ) (S : ℝ³) (w : ℝ²) : ℝ :=
   let p := p.toReal
   ⟪p.innerℚℝ S, w⟫ - (ε * (|⟪p.rotR'ℚℝ (p.rotM₁ℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁θℚℝ S), w⟫| + |⟪p.rotRℚℝ (p.rotM₁φℚℝ S), w⟫|)
   + 9 * ε^2 / 2 + 4 * κ * (1 + 3 * ε))
@@ -44,7 +44,7 @@ other outer-shadow vertices P (which the calculation of H iterates over) in the 
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
-    (happrox : κApproxPoly poly.vertices poly_.toReal) (p : Pose ℚ) (ε : ℝ) : Type where
+    (happrox : κApproxPoly poly.vertices poly_.toReal) (p : Pose ℚ) (ε : ℚ) : Type where
   j : ι
   p_in_4 : p ∈ fourInterval ℚ
   w : ℝ²
@@ -54,7 +54,7 @@ structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty �
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
 
-private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℝ} (hε : 0 ≤ ε)
+private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
     {S S_ : ℝ³} {w : ℝ²}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - S_‖ ≤ κ) (hw : ‖w‖ = 1)
     (hp : (fourInterval ℝ).contains p_.toReal) :
@@ -99,6 +99,7 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℝ} (hε : 0 ≤ ε)
   have hR'_abs := abs_le_abs_add_of_norm_sub_le h_R'M
   have hRθ_abs := abs_le_abs_add_of_norm_sub_le h_RMθ
   have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
+  have : 0 ≤ (ε : ℝ) := Rat.cast_nonneg.mpr hε
   nlinarith
 
 private lemma H_le_Hℚ {pbar : Pose ℝ} {ε : ℝ} (hε : 0 ≤ ε)
@@ -174,5 +175,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     S_in_poly := hS_in
     w := pc.w
     w_unit := pc.w_unit
-    exceeds := by linarith [pc.exceeds, Gℚ_le_G (Rat.cast_nonneg.mpr hε) hS_norm hS_approx pc.w_unit hp4]
+    exceeds := by
+      have := Gℚ_le_G hε hS_norm hS_approx pc.w_unit hp4
+      linarith [pc.exceeds]
   }

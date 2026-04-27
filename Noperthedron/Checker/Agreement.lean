@@ -193,7 +193,7 @@ theorem computeGQ_eq_Gℚ (θ₁ φ₁ α ε : ℚ) (S : Fin 3 → ℚ) (w : Fin
     (p : Pose ℚ) (hθ₁ : (θ₁ : ℝ) = p.θ₁) (hφ₁ : (φ₁ : ℝ) = p.φ₁)
     (hα : (α : ℝ) = p.α) :
     ((computeGQ θ₁ φ₁ α ε S w : ℚ) : ℝ) =
-    Gℚ p (ε : ℝ) (WithLp.toLp 2 (castℝ S)) (WithLp.toLp 2 (castℝ w)) := by
+    Gℚ p ε (WithLp.toLp 2 (castℝ S)) (WithLp.toLp 2 (castℝ w)) := by
   sorry
 
 theorem computeHQ_eq_Hℚ (θ₂ φ₂ ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ)
