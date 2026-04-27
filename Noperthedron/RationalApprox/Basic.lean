@@ -4,14 +4,6 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 
 namespace RationalApprox
 
-notation "ℚ³" => EuclideanSpace ℚ (Fin 3)
-notation "ℚ²" => EuclideanSpace ℚ (Fin 2)
-
-instance : Coe ℚ² ℝ² where
-  coe q := WithLp.toLp 2 (q ·)
-
-instance : Coe ℚ³ ℝ³ where
-  coe q := WithLp.toLp 2 (q ·)
 
 noncomputable section
 
@@ -87,10 +79,59 @@ def rotR'ℚ_mat {k : Type} [Field k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
 def vecXℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 3) (Fin 1) k :=
   !![ cosℚ θ * sinℚ φ; sinℚ θ * sinℚ φ; cosℚ φ ]
 
-/--
+/-
 These are merely linear instead of continuous-linear because
 .toContinuousLinearMap only works on Cauchy-complete spaces.
 -/
+
+def rotMℚ (θ φ : ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  rotMℚ_mat θ φ |>.toLin'
+
+def rotMθℚ (θ φ : ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  rotMθℚ_mat θ φ |>.toLin'
+
+def rotMφℚ (θ φ : ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  rotMφℚ_mat θ φ |>.toLin'
+
+def rotRℚ (α : ℚ) : (Fin 2 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  rotRℚ_mat α |>.toLin'
+
+def rotR'ℚ (α : ℚ) : (Fin 2 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  rotR'ℚ_mat α |>.toLin'
+
+def vecXLℚ (θ φ : ℚ) : (Fin 1 → ℚ) →ₗ[ℚ] (Fin 3 → ℚ) :=
+  vecXℚ_mat θ φ |>.toLin'
+
+def vecXℚ (θ : ℚ) (φ : ℚ) : (Fin 3 → ℚ) :=
+  ![ cosℚ θ * sinℚ φ, sinℚ θ * sinℚ φ, cosℚ φ ]
+
+def _root_.Pose.rotRℚ (p : Pose ℚ) : (Fin 2 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) := _root_.RationalApprox.rotRℚ p.α
+
+def _root_.Pose.rotR'ℚ (p : Pose ℚ) : (Fin 2 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) := _root_.RationalApprox.rotR'ℚ p.α
+
+def _root_.Pose.rotM₁ℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  _root_.RationalApprox.rotMℚ p.θ₁ p.φ₁
+
+def _root_.Pose.rotM₂ℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  _root_.RationalApprox.rotMℚ p.θ₂ p.φ₂
+
+def _root_.Pose.rotM₁θℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  _root_.RationalApprox.rotMθℚ p.θ₁ p.φ₁
+
+def _root_.Pose.rotM₂θℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  _root_.RationalApprox.rotMθℚ p.θ₂ p.φ₂
+
+def _root_.Pose.rotM₁φℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  _root_.RationalApprox.rotMφℚ p.θ₁ p.φ₁
+
+def _root_.Pose.rotM₂φℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
+  _root_.RationalApprox.rotMφℚ p.θ₂ p.φ₂
+
+def _root_.Pose.innerℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) := p.rotRℚ ∘ₗ p.rotM₁ℚ
+def _root_.Pose.outerℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) := p.rotM₂ℚ
+def _root_.Pose.vecX₁ℚ (p : Pose ℚ) : (Fin 3 → ℚ) := vecXℚ (p.θ₁) (p.φ₁)
+def _root_.Pose.vecX₂ℚ (p : Pose ℚ) : (Fin 3 → ℚ) := vecXℚ (p.θ₂) (p.φ₂)
+
 noncomputable
 def rotMℚℝ (θ φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   rotMℚ_mat θ φ |>.toEuclideanLin.toContinuousLinearMap
