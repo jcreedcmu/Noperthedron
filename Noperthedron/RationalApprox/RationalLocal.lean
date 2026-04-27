@@ -38,11 +38,12 @@ namespace RationalApprox
 If we have indices `Pi` for a triangle in `poly`, yield the corresponding
 triangle in `poly_` which κ-approximates it.
 -/
+noncomputable
 def κApproxPoly.transportTri {ι : Type} [Fintype ι]
-    {A : Polyhedron ι ℝ³} {B : Polyhedron ι ℝ³}
+    {A : Polyhedron ι ℝ³} {B : Polyhedron ι (Fin 3 → ℚ)}
     (Pi : Fin 3 → ι)
     (hpoly : κApproxPoly A B) : Triangle :=
-  fun i => B.v (hpoly.bijection (Pi i))
+  fun i => toR3 (B.v (hpoly.bijection (Pi i)))
 
 namespace LocalTheorem
 
@@ -59,7 +60,7 @@ def BoundRℚ (r ε : ℝ) (p : Pose ℝ) (Q_ : Triangle) (sl : LowerSqrt) : Pro
 -/
 theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
-    (hpoly : κApproxPoly poly.vertices poly_.toReal)
+    (hpoly : κApproxPoly poly.vertices poly_)
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
     (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)

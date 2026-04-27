@@ -359,10 +359,10 @@ theorem vertex_close_index (j : VertexIndex) :
     _ ≤ κ / 2 + κ / 2 := add_le_add (left_leg_norm j) (taylorVertex_close j)
     _ = κ := by ring
 
-def exact_κApprox_python : κApproxPoly ⟨exactVertex⟩ ⟨toR3 ∘ pythonVertex⟩ := {
+def exact_κApprox_python : κApproxPoly ⟨exactVertex⟩ ⟨pythonVertex⟩ := {
   bijection := Equiv.refl _
   approx a := by
-    simp only [Equiv.refl_apply, Function.comp_apply]
+    simp only [Equiv.refl_apply]
     rw [norm_sub_rev]
     exact vertex_close_index a
 }

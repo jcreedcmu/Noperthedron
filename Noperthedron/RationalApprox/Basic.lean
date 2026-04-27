@@ -52,10 +52,13 @@ def κApproxMat {m n : ℕ}
 def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
   ‖(A - A').toEuclideanLin.toContinuousLinearMap‖ ≤ κ
 
+/--
+  A real polyhedron A and a rational polyhedron B that is a κ-approximation of A.
+-/
 structure κApproxPoly {ι₁ ι₂ : Type} [Fintype ι₁] [Fintype ι₂]
-    (A : Polyhedron ι₁ ℝ³) (B : Polyhedron ι₂ ℝ³) where
+    (A : Polyhedron ι₁ ℝ³) (B : Polyhedron ι₂ (Fin 3 → ℚ)) where
   bijection : ι₁ ≃ ι₂
-  approx : ∀ a : ι₁, ‖(A.v a : ℝ³) - B.v (bijection a)‖ ≤ κ
+  approx : ∀ a : ι₁, ‖(A.v a : ℝ³) - toR3 (B.v (bijection a))‖ ≤ κ
 
 end
 

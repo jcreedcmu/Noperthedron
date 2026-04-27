@@ -41,7 +41,7 @@ other outer-shadow vertices P (which the calculation of H iterates over) in the 
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
-    (happrox : κApproxPoly poly.vertices poly_.toReal) (p : Pose ℚ) (ε : ℚ) : Type where
+    (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℚ) (ε : ℚ) : Type where
   j : ι
   p_in_4 : p ∈ fourInterval ℚ
   w : Fin 2 → ℚ
@@ -149,7 +149,7 @@ private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (p : Pose ℚ) (ε : ℚ) (hε : 0 ≤ ε)
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
-    (happrox : κApproxPoly poly.vertices poly_.toReal)
+    (happrox : κApproxPoly poly.vertices poly_)
     (_poly_pointsym : PointSym poly.hull)
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p ε) :
     ¬ ∃ q ∈ Metric.closedBall p.toReal ε, RupertPose q poly.hull := by
