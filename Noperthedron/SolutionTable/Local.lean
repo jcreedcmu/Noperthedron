@@ -35,7 +35,7 @@ theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
     rfl
   obtain ⟨s, hs₁, hs₂⟩ := hrow.exists_symmetry
   have := RationalApprox.LocalTheorem.rational_local
-           exactPoly pythonPoly KappaApprox.exact_κApprox_python
+           exactPoly pythonPolyQ KappaApprox.exact_κApprox_python
            row.Pi row.Qi
            (Noperthedron.TriangleSymmetry.congruent_of_apply s row.Pi row.Qi hs₁ hs₂)
            row.interval.centerPose hrow.center_in_fourQ
