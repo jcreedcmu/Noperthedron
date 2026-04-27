@@ -6,6 +6,29 @@ import Noperthedron.Vertices.Exact
 
 namespace Noperthedron.Solution
 
+private lemma Interval.epsilon_eq_radius (iv : Interval) : iv.epsilon = iv.radius := by
+  unfold Interval.epsilon PoseInterval.radius
+  set f : Param → ℚ := fun p => (iv.max.getParam p - iv.min.getParam p) / 2 with hf
+  have hmax : (Finset.image f Finset.univ).max'
+      (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty) =
+        f .θ₁ ⊔ f .φ₁ ⊔ f .θ₂ ⊔ f .φ₂ ⊔ f .α := by
+    apply le_antisymm
+    · apply Finset.max'_le
+      intro y hy
+      simp only [Finset.mem_image, Finset.mem_univ, true_and] at hy
+      obtain ⟨p, rfl⟩ := hy
+      cases p <;> simp [le_sup_iff]
+    · refine sup_le (sup_le (sup_le (sup_le ?_ ?_) ?_) ?_) ?_ <;>
+        · apply Finset.le_max'
+          simp [Finset.mem_image]
+  rw [hmax]
+  have h_div : ∀ a b : ℚ, (a ⊔ b) / 2 = (a / 2) ⊔ (b / 2) := by
+    intro a b
+    show (a ⊔ b) * (2 : ℚ)⁻¹ = a * 2⁻¹ ⊔ b * 2⁻¹
+    rw [max_mul_of_nonneg _ _ (by norm_num : (0:ℚ) ≤ 2⁻¹)]
+  simp only [hf, Pose.getParam]
+  rw [h_div, h_div, h_div, h_div]
+
 theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
     (hrow : row.ValidGlobal) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
@@ -25,20 +48,7 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
   have hrg := RationalApprox.GlobalTheorem.rational_global
                  pℚ r hr exactPoly pythonPolyQ
                  KappaApprox.exact_κApprox_python exactPoly_point_symmetric
-  have center_eq : ∀ p : Param, ((row.interval.center p : ℚ) : ℝ) =
-      ((row.interval.min.getParam p : ℝ) + (row.interval.max.getParam p : ℝ)) / 2 := by
-    intro p
-    simp [Interval.center]
-  have hθ₁ : (row.θ₁ : ℝ) = pbar.θ₁ := by
-    rw [show (row.θ₁ : ℝ) = ((row.interval.center .θ₁ : ℚ) : ℝ) from rfl, center_eq]; rfl
-  have hφ₁ : (row.φ₁ : ℝ) = pbar.φ₁ := by
-    rw [show (row.φ₁ : ℝ) = ((row.interval.center .φ₁ : ℚ) : ℝ) from rfl, center_eq]; rfl
-  have hθ₂ : (row.θ₂ : ℝ) = pbar.θ₂ := by
-    rw [show (row.θ₂ : ℝ) = ((row.interval.center .θ₂ : ℚ) : ℝ) from rfl, center_eq]; rfl
-  have hφ₂ : (row.φ₂ : ℝ) = pbar.φ₂ := by
-    rw [show (row.φ₂ : ℝ) = ((row.interval.center .φ₂ : ℚ) : ℝ) from rfl, center_eq]; rfl
-  have hα : (row.α : ℝ) = pbar.α := by
-    rw [show (row.α : ℝ) = ((row.interval.center .α : ℚ) : ℝ) from rfl, center_eq]; rfl
+  have hr_eq_eps : r = row.epsilon := (Interval.epsilon_eq_radius row.interval).symm
   have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
              exactPoly pythonPolyQ KappaApprox.exact_κApprox_python pℚ r := {
     j := row.S_index
@@ -48,26 +58,25 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
       have h_wd : (0 : ℝ) < (row.w_denominator : ℝ) := by exact_mod_cast hrow.w_denominator_pos
       have h_unit : ((row.wx_numerator : ℝ)) ^ 2 + ((row.wy_numerator : ℝ)) ^ 2 =
           ((row.w_denominator : ℝ)) ^ 2 := by exact_mod_cast hrow.w_unit
-      sorry
-/-
-      rw [EuclideanSpace.norm_eq, ← Real.sqrt_one]
+      rw [show (toR2 row.w) = WithLp.toLp 2 (fun i => (row.w i : ℝ)) from rfl,
+          EuclideanSpace.norm_eq, ← Real.sqrt_one]
       congr 1
       simp only [Fin.sum_univ_two, Real.norm_eq_abs, sq_abs]
       show ((row.w 0 : ℝ)) ^ 2 + ((row.w 1 : ℝ)) ^ 2 = 1
       simp only [Row.w, Rat.cast_div, Rat.cast_intCast, Rat.cast_natCast]
       field_simp
-      linarith-/
-    exceeds := by
-      sorry /-
-      rw [Agreement.computeGQ_eq_Gℚ row.θ₁ row.φ₁ row.α row.epsilon row.S row.w
-            pℚ hθ₁ hφ₁ hα,
-          Agreement.computeMaxHQ_eq_maxHℚ row.θ₂ row.φ₂ row.epsilon row.w
-            pbar hθ₂ hφ₂] at h_cast
-      rw [Agreement.row_epsilon_cast_eq_radius] at h_cast
-      rw [hpbar_eq]
-      exact h_cast-/
+      linarith
+    exceeds := hr_eq_eps ▸ hrow.G_gt_maxH
   }
   specialize hrg pc
   rw [hpbar_eq] at hrg
   push Not at hrg
-  exact hrg q (by sorry) hqr
+  refine hrg q ?_ hqr
+  have hmem : q ∈ Metric.closedBall iv.center iv.radius :=
+    mem_closed_ball_center_of_mem iv q hqi'
+  have hradius_eq : iv.radius = (r : ℝ) := by
+    show row.toRealInterval.radius = ((row.interval.radius : ℚ) : ℝ)
+    rw [← Agreement.row_epsilon_cast_eq_radius]
+    exact_mod_cast Interval.epsilon_eq_radius row.interval
+  rw [hradius_eq] at hmem
+  exact hmem
