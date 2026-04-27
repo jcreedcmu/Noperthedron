@@ -145,11 +145,8 @@ private lemma inner_two_bridge
   rw [hM, hN, ← castℝ_mulVec, ← castℝ_mulVec, ← castℝ_dotProduct, dotProduct_comm]
 
 /-- A `Set.Icc (-4 : ℚ) 4` element gives a `Set.Icc (-4 : ℝ) 4` membership after casting. -/
-private lemma cast_Icc4_mem (a : Set.Icc (-4 : ℚ) 4) : (a : ℝ) ∈ Set.Icc (-4 : ℝ) 4 := by
-  have h := a.property
-  rw [Set.mem_Icc] at h
-  rw [Set.mem_Icc]
-  exact ⟨by exact_mod_cast h.1, by exact_mod_cast h.2⟩
+private lemma cast_Icc4_mem (a : Set.Icc (-4 : ℚ) 4) : (a : ℝ) ∈ Set.Icc (-4 : ℝ) 4 :=
+  Set.mem_Icc.mpr ⟨mod_cast a.property.1, mod_cast a.property.2⟩
 
 /-! ## Rational `bounds_kappa` lemmas ([SY25] Lemma 44)
 
@@ -164,11 +161,7 @@ lemma bounds_kappa_RM
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
-    rw [show rotRℚℝ (α:ℝ) = (rotRℚ_mat (α:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotMℚℝ (θ:ℝ) (φ:ℝ) = (rotMℚ_mat (θ:ℝ) (φ:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotRℚ α (rotMℚ θ φ P_) =
-            (rotRℚ_mat (α:ℚ)).mulVec ((rotMℚ_mat (θ:ℚ) (φ:ℚ)).mulVec P_) from by
-          unfold rotRℚ rotMℚ; rw [Matrix.toLin'_apply, Matrix.toLin'_apply]]
+    simp only [rotRℚ, rotMℚ, Matrix.toLin'_apply]
     exact inner_two_bridge _ _ _ _ (rotRℚ_mat_castℝ α) (rotMℚ_mat_castℝ θ φ) _ _
   rw [← h_bridge]
   exact inner_four_kappa
@@ -184,11 +177,7 @@ lemma bounds_kappa_R'M
   have h_bridge :
       @inner ℝ ℝ² _ (rotR'ℚℝ (α:ℝ) (rotMℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotR'ℚ α (rotMℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
-    rw [show rotR'ℚℝ (α:ℝ) = (rotR'ℚ_mat (α:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotMℚℝ (θ:ℝ) (φ:ℝ) = (rotMℚ_mat (θ:ℝ) (φ:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotR'ℚ α (rotMℚ θ φ P_) =
-            (rotR'ℚ_mat (α:ℚ)).mulVec ((rotMℚ_mat (θ:ℚ) (φ:ℚ)).mulVec P_) from by
-          unfold rotR'ℚ rotMℚ; rw [Matrix.toLin'_apply, Matrix.toLin'_apply]]
+    simp only [rotR'ℚ, rotMℚ, Matrix.toLin'_apply]
     exact inner_two_bridge _ _ _ _ (rotR'ℚ_mat_castℝ α) (rotMℚ_mat_castℝ θ φ) _ _
   rw [← h_bridge]
   exact inner_four_kappa
@@ -204,11 +193,7 @@ lemma bounds_kappa_RMθ
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMθℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
-    rw [show rotRℚℝ (α:ℝ) = (rotRℚ_mat (α:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotMθℚℝ (θ:ℝ) (φ:ℝ) = (rotMθℚ_mat (θ:ℝ) (φ:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotRℚ α (rotMθℚ θ φ P_) =
-            (rotRℚ_mat (α:ℚ)).mulVec ((rotMθℚ_mat (θ:ℚ) (φ:ℚ)).mulVec P_) from by
-          unfold rotRℚ rotMθℚ; rw [Matrix.toLin'_apply, Matrix.toLin'_apply]]
+    simp only [rotRℚ, rotMθℚ, Matrix.toLin'_apply]
     exact inner_two_bridge _ _ _ _ (rotRℚ_mat_castℝ α) (rotMθℚ_mat_castℝ θ φ) _ _
   rw [← h_bridge]
   exact inner_four_kappa
@@ -224,11 +209,7 @@ lemma bounds_kappa_RMφ
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMφℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
-    rw [show rotRℚℝ (α:ℝ) = (rotRℚ_mat (α:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotMφℚℝ (θ:ℝ) (φ:ℝ) = (rotMφℚ_mat (θ:ℝ) (φ:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotRℚ α (rotMφℚ θ φ P_) =
-            (rotRℚ_mat (α:ℚ)).mulVec ((rotMφℚ_mat (θ:ℚ) (φ:ℚ)).mulVec P_) from by
-          unfold rotRℚ rotMφℚ; rw [Matrix.toLin'_apply, Matrix.toLin'_apply]]
+    simp only [rotRℚ, rotMφℚ, Matrix.toLin'_apply]
     exact inner_two_bridge _ _ _ _ (rotRℚ_mat_castℝ α) (rotMφℚ_mat_castℝ θ φ) _ _
   rw [← h_bridge]
   exact inner_four_kappa
@@ -244,9 +225,7 @@ lemma bounds_kappa_M
   have h_bridge :
       @inner ℝ ℝ² _ (rotMℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
-    rw [show rotMℚℝ (θ:ℝ) (φ:ℝ) = (rotMℚ_mat (θ:ℝ) (φ:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotMℚ θ φ P_ = (rotMℚ_mat (θ:ℚ) (φ:ℚ)).mulVec P_ from by
-          unfold rotMℚ; rw [Matrix.toLin'_apply]]
+    simp only [rotMℚ, Matrix.toLin'_apply]
     exact inner_one_bridge _ _ (rotMℚ_mat_castℝ θ φ) _ _
   rw [← h_bridge]
   exact inner_three_kappa
@@ -260,9 +239,7 @@ lemma bounds_kappa_Mθ
   have h_bridge :
       @inner ℝ ℝ² _ (rotMθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMθℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
-    rw [show rotMθℚℝ (θ:ℝ) (φ:ℝ) = (rotMθℚ_mat (θ:ℝ) (φ:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotMθℚ θ φ P_ = (rotMθℚ_mat (θ:ℚ) (φ:ℚ)).mulVec P_ from by
-          unfold rotMθℚ; rw [Matrix.toLin'_apply]]
+    simp only [rotMθℚ, Matrix.toLin'_apply]
     exact inner_one_bridge _ _ (rotMθℚ_mat_castℝ θ φ) _ _
   rw [← h_bridge]
   exact inner_three_kappa
@@ -276,9 +253,7 @@ lemma bounds_kappa_Mφ
   have h_bridge :
       @inner ℝ ℝ² _ (rotMφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMφℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
-    rw [show rotMφℚℝ (θ:ℝ) (φ:ℝ) = (rotMφℚ_mat (θ:ℝ) (φ:ℝ)).toEuclideanLin.toContinuousLinearMap from rfl,
-        show rotMφℚ θ φ P_ = (rotMφℚ_mat (θ:ℚ) (φ:ℚ)).mulVec P_ from by
-          unfold rotMφℚ; rw [Matrix.toLin'_apply]]
+    simp only [rotMφℚ, Matrix.toLin'_apply]
     exact inner_one_bridge _ _ (rotMφℚ_mat_castℝ θ φ) _ _
   rw [← h_bridge]
   exact inner_three_kappa
