@@ -19,11 +19,11 @@ def TriangleQ.toReal (t : TriangleQ) : Triangle :=
 /--
 Condition A_ε^ℚ from [SY25] Theorem 48
 -/
-def TriangleQ.Aεℚ (X : ℝ³) (P_ : TriangleQ) (ε : ℝ) : Prop :=
+def TriangleQ.Aεℚ (X : ℝ³) (P_ : TriangleQ) (ε : ℚ) : Prop :=
   ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P_.toReal i⟫ > √2 * ε + 3 * κ
 
 noncomputable
-def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) (su : UpperSqrt) : ℝ :=
+def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (su : UpperSqrt) : ℝ :=
    (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (su.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
    / ((su.norm (p.rotM₂ℚℝ v₁) + √2 * ε + 3 * κ) * (su.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
 
@@ -31,7 +31,7 @@ def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) (su : Upp
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
 def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
-    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℝ) (su : UpperSqrt) : Prop :=
+    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε : ℚ) (δ r : ℝ) (su : UpperSqrt) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε su
 
