@@ -31,7 +31,7 @@ def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (su : Upp
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
 def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
-    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε : ℚ) (δ r : ℝ) (su : UpperSqrt) : Prop :=
+    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ : ℚ) (r : ℝ) (su : UpperSqrt) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε su
 
@@ -68,7 +68,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
     (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)
-    (ε : ℚ) (δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
+    (ε δ : ℚ) (r : ℝ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
     (hr₁ : BoundRℚ r ε p_.toReal (hpoly.transportTri Qi).toReal sl)
     (hδ : BoundDeltaℚ δ p_.toReal (hpoly.transportTri Pi).toReal (hpoly.transportTri Qi).toReal su)
@@ -218,10 +218,10 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- Extract positivity of Bεℚ numerator
     have hBεℚ_num_pos : 0 < ⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
         2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
-      have hδ_pos : 0 < δ := by
-        have := hδ 0
+      have hδ_pos : 0 < (δ : ℝ) := by
+        have hδ₀ := hδ 0
         linarith [le_trans (norm_nonneg _)
-          (UpperSqrt_norm_le su (p_.rotR (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0)))]
+           (UpperSqrt_norm_le su (p_.rotR (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0)))]
       have h0 : 0 < (δ + √5 * ε) / r := by positivity
       exact (div_pos_iff_of_pos_right hden_pos).mp (h0.trans hbe)
     -- su.norm ≥ ‖·‖ means numBεℚ ≤ numAℚ (subtracted term is bigger with su.norm)
