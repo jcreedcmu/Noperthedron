@@ -31,7 +31,7 @@ def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (su : Upp
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
 def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
-    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ : ℚ) (r : ℝ) (su : UpperSqrt) : Prop :=
+    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℚ)  (su : UpperSqrt) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε su
 
@@ -68,7 +68,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (Pi Qi : Fin 3 → ι)
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
     (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)
-    (ε δ : ℚ) (r : ℝ) (hε : 0 < ε) (hr : 0 < r)
+    (ε δ r : ℚ) (hε : 0 < ε) (hr : 0 < r)
     (su : UpperSqrt) (sl : LowerSqrt)
     (hr₁ : BoundRℚ r ε p_.toReal (hpoly.transportTri Qi).toReal sl)
     (hδ : BoundDeltaℚ δ p_.toReal (hpoly.transportTri Pi).toReal (hpoly.transportTri Qi).toReal su)
@@ -294,5 +294,5 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
       _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
       _ = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := hA_eq
   -- Apply local_theorem
-  exact Local.local_theorem poly Pi Qi cong_tri p_ ε δ r hεℝ hr
+  exact Local.local_theorem poly Pi Qi cong_tri p_ ε δ r hεℝ (Rat.cast_pos.mpr hr)
     hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
