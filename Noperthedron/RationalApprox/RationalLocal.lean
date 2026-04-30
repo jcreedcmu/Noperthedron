@@ -206,6 +206,15 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- Get the Bεℚ hypothesis
     have hbe := be i k hne_k
     show (δ + √5 * ε) / r < Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
+    -- Bridge from approx.upper_sqrt_five to √5 (since upper_sqrt_five > √5)
+    have hbe' : (↑δ + √5 * ↑ε) / ↑r < Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx := by
+      have hr_pos : (0 : ℝ) < r := by exact_mod_cast hr
+      have hε_nonneg : (0 : ℝ) ≤ (ε : ℝ) := le_of_lt hεℝ
+      have h_sqrt5_le : √5 ≤ (approx.upper_sqrt_five : ℝ) :=
+        le_of_lt approx.upper_sqrt_five_gt_sqrt_five
+      have h_le : (↑δ + √5 * ↑ε) / ↑r ≤ (↑δ + ↑approx.upper_sqrt_five * ↑ε) / ↑r := by
+        gcongr
+      exact h_le.trans_lt hbe
     -- Helper facts
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
     have hsu_ge : approx.upper_sqrt.norm (Q_ i - v_) ≥ ‖Q_ i - v_‖ := UpperSqrt_norm_le approx.upper_sqrt _
@@ -224,7 +233,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
            (UpperSqrt_norm_le approx.upper_sqrt (p_.rotR (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0)))]
       have h0 : 0 < (δ + √5 * ε) / r := by positivity
       refine (div_pos_iff_of_pos_right hden_pos).mp (h0.trans ?_)
-      sorry
+      exact hbe'
     -- su.norm ≥ ‖·‖ means numBεℚ ≤ numAℚ (subtracted term is bigger with su.norm)
     have hAℚ_num_pos : 0 < ⟪(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ -
         2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) := by
@@ -290,7 +299,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- bounds_kappa4_A = Bε.lhs (definitionally: rotM ↑θ₂ ↑φ₂ = p_.rotM₂)
     have hA_eq : bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := rfl
     -- Combine
-    calc (δ + √5 * ε) / r < Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx := hbe
+    calc (δ + √5 * ε) / r < Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx := hbe'
       _ ≤ bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt := hBεℚ_le
       _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
       _ = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := hA_eq
