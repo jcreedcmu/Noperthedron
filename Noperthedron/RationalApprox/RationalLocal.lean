@@ -33,7 +33,7 @@ Condition B_ε^ℚ from [SY25] Theorem 48
 def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
     (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℚ)  (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
-    (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
+    (δ + approx.upper_sqrt_five * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
 
 end Local
 
@@ -223,7 +223,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
         linarith [le_trans (norm_nonneg _)
            (UpperSqrt_norm_le approx.upper_sqrt (p_.rotR (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0)))]
       have h0 : 0 < (δ + √5 * ε) / r := by positivity
-      exact (div_pos_iff_of_pos_right hden_pos).mp (h0.trans hbe)
+      refine (div_pos_iff_of_pos_right hden_pos).mp (h0.trans ?_)
+      sorry
     -- su.norm ≥ ‖·‖ means numBεℚ ≤ numAℚ (subtracted term is bigger with su.norm)
     have hAℚ_num_pos : 0 < ⟪(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ -
         2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) := by
