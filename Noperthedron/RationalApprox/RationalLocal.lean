@@ -24,8 +24,8 @@ def TriangleQ.Aεℚ (X : ℝ³) (P_ : TriangleQ) (ε : ℚ) : Prop :=
 
 noncomputable
 def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (approx : RationalApprox.Approx) : ℝ :=
-   (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
-   / ((approx.upper_sqrt.norm (p.rotM₂ℚℝ v₁) + approx.upper_sqrt_two * ε + 3 * κ) * (approx.upper_sqrt.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
+   (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κ) * (approx.upper_sqrt_two + ε))
+   / ((approx.upper_sqrt.norm (p.rotM₂ℚℝ v₁) + approx.upper_sqrt_two * ε + 3 * κ) * (approx.upper_sqrt.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * approx.upper_sqrt_two * ε + 6 * κ))
 
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
@@ -218,17 +218,20 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- Helper facts
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
     have hsu_ge : approx.upper_sqrt.norm (Q_ i - v_) ≥ ‖Q_ i - v_‖ := UpperSqrt_norm_le approx.upper_sqrt _
+    have h_us2_nn : (0 : ℝ) ≤ approx.upper_sqrt_two :=
+      (Real.sqrt_nonneg 2).trans approx.upper_sqrt_two_gt_sqrt_two.le
+    have h_us2_le : (√2 : ℝ) ≤ approx.upper_sqrt_two := approx.upper_sqrt_two_gt_sqrt_two.le
+    have hsu_norm_nn : (0 : ℝ) ≤ approx.upper_sqrt.norm (Q_ i - v_) :=
+      (norm_nonneg _).trans hsu_ge
     -- Denominator positivity (su.norm ≥ ‖·‖ ≥ 0, and upper_sqrt_two*ε + 3κ > 0)
     have hden_pos : 0 < (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + approx.upper_sqrt_two * ε + 3 * κ) *
-        (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ) := by
-      have h_us2_nn : (0 : ℝ) ≤ approx.upper_sqrt_two :=
-        (Real.sqrt_nonneg 2).trans approx.upper_sqrt_two_gt_sqrt_two.le
+        (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * approx.upper_sqrt_two * ε + 6 * κ) := by
       have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i))) (UpperSqrt_norm_le approx.upper_sqrt _)
       have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i - v_))) (UpperSqrt_norm_le approx.upper_sqrt _)
       positivity
     -- Extract positivity of Bεℚ numerator
     have hBεℚ_num_pos : 0 < ⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
-        2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
+        2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (approx.upper_sqrt_two + ε) := by
       have hδ_pos : 0 < (δ : ℝ) := by
         have hδ₀ := hδ 0
         linarith [le_trans (norm_nonneg _)
@@ -236,16 +239,15 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
       have h0 : 0 < (δ + √5 * ε) / r := by positivity
       refine (div_pos_iff_of_pos_right hden_pos).mp (h0.trans ?_)
       exact hbe'
-    -- su.norm ≥ ‖·‖ means numBεℚ ≤ numAℚ (subtracted term is bigger with su.norm)
+    -- su.norm ≥ ‖·‖ and upper_sqrt_two ≥ √2 mean numBεℚ ≤ numAℚ
+    have h_num_sub : 2 * (ε : ℝ) * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
+        2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (approx.upper_sqrt_two + ε) := by
+      apply mul_le_mul (mul_le_mul_of_nonneg_left (by linarith [hsu_ge]) (by linarith))
+        (by linarith) (by positivity) (by positivity)
     have hAℚ_num_pos : 0 < ⟪(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i), (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i - v_)⟫ - 10 * κ -
         2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) := by
       show 0 < ⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
           2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε)
-      have h_sub_le : 2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
-          2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
-        apply mul_le_mul_of_nonneg_right
-        · exact mul_le_mul_of_nonneg_left (by grw [hsu_ge]) (by linarith)
-        · positivity
       linarith [hBεℚ_num_pos]
     -- From inner_product_bound_10kappa: |innerA - innerAℚ| ≤ 10κ
     have hQv_norm : ‖Q i - poly.vertices.v k‖ ≤ 2 := calc
@@ -285,23 +287,18 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
         bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt := by
       have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i))) (UpperSqrt_norm_le approx.upper_sqrt _)
       have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i - v_))) (UpperSqrt_norm_le approx.upper_sqrt _)
-      have h_us2 : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
-        mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
-      have h_num_sub : 2 * (ε : ℝ) * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
-          2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
-        apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left
-          (by linarith [hsu_ge]) (by linarith))
-        positivity
+      have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
+        mul_le_mul_of_nonneg_right h_us2_le hεℝ.le
       show (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
-            2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε)) /
+            2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (approx.upper_sqrt_two + ε)) /
           ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + approx.upper_sqrt_two * ε + 3 * κ) *
-            (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ)) ≤
+            (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * approx.upper_sqrt_two * ε + 6 * κ)) ≤
           (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
             2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε)) /
           ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
             (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ))
-      refine div_le_div₀ hAℚ_num_pos.le (by linarith) (by positivity) ?_
-      exact mul_le_mul_of_nonneg_right (by linarith) (by positivity)
+      refine div_le_div₀ hAℚ_num_pos.le (by linarith [h_num_sub]) (by positivity) ?_
+      gcongr
     -- bounds_kappa4_A = Bε.lhs (definitionally: rotM ↑θ₂ ↑φ₂ = p_.rotM₂)
     have hA_eq : bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := rfl
     -- Combine
