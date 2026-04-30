@@ -23,17 +23,17 @@ def TriangleQ.Aεℚ (X : ℝ³) (P_ : TriangleQ) (ε : ℚ) : Prop :=
   ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P_.toReal i⟫ > √2 * ε + 3 * κ
 
 noncomputable
-def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (su : UpperSqrt) : ℝ :=
-   (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (su.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
-   / ((su.norm (p.rotM₂ℚℝ v₁) + √2 * ε + 3 * κ) * (su.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
+def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (approx : RationalApprox.Approx) : ℝ :=
+   (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
+   / ((approx.upper_sqrt.norm (p.rotM₂ℚℝ v₁) + √2 * ε + 3 * κ) * (approx.upper_sqrt.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
 
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
 def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
-    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℚ)  (su : UpperSqrt) : Prop :=
+    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℚ)  (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
-    (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε su
+    (δ + √5 * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
 
 end Local
 
@@ -52,12 +52,12 @@ def κApproxPoly.transportTri {ι : Type} [Fintype ι]
 namespace LocalTheorem
 
 /-- The condition on δ -/
-def BoundDeltaℚ (δ : ℝ) (p : Pose ℝ) (P_ Q_ : Triangle) (su : UpperSqrt) : Prop :=
-  ∀ i : Fin 3, δ ≥ su.norm (p.rotR (p.rotM₁ℚℝ (P_ i)) - p.rotM₂ℚℝ (Q_ i))/2 + 3 * κ
+def BoundDeltaℚ (δ : ℝ) (p : Pose ℝ) (P_ Q_ : Triangle) (approx : Approx) : Prop :=
+  ∀ i : Fin 3, δ ≥ approx.upper_sqrt.norm (p.rotR (p.rotM₁ℚℝ (P_ i)) - p.rotM₂ℚℝ (Q_ i))/2 + 3 * κ
 
 /-- The condition on r -/
-def BoundRℚ (r ε : ℝ) (p : Pose ℝ) (Q_ : Triangle) (sl : LowerSqrt) : Prop :=
-  ∀ i : Fin 3, sl.norm (p.rotM₂ℚℝ (Q_ i)) > r + √2 * ε + 3 * κ
+def BoundRℚ (r ε : ℝ) (p : Pose ℝ) (Q_ : Triangle) (approx : Approx) : Prop :=
+  ∀ i : Fin 3, approx.lower_sqrt.norm (p.rotM₂ℚℝ (Q_ i)) > r + √2 * ε + 3 * κ
 
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"
@@ -69,15 +69,15 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
     (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)
     (ε δ r : ℚ) (hε : 0 < ε) (hr : 0 < r)
-    (su : UpperSqrt) (sl : LowerSqrt)
-    (hr₁ : BoundRℚ r ε p_.toReal (hpoly.transportTri Qi).toReal sl)
-    (hδ : BoundDeltaℚ δ p_.toReal (hpoly.transportTri Pi).toReal (hpoly.transportTri Qi).toReal su)
+    (approx : Approx)
+    (hr₁ : BoundRℚ r ε p_.toReal (hpoly.transportTri Qi).toReal approx)
+    (hδ : BoundDeltaℚ δ p_.toReal (hpoly.transportTri Pi).toReal (hpoly.transportTri Qi).toReal approx)
     (ae₁ : (hpoly.transportTri Pi).Aεℚ p_.toReal.vecX₁ℚℝ ε)
     (ae₂ : (hpoly.transportTri Qi).Aεℚ p_.toReal.vecX₂ℚℝ ε)
     (span₁ : (hpoly.transportTri Pi).toReal.κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
     (span₂ : (hpoly.transportTri Qi).toReal.κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
     (be : (hpoly.transportTri Qi).toReal.Bεℚ Qi
-          (fun k => poly_.toReal.v (hpoly.bijection k)) p_.toReal ε δ r su)
+          (fun k => poly_.toReal.v (hpoly.bijection k)) p_.toReal ε δ r approx)
     : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
   have hεℝ : 0 < (ε : ℝ) := span₁.pos
   set p_ := p_.toReal
@@ -138,14 +138,14 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
   -- Bridge: BoundRℚ → BoundR
   have hr₁' : Local.BoundR r ε p_ Q := by
     intro i
-    have hsl : sl.norm ((rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)) ≤ ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := by
-      show sl.f _ ≤ _; calc sl.f (‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ ^ 2)
-        _ ≤ √(‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ ^ 2) := sl.bound _ (sq_nonneg _)
+    have hsl : approx.lower_norm ((rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)) ≤ ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := by
+      show approx.lower_sqrt.f _ ≤ _; calc approx.lower_sqrt.f (‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ ^ 2)
+        _ ≤ √(‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ ^ 2) := approx.lower_sqrt.bound _ (sq_nonneg _)
         _ = ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := Real.sqrt_sq (norm_nonneg _)
     have hMQ : |(‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ - ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖)| ≤ 3 * κ :=
       bounds_kappa3_MQ (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
     show ‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ > r + √2 * ε
-    have hr₁i : sl.norm ((rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)) > r + √2 * ε + 3 * κ := hr₁ i
+    have hr₁i : approx.lower_norm ((rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)) > r + √2 * ε + 3 * κ := hr₁ i
     rw [abs_le] at hMQ
     linarith [hMQ.1]
   -- Bridge: BoundDeltaℚ → BoundDelta
@@ -154,8 +154,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have := hδ i
     -- su.norm ≥ ‖·‖
     have hsu : ‖p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i)‖ ≤
-        su.norm (p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i)) := by
-      exact UpperSqrt_norm_le su _
+        approx.upper_sqrt.norm (p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i)) := by
+      exact UpperSqrt_norm_le approx.upper_sqrt _
     -- ‖real - rational‖ ≤ 6κ
     have hM₁diff : ‖rotM (↑θ₁ : ℝ) ↑φ₁ - rotMℚℝ ↑θ₁ ↑φ₁‖ ≤ κ :=
       M_difference_norm_bounded _ _ θ₁.property φ₁.property
@@ -208,20 +208,20 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     show (δ + √5 * ε) / r < Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
     -- Helper facts
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
-    have hsu_ge : su.norm (Q_ i - v_) ≥ ‖Q_ i - v_‖ := UpperSqrt_norm_le su _
+    have hsu_ge : approx.upper_sqrt.norm (Q_ i - v_) ≥ ‖Q_ i - v_‖ := UpperSqrt_norm_le approx.upper_sqrt _
     -- Denominator positivity (su.norm ≥ ‖·‖ ≥ 0, and √2*ε + 3κ > 0)
-    have hden_pos : 0 < (su.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
-        (su.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ) := by
-      have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i))) (UpperSqrt_norm_le su _)
-      have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i - v_))) (UpperSqrt_norm_le su _)
+    have hden_pos : 0 < (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
+        (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ) := by
+      have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i))) (UpperSqrt_norm_le approx.upper_sqrt _)
+      have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i - v_))) (UpperSqrt_norm_le approx.upper_sqrt _)
       positivity
     -- Extract positivity of Bεℚ numerator
     have hBεℚ_num_pos : 0 < ⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
-        2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
+        2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
       have hδ_pos : 0 < (δ : ℝ) := by
         have hδ₀ := hδ 0
         linarith [le_trans (norm_nonneg _)
-           (UpperSqrt_norm_le su (p_.rotR (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0)))]
+           (UpperSqrt_norm_le approx.upper_sqrt (p_.rotR (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0)))]
       have h0 : 0 < (δ + √5 * ε) / r := by positivity
       exact (div_pos_iff_of_pos_right hden_pos).mp (h0.trans hbe)
     -- su.norm ≥ ‖·‖ means numBεℚ ≤ numAℚ (subtracted term is bigger with su.norm)
@@ -230,7 +230,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
       show 0 < ⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
           2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε)
       have h_sub_le : 2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
-          2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
+          2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
         apply mul_le_mul_of_nonneg_right
         · exact mul_le_mul_of_nonneg_left (by grw [hsu_ge]) (by linarith)
         · positivity
@@ -264,24 +264,24 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
         · positivity
       linarith [hAℚ_num_pos]
     -- Apply bounds_kappa4 (note: P Q P_ Q_ θ φ are explicit in bounds_kappa4)
-    have hbk4 : bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su ≤
+    have hbk4 : bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt ≤
         bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε :=
-      bounds_kappa4 (Q i) (poly.vertices.v k) (Q_ i) v_ θ₂ φ₂ (hQnorm i) hvnorm (hQapprox i) hvapprox ε hεℝ su hA_nonneg
+      bounds_kappa4 (Q i) (poly.vertices.v k) (Q_ i) v_ θ₂ φ₂ (hQnorm i) hvnorm (hQapprox i) hvapprox ε hεℝ approx.upper_sqrt hA_nonneg
     -- Bεℚ.lhs ≤ bounds_kappa4_Aℚ (su.norm ≥ ‖·‖ in numerator, denominators def. equal)
-    have hBεℚ_le : Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε su ≤
-        bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su := by
+    have hBεℚ_le : Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx ≤
+        bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt := by
       -- Express both sides using p_.rotM₂ℚ (which is def. equal to rotMℚ ↑θ₂ ↑φ₂)
       show (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
-            2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε)) /
-          ((su.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
-            (su.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ)) ≤
+            2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε)) /
+          ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
+            (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ)) ≤
           (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
             2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε)) /
-          ((su.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
-            (su.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ))
+          ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
+            (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ))
       apply div_le_div_of_nonneg_right _ (le_of_lt hden_pos)
       have h_sub_le : 2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
-          2 * ε * (su.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
+          2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
         apply mul_le_mul_of_nonneg_right
         · exact mul_le_mul_of_nonneg_left (by grw [hsu_ge]) (by linarith)
         · positivity
@@ -289,8 +289,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- bounds_kappa4_A = Bε.lhs (definitionally: rotM ↑θ₂ ↑φ₂ = p_.rotM₂)
     have hA_eq : bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := rfl
     -- Combine
-    calc (δ + √5 * ε) / r < Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε su := hbe
-      _ ≤ bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε su := hBεℚ_le
+    calc (δ + √5 * ε) / r < Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx := hbe
+      _ ≤ bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt := hBεℚ_le
       _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
       _ = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := hA_eq
   -- Apply local_theorem

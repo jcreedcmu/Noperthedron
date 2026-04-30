@@ -195,3 +195,19 @@ structure LowerSqrt where
 noncomputable
 def LowerSqrt.norm {n : ℕ} (s : LowerSqrt) (v : Euc(n)) : ℝ :=
   s.f (‖v‖^2)
+
+structure Approx where
+  lower_sqrt : LowerSqrt
+  upper_sqrt : UpperSqrt
+  upper_sqrt_two : ℚ
+  upper_sqrt_two_gt_sqrt_two : upper_sqrt_two > √2
+  upper_sqrt_five : ℚ
+  upper_sqrt_five_gt_sqrt_five : upper_sqrt_five > √5
+
+noncomputable
+def Approx.upper_norm {n : ℕ} (approx : Approx) (v : Euc(n)) : ℝ :=
+  approx.upper_sqrt.f (‖v‖^2)
+
+noncomputable
+def Approx.lower_norm {n : ℕ} (approx : Approx) (v : Euc(n)) : ℝ :=
+  approx.lower_sqrt.f (‖v‖^2)
