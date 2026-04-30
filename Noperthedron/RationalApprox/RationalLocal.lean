@@ -25,7 +25,7 @@ def TriangleQ.Aεℚ (X : ℝ³) (P_ : TriangleQ) (ε : ℚ) : Prop :=
 noncomputable
 def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (approx : RationalApprox.Approx) : ℝ :=
    (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κ) * (√2 + ε))
-   / ((approx.upper_sqrt.norm (p.rotM₂ℚℝ v₁) + √2 * ε + 3 * κ) * (approx.upper_sqrt.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
+   / ((approx.upper_sqrt.norm (p.rotM₂ℚℝ v₁) + approx.upper_sqrt_two * ε + 3 * κ) * (approx.upper_sqrt.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * √2 * ε + 6 * κ))
 
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
@@ -218,9 +218,11 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- Helper facts
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
     have hsu_ge : approx.upper_sqrt.norm (Q_ i - v_) ≥ ‖Q_ i - v_‖ := UpperSqrt_norm_le approx.upper_sqrt _
-    -- Denominator positivity (su.norm ≥ ‖·‖ ≥ 0, and √2*ε + 3κ > 0)
-    have hden_pos : 0 < (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
+    -- Denominator positivity (su.norm ≥ ‖·‖ ≥ 0, and upper_sqrt_two*ε + 3κ > 0)
+    have hden_pos : 0 < (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + approx.upper_sqrt_two * ε + 3 * κ) *
         (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ) := by
+      have h_us2_nn : (0 : ℝ) ≤ approx.upper_sqrt_two :=
+        (Real.sqrt_nonneg 2).trans approx.upper_sqrt_two_gt_sqrt_two.le
       have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i))) (UpperSqrt_norm_le approx.upper_sqrt _)
       have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i - v_))) (UpperSqrt_norm_le approx.upper_sqrt _)
       positivity
@@ -277,25 +279,29 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hbk4 : bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt ≤
         bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε :=
       bounds_kappa4 (Q i) (poly.vertices.v k) (Q_ i) v_ θ₂ φ₂ (hQnorm i) hvnorm (hQapprox i) hvapprox ε hεℝ approx.upper_sqrt hA_nonneg
-    -- Bεℚ.lhs ≤ bounds_kappa4_Aℚ (su.norm ≥ ‖·‖ in numerator, denominators def. equal)
+    -- Bεℚ.lhs ≤ bounds_kappa4_Aℚ (su.norm ≥ ‖·‖ shrinks numerator;
+    -- upper_sqrt_two ≥ √2 grows denominator)
     have hBεℚ_le : Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx ≤
         bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt := by
-      -- Express both sides using p_.rotM₂ℚ (which is def. equal to rotMℚ ↑θ₂ ↑φ₂)
+      have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i))) (UpperSqrt_norm_le approx.upper_sqrt _)
+      have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i - v_))) (UpperSqrt_norm_le approx.upper_sqrt _)
+      have h_us2 : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
+        mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
+      have h_num_sub : 2 * (ε : ℝ) * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
+          2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
+        apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left
+          (by linarith [hsu_ge]) (by linarith))
+        positivity
       show (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
             2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε)) /
-          ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
+          ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + approx.upper_sqrt_two * ε + 3 * κ) *
             (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ)) ≤
           (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
             2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε)) /
           ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + √2 * ε + 3 * κ) *
             (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * √2 * ε + 6 * κ))
-      apply div_le_div_of_nonneg_right _ (le_of_lt hden_pos)
-      have h_sub_le : 2 * ε * (‖Q_ i - v_‖ + 2 * κ) * (√2 + ε) ≤
-          2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (√2 + ε) := by
-        apply mul_le_mul_of_nonneg_right
-        · exact mul_le_mul_of_nonneg_left (by grw [hsu_ge]) (by linarith)
-        · positivity
-      grw [h_sub_le]
+      refine div_le_div₀ hAℚ_num_pos.le (by linarith) (by positivity) ?_
+      exact mul_le_mul_of_nonneg_right (by linarith) (by positivity)
     -- bounds_kappa4_A = Bε.lhs (definitionally: rotM ↑θ₂ ↑φ₂ = p_.rotM₂)
     have hA_eq : bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := rfl
     -- Combine
