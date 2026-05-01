@@ -56,6 +56,138 @@ def κApproxPoly.transportTri {ι : Type} [Fintype ι]
 
 namespace LocalTheorem
 
+/-! ### Universal bridge lemmas between the rational `Fin n → ℚ` and real `ℝⁿ` worlds. -/
+
+private lemma cast_κℚ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; norm_num
+
+private lemma toR3_sub (v w : Fin 3 → ℚ) : toR3 (v - w) = toR3 v - toR3 w := by
+  unfold toR3; ext i; simp
+
+private lemma toR2_sub (v w : Fin 2 → ℚ) : toR2 (v - w) = toR2 v - toR2 w := by
+  unfold toR2; ext i; simp
+
+private lemma toR3_vecXℚ (θ φ : ℚ) : toR3 (vecXℚ θ φ) = vecXℚℝ (↑θ : ℝ) ↑φ := by
+  ext j; unfold toR3 vecXℚ vecXℚℝ
+  fin_cases j <;> simp [sinℚ_match, cosℚ_match]
+
+private lemma inner_toR3 (v w : Fin 3 → ℚ) :
+    @inner ℝ ℝ³ _ (toR3 v) (toR3 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
+  unfold toR3
+  have h := EuclideanSpace.inner_eq_star_dotProduct
+    (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 3))
+    (WithLp.toLp 2 (fun i => (w i : ℝ)))
+  simp only [star_trivial] at h
+  rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
+       (WithLp.toLp 2 (fun i => (w i : ℝ))) =
+       (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
+  simp [dotProduct]
+
+private lemma inner_toR2 (v w : Fin 2 → ℚ) :
+    @inner ℝ ℝ² _ (toR2 v) (toR2 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
+  unfold toR2
+  have h := EuclideanSpace.inner_eq_star_dotProduct
+    (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 2))
+    (WithLp.toLp 2 (fun i => (w i : ℝ)))
+  simp only [star_trivial] at h
+  rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
+       (WithLp.toLp 2 (fun i => (w i : ℝ))) =
+       (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
+  simp [dotProduct]
+
+private lemma castℝ_mulVec {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℚ) (v : Fin n → ℚ) :
+    (fun i => ((M.mulVec v) i : ℝ)) =
+      (M.map (fun x => (x : ℝ))).mulVec (fun i => (v i : ℝ)) := by
+  ext i
+  simp only [Matrix.mulVec, dotProduct, Matrix.map_apply]
+  push_cast; rfl
+
+private lemma rotMℚ_mat_castℝ (θ φ : ℚ) :
+    (rotMℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMℚ_mat θ φ).map (fun x => (x : ℝ)) := by
+  ext i j; fin_cases i <;> fin_cases j <;> simp [rotMℚ_mat, sinℚ_match, cosℚ_match]
+
+private lemma rotRℚ_mat_castℝ (α : ℚ) :
+    (rotRℚ_mat (α : ℝ)) = (rotRℚ_mat α).map (fun x => (x : ℝ)) := by
+  ext i j; fin_cases i <;> fin_cases j <;> simp [rotRℚ_mat, sinℚ_match, cosℚ_match]
+
+private lemma toR2_rotMℚ (θ φ : ℚ) (v : Fin 3 → ℚ) :
+    toR2 (rotMℚ θ φ v) = rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 v) := by
+  unfold rotMℚ rotMℚℝ toR2 toR3
+  rw [Matrix.toLin'_apply]
+  show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat θ φ).mulVec v) i : ℝ)) =
+       (rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
+         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
+  rw [castℝ_mulVec, ← rotMℚ_mat_castℝ]
+  show WithLp.toLp 2 ((rotMℚ_mat (θ : ℝ) (φ : ℝ)).mulVec _) =
+       (rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin
+         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
+  rw [Matrix.toLpLin_apply]
+
+private lemma toR2_rotRℚ (α : ℚ) (v : Fin 2 → ℚ) :
+    toR2 (rotRℚ α v) = rotRℚℝ (α : ℝ) (toR2 v) := by
+  unfold rotRℚ rotRℚℝ toR2
+  rw [Matrix.toLin'_apply]
+  show WithLp.toLp 2 (fun i : Fin 2 => (((rotRℚ_mat α).mulVec v) i : ℝ)) =
+       (rotRℚ_mat (α : ℝ)).toEuclideanLin.toContinuousLinearMap
+         (WithLp.toLp 2 (fun i : Fin 2 => (v i : ℝ)))
+  rw [castℝ_mulVec, ← rotRℚ_mat_castℝ]
+  show WithLp.toLp 2 ((rotRℚ_mat (α : ℝ)).mulVec _) =
+       (rotRℚ_mat (α : ℝ)).toEuclideanLin
+         (WithLp.toLp 2 (fun i : Fin 2 => (v i : ℝ)))
+  rw [Matrix.toLpLin_apply]
+
+private lemma toR2_pose_rotM₂ℚ (p : Pose ℚ) (v : Fin 3 → ℚ) :
+    toR2 (p.rotM₂ℚ v) = p.toReal.rotM₂ℚℝ (toR3 v) :=
+  toR2_rotMℚ p.θ₂ p.φ₂ v
+
+private lemma toR2_pose_rotM₁ℚ (p : Pose ℚ) (v : Fin 3 → ℚ) :
+    toR2 (p.rotM₁ℚ v) = p.toReal.rotM₁ℚℝ (toR3 v) :=
+  toR2_rotMℚ p.θ₁ p.φ₁ v
+
+private lemma toR2_pose_rotRℚ (p : Pose ℚ) (v : Fin 2 → ℚ) :
+    toR2 (p.rotRℚ v) = p.toReal.rotRℚℝ (toR2 v) :=
+  toR2_rotRℚ p.α v
+
+/--
+Helper used inside `rational_local`'s `Aε` bridge: rephrases the rational
+"angle" inequality on the real side, common to `ae₁'` and `ae₂'`.
+-/
+private lemma aε_bridge {θ φ : ℚ} {ε : ℚ} {approx : Approx}
+    (T : Local.TriangleQ) (R : Triangle)
+    (hθ : (θ : ℝ) ∈ Set.Icc (-4 : ℝ) 4) (hφ : (φ : ℝ) ∈ Set.Icc (-4 : ℝ) 4)
+    (hRnorm : ∀ i : Fin 3, ‖R i‖ ≤ 1)
+    (hRapprox : ∀ i : Fin 3, ‖R i - toR3 (T i)‖ ≤ κ)
+    (hAε : T.Aεℚ (vecXℚ θ φ) ε approx)
+    (hεℝ : 0 < (ε : ℝ)) :
+    R.Aε (vecX (θ : ℝ) (φ : ℝ)) ε := by
+  obtain ⟨σ, hσ₁, hσ₂⟩ := hAε
+  refine ⟨σ, hσ₁, fun i => ?_⟩
+  set θsub : Set.Icc (-4 : ℝ) 4 := ⟨(θ : ℝ), hθ⟩
+  set φsub : Set.Icc (-4 : ℝ) 4 := ⟨(φ : ℝ), hφ⟩
+  have hX : ‖⟪vecX (θsub : ℝ) (φsub : ℝ), R i⟫ -
+            ⟪vecXℚℝ (θsub : ℝ) (φsub : ℝ), toR3 (T i)⟫‖ ≤ 3 * κ :=
+    bounds_kappa3_X (θ := θsub) (φ := φsub) (hRnorm i) (hRapprox i)
+  have h_inner_eq :
+      @inner ℝ ℝ³ _ (vecXℚℝ (θ : ℝ) (φ : ℝ)) (toR3 (T i)) =
+        (((vecXℚ θ φ) ⬝ᵥ T i : ℚ) : ℝ) := by
+    rw [← toR3_vecXℚ]; exact inner_toR3 _ _
+  have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ (θ : ℝ) (φ : ℝ), toR3 (T i)⟫ >
+      approx.upper_sqrt_two * ε + 3 * κ := by
+    rw [h_inner_eq, ← cast_κℚ,
+        show ((-1 : ℝ)) ^ σ = ((((-1 : ℚ)) ^ σ : ℚ) : ℝ) by push_cast; rfl]
+    exact_mod_cast hσ₂ i
+  have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
+    mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
+  rw [Real.norm_eq_abs] at hX
+  have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_pow σ
+  have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX (θ : ℝ) (φ : ℝ), R i⟫ -
+                                  ⟪vecXℚℝ (θ : ℝ) (φ : ℝ), toR3 (T i)⟫)| ≤ 3 * κ := by
+    rw [abs_mul, habs, one_mul]; exact hX
+  rw [abs_le] at hdiff
+  linarith [hdiff.1,
+    mul_sub ((-1 : ℝ) ^ σ) ⟪vecX (θ : ℝ) (φ : ℝ), R i⟫
+      ⟪vecXℚℝ (θ : ℝ) (φ : ℝ), toR3 (T i)⟫]
+
+
 abbrev BoundDeltaℚi (p : Pose ℚ) (P_ Q_ : Local.TriangleQ) (approx : Approx) (i : Fin 3) : ℚ :=
   approx.upper_sqrt.norm (p.rotRℚ (p.rotM₁ℚ (P_ i)) - p.rotM₂ℚ (Q_ i)) / 2 + 3 * κℚ
 
@@ -120,71 +252,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     ek_spanning_imp_e_spanning P P_ (fun i => hPapprox i) hPnorm hp.θ₁Bound hp.φ₁Bound span₁
   have span₂' : Q.Spanning p_.θ₂ p_.φ₂ ε :=
     ek_spanning_imp_e_spanning Q Q_ (fun i => hQapprox i) hQnorm hp.θ₂Bound hp.φ₂Bound span₂
-  -- Bridge: Aεℚ → Aε
-  have h_toR3_vecXℚ : ∀ θ φ : ℚ, toR3 (vecXℚ θ φ) = vecXℚℝ (↑θ : ℝ) ↑φ := by
-    intro θ φ
-    ext j
-    unfold toR3 vecXℚ vecXℚℝ
-    fin_cases j <;> simp [sinℚ_match, cosℚ_match]
-  have h_inner_toR3 : ∀ (v w : Fin 3 → ℚ),
-      @inner ℝ ℝ³ _ (toR3 v) (toR3 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
-    intro v w
-    unfold toR3
-    have h := EuclideanSpace.inner_eq_star_dotProduct
-      (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 3))
-      (WithLp.toLp 2 (fun i => (w i : ℝ)))
-    simp only [star_trivial] at h
-    rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
-         (WithLp.toLp 2 (fun i => (w i : ℝ))) =
-         (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
-    simp [dotProduct]
-  have h_κℚ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; norm_num
-  -- Cast helpers to bridge between the rational `Fin n → ℚ` world and the real one.
-  have h_castℝ_mulVec : ∀ {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℚ) (v : Fin n → ℚ),
-      (fun i => ((M.mulVec v) i : ℝ)) =
-        (M.map (fun x => (x : ℝ))).mulVec (fun i => (v i : ℝ)) := by
-    intro m n M v
-    ext i
-    simp only [Matrix.mulVec, dotProduct, Matrix.map_apply]
-    push_cast; rfl
-  have h_rotMℚ_mat_castℝ : ∀ (θ φ : ℚ),
-      (rotMℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMℚ_mat θ φ).map (fun x => (x : ℝ)) := by
-    intro θ φ
-    ext i j; fin_cases i <;> fin_cases j <;> simp [rotMℚ_mat, sinℚ_match, cosℚ_match]
-  -- Bridge: `toR3` is linear over subtraction.
-  have h_toR3_sub : ∀ (v w : Fin 3 → ℚ), toR3 (v - w) = toR3 v - toR3 w := by
-    intro v w
-    unfold toR3; ext i; simp
-  -- Bridge: `toR2` of the rational rotM₂ℚ application equals real rotM₂ℚℝ on `toR3`.
-  have h_toR2_rotM₂ℚ : ∀ (v : Fin 3 → ℚ),
-      toR2 (p_ℚ.rotM₂ℚ v) = p_.rotM₂ℚℝ (toR3 v) := by
-    intro v
-    show toR2 ((rotMℚ p_ℚ.θ₂ p_ℚ.φ₂) v) = rotMℚℝ (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ) (toR3 v)
-    unfold rotMℚ rotMℚℝ toR2 toR3
-    rw [Matrix.toLin'_apply]
-    show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat p_ℚ.θ₂ p_ℚ.φ₂).mulVec v) i : ℝ)) =
-         (rotMℚ_mat (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)).toEuclideanLin.toContinuousLinearMap
-           (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-    rw [h_castℝ_mulVec, ← h_rotMℚ_mat_castℝ]
-    show WithLp.toLp 2 ((rotMℚ_mat (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)).mulVec _) =
-         (rotMℚ_mat (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)).toEuclideanLin
-           (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-    rw [Matrix.toLpLin_apply]
-  -- Bridge: `inner` on `toR2` casts to a rational dot product.
-  have h_inner_toR2 : ∀ (v w : Fin 2 → ℚ),
-      @inner ℝ ℝ² _ (toR2 v) (toR2 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
-    intro v w
-    unfold toR2
-    have h := EuclideanSpace.inner_eq_star_dotProduct
-      (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 2))
-      (WithLp.toLp 2 (fun i => (w i : ℝ)))
-    simp only [star_trivial] at h
-    rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
-         (WithLp.toLp 2 (fun i => (w i : ℝ))) =
-         (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
-    simp [dotProduct]
-  -- Bridge: `‖toR3 v‖² = ((v ⬝ᵥ v : ℚ) : ℝ)` for `v : Fin 3 → ℚ`. Used to relate
-  -- `s.norm v` to `‖toR3 v‖`.
+  -- Universal bridges (above) provide the rational ↔ real cast facts we need.
   have h_upper_norm_toR3 : ∀ (v : Fin 3 → ℚ),
       (approx.upper_sqrt.norm v : ℝ) ≥ ‖toR3 v‖ := fun v =>
     UpperSqrt_norm_le approx.upper_sqrt v
@@ -201,117 +269,39 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
        ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (v₁ - v₂)) : ℝ) +
           2 * approx.upper_sqrt_two * ε + 6 * κ)) := by
     intro v₁ v₂
-    have h_inner_bridge : ((p_ℚ.rotM₂ℚ v₁ ⬝ᵥ p_ℚ.rotM₂ℚ (v₁ - v₂) : ℚ) : ℝ) =
-        ⟪p_.rotM₂ℚℝ (toR3 v₁), p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)⟫ := by
-      rw [← h_toR2_rotM₂ℚ v₁, ← h_toR3_sub, ← h_toR2_rotM₂ℚ (v₁ - v₂), h_inner_toR2]
     unfold Local.Triangle.Bεℚ.lhs
-    push_cast [← h_κℚ]
-    rw [h_inner_bridge]
+    push_cast [← cast_κℚ]
+    rw [show ((p_ℚ.rotM₂ℚ v₁ ⬝ᵥ p_ℚ.rotM₂ℚ (v₁ - v₂) : ℚ) : ℝ) =
+        ⟪p_.rotM₂ℚℝ (toR3 v₁), p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)⟫ from by
+      rw [← toR3_sub, ← toR2_pose_rotM₂ℚ, ← toR2_pose_rotM₂ℚ, inner_toR2]]
   have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
     mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
-  have ae₁' : P.Aε p_.vecX₁ ε := by
-    obtain ⟨σ, hσ₁, hσ₂⟩ := ae₁
-    refine ⟨σ, hσ₁, fun i => ?_⟩
-    have hX : ‖⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫‖ ≤ 3 * κ :=
-      bounds_kappa3_X (θ := θ₁) (φ := φ₁) (hPnorm i) (hPapprox i)
-    change (-1) ^ σ * ⟪vecX ↑θ₁ ↑φ₁, P i⟫ > √2 * ε
-    have h_inner_eq : @inner ℝ ℝ³ _ (vecXℚℝ (↑θ₁ : ℝ) ↑φ₁) (P_ i) =
-        ((p_ℚ.vecX₁ℚ ⬝ᵥ (hpoly.transportTri Pi) i : ℚ) : ℝ) := by
-      show @inner ℝ ℝ³ _ (vecXℚℝ ↑p_ℚ.θ₁ ↑p_ℚ.φ₁) (P_ i) = _
-      rw [← h_toR3_vecXℚ]
-      exact h_inner_toR3 _ _
-    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫ > approx.upper_sqrt_two * ε + 3 * κ := by
-      rw [h_inner_eq, ← h_κℚ,
-          show ((-1 : ℝ)) ^ σ = ((((-1 : ℚ)) ^ σ : ℚ) : ℝ) by push_cast; rfl]
-      exact_mod_cast hσ₂ i
-    rw [Real.norm_eq_abs] at hX
-    have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_pow σ
-    have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫)| ≤ 3 * κ := by
-      rw [abs_mul, habs, one_mul]; exact hX
-    rw [abs_le] at hdiff
-    linarith [hdiff.1, mul_sub ((-1 : ℝ) ^ σ) ⟪vecX ↑θ₁ ↑φ₁, P i⟫ ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫]
-  have ae₂' : Q.Aε p_.vecX₂ ε := by
-    obtain ⟨σ, hσ₁, hσ₂⟩ := ae₂
-    refine ⟨σ, hσ₁, fun i => ?_⟩
-    have hX : ‖⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫‖ ≤ 3 * κ :=
-      bounds_kappa3_X (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
-    change (-1) ^ σ * ⟪vecX ↑θ₂ ↑φ₂, Q i⟫ > √2 * ε
-    have h_inner_eq : @inner ℝ ℝ³ _ (vecXℚℝ (↑θ₂ : ℝ) ↑φ₂) (Q_ i) =
-        ((p_ℚ.vecX₂ℚ ⬝ᵥ (hpoly.transportTri Qi) i : ℚ) : ℝ) := by
-      show @inner ℝ ℝ³ _ (vecXℚℝ ↑p_ℚ.θ₂ ↑p_ℚ.φ₂) (Q_ i) = _
-      rw [← h_toR3_vecXℚ]
-      exact h_inner_toR3 _ _
-    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫ > approx.upper_sqrt_two * ε + 3 * κ := by
-      rw [h_inner_eq, ← h_κℚ,
-          show ((-1 : ℝ)) ^ σ = ((((-1 : ℚ)) ^ σ : ℚ) : ℝ) by push_cast; rfl]
-      exact_mod_cast hσ₂ i
-    rw [Real.norm_eq_abs] at hX
-    have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_pow σ
-    have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫)| ≤ 3 * κ := by
-      rw [abs_mul, habs, one_mul]; exact hX
-    rw [abs_le] at hdiff
-    linarith [hdiff.1, mul_sub ((-1 : ℝ) ^ σ) ⟪vecX ↑θ₂ ↑φ₂, Q i⟫ ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫]
+  have ae₁' : P.Aε p_.vecX₁ ε :=
+    aε_bridge (T := hpoly.transportTri Pi) (R := P) hp.θ₁Bound hp.φ₁Bound
+      hPnorm hPapprox ae₁ hεℝ
+  have ae₂' : Q.Aε p_.vecX₂ ε :=
+    aε_bridge (T := hpoly.transportTri Qi) (R := Q) hp.θ₂Bound hp.φ₂Bound
+      hQnorm hQapprox ae₂ hεℝ
   -- Bridge: BoundRℚ → BoundR
   have hr₁' : Local.BoundR r ε p_ Q := by
     intro i
-    -- Bridge: ‖(rotMℚℝ θ₂ φ₂) (Q_ i)‖ = ‖toR2 (p_ℚ.rotM₂ℚ (transportTri Qi i))‖
-    have hQ_eq : Q_ i = toR3 ((hpoly.transportTri Qi) i) := rfl
     have h_toR2_eq : (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i) =
-        toR2 (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) := by
-      rw [hQ_eq]
-      exact (h_toR2_rotM₂ℚ _).symm
+        toR2 (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) :=
+      (toR2_pose_rotM₂ℚ _ _).symm
     have hsl : (approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) ≤
         ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := by
-      rw [h_toR2_eq]
-      show (approx.lower_sqrt.norm _ : ℝ) ≤ ‖toR2 _‖
-      exact LowerSqrt_norm_ge approx.lower_sqrt _
+      rw [h_toR2_eq]; exact LowerSqrt_norm_ge approx.lower_sqrt _
     have hMQ : |(‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ - ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖)| ≤ 3 * κ :=
       bounds_kappa3_MQ (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
     show ‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ > r + √2 * ε
     have hr₁i : (approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) >
         r + √2 * ε + 3 * κ := by
-      have h := hr₁ i
       have hcast : ((approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℚ) : ℝ) >
-          ((r + approx.upper_sqrt_two * ε + 3 * κℚ : ℚ) : ℝ) := by exact_mod_cast h
-      push_cast [h_κℚ] at hcast
+          ((r + approx.upper_sqrt_two * ε + 3 * κℚ : ℚ) : ℝ) := by exact_mod_cast hr₁ i
+      push_cast [cast_κℚ] at hcast
       linarith [h_us2_eps]
     rw [abs_le] at hMQ
     linarith [hMQ.1]
-  -- Bridge: BoundDeltaℚ → BoundDelta
-  -- Helper bridges for `rotRℚ`, `rotM₁ℚ`, and `toR2` over subtraction.
-  have h_toR2_sub : ∀ (v w : Fin 2 → ℚ), toR2 (v - w) = toR2 v - toR2 w := by
-    intro v w; unfold toR2; ext i; simp
-  have h_toR2_rotM₁ℚ : ∀ (v : Fin 3 → ℚ),
-      toR2 (p_ℚ.rotM₁ℚ v) = p_.rotM₁ℚℝ (toR3 v) := by
-    intro v
-    show toR2 ((rotMℚ p_ℚ.θ₁ p_ℚ.φ₁) v) = rotMℚℝ (p_ℚ.θ₁ : ℝ) (p_ℚ.φ₁ : ℝ) (toR3 v)
-    unfold rotMℚ rotMℚℝ toR2 toR3
-    rw [Matrix.toLin'_apply]
-    show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat p_ℚ.θ₁ p_ℚ.φ₁).mulVec v) i : ℝ)) =
-         (rotMℚ_mat (p_ℚ.θ₁ : ℝ) (p_ℚ.φ₁ : ℝ)).toEuclideanLin.toContinuousLinearMap
-           (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-    rw [h_castℝ_mulVec, ← h_rotMℚ_mat_castℝ]
-    show WithLp.toLp 2 ((rotMℚ_mat (p_ℚ.θ₁ : ℝ) (p_ℚ.φ₁ : ℝ)).mulVec _) =
-         (rotMℚ_mat (p_ℚ.θ₁ : ℝ) (p_ℚ.φ₁ : ℝ)).toEuclideanLin
-           (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-    rw [Matrix.toLpLin_apply]
-  have h_rotRℚ_mat_castℝ : (rotRℚ_mat (p_ℚ.α : ℝ)) = (rotRℚ_mat p_ℚ.α).map (fun x => (x : ℝ)) := by
-    ext i j; fin_cases i <;> fin_cases j <;> simp [rotRℚ_mat, sinℚ_match, cosℚ_match]
-  -- Bridge: `toR2` of `p_ℚ.rotRℚ v` equals `p_.rotRℚℝ (toR2 v)`.
-  have h_toR2_rotRℚ : ∀ (v : Fin 2 → ℚ),
-      toR2 (p_ℚ.rotRℚ v) = p_.rotRℚℝ (toR2 v) := by
-    intro v
-    show toR2 ((rotRℚ p_ℚ.α) v) = (rotRℚℝ (p_ℚ.α : ℝ)) (toR2 v)
-    unfold rotRℚ rotRℚℝ toR2
-    rw [Matrix.toLin'_apply]
-    show WithLp.toLp 2 (fun i : Fin 2 => (((rotRℚ_mat p_ℚ.α).mulVec v) i : ℝ)) =
-         (rotRℚ_mat (p_ℚ.α : ℝ)).toEuclideanLin.toContinuousLinearMap
-           (WithLp.toLp 2 (fun i : Fin 2 => (v i : ℝ)))
-    rw [h_castℝ_mulVec, ← h_rotRℚ_mat_castℝ]
-    show WithLp.toLp 2 ((rotRℚ_mat (p_ℚ.α : ℝ)).mulVec _) =
-         (rotRℚ_mat (p_ℚ.α : ℝ)).toEuclideanLin
-           (WithLp.toLp 2 (fun i : Fin 2 => (v i : ℝ)))
-    rw [Matrix.toLpLin_apply]
   have hδ' : Local.BoundDelta δ p_ P Q := by
     intro i
     have hδi := hδ i
@@ -320,12 +310,11 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
         toR2 (p_ℚ.rotRℚ (p_ℚ.rotM₁ℚ ((hpoly.transportTri Pi) i)) -
               p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) =
         p_.rotRℚℝ (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i) := by
-      rw [h_toR2_sub, h_toR2_rotRℚ, h_toR2_rotM₁ℚ, h_toR2_rotM₂ℚ]; rfl
+      rw [toR2_sub, toR2_pose_rotRℚ, toR2_pose_rotM₁ℚ, toR2_pose_rotM₂ℚ]; rfl
     have hsu : ‖p_.rotRℚℝ (p_.rotM₁ℚℝ (P_ i)) - p_.rotM₂ℚℝ (Q_ i)‖ ≤
         (approx.upper_sqrt.norm (p_ℚ.rotRℚ (p_ℚ.rotM₁ℚ ((hpoly.transportTri Pi) i)) -
             p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) := by
-      rw [← h_eq_real]
-      exact UpperSqrt_norm_le approx.upper_sqrt _
+      rw [← h_eq_real]; exact UpperSqrt_norm_le approx.upper_sqrt _
     -- ‖p_.rotR (rotM₁ℚℝ P_) - rotRℚℝ (rotM₁ℚℝ P_)‖ ≤ κ * (1 + κ)  (rotR vs rotRℚℝ discrepancy)
     have h_rotR_norm_one : ‖p_.rotR‖ ≤ 1 := by
       show ‖rotR p_.α‖ ≤ 1
@@ -400,12 +389,10 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hδiℝ : (δ : ℝ) ≥
         (approx.upper_sqrt.norm (p_ℚ.rotRℚ (p_ℚ.rotM₁ℚ ((hpoly.transportTri Pi) i)) -
             p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) / 2 + 3 * κ := by
-      have h_κℚ_eq : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; norm_num
-      have := hδi
       have hcast : ((approx.upper_sqrt.norm (p_ℚ.rotRℚ (p_ℚ.rotM₁ℚ ((hpoly.transportTri Pi) i)) -
             p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) / 2 + 3 * κℚ : ℚ) : ℝ) ≤ (δ : ℝ) := by
-        exact_mod_cast this
-      push_cast [h_κℚ_eq] at hcast
+        exact_mod_cast hδi
+      push_cast [cast_κℚ] at hcast
       linarith
     linarith [hδiℝ, h_chain]
   -- Bridge: Bεℚ → Bε
@@ -446,15 +433,15 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- Helper facts
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
     -- Bridges relating real and rational norms via UpperSqrt_norm_le.
-    have h_toR3_sub_Qv : toR3 (Q_ℚ - v_ℚ) = toR3 Q_ℚ - toR3 v_ℚ := h_toR3_sub _ _
+    have h_toR3_sub_Qv : toR3 (Q_ℚ - v_ℚ) = toR3 Q_ℚ - toR3 v_ℚ := toR3_sub _ _
     have h_norm_Qv_rat : ‖toR3 Q_ℚ - toR3 v_ℚ‖ ≤ (approx.upper_sqrt.norm (Q_ℚ - v_ℚ) : ℝ) := by
       rw [← h_toR3_sub_Qv]; exact h_upper_norm_toR3 _
     have h_norm_rotM₂_Q : ‖p_.rotM₂ℚℝ (toR3 Q_ℚ)‖ ≤
         (approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) := by
-      rw [← h_toR2_rotM₂ℚ]; exact h_upper_norm_toR2 _
+      rw [← toR2_pose_rotM₂ℚ]; exact h_upper_norm_toR2 _
     have h_norm_rotM₂_Qv : ‖p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)‖ ≤
         (approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) := by
-      rw [← h_toR3_sub_Qv, ← h_toR2_rotM₂ℚ]; exact h_upper_norm_toR2 _
+      rw [← h_toR3_sub_Qv, ← toR2_pose_rotM₂ℚ]; exact h_upper_norm_toR2 _
     have h_us2_nn : (0 : ℝ) ≤ approx.upper_sqrt_two :=
       (Real.sqrt_nonneg 2).trans approx.upper_sqrt_two_gt_sqrt_two.le
     have h_us2_le : (√2 : ℝ) ≤ approx.upper_sqrt_two := approx.upper_sqrt_two_gt_sqrt_two.le
@@ -470,27 +457,14 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hBεℚ_num_pos : 0 < ⟪p_.rotM₂ℚℝ (toR3 Q_ℚ), p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫ - 10 * κ -
         2 * ε * ((approx.upper_sqrt.norm (Q_ℚ - v_ℚ) : ℝ) + 2 * κ) * (approx.upper_sqrt_two + ε) := by
       have hδ_pos : 0 < (δ : ℝ) := by
-        have hδ₀ := hδ 0
-        have h_eq_real_0 :
-            toR2 (p_ℚ.rotRℚ (p_ℚ.rotM₁ℚ ((hpoly.transportTri Pi) 0)) -
-                  p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) 0)) =
-            p_.rotRℚℝ (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0) := by
-          rw [h_toR2_sub, h_toR2_rotRℚ, h_toR2_rotM₁ℚ, h_toR2_rotM₂ℚ]; rfl
-        have hsu0 : ‖p_.rotRℚℝ (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0)‖ ≤
-            (approx.upper_sqrt.norm (p_ℚ.rotRℚ (p_ℚ.rotM₁ℚ ((hpoly.transportTri Pi) 0)) -
-                p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) 0)) : ℝ) := by
-          rw [← h_eq_real_0]
-          exact UpperSqrt_norm_le approx.upper_sqrt _
-        have h_κℚ_eq : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; norm_num
-        have hδ₀_ℝ : (δ : ℝ) ≥
-            (approx.upper_sqrt.norm (p_ℚ.rotRℚ (p_ℚ.rotM₁ℚ ((hpoly.transportTri Pi) 0)) -
-                p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) 0)) : ℝ) / 2 + 3 * κ := by
-          have hcast := (Rat.cast_le (K := ℝ)).mpr hδ₀
-          push_cast [h_κℚ_eq] at hcast
-          linarith
+        -- δ ≥ s.norm/2 + 3 * κℚ in ℚ, and s.norm ≥ 0 (it bounds a real norm).
+        have hsu0 := UpperSqrt_norm_le approx.upper_sqrt
+          (p_ℚ.rotRℚ (p_ℚ.rotM₁ℚ ((hpoly.transportTri Pi) 0)) -
+            p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) 0))
+        have hcast := (Rat.cast_le (K := ℝ)).mpr (hδ 0)
+        push_cast [cast_κℚ] at hcast
         have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
-        linarith [le_trans (norm_nonneg
-          (p_.rotRℚℝ (p_.rotM₁ℚℝ (P_ 0)) - p_.rotM₂ℚℝ (Q_ 0))) hsu0]
+        linarith [(norm_nonneg _).trans hsu0]
       have h0 : 0 < (δ + √5 * ε) / r := by positivity
       refine (div_pos_iff_of_pos_right hden_pos).mp (h0.trans ?_)
       exact hbe'
@@ -563,7 +537,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
          ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) + 2 * √2 * ε + 6 * κ))
       have h_inner_eq : ((p_ℚ.rotM₂ℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ) : ℚ) : ℝ) =
           ⟪p_.rotM₂ℚℝ (toR3 Q_ℚ), p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫ := by
-        rw [← h_toR2_rotM₂ℚ Q_ℚ, ← h_toR3_sub_Qv, ← h_toR2_rotM₂ℚ (Q_ℚ - v_ℚ), h_inner_toR2]
+        rw [← toR2_pose_rotM₂ℚ p_ℚ Q_ℚ, ← h_toR3_sub_Qv,
+            ← toR2_pose_rotM₂ℚ p_ℚ (Q_ℚ - v_ℚ), inner_toR2]
       have h₁ : (0 : ℝ) ≤ (approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) :=
         le_trans (norm_nonneg _) h_norm_rotM₂_Q
       have h₂ : (0 : ℝ) ≤ (approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) :=
