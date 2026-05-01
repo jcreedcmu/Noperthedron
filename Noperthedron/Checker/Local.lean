@@ -1,7 +1,9 @@
 import Mathlib.Data.Finset.Max
 
+import Noperthedron.Checker.ApproxSqrt
 import Noperthedron.Local.Congruent
 import Noperthedron.RationalApprox.Basic
+import Noperthedron.RationalApprox.RationalLocal
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Python

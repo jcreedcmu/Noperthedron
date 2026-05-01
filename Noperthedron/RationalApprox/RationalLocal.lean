@@ -16,11 +16,15 @@ def TriangleQ : Type := Fin 3 → Fin 3 → ℚ
 def TriangleQ.toReal (t : TriangleQ) : Triangle :=
   fun i => toR3 (t i)
 
+def TriangleQ.Aεℚσ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℤ)
+    (approx : RationalApprox.Approx) : Prop :=
+  ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * κℚ
+
 /--
 Condition A_ε^ℚ from [SY25] Theorem 48
 -/
 def TriangleQ.Aεℚ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * κℚ
+  ∃ σ ∈ ({-1, 1} : Set ℤ), TriangleQ.Aεℚσ X P_ ε σ approx
 
 def Triangle.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
    (approx : RationalApprox.Approx) : ℚ :=
