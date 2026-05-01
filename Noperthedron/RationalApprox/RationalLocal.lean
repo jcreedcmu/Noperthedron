@@ -27,7 +27,7 @@ Condition A_ε^ℚ from [SY25] Theorem 48
 def TriangleQ.Aεℚ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
   ∃ σ ∈ ({0, 1} : Set ℕ), TriangleQ.Aεℚσ X P_ ε σ approx
 
-def Triangle.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
+def TriangleQ.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
    (approx : RationalApprox.Approx) : ℚ :=
    (p.rotM₂ℚ v₁ ⬝ᵥ p.rotM₂ℚ (v₁ - v₂) - 10 * κℚ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κℚ) * (approx.upper_sqrt_two + ε))
    / ((approx.upper_sqrt.norm (p.rotM₂ℚ v₁) + approx.upper_sqrt_two * ε + 3 * κℚ) * (approx.upper_sqrt.norm (p.rotM₂ℚ (v₁ - v₂)) + 2 * approx.upper_sqrt_two * ε + 6 * κℚ))
@@ -35,10 +35,11 @@ def Triangle.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
-def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
+def TriangleQ.Bεℚ {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
     (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ) (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
-    (δ + approx.upper_sqrt_five * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
+    (δ + approx.upper_sqrt_five * ε) / r < TriangleQ.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
+deriving Decidable
 
 end Local
 
@@ -204,7 +205,7 @@ deriving Decidable
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"
 -/
-theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
+theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
     (hpoly : κApproxPoly poly.vertices poly_)
     (Pi Qi : Fin 3 → ι)
@@ -218,7 +219,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (ae₂ : (hpoly.transportTri Qi).Aεℚ p_.vecX₂ℚ ε approx)
     (span₁ : (hpoly.transportTri Pi).toReal.κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
     (span₂ : (hpoly.transportTri Qi).toReal.κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
-    (be : Local.Triangle.Bεℚ (hpoly.transportTri Qi) Qi
+    (be : Local.TriangleQ.Bεℚ (hpoly.transportTri Qi) Qi
           (fun k => poly_.v (hpoly.bijection k)) p_ ε δ r approx)
     : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
   have hεℝ : 0 < (ε : ℝ) := span₁.pos
@@ -261,7 +262,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     UpperSqrt_norm_le approx.upper_sqrt v
   -- Main bridge: rewrite `Bεℚ.lhs` in terms of explicit real-form expressions.
   have h_Bεℚ_lhs_bridge : ∀ (v₁ v₂ : Fin 3 → ℚ),
-      Local.Triangle.Bεℚ.lhs v₁ v₂ p_ℚ ε approx =
+      Local.TriangleQ.Bεℚ.lhs v₁ v₂ p_ℚ ε approx =
       (⟪p_.rotM₂ℚℝ (toR3 v₁), p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)⟫ - 10 * κ -
          2 * ε * ((approx.upper_sqrt.norm (v₁ - v₂) : ℝ) + 2 * κ) *
            (approx.upper_sqrt_two + ε)) /
@@ -269,7 +270,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
        ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (v₁ - v₂)) : ℝ) +
           2 * approx.upper_sqrt_two * ε + 6 * κ)) := by
     intro v₁ v₂
-    unfold Local.Triangle.Bεℚ.lhs
+    unfold Local.TriangleQ.Bεℚ.lhs
     push_cast [← cast_κℚ]
     rw [show ((p_ℚ.rotM₂ℚ v₁ ⬝ᵥ p_ℚ.rotM₂ℚ (v₁ - v₂) : ℚ) : ℝ) =
         ⟪p_.rotM₂ℚℝ (toR3 v₁), p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)⟫ from by
@@ -427,7 +428,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
       have h_le : (↑δ + √5 * ↑ε) / ↑r ≤ (↑δ + ↑approx.upper_sqrt_five * ↑ε) / ↑r := by
         gcongr
       have hbe_ℝ : ((δ + approx.upper_sqrt_five * ε) / r : ℝ) <
-          (Local.Triangle.Bεℚ.lhs Q_ℚ v_ℚ p_ℚ ε approx : ℝ) := by exact_mod_cast hbe
+          (Local.TriangleQ.Bεℚ.lhs Q_ℚ v_ℚ p_ℚ ε approx : ℝ) := mod_cast hbe
       push_cast at hbe_ℝ
       exact h_le.trans_lt hbe_ℝ
     -- Helper facts
