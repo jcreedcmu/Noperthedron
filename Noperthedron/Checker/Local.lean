@@ -70,6 +70,7 @@ abbrev Row.δ (row : Row) : ℚ :=
 structure Row.ValidLocal (row : Row) : Prop where
   nodeType_eq : row.nodeType = 2
   center_in_fourQ : row.interval.centerPose ∈ fourInterval ℚ
+  epsilon_pos : 0 < row.epsilon
   exists_symmetry : ∃ s : TriangleSymmetry,
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
   X₁_inner_gt : Local.TriangleQ.Aεℚσ

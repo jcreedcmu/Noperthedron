@@ -181,3 +181,70 @@ theorem ek_spanning_imp_e_spanning (P P' : Triangle)
     grw [norm_sub_le_bound1 mv κ (by norm_num [κ]) hdbb hbs1 hanb]
     simp only [mv]
     norm_num [κ]
+
+/-! ### Bridges from rational matrix-form spanning condition to `κSpanning` -/
+
+private lemma toR2_rotMℚ_mat_mulVec (θ φ : ℚ) (v : Fin 3 → ℚ) :
+    toR2 (rotMℚ_mat θ φ *ᵥ v) = rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 v) := by
+  unfold toR2 toR3 rotMℚℝ
+  rw [show (rotMℚ_mat θ φ *ᵥ v) = (rotMℚ_mat θ φ).toLin' v from rfl]
+  rw [Matrix.toLin'_apply]
+  show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat θ φ).mulVec v) i : ℝ)) =
+       (rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
+         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
+  have hcast : (rotMℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMℚ_mat θ φ).map (fun x => (x : ℝ)) := by
+    ext i j; fin_cases i <;> fin_cases j <;> simp [rotMℚ_mat, sinℚ_match, cosℚ_match]
+  have hmap : (fun i : Fin 2 => (((rotMℚ_mat θ φ).mulVec v) i : ℝ)) =
+        ((rotMℚ_mat θ φ).map (fun x => (x : ℝ))).mulVec (fun i => (v i : ℝ)) := by
+    ext i
+    simp only [Matrix.mulVec, dotProduct, Matrix.map_apply]
+    push_cast; rfl
+  rw [hmap, ← hcast]
+  show WithLp.toLp 2 ((rotMℚ_mat (θ : ℝ) (φ : ℝ)).mulVec _) =
+       (rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin
+         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
+  rw [Matrix.toLpLin_apply]
+
+private lemma inner_toR2' (v w : Fin 2 → ℚ) :
+    @inner ℝ ℝ² _ (toR2 v) (toR2 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
+  unfold toR2
+  have h := EuclideanSpace.inner_eq_star_dotProduct
+    (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 2))
+    (WithLp.toLp 2 (fun i => (w i : ℝ)))
+  simp only [star_trivial] at h
+  rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
+       (WithLp.toLp 2 (fun i => (w i : ℝ))) =
+       (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
+  simp [dotProduct]
+
+/-- Bridge: the rational `rot90 *ᵥ ...` spanning form casts to the real `κSpanning` form. -/
+lemma rot90_rotMℚ_inner_eq_real_inner (θ φ : ℚ) (v w : Fin 3 → ℚ) :
+    (((!![(0 : ℚ), -1; 1, 0] *ᵥ (rotMℚ_mat θ φ *ᵥ v)) ⬝ᵥ
+        (rotMℚ_mat θ φ *ᵥ w) : ℚ) : ℝ) =
+      ⟪rotR (π / 2) (rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 v)),
+        rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 w)⟫ := by
+  rw [← toR2_rotMℚ_mat_mulVec, ← toR2_rotMℚ_mat_mulVec]
+  rw [show rotR (π / 2) (toR2 (rotMℚ_mat θ φ *ᵥ v)) =
+        toR2 (!![(0 : ℚ), -1; 1, 0] *ᵥ (rotMℚ_mat θ φ *ᵥ v)) from ?_]
+  · exact (inner_toR2' _ _).symm
+  · -- rotR(π/2) applied to toR2 u = toR2 (rot90 *ᵥ u)
+    set u : Fin 2 → ℚ := rotMℚ_mat θ φ *ᵥ v
+    show (rotR_mat (π / 2)).toEuclideanLin.toContinuousLinearMap (toR2 u) =
+         toR2 (!![(0 : ℚ), -1; 1, 0] *ᵥ u)
+    unfold toR2
+    -- Compute LHS as a matrix mulVec
+    have hLHS : (rotR_mat (π / 2)).toEuclideanLin.toContinuousLinearMap
+        (WithLp.toLp 2 (fun i : Fin 2 => (u i : ℝ))) =
+        WithLp.toLp 2 ((rotR_mat (π / 2)).mulVec (fun i => (u i : ℝ))) := by
+      show (rotR_mat (π / 2)).toEuclideanLin
+            (WithLp.toLp 2 (fun i : Fin 2 => (u i : ℝ))) = _
+      rw [Matrix.toLpLin_apply]
+    rw [hLHS]
+    ext i
+    have hpi : Real.cos (π / 2) = 0 ∧ Real.sin (π / 2) = 1 :=
+      ⟨Real.cos_pi_div_two, Real.sin_pi_div_two⟩
+    fin_cases i
+    · show ((rotR_mat (π / 2)).mulVec (fun i => (u i : ℝ))) 0 = ((!![(0:ℚ),-1;1,0] *ᵥ u) 0 : ℝ)
+      simp [rotR_mat, hpi.1, hpi.2, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
+    · show ((rotR_mat (π / 2)).mulVec (fun i => (u i : ℝ))) 1 = ((!![(0:ℚ),-1;1,0] *ᵥ u) 1 : ℝ)
+      simp [rotR_mat, hpi.1, hpi.2, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
