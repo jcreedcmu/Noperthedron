@@ -3,12 +3,12 @@ import Noperthedron.MainTheorem
 
 namespace Noperthedron
 
-theorem valid_table_imples_exists_not_rupert (tab : Solution.ValidTable) :
+theorem valid_table_imples_exists_not_rupert (vtab : Solution.ValidTable) :
     ExistsNonRupertPolyhedron := by
   use Noperthedron.exactVerts
   constructor
   · sorry
-  · sorry
+  · exact nopert_not_rupert vtab
 
 /-
 Here we want to allow only [propext, Classical.choice, Quot.sound].
