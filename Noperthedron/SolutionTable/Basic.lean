@@ -52,15 +52,12 @@ def Row.ValidIx (tab : Table) (i : ℕ) (row : Row) : Prop :=
   row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size
 deriving Decidable
 
-def Table.Valid (tab : Table) : Prop :=
+def Table.RowsValid (tab : Table) : Prop :=
   ∀ i : Fin (tab.size), tab[i].ValidIx tab i
 deriving Decidable
 
-lemma Table.Valid.valid_at {tab : Table} (htab : tab.Valid) {i : ℕ} (hi : i < tab.size) :
+lemma Table.RowsValid.valid_at {tab : Table} (htab : tab.RowsValid) {i : ℕ} (hi : i < tab.size) :
     tab[i].ValidIx tab i := htab ⟨i, hi⟩
-
-def Table.valid_decidable (tab : Table) : Decidable tab.Valid := by
-  exact inferInstance
 
 /-- The minimum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
 def Interval.minPose (iv : Interval) : Pose ℝ where

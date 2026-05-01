@@ -5,7 +5,7 @@ import Noperthedron.Vertices.Exact
 namespace Noperthedron
 
 theorem exists_solution_table :
-    ∃ (tab : Solution.Table) (tab_valid : tab.Valid)
+    ∃ (tab : Solution.Table) (tab_valid : tab.RowsValid)
       (hz : 0 < tab.size),
       (tightInterval : Set (Pose ℝ)) ⊆ (tab[0].interval : Set (Pose ℝ))
      := by

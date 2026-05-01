@@ -4,7 +4,7 @@ import Noperthedron.MainTheorem
 namespace Noperthedron
 
 theorem valid_table_imples_exists_not_rupert {tab : Solution.Table}
-    (ht : tab.Valid)
+    (ht : tab.RowsValid)
     (hz : 0 < tab.size)
     (hi : (tightInterval : Set (Pose ℝ)) ⊆ (tab[0].interval : Set (Pose ℝ))) :
     ExistsNonRupertPolyhedron := by

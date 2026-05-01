@@ -65,7 +65,7 @@ This is a decently big mutual induction over several predicates establishing the
 -/
 mutual
 
-theorem has_intervals_imp_no_rupert (tab : Table) (htab : tab.Valid) (n : ℕ)
+theorem has_intervals_imp_no_rupert (tab : Table) (htab : tab.RowsValid) (n : ℕ)
     (interval : Interval) (params : List Param)
     (hi : tab.HasIntervals n
       (cubeFold [Interval.lower_half, Interval.upper_half] interval params)) :
@@ -79,7 +79,7 @@ theorem has_intervals_imp_no_rupert (tab : Table) (htab : tab.Valid) (n : ℕ)
     obtain ⟨hn, he⟩ := hi
     change ¬∃ q ∈ interval.toReal, RupertPose q exactPolyhedron.hull
     rw [← he]
-    exact tab[n].valid_imp_not_rupert_ix tab n htab (Table.Valid.valid_at htab hn)
+    exact tab[n].valid_imp_not_rupert_ix tab n htab (htab.valid_at hn)
   | h::tl =>
     rw [cube_fold_halves, has_intervals_concat] at hi
     obtain ⟨h1, h2⟩ := hi
@@ -98,7 +98,7 @@ decreasing_by
       exact lt_add_one n
 
 theorem Row.valid_imp_not_rupert_ix
-   (tab : Solution.Table) (i : ℕ) (tab_valid : tab.Valid)
+   (tab : Solution.Table) (i : ℕ) (tab_valid : tab.RowsValid)
    (row : Solution.Row) (row_valid : row.ValidIx tab i) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull :=
   let ⟨_rv1, rv2, rv3⟩ := row_valid
@@ -109,7 +109,7 @@ theorem Row.valid_imp_not_rupert_ix
 termination_by (tab.size - i, 3, 0)
 decreasing_by rw [_rv1]; grind
 
-theorem valid_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
+theorem valid_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsValid)
     (hr : row.ValidSplit tab) (hlt : row.ID < tab.size) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   obtain ⟨_, hr⟩ := hr
@@ -118,7 +118,7 @@ theorem valid_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
   · exact valid_full_split_imp_no_rupert tab row htab hgt hlt hr'
 termination_by (tab.size - row.ID, 2, 0)
 
-theorem valid_binary_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
+theorem valid_binary_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsValid)
     (hr : Row.ValidBinarySplit tab row) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   obtain ⟨_, hr⟩ := hr
@@ -126,7 +126,7 @@ theorem valid_binary_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.V
   · exact valid_param_split_imp_no_rupert tab row htab _ h
 termination_by (tab.size - row.ID, 1, 0)
 
-theorem valid_full_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
+theorem valid_full_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsValid)
     (_hgt : row.ID < row.IDfirstChild)
     (_hlt : row.ID < tab.size)
     (hi : tab.HasIntervals row.IDfirstChild
@@ -137,7 +137,7 @@ theorem valid_full_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Val
 termination_by (tab.size - row.ID, 1, 0)
 decreasing_by left; exact Nat.sub_lt_sub_left _hlt _hgt
 
-theorem valid_param_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Valid)
+theorem valid_param_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsValid)
     (p : Param) (h : Row.ValidSplitParam tab row p) :
     ¬∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   obtain ⟨h0, h1, h2, iv1, iv2⟩ := h
@@ -159,7 +159,7 @@ decreasing_by all_goals grind
 end
 
 theorem Row.valid_imp_not_rupert
-   (tab : Solution.Table) (tab_valid : tab.Valid)
+   (tab : Solution.Table) (tab_valid : tab.RowsValid)
    (hz : 0 < tab.size) :
     ¬ ∃ q ∈ tab[0].interval.toReal, RupertPose q exactPolyhedron.hull :=
   Row.valid_imp_not_rupert_ix tab 0 tab_valid tab[0] (tab_valid.valid_at hz)
