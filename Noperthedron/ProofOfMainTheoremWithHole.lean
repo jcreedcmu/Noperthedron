@@ -3,8 +3,7 @@ import Noperthedron.MainTheorem
 
 namespace Noperthedron
 
-theorem valid_table_imples_exists_not_rupert (vtab : Solution.ValidTable) :
-    ExistsNonRupertPolyhedron :=
+theorem valid_table_imples_exists_not_rupert (vtab : Solution.ValidTable) : ExistsNonRupertPolyhedron :=
   ⟨Noperthedron.exactVerts, interior_exactVerts_null_nonempty, nopert_not_rupert vtab⟩
 
 /-
