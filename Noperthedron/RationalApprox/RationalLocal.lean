@@ -62,10 +62,12 @@ abbrev BoundDeltaℚi (p : Pose ℚ) (P_ Q_ : Local.TriangleQ) (approx : Approx)
 /-- The condition on δ -/
 def BoundDeltaℚ (δ : ℚ) (p : Pose ℚ) (P_ Q_ : Local.TriangleQ) (approx : Approx) : Prop :=
   ∀ i : Fin 3, δ ≥ BoundDeltaℚi p P_ Q_ approx i
+deriving Decidable
 
 /-- The condition on r -/
 def BoundRℚ (r ε : ℚ) (p : Pose ℚ) (Q_ : Local.TriangleQ) (approx : Approx) : Prop :=
   ∀ i : Fin 3, approx.lower_sqrt.norm (p.rotM₂ℚ (Q_ i)) > r + approx.upper_sqrt_two * ε + 3 * κℚ
+deriving Decidable
 
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"

@@ -58,7 +58,7 @@ abbrev Row.r (row : Row) : ℚ :=
 open scoped Matrix
 open RationalApprox (sqrtApprox)
 
-abbrev Row.δ (row : Row) (i : Fin 3) : ℚ :=
+abbrev Row.δ (row : Row) : ℚ :=
   Finset.max'
     (Finset.image
       (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
@@ -84,6 +84,8 @@ structure Row.ValidLocal (row : Row) : Prop where
     2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
     (rot90 *ᵥ (row.M₂_ *ᵥ (pythonVertex (row.Qi i)))) ⬝ᵥ
       (row.M₂_ *ᵥ (pythonVertex ((row.Qi (i + 1)))))
+  r_valid : RationalApprox.LocalTheorem.BoundRℚ
+              row.r row.epsilon row.interval.centerPose (pythonVertex ∘ row.Qi) sqrtApprox
   -- ...
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
