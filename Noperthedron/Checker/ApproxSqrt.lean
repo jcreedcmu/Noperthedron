@@ -593,10 +593,18 @@ def lowerSqrt : LowerSqrt where
 def sqrtApprox : Approx where
   upper_sqrt_two := 1.42
   upper_sqrt_two_gt_sqrt_two := by
-    sorry
+    show ((1.42 : ℚ) : ℝ) > Real.sqrt 2
+    have h : Real.sqrt 2 < (1.42 : ℝ) :=
+      (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
+    push_cast
+    linarith
   upper_sqrt_five := 2.24
   upper_sqrt_five_gt_sqrt_five := by
-    sorry
+    show ((2.24 : ℚ) : ℝ) > Real.sqrt 5
+    have h : Real.sqrt 5 < (2.24 : ℝ) :=
+      (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
+    push_cast
+    linarith
   lower_sqrt := lowerSqrt
   upper_sqrt := upperSqrt
 
