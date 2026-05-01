@@ -63,7 +63,7 @@ abbrev Row.δ (row : Row) (i : Fin 3) : ℚ :=
     (Finset.image
       (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
          (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox) Finset.univ)
-    (by sorry)
+    (Finset.image_nonempty.mpr ⟨0, Finset.mem_univ 0⟩)
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
 @[mk_iff]
