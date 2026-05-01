@@ -56,10 +56,12 @@ def κApproxPoly.transportTri {ι : Type} [Fintype ι]
 
 namespace LocalTheorem
 
+abbrev BoundDeltaℚi (p : Pose ℚ) (P_ Q_ : Local.TriangleQ) (approx : Approx) (i : Fin 3) : ℚ :=
+  approx.upper_sqrt.norm (p.rotRℚ (p.rotM₁ℚ (P_ i)) - p.rotM₂ℚ (Q_ i)) / 2 + 3 * κℚ
+
 /-- The condition on δ -/
 def BoundDeltaℚ (δ : ℚ) (p : Pose ℚ) (P_ Q_ : Local.TriangleQ) (approx : Approx) : Prop :=
-  ∀ i : Fin 3,
-    δ ≥ approx.upper_sqrt.norm (p.rotRℚ (p.rotM₁ℚ (P_ i)) - p.rotM₂ℚ (Q_ i)) / 2 + 3 * κℚ
+  ∀ i : Fin 3, δ ≥ BoundDeltaℚi p P_ Q_ approx i
 
 /-- The condition on r -/
 def BoundRℚ (r ε : ℚ) (p : Pose ℚ) (Q_ : Local.TriangleQ) (approx : Approx) : Prop :=

@@ -56,6 +56,14 @@ abbrev Row.r (row : Row) : ℚ :=
   row.r' / 1000
 
 open scoped Matrix
+open RationalApprox (sqrtApprox)
+
+abbrev Row.δ (row : Row) (i : Fin 3) : ℚ :=
+  Finset.max'
+    (Finset.image
+      (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
+         (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox) Finset.univ)
+    (by sorry)
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
 @[mk_iff]
@@ -65,9 +73,9 @@ structure Row.ValidLocal (row : Row) : Prop where
   exists_symmetry : ∃ s : TriangleSymmetry,
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
   X₁_inner_gt : Local.TriangleQ.Aεℚσ
-                  row.X₁ (pythonVertex ∘ row.Pi) row.epsilon 0 RationalApprox.sqrtApprox
+                  row.X₁ (pythonVertex ∘ row.Pi) row.epsilon 0 sqrtApprox
   X₂_inner_gt : Local.TriangleQ.Aεℚσ
-                  row.X₂ (pythonVertex ∘ row.Qi) row.epsilon row.sigma_Q.val RationalApprox.sqrtApprox
+                  row.X₂ (pythonVertex ∘ row.Qi) row.epsilon row.sigma_Q.val sqrtApprox
   P_spanning : ∀ i : Fin 3,
     2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
     (rot90 *ᵥ (row.M₁_ *ᵥ (pythonVertex (row.Pi i)))) ⬝ᵥ
