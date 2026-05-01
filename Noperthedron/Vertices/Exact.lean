@@ -201,3 +201,8 @@ theorem exactPoly_point_symmetric : PointSym exactPoly.hull := by
   rintro x ⟨j, hj⟩
   obtain ⟨k, ℓ, i⟩ := j
   exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hj]; fin_cases ℓ <;> simp [neg_smul]⟩
+
+
+theorem interior_exactVerts_null_nonempty :
+    (interior ((convexHull ℝ) (exactVerts : Set (Euc(3))))).Nonempty := by
+  sorry
