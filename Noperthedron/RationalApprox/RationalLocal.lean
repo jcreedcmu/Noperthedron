@@ -16,7 +16,7 @@ def TriangleQ : Type := Fin 3 → Fin 3 → ℚ
 def TriangleQ.toReal (t : TriangleQ) : Triangle :=
   fun i => toR3 (t i)
 
-def TriangleQ.Aεℚσ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℤ)
+def TriangleQ.Aεℚσ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℕ)
     (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * κℚ
 
@@ -24,7 +24,7 @@ def TriangleQ.Aεℚσ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℤ
 Condition A_ε^ℚ from [SY25] Theorem 48
 -/
 def TriangleQ.Aεℚ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℤ), TriangleQ.Aεℚσ X P_ ε σ approx
+  ∃ σ ∈ ({0, 1} : Set ℕ), TriangleQ.Aεℚσ X P_ ε σ approx
 
 def Triangle.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
    (approx : RationalApprox.Approx) : ℚ :=
@@ -220,7 +220,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
           show ((-1 : ℝ)) ^ σ = ((((-1 : ℚ)) ^ σ : ℚ) : ℝ) by push_cast; rfl]
       exact_mod_cast hσ₂ i
     rw [Real.norm_eq_abs] at hX
-    have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_zpow σ
+    have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_pow σ
     have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫)| ≤ 3 * κ := by
       rw [abs_mul, habs, one_mul]; exact hX
     rw [abs_le] at hdiff
@@ -241,7 +241,7 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
           show ((-1 : ℝ)) ^ σ = ((((-1 : ℚ)) ^ σ : ℚ) : ℝ) by push_cast; rfl]
       exact_mod_cast hσ₂ i
     rw [Real.norm_eq_abs] at hX
-    have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_zpow σ
+    have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_pow σ
     have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫)| ≤ 3 * κ := by
       rw [abs_mul, habs, one_mul]; exact hX
     rw [abs_le] at hdiff
