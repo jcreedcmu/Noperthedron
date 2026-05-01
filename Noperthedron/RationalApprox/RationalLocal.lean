@@ -36,7 +36,7 @@ def Triangle.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
 def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
-    (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ)  (approx : RationalApprox.Approx) : Prop :=
+    (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ) (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + approx.upper_sqrt_five * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
 
@@ -63,7 +63,7 @@ def BoundDeltaℚ (δ : ℚ) (p : Pose ℚ) (P_ Q_ : Local.TriangleQ) (approx : 
 
 /-- The condition on r -/
 def BoundRℚ (r ε : ℚ) (p : Pose ℚ) (Q_ : Local.TriangleQ) (approx : Approx) : Prop :=
-  ∀ i : Fin 3, (approx.lower_sqrt.norm (p.rotM₂ℚ (Q_ i)) : ℝ) > r + √2 * ε + 3 * κ
+  ∀ i : Fin 3, approx.lower_sqrt.norm (p.rotM₂ℚ (Q_ i)) > r + approx.upper_sqrt_two * ε + 3 * κℚ
 
 /--
 [SY25] Theorem 48 "The Rational Local Theorem"
