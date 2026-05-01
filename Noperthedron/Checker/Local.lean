@@ -45,11 +45,9 @@ abbrev Row.M₂_ (r : Row) : Matrix (Fin 2) (Fin 3) ℚ :=
 abbrev Row.rotRℚ (r : Row) : Matrix (Fin 2) (Fin 2) ℚ :=
   RationalApprox.rotRℚ_mat r.α
 
-abbrev Row.X₁ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
-  RationalApprox.vecXℚ_mat r.θ₁ r.φ₁
+abbrev Row.X₁ (r : Row) : Fin 3 → ℚ := RationalApprox.vecXℚ r.θ₁ r.φ₁
 
-abbrev Row.X₂ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
-  RationalApprox.vecXℚ_mat r.θ₂ r.φ₂
+abbrev Row.X₂ (r : Row) : Fin 3 → ℚ := RationalApprox.vecXℚ r.θ₂ r.φ₂
 
 abbrev rot90 : Matrix (Fin 2) (Fin 2) ℚ :=
   !![0, -1; 1, 0]
@@ -66,11 +64,10 @@ structure Row.ValidLocal (row : Row) : Prop where
   center_in_fourQ : row.interval.centerPose ∈ fourInterval ℚ
   exists_symmetry : ∃ s : TriangleSymmetry,
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
-  X₁_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
-                     (row.X₁.transpose *ᵥ (pythonVertex (row.Pi i))) 0
-  X₂_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
-                     (-1) ^ row.sigma_Q.val *
-                       (row.X₂.transpose *ᵥ (pythonVertex (row.Qi i))) 0
+  X₁_inner_gt : Local.TriangleQ.Aεℚσ
+                  row.X₁ (pythonVertex ∘ row.Pi) row.epsilon 0 RationalApprox.sqrtApprox
+  X₂_inner_gt : Local.TriangleQ.Aεℚσ
+                  row.X₂ (pythonVertex ∘ row.Qi) row.epsilon row.sigma_Q.val RationalApprox.sqrtApprox
   P_spanning : ∀ i : Fin 3,
     2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
     (rot90 *ᵥ (row.M₁_ *ᵥ (pythonVertex (row.Pi i)))) ⬝ᵥ

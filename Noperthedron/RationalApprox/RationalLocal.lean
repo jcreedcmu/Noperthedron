@@ -19,6 +19,7 @@ def TriangleQ.toReal (t : TriangleQ) : Triangle :=
 def TriangleQ.Aεℚσ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℕ)
     (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * κℚ
+deriving Decidable
 
 /--
 Condition A_ε^ℚ from [SY25] Theorem 48
