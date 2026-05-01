@@ -19,8 +19,8 @@ def TriangleQ.toReal (t : TriangleQ) : Triangle :=
 /--
 Condition A_ε^ℚ from [SY25] Theorem 48
 -/
-def TriangleQ.Aεℚ (X : ℝ³) (P_ : TriangleQ) (ε : ℚ) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P_.toReal i⟫ > √2 * ε + 3 * κ
+def TriangleQ.Aεℚ (X : ℝ³) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
+  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P_.toReal i⟫ > approx.upper_sqrt_two * ε + 3 * κ
 
 noncomputable
 def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (approx : RationalApprox.Approx) : ℝ :=
@@ -72,8 +72,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (approx : Approx)
     (hr₁ : BoundRℚ r ε p_.toReal (hpoly.transportTri Qi).toReal approx)
     (hδ : BoundDeltaℚ δ p_.toReal (hpoly.transportTri Pi).toReal (hpoly.transportTri Qi).toReal approx)
-    (ae₁ : (hpoly.transportTri Pi).Aεℚ p_.toReal.vecX₁ℚℝ ε)
-    (ae₂ : (hpoly.transportTri Qi).Aεℚ p_.toReal.vecX₂ℚℝ ε)
+    (ae₁ : (hpoly.transportTri Pi).Aεℚ p_.toReal.vecX₁ℚℝ ε approx)
+    (ae₂ : (hpoly.transportTri Qi).Aεℚ p_.toReal.vecX₂ℚℝ ε approx)
     (span₁ : (hpoly.transportTri Pi).toReal.κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
     (span₂ : (hpoly.transportTri Qi).toReal.κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
     (be : (hpoly.transportTri Qi).toReal.Bεℚ Qi
@@ -115,7 +115,9 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hX : ‖⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫‖ ≤ 3 * κ :=
       bounds_kappa3_X (θ := θ₁) (φ := φ₁) (hPnorm i) (hPapprox i)
     change (-1) ^ σ * ⟪vecX ↑θ₁ ↑φ₁, P i⟫ > √2 * ε
-    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫ > √2 * ε + 3 * κ := hσ₂ i
+    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫ > approx.upper_sqrt_two * ε + 3 * κ := hσ₂ i
+    have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
+      mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
     rw [Real.norm_eq_abs] at hX
     have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_zpow σ
     have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫)| ≤ 3 * κ := by
@@ -128,7 +130,9 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hX : ‖⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫‖ ≤ 3 * κ :=
       bounds_kappa3_X (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
     change (-1) ^ σ * ⟪vecX ↑θ₂ ↑φ₂, Q i⟫ > √2 * ε
-    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫ > √2 * ε + 3 * κ := hσ₂ i
+    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫ > approx.upper_sqrt_two * ε + 3 * κ := hσ₂ i
+    have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
+      mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
     rw [Real.norm_eq_abs] at hX
     have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_zpow σ
     have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫)| ≤ 3 * κ := by
