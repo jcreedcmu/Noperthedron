@@ -114,6 +114,12 @@ noncomputable
 instance : Coe Interval (Set (Pose ℝ)) where
   coe iv := Set.Icc iv.minPose iv.maxPose
 
+structure ValidTable : Type where
+  table : Table
+  rows_valid : table.RowsValid
+  nonempty : 0 < table.size
+  contains_tightInterval : (tightInterval : Set (Pose ℝ)) ⊆ (table[0].interval : Set (Pose ℝ))
+
 lemma cube_fold_nonempty_aux {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :
    0 < (cubeFold fs b as).length := by
   match as with
