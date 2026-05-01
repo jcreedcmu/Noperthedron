@@ -7,7 +7,7 @@ import Noperthedron.RationalApprox.BoundsKappa4
 open Local (Triangle)
 open scoped RealInnerProductSpace Real
 
-open RationalApprox (κ UpperSqrt)
+open RationalApprox (κ κℚ UpperSqrt)
 
 namespace Local
 
@@ -20,18 +20,19 @@ def TriangleQ.toReal (t : TriangleQ) : Triangle :=
 Condition A_ε^ℚ from [SY25] Theorem 48
 -/
 def TriangleQ.Aεℚ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * RationalApprox.κℚ
+  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * κℚ
 
 noncomputable
-def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (approx : RationalApprox.Approx) : ℝ :=
-   (⟪p.rotM₂ℚℝ v₁, p.rotM₂ℚℝ (v₁ - v₂)⟫ - 10 * κ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κ) * (approx.upper_sqrt_two + ε))
-   / ((approx.upper_sqrt.norm (p.rotM₂ℚℝ v₁) + approx.upper_sqrt_two * ε + 3 * κ) * (approx.upper_sqrt.norm (p.rotM₂ℚℝ (v₁ - v₂)) + 2 * approx.upper_sqrt_two * ε + 6 * κ))
+def Triangle.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
+   (approx : RationalApprox.Approx) : ℝ :=
+   (p.rotM₂ℚ v₁ ⬝ᵥ p.rotM₂ℚ (v₁ - v₂) - 10 * κℚ - 2 * ε * (approx.upper_sqrt.norm (toR3 (v₁ - v₂)) + 2 * κℚ) * (approx.upper_sqrt_two + ε))
+   / ((approx.upper_sqrt.norm (toR2 (p.rotM₂ℚ v₁)) + approx.upper_sqrt_two * ε + 3 * κℚ) * (approx.upper_sqrt.norm (toR2 (p.rotM₂ℚ (v₁ - v₂))) + 2 * approx.upper_sqrt_two * ε + 6 * κℚ))
 
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48
 -/
-def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : Triangle) (Qi : Fin 3 → ι)
-    (v_ : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℚ)  (approx : RationalApprox.Approx) : Prop :=
+def Triangle.Bεℚ {ι : Type} [Fintype ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
+    (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ)  (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + approx.upper_sqrt_five * ε) / r < Triangle.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
 
@@ -76,8 +77,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     (ae₂ : (hpoly.transportTri Qi).Aεℚ p_.vecX₂ℚ ε approx)
     (span₁ : (hpoly.transportTri Pi).toReal.κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
     (span₂ : (hpoly.transportTri Qi).toReal.κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
-    (be : (hpoly.transportTri Qi).toReal.Bεℚ Qi
-          (fun k => poly_.toReal.v (hpoly.bijection k)) p_.toReal ε δ r approx)
+    (be : Local.Triangle.Bεℚ (hpoly.transportTri Qi) Qi
+          (fun k => poly_.v (hpoly.bijection k)) p_ ε δ r approx)
     : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
   have hεℝ : 0 < (ε : ℝ) := span₁.pos
   -- Keep a handle on the rational pose before shadowing.
@@ -129,6 +130,66 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
          (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
     simp [dotProduct]
   have h_κℚ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; norm_num
+  -- Cast helpers to bridge between the rational `Fin n → ℚ` world and the real one.
+  have h_castℝ_mulVec : ∀ {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℚ) (v : Fin n → ℚ),
+      (fun i => ((M.mulVec v) i : ℝ)) =
+        (M.map (fun x => (x : ℝ))).mulVec (fun i => (v i : ℝ)) := by
+    intro m n M v
+    ext i
+    simp only [Matrix.mulVec, dotProduct, Matrix.map_apply]
+    push_cast; rfl
+  have h_rotMℚ_mat_castℝ : ∀ (θ φ : ℚ),
+      (rotMℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMℚ_mat θ φ).map (fun x => (x : ℝ)) := by
+    intro θ φ
+    ext i j; fin_cases i <;> fin_cases j <;> simp [rotMℚ_mat, sinℚ_match, cosℚ_match]
+  -- Bridge: `toR3` is linear over subtraction.
+  have h_toR3_sub : ∀ (v w : Fin 3 → ℚ), toR3 (v - w) = toR3 v - toR3 w := by
+    intro v w
+    unfold toR3; ext i; simp
+  -- Bridge: `toR2` of the rational rotM₂ℚ application equals real rotM₂ℚℝ on `toR3`.
+  have h_toR2_rotM₂ℚ : ∀ (v : Fin 3 → ℚ),
+      toR2 (p_ℚ.rotM₂ℚ v) = p_.rotM₂ℚℝ (toR3 v) := by
+    intro v
+    show toR2 ((rotMℚ p_ℚ.θ₂ p_ℚ.φ₂) v) = rotMℚℝ (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ) (toR3 v)
+    unfold rotMℚ rotMℚℝ toR2 toR3
+    rw [Matrix.toLin'_apply]
+    show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat p_ℚ.θ₂ p_ℚ.φ₂).mulVec v) i : ℝ)) =
+         (rotMℚ_mat (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)).toEuclideanLin.toContinuousLinearMap
+           (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
+    rw [h_castℝ_mulVec, ← h_rotMℚ_mat_castℝ]
+    show WithLp.toLp 2 ((rotMℚ_mat (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)).mulVec _) =
+         (rotMℚ_mat (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)).toEuclideanLin
+           (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
+    rw [Matrix.toLpLin_apply]
+  -- Bridge: `inner` on `toR2` casts to a rational dot product.
+  have h_inner_toR2 : ∀ (v w : Fin 2 → ℚ),
+      @inner ℝ ℝ² _ (toR2 v) (toR2 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
+    intro v w
+    unfold toR2
+    have h := EuclideanSpace.inner_eq_star_dotProduct
+      (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 2))
+      (WithLp.toLp 2 (fun i => (w i : ℝ)))
+    simp only [star_trivial] at h
+    rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
+         (WithLp.toLp 2 (fun i => (w i : ℝ))) =
+         (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
+    simp [dotProduct]
+  -- Main bridge: rewrite `Bεℚ.lhs` in terms of explicit real-form expressions.
+  have h_Bεℚ_lhs_bridge : ∀ (v₁ v₂ : Fin 3 → ℚ),
+      Local.Triangle.Bεℚ.lhs v₁ v₂ p_ℚ ε approx =
+      (⟪p_.rotM₂ℚℝ (toR3 v₁), p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)⟫ - 10 * κ -
+         2 * ε * (approx.upper_sqrt.norm (toR3 v₁ - toR3 v₂) + 2 * κ) *
+           (approx.upper_sqrt_two + ε)) /
+      ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (toR3 v₁)) + approx.upper_sqrt_two * ε + 3 * κ) *
+       (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)) +
+          2 * approx.upper_sqrt_two * ε + 6 * κ)) := by
+    intro v₁ v₂
+    have h_inner_bridge : ((p_ℚ.rotM₂ℚ v₁ ⬝ᵥ p_ℚ.rotM₂ℚ (v₁ - v₂) : ℚ) : ℝ) =
+        ⟪p_.rotM₂ℚℝ (toR3 v₁), p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)⟫ := by
+      rw [← h_toR2_rotM₂ℚ v₁, ← h_toR3_sub, ← h_toR2_rotM₂ℚ (v₁ - v₂), h_inner_toR2]
+    unfold Local.Triangle.Bεℚ.lhs
+    rw [h_toR3_sub, h_toR2_rotM₂ℚ, h_toR2_rotM₂ℚ, h_toR3_sub, ← h_κℚ]
+    rw [h_inner_bridge]
   have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
     mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
   have ae₁' : P.Aε p_.vecX₁ ε := by
@@ -244,8 +305,20 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- Get the Bεℚ hypothesis
     have hbe := be i k hne_k
     show (δ + √5 * ε) / r < Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
+    -- Identify the rational triangle/vertex underlying `Q_ i` and `v_`.
+    have hQ_eq : Q_ i = toR3 ((hpoly.transportTri Qi) i) := rfl
+    have hv_eq : v_ = toR3 (poly_.v (hpoly.bijection k)) := rfl
+    -- Use the bridge to rewrite `Bεℚ.lhs` into explicit real form.
+    have h_bridge_Qv :=
+      h_Bεℚ_lhs_bridge ((hpoly.transportTri Qi) i) (poly_.v (hpoly.bijection k))
+    rw [← hQ_eq, ← hv_eq] at h_bridge_Qv
     -- Bridge from approx.upper_sqrt_five to √5 (since upper_sqrt_five > √5)
-    have hbe' : (↑δ + √5 * ↑ε) / ↑r < Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx := by
+    have hbe' : (↑δ + √5 * ↑ε) / ↑r <
+        (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
+           2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (approx.upper_sqrt_two + ε)) /
+        ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + approx.upper_sqrt_two * ε + 3 * κ) *
+         (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) + 2 * approx.upper_sqrt_two * ε + 6 * κ)) := by
+      rw [← h_bridge_Qv]
       have hr_pos : (0 : ℝ) < r := by exact_mod_cast hr
       have hε_nonneg : (0 : ℝ) ≤ (ε : ℝ) := le_of_lt hεℝ
       have h_sqrt5_le : √5 ≤ (approx.upper_sqrt_five : ℝ) :=
@@ -319,9 +392,14 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hbk4 : bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt ≤
         bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε :=
       bounds_kappa4 (Q i) (poly.vertices.v k) (Q_ i) v_ θ₂ φ₂ (hQnorm i) hvnorm (hQapprox i) hvapprox ε hεℝ approx.upper_sqrt hA_nonneg
-    -- Bεℚ.lhs ≤ bounds_kappa4_Aℚ (su.norm ≥ ‖·‖ shrinks numerator;
+    -- The explicit real form of `Bεℚ.lhs` ≤ bounds_kappa4_Aℚ (su.norm ≥ ‖·‖ shrinks numerator;
     -- upper_sqrt_two ≥ √2 grows denominator)
-    have hBεℚ_le : Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx ≤
+    have hBεℚ_le :
+        (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
+            2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (approx.upper_sqrt_two + ε)) /
+          ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + approx.upper_sqrt_two * ε + 3 * κ) *
+            (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) +
+              2 * approx.upper_sqrt_two * ε + 6 * κ)) ≤
         bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt := by
       have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i))) (UpperSqrt_norm_le approx.upper_sqrt _)
       have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (Q_ i - v_))) (UpperSqrt_norm_le approx.upper_sqrt _)
@@ -340,7 +418,12 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     -- bounds_kappa4_A = Bε.lhs (definitionally: rotM ↑θ₂ ↑φ₂ = p_.rotM₂)
     have hA_eq : bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := rfl
     -- Combine
-    calc (δ + √5 * ε) / r < Local.Triangle.Bεℚ.lhs (Q_ i) v_ p_ ε approx := hbe'
+    calc (δ + √5 * ε) / r
+        < (⟪p_.rotM₂ℚℝ (Q_ i), p_.rotM₂ℚℝ (Q_ i - v_)⟫ - 10 * κ -
+            2 * ε * (approx.upper_sqrt.norm (Q_ i - v_) + 2 * κ) * (approx.upper_sqrt_two + ε)) /
+          ((approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i)) + approx.upper_sqrt_two * ε + 3 * κ) *
+            (approx.upper_sqrt.norm (p_.rotM₂ℚℝ (Q_ i - v_)) +
+              2 * approx.upper_sqrt_two * ε + 6 * κ)) := hbe'
       _ ≤ bounds_kappa4_Aℚ (Q_ i) v_ θ₂ φ₂ ε approx.upper_sqrt := hBεℚ_le
       _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
       _ = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := hA_eq
