@@ -179,19 +179,27 @@ def _root_.Pose.vecX₂ℚℝ (p : Pose ℝ) : ℝ³ := vecXℚℝ (p.θ₂) (p.
 end
 
 structure UpperSqrt where
-  f : ℝ → ℝ
-  rational : ∀ (x : ℚ), 0 ≤ x → ∃ q : ℚ, f x = q
-  bound : ∀ (x : ℝ), 0 ≤ x → √x ≤ f x
+  f : ℚ → ℚ
+  bound : ∀ (x : ℚ), 0 ≤ x → √x ≤ f x
 
-noncomputable
-def UpperSqrt.norm {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ℝ :=
-  s.f (‖v‖^2)
+def UpperSqrt.norm {n : ℕ} (s : UpperSqrt) (v : Fin n → ℚ) : ℚ := s.f (v ⬝ᵥ v)
 
 structure LowerSqrt where
-  f : ℝ → ℝ
-  rational : ∀ (x : ℚ), 0 ≤ x → ∃ q : ℚ, f x = q
-  bound : ∀ (x : ℝ), 0 ≤ x → f x ≤ √x
+  f : ℚ → ℚ
+  bound : ∀ (x : ℚ), 0 ≤ x → f x ≤ √x
 
-noncomputable
-def LowerSqrt.norm {n : ℕ} (s : LowerSqrt) (v : Euc(n)) : ℝ :=
-  s.f (‖v‖^2)
+def LowerSqrt.norm {n : ℕ} (s : LowerSqrt) (v : Fin n → ℚ) : ℚ := s.f (v ⬝ᵥ v)
+
+structure Approx where
+  lower_sqrt : LowerSqrt
+  upper_sqrt : UpperSqrt
+  upper_sqrt_two : ℚ
+  upper_sqrt_two_gt_sqrt_two : upper_sqrt_two > √2
+  upper_sqrt_five : ℚ
+  upper_sqrt_five_gt_sqrt_five : upper_sqrt_five > √5
+
+def Approx.upper_norm {n : ℕ} (approx : Approx) (v : Fin n → ℚ) : ℚ :=
+  approx.upper_sqrt.f (v ⬝ᵥ v)
+
+def Approx.lower_norm {n : ℕ} (approx : Approx) (v : Fin n → ℚ) : ℚ :=
+  approx.lower_sqrt.f (v ⬝ᵥ v)

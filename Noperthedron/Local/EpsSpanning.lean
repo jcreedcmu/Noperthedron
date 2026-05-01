@@ -29,7 +29,7 @@ structure Triangle.Spanning (P : Triangle) (θ φ ε : ℝ) : Prop where
   pos : 0 < ε
   lt : ∀ i : Fin 3, 2 * ε * (√2 + ε) < ⟪rotR (π / 2) (rotM θ φ (P i)), rotM θ φ (P (i + 1))⟫
 
-lemma spanning_neg {P : Triangle} {θ φ ε : ℝ} (e : ℤ) (h : P.Spanning θ φ ε) :
+lemma spanning_neg {P : Triangle} {θ φ ε : ℝ} (e : ℕ) (h : P.Spanning θ φ ε) :
     Triangle.Spanning (fun i ↦ (-1:ℝ)^e • P i) θ φ ε := by
   obtain ⟨pos, lt⟩ := h
   refine ⟨pos, ?_⟩
@@ -38,8 +38,8 @@ lemma spanning_neg {P : Triangle} {θ φ ε : ℝ} (e : ℤ) (h : P.Spanning θ 
   simp only [map_smul]
   rw [real_inner_smul_right, real_inner_smul_left, ←mul_assoc ((-1:ℝ)^e)]
   have h₁ : (-1:ℝ) ^ e * (-1:ℝ) ^ e = 1 := by
-    rw [←zpow_add₀ (show (-1:ℝ) ≠ 0 by norm_num), ←mul_two, mul_comm]
-    rw [zpow_mul]
+    rw [←pow_add, ←mul_two, mul_comm]
+    rw [pow_mul]
     norm_num
   rw [h₁, one_mul]
   exact lt

@@ -19,16 +19,51 @@ def bounds_kappa4_A := (⟪rotM θ φ P, rotM θ φ (P - Q)⟫ - 2 * ε * ‖P -
   ((‖rotM θ φ P‖ + √2 * ε) * (‖rotM θ φ (P - Q)‖ + 2 * √2 * ε))
 
 noncomputable
-def bounds_kappa4_Aℚ (s : UpperSqrt) :=
-  (⟪rotMℚℝ θ φ P_, rotMℚℝ θ φ (P_ - Q_)⟫ - 10 * κ - 2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε)) /
-  ((s.norm (rotMℚℝ θ φ P_) + √2 * ε + 3 * κ) * (s.norm (rotMℚℝ θ φ (P_ - Q_)) + 2 * √2 * ε + 6 * κ))
+def bounds_kappa4_Aℚ (P_ Q_ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℝ) (s : UpperSqrt) : ℝ :=
+  (((p.rotM₂ℚ P_ ⬝ᵥ p.rotM₂ℚ (P_ - Q_) : ℚ) : ℝ) - 10 * κ -
+      2 * ε * (‖toR3 (P_ - Q_)‖ + 2 * κ) * (√2 + ε)) /
+  ((↑(s.norm (p.rotM₂ℚ P_)) + √2 * ε + 3 * κ) *
+    (↑(s.norm (p.rotM₂ℚ (P_ - Q_))) + 2 * √2 * ε + 6 * κ))
 
-/-- An `UpperSqrt` overestimates the Euclidean norm. -/
-lemma UpperSqrt_norm_le {n : ℕ} (s : UpperSqrt) (v : Euc(n)) : ‖v‖ ≤ s.norm v := by
+/-- The squared norm of a `Fin n → ℚ` cast to `ℝ` equals `((v ⬝ᵥ v : ℚ) : ℝ)`. -/
+private lemma toLp_norm_sq_eq_dotProduct {n : ℕ} (v : Fin n → ℚ) :
+    ‖WithLp.toLp 2 (fun i => (v i : ℝ))‖ ^ 2 = ((v ⬝ᵥ v : ℚ) : ℝ) := by
+  have h_inner_self : @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin n))
+        (WithLp.toLp 2 (fun i => (v i : ℝ))) = ((v ⬝ᵥ v : ℚ) : ℝ) := by
+    have h := EuclideanSpace.inner_eq_star_dotProduct
+      (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin n))
+      (WithLp.toLp 2 (fun i => (v i : ℝ)))
+    simp only [star_trivial] at h
+    refine h.trans ?_
+    push_cast [dotProduct]; rfl
+  rw [← h_inner_self]; exact (real_inner_self_eq_norm_sq _).symm
+
+/-- An `UpperSqrt` overestimates the Euclidean norm of a rational vector cast to `ℝ`. -/
+lemma UpperSqrt_norm_le {n : ℕ} (s : UpperSqrt) (v : Fin n → ℚ) :
+    ‖WithLp.toLp 2 (fun i => (v i : ℝ))‖ ≤ ↑(s.norm v) := by
   unfold UpperSqrt.norm
-  have h : (0 : ℝ) ≤ ‖v‖ ^ 2 := sq_nonneg _
-  calc ‖v‖ = √(‖v‖ ^ 2) := by rw [Real.sqrt_sq (norm_nonneg _)]
-    _ ≤ s.f (‖v‖ ^ 2) := s.bound _ h
+  have h_norm_sq := toLp_norm_sq_eq_dotProduct v
+  have h_dot_nn : (0 : ℝ) ≤ ((v ⬝ᵥ v : ℚ) : ℝ) := by
+    rw [← h_norm_sq]; exact sq_nonneg _
+  have h_dot_nn_ℚ : (0 : ℚ) ≤ v ⬝ᵥ v := by exact_mod_cast h_dot_nn
+  calc ‖WithLp.toLp 2 (fun i => (v i : ℝ))‖
+      = √(‖WithLp.toLp 2 (fun i => (v i : ℝ))‖ ^ 2) := by
+        rw [Real.sqrt_sq (norm_nonneg _)]
+    _ = √(((v ⬝ᵥ v : ℚ) : ℝ)) := by rw [h_norm_sq]
+    _ ≤ ↑(s.f (v ⬝ᵥ v)) := s.bound _ h_dot_nn_ℚ
+
+/-- A `LowerSqrt` underestimates the Euclidean norm of a rational vector cast to `ℝ`. -/
+lemma LowerSqrt_norm_ge {n : ℕ} (s : LowerSqrt) (v : Fin n → ℚ) :
+    ↑(s.norm v) ≤ ‖WithLp.toLp 2 (fun i => (v i : ℝ))‖ := by
+  unfold LowerSqrt.norm
+  have h_norm_sq := toLp_norm_sq_eq_dotProduct v
+  have h_dot_nn : (0 : ℝ) ≤ ((v ⬝ᵥ v : ℚ) : ℝ) := by
+    rw [← h_norm_sq]; exact sq_nonneg _
+  have h_dot_nn_ℚ : (0 : ℚ) ≤ v ⬝ᵥ v := by exact_mod_cast h_dot_nn
+  calc (↑(s.f (v ⬝ᵥ v)) : ℝ)
+      ≤ √(((v ⬝ᵥ v : ℚ) : ℝ)) := s.bound _ h_dot_nn_ℚ
+    _ = √(‖WithLp.toLp 2 (fun i => (v i : ℝ))‖ ^ 2) := by rw [h_norm_sq]
+    _ = ‖WithLp.toLp 2 (fun i => (v i : ℝ))‖ := Real.sqrt_sq (norm_nonneg _)
 
 /-- The inner product bound for `rotM`/`rotMℚ` when the second vector has norm ≤ 2.
 This generalises `bounds_kappa3_M` (which requires ‖Q‖ ≤ 1) to handle `P − Q`. -/
@@ -110,62 +145,127 @@ lemma norm_diff_bound_6kappa
     (clm_approx_apply_sub₂ hMdiff hMℚnorm hPQ_norm hPQ_approx).trans (by unfold κ; norm_num)
   linarith [norm_le_insert' ((rotM ↑θ ↑φ) (P - Q)) ((rotMℚℝ ↑θ ↑φ) (P_ - Q_))]
 
+/-- Bridge: `toR3` distributes over subtraction. -/
+private lemma toR3_sub (v w : Fin 3 → ℚ) : toR3 (v - w) = toR3 v - toR3 w := by
+  unfold toR3; ext i; simp
+
+/-- Bridge: cast of `Matrix.mulVec` over ℚ to ℝ. -/
+private lemma castℝ_mulVec_aux {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℚ) (v : Fin n → ℚ) :
+    (fun i => ((M.mulVec v) i : ℝ)) =
+      (M.map (fun x => (x : ℝ))).mulVec (fun i => (v i : ℝ)) := by
+  ext i
+  simp only [Matrix.mulVec, dotProduct, Matrix.map_apply]
+  push_cast; rfl
+
+/-- Bridge: `rotMℚ_mat` over ℝ equals the cast of `rotMℚ_mat` over ℚ. -/
+private lemma rotMℚ_mat_castℝ_aux (θ φ : ℚ) :
+    (rotMℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMℚ_mat θ φ).map (fun x => (x : ℝ)) := by
+  ext i j; fin_cases i <;> fin_cases j <;> simp [rotMℚ_mat, sinℚ_match, cosℚ_match]
+
+/-- Bridge: `toR2` of `p.rotM₂ℚ v` equals `p.rotM₂ℚℝ (toR3 v)`. -/
+private lemma toR2_rotM₂ℚ_aux (p : Pose ℚ) (v : Fin 3 → ℚ) :
+    toR2 (p.rotM₂ℚ v) = rotMℚℝ (p.θ₂ : ℝ) (p.φ₂ : ℝ) (toR3 v) := by
+  show toR2 ((rotMℚ p.θ₂ p.φ₂) v) = rotMℚℝ (p.θ₂ : ℝ) (p.φ₂ : ℝ) (toR3 v)
+  unfold rotMℚ rotMℚℝ toR2 toR3
+  rw [Matrix.toLin'_apply]
+  show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat p.θ₂ p.φ₂).mulVec v) i : ℝ)) =
+       (rotMℚ_mat (p.θ₂ : ℝ) (p.φ₂ : ℝ)).toEuclideanLin.toContinuousLinearMap
+         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
+  rw [castℝ_mulVec_aux, ← rotMℚ_mat_castℝ_aux]
+  show WithLp.toLp 2 ((rotMℚ_mat (p.θ₂ : ℝ) (p.φ₂ : ℝ)).mulVec _) =
+       (rotMℚ_mat (p.θ₂ : ℝ) (p.φ₂ : ℝ)).toEuclideanLin
+         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
+  rw [Matrix.toLpLin_apply]
+
+/-- Bridge: real inner product of two `toR2` casts equals the rational dot product cast to ℝ. -/
+private lemma inner_toR2_aux (v w : Fin 2 → ℚ) :
+    @inner ℝ ℝ² _ (toR2 v) (toR2 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
+  unfold toR2
+  have h := EuclideanSpace.inner_eq_star_dotProduct
+    (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 2))
+    (WithLp.toLp 2 (fun i => (w i : ℝ)))
+  simp only [star_trivial] at h
+  rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
+       (WithLp.toLp 2 (fun i => (w i : ℝ))) =
+       (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
+  simp [dotProduct]
+
 /-- [SY25] Corollary 51 -/
-lemma bounds_kappa4 (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Papprox : ‖P - P_‖ ≤ κ) (Qapprox : ‖Q - Q_‖ ≤ κ)
+lemma bounds_kappa4 (P Q : ℝ³) (P_ Q_ : Fin 3 → ℚ) (p : Pose ℚ)
+    (hθBound : (p.θ₂ : ℝ) ∈ Set.Icc (-4 : ℝ) 4)
+    (hφBound : (p.φ₂ : ℝ) ∈ Set.Icc (-4 : ℝ) 4)
+    (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
+    (Papprox : ‖P - toR3 P_‖ ≤ κ) (Qapprox : ‖Q - toR3 Q_‖ ≤ κ)
     (ε : ℝ) (hε : 0 < ε) (s : UpperSqrt)
-    (hA_nonneg : 0 ≤ ⟪rotM θ φ P, rotM θ φ (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)) :
-    bounds_kappa4_Aℚ P_ Q_ θ φ ε s ≤ bounds_kappa4_A P Q θ φ ε := by
+    (hA_nonneg : 0 ≤ ⟪rotM (p.θ₂ : ℝ) (p.φ₂ : ℝ) P,
+        rotM (p.θ₂ : ℝ) (p.φ₂ : ℝ) (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)) :
+    bounds_kappa4_Aℚ P_ Q_ p ε s ≤
+      bounds_kappa4_A P Q ⟨(p.θ₂ : ℝ), hθBound⟩ ⟨(p.φ₂ : ℝ), hφBound⟩ ε := by
+  set θ : Set.Icc (-4 : ℝ) 4 := ⟨(p.θ₂ : ℝ), hθBound⟩
+  set φ : Set.Icc (-4 : ℝ) 4 := ⟨(p.φ₂ : ℝ), hφBound⟩
+  -- Bridges: link rational dot/norm to real inner/norm.
+  have h_toR3_sub : toR3 (P_ - Q_) = toR3 P_ - toR3 Q_ := toR3_sub _ _
+  have h_inner_bridge : ((p.rotM₂ℚ P_ ⬝ᵥ p.rotM₂ℚ (P_ - Q_) : ℚ) : ℝ) =
+      ⟪(rotMℚℝ ↑θ ↑φ) (toR3 P_), (rotMℚℝ ↑θ ↑φ) (toR3 P_ - toR3 Q_)⟫ := by
+    rw [← toR2_rotM₂ℚ_aux, ← h_toR3_sub, ← toR2_rotM₂ℚ_aux, inner_toR2_aux]
+  have h_norm_bridge_P : ‖(rotMℚℝ ↑θ ↑φ) (toR3 P_)‖ ≤ ↑(s.norm (p.rotM₂ℚ P_)) := by
+    rw [← toR2_rotM₂ℚ_aux]
+    show ‖toR2 (p.rotM₂ℚ P_)‖ ≤ ↑(s.norm (p.rotM₂ℚ P_))
+    exact UpperSqrt_norm_le s _
+  have h_norm_bridge_PQ : ‖(rotMℚℝ ↑θ ↑φ) (toR3 P_ - toR3 Q_)‖ ≤
+      ↑(s.norm (p.rotM₂ℚ (P_ - Q_))) := by
+    rw [← h_toR3_sub, ← toR2_rotM₂ℚ_aux]
+    show ‖toR2 (p.rotM₂ℚ (P_ - Q_))‖ ≤ ↑(s.norm (p.rotM₂ℚ (P_ - Q_)))
+    exact UpperSqrt_norm_le s _
   -- Abbreviate the numerators and denominators
   set numA := ⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) (P - Q)⟫ - 2 * ε * ‖P - Q‖ * (√2 + ε)
-  set numAℚ := ⟪(rotMℚℝ ↑θ ↑φ) P_, (rotMℚℝ ↑θ ↑φ) (P_ - Q_)⟫ - 10 * κ -
-    2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε)
+  set numAℚ := ((p.rotM₂ℚ P_ ⬝ᵥ p.rotM₂ℚ (P_ - Q_) : ℚ) : ℝ) - 10 * κ -
+    2 * ε * (‖toR3 (P_ - Q_)‖ + 2 * κ) * (√2 + ε)
   set denA := (‖(rotM ↑θ ↑φ) P‖ + √2 * ε) * (‖(rotM ↑θ ↑φ) (P - Q)‖ + 2 * √2 * ε)
-  set denAℚ := (s.norm ((rotMℚℝ ↑θ ↑φ) P_) + √2 * ε + 3 * κ) *
-    (s.norm ((rotMℚℝ ↑θ ↑φ) (P_ - Q_)) + 2 * √2 * ε + 6 * κ)
-  -- The goal becomes numAℚ / denAℚ ≤ numA / denA after unfolding
+  set denAℚ := (↑(s.norm (p.rotM₂ℚ P_)) + √2 * ε + 3 * κ) *
+    (↑(s.norm (p.rotM₂ℚ (P_ - Q_))) + 2 * √2 * ε + 6 * κ)
   change numAℚ / denAℚ ≤ numA / denA
   -- Step 1: numAℚ ≤ numA
   have h_numAℚ_le : numAℚ ≤ numA := by
-    -- First, bound the inner product difference
     have hPQ_norm : ‖P - Q‖ ≤ 2 := by
       calc ‖P - Q‖ ≤ ‖P‖ + ‖Q‖ := norm_sub_le _ _
         _ ≤ 1 + 1 := add_le_add hP hQ
         _ = 2 := by ring
-    have hPQ_approx : ‖(P - Q) - (P_ - Q_)‖ ≤ 2 * κ := by
-      calc ‖(P - Q) - (P_ - Q_)‖ = ‖(P - P_) - (Q - Q_)‖ := by congr 1; abel
-        _ ≤ ‖P - P_‖ + ‖Q - Q_‖ := norm_sub_le _ _
+    have hPQ_approx : ‖(P - Q) - (toR3 P_ - toR3 Q_)‖ ≤ 2 * κ := by
+      calc ‖(P - Q) - (toR3 P_ - toR3 Q_)‖
+          = ‖(P - toR3 P_) - (Q - toR3 Q_)‖ := by congr 1; abel
+        _ ≤ ‖P - toR3 P_‖ + ‖Q - toR3 Q_‖ := norm_sub_le _ _
         _ ≤ κ + κ := add_le_add Papprox Qapprox
         _ = 2 * κ := by ring
-    have h_inner : |⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) (P - Q)⟫ -
-        ⟪(rotMℚℝ ↑θ ↑φ) P_, (rotMℚℝ ↑θ ↑φ) (P_ - Q_)⟫| ≤ 10 * κ :=
+    have h_inner_real : |⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) (P - Q)⟫ -
+        ⟪(rotMℚℝ ↑θ ↑φ) (toR3 P_), (rotMℚℝ ↑θ ↑φ) (toR3 P_ - toR3 Q_)⟫| ≤ 10 * κ :=
       inner_product_bound_10kappa hP hPQ_norm Papprox hPQ_approx
+    have h_inner :
+        |⟪(rotM ↑θ ↑φ) P, (rotM ↑θ ↑φ) (P - Q)⟫ -
+          ((p.rotM₂ℚ P_ ⬝ᵥ p.rotM₂ℚ (P_ - Q_) : ℚ) : ℝ)| ≤ 10 * κ := by
+      rw [h_inner_bridge]; exact h_inner_real
     replace h_inner := sub_le_of_abs_sub_le_left h_inner
-    have h_norm_PQ : ‖P - Q‖ ≤ ‖P_ - Q_‖ + 2 * κ := by
+    have h_norm_PQ : ‖P - Q‖ ≤ ‖toR3 (P_ - Q_)‖ + 2 * κ := by
+      rw [h_toR3_sub]
       calc ‖P - Q‖
-        _ ≤ ‖P_ - Q_‖ + ‖(P - Q) - (P_ - Q_)‖ := norm_le_insert' _ _
-        _ ≤ ‖P_ - Q_‖ + 2 * κ := by grw [hPQ_approx]
-    -- Now combine: numAℚ ≤ numA
-    -- numAℚ = inner_ℚ - 10κ - 2ε(‖P_-Q_‖ + 2κ)(√2 + ε)
-    -- numA  = inner - 2ε‖P-Q‖(√2 + ε)
-    -- We need: inner_ℚ - 10κ - 2ε(‖P_-Q_‖ + 2κ)(√2 + ε) ≤ inner - 2ε‖P-Q‖(√2 + ε)
-    -- i.e., inner_ℚ - 10κ ≤ inner + 2ε(√2 + ε)((‖P_-Q_‖ + 2κ) - ‖P-Q‖)
-    -- which follows from inner_ℚ - 10κ ≤ inner and (‖P_-Q_‖ + 2κ) - ‖P-Q‖ ≥ 0
-    have h_eps_term : 2 * ε * ‖P - Q‖ * (√2 + ε) ≤ 2 * ε * (‖P_ - Q_‖ + 2 * κ) * (√2 + ε) :=
+        _ ≤ ‖toR3 P_ - toR3 Q_‖ + ‖(P - Q) - (toR3 P_ - toR3 Q_)‖ := norm_le_insert' _ _
+        _ ≤ ‖toR3 P_ - toR3 Q_‖ + 2 * κ := by grw [hPQ_approx]
+    have h_eps_term : 2 * ε * ‖P - Q‖ * (√2 + ε) ≤
+        2 * ε * (‖toR3 (P_ - Q_)‖ + 2 * κ) * (√2 + ε) :=
       mul_le_mul_of_nonneg_right
         (mul_le_mul_of_nonneg_left h_norm_PQ (by linarith)) (by positivity)
     linarith [h_inner, h_eps_term]
   -- Step 2: denA ≤ denAℚ
   have h_denA_le : denA ≤ denAℚ := by
-    -- Factor 1: ‖rotM P‖ + √2ε ≤ s.norm(rotMℚ P_) + √2ε + 3κ
     have h_f1 : ‖(rotM ↑θ ↑φ) P‖ + √2 * ε ≤
-        s.norm ((rotMℚℝ ↑θ ↑φ) P_) + √2 * ε + 3 * κ := by
-      linarith [norm_diff_bound_3kappa hP Papprox (θ := θ) (φ := φ),
-        UpperSqrt_norm_le s ((rotMℚℝ ↑θ ↑φ) P_)]
-    -- Factor 2: ‖rotM (P-Q)‖ + 2√2ε ≤ s.norm(rotMℚ (P_-Q_)) + 2√2ε + 6κ
+        ↑(s.norm (p.rotM₂ℚ P_)) + √2 * ε + 3 * κ := by
+      have h1 : ‖(rotM ↑θ ↑φ) P‖ ≤ ‖(rotMℚℝ ↑θ ↑φ) (toR3 P_)‖ + 3 * κ :=
+        norm_diff_bound_3kappa hP Papprox (θ := θ) (φ := φ)
+      linarith [h1, h_norm_bridge_P]
     have h_f2 : ‖(rotM ↑θ ↑φ) (P - Q)‖ + 2 * √2 * ε ≤
-        s.norm ((rotMℚℝ ↑θ ↑φ) (P_ - Q_)) + 2 * √2 * ε + 6 * κ := by
-      linarith [norm_diff_bound_6kappa hP hQ Papprox Qapprox (θ := θ) (φ := φ),
-        UpperSqrt_norm_le s ((rotMℚℝ ↑θ ↑φ) (P_ - Q_))]
+        ↑(s.norm (p.rotM₂ℚ (P_ - Q_))) + 2 * √2 * ε + 6 * κ := by
+      have h2 : ‖(rotM ↑θ ↑φ) (P - Q)‖ ≤ ‖(rotMℚℝ ↑θ ↑φ) (toR3 P_ - toR3 Q_)‖ + 6 * κ :=
+        norm_diff_bound_6kappa hP hQ Papprox Qapprox (θ := θ) (φ := φ)
+      linarith [h2, h_norm_bridge_PQ]
     exact mul_le_mul h_f1 h_f2 (by positivity) (le_trans (by positivity) h_f1)
-  -- Step 3: Apply div_le_div₀
   exact div_le_div₀ hA_nonneg h_numAℚ_le (by positivity) h_denA_le

@@ -53,7 +53,7 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
 Condition A_ε from [SY25] Theorem 36
 -/
 def Triangle.Aε (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > √2 * ε
+  ∃ σ ∈ ({0, 1} : Set ℕ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > √2 * ε
 
 noncomputable
 def Triangle.Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) : ℝ :=
@@ -142,9 +142,8 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     simp [P_, Q_, K]
     rw [smul_smul, hL]
     congr 1
-    rw [←zpow_add₀ (show (-1:ℝ) ≠ 0 by norm_num)]
-    ring_nf
-    rw [zpow_add₀ (show (-1:ℝ) ≠ 0 by norm_num), mul_comm σQ, zpow_mul]
+    rw [← pow_add, show σQ + (σP + σQ) = σP + 2 * σQ by ring,
+        pow_add, pow_mul]
     norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
     constructor
@@ -269,8 +268,8 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
       LinearIsometry.coe_toContinuousLinearMap, inner_smul_left, real_inner_smul_right, RCLike.conj_to_real]
     rw [hL i, L.inner_map_map]
     have h_exp : (-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP = (-1 : ℝ)^σQ := by
-      rw [← zpow_add₀ (by norm_num : (-1 : ℝ) ≠ 0), show σP + σQ + σP = 2 * σP + σQ by ring,
-          zpow_add₀ (by norm_num), zpow_mul]; norm_num
+      rw [← pow_add, show σP + σQ + σP = 2 * σP + σQ by ring,
+          pow_add, pow_mul]; norm_num
     rw [←mul_assoc, h_exp]
   have h_YP : ⟪Y, P_ i⟫ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := by simp only [P_, real_inner_smul_right]
   rw [h_ZP, h_YP]
@@ -278,7 +277,7 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have hZQ_sign : 0 < (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by simp only [Q_, real_inner_smul_right] at hZQ_pos; exact hZQ_pos
   have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := by rw [← h_YP]; exact hYP_pos
   calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ = |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := (abs_of_pos hZQ_sign).symm
-    _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_neg_one_zpow, one_mul]
+    _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_neg_one_pow, one_mul]
     _ < |⟪Y, P i⟫| := sq_lt_sq.mp h_inner_sq
-    _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_neg_one_zpow, one_mul]
+    _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_neg_one_pow, one_mul]
     _ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := abs_of_pos hYP_sign

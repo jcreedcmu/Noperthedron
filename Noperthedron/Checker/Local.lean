@@ -1,7 +1,9 @@
 import Mathlib.Data.Finset.Max
 
+import Noperthedron.Checker.ApproxSqrt
 import Noperthedron.Local.Congruent
 import Noperthedron.RationalApprox.Basic
+import Noperthedron.RationalApprox.RationalLocal
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Python
@@ -43,11 +45,9 @@ abbrev Row.M₂_ (r : Row) : Matrix (Fin 2) (Fin 3) ℚ :=
 abbrev Row.rotRℚ (r : Row) : Matrix (Fin 2) (Fin 2) ℚ :=
   RationalApprox.rotRℚ_mat r.α
 
-abbrev Row.X₁ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
-  RationalApprox.vecXℚ_mat r.θ₁ r.φ₁
+abbrev Row.X₁ (r : Row) : Fin 3 → ℚ := RationalApprox.vecXℚ r.θ₁ r.φ₁
 
-abbrev Row.X₂ (r : Row) : Matrix (Fin 3) (Fin 1) ℚ :=
-  RationalApprox.vecXℚ_mat r.θ₂ r.φ₂
+abbrev Row.X₂ (r : Row) : Fin 3 → ℚ := RationalApprox.vecXℚ r.θ₂ r.φ₂
 
 abbrev rot90 : Matrix (Fin 2) (Fin 2) ℚ :=
   !![0, -1; 1, 0]
@@ -56,19 +56,27 @@ abbrev Row.r (row : Row) : ℚ :=
   row.r' / 1000
 
 open scoped Matrix
+open RationalApprox (sqrtApprox)
+
+abbrev Row.δ (row : Row) : ℚ :=
+  Finset.max'
+    (Finset.image
+      (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
+         (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox) Finset.univ)
+    (Finset.image_nonempty.mpr ⟨0, Finset.mem_univ 0⟩)
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
 @[mk_iff]
 structure Row.ValidLocal (row : Row) : Prop where
   nodeType_eq : row.nodeType = 2
   center_in_fourQ : row.interval.centerPose ∈ fourInterval ℚ
+  epsilon_pos : 0 < row.epsilon
   exists_symmetry : ∃ s : TriangleSymmetry,
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
-  X₁_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
-                     (row.X₁.transpose *ᵥ (pythonVertex (row.Pi i))) 0
-  X₂_inner_gt : ∀ i, sqrt_twoℚ * row.epsilon + 3 * κQ <
-                     (-1) ^ row.sigma_Q.val *
-                       (row.X₂.transpose *ᵥ (pythonVertex (row.Qi i))) 0
+  X₁_inner_gt : Local.TriangleQ.Aεℚσ
+                  row.X₁ (pythonVertex ∘ row.Pi) row.epsilon 0 sqrtApprox
+  X₂_inner_gt : Local.TriangleQ.Aεℚσ
+                  row.X₂ (pythonVertex ∘ row.Qi) row.epsilon row.sigma_Q.val sqrtApprox
   P_spanning : ∀ i : Fin 3,
     2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
     (rot90 *ᵥ (row.M₁_ *ᵥ (pythonVertex (row.Pi i)))) ⬝ᵥ
@@ -77,7 +85,12 @@ structure Row.ValidLocal (row : Row) : Prop where
     2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
     (rot90 *ᵥ (row.M₂_ *ᵥ (pythonVertex (row.Qi i)))) ⬝ᵥ
       (row.M₂_ *ᵥ (pythonVertex ((row.Qi (i + 1)))))
-  -- ...
+  rpos : 0 < row.r
+  r_valid : RationalApprox.LocalTheorem.BoundRℚ
+              row.r row.epsilon row.interval.centerPose (pythonVertex ∘ row.Qi) sqrtApprox
+  Bεℚ : Local.TriangleQ.Bεℚ
+    (pythonVertex ∘ row.Qi) row.Qi pythonVertex row.interval.centerPose
+    row.epsilon row.δ row.r sqrtApprox
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
   decidable_of_iff _ (Row.validLocal_iff row).symm
@@ -112,7 +125,7 @@ def testLocalRow : Row := {
   Q1_index := VertexIndex.ofFin90 ⟨79, by lia⟩,
   Q2_index := VertexIndex.ofFin90 ⟨80, by lia⟩,
   Q3_index := VertexIndex.ofFin90 ⟨87, by lia⟩,
-  r' := 0, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
+  r' := 955, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
 }
 
 /-- info: true -/
@@ -147,4 +160,3 @@ def testLocalRowReflection : Row := {
 /-- info: true -/
 #guard_msgs in
 #eval testLocalRowReflection.ValidLocal
-
