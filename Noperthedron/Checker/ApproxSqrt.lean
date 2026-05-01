@@ -325,12 +325,8 @@ private lemma findShiftAux_down {x : ℚ} :
       cases fuel with
       | zero => omega
       | succ f =>
-        unfold findShiftAux
-        simp only
-        have hnotlo : ¬ (x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (20 : ℕ))) := by
-          push Not
-          calc ((10 : ℚ) ^ (20 : ℕ)) ≤ ((10 : ℚ) ^ (22 : ℕ)) := by norm_num
-            _ ≤ x * (10 : ℚ) ^ (2 * a) := hcase
+        simp only [findShiftAux]
+        have hnotlo : ¬ (x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (20 : ℕ))) := Rat.not_lt.mpr hlo
         rw [if_neg hnotlo, if_pos hcase]
         -- Recurse at a-1. New scaled = old scaled / 100.
         have hnew_eq : x * (10 : ℚ) ^ (2 * (a - 1)) * 100 = x * (10 : ℚ) ^ (2 * a) :=
@@ -514,11 +510,8 @@ private lemma sqrtℚLow_pos_of_pos {y : ℚ} (hy : 0 < y) : 0 < sqrtℚLow y :=
       exact hnum_ge_den
     exact_mod_cast this
   -- b = Nat.sqrt m ≥ Nat.sqrt 1 = 1
-  have hb_ge_one : 1 ≤ b := by
-    rw [hb]
-    have : Nat.sqrt 1 ≤ Nat.sqrt m := Nat.sqrt_le_sqrt hm_ge_one
-    simpa using this
-  have hb_pos : (0 : ℚ) < (b : ℚ) := by exact_mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hb_ge_one)
+  have hb_ge_one : 1 ≤ b := Nat.le_sqrt'.mpr hm_ge_one
+  have hb_pos : (0 : ℚ) < (b : ℚ) := mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hb_ge_one)
   have h10a_pos : (0 : ℚ) < (10 : ℚ) ^ (-a) := by positivity
   exact mul_pos hb_pos h10a_pos
 
@@ -551,10 +544,7 @@ theorem sqrt_le_sqrtℚUp {x : ℚ} (hx : 0 ≤ x) :
     -- Goal: √x * sqrtℚLow y ≤ 1
     -- (sqrtℚLow y)^2 ≤ y = 1/x. Multiply by x > 0: (sqrtℚLow y)^2 * x ≤ 1.
     have hsq' : ((sqrtℚLow y : ℚ) : ℝ) ^ 2 ≤ 1 / ((x : ℚ) : ℝ) := by rw [← hy_R]; exact hsq
-    have hsq_x : ((sqrtℚLow y : ℚ) : ℝ) ^ 2 * ((x : ℚ) : ℝ) ≤ 1 := by
-      have := mul_le_mul_of_nonneg_right hsq' (le_of_lt hx_R_pos)
-      rw [div_mul_cancel₀ _ (ne_of_gt hx_R_pos)] at this
-      exact this
+    rw [le_div_iff₀ hx_R_pos] at hsq'
     -- So (sqrtℚLow y * √x)^2 ≤ 1.
     have hprod_nn : 0 ≤ Real.sqrt ((x : ℚ) : ℝ) * ((sqrtℚLow y : ℚ) : ℝ) :=
       mul_nonneg (Real.sqrt_nonneg _) (le_of_lt hLow_pos_R)
@@ -563,7 +553,7 @@ theorem sqrt_le_sqrtℚUp {x : ℚ} (hx : 0 ≤ x) :
       rw [mul_pow, Real.sq_sqrt (le_of_lt hx_R_pos)]
       ring
     have hprod_sq_le : (Real.sqrt ((x : ℚ) : ℝ) * ((sqrtℚLow y : ℚ) : ℝ)) ^ 2 ≤ 1 := by
-      rw [h_sq_eq]; exact hsq_x
+      rw [h_sq_eq]; exact hsq'
     -- From a² ≤ 1 and a ≥ 0, conclude a ≤ 1.
     nlinarith [hprod_nn, hprod_sq_le]
 
