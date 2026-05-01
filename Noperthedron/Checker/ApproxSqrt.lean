@@ -582,6 +582,24 @@ theorem norm_le_normUpℚ {n : ℕ} (v : Fin n → ℚ) :
     Real.sqrt ((normSqℚ v : ℚ) : ℝ) ≤ ((normUpℚ v : ℚ) : ℝ) :=
   sqrt_le_sqrtℚUp (normSqℚ_nonneg v)
 
+def upperSqrt : UpperSqrt where
+  f := sqrtℚUp
+  bound _ := sqrt_le_sqrtℚUp
+
+def lowerSqrt : LowerSqrt where
+  f := sqrtℚLow
+  bound _ := sqrtℚLow_le_sqrt
+
+def sqrtApprox : Approx where
+  upper_sqrt_two := 1.42
+  upper_sqrt_two_gt_sqrt_two := by
+    sorry
+  upper_sqrt_five := 2.24
+  upper_sqrt_five_gt_sqrt_five := by
+    sorry
+  lower_sqrt := lowerSqrt
+  upper_sqrt := upperSqrt
+
 end RationalApprox
 
 /-
