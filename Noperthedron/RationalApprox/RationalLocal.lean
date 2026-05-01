@@ -22,9 +22,8 @@ Condition A_ε^ℚ from [SY25] Theorem 48
 def TriangleQ.Aεℚ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
   ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * κℚ
 
-noncomputable
 def Triangle.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
-   (approx : RationalApprox.Approx) : ℝ :=
+   (approx : RationalApprox.Approx) : ℚ :=
    (p.rotM₂ℚ v₁ ⬝ᵥ p.rotM₂ℚ (v₁ - v₂) - 10 * κℚ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κℚ) * (approx.upper_sqrt_two + ε))
    / ((approx.upper_sqrt.norm (p.rotM₂ℚ v₁) + approx.upper_sqrt_two * ε + 3 * κℚ) * (approx.upper_sqrt.norm (p.rotM₂ℚ (v₁ - v₂)) + 2 * approx.upper_sqrt_two * ε + 6 * κℚ))
 
@@ -426,7 +425,10 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
         le_of_lt approx.upper_sqrt_five_gt_sqrt_five
       have h_le : (↑δ + √5 * ↑ε) / ↑r ≤ (↑δ + ↑approx.upper_sqrt_five * ↑ε) / ↑r := by
         gcongr
-      exact h_le.trans_lt hbe
+      have hbe_ℝ : ((δ + approx.upper_sqrt_five * ε) / r : ℝ) <
+          (Local.Triangle.Bεℚ.lhs Q_ℚ v_ℚ p_ℚ ε approx : ℝ) := by exact_mod_cast hbe
+      push_cast at hbe_ℝ
+      exact h_le.trans_lt hbe_ℝ
     -- Helper facts
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
     -- Bridges relating real and rational norms via UpperSqrt_norm_le.
