@@ -602,25 +602,32 @@ def sqrtApprox : Approx where
 
 end RationalApprox
 
-/-
 /-! ## Sanity checks -/
 section Examples
 open RationalApprox
 
--- `√2 ≈ 1.41421356237…`. We expect `sqrtℚLow 2` slightly below and
--- `sqrtℚUp 2` slightly above.
-#eval sqrtℚLow 2          -- 14142135623 / 10000000000
+/-- info: 14142135623 / 10000000000 -/
+#guard_msgs in
+#eval sqrtℚLow 2
+
+/-- info: 50000000000 / 35355339059 -/
+#guard_msgs in
 #eval sqrtℚUp 2
 
--- `√(1/2) ≈ 0.70710678118…`.
+/-- info: 35355339059 / 50000000000 -/
+#guard_msgs in
 #eval sqrtℚLow (1/2)
+
+/-- info: 10000000000 / 14142135623 -/
+#guard_msgs in
 #eval sqrtℚUp  (1/2)
 
--- `√100 = 10`; the lower rational sqrt should match exactly,
--- though `b = 10^11` because of the chosen scale.
+/-- info: 10 -/
+#guard_msgs in
 #eval sqrtℚLow 100
+
+/-- info: 10 -/
+#guard_msgs in
 #eval sqrtℚUp  100
 
 end Examples
--/
-
