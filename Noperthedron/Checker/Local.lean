@@ -84,6 +84,7 @@ structure Row.ValidLocal (row : Row) : Prop where
     2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
     (rot90 *ᵥ (row.M₂_ *ᵥ (pythonVertex (row.Qi i)))) ⬝ᵥ
       (row.M₂_ *ᵥ (pythonVertex ((row.Qi (i + 1)))))
+  rpos : 0 < row.r
   r_valid : RationalApprox.LocalTheorem.BoundRℚ
               row.r row.epsilon row.interval.centerPose (pythonVertex ∘ row.Qi) sqrtApprox
   Bεℚ : Local.TriangleQ.Bεℚ
@@ -123,7 +124,7 @@ def testLocalRow : Row := {
   Q1_index := VertexIndex.ofFin90 ⟨79, by lia⟩,
   Q2_index := VertexIndex.ofFin90 ⟨80, by lia⟩,
   Q3_index := VertexIndex.ofFin90 ⟨87, by lia⟩,
-  r' := 0, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
+  r' := 955, sigma_Q := ⟨1, by simp [Finset.mem_Icc]⟩
 }
 
 /-- info: true -/

@@ -10,10 +10,9 @@ namespace Noperthedron.Solution
 theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
     (hrow : row.ValidLocal) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  let ε := row.interval.radius
+  let ε := row.epsilon
   let iv := row.toRealInterval
   let pbar := iv.center
-  let r := iv.radius
   rintro ⟨q, hqi, hqr⟩
   have center_eq : ∀ p : Param, ((row.interval.center p : ℚ) : ℝ) =
       ((row.interval.min.getParam p : ℝ) + (row.interval.max.getParam p : ℝ)) / 2 := by
@@ -35,10 +34,27 @@ theorem valid_local_imp_no_rupert (tab : Table) (row : Row)
     rw [show (row.α : ℝ) = ((row.interval.center .α : ℚ) : ℝ) from rfl, center_eq]
     rfl
   obtain ⟨s, hs₁, hs₂⟩ := hrow.exists_symmetry
+  have hε : 0 < ε := by sorry
   have := RationalApprox.LocalTheorem.rational_local
            exactPoly pythonPolyQ KappaApprox.exact_κApprox_python
            row.Pi row.Qi
            (Noperthedron.TriangleSymmetry.congruent_of_apply s row.Pi row.Qi hs₁ hs₂)
            row.interval.centerPose hrow.center_in_fourQ
-           ε
+           ε row.δ row.r hε hrow.rpos RationalApprox.sqrtApprox hrow.r_valid
+           ?hdelta
+           ?hx1
+           ?hx2
+           ?hspan1
+           ?hspan2
+           hrow.Bεℚ
+  case hdelta =>
+    sorry
+  case hx1 =>
+    sorry
+  case hx2 =>
+    sorry
+  case hspan1 =>
+    sorry
+  case hspan2 =>
+    sorry
   sorry
