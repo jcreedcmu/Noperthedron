@@ -76,5 +76,5 @@ The Noperthedron is not Rupert.
 theorem nopert_not_rupert : ¬ IsRupert exactVerts := by
   intro r
   refine nopert_not_rupert_set ?_
-  have := rupert_iff_rupert_set exactVerts |>.mp r
-  simpa [exactVerts, exactPolyhedron, Polyhedron.hull] using this
+  rw [rupert_iff_rupert_set exactVerts] at r
+  simpa [exactVerts, exactPolyhedron, Polyhedron.hull] using r
