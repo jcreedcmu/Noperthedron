@@ -27,7 +27,7 @@ def IsRupert (vertices : Finset (EuclideanSpace ℝ (Fin 3))) : Prop :=
 The main result we want to prove: there exists a convex polyhedron (represented as
 a finite set of vertices) that does not have the Rupert Property.
 -/
-def ExistsNotRupert : Prop :=
+def ExistsNonRupertPolyhedron : Prop :=
   ∃ vs : Finset (EuclideanSpace ℝ (Fin 3)),
     (interior (convexHull ℝ vs : Set (EuclideanSpace ℝ (Fin 3)))).Nonempty ∧
     ¬IsRupert vs
