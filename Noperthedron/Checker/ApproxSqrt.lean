@@ -254,7 +254,7 @@ returns a result in the window provided `fuel ≥ k`.
 Note: maintaining the invariant `scaled < 10^22` is automatic because each
 "up" step is taken only when `scaled < 10^20`, which then yields
 `scaled * 100 < 10^22`. -/
-private lemma findShiftAux_up {x : ℚ} (hx : 0 < x) :
+private lemma findShiftAux_up {x : ℚ} :
     ∀ (k : ℕ) (a : ℤ),
       x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (22 : ℕ)) →
       ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * a) * (100 : ℚ) ^ k →
@@ -298,13 +298,13 @@ private lemma findShiftAux_up {x : ℚ} (hx : 0 < x) :
           linarith [this ▸ hlo]
         exact ih (a + 1) hnew_lt hnew_lo f (Nat.le_of_succ_le_succ hfuel)
     · -- scaled ≥ 10^20: combined with hhi, in window.
-      push_neg at hcase
+      push Not at hcase
       have hw : InWindow x a := ⟨hcase, hhi⟩
       rw [findShiftAux_of_inWindow x a fuel hw]
       exact hw
 
 /-- **Down-search convergence**: symmetric to `findShiftAux_up`. -/
-private lemma findShiftAux_down {x : ℚ} (hx : 0 < x) :
+private lemma findShiftAux_down {x : ℚ} :
     ∀ (k : ℕ) (a : ℤ),
       ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * a) →
       x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (22 : ℕ)) * (100 : ℚ) ^ k →
@@ -328,7 +328,7 @@ private lemma findShiftAux_down {x : ℚ} (hx : 0 < x) :
         unfold findShiftAux
         simp only
         have hnotlo : ¬ (x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (20 : ℕ))) := by
-          push_neg
+          push Not
           calc ((10 : ℚ) ^ (20 : ℕ)) ≤ ((10 : ℚ) ^ (22 : ℕ)) := by norm_num
             _ ≤ x * (10 : ℚ) ^ (2 * a) := hcase
         rw [if_neg hnotlo, if_pos hcase]
@@ -357,7 +357,7 @@ private lemma findShiftAux_down {x : ℚ} (hx : 0 < x) :
           exact lt_of_mul_lt_mul_right h1 (by positivity)
         exact ih (a - 1) hnew_lo hnew_hi f (Nat.le_of_succ_le_succ hfuel)
     · -- scaled < 10^22: combined with hlo, in window.
-      push_neg at hcase
+      push Not at hcase
       have hw : InWindow x a := ⟨hlo, hcase⟩
       rw [findShiftAux_of_inWindow x a fuel hw]
       exact hw
@@ -449,9 +449,9 @@ private lemma findShift_inWindow {x : ℚ} (hx : 0 < x) :
     have hfuel : k ≤ N + D + 100 := by rw [hk]; omega
     have hhi0 : x * (10 : ℚ) ^ (2 * (0 : ℤ)) < ((10 : ℚ) ^ (22 : ℕ)) := by
       simp only [mul_zero, zpow_zero, mul_one]; exact hcase
-    exact findShiftAux_up hx k 0 hhi0 hkbound (N + D + 100) hfuel
+    exact findShiftAux_up k 0 hhi0 hkbound (N + D + 100) hfuel
   · -- Down-search. x ≥ 10^22. Use k = N.
-    push_neg at hcase
+    push Not at hcase
     set k : ℕ := N with hk
     have hkbound : x * (10 : ℚ) ^ (2 * (0 : ℤ)) < ((10 : ℚ) ^ (22 : ℕ)) * (100 : ℚ) ^ k := by
       simp only [mul_zero, zpow_zero, mul_one]
@@ -472,7 +472,7 @@ private lemma findShift_inWindow {x : ℚ} (hx : 0 < x) :
       calc ((10 : ℚ) ^ (20 : ℕ)) ≤ ((10 : ℚ) ^ (22 : ℕ)) := by norm_num
         _ ≤ x := hcase
     have hfuel : k ≤ N + D + 100 := by rw [hk]; omega
-    exact findShiftAux_down hx k 0 hlo0 hkbound (N + D + 100) hfuel
+    exact findShiftAux_down k 0 hlo0 hkbound (N + D + 100) hfuel
 
 private lemma sqrtℚLow_pos_of_pos {y : ℚ} (hy : 0 < y) : 0 < sqrtℚLow y := by
   unfold sqrtℚLow
