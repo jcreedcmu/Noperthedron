@@ -265,7 +265,12 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
       bounds_kappa3_MQ (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
     show ‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ > r + √2 * ε
     have hr₁i : (approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) >
-        r + √2 * ε + 3 * κ := hr₁ i
+        r + √2 * ε + 3 * κ := by
+      have h := hr₁ i
+      have hcast : ((approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℚ) : ℝ) >
+          ((r + approx.upper_sqrt_two * ε + 3 * κℚ : ℚ) : ℝ) := by exact_mod_cast h
+      push_cast [h_κℚ] at hcast
+      linarith [h_us2_eps]
     rw [abs_le] at hMQ
     linarith [hMQ.1]
   -- Bridge: BoundDeltaℚ → BoundDelta
