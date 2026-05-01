@@ -20,7 +20,7 @@ def TriangleQ.toReal (t : TriangleQ) : Triangle :=
 Condition A_ε^ℚ from [SY25] Theorem 48
 -/
 def TriangleQ.Aεℚ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
-  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * ⟪toR3 X, P_.toReal i⟫ > approx.upper_sqrt_two * ε + 3 * κ
+  ∃ σ ∈ ({-1, 1} : Set ℤ), ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * RationalApprox.κℚ
 
 noncomputable
 def Triangle.Bεℚ.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℚ) (approx : RationalApprox.Approx) : ℝ :=
@@ -80,6 +80,8 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
           (fun k => poly_.toReal.v (hpoly.bijection k)) p_.toReal ε δ r approx)
     : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
   have hεℝ : 0 < (ε : ℝ) := span₁.pos
+  -- Keep a handle on the rational pose before shadowing.
+  let p_ℚ : Pose ℚ := p_
   set p_ := p_.toReal
   have hp : (fourInterval ℝ).contains p_ := fourInterval_contains_toReal hp
   -- The rational `p_.θ₁` (cast to ℝ) is defeq to `p_.θ₁`, so the spanning hypotheses
@@ -114,6 +116,19 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     ext j
     unfold toR3 vecXℚ vecXℚℝ
     fin_cases j <;> simp [sinℚ_match, cosℚ_match]
+  have h_inner_toR3 : ∀ (v w : Fin 3 → ℚ),
+      @inner ℝ ℝ³ _ (toR3 v) (toR3 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
+    intro v w
+    unfold toR3
+    have h := EuclideanSpace.inner_eq_star_dotProduct
+      (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 3))
+      (WithLp.toLp 2 (fun i => (w i : ℝ)))
+    simp only [star_trivial] at h
+    rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
+         (WithLp.toLp 2 (fun i => (w i : ℝ))) =
+         (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
+    simp [dotProduct]
+  have h_κℚ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; norm_num
   have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
     mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
   have ae₁' : P.Aε p_.vecX₁ ε := by
@@ -122,9 +137,15 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hX : ‖⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫‖ ≤ 3 * κ :=
       bounds_kappa3_X (θ := θ₁) (φ := φ₁) (hPnorm i) (hPapprox i)
     change (-1) ^ σ * ⟪vecX ↑θ₁ ↑φ₁, P i⟫ > √2 * ε
-    have hσ₂i' := hσ₂ i
-    simp only [Pose.vecX₁ℚ, h_toR3_vecXℚ] at hσ₂i'
-    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫ > approx.upper_sqrt_two * ε + 3 * κ := hσ₂i'
+    have h_inner_eq : @inner ℝ ℝ³ _ (vecXℚℝ (↑θ₁ : ℝ) ↑φ₁) (P_ i) =
+        ((p_ℚ.vecX₁ℚ ⬝ᵥ (hpoly.transportTri Pi) i : ℚ) : ℝ) := by
+      show @inner ℝ ℝ³ _ (vecXℚℝ ↑p_ℚ.θ₁ ↑p_ℚ.φ₁) (P_ i) = _
+      rw [← h_toR3_vecXℚ]
+      exact h_inner_toR3 _ _
+    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫ > approx.upper_sqrt_two * ε + 3 * κ := by
+      rw [h_inner_eq, ← h_κℚ,
+          show ((-1 : ℝ)) ^ σ = ((((-1 : ℚ)) ^ σ : ℚ) : ℝ) by push_cast; rfl]
+      exact_mod_cast hσ₂ i
     rw [Real.norm_eq_abs] at hX
     have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_zpow σ
     have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₁ ↑φ₁, P i⟫ - ⟪vecXℚℝ ↑θ₁ ↑φ₁, P_ i⟫)| ≤ 3 * κ := by
@@ -137,9 +158,15 @@ theorem rational_local {ι : Type} [Fintype ι] [Nonempty ι]
     have hX : ‖⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫‖ ≤ 3 * κ :=
       bounds_kappa3_X (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
     change (-1) ^ σ * ⟪vecX ↑θ₂ ↑φ₂, Q i⟫ > √2 * ε
-    have hσ₂i' := hσ₂ i
-    simp only [Pose.vecX₂ℚ, h_toR3_vecXℚ] at hσ₂i'
-    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫ > approx.upper_sqrt_two * ε + 3 * κ := hσ₂i'
+    have h_inner_eq : @inner ℝ ℝ³ _ (vecXℚℝ (↑θ₂ : ℝ) ↑φ₂) (Q_ i) =
+        ((p_ℚ.vecX₂ℚ ⬝ᵥ (hpoly.transportTri Qi) i : ℚ) : ℝ) := by
+      show @inner ℝ ℝ³ _ (vecXℚℝ ↑p_ℚ.θ₂ ↑p_ℚ.φ₂) (Q_ i) = _
+      rw [← h_toR3_vecXℚ]
+      exact h_inner_toR3 _ _
+    have hσ₂i : (-1) ^ σ * ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫ > approx.upper_sqrt_two * ε + 3 * κ := by
+      rw [h_inner_eq, ← h_κℚ,
+          show ((-1 : ℝ)) ^ σ = ((((-1 : ℚ)) ^ σ : ℚ) : ℝ) by push_cast; rfl]
+      exact_mod_cast hσ₂ i
     rw [Real.norm_eq_abs] at hX
     have habs : |(-1 : ℝ) ^ σ| = 1 := abs_neg_one_zpow σ
     have hdiff : |(-1 : ℝ) ^ σ * (⟪vecX ↑θ₂ ↑φ₂, Q i⟫ - ⟪vecXℚℝ ↑θ₂ ↑φ₂, Q_ i⟫)| ≤ 3 * κ := by
