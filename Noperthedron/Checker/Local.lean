@@ -86,7 +86,9 @@ structure Row.ValidLocal (row : Row) : Prop where
       (row.M₂_ *ᵥ (pythonVertex ((row.Qi (i + 1)))))
   r_valid : RationalApprox.LocalTheorem.BoundRℚ
               row.r row.epsilon row.interval.centerPose (pythonVertex ∘ row.Qi) sqrtApprox
-  -- ...
+  Bεℚ : Local.TriangleQ.Bεℚ
+    (pythonVertex ∘ row.Qi) row.Qi pythonVertex row.interval.centerPose
+    row.epsilon row.δ row.r sqrtApprox
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
   decidable_of_iff _ (Row.validLocal_iff row).symm
@@ -156,4 +158,3 @@ def testLocalRowReflection : Row := {
 /-- info: true -/
 #guard_msgs in
 #eval testLocalRowReflection.ValidLocal
-
