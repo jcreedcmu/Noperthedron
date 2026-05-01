@@ -103,10 +103,6 @@ theorem valid_local_imp_no_rupert (_tab : Table) (row : Row)
   let iv := row.toRealInterval
   let pbar := iv.center
   rintro ⟨q, hqi, hqr⟩
-  have center_eq : ∀ p : Param, ((row.interval.center p : ℚ) : ℝ) =
-      ((row.interval.min.getParam p : ℝ) + (row.interval.max.getParam p : ℝ)) / 2 := by
-    intro p
-    simp [Interval.center]
   obtain ⟨s, hs₁, hs₂⟩ := hrow.exists_symmetry
   have hε : 0 < ε := hrow.epsilon_pos
   have hpbar_eq : row.interval.centerPose.toReal = pbar := by
