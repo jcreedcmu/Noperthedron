@@ -42,9 +42,6 @@ abbrev Row.M₁_ (r : Row) : Matrix (Fin 2) (Fin 3) ℚ :=
 abbrev Row.M₂_ (r : Row) : Matrix (Fin 2) (Fin 3) ℚ :=
   RationalApprox.rotMℚ_mat r.θ₂ r.φ₂
 
-abbrev Row.rotRℚ (r : Row) : Matrix (Fin 2) (Fin 2) ℚ :=
-  RationalApprox.rotRℚ_mat r.α
-
 abbrev Row.X₁ (r : Row) : Fin 3 → ℚ := RationalApprox.vecXℚ r.θ₁ r.φ₁
 
 abbrev Row.X₂ (r : Row) : Fin 3 → ℚ := RationalApprox.vecXℚ r.θ₂ r.φ₂
