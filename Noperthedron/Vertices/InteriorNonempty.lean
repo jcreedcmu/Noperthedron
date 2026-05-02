@@ -6,7 +6,6 @@ import Noperthedron.Vertices.Exact
 import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
 import Mathlib.Analysis.Normed.Affine.AddTorsorBases
 
-set_option doc.verso true
 /-!
 This file proves the interior of the Noperthedron is nonempty.
 -/
@@ -68,11 +67,9 @@ theorem M_rat_cols_eq : M_rat.col = ![2 * C1, C1 + C2, C1 + C3] := by
   ext i j; fin_cases i <;> fin_cases j <;>
     simp [M_rat, C1, C2, C3, Matrix.col, d1, d2, n1a, n1b, n2a, n2b, n2c, n3a, n3b, n3c] <;> ring
 
-/--
-I don't think we should really have this lemma, but instead transpose M_rat so it's more obvious
--/
-theorem Mswap (i j : Fin 3) : linearIndVerts i j = M_rat j i := by
-  sorry
+theorem linearIndVerts_eq_M_rat_transpose (i j : Fin 3) : linearIndVerts i j = M_rat j i := by
+  simp only [linearIndVerts, M_rat, C1, C2, C3, d1, d2, n1a, n1b, n2a, n2b, n2c, n3a, n3b, n3c]
+  fin_cases i <;> fin_cases j <;> simp <;> ring_nf
 
 theorem linearIndR_key :
     LinearIndependent ℝ (fun i : Fin 3 => WithLp.toLp 2 (fun j => (linearIndVerts i j : ℝ))) := by
@@ -81,7 +78,7 @@ theorem linearIndR_key :
       (WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ)).symm ∘ (M_rat.map Rat.cast).col   := by
      ext i j;
      push_cast;
-     simp [Mswap];
+     simp [linearIndVerts_eq_M_rat_transpose];
   rw [heq]
   exact hli.map' _ (LinearEquiv.ker _)
 
