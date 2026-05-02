@@ -20,7 +20,7 @@ private lemma transportTri_python (Pi : Fin 3 → VertexIndex) :
 private lemma py_κSpanning_of_rational
     (Pi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε : ℚ) (hε : 0 < ε)
     (h : ∀ i : Fin 3,
-      2 * ε * (sqrt_twoℚ + ε) + 6 * κQ <
+      2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ <
         (rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi i)))) ⬝ᵥ
           (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi (i + 1))))) :
     (KappaApprox.exact_κApprox_python.transportTri Pi).toReal.κSpanning
@@ -34,7 +34,7 @@ private lemma py_κSpanning_of_rational
     exact RationalApprox.rot90_rotMℚ_inner_eq_real_inner _ _ _ _
   -- Cast rational hypothesis to ℝ
   have hi := h i
-  have hcast : ((2 * ε * (sqrt_twoℚ + ε) + 6 * κQ : ℚ) : ℝ) <
+  have hcast : ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) <
       (((rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi i)))) ⬝ᵥ
         (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi (i + 1)))) : ℚ) : ℝ) := by
     exact_mod_cast hi
@@ -45,12 +45,12 @@ private lemma py_κSpanning_of_rational
     have h : Real.sqrt 2 < (1.42 : ℝ) :=
       (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
     linarith
-  have hcastκ : ((κQ : ℚ) : ℝ) = RationalApprox.κ := by
+  have hcastκ : (RationalApprox.κℚ : ℝ) = RationalApprox.κ := by
     show ((1 / 10 ^ 10 : ℚ) : ℝ) = 1 / 10 ^ 10
     push_cast; rfl
   have hbound :
       2 * (ε : ℝ) * (Real.sqrt 2 + ε) + 6 * RationalApprox.κ ≤
-        ((2 * ε * (sqrt_twoℚ + ε) + 6 * κQ : ℚ) : ℝ) := by
+        ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) := by
     push_cast [hcastκ]
     have hk : 2 * (ε : ℝ) * (Real.sqrt 2 + ε) ≤ 2 * (ε : ℝ) * (142 / 100 + ε) :=
       mul_le_mul_of_nonneg_left (by linarith) (by linarith)
@@ -62,7 +62,7 @@ private lemma py_κSpanning_of_rational
 private lemma py_κSpanning_of_rational_Q
     (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε : ℚ) (hε : 0 < ε)
     (h : ∀ i : Fin 3,
-      2 * ε * (sqrt_twoℚ + ε) + 6 * κQ <
+      2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ <
         (rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi i)))) ⬝ᵥ
           (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi (i + 1))))) :
     (KappaApprox.exact_κApprox_python.transportTri Qi).toReal.κSpanning
@@ -74,7 +74,7 @@ private lemma py_κSpanning_of_rational_Q
         RationalApprox.rotMℚℝ (p.θ₂ : ℝ) (p.φ₂ : ℝ) (toR3 (pythonVertex (Qi (i + 1))))⟫ := by
     exact RationalApprox.rot90_rotMℚ_inner_eq_real_inner _ _ _ _
   have hi := h i
-  have hcast : ((2 * ε * (sqrt_twoℚ + ε) + 6 * κQ : ℚ) : ℝ) <
+  have hcast : ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) <
       (((rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi i)))) ⬝ᵥ
         (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi (i + 1)))) : ℚ) : ℝ) := by
     exact_mod_cast hi
@@ -84,12 +84,12 @@ private lemma py_κSpanning_of_rational_Q
     have h : Real.sqrt 2 < (1.42 : ℝ) :=
       (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
     linarith
-  have hcastκ : ((κQ : ℚ) : ℝ) = RationalApprox.κ := by
+  have hcastκ : (RationalApprox.κℚ : ℝ) = RationalApprox.κ := by
     show ((1 / 10 ^ 10 : ℚ) : ℝ) = 1 / 10 ^ 10
     push_cast; rfl
   have hbound :
       2 * (ε : ℝ) * (Real.sqrt 2 + ε) + 6 * RationalApprox.κ ≤
-        ((2 * ε * (sqrt_twoℚ + ε) + 6 * κQ : ℚ) : ℝ) := by
+        ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) := by
     push_cast [hcastκ]
     have hk : 2 * (ε : ℝ) * (Real.sqrt 2 + ε) ≤ 2 * (ε : ℝ) * (142 / 100 + ε) :=
       mul_le_mul_of_nonneg_left (by linarith) (by linarith)

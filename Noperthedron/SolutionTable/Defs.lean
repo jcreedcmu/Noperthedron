@@ -12,7 +12,6 @@ namespace Noperthedron.Solution
 /-! ## Constants -/
 
 def DENOMQ : ℚ := 15360000
-def κQ : ℚ := 1 / 10 ^ 10
 
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
 deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq, Nonempty

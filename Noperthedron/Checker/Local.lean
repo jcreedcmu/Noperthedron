@@ -53,7 +53,7 @@ abbrev Row.r (row : Row) : ℚ :=
   row.r' / 1000
 
 open scoped Matrix
-open RationalApprox (sqrtApprox)
+open RationalApprox (sqrtApprox κℚ)
 
 abbrev Row.δ (row : Row) : ℚ :=
   Finset.max'
@@ -75,11 +75,11 @@ structure Row.ValidLocal (row : Row) : Prop where
   X₂_inner_gt : Local.TriangleQ.Aεℚσ
                   row.X₂ (pythonVertex ∘ row.Qi) row.epsilon row.sigma_Q.val sqrtApprox
   P_spanning : ∀ i : Fin 3,
-    2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
+    2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κℚ <
     (rot90 *ᵥ (row.M₁_ *ᵥ (pythonVertex (row.Pi i)))) ⬝ᵥ
       (row.M₁_ *ᵥ (pythonVertex ((row.Pi (i + 1)))))
   Q_spanning : ∀ i : Fin 3,
-    2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κQ <
+    2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κℚ <
     (rot90 *ᵥ (row.M₂_ *ᵥ (pythonVertex (row.Qi i)))) ⬝ᵥ
       (row.M₂_ *ᵥ (pythonVertex ((row.Qi (i + 1)))))
   rpos : 0 < row.r
