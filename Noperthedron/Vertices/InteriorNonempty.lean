@@ -56,14 +56,15 @@ theorem M_rat_det_ne_zero : M_rat.det ≠ 0 := by
   simp [h] at h2
   exact_mod_cast h2
 
-def linearIndVerts : Set (Fin 3 → ℚ) := {2 * C1, C1 + C2, C1 + C3}
-def affineIndVerts : Set (Fin 3 → ℚ) := {-C1, C1, C2, C3}
+def linearIndVertsSet : Set (Fin 3 → ℚ) := {2 * C1, C1 + C2, C1 + C3}
+def linearIndVerts : Fin 3 → (Fin 3 → ℚ) := ![2 * C1, C1 + C2, C1 + C3]
+def affineIndVerts : Fin 4 → (Fin 3 → ℚ) := ![C1, C2, C3, -C1]
 noncomputable
 def affineIndVertsR : Fin 4 → Euc(3) := ![-C1R, C1R, C2R, C3R]
 
-def linearIndVertsNonzero : ∀ v ∈ linearIndVerts, v ≠ 0 := by
+def linearIndVertsNonzero : ∀ v ∈ linearIndVertsSet, v ≠ 0 := by
   intro v hv
-  simp [linearIndVerts] at hv
+  simp [linearIndVertsSet] at hv
   obtain rfl | rfl | rfl := hv
   · intro h; simp [C1] at h; apply_fun (· 0) at h; simp at h;
   · intro h; simp [C1, C2] at h; apply_fun (· 0) at h; simp at h; norm_num at h
@@ -73,39 +74,18 @@ theorem M_rat_cols_eq : M_rat.col = ![2 * C1, C1 + C2, C1 + C3] := by
   ext i j; fin_cases i <;> fin_cases j <;>
     simp [M_rat, C1, C2, C3, Matrix.col, d1, d2, n1a, n1b, n2a, n2b, n2c, n3a, n3b, n3c] <;> ring
 
-theorem linearIndVerts_hrange : Set.range ![2 * C1, C1 + C2, C1 + C3] = linearIndVerts := by
-  simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Matrix.range_cons, Matrix.range_empty,
-    Set.union_empty, Set.union_singleton, Set.union_insert, linearIndVerts]
-  ext
-  simp only [Set.mem_insert_iff, Set.mem_singleton_iff];
-  tauto
-
 theorem linearInd_key :
-      LinearIndependent ℚ (fun v => v : linearIndVerts → Fin 3 → ℚ) := by
+      LinearIndependent ℚ linearIndVerts := by
   have hli := Matrix.linearIndependent_cols_of_det_ne_zero M_rat_det_ne_zero
-  rw [M_rat_cols_eq] at hli
-  rw [linearIndependent_subtype_iff, ← linearIndVerts_hrange]
-  exact (linearIndepOn_range_iff hli.injective id).mpr hli
+  simpa [M_rat_cols_eq] using hli
 
-theorem affineInd_key :
-    AffineIndependent ℚ (fun p => p : ({-C1} ∪ (fun v => v +ᵥ (-C1)) '' linearIndVerts : Set (Fin 3 → ℚ))
-        → (Fin 3 → ℚ)) := by
-   rw [← linearIndependent_set_iff_affineIndependent_vadd_union_singleton]
-   · exact linearInd_key
-   · exact linearIndVertsNonzero
-
-lemma neg_c1_cup_eq_affineIndVerts :
-    ({-C1} ∪ (fun v => v +ᵥ (-C1)) '' linearIndVerts) = affineIndVerts := by
-  simp only [linearIndVerts, affineIndVerts, Set.image_insert_eq, Set.image_singleton,
-             vadd_eq_add, Set.union_insert, Set.union_singleton]
-  ring_nf
-  ext
-  simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
-  tauto
-
-theorem affineIndVertsAffine : AffineIndependent ℚ (fun p => p : affineIndVerts → (Fin 3 → ℚ)) := by
-  rw [← neg_c1_cup_eq_affineIndVerts]
-  exact affineInd_key
+theorem affineIndVertsAffine : AffineIndependent ℚ affineIndVerts := by
+  rw [affineIndependent_iff_linearIndependent_vsub ℚ affineIndVerts 3]
+  rw [← linearIndependent_equiv (finSuccAboveEquiv 3)]
+  convert linearInd_key using 1
+  ext1 i; fin_cases i
+    <;> simp [affineIndVerts, linearIndVerts, finSuccAboveEquiv, Fin.succAbove]
+    <;> ring_nf
 
 /--
 This is an impedance matching gap that should be filled by appealing to {name}`affineIndVertsAffine`
