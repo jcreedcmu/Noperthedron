@@ -56,19 +56,10 @@ theorem M_rat_det_ne_zero : M_rat.det ≠ 0 := by
   simp [h] at h2
   exact_mod_cast h2
 
-def linearIndVertsSet : Set (Fin 3 → ℚ) := {2 * C1, C1 + C2, C1 + C3}
 def linearIndVerts : Fin 3 → (Fin 3 → ℚ) := ![2 * C1, C1 + C2, C1 + C3]
 def affineIndVerts : Fin 4 → (Fin 3 → ℚ) := ![C1, C2, C3, -C1]
 noncomputable
-def affineIndVertsR : Fin 4 → Euc(3) := ![-C1R, C1R, C2R, C3R]
-
-def linearIndVertsNonzero : ∀ v ∈ linearIndVertsSet, v ≠ 0 := by
-  intro v hv
-  simp [linearIndVertsSet] at hv
-  obtain rfl | rfl | rfl := hv
-  · intro h; simp [C1] at h; apply_fun (· 0) at h; simp at h;
-  · intro h; simp [C1, C2] at h; apply_fun (· 0) at h; simp at h; norm_num at h
-  · intro h; simp [C1, C3] at h; apply_fun (· 0) at h; simp at h; norm_num at h
+def affineIndVertsR : Fin 4 → Euc(3) := ![C1R, C2R, C3R, -C1R]
 
 theorem M_rat_cols_eq : M_rat.col = ![2 * C1, C1 + C2, C1 + C3] := by
   ext i j; fin_cases i <;> fin_cases j <;>
