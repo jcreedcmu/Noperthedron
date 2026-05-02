@@ -57,7 +57,12 @@ def linearIndVerts : Set (Fin 3 → ℚ) := {2 * C1, C1 + C2, C1 + C3}
 def affineIndVerts : Set (Fin 3 → ℚ) := {-C1, C1, C2, C3}
 
 def linearIndVertsNonzero : ∀ v ∈ linearIndVerts, v ≠ 0 := by
-  sorry
+  intro v hv
+  simp [linearIndVerts] at hv
+  obtain rfl | rfl | rfl := hv
+  · intro h; simp [C1] at h; apply_fun (· 0) at h; simp at h;
+  · intro h; simp [C1, C2] at h; apply_fun (· 0) at h; simp at h; norm_num at h
+  · intro h; simp [C1, C3] at h; apply_fun (· 0) at h; simp at h; norm_num at h
 
 theorem linearInd_key :
     LinearIndependent ℚ (fun v => v : linearIndVerts → Fin 3 → ℚ) := by
