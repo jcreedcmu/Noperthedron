@@ -56,6 +56,9 @@ theorem M_rat_det_ne_zero : M_rat.det ≠ 0 := by
   simp [h] at h2
   exact_mod_cast h2
 
+theorem M_real_det_ne_zero : (M_rat.map (Rat.cast : ℚ → ℝ)).det ≠ 0 := by
+  rw [← Rat.cast_det]; exact_mod_cast M_rat_det_ne_zero
+
 def linearIndVerts : Fin 3 → (Fin 3 → ℚ) := ![2 * C1, C1 + C2, C1 + C3]
 def affineIndVerts : Fin 4 → (Fin 3 → ℚ) := ![C1, C2, C3, -C1]
 noncomputable
@@ -65,24 +68,35 @@ theorem M_rat_cols_eq : M_rat.col = ![2 * C1, C1 + C2, C1 + C3] := by
   ext i j; fin_cases i <;> fin_cases j <;>
     simp [M_rat, C1, C2, C3, Matrix.col, d1, d2, n1a, n1b, n2a, n2b, n2c, n3a, n3b, n3c] <;> ring
 
-theorem linearInd_key :
-      LinearIndependent ℚ linearIndVerts := by
-  have hli := Matrix.linearIndependent_cols_of_det_ne_zero M_rat_det_ne_zero
-  simpa [M_rat_cols_eq] using hli
+-- theorem linearInd_key :
+--       LinearIndependent ℚ linearIndVerts := by
+--   have hli := Matrix.linearIndependent_cols_of_det_ne_zero M_rat_det_ne_zero
+--   simpa [M_rat_cols_eq] using hli
 
-theorem affineIndVertsAffine : AffineIndependent ℚ affineIndVerts := by
-  rw [affineIndependent_iff_linearIndependent_vsub ℚ affineIndVerts 3]
-  rw [← linearIndependent_equiv (finSuccAboveEquiv 3)]
-  convert linearInd_key using 1
-  ext1 i; fin_cases i
-    <;> simp [affineIndVerts, linearIndVerts, finSuccAboveEquiv, Fin.succAbove]
-    <;> ring_nf
-
-/--
-This is an impedance matching gap that should be filled by appealing to {name}`affineIndVertsAffine`
--/
-theorem affineIndVertsRAffine : AffineIndependent ℝ affineIndVertsR := by
+theorem linearIndR_key :
+    LinearIndependent ℝ (fun i : Fin 3 => WithLp.toLp 2
+      (fun j => (linearIndVerts i j : ℝ))) := by
+  have hli := Matrix.linearIndependent_cols_of_det_ne_zero M_real_det_ne_zero
   sorry
+
+-- theorem affineIndVertsAffine : AffineIndependent ℚ affineIndVerts := by
+--   rw [affineIndependent_iff_linearIndependent_vsub ℚ affineIndVerts 3]
+--   rw [← linearIndependent_equiv (finSuccAboveEquiv 3)]
+--   convert linearInd_key using 1
+--   ext1 i; fin_cases i
+--     <;> simp [affineIndVerts, linearIndVerts, finSuccAboveEquiv, Fin.succAbove]
+--     <;> ring_nf
+
+theorem affineIndVertsRAffine : AffineIndependent ℝ affineIndVertsR := by
+  rw [affineIndependent_iff_linearIndependent_vsub ℝ affineIndVertsR 3]
+  rw [← linearIndependent_equiv (finSuccAboveEquiv 3)]
+  convert linearIndR_key using 1
+  ext1 i; fin_cases i
+    <;> simp [affineIndVertsR, linearIndVerts, finSuccAboveEquiv, Fin.succAbove]
+    <;> ring_nf
+  · sorry
+  · sorry
+  · sorry
 
 theorem affineIndVertsR_span_eq_top :
     affineSpan ℝ (Set.range affineIndVertsR) = ⊤ := by
