@@ -1,10 +1,6 @@
-import Noperthedron.Basic
-import Noperthedron.Bounding
-import Noperthedron.PointSym
-import Noperthedron.Vertices.Index
-import Noperthedron.Vertices.Exact
-import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
+import Mathlib.AlgebraicTopology.SimplexCategory.Basic
 import Mathlib.Analysis.Normed.Affine.AddTorsorBases
+import Noperthedron.Vertices.Exact
 
 /-!
 This file proves the interior of the Noperthedron is nonempty.
@@ -111,10 +107,7 @@ theorem affineIndVertsR_subset_exactVerts :
   rintro x ⟨i, rfl⟩
   fin_cases i
   all_goals simp [exactVerts]
-  on_goal 1 => use ⟨0, 0, 0⟩
-  on_goal 2 => use ⟨0, 0, 1⟩
-  on_goal 3 => use ⟨0, 0, 2⟩
-  on_goal 4 => use ⟨0, 1, 0⟩
+  map_tacs [use ⟨0, 0, 0⟩; use ⟨0, 0, 1⟩; use ⟨0, 0, 2⟩; use ⟨0, 1, 0⟩]
   all_goals simp [affineIndVertsR, RzL_zero_eq_one, exactVertex, Cpt]
 
 theorem exactVerts_affineSpan_eq_top :
