@@ -20,6 +20,7 @@ import Noperthedron.Global.Basic
 import Noperthedron.Global.BoundedPartialsControlDifference
 import Noperthedron.Global.Definitions
 import Noperthedron.Global.FDerivHelpers
+import Noperthedron.Global.RotationDerivs
 import Noperthedron.Global.RotationPartials
 import Noperthedron.Global.RotationPartials.RotMOuter
 import Noperthedron.Global.RotationPartials.Rotproj
@@ -57,7 +58,6 @@ import Noperthedron.RationalApprox.RationalGlobal
 import Noperthedron.RationalApprox.RationalLocal
 import Noperthedron.RationalApprox.TrigLemmas
 import Noperthedron.RealMod
-import Noperthedron.RotationDerivs
 import Noperthedron.Rupert.Basic
 import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
 import Noperthedron.Rupert.Equivalences.Util

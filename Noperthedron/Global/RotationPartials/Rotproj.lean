@@ -6,7 +6,7 @@ Authors: Cameron Freer
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
-import Noperthedron.RotationDerivs
+import Noperthedron.Global.RotationDerivs
 import Noperthedron.PoseInterval
 import Noperthedron.Global.Definitions
 
