@@ -13,7 +13,6 @@ import Noperthedron.Checker.Local
 import Noperthedron.CommonCenter
 import Noperthedron.ComputationalStep
 import Noperthedron.ConvertPose
-import Noperthedron.Cyclotomic
 import Noperthedron.EuclideanSpaceNotation
 import Noperthedron.Final
 import Noperthedron.Global
