@@ -72,10 +72,14 @@ theorem affineInd_key :
 
 lemma neg_c1_cup_eq_affineIndVerts :
     ({-C1} ∪ (fun v => v +ᵥ (-C1)) '' linearIndVerts) = affineIndVerts := by
-  simp [linearIndVerts, affineIndVerts]
-  sorry
+  simp only [linearIndVerts, affineIndVerts, Set.image_insert_eq, Set.image_singleton,
+             vadd_eq_add, Set.union_insert, Set.union_singleton]
+  ring_nf
+  ext
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
+  tauto
 
-theorem affineInd_key2 : AffineIndependent ℚ (fun p => p : affineIndVerts → (Fin 3 → ℚ)) := by
+theorem affineIndVertsAffine : AffineIndependent ℚ (fun p => p : affineIndVerts → (Fin 3 → ℚ)) := by
   rw [← neg_c1_cup_eq_affineIndVerts]
   exact affineInd_key
 
