@@ -98,15 +98,35 @@ theorem affineIndVertsR_span_eq_top :
   rw [affineIndVertsRAffine.affineSpan_eq_top_iff_card_eq_finrank_add_one]
   simp [Fintype.card_fin]
 
+/-- RzL at angle 0 is the identity. -/
+lemma RzL_zero_eq_one : RzL (0 : ℝ) = 1 :=
+  AddChar.map_zero_eq_one RzC
+
+/-- The ⟨0, 0, 0⟩ vertex of nopertList is C1R. -/
+lemma exactVertex_000 : exactVertex ⟨0, 0, 0⟩ = C1R := by
+  simp [exactVertex, Cpt, RzL_zero_eq_one, ContinuousLinearMap.one_apply]
+
+/-- The ⟨0, 0, 1⟩ vertex of nopertList is C2R. -/
+lemma exactVertex_001 : exactVertex ⟨0, 0, 1⟩ = C2R := by
+  simp [exactVertex, Cpt, RzL_zero_eq_one, ContinuousLinearMap.one_apply]
+
+/-- The ⟨0, 0, 2⟩ vertex of nopertList is C3R. -/
+lemma exactVertex_002 : exactVertex ⟨0, 0, 2⟩ = C3R := by
+  simp [exactVertex, Cpt, RzL_zero_eq_one, ContinuousLinearMap.one_apply]
+
+/-- The ⟨0, 1, 0⟩ vertex of nopertList is -C1R. -/
+lemma exactVertex_010 : exactVertex ⟨0, 1, 0⟩ = -C1R := by
+  simp [exactVertex, Cpt, RzL_zero_eq_one, ContinuousLinearMap.one_apply]
+
 theorem affineIndVertsR_subset_exactVerts :
     Set.range affineIndVertsR ⊆ (exactVerts : Set Euc(3)) := by
   rintro x ⟨i, rfl⟩
   fin_cases i
   all_goals simp [exactVerts]
-  · sorry
-  · sorry
-  · sorry
-  · sorry
+  · use ⟨0, 0, 0⟩; simp [affineIndVertsR, exactVertex_000]
+  · use ⟨0, 0, 1⟩; simp [affineIndVertsR, exactVertex_001]
+  · use ⟨0, 0, 2⟩; simp [affineIndVertsR, exactVertex_002]
+  · use ⟨0, 1, 0⟩; simp [affineIndVertsR, exactVertex_010]
 
 theorem exactVerts_affineSpan_eq_top :
     affineSpan ℝ (exactVerts : Set Euc(3)) = ⊤ := by

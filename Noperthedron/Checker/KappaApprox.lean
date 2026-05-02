@@ -19,20 +19,6 @@ open scoped Nat
 
 namespace Noperthedron.KappaApprox
 
-/-! ## Phase 0: First vertex (k=0) -/
-
-/-- RzL at angle 0 is the identity. -/
-private lemma RzL_zero_eq_one : RzL (0 : ℝ) = 1 :=
-  AddChar.map_zero_eq_one RzC
-
-/-- The first vertex of nopertList is C1R (rotation at k=0 is identity). -/
-lemma exactVertex_0 : exactVertex ⟨0, 0, 0⟩ = C1R := by
-  simp only [exactVertex, Int.reduceNeg, Fin.isValue, Fin.coe_ofNat_eq_mod, Nat.zero_mod, pow_zero,
-    CharP.cast_eq_zero, mul_zero, zero_div, Cpt, one_smul]
-  rw [RzL_zero_eq_one, ContinuousLinearMap.one_apply]
-
-/-! ## Phase 1: Full first vertex norm bound -/
-
 -- Extract concrete rational values of pythonVertex 0
 private lemma nlq0_0 : pythonVertex 0 0 = (5861195714524832 : ℚ) / 10000000000000000 := by
   decide +kernel
