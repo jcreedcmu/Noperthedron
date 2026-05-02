@@ -98,9 +98,7 @@ private lemma inner_toR2 (v w : Fin 2 → ℚ) :
 private lemma castℝ_mulVec {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℚ) (v : Fin n → ℚ) :
     (fun i => ((M.mulVec v) i : ℝ)) =
       (M.map (fun x => (x : ℝ))).mulVec (fun i => (v i : ℝ)) := by
-  ext i
-  simp only [Matrix.mulVec, dotProduct, Matrix.map_apply]
-  push_cast; rfl
+  ext i; push_cast [Matrix.mulVec, dotProduct]; rfl
 
 private lemma rotMℚ_mat_castℝ (θ φ : ℚ) :
     (rotMℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMℚ_mat θ φ).map (fun x => (x : ℝ)) := by
@@ -227,10 +225,6 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
   let p_ℚ : Pose ℚ := p_
   set p_ := p_.toReal
   have hp : (fourInterval ℝ).contains p_ := fourInterval_contains_toReal hp
-  -- The rational `p_.θ₁` (cast to ℝ) is defeq to `p_.θ₁`, so the spanning hypotheses
-  -- can be reinterpreted in terms of the real `p_`:
-  change (hpoly.transportTri Pi).toReal.κSpanning p_.θ₁ p_.φ₁ ε at span₁
-  change (hpoly.transportTri Qi).toReal.κSpanning p_.θ₂ p_.φ₂ ε at span₂
   -- Define the triangles from indices
   let P : Triangle := fun i => poly.vertices.v (Pi i)
   let Q : Triangle := fun i => poly.vertices.v (Qi i)
@@ -250,9 +244,9 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
   have hQapprox (i : Fin 3) : ‖Q i - Q_ i‖ ≤ κ := hpoly.approx (Qi i)
   -- Bridge: κSpanning → Spanning
   have span₁' : P.Spanning p_.θ₁ p_.φ₁ ε :=
-    ek_spanning_imp_e_spanning P P_ (fun i => hPapprox i) hPnorm hp.θ₁Bound hp.φ₁Bound span₁
+    ek_spanning_imp_e_spanning P P_ hPapprox hPnorm hp.θ₁Bound hp.φ₁Bound span₁
   have span₂' : Q.Spanning p_.θ₂ p_.φ₂ ε :=
-    ek_spanning_imp_e_spanning Q Q_ (fun i => hQapprox i) hQnorm hp.θ₂Bound hp.φ₂Bound span₂
+    ek_spanning_imp_e_spanning Q Q_ hQapprox hQnorm hp.θ₂Bound hp.φ₂Bound span₂
   -- Universal bridges (above) provide the rational ↔ real cast facts we need.
   have h_upper_norm_toR3 : ∀ (v : Fin 3 → ℚ),
       (approx.upper_sqrt.norm v : ℝ) ≥ ‖toR3 v‖ := fun v =>
@@ -317,9 +311,6 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
             p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) := by
       rw [← h_eq_real]; exact UpperSqrt_norm_le approx.upper_sqrt _
     -- ‖p_.rotR (rotM₁ℚℝ P_) - rotRℚℝ (rotM₁ℚℝ P_)‖ ≤ κ * (1 + κ)  (rotR vs rotRℚℝ discrepancy)
-    have h_rotR_norm_one : ‖p_.rotR‖ ≤ 1 := by
-      show ‖rotR p_.α‖ ≤ 1
-      rw [Bounding.rotR_norm_one]
     have h_rotRdiff : ‖p_.rotR - p_.rotRℚℝ‖ ≤ κ := R_difference_norm_bounded p_.α hp.αBound
     have hκ_nn : (0 : ℝ) ≤ κ := by unfold κ; norm_num
     have h_rotM₁ℚ_norm : ‖p_.rotM₁ℚℝ (P_ i)‖ ≤ (1 + κ) * (1 + κ) :=
@@ -405,10 +396,8 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     set v_ : ℝ³ := poly_.toReal.v k'
     have hvapprox : ‖poly.vertices.v k - v_‖ ≤ κ := hpoly.approx k
     have hvnorm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
-    -- The rational forms of Q_ i and v_
+    -- The rational forms of Q_ i and v_ (definitionally equal via toR3).
     let Q_ℚ : Fin 3 → ℚ := (hpoly.transportTri Qi) i
-    have hQ_eq : Q_ i = toR3 Q_ℚ := rfl
-    have hv_eq : v_ = toR3 v_ℚ := rfl
     -- Get the Bεℚ hypothesis
     have hbe := be i k hne_k
     show (δ + √5 * ε) / r < Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
@@ -421,12 +410,9 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
         (((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
          ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) + 2 * approx.upper_sqrt_two * ε + 6 * κ)) := by
       rw [← h_bridge_Qv]
-      have hr_pos : (0 : ℝ) < r := by exact_mod_cast hr
-      have hε_nonneg : (0 : ℝ) ≤ (ε : ℝ) := le_of_lt hεℝ
-      have h_sqrt5_le : √5 ≤ (approx.upper_sqrt_five : ℝ) :=
-        le_of_lt approx.upper_sqrt_five_gt_sqrt_five
       have h_le : (↑δ + √5 * ↑ε) / ↑r ≤ (↑δ + ↑approx.upper_sqrt_five * ↑ε) / ↑r := by
         gcongr
+        exact approx.upper_sqrt_five_gt_sqrt_five.le
       have hbe_ℝ : ((δ + approx.upper_sqrt_five * ε) / r : ℝ) <
           (Local.TriangleQ.Bεℚ.lhs Q_ℚ v_ℚ p_ℚ ε approx : ℝ) := mod_cast hbe
       push_cast at hbe_ℝ
@@ -464,7 +450,6 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
             p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) 0))
         have hcast := (Rat.cast_le (K := ℝ)).mpr (hδ 0)
         push_cast [cast_κℚ] at hcast
-        have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num
         linarith [(norm_nonneg _).trans hsu0]
       have h0 : 0 < (δ + √5 * ε) / r := by positivity
       refine (div_pos_iff_of_pos_right hden_pos).mp (h0.trans ?_)
@@ -483,15 +468,15 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
       _ ≤ 1 + 1 := add_le_add (hQnorm i) hvnorm
       _ = 2 := by ring
     have hQv_approx : ‖(Q i - poly.vertices.v k) - (toR3 Q_ℚ - toR3 v_ℚ)‖ ≤ 2 * κ := by
-      rw [show toR3 Q_ℚ - toR3 v_ℚ = Q_ i - v_ from by rw [hQ_eq, hv_eq]]
+      rw [show toR3 Q_ℚ - toR3 v_ℚ = Q_ i - v_ from rfl]
       calc ‖(Q i - poly.vertices.v k) - (Q_ i - v_)‖
           = ‖(Q i - Q_ i) - (poly.vertices.v k - v_)‖ := by congr 1; abel
         _ ≤ ‖Q i - Q_ i‖ + ‖poly.vertices.v k - v_‖ := norm_sub_le _ _
         _ ≤ κ + κ := add_le_add (hQapprox i) hvapprox
         _ = 2 * κ := by ring
     -- Apply bounds_kappa4
-    have h_Q_approx : ‖Q i - toR3 Q_ℚ‖ ≤ κ := by rw [← hQ_eq]; exact hQapprox i
-    have h_v_approx : ‖poly.vertices.v k - toR3 v_ℚ‖ ≤ κ := by rw [← hv_eq]; exact hvapprox
+    have h_Q_approx : ‖Q i - toR3 Q_ℚ‖ ≤ κ := hQapprox i
+    have h_v_approx : ‖poly.vertices.v k - toR3 v_ℚ‖ ≤ κ := hvapprox
     have hA_nonneg : 0 ≤ ⟪(rotM (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)) (Q i),
         (rotM (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)) (Q i - poly.vertices.v k)⟫ -
         2 * ε * ‖Q i - poly.vertices.v k‖ * (√2 + ε) := by
@@ -517,11 +502,8 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
         · positivity
       linarith [hAℚ_num_pos]
     have hbk4 : bounds_kappa4_Aℚ Q_ℚ v_ℚ p_ℚ ε approx.upper_sqrt ≤
-        bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := by
-      change bounds_kappa4_Aℚ Q_ℚ v_ℚ p_ℚ ε approx.upper_sqrt ≤
-        bounds_kappa4_A (Q i) (poly.vertices.v k)
-          ⟨(p_ℚ.θ₂ : ℝ), hp.θ₂Bound⟩ ⟨(p_ℚ.φ₂ : ℝ), hp.φ₂Bound⟩ ε
-      exact bounds_kappa4 (Q i) (poly.vertices.v k) Q_ℚ v_ℚ p_ℚ
+        bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε :=
+      bounds_kappa4 (Q i) (poly.vertices.v k) Q_ℚ v_ℚ p_ℚ
         hp.θ₂Bound hp.φ₂Bound (hQnorm i) hvnorm h_Q_approx h_v_approx ε hεℝ
         approx.upper_sqrt hA_nonneg
     -- Bridge `Bεℚ.lhs` real form ≤ `bounds_kappa4_Aℚ`
@@ -549,15 +531,11 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
       rw [h_inner_eq, h_toR3_sub_Qv]
       refine div_le_div₀ hAℚ_num_pos.le (by linarith [h_num_sub]) (by positivity) ?_
       gcongr
-    -- bounds_kappa4_A = Bε.lhs (definitionally)
-    have hA_eq : bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε =
-        Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := rfl
-    -- Combine
+    -- Combine (final step uses defeq `bounds_kappa4_A = Bε.lhs`).
     calc (δ + √5 * ε) / r
         < _ := hbe'
       _ ≤ bounds_kappa4_Aℚ Q_ℚ v_ℚ p_ℚ ε approx.upper_sqrt := hBεℚ_le
       _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
-      _ = Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε := hA_eq
   -- Apply local_theorem
   exact Local.local_theorem poly Pi Qi cong_tri p_ ε δ r hεℝ (Rat.cast_pos.mpr hr)
     hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
