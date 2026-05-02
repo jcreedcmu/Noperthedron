@@ -102,31 +102,20 @@ theorem affineIndVertsR_span_eq_top :
 lemma RzL_zero_eq_one : RzL (0 : ℝ) = 1 :=
   AddChar.map_zero_eq_one RzC
 
-/-- The ⟨0, 0, 0⟩ vertex of nopertList is C1R. -/
-lemma exactVertex_000 : exactVertex ⟨0, 0, 0⟩ = C1R := by
-  simp [exactVertex, Cpt, RzL_zero_eq_one, ContinuousLinearMap.one_apply]
-
-/-- The ⟨0, 0, 1⟩ vertex of nopertList is C2R. -/
-lemma exactVertex_001 : exactVertex ⟨0, 0, 1⟩ = C2R := by
-  simp [exactVertex, Cpt, RzL_zero_eq_one, ContinuousLinearMap.one_apply]
-
-/-- The ⟨0, 0, 2⟩ vertex of nopertList is C3R. -/
-lemma exactVertex_002 : exactVertex ⟨0, 0, 2⟩ = C3R := by
-  simp [exactVertex, Cpt, RzL_zero_eq_one, ContinuousLinearMap.one_apply]
-
-/-- The ⟨0, 1, 0⟩ vertex of nopertList is -C1R. -/
-lemma exactVertex_010 : exactVertex ⟨0, 1, 0⟩ = -C1R := by
-  simp [exactVertex, Cpt, RzL_zero_eq_one, ContinuousLinearMap.one_apply]
-
+/--
+All of the vertices we are showing to be affine independent actually
+occur in the Noperthedron.
+-/
 theorem affineIndVertsR_subset_exactVerts :
     Set.range affineIndVertsR ⊆ (exactVerts : Set Euc(3)) := by
   rintro x ⟨i, rfl⟩
   fin_cases i
   all_goals simp [exactVerts]
-  · use ⟨0, 0, 0⟩; simp [affineIndVertsR, exactVertex_000]
-  · use ⟨0, 0, 1⟩; simp [affineIndVertsR, exactVertex_001]
-  · use ⟨0, 0, 2⟩; simp [affineIndVertsR, exactVertex_002]
-  · use ⟨0, 1, 0⟩; simp [affineIndVertsR, exactVertex_010]
+  on_goal 1 => use ⟨0, 0, 0⟩
+  on_goal 2 => use ⟨0, 0, 1⟩
+  on_goal 3 => use ⟨0, 0, 2⟩
+  on_goal 4 => use ⟨0, 1, 0⟩
+  all_goals simp [affineIndVertsR, RzL_zero_eq_one, exactVertex, Cpt]
 
 theorem exactVerts_affineSpan_eq_top :
     affineSpan ℝ (exactVerts : Set Euc(3)) = ⊤ := by
