@@ -67,6 +67,7 @@ import Noperthedron.SolutionTable.Basic
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.SolutionTable.Global
 import Noperthedron.SolutionTable.Local
+import Noperthedron.SolutionTable.Parse
 import Noperthedron.Tightening
 import Noperthedron.Util
 import Noperthedron.Vertices.Exact

@@ -87,6 +87,9 @@ structure Row : Type where
    r' : ℤ
    sigma_Q : Finset.Icc 0 1
 
+instance : ToString Row where
+  toString r := s!"\{ID := {r.ID}, nodeType := {r.nodeType}, nrChildren := {r.nrChildren}, ...}"
+
 abbrev Table : Type := Array Row
 
 def Interval.lower_half (param : Param) (iv : Interval) : Interval :=

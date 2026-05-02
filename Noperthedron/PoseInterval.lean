@@ -15,6 +15,9 @@ componentwise on the five parameters).
 @[reducible]
 def PoseInterval (R : Type) [PartialOrder R] : Type := NonemptyInterval (Pose R)
 
+instance {R : Type} [PartialOrder R] [ToString R] : ToString (PoseInterval R) where
+  toString ivl := s!"[{ivl.fst}, {ivl.snd}]"
+
 namespace PoseInterval
 
 /-- Build a `PoseInterval` from explicit `min`/`max` endpoints together with a

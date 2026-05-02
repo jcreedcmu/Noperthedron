@@ -9,6 +9,9 @@ structure Pose (R : Type) : Type where
   α : R
 deriving DecidableEq, Repr
 
+instance {R : Type} [ToString R] : ToString (Pose R) where
+  toString p := s!"\{θ₁ := {p.θ₁}, θ₂ := {p.θ₂}, φ₁ := {p.φ₁}, φ₂ := {p.φ₂}, α := {p.α}}"
+
 noncomputable
 instance : PoseLike (Pose ℝ) where
   inner vp := (rotRM vp.θ₁ vp.φ₁ vp.α).toAffineMap
