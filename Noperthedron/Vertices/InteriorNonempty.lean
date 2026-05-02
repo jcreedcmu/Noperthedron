@@ -133,7 +133,6 @@ theorem exactVerts_affineSpan_eq_top :
   rw [eq_top_iff, ← affineIndVertsR_span_eq_top]
   exact affineSpan_mono ℝ affineIndVertsR_subset_exactVerts
 
--- Step 4: interior nonempty
 theorem interior_exactVerts_null_nonempty :
     (interior ((convexHull ℝ) (exactVerts : Set (Euc(3))))).Nonempty :=
 by
