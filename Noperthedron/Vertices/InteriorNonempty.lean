@@ -105,10 +105,10 @@ occur in the Noperthedron.
 theorem affineIndVertsR_subset_exactVerts :
     Set.range affineIndVertsR ⊆ (exactVerts : Set Euc(3)) := by
   rintro x ⟨i, rfl⟩
-  fin_cases i
-  all_goals simp [exactVerts]
-  map_tacs [use ⟨0, 0, 0⟩; use ⟨0, 0, 1⟩; use ⟨0, 0, 2⟩; use ⟨0, 1, 0⟩]
-  all_goals simp [affineIndVertsR, RzL_zero_eq_one, exactVertex, Cpt]
+  fin_cases i <;>
+    simp only [affineIndVertsR, exactVerts, Finset.coe_image] <;>
+    [use ⟨0, 0, 0⟩; use ⟨0, 0, 1⟩; use ⟨0, 0, 2⟩; use ⟨0, 1, 0⟩] <;>
+    simp [RzL_zero_eq_one, exactVertex, Cpt]
 
 theorem exactVerts_affineSpan_eq_top :
     affineSpan ℝ (exactVerts : Set Euc(3)) = ⊤ := by
