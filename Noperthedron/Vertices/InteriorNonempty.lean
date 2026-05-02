@@ -53,6 +53,32 @@ theorem M_rat_det_ne_zero : M_rat.det ≠ 0 := by
   simp [h] at h2
   exact_mod_cast h2
 
+def linearIndVerts : Set (Fin 3 → ℚ) := {2 * C1, C1 + C2, C1 + C3}
+def affineIndVerts : Set (Fin 3 → ℚ) := {-C1, C1, C2, C3}
+
+def linearIndVertsNonzero : ∀ v ∈ linearIndVerts, v ≠ 0 := by
+  sorry
+
+theorem linearInd_key :
+    LinearIndependent ℚ (fun v => v : linearIndVerts → Fin 3 → ℚ) := by
+  sorry
+
+theorem affineInd_key :
+    AffineIndependent ℚ (fun p => p : ({-C1} ∪ (fun v => v +ᵥ (-C1)) '' linearIndVerts : Set (Fin 3 → ℚ))
+        → (Fin 3 → ℚ)) := by
+   rw [← linearIndependent_set_iff_affineIndependent_vadd_union_singleton]
+   · exact linearInd_key
+   · exact linearIndVertsNonzero
+
+lemma neg_c1_cup_eq_affineIndVerts :
+    ({-C1} ∪ (fun v => v +ᵥ (-C1)) '' linearIndVerts) = affineIndVerts := by
+  simp [linearIndVerts, affineIndVerts]
+  sorry
+
+theorem affineInd_key2 : AffineIndependent ℚ (fun p => p : affineIndVerts → (Fin 3 → ℚ)) := by
+  rw [← neg_c1_cup_eq_affineIndVerts]
+  exact affineInd_key
+
 theorem interior_exactVerts_null_nonempty :
     (interior ((convexHull ℝ) (exactVerts : Set (Euc(3))))).Nonempty := by
   sorry
