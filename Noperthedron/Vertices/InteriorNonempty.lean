@@ -68,24 +68,22 @@ theorem M_rat_cols_eq : M_rat.col = ![2 * C1, C1 + C2, C1 + C3] := by
   ext i j; fin_cases i <;> fin_cases j <;>
     simp [M_rat, C1, C2, C3, Matrix.col, d1, d2, n1a, n1b, n2a, n2b, n2c, n3a, n3b, n3c] <;> ring
 
--- theorem linearInd_key :
---       LinearIndependent ℚ linearIndVerts := by
---   have hli := Matrix.linearIndependent_cols_of_det_ne_zero M_rat_det_ne_zero
---   simpa [M_rat_cols_eq] using hli
-
-theorem linearIndR_key :
-    LinearIndependent ℝ (fun i : Fin 3 => WithLp.toLp 2
-      (fun j => (linearIndVerts i j : ℝ))) := by
-  have hli := Matrix.linearIndependent_cols_of_det_ne_zero M_real_det_ne_zero
+/--
+I don't think we should really have this lemma, but instead transpose M_rat so it's more obvious
+-/
+theorem Mswap (i j : Fin 3) : linearIndVerts i j = M_rat j i := by
   sorry
 
--- theorem affineIndVertsAffine : AffineIndependent ℚ affineIndVerts := by
---   rw [affineIndependent_iff_linearIndependent_vsub ℚ affineIndVerts 3]
---   rw [← linearIndependent_equiv (finSuccAboveEquiv 3)]
---   convert linearInd_key using 1
---   ext1 i; fin_cases i
---     <;> simp [affineIndVerts, linearIndVerts, finSuccAboveEquiv, Fin.succAbove]
---     <;> ring_nf
+theorem linearIndR_key :
+    LinearIndependent ℝ (fun i : Fin 3 => WithLp.toLp 2 (fun j => (linearIndVerts i j : ℝ))) := by
+  have hli := Matrix.linearIndependent_cols_of_det_ne_zero M_real_det_ne_zero
+  have heq : (fun i => WithLp.toLp 2 fun j => (linearIndVerts i j : ℝ)) =
+      (WithLp.linearEquiv 2 ℝ (Fin 3 → ℝ)).symm ∘ (M_rat.map Rat.cast).col   := by
+     ext i j;
+     push_cast;
+     simp [Mswap];
+  rw [heq]
+  exact hli.map' _ (LinearEquiv.ker _)
 
 theorem affineIndVertsRAffine : AffineIndependent ℝ affineIndVertsR := by
   rw [affineIndependent_iff_linearIndependent_vsub ℝ affineIndVertsR 3]
@@ -94,9 +92,9 @@ theorem affineIndVertsRAffine : AffineIndependent ℝ affineIndVertsR := by
   ext1 i; fin_cases i
     <;> simp [affineIndVertsR, linearIndVerts, finSuccAboveEquiv, Fin.succAbove]
     <;> ring_nf
-  · sorry
-  · sorry
-  · sorry
+  · rw [C1R]; ext; simp; ring_nf
+  · rw [C1R, C2R]; ext; simp; ring_nf
+  · rw [C1R, C3R]; ext; simp; ring_nf
 
 theorem affineIndVertsR_span_eq_top :
     affineSpan ℝ (Set.range affineIndVertsR) = ⊤ := by
