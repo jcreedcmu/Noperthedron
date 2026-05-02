@@ -72,6 +72,7 @@ import Noperthedron.Tightening
 import Noperthedron.Util
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Index
+import Noperthedron.Vertices.InteriorNonempty
 import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.Symmetry
 import Noperthedron.Vertices.Taylor
