@@ -113,7 +113,7 @@ theorem exactVerts_affineSpan_eq_top :
   rw [eq_top_iff, ← affineIndVertsR_span_eq_top]
   exact affineSpan_mono ℝ affineIndVertsR_subset_exactVerts
 
-theorem interior_exactVerts_null_nonempty :
+theorem interior_exactVerts_hull_nonempty :
     (interior ((convexHull ℝ) (exactVerts : Set (Euc(3))))).Nonempty :=
 by
   exact interior_convexHull_nonempty_iff_affineSpan_eq_top.mpr
