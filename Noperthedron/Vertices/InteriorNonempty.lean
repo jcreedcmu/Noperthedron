@@ -64,9 +64,23 @@ def linearIndVertsNonzero : ∀ v ∈ linearIndVerts, v ≠ 0 := by
   · intro h; simp [C1, C2] at h; apply_fun (· 0) at h; simp at h; norm_num at h
   · intro h; simp [C1, C3] at h; apply_fun (· 0) at h; simp at h; norm_num at h
 
+theorem M_rat_cols_eq : M_rat.col = ![2 * C1, C1 + C2, C1 + C3] := by
+  ext i j; fin_cases i <;> fin_cases j <;>
+    simp [M_rat, C1, C2, C3, Matrix.col, d1, d2, n1a, n1b, n2a, n2b, n2c, n3a, n3b, n3c] <;> ring
+
+theorem linearIndVerts_hrange : Set.range ![2 * C1, C1 + C2, C1 + C3] = linearIndVerts := by
+  simp only [Nat.succ_eq_add_one, Nat.reduceAdd, Matrix.range_cons, Matrix.range_empty,
+    Set.union_empty, Set.union_singleton, Set.union_insert, linearIndVerts]
+  ext
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff];
+  tauto
+
 theorem linearInd_key :
-    LinearIndependent ℚ (fun v => v : linearIndVerts → Fin 3 → ℚ) := by
-  sorry
+      LinearIndependent ℚ (fun v => v : linearIndVerts → Fin 3 → ℚ) := by
+  have hli := Matrix.linearIndependent_cols_of_det_ne_zero M_rat_det_ne_zero
+  rw [M_rat_cols_eq] at hli
+  rw [linearIndependent_subtype_iff, ← linearIndVerts_hrange]
+  exact (linearIndepOn_range_iff hli.injective id).mpr hli
 
 theorem affineInd_key :
     AffineIndependent ℚ (fun p => p : ({-C1} ∪ (fun v => v +ᵥ (-C1)) '' linearIndVerts : Set (Fin 3 → ℚ))
