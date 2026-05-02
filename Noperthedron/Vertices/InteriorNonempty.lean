@@ -3,7 +3,10 @@ import Noperthedron.Bounding
 import Noperthedron.PointSym
 import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.Exact
+import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
+import Mathlib.Analysis.Normed.Affine.AddTorsorBases
 
+set_option doc.verso true
 /-!
 This file proves the interior of the Noperthedron is nonempty.
 -/
@@ -55,6 +58,8 @@ theorem M_rat_det_ne_zero : M_rat.det ≠ 0 := by
 
 def linearIndVerts : Set (Fin 3 → ℚ) := {2 * C1, C1 + C2, C1 + C3}
 def affineIndVerts : Set (Fin 3 → ℚ) := {-C1, C1, C2, C3}
+noncomputable
+def affineIndVertsR : Fin 4 → Euc(3) := ![-C1R, C1R, C2R, C3R]
 
 def linearIndVertsNonzero : ∀ v ∈ linearIndVerts, v ≠ 0 := by
   intro v hv
@@ -102,6 +107,35 @@ theorem affineIndVertsAffine : AffineIndependent ℚ (fun p => p : affineIndVert
   rw [← neg_c1_cup_eq_affineIndVerts]
   exact affineInd_key
 
-theorem interior_exactVerts_null_nonempty :
-    (interior ((convexHull ℝ) (exactVerts : Set (Euc(3))))).Nonempty := by
+/--
+This is an impedance matching gap that should be filled by appealing to {name}`affineIndVertsAffine`
+-/
+theorem affineIndVertsRAffine : AffineIndependent ℝ affineIndVertsR := by
   sorry
+
+theorem affineIndVertsR_span_eq_top :
+    affineSpan ℝ (Set.range affineIndVertsR) = ⊤ := by
+  rw [affineIndVertsRAffine.affineSpan_eq_top_iff_card_eq_finrank_add_one]
+  simp [Fintype.card_fin]
+
+theorem affineIndVertsR_subset_exactVerts :
+    Set.range affineIndVertsR ⊆ (exactVerts : Set Euc(3)) := by
+  rintro x ⟨i, rfl⟩
+  fin_cases i
+  all_goals simp [exactVerts]
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+
+theorem exactVerts_affineSpan_eq_top :
+    affineSpan ℝ (exactVerts : Set Euc(3)) = ⊤ := by
+  rw [eq_top_iff, ← affineIndVertsR_span_eq_top]
+  exact affineSpan_mono ℝ affineIndVertsR_subset_exactVerts
+
+-- Step 4: interior nonempty
+theorem interior_exactVerts_null_nonempty :
+    (interior ((convexHull ℝ) (exactVerts : Set (Euc(3))))).Nonempty :=
+by
+  exact interior_convexHull_nonempty_iff_affineSpan_eq_top.mpr
+    exactVerts_affineSpan_eq_top
