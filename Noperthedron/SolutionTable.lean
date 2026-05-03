@@ -114,14 +114,13 @@ theorem valid_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsVali
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   obtain ⟨_, hr⟩ := hr
   rcases hr with hr' | ⟨_, _, hgt, hr'⟩
-  · exact valid_binary_split_imp_no_rupert tab row htab hr'
+  · exact valid_single_param_split_imp_no_rupert tab row htab hr'
   · exact valid_full_split_imp_no_rupert tab row htab hgt hlt hr'
 termination_by (tab.size - row.ID, 2, 0)
 
-theorem valid_binary_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsValid)
-    (hr : Row.ValidBinarySplit tab row) :
+theorem valid_single_param_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsValid)
+    (hr : Row.ValidSingleParamSplit tab row) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨_, hr⟩ := hr
   rcases hr with ⟨_, h⟩ | ⟨_, h⟩ | ⟨_, h⟩ | ⟨_, h⟩ | ⟨_, h⟩ <;>
   · exact valid_param_split_imp_no_rupert tab row htab _ h
 termination_by (tab.size - row.ID, 1, 0)

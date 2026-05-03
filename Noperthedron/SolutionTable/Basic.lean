@@ -16,8 +16,7 @@ structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop w
 instance (tab : Table) (row : Row) (param : Param) : Decidable (Row.ValidSplitParam tab row param) :=
   decidable_of_iff _ (Row.validSplitParam_iff tab row param).symm
 
-def Row.ValidBinarySplit (tab : Table) (row : Row) : Prop :=
-  row.nrChildren = 2 ∧
+def Row.ValidSingleParamSplit (tab : Table) (row : Row) : Prop :=
     ((row.split = 1 ∧ row.ValidSplitParam tab .θ₁) ∨
      (row.split = 2 ∧ row.ValidSplitParam tab .φ₁) ∨
      (row.split = 3 ∧ row.ValidSplitParam tab .θ₂) ∨
@@ -36,7 +35,7 @@ def Row.ValidFullSplit (tab : Table) (row : Row) : Prop :=
 deriving Decidable
 
 def Row.ValidSplit (tab : Table) (row : Row) : Prop :=
-  (row.nodeType = (3 : ℕ)) ∧ (row.ValidBinarySplit tab ∨ row.ValidFullSplit tab)
+  (row.nodeType = (3 : ℕ)) ∧ (row.ValidSingleParamSplit tab ∨ row.ValidFullSplit tab)
 deriving Decidable
 
 @[mk_iff]
