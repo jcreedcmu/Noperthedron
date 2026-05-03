@@ -135,7 +135,11 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
     ⟨(Pose.le_iff_forall_getParam _ _).mp hq.1 p,
      (Pose.le_iff_forall_getParam _ _).mp hq.2 p⟩
 
-  sorry -- moderate work
+  -- something like:
+  -- obtain ⟨n, hx⟩ :=
+  --    mem_icc_mem_some_part_ab (q.getParam p) (iv.min.getParam p) (iv.max.getParam p) ...
+
+  sorry
 
 lemma non_rupert_parts_imp_non_rupert (p : Param) {iv : Interval} (N : ℕ) [hN : NeZero N]
     (qq : ∀ n : Fin N, ¬∃ q ∈ (Interval.nth_part p iv N n).toReal, RupertPose q exactPolyhedron.hull) :
