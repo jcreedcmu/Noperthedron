@@ -1,5 +1,5 @@
 name = "Noperthedron"
-defaultTargets = ["Noperthedron"]
+defaultTargets = ["Noperthedron", "constructValidTable"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -24,3 +24,7 @@ rev = "v4.30.0-rc2"
 
 [[lean_lib]]
 name = "Noperthedron"
+
+[[lean_exe]]
+name = "constructValidTable"
+root = "constructValidTable"
