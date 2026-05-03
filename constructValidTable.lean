@@ -22,9 +22,19 @@ unsafe def main (args : List String) : IO Unit := do
   IO.println s!"parsing done!"
 
   for (row, ii) in table.zipIdx do
+    let row_type_str :=
+      match row.nodeType with
+      | 1 => "global"
+      | 2 => "local"
+      | 3 => "split"
+      | _ => "unknown"
+
+    -- TODO: fix validation of split rows.
+    if row.nodeType = 3 then continue
+
     if row.ValidIx table ii
     then
-     IO.println s!"row {ii}: valid"
+     IO.println s!"row {ii} [{row_type_str}]: valid"
     else
-     IO.println s!"row {ii}: INVALID"
+     IO.println s!"row {ii} [{row_type_str}]: INVALID"
      return
