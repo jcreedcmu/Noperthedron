@@ -110,7 +110,7 @@ wx_nominator,wy_nominator,w_denominator,S_index
 
 /-- Row 245 from `data/solution_tree_300.csv` — the first local leaf. -/
 def testLocalRow : Row := {
-  ID := 91, nodeType := 2, nrChildren := 0, IDfirstChild := 0, split := 0,
+  ID := 245, nodeType := 2, nrChildren := 0, IDfirstChild := 0, split := 0,
   interval := Interval.ofIntPose
     { θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := -22853120 }
     { θ₁ := 201600, θ₂ := 201600, φ₁ := 201600, φ₂ := 202240, α := -22650880 }
