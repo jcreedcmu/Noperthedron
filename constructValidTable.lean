@@ -18,5 +18,13 @@ unsafe def main (args : List String) : IO Unit := do
               | .error e => throw (IO.userError e)
     rows := rows.push row
 
-  let _table : Noperthedron.Solution.Table := rows
+  let table : Noperthedron.Solution.Table := rows
   IO.println s!"parsing done!"
+
+  for (row, ii) in table.zipIdx do
+    if row.ValidIx table ii
+    then
+     IO.println s!"row {ii}: valid"
+    else
+     IO.println s!"row {ii}: INVALID"
+     return
