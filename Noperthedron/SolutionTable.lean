@@ -25,7 +25,32 @@ lemma mem_nth_part (q : Pose ℝ) (iv : Interval) (p : Param) (N : ℕ) [hN : Ne
   have ⟨_, _, _, _, _⟩ := hq
   fin_cases p <;> simp_all [Interval.nth_part, Pose.getParam, Pose.setParam]
 
--- deprecate?
+@[push_cast]
+lemma iv_max_push_cast (iv : Interval) (p : Param) :
+    ((PoseInterval.max iv).getParam p : ℝ) = iv.toReal.max.getParam p := by
+  cases p <;>
+    simp [Interval.toReal, Interval.minPose, Interval.maxPose, Pose.getParam]
+
+@[push_cast]
+lemma iv_min_push_cast (iv : Interval) (p : Param) :
+    ((PoseInterval.min iv).getParam p : ℝ) = iv.toReal.min.getParam p := by
+  cases p <;>
+    simp [Interval.toReal, Interval.minPose, Interval.minPose, Pose.getParam]
+
+lemma mem_iv_imp_ge_min (iv : Interval) {q : Pose ℝ} (hq : q ∈ iv.toReal) (p : Param) :
+    iv.min.getParam p ≤ q.getParam p := by
+  simp [Interval.toReal] at hq
+  obtain ⟨hq, _⟩ := hq
+  push_cast
+  exact Pose.le_iff_forall_getParam iv.toReal.min q |>.mp hq p
+
+lemma mem_iv_imp_le_max (iv : Interval) {q : Pose ℝ} (hq : q ∈ iv.toReal) (p : Param) :
+    q.getParam p ≤ iv.max.getParam p := by
+  simp [Interval.toReal] at hq
+  obtain ⟨_, hq⟩ := hq
+  push_cast
+  exact Pose.le_iff_forall_getParam q iv.toReal.max |>.mp hq p
+
 lemma mem_lower_half (q : Pose ℝ) (iv : Interval) (p : Param)
     (hq : q ∈ iv.toReal)
     (lower : q.getParam p ≤ (((iv.min.getParam p + iv.max.getParam p) / 2 : ℚ) : ℝ)) :
@@ -33,14 +58,13 @@ lemma mem_lower_half (q : Pose ℝ) (iv : Interval) (p : Param)
   apply mem_nth_part q iv p 2 0 hq
   constructor
   · simp [Interval.interpolate, AffineMap.lineMap]
-    sorry -- should be easy
+    exact mem_iv_imp_ge_min iv hq p
   · simp [Interval.interpolate, AffineMap.lineMap]
     grw [lower]
     simp only [Rat.cast_div, Rat.cast_add, Rat.cast_ofNat]
     ring_nf
     rfl
 
--- deprecate?
 lemma mem_upper_half (q : Pose ℝ) (iv : Interval) (p : Param)
     (hq : q ∈ iv.toReal)
     (upper : (((iv.min.getParam p + iv.max.getParam p) / 2 : ℚ) : ℝ) ≤ q.getParam p) :
@@ -53,14 +77,21 @@ lemma mem_upper_half (q : Pose ℝ) (iv : Interval) (p : Param)
     ring_nf
     rfl
   · simp [Interval.interpolate, AffineMap.lineMap]
-    sorry -- should be easy
+    exact mem_iv_imp_le_max iv hq p
 
 lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
      (N : ℕ) [NeZero N] (hq : q ∈ iv.toReal) :
      ∃ n : Fin N, q ∈ (iv.nth_part p N n).toReal := by
   sorry -- moderate work
 
--- deprecate?
+lemma non_rupert_parts_imp_non_rupert {p : Param} {iv : Interval} (N : ℕ) [NeZero N]
+    (qq : ∀ n : Fin N, ¬∃ q ∈ (Interval.nth_part p iv N n).toReal, RupertPose q exactPolyhedron.hull) :
+    ¬∃ q ∈ iv.toReal, RupertPose q exactPolyhedron.hull := by
+  rintro ⟨q, hq1, hq2⟩
+  obtain ⟨n, hq1⟩ := mem_interval_imp_mem_some_part q iv p N hq1
+  exact qq n ⟨q, hq1, hq2⟩
+
+-- these two are used in the cube-fold part of the proof below
 lemma mem_interval_imp_mem_union_halves (q : Pose ℝ) (iv : Interval) (p : Param)
      (hq : q ∈ iv.toReal) :
      q ∈ (iv.lower_half p).toReal ∨ q ∈ (iv.upper_half p).toReal := by
@@ -70,27 +101,6 @@ lemma mem_interval_imp_mem_union_halves (q : Pose ℝ) (iv : Interval) (p : Para
   else
     right; exact mem_upper_half q iv p hq (Std.le_of_not_ge h)
 
-lemma interval_sub_union_parts (iv : Interval) (p : Param) (N : ℕ) [NeZero N] :
-    (iv : Set (Pose ℝ)) ⊆ ⋃ n : Fin N, (iv.nth_part p N n : Set (Pose ℝ))  := by
-  intro q hq
-  simp only [Set.mem_iUnion]
-  exact mem_interval_imp_mem_some_part q iv p N hq
-
--- deprecate?
-lemma interval_sub_union_halves (iv : Interval) (p : Param) :
-    (iv : Set (Pose ℝ)) ⊆ (iv.lower_half p : Set (Pose ℝ)) ∪ iv.upper_half p := by
-  intro q
-  simp only [Set.mem_union]
-  exact mem_interval_imp_mem_union_halves q iv p
-
-lemma non_rupert_parts_imp_non_rupert {p : Param} {iv : Interval} (N : ℕ) [NeZero N]
-    (qq : ∀ n : Fin N, ¬∃ q ∈ (Interval.nth_part p iv N n).toReal, RupertPose q exactPolyhedron.hull) :
-    ¬∃ q ∈ iv.toReal, RupertPose q exactPolyhedron.hull := by
-  rintro ⟨q, hq1, hq2⟩
-  obtain ⟨n, hq1⟩ := mem_interval_imp_mem_some_part q iv p N hq1
-  exact qq n ⟨q, hq1, hq2⟩
-
--- deprecate?
 lemma non_rupert_halves_imp_non_rupert {p : Param} {iv : Interval}
     (q1 : ¬∃ q ∈ (Interval.lower_half p iv).toReal, RupertPose q exactPolyhedron.hull)
     (q2 : ¬∃ q ∈ (Interval.upper_half p iv).toReal, RupertPose q exactPolyhedron.hull) :
