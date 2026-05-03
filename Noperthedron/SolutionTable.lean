@@ -84,7 +84,7 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
      ∃ n : Fin N, q ∈ (iv.nth_part p N n).toReal := by
   sorry -- moderate work
 
-lemma non_rupert_parts_imp_non_rupert {p : Param} {iv : Interval} (N : ℕ) [NeZero N]
+lemma non_rupert_parts_imp_non_rupert (p : Param) {iv : Interval} (N : ℕ) [hN : NeZero N]
     (qq : ∀ n : Fin N, ¬∃ q ∈ (Interval.nth_part p iv N n).toReal, RupertPose q exactPolyhedron.hull) :
     ¬∃ q ∈ iv.toReal, RupertPose q exactPolyhedron.hull := by
   rintro ⟨q, hq1, hq2⟩
@@ -191,18 +191,12 @@ theorem valid_param_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.Ro
     (p : Param) (h : Row.ValidSplitParam tab row p) :
     ¬∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   obtain ⟨hid, hkids, hnzk, hkiv⟩ := h
-  sorry
-  -- let r1 := tab[row.IDfirstChild]
-  -- let r2 := tab[row.IDfirstChild + 1]
-  -- have m1 := r1.valid_imp_not_rupert_ix tab (row.IDfirstChild) htab (htab.valid_at h1)
-  -- have m2 := r2.valid_imp_not_rupert_ix tab (row.IDfirstChild+1) htab (htab.valid_at h2)
-  -- unfold r1 at m1
-  -- unfold r2 at m2
-  -- change ¬∃ q ∈ tab[row.IDfirstChild].interval.toReal, RupertPose q exactPolyhedron.hull at m1
-  -- change ¬∃ q ∈ tab[row.IDfirstChild + 1].interval.toReal, RupertPose q exactPolyhedron.hull at m2
-  -- rw [iv1] at m1
-  -- rw [iv2] at m2
-  -- exact non_rupert_halves_imp_non_rupert m1 m2
+  refine non_rupert_parts_imp_non_rupert p row.nrChildren (hN := ⟨hnzk⟩) ?_
+  intro n
+  rw [← hkiv n]
+  clear hkiv hnzk
+  refine tab[row.IDfirstChild + n].valid_imp_not_rupert_ix tab (row.IDfirstChild+n) htab (htab.valid_at ?_)
+  grind
 
 termination_by (tab.size - row.ID, 0, 0)
 decreasing_by all_goals grind
