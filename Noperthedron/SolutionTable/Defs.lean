@@ -115,7 +115,7 @@ def interpolates_le (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : �
 Given an interval `iv`, and a parameter `param`, return the interval that results from
 subdividing `iv` along `param` into `N` equal parts, and picking the `n`th one.
 -/
-def Interval.nth_part (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : Fin N) : Interval :=
+def Interval.nth_part (param : Param) (iv : Interval) (N : ℕ) [hN : NeZero N] (n : Fin N) : Interval :=
     PoseInterval.mk
       (iv.min.setParam param (iv.interpolate param N n))
       (iv.max.setParam param (iv.interpolate param N (n+1)))

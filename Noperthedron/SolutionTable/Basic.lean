@@ -7,11 +7,11 @@ namespace Noperthedron.Solution
 
 @[mk_iff]
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
-  bound0 : row.ID < row.IDfirstChild
-  bound1 : row.IDfirstChild < Array.size tab
-  bound2 : row.IDfirstChild + 1 < Array.size tab
-  first_child_good : tab[row.IDfirstChild].interval = row.interval.lower_half param
-  second_child_good : tab[row.IDfirstChild + 1].interval = row.interval.upper_half param
+  id_in_table : row.ID < row.IDfirstChild
+  children_in_table : row.IDfirstChild + row.nrChildren < Array.size tab
+  nonzero_children : row.nrChildren ≠ 0
+  children_intervals_good : ∀ (n : Fin row.nrChildren), tab[row.IDfirstChild + n].interval =
+    row.interval.nth_part param row.nrChildren (hN := ⟨nonzero_children⟩) n
 
 instance (tab : Table) (row : Row) (param : Param) : Decidable (Row.ValidSplitParam tab row param) :=
   decidable_of_iff _ (Row.validSplitParam_iff tab row param).symm
