@@ -3,6 +3,18 @@ import Noperthedron.SolutionTable.Defs
 
 namespace Noperthedron.Solution
 
+def parseNat (name : String) : String → Except String Nat
+| "" => Except.ok 0
+| s => Id.run do
+  let .some v := s.toNat? | return .error s!"failed to parse {name} from '{s}'"
+  pure (.ok v)
+
+def parseInt (name : String) : String → Except String Int
+| "" => Except.ok 0
+| s => Id.run do
+  let .some v := s.toInt? | return .error s!"failed to parse {name} from '{s}'"
+  pure (.ok v)
+
 /-
 27 columns:
 ID,nodeType,nrChildren,IDfirstChild,split,
@@ -15,77 +27,78 @@ wx_nominator,wy_nominator,w_denominator,
 S_index
 -/
 
-def parseRowCsv (s : String) : Except String Row := Id.run do
+def parseRowCsv (s : String) : Except String Row := do
   let cols := s.splitOn ","
-  let id_str::type_str::nr_children_str::rest := cols | return .error "not enough columns"
-  let .some node_id := id_str.toNat? | return .error "failed to parse"
-  let .some node_type := type_str.toNat? | return .error "failed to parse"
-  let .some nr_children := nr_children_str.toNat? | return .error "failed to parse"
-  let id_fst_child_str::split_str::rest := rest | return .error "not enough columns"
-  let .some id_fst_child := id_fst_child_str.toNat? | return .error "failed to parse"
-  let .some split := split_str.toNat? | return .error "failed to parse"
+  let id_str::type_str::nr_children_str::rest := cols | throw "not enough columns"
 
-  let t1min_str::t1max_str::v1min_str::v1max_str::rest := rest | return .error "not enough columns"
-  let .some t1min := t1min_str.toInt? | return .error "failed to parse t1min"
-  let .some t1max := t1max_str.toInt? | return .error "failed to parse t1max"
-  let .some v1min := v1min_str.toInt? | return .error "failed to parse v1min"
-  let .some v1max := v1max_str.toInt? | return .error "failed to parse v1max"
+  let .some node_id := id_str.toNat? | throw s!"failed to parse node_id from '{id_str}'"
+  let .some node_type := type_str.toNat? | throw "failed to parse node_type"
+  let nr_children ← parseNat "nr_children" nr_children_str
+  let id_fst_child_str::split_str::rest := rest | throw "not enough columns"
+  let id_fst_child ← parseNat "id_fst_child" id_fst_child_str
+  let split ← parseNat "split" split_str
 
-  let t2min_str::t2max_str::v2min_str::v2max_str::rest := rest | return .error "not enough columns"
-  let .some t2min := t2min_str.toInt? | return .error "failed to parse t2min"
-  let .some t2max := t2max_str.toInt? | return .error "failed to parse t2max"
-  let .some v2min := v2min_str.toInt? | return .error "failed to parse v2min"
-  let .some v2max := v2max_str.toInt? | return .error "failed to parse v2max"
+  let t1min_str::t1max_str::v1min_str::v1max_str::rest := rest | throw "not enough columns"
+  let .some t1min := t1min_str.toInt? | throw "failed to parse t1min"
+  let .some t1max := t1max_str.toInt? | throw "failed to parse t1max"
+  let .some v1min := v1min_str.toInt? | throw "failed to parse v1min"
+  let .some v1max := v1max_str.toInt? | throw "failed to parse v1max"
 
-  let amin_str::amax_str::rest := rest | return .error "not enough columns"
-  let .some amin := amin_str.toInt? | return .error "failed to parse amin"
-  let .some amax := amax_str.toInt? | return .error "failed to parse amax"
+  let t2min_str::t2max_str::v2min_str::v2max_str::rest := rest | throw "not enough columns"
+  let .some t2min := t2min_str.toInt? | throw "failed to parse t2min"
+  let .some t2max := t2max_str.toInt? | throw "failed to parse t2max"
+  let .some v2min := v2min_str.toInt? | throw "failed to parse v2min"
+  let .some v2max := v2max_str.toInt? | throw "failed to parse v2max"
+
+  let amin_str::amax_str::rest := rest | throw "not enough columns"
+  let .some amin := amin_str.toInt? | throw "failed to parse amin"
+  let .some amax := amax_str.toInt? | throw "failed to parse amax"
 
   let pmin : Pose ℤ := { θ₁ := t1min, θ₂ := t2min, φ₁ := v1min, φ₂ := v2min, α := amin }
   let pmax : Pose ℤ := { θ₁ := t1max, θ₂ := t2max, φ₁ := v1max, φ₂ := v2max, α := amax }
   let interval ← if h : t1min ≤ t1max ∧ t2min ≤ t2max ∧ v1min ≤ v1max ∧ v2min ≤ v2max ∧
                         amin ≤ amax
-                 then Interval.ofIntPose pmin pmax ((Pose.le_iff _ _).mpr h)
-                 else return .error "invalid interval"
+                 then pure (Interval.ofIntPose pmin pmax ((Pose.le_iff _ _).mpr h))
+                 else throw "invalid interval"
 
-  let p1i_str::p2i_str::p3i_str::rest := rest | return .error "not enough columns"
-  let .some p1i := p1i_str.toNat? | return .error "failed to parse p1i"
-  let p1i : Fin 90 ← if h : p1i < 90 then (⟨p1i, h⟩ : Fin 90) else return .error "invalid index"
-  let .some p2i := p2i_str.toNat? | return .error "failed to parse p2i"
-  let p2i : Fin 90 ← if h : p2i < 90 then (⟨p2i, h⟩ : Fin 90) else return .error "invalid index"
-  let .some p3i := p3i_str.toNat? | return .error "failed to parse p3i"
-  let p3i : Fin 90 ← if h : p3i < 90 then (⟨p3i, h⟩ : Fin 90) else return .error "invalid index"
+  let p1i_str::p2i_str::p3i_str::rest := rest | throw "not enough columns"
+  let p1i ← parseNat "p1i" p1i_str
+  let p1i : Fin 90 ← if h : p1i < 90 then pure (⟨p1i, h⟩ : Fin 90) else throw "invalid index"
+  let p2i ← parseNat "p2i" p2i_str
+  let p2i : Fin 90 ← if h : p2i < 90 then pure (⟨p2i, h⟩ : Fin 90) else throw "invalid index"
+  let p3i ← parseNat "p3i" p3i_str
+  let p3i : Fin 90 ← if h : p3i < 90 then pure (⟨p3i, h⟩ : Fin 90) else throw "invalid index"
 
-  let q1i_str::q2i_str::q3i_str::rest := rest | return .error "not enough columns"
-  let .some q1i := q1i_str.toNat? | return .error "failed to parse q1i"
-  let q1i : Fin 90 ← if h : q1i < 90 then (⟨q1i, h⟩ : Fin 90) else return .error "invalid index"
-  let .some q2i := q2i_str.toNat? | return .error "failed to parse q2i"
-  let q2i : Fin 90 ← if h : q2i < 90 then (⟨q2i, h⟩ : Fin 90) else return .error "invalid index"
-  let .some q3i := p3i_str.toNat? | return .error "failed to parse q3i"
-  let q3i : Fin 90 ← if h : q3i < 90 then (⟨q3i, h⟩ : Fin 90) else return .error "invalid index"
+  let q1i_str::q2i_str::q3i_str::rest := rest | throw "not enough columns"
+  let q1i ← parseNat "q1i" q1i_str
+  let q1i : Fin 90 ← if h : q1i < 90 then pure (⟨q1i, h⟩ : Fin 90) else throw "invalid index"
+  let q2i ← parseNat "q2i" q2i_str
+  let q2i : Fin 90 ← if h : q2i < 90 then pure (⟨q2i, h⟩ : Fin 90) else throw "invalid index"
+  let q3i ← parseNat "q3i" q3i_str
+  let q3i : Fin 90 ← if h : q3i < 90 then pure (⟨q3i, h⟩ : Fin 90) else throw "invalid index"
 
-  let r_str :: sigmaq_str :: rest := rest | return .error "not enough columns"
-  let .some r' := r_str.toInt? | return .error "failed to parse r'"
-  let .some sigmaqN := sigmaq_str.toNat? | return .error "failed to parse sigmaqN"
+  let r_str :: sigmaq_str :: rest := rest | throw "not enough columns"
+  let r' ← parseInt "r_str" r_str
+  let sigmaqN ← parseNat "sigmaq" sigmaq_str
   let sigmaq : Finset.Icc 0 1 ←
     match sigmaqN with
-    | 0 => (⟨0, by grind⟩ : Finset.Icc 0 1)
-    | 1 => (⟨1, by grind⟩ : Finset.Icc 0 1)
-    | _ => return .error s!"bad sigmaq: {sigmaqN}"
+    | 0 => pure (⟨0, by grind⟩ : Finset.Icc 0 1)
+    | 1 => pure (⟨1, by grind⟩ : Finset.Icc 0 1)
+    | _ => throw s!"bad sigmaq: {sigmaqN}"
 
-  let wxnum_str::wynum_str::wden_str::rest := rest | return .error "not enough columns"
-  let .some wxnum := wxnum_str.toInt? | return .error "failed to parse wxnum"
-  let .some wynum := wynum_str.toInt? | return .error "failed to parse wynum"
-  let .some wden := wden_str.toNat? | return .error "failed to parse wden"
+  let wxnum_str::wynum_str::wden_str::rest := rest | throw "not enough columns"
+  let wxnum ← parseInt "wxnum" wxnum_str
+  let wynum ← parseInt "wynum" wynum_str
+  let wden ← parseNat "wden" wden_str
 
-  let sindex_str :: rest := rest | return .error "not enough columns"
-  let .some sindex := sindex_str.toNat? | return .error "failed to parse sindex"
-  let sindex : Fin 90 ← if h : sindex < 90 then (⟨sindex, h⟩ : Fin 90)
-                        else return .error "invalid sindex"
+  let sindex_str :: rest := rest | throw "not enough columns"
+  let sindex ← parseNat "sindex" sindex_str
+  let sindex : Fin 90 ← if h : sindex < 90 then pure (⟨sindex, h⟩ : Fin 90)
+                        else throw "invalid sindex"
 
-  let [] := rest | return .error "too many columns"
+  let [] := rest | throw "too many columns"
 
-  return .ok {
+  return {
     ID := node_id
     nodeType := node_type
     nrChildren := nr_children
