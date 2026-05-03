@@ -92,29 +92,37 @@ instance : ToString Row where
 
 abbrev Table : Type := Array Row
 
-def Interval.lower_half (param : Param) (iv : Interval) : Interval :=
-  PoseInterval.mk
-    iv.min
-    (iv.max.setParam param ((iv.min.getParam param + iv.max.getParam param) / 2))
-    (by
-      rw [Pose.le_iff_forall_getParam]
-      intro b
-      have h := (Pose.le_iff_forall_getParam iv.min iv.max).mp iv.fst_le_snd
-      rcases eq_or_ne b param with rfl | hne
-      · simp; linarith [h b]
-      · simpa [Pose.getParam_setParam_of_ne _ hne] using h b)
+def Interval.interpolate (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : ℕ) : ℚ :=
+  AffineMap.lineMap (iv.min.getParam param) (iv.max.getParam param) ((n : ℚ) / N)
 
-def Interval.upper_half (param : Param) (iv : Interval) : Interval :=
-  PoseInterval.mk
-    (iv.min.setParam param ((iv.min.getParam param + iv.max.getParam param) / 2))
-    iv.max
-    (by
-      rw [Pose.le_iff_forall_getParam]
-      intro b
-      have h := (Pose.le_iff_forall_getParam iv.min iv.max).mp iv.fst_le_snd
-      rcases eq_or_ne b param with rfl | hne
-      · simp; linarith [h b]
-      · simpa [Pose.getParam_setParam_of_ne _ hne] using h b)
+/--
+The two endpoints constructed below by `Interval.nth_part` are correctly oriented.
+-/
+def interpolates_le (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : ℕ) :
+    iv.min.setParam param (iv.interpolate param N ↑n) ≤
+    iv.max.setParam param (iv.interpolate param N (↑n + 1)) := by
+  rw [Pose.le_iff_forall_getParam]
+  intro b
+  have h := (Pose.le_iff_forall_getParam iv.min iv.max).mp iv.fst_le_snd b
+  rcases eq_or_ne b param with rfl | hne
+  · simp [Interval.interpolate, AffineMap.lineMap]
+    have : N ≠ 0 := Ne.symm (NeZero.ne' N)
+    field_simp
+    linarith
+  · simpa [Pose.getParam_setParam_of_ne _ hne]
+
+/--
+Given an interval `iv`, and a parameter `param`, return the interval that results from
+subdividing `iv` along `param` into `N` equal parts, and picking the `n`th one.
+-/
+def Interval.nth_part (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : Fin N) : Interval :=
+    PoseInterval.mk
+      (iv.min.setParam param (iv.interpolate param N n))
+      (iv.max.setParam param (iv.interpolate param N (n+1)))
+      (interpolates_le param iv N n)
+
+def Interval.lower_half (param : Param) (iv : Interval) : Interval := Interval.nth_part param iv 2 0
+def Interval.upper_half (param : Param) (iv : Interval) : Interval := Interval.nth_part param iv 2 1
 
 /-- Build an `Interval` from `Pose ℤ` endpoints holding the raw `DENOMQ`-scaled
 integer numerators (the form used in the SY25 CSV). The constructor divides each
