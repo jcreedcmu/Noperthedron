@@ -100,9 +100,41 @@ lemma mem_icc_mem_some_part (x : ℝ) (N : ℕ) [NeZero N] (hx : x ∈ Set.Icc 0
       rw [Int.toNat_of_nonneg (Int.floor_nonneg.mpr hx.1)]
       exact_mod_cast le_of_lt (Int.lt_floor_add_one x)
 
+lemma mem_icc_mem_some_part_ab (x : ℝ) (a b : ℚ) (hab : a < b) (N : ℕ)
+    [NeZero N] (hx : x ∈ Set.Icc (a : ℝ) (b : ℝ)) :
+    ∃ n : Fin N, x ∈ Set.Icc (interpolate a b N n) (interpolate a b N (n + 1)) := by
+    let xx := N * (x - a) / (b - a)
+    have h : 0 < (↑b : ℝ) - (↑a : ℝ) := by
+      exact_mod_cast (Rat.lt_iff_sub_pos a b).mp hab
+    obtain ⟨hx1, hx2⟩ := hx
+    have hxx : xx ∈ Set.Icc 0 (N : ℝ) := by
+      simp [xx]
+      constructor
+      · field_simp; simp only [zero_mul];
+        exact mul_nonneg (Nat.cast_nonneg N) (by linarith)
+      · field_simp;
+        have q : 0 < N := Nat.pos_of_ne_zero (Ne.symm (NeZero.ne' N))
+        exact mul_le_mul_of_nonneg_left (by grind) (Nat.cast_nonneg' N)
+    have q : 0 < N := Nat.pos_of_ne_zero (Ne.symm (NeZero.ne' N))
+    obtain ⟨n, h3⟩ := mem_icc_mem_some_part xx N hxx
+    simp [xx] at h3
+    field_simp at h3
+    ring_nf at h3
+    use n
+    constructor <;>
+    · simp [interpolate, AffineMap.lineMap]
+      field_simp
+      grind
+
 lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
      (N : ℕ) [NeZero N] (hq : q ∈ iv.toReal) :
      ∃ n : Fin N, q ∈ (iv.nth_part p N n).toReal := by
+  let ivpMin := iv.toReal.min.getParam p
+  let ivpMax := iv.toReal.max.getParam p
+  have : q.getParam p ∈ Set.Icc ivpMin ivpMax :=
+    ⟨(Pose.le_iff_forall_getParam _ _).mp hq.1 p,
+     (Pose.le_iff_forall_getParam _ _).mp hq.2 p⟩
+
   sorry -- moderate work
 
 lemma non_rupert_parts_imp_non_rupert (p : Param) {iv : Interval} (N : ℕ) [hN : NeZero N]

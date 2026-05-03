@@ -92,6 +92,9 @@ instance : ToString Row where
 
 abbrev Table : Type := Array Row
 
+def interpolate (min max : ℚ) (N : ℕ) [NeZero N] (n : ℕ) : ℚ :=
+  AffineMap.lineMap min max ((n : ℚ) / N)
+
 def Interval.interpolate (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : ℕ) : ℚ :=
   AffineMap.lineMap (iv.min.getParam param) (iv.max.getParam param) ((n : ℚ) / N)
 
