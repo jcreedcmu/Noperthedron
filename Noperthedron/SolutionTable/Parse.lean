@@ -1,19 +1,36 @@
+import Lean.Data.Json.Parser
+import Mathlib.Data.String.Defs
 import Noperthedron.SolutionTable.Defs
-
 
 namespace Noperthedron.Solution
 
 def parseNat (name : String) : String → Except String Nat
 | "" => Except.ok 0
-| s => Id.run do
-  let .some v := s.toNat? | return .error s!"failed to parse {name} from '{s}'"
-  pure (.ok v)
+| s => do
+  let .ok v := Lean.Json.Parser.num.run s | throw s!"failed to parse {name} from `{s}`"
+  pure (v.mantissa.toNat / 10 ^ v.exponent)
+
+/-- info: Except.ok 0 -/
+#guard_msgs in
+#eval parseNat "x" "0"
+
+/-- info: Except.ok 1 -/
+#guard_msgs in
+#eval parseNat "x" "1"
+
+/-- info: Except.ok 100000 -/
+#guard_msgs in
+#eval parseNat "x" "1e+5"
+
+/-- info: Except.ok 1200000 -/
+#guard_msgs in
+#eval parseNat "x" "1.2e+6"
 
 def parseInt (name : String) : String → Except String Int
 | "" => Except.ok 0
-| s => Id.run do
-  let .some v := s.toInt? | return .error s!"failed to parse {name} from '{s}'"
-  pure (.ok v)
+| s => do
+  let .some v := s.toInt? | throw s!"failed to parse {name} from '{s}'"
+  pure v
 
 /-
 27 columns:
@@ -31,7 +48,7 @@ def parseRowCsv (s : String) : Except String Row := do
   let cols := s.splitOn ","
   let id_str::type_str::nr_children_str::rest := cols | throw "not enough columns"
 
-  let .some node_id := id_str.toNat? | throw s!"failed to parse node_id from '{id_str}'"
+  let node_id ← parseNat "node_id" id_str
   let .some node_type := type_str.toNat? | throw "failed to parse node_type"
   let nr_children ← parseNat "nr_children" nr_children_str
   let id_fst_child_str::split_str::rest := rest | throw "not enough columns"

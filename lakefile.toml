@@ -28,3 +28,4 @@ name = "Noperthedron"
 [[lean_exe]]
 name = "constructValidTable"
 root = "constructValidTable"
+buildType = "release"
