@@ -79,6 +79,27 @@ lemma mem_upper_half (q : Pose ℝ) (iv : Interval) (p : Param)
   · simp [Interval.interpolate, AffineMap.lineMap]
     exact mem_iv_imp_le_max iv hq p
 
+lemma mem_icc_mem_some_part (x : ℝ) (N : ℕ) [NeZero N] (hx : x ∈ Set.Icc 0 (N : ℝ)) :
+    ∃ n : Fin N, x ∈ Set.Icc (n : ℝ) (n + 1) := by
+  have hz : N ≠ 0 := Ne.symm (NeZero.ne' N)
+  if h : x = N then
+    use ⟨N - 1, Nat.sub_one_lt (Ne.symm (NeZero.ne' N))⟩
+    constructor
+    · simp [h]
+    · simp only [h]; rw [Nat.cast_sub (show 1 ≤ N by grind)]; simp
+  else
+    have hN : x < N := Std.lt_of_le_of_ne hx.2 h
+    have : ⌊x⌋.toNat < N :=
+      (Int.toNat_lt (Int.floor_nonneg.mpr hx.1)).mpr (Int.floor_lt.mpr hN)
+    use ⟨⌊x⌋.toNat, this⟩
+    constructor
+    · change (↑⌊x⌋.toNat : ℤ) ≤ x
+      rw [Int.toNat_of_nonneg (Int.floor_nonneg.mpr hx.1)]
+      exact Int.floor_le x
+    · change x ≤ (⌊x⌋.toNat : ℤ) + 1
+      rw [Int.toNat_of_nonneg (Int.floor_nonneg.mpr hx.1)]
+      exact_mod_cast le_of_lt (Int.lt_floor_add_one x)
+
 lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
      (N : ℕ) [NeZero N] (hq : q ∈ iv.toReal) :
      ∃ n : Fin N, q ∈ (iv.nth_part p N n).toReal := by
