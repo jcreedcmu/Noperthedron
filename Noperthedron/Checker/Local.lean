@@ -55,12 +55,99 @@ abbrev Row.r (row : Row) : ℚ :=
 open scoped Matrix
 open RationalApprox (sqrtApprox κℚ)
 
-abbrev Row.δ (row : Row) : ℚ :=
-  Finset.max'
-    (Finset.image
-      (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
-         (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox) Finset.univ)
+/-! ### `Row.δ`: max over per-`i` `BoundDeltaℚi` values, hoisting trig once -/
+
+namespace Row.δ
+
+open RationalApprox (sinℚ cosℚ)
+
+/-- `BoundDeltaℚi` for a single `i`, with the 10 trig values used by
+`M₁`, `R`, `M₂` (sin/cos of `θ₁ φ₁ α θ₂ φ₂`) passed in already evaluated. -/
+@[inline] private def boundDelta_at (st1 ct1 sp1 cp1 sa ca st2 ct2 sp2 cp2 : ℚ)
+    (P Q : Fin 3 → ℚ) : ℚ :=
+  -- M₁ * P
+  let m1p_0 := -st1 * P 0 + ct1 * P 1
+  let m1p_1 := (-ct1 * cp1) * P 0 + (-st1 * cp1) * P 1 + sp1 * P 2
+  -- R * (M₁ * P)
+  let rm1p_0 := ca * m1p_0 + (-sa) * m1p_1
+  let rm1p_1 := sa * m1p_0 + ca * m1p_1
+  -- M₂ * Q
+  let m2q_0 := -st2 * Q 0 + ct2 * Q 1
+  let m2q_1 := (-ct2 * cp2) * Q 0 + (-st2 * cp2) * Q 1 + sp2 * Q 2
+  let d0 := rm1p_0 - m2q_0
+  let d1 := rm1p_1 - m2q_1
+  let normSq := d0 * d0 + d1 * d1
+  sqrtApprox.upper_sqrt.f normSq / 2 + 3 * κℚ
+
+lemma boundDelta_at_eq (p : Pose ℚ) (P Q : Fin 3 → ℚ) :
+    boundDelta_at (sinℚ p.θ₁) (cosℚ p.θ₁) (sinℚ p.φ₁) (cosℚ p.φ₁)
+                  (sinℚ p.α) (cosℚ p.α)
+                  (sinℚ p.θ₂) (cosℚ p.θ₂) (sinℚ p.φ₂) (cosℚ p.φ₂) P Q =
+    sqrtApprox.upper_sqrt.norm (p.rotRℚ (p.rotM₁ℚ P) - p.rotM₂ℚ Q) / 2 + 3 * κℚ := by
+  unfold boundDelta_at RationalApprox.UpperSqrt.norm
+  unfold Pose.rotRℚ Pose.rotM₁ℚ Pose.rotM₂ℚ
+  unfold RationalApprox.rotRℚ RationalApprox.rotMℚ
+  unfold RationalApprox.rotRℚ_mat RationalApprox.rotMℚ_mat
+  rw [show (Matrix.toLin' _ : (Fin 2 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ))
+        ((Matrix.toLin' _ : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ)) P) -
+       (Matrix.toLin' _ : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ)) Q
+       = fun (j : Fin 2) =>
+         (Matrix.toLin' _ ((Matrix.toLin' _ : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ)) P)) j -
+         ((Matrix.toLin' _ : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ)) Q) j from rfl]
+  set_option linter.unusedSimpArgs false in
+  simp [Matrix.toLin'_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
+
+end Row.δ
+
+/-- The δ bound for a row: `max_i ‖R·M₁·P_i − M₂·Q_i‖ / 2 + 3κ`.
+Equivalent to `Finset.max' (Finset.image BoundDeltaℚi univ) _` (see
+`Row.δ_eq_max'_BoundDeltaℚi`), but the trig partial sums are hoisted once
+per pose for a ~6× runtime speedup. -/
+def Row.δ (row : Row) : ℚ :=
+  let p := row.interval.centerPose
+  let st1 := RationalApprox.sinℚ p.θ₁
+  let ct1 := RationalApprox.cosℚ p.θ₁
+  let sp1 := RationalApprox.sinℚ p.φ₁
+  let cp1 := RationalApprox.cosℚ p.φ₁
+  let sa  := RationalApprox.sinℚ p.α
+  let ca  := RationalApprox.cosℚ p.α
+  let st2 := RationalApprox.sinℚ p.θ₂
+  let ct2 := RationalApprox.cosℚ p.θ₂
+  let sp2 := RationalApprox.sinℚ p.φ₂
+  let cp2 := RationalApprox.cosℚ p.φ₂
+  let f : Fin 3 → ℚ := fun i =>
+    Row.δ.boundDelta_at st1 ct1 sp1 cp1 sa ca st2 ct2 sp2 cp2
+      (pythonVertex (row.Pi i)) (pythonVertex (row.Qi i))
+  Finset.max' (Finset.image f Finset.univ)
     (Finset.image_nonempty.mpr ⟨0, Finset.mem_univ 0⟩)
+
+theorem Row.δ_eq_max'_BoundDeltaℚi (row : Row) :
+    row.δ = Finset.max' (Finset.image
+      (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
+        (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox) Finset.univ)
+      (Finset.image_nonempty.mpr ⟨0, Finset.mem_univ 0⟩) := by
+  show (Finset.image
+        (fun i => Row.δ.boundDelta_at
+          (RationalApprox.sinℚ row.interval.centerPose.θ₁)
+          (RationalApprox.cosℚ row.interval.centerPose.θ₁)
+          (RationalApprox.sinℚ row.interval.centerPose.φ₁)
+          (RationalApprox.cosℚ row.interval.centerPose.φ₁)
+          (RationalApprox.sinℚ row.interval.centerPose.α)
+          (RationalApprox.cosℚ row.interval.centerPose.α)
+          (RationalApprox.sinℚ row.interval.centerPose.θ₂)
+          (RationalApprox.cosℚ row.interval.centerPose.θ₂)
+          (RationalApprox.sinℚ row.interval.centerPose.φ₂)
+          (RationalApprox.cosℚ row.interval.centerPose.φ₂)
+          (pythonVertex (row.Pi i)) (pythonVertex (row.Qi i))) Finset.univ).max' _ =
+      (Finset.image
+        (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
+          (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox) Finset.univ).max' _
+  congr 1
+  apply Finset.image_congr
+  intro i _
+  unfold RationalApprox.LocalTheorem.BoundDeltaℚi
+  exact Row.δ.boundDelta_at_eq _ _ _
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/
 @[mk_iff]

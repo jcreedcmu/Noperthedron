@@ -125,7 +125,7 @@ theorem valid_local_imp_no_rupert (_tab : Table) (row : Row)
            hrow.Bεℚ
   case hdelta =>
     intro i
-    -- row.δ is Finset.max' over BoundDeltaℚi, so row.δ ≥ BoundDeltaℚi at i.
+    -- row.δ rewrites to Finset.max' over BoundDeltaℚi via Row.δ_eq_max'_BoundDeltaℚi.
     have hi_mem : RationalApprox.LocalTheorem.BoundDeltaℚi
         row.interval.centerPose (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi)
         RationalApprox.sqrtApprox i ∈
@@ -137,7 +137,8 @@ theorem valid_local_imp_no_rupert (_tab : Table) (row : Row)
     show row.δ ≥ RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
       (KappaApprox.exact_κApprox_python.transportTri row.Pi)
       (KappaApprox.exact_κApprox_python.transportTri row.Qi) RationalApprox.sqrtApprox i
-    rw [transportTri_python row.Pi, transportTri_python row.Qi]
+    rw [transportTri_python row.Pi, transportTri_python row.Qi,
+        Row.δ_eq_max'_BoundDeltaℚi]
     exact hle
   case hx1 =>
     refine ⟨0, by simp, ?_⟩
