@@ -10,6 +10,7 @@ import Noperthedron.Checker.ApproxSqrt
 import Noperthedron.Checker.Global
 import Noperthedron.Checker.KappaApprox
 import Noperthedron.Checker.Local
+import Noperthedron.Checker.RowZero
 import Noperthedron.CommonCenter
 import Noperthedron.ComputationalStep
 import Noperthedron.ConvertPose
