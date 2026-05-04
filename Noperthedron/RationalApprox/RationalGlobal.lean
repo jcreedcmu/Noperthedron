@@ -94,19 +94,109 @@ private lemma fastH_eq (p : Pose ℚ) (ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 
   unfold fastH Hℚ
   rw [m2tw_dot_eq, m2θtw_dot_eq, m2φtw_dot_eq]
 
+/-- Pre-computed `(M_combined)ᵀ·w` 3-vectors for the four matrix chains in
+`Gℚ` (`R·M₁`, `R'·M₁`, `R·M₁θ`, `R·M₁φ`). With these, each chain in `Gℚ`
+collapses to a single 3-element dot product against `S`. -/
+private structure GEntries : Type where
+  m1RTw   : Fin 3 → ℚ  -- (R · M₁)ᵀ · w  for `p.innerℚ S ⬝ᵥ w`
+  m1R'Tw  : Fin 3 → ℚ  -- (R' · M₁)ᵀ · w for `p.rotR'ℚ (p.rotM₁ℚ S) ⬝ᵥ w`
+  m1θRTw  : Fin 3 → ℚ  -- (R · M₁θ)ᵀ · w for `p.rotRℚ (p.rotM₁θℚ S) ⬝ᵥ w`
+  m1φRTw  : Fin 3 → ℚ  -- (R · M₁φ)ᵀ · w for `p.rotRℚ (p.rotM₁φℚ S) ⬝ᵥ w`
+
+@[inline] private def gEntries (p : Pose ℚ) (w : Fin 2 → ℚ) : GEntries :=
+  let st1 := RationalApprox.sinℚ p.θ₁
+  let ct1 := RationalApprox.cosℚ p.θ₁
+  let sp1 := RationalApprox.sinℚ p.φ₁
+  let cp1 := RationalApprox.cosℚ p.φ₁
+  let sa  := RationalApprox.sinℚ p.α
+  let ca  := RationalApprox.cosℚ p.α
+  let w0 := w 0
+  let w1 := w 1
+  -- Rᵀ · w = (ca·w0 + sa·w1, -sa·w0 + ca·w1)
+  let u0  := ca * w0 + sa * w1
+  let u1  := -sa * w0 + ca * w1
+  -- R'ᵀ · w = (-sa·w0 + ca·w1, -ca·w0 + (-sa)·w1)
+  let up0 := -sa * w0 + ca * w1
+  let up1 := -ca * w0 + (-sa) * w1
+  -- M₁ᵀ · u: uses (M₁[j][i])
+  -- M₁ = [[-st1, ct1, 0], [-ct1*cp1, -st1*cp1, sp1]]
+  ⟨ ![-st1 * u0 + (-ct1 * cp1) * u1,
+       ct1 * u0 + (-st1 * cp1) * u1,
+       sp1 * u1],
+    -- M₁ᵀ · u'
+    ![-st1 * up0 + (-ct1 * cp1) * up1,
+       ct1 * up0 + (-st1 * cp1) * up1,
+       sp1 * up1],
+    -- M₁θᵀ · u; M₁θ = [[-ct1, -st1, 0], [st1*cp1, -ct1*cp1, 0]]
+    ![-ct1 * u0 + (st1 * cp1) * u1,
+      -st1 * u0 + (-ct1 * cp1) * u1,
+       0],
+    -- M₁φᵀ · u; M₁φ = [[0, 0, 0], [ct1*sp1, st1*sp1, cp1]]
+    ![(ct1 * sp1) * u1,
+      (st1 * sp1) * u1,
+       cp1 * u1] ⟩
+
+private lemma m1RTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
+    (gEntries p w).m1RTw ⬝ᵥ S = p.innerℚ S ⬝ᵥ w := by
+  show _ = (Pose.rotRℚ p (Pose.rotM₁ℚ p S)) ⬝ᵥ w
+  unfold Pose.rotRℚ Pose.rotM₁ℚ RationalApprox.rotRℚ RationalApprox.rotMℚ
+        RationalApprox.rotRℚ_mat RationalApprox.rotMℚ_mat
+  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
+        Fin.sum_univ_three, Fin.sum_univ_two,
+        Matrix.cons_val_zero, Matrix.cons_val_one]
+  ring
+
+private lemma m1R'Tw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
+    (gEntries p w).m1R'Tw ⬝ᵥ S = p.rotR'ℚ (p.rotM₁ℚ S) ⬝ᵥ w := by
+  unfold Pose.rotR'ℚ Pose.rotM₁ℚ RationalApprox.rotR'ℚ RationalApprox.rotMℚ
+        RationalApprox.rotR'ℚ_mat RationalApprox.rotMℚ_mat
+  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
+        Fin.sum_univ_three, Fin.sum_univ_two,
+        Matrix.cons_val_zero, Matrix.cons_val_one]
+  ring
+
+private lemma m1θRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
+    (gEntries p w).m1θRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁θℚ S) ⬝ᵥ w := by
+  unfold Pose.rotRℚ Pose.rotM₁θℚ RationalApprox.rotRℚ RationalApprox.rotMθℚ
+        RationalApprox.rotRℚ_mat RationalApprox.rotMθℚ_mat
+  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
+        Fin.sum_univ_three, Fin.sum_univ_two,
+        Matrix.cons_val_zero, Matrix.cons_val_one]
+  ring
+
+private lemma m1φRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
+    (gEntries p w).m1φRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁φℚ S) ⬝ᵥ w := by
+  unfold Pose.rotRℚ Pose.rotM₁φℚ RationalApprox.rotRℚ RationalApprox.rotMφℚ
+        RationalApprox.rotRℚ_mat RationalApprox.rotMφℚ_mat
+  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
+        Fin.sum_univ_three, Fin.sum_univ_two,
+        Matrix.cons_val_zero, Matrix.cons_val_one]
+  ring
+
+@[inline] private def fastG (entries : GEntries) (ε : ℚ) (S : Fin 3 → ℚ) : ℚ :=
+  entries.m1RTw ⬝ᵥ S -
+   (ε * (|entries.m1R'Tw ⬝ᵥ S| + |entries.m1θRTw ⬝ᵥ S| + |entries.m1φRTw ⬝ᵥ S|)
+     + 9 * ε^2 / 2 + 4 * κℚ * (1 + 3 * ε))
+
+private lemma fastG_eq (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
+    fastG (gEntries p w) ε S = Gℚ p ε S w := by
+  unfold fastG Gℚ
+  rw [m1RTw_dot_eq, m1R'Tw_dot_eq, m1θRTw_dot_eq, m1φRTw_dot_eq]
+
 end Gℚ_gt_maxHℚ
 
 open Gℚ_gt_maxHℚ in
 /-- Bool-valued `Gℚ > maxHℚ` check that hoists the trig partial sums and
-the three `Mᵀ·w` 3-vectors to per-pose work; the `∀ P ∈ poly.v` loop
-then only does small-value dot products. -/
+the `Mᵀ·w` 3-vectors to per-pose work for both `Gℚ` and `Hℚ`; the
+`∀ P ∈ poly.v` loop then only does small-value dot products. -/
 def Gℚ_gt_maxHℚ_check {ι : Type} [Fintype ι] [DecidableEq ι]
     (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ)
     (poly : Polyhedron ι (Fin 3 → ℚ)) (w : Fin 2 → ℚ) : Bool :=
-  let entries := hEntries p w
-  let g := Gℚ p ε S w
+  let hentries := hEntries p w
+  let gentries := gEntries p w
+  let g := fastG gentries ε S
   let kappaTerm := 3 * κℚ * (1 + 2 * ε)
-  decide <| ∀ k : ι, g > fastH entries ε kappaTerm (poly.v k)
+  decide <| ∀ k : ι, g > fastH hentries ε kappaTerm (poly.v k)
 
 theorem Gℚ_gt_maxHℚ_check_iff {ι : Type} [Fintype ι] [DecidableEq ι] [ne : Nonempty ι]
     (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ)
@@ -115,6 +205,7 @@ theorem Gℚ_gt_maxHℚ_check_iff {ι : Type} [Fintype ι] [DecidableEq ι] [ne 
       Gℚ p ε S w > maxHℚ p poly ε w := by
   unfold Gℚ_gt_maxHℚ_check maxHℚ
   simp only [decide_eq_true_eq]
+  rw [Gℚ_gt_maxHℚ.fastG_eq]
   constructor
   · intro hAll
     show (Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ).max' _ < Gℚ p ε S w
