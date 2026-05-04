@@ -18,62 +18,72 @@ by `Real.sqrt`).
 ## Construction
 
 * `x = 0` ↦ both return `0`.
-* `x > 0`: find the unique `a ∈ ℤ` such that `x · 10^(2a) ∈ [10^20, 10^22)`,
-  let `b := ⌊√(x · 10^(2a))⌋`, and set
-    `sqrtℚLow x := b / 10^a`,
-    `sqrtℚUp  x := 1 / sqrtℚLow (1 / x)`.
+* `x > 0`: write `x = p/q` (in lowest terms, `p, q > 0`). We find the unique
+  integer `a` such that `p · 100^a / q ∈ [10^20, 10^22)`, then compute
+    `m := ⌊p · 100^a / q⌋`,
+    `b := ⌊√m⌋`,
+    `sqrtℚLow x := b · 10^(-a)`,
+    `sqrtℚUp  x := 1 / sqrtℚLow (1/x)`.
   This guarantees ten decimal digits of accuracy.
 
-The construction is implemented as follows:
-* `findShift` locates `a` by fuel-bounded iteration starting at `0`.
-* `b` is obtained by `Nat.sqrt` applied to natural-number division of
-  the (positive) numerator and denominator of `x · 10^(2a)`. This works
-  because for any rational `r > 0`, `Nat.sqrt (r.num.toNat / r.den) = ⌊√r⌋`:
-  the largest integer with square `≤ r` equals the largest with square
-  `≤ ⌊r⌋`, since the squares in question are themselves integers.
+The implementation works in pure ℕ-arithmetic for the scale search, avoiding
+the gcd cost of repeated rational multiplication. We maintain a state pair
+`(num, den)` with the invariant `num/den = x · 100^a`. An "up" step multiplies
+`num` by 100 (incrementing `a`); a "down" step multiplies `den` by 100
+(decrementing `a`). Once in the window, `m = num / den` (integer division).
 -/
 
 namespace RationalApprox
 
 open scoped BigOperators
 
-/-! ## Choosing the scale -/
+/-! ## Constants and search loops -/
 
-/-- Auxiliary fuel-bounded search for an integer `a` such that
-`x · 10^(2a) ∈ [10^20, 10^22)`. With `0 < x` and enough fuel, the unique
-such `a` is returned. -/
-private def findShiftAux (x : ℚ) : ℤ → ℕ → ℤ
-  | a, 0          => a
-  | a, fuel + 1 =>
-      let scaled := x * (10 : ℚ) ^ (2 * a)
-      if scaled < ((10 : ℚ) ^ (20 : ℕ)) then
-        findShiftAux x (a + 1) fuel
-      else if ((10 : ℚ) ^ (22 : ℕ)) ≤ scaled then
-        findShiftAux x (a - 1) fuel
-      else
-        a
-/-- The unique integer `a` with `x · 10^(2a) ∈ [10^20, 10^22)`, for `x > 0`.
+private def lo : ℕ := 10 ^ 20
+private def hi : ℕ := 10 ^ 22
 
-The fuel grows with the magnitude of the input, so the search converges for
-any `0 < x`: we have `|a*| ≲ digits(x.num) + digits(x.den)`, where the search
-moves by `±1` per step. -/
-def findShift (x : ℚ) : ℤ :=
-  findShiftAux x 0 (Nat.log 10 x.num.natAbs + Nat.log 10 x.den + 100)
+/-- **Up-search**: starting from `num`, multiply by 100 each step (incrementing
+`k`) until either `num ≥ threshold` or fuel is exhausted. Returns `(k, num)`. -/
+private def shiftUpAux (threshold : ℕ) : ℕ → ℕ → ℕ → ℕ × ℕ
+  | num, k, 0          => (k, num)
+  | num, k, fuel + 1   =>
+      if num ≥ threshold then (k, num)
+      else shiftUpAux threshold (num * 100) (k + 1) fuel
+
+/-- **Down-search**: starting from `den`, multiply by 100 each step (incrementing
+`k`) until either `numDivHi < den` or fuel is exhausted. Returns `(k, den)`.
+The condition `numDivHi < den` is equivalent to `num < hi · den` when
+`numDivHi = num / hi` (integer division). -/
+private def shiftDownAux (numDivHi : ℕ) : ℕ → ℕ → ℕ → ℕ × ℕ
+  | den, k, 0          => (k, den)
+  | den, k, fuel + 1   =>
+      if numDivHi < den then (k, den)
+      else shiftDownAux numDivHi (den * 100) (k + 1) fuel
 
 /-! ## The square-root functions -/
+
+/-- Implementation of the lower rational square-root for `x = p/q > 0`,
+parametrised by `fuel`. Returns the rational `(b : ℚ) · 10^(-a)` where
+`a` is the chosen scale exponent and `b = ⌊√⌊p · 100^a / q⌋⌋`. -/
+private def sqrtℚLowImpl (p q fuel : ℕ) : ℚ :=
+  if p < lo * q then
+    let res := shiftUpAux (lo * q) p 0 fuel
+    ((Nat.sqrt (res.2 / q) : ℚ)) * (10 : ℚ) ^ (-(res.1 : ℤ))
+  else if p < hi * q then
+    ((Nat.sqrt (p / q) : ℚ))
+  else
+    let res := shiftDownAux (p / hi) q 0 fuel
+    ((Nat.sqrt (p / res.2) : ℚ)) * (10 : ℚ) ^ (res.1 : ℤ)
 
 /-- **Lower rational square-root** (`√⁻`): returns `0` on `x ≤ 0`; otherwise
 returns a rational `r` with `r ≤ √x`. -/
 def sqrtℚLow (x : ℚ) : ℚ :=
   if x ≤ 0 then 0
   else
-    let a      := findShift x
-    let scaled := x * (10 : ℚ) ^ (2 * a)
-    -- For `0 < scaled` we have `0 < scaled.num`, so `.toNat` is well-defined.
-    -- `b = ⌊√scaled⌋ = Nat.sqrt (scaled.num.toNat / scaled.den)`.
-    let m : ℕ  := scaled.num.toNat / scaled.den
-    let b : ℕ  := Nat.sqrt m
-    (b : ℚ) * (10 : ℚ) ^ (-a)
+    let p : ℕ := x.num.toNat
+    let q : ℕ := x.den
+    let fuel : ℕ := Nat.log 10 p + Nat.log 10 q + 100
+    sqrtℚLowImpl p q fuel
 
 /-- **Upper rational square-root** (`√⁺`): returns `0` on `x ≤ 0`; otherwise
 returns a rational `r` with `√x ≤ r`, defined as `1 / √⁻ (1/x)`. -/
@@ -99,97 +109,269 @@ def normLowℚ {n : ℕ} (v : Fin n → ℚ) : ℚ :=
 def normUpℚ {n : ℕ} (v : Fin n → ℚ) : ℚ :=
   sqrtℚUp (normSqℚ v)
 
-/-- `sqrtℚLow` is non-negative. -/
+/-! ## Search-loop invariants -/
+
+/-- Each step of `shiftUpAux` multiplies `num` by 100 and increments `k` by 1.
+Hence the loop output `(k', num')` satisfies `k' = k + s` and `num' = num · 100^s`
+for some step count `s ≤ fuel`. -/
+private lemma shiftUpAux_invariant (threshold : ℕ) :
+    ∀ (num k fuel : ℕ),
+      ∃ s : ℕ, s ≤ fuel ∧
+        (shiftUpAux threshold num k fuel).1 = k + s ∧
+        (shiftUpAux threshold num k fuel).2 = num * 100 ^ s := by
+  intro num k fuel
+  induction fuel generalizing num k with
+  | zero =>
+    refine ⟨0, le_refl 0, ?_, ?_⟩ <;> simp [shiftUpAux]
+  | succ f ih =>
+    by_cases h : num ≥ threshold
+    · refine ⟨0, Nat.zero_le _, ?_, ?_⟩ <;> simp [shiftUpAux, h]
+    · obtain ⟨s, hs_le, hs_k, hs_num⟩ := ih (num := num * 100) (k := k + 1)
+      refine ⟨s + 1, Nat.succ_le_succ hs_le, ?_, ?_⟩
+      · simp only [shiftUpAux, if_neg h]
+        rw [hs_k]; ring
+      · simp only [shiftUpAux, if_neg h]
+        rw [hs_num, pow_succ]; ring
+
+/-- Each step of `shiftDownAux` multiplies `den` by 100 and increments `k` by 1. -/
+private lemma shiftDownAux_invariant (numDivHi : ℕ) :
+    ∀ (den k fuel : ℕ),
+      ∃ s : ℕ, s ≤ fuel ∧
+        (shiftDownAux numDivHi den k fuel).1 = k + s ∧
+        (shiftDownAux numDivHi den k fuel).2 = den * 100 ^ s := by
+  intro den k fuel
+  induction fuel generalizing den k with
+  | zero =>
+    refine ⟨0, le_refl 0, ?_, ?_⟩ <;> simp [shiftDownAux]
+  | succ f ih =>
+    by_cases h : numDivHi < den
+    · refine ⟨0, Nat.zero_le _, ?_, ?_⟩ <;> simp [shiftDownAux, h]
+    · obtain ⟨s, hs_le, hs_k, hs_den⟩ := ih (den := den * 100) (k := k + 1)
+      refine ⟨s + 1, Nat.succ_le_succ hs_le, ?_, ?_⟩
+      · simp only [shiftDownAux, if_neg h]
+        rw [hs_k]; ring
+      · simp only [shiftDownAux, if_neg h]
+        rw [hs_den, pow_succ]; ring
+
+/-- Up-search termination: if the available fuel is enough to amplify `num` past
+`threshold`, then the result satisfies `num' ≥ threshold`. -/
+private lemma shiftUpAux_terminates (threshold : ℕ) :
+    ∀ (num k fuel : ℕ), threshold ≤ num * 100 ^ fuel →
+      threshold ≤ (shiftUpAux threshold num k fuel).2 := by
+  intro num k fuel
+  induction fuel generalizing num k with
+  | zero =>
+    intro h
+    simp only [shiftUpAux]
+    simpa using h
+  | succ f ih =>
+    intro h
+    by_cases hnum : num ≥ threshold
+    · simp [shiftUpAux, hnum]
+    · simp only [shiftUpAux, if_neg hnum]
+      apply ih
+      have hrw : num * 100 ^ (f + 1) = num * 100 * 100 ^ f := by
+        rw [pow_succ]; ring
+      rw [hrw] at h; exact h
+
+/-- Down-search termination: if the available fuel is enough to amplify `den` past
+`numDivHi`, then the result satisfies `numDivHi < den'`. -/
+private lemma shiftDownAux_terminates (numDivHi : ℕ) :
+    ∀ (den k fuel : ℕ), numDivHi < den * 100 ^ fuel →
+      numDivHi < (shiftDownAux numDivHi den k fuel).2 := by
+  intro den k fuel
+  induction fuel generalizing den k with
+  | zero =>
+    intro h
+    simp only [shiftDownAux]
+    simpa using h
+  | succ f ih =>
+    intro h
+    by_cases hd : numDivHi < den
+    · simp [shiftDownAux, hd]
+    · simp only [shiftDownAux, if_neg hd]
+      apply ih
+      have hrw : den * 100 ^ (f + 1) = den * 100 * 100 ^ f := by
+        rw [pow_succ]; ring
+      rw [hrw] at h; exact h
+
+/-- Bound on the down-search result: `den_final ≤ max den₀ (100 · numDivHi)`.
+This holds unconditionally — if we never step the result is `den₀`; if we step
+the previous value `den_prev` satisfied `den_prev ≤ numDivHi`, so the new
+value is `100 · den_prev ≤ 100 · numDivHi`. -/
+private lemma shiftDownAux_le_max (numDivHi : ℕ) :
+    ∀ (den k fuel : ℕ),
+      (shiftDownAux numDivHi den k fuel).2 ≤ max den (100 * numDivHi) := by
+  intro den k fuel
+  induction fuel generalizing den k with
+  | zero =>
+    simp only [shiftDownAux]
+    exact le_max_left _ _
+  | succ f ih =>
+    by_cases h : numDivHi < den
+    · simp only [shiftDownAux, if_pos h]; exact le_max_left _ _
+    · simp only [shiftDownAux, if_neg h]
+      push Not at h
+      -- h : den ≤ numDivHi
+      have hih := ih (den := den * 100) (k := k + 1)
+      -- den * 100 ≤ 100 * numDivHi (commute & multiply)
+      have h_step : den * 100 ≤ 100 * numDivHi := by
+        rw [mul_comm den 100]; exact Nat.mul_le_mul_left _ h
+      calc (shiftDownAux numDivHi (den * 100) (k + 1) f).2
+          ≤ max (den * 100) (100 * numDivHi) := hih
+        _ ≤ 100 * numDivHi := max_le h_step (le_refl _)
+        _ ≤ max den (100 * numDivHi) := le_max_right _ _
+
+/-! ## Basic non-negativity -/
+
+private lemma sqrtℚLowImpl_nonneg (p q fuel : ℕ) : 0 ≤ sqrtℚLowImpl p q fuel := by
+  unfold sqrtℚLowImpl
+  split_ifs <;> first | rfl | positivity
+
 theorem sqrtℚLow_nonneg (x : ℚ) : 0 ≤ sqrtℚLow x := by
   unfold sqrtℚLow
   split_ifs with h
   · exact le_refl 0
-  · positivity
+  · exact sqrtℚLowImpl_nonneg _ _ _
 
-/-- `sqrtℚUp` is non-negative. -/
 theorem sqrtℚUp_nonneg (x : ℚ) : 0 ≤ sqrtℚUp x := by
   unfold sqrtℚUp
   split_ifs with h
   · exact le_refl 0
   · exact div_nonneg zero_le_one (sqrtℚLow_nonneg _)
 
+/-! ## Squared lower bound and positivity
+
+The bound `(sqrtℚLow x)^2 ≤ x` follows uniformly from a single algebraic fact:
+in each branch we maintain a positive `(num, den) : ℕ × ℕ` with
+`(num : ℝ) / den = (x : ℝ) * 100^a`, and set `b = ⌊√⌊num/den⌋⌋`. Then
+`(b : ℝ)^2 ≤ (num : ℝ) / den = x · 100^a`, from which
+`((b : ℝ) · 10^(-a))^2 ≤ x` follows by multiplying by `100^(-a)`. -/
+
+private lemma rat_pos_eq (x : ℚ) (hx : 0 < x) :
+    ((x.num.toNat : ℕ) : ℝ) / ((x.den : ℕ) : ℝ) = (x : ℝ) := by
+  have hnum_pos : 0 < x.num := Rat.num_pos.mpr hx
+  have hcast : ((x.num.toNat : ℕ) : ℝ) = (x.num : ℝ) := by
+    have : (x.num.toNat : ℤ) = x.num := Int.toNat_of_nonneg (le_of_lt hnum_pos)
+    exact_mod_cast this
+  rw [hcast]
+  rw [show (x : ℝ) = ((x.num : ℝ) / (x.den : ℝ)) from by
+        push_cast [Rat.cast_def]; rfl]
+
+/-- Core algebraic fact: from `b² · den ≤ num` (in ℕ) and `(num : ℝ) = xR · 100^a · den`,
+deduce `(b · 10^(-a))² ≤ xR` in ℝ. -/
+private lemma sq_bound_aux (xR : ℝ) (a : ℤ) (numN denN b : ℕ)
+    (hden : 0 < denN)
+    (hscaled : (numN : ℝ) = xR * (100 : ℝ) ^ a * (denN : ℝ))
+    (hb : b * b * denN ≤ numN) :
+    ((b : ℝ) * (10 : ℝ) ^ (-a)) ^ 2 ≤ xR := by
+  have hdenR : (0 : ℝ) < (denN : ℝ) := by exact_mod_cast hden
+  have hbR : (b : ℝ) * b * (denN : ℝ) ≤ (numN : ℝ) := by exact_mod_cast hb
+  -- numN = xR · 100^a · denN, so divide by denN > 0
+  have hbR' : (b : ℝ) * b ≤ xR * (100 : ℝ) ^ a := by
+    rw [hscaled] at hbR
+    have hdenR_ne : (denN : ℝ) ≠ 0 := ne_of_gt hdenR
+    calc (b : ℝ) * b
+        = (b : ℝ) * b * (denN : ℝ) * (denN : ℝ)⁻¹ := by field_simp
+      _ ≤ xR * (100 : ℝ) ^ a * (denN : ℝ) * (denN : ℝ)⁻¹ := by
+          exact mul_le_mul_of_nonneg_right hbR (le_of_lt (inv_pos.mpr hdenR))
+      _ = xR * (100 : ℝ) ^ a := by field_simp
+  -- ((b) * 10^(-a))² = b² * 100^(-a)
+  have hLHS : ((b : ℝ) * (10 : ℝ) ^ (-a)) ^ 2 = (b : ℝ) * b * (100 : ℝ) ^ (-a) := by
+    have h10sq : ((10 : ℝ) ^ (-a)) ^ 2 = (100 : ℝ) ^ (-a) := by
+      rw [show ((10 : ℝ) ^ (-a)) ^ 2 = (10 : ℝ) ^ (2 * -a) from by
+        rw [show (2 * -a : ℤ) = -a + -a from by ring,
+            zpow_add₀ (by norm_num : (10 : ℝ) ≠ 0), pow_two]]
+      rw [show (100 : ℝ) = 10 ^ 2 from by norm_num]
+      rw [← zpow_natCast (10 : ℝ) 2, ← zpow_mul]
+      ring_nf
+    rw [mul_pow, pow_two (b : ℝ), h10sq]
+  rw [hLHS]
+  -- b² * 100^(-a) ≤ xR
+  have h100neg_pos : (0 : ℝ) < (100 : ℝ) ^ (-a) := zpow_pos (by norm_num) _
+  calc (b : ℝ) * b * (100 : ℝ) ^ (-a)
+      ≤ xR * (100 : ℝ) ^ a * (100 : ℝ) ^ (-a) :=
+        mul_le_mul_of_nonneg_right hbR' (le_of_lt h100neg_pos)
+    _ = xR := by
+        rw [mul_assoc, ← zpow_add₀ (by norm_num : (100 : ℝ) ≠ 0)]; simp
+
+/-- Squared lower bound for the implementation: if `xR = (p : ℝ)/q` with `q > 0`,
+then `(sqrtℚLowImpl p q fuel)² ≤ xR`. -/
+private lemma sqrtℚLowImpl_sq_le (p q fuel : ℕ) (hq : 0 < q) :
+    ((sqrtℚLowImpl p q fuel : ℚ) : ℝ) ^ 2 ≤ ((p : ℝ) / q) := by
+  unfold sqrtℚLowImpl
+  split_ifs with hbr1 hbr2
+  · -- Branch 1: p < lo * q (up-search)
+    obtain ⟨s, _, hk_eq, hnum_eq⟩ := shiftUpAux_invariant (lo * q) p 0 fuel
+    set res := shiftUpAux (lo * q) p 0 fuel
+    have hk : res.1 = s := by simp [hk_eq]
+    have hnum : res.2 = p * 100 ^ s := by simp [hnum_eq]
+    have hcast :
+        (((Nat.sqrt (res.2 / q) : ℚ) * (10 : ℚ) ^ (-(res.1 : ℤ)) : ℚ) : ℝ)
+        = ((Nat.sqrt (res.2 / q) : ℝ)) * (10 : ℝ) ^ (-(res.1 : ℤ)) := by
+      push_cast; rfl
+    rw [hcast]
+    apply sq_bound_aux ((p : ℝ) / q) (res.1 : ℤ) res.2 q (Nat.sqrt (res.2 / q)) hq
+    · -- (res.2 : ℝ) = (p/q) · 100^res.1 · q
+      rw [hnum, hk]
+      push_cast
+      rw [zpow_natCast]
+      have hqne : (q : ℝ) ≠ 0 := ne_of_gt (by exact_mod_cast hq)
+      field_simp
+    · calc Nat.sqrt (res.2 / q) * Nat.sqrt (res.2 / q) * q
+          ≤ (res.2 / q) * q := Nat.mul_le_mul_right _ (Nat.sqrt_le _)
+        _ ≤ res.2 := Nat.div_mul_le_self _ _
+  · -- Branch 2: lo*q ≤ p < hi*q (a = 0)
+    have hcast : ((Nat.sqrt (p / q) : ℚ) : ℝ) = (Nat.sqrt (p / q) : ℝ) := by push_cast; rfl
+    rw [hcast]
+    rw [show ((Nat.sqrt (p / q) : ℝ))
+        = ((Nat.sqrt (p / q) : ℝ)) * (10 : ℝ) ^ (-(0 : ℤ)) from by simp]
+    apply sq_bound_aux ((p : ℝ) / q) (0 : ℤ) p q (Nat.sqrt (p / q)) hq
+    · have hqne : (q : ℝ) ≠ 0 := ne_of_gt (by exact_mod_cast hq)
+      field_simp
+    · calc Nat.sqrt (p / q) * Nat.sqrt (p / q) * q
+          ≤ (p / q) * q := Nat.mul_le_mul_right _ (Nat.sqrt_le _)
+        _ ≤ p := Nat.div_mul_le_self _ _
+  · -- Branch 3: p ≥ hi * q (down-search; a = -k)
+    obtain ⟨s, _, hk_eq, hden_eq⟩ := shiftDownAux_invariant (p / hi) q 0 fuel
+    set res := shiftDownAux (p / hi) q 0 fuel
+    have hk : res.1 = s := by simp [hk_eq]
+    have hden : res.2 = q * 100 ^ s := by simp [hden_eq]
+    have hden_pos : 0 < res.2 := by rw [hden]; positivity
+    have hcast :
+        (((Nat.sqrt (p / res.2) : ℚ) * (10 : ℚ) ^ (res.1 : ℤ) : ℚ) : ℝ)
+        = ((Nat.sqrt (p / res.2) : ℝ)) * (10 : ℝ) ^ (-(-(res.1 : ℤ))) := by
+      push_cast; rw [neg_neg]
+    rw [hcast]
+    apply sq_bound_aux ((p : ℝ) / q) (-(res.1 : ℤ)) p res.2 (Nat.sqrt (p / res.2)) hden_pos
+    · rw [hden, hk]
+      push_cast
+      rw [zpow_neg, zpow_natCast]
+      have hqne : (q : ℝ) ≠ 0 := ne_of_gt (by exact_mod_cast hq)
+      have h100ne : (100 : ℝ) ≠ 0 := by norm_num
+      have h100ne' : (100 : ℝ)^s ≠ 0 := pow_ne_zero _ h100ne
+      field_simp
+    · calc Nat.sqrt (p / res.2) * Nat.sqrt (p / res.2) * res.2
+          ≤ (p / res.2) * res.2 := Nat.mul_le_mul_right _ (Nat.sqrt_le _)
+        _ ≤ p := Nat.div_mul_le_self _ _
+
 /-- Squared lower bound: `(sqrtℚLow x)^2 ≤ x` (cast to ℝ) for `0 ≤ x`. -/
 private lemma sqrtℚLow_sq_le (x : ℚ) (hx : 0 ≤ x) :
     ((sqrtℚLow x : ℚ) : ℝ) ^ 2 ≤ ((x : ℚ) : ℝ) := by
-  unfold sqrtℚLow
-  split_ifs with h
-  · -- x ≤ 0, so sqrtℚLow x = 0; combined with 0 ≤ x means x = 0.
-    have hx0 : x = 0 := le_antisymm h hx
-    simp [hx0]
-  · -- 0 < x
-    have h : 0 < x := lt_of_le_of_ne hx (fun heq => h (by simp [← heq]))
-    set a := findShift x with ha
-    set scaled : ℚ := x * (10 : ℚ) ^ (2 * a) with hscaled
-    set m : ℕ := scaled.num.toNat / scaled.den with hm
-    set b : ℕ := Nat.sqrt m with hb
-    -- Goal: ((b : ℚ) * (10 : ℚ)^(-a))^2 ≤ x in ℝ.
-    have h10pos : (0 : ℝ) < (10 : ℝ) ^ (2 * a) := by positivity
-    have hscaled_pos : 0 < scaled := by
-      simp [hscaled]; exact mul_pos h (by positivity)
-    have hscaled_num_pos : 0 < scaled.num := Rat.num_pos.mpr hscaled_pos
-    have hscaled_den_pos : (0 : ℤ) < scaled.den := by exact_mod_cast scaled.pos
-    -- (m : ℝ) ≤ (scaled : ℝ)
-    have hm_le_scaled : (m : ℝ) ≤ (scaled : ℝ) := by
-      have h1 : m * scaled.den ≤ scaled.num.toNat := Nat.div_mul_le_self _ _
-      have htoNat : (scaled.num.toNat : ℤ) = scaled.num :=
-        Int.toNat_of_nonneg (le_of_lt hscaled_num_pos)
-      have h2 : (m : ℤ) * (scaled.den : ℤ) ≤ scaled.num := by
-        have := h1
-        have h3 : ((m * scaled.den : ℕ) : ℤ) ≤ ((scaled.num.toNat : ℕ) : ℤ) := by
-          exact_mod_cast h1
-        rw [Nat.cast_mul, Int.toNat_of_nonneg (le_of_lt hscaled_num_pos)] at h3
-        exact h3
-      have h4 : (m : ℝ) * (scaled.den : ℝ) ≤ (scaled.num : ℝ) := by exact_mod_cast h2
-      have hden_pos_R : (0 : ℝ) < (scaled.den : ℝ) := by exact_mod_cast hscaled_den_pos
-      have : (m : ℝ) ≤ (scaled.num : ℝ) / (scaled.den : ℝ) :=
-        (le_div_iff₀ hden_pos_R).mpr h4
-      have hcast : ((scaled : ℚ) : ℝ) = (scaled.num : ℝ) / (scaled.den : ℝ) := by
-        rw [Rat.cast_def]
-      rw [hcast]
-      exact this
-    -- (b : ℝ)^2 ≤ (m : ℝ)
-    have hbb_le_m : (b : ℝ) ^ 2 ≤ (m : ℝ) := by
-      have : b * b ≤ m := Nat.sqrt_le m
-      have : (b * b : ℕ) ≤ (m : ℕ) := this
-      have hRR : ((b * b : ℕ) : ℝ) ≤ ((m : ℕ) : ℝ) := by exact_mod_cast this
-      simpa [pow_two, Nat.cast_mul] using hRR
-    -- Combine: (b : ℝ)^2 ≤ (scaled : ℝ)
-    have hbb_le_scaled : (b : ℝ) ^ 2 ≤ ((scaled : ℚ) : ℝ) := le_trans hbb_le_m hm_le_scaled
-    -- ((b : ℝ) * 10^(-a))^2 = (b : ℝ)^2 * 10^(-2a)
-    -- And (scaled : ℝ) * 10^(-2a) = (x : ℝ).
-    have h10a_pos : (0 : ℝ) < (10 : ℝ) ^ ((-2 * a : ℤ)) := by positivity
-    have hscaled_cast : ((scaled : ℚ) : ℝ) = (x : ℝ) * (10 : ℝ) ^ (2 * a) := by
-      show (((x * (10 : ℚ) ^ (2 * a)) : ℚ) : ℝ) = _
-      push_cast
-      rfl
-    -- multiply both sides of hbb_le_scaled by 10^(-2a) > 0
-    have hmul : (b : ℝ) ^ 2 * (10 : ℝ) ^ ((-2 * a : ℤ)) ≤
-        ((scaled : ℚ) : ℝ) * (10 : ℝ) ^ ((-2 * a : ℤ)) :=
-      mul_le_mul_of_nonneg_right hbb_le_scaled (le_of_lt h10a_pos)
-    have h10ne : (10 : ℝ) ≠ 0 := by norm_num
-    have hRHS : ((scaled : ℚ) : ℝ) * (10 : ℝ) ^ ((-2 * a : ℤ)) = (x : ℝ) := by
-      rw [hscaled_cast, mul_assoc, ← zpow_add₀ h10ne]
-      have : (2 * a : ℤ) + (-2 * a : ℤ) = 0 := by ring
-      rw [this]
-      simp
-    -- LHS rewriting
-    have hLHS_eq : (((b : ℚ) * (10 : ℚ) ^ (-a) : ℚ) : ℝ) ^ 2 =
-        (b : ℝ) ^ 2 * (10 : ℝ) ^ ((-2 * a : ℤ)) := by
-      push_cast
-      rw [mul_pow]
-      have : ((10 : ℝ) ^ (-a)) ^ 2 = (10 : ℝ) ^ ((-2 * a : ℤ)) := by
-        rw [← zpow_natCast _ 2, ← zpow_mul]
-        congr 1
-        push_cast
-        ring
-      rw [this]
-    rw [hLHS_eq, ← hRHS]
-    exact hmul
+  rw [sqrtℚLow]
+  split_ifs with h0
+  · -- x ≤ 0 and 0 ≤ x: x = 0
+    have : x = 0 := le_antisymm h0 hx
+    simp [this]
+  · push Not at h0
+    have hxpos : 0 < x := h0
+    have hq_pos : 0 < x.den := x.pos
+    have hxR_eq : ((x.num.toNat : ℕ) : ℝ) / ((x.den : ℕ) : ℝ) = (x : ℝ) :=
+      rat_pos_eq x hxpos
+    have h := sqrtℚLowImpl_sq_le x.num.toNat x.den
+      (Nat.log 10 x.num.toNat + Nat.log 10 x.den + 100) hq_pos
+    rw [hxR_eq] at h
+    exact h
 
 /-- `√⁻ x ≤ √x` for `x ≥ 0` (Definition 47). -/
 theorem sqrtℚLow_le_sqrt {x : ℚ} (hx : 0 ≤ x) :
@@ -197,323 +379,105 @@ theorem sqrtℚLow_le_sqrt {x : ℚ} (hx : 0 ≤ x) :
   apply Real.le_sqrt_of_sq_le
   exact sqrtℚLow_sq_le x hx
 
-/-! ### Correctness of `findShiftAux`
+/-! ### Positivity of `sqrtℚLow` for positive input
 
-For `0 < x`, with sufficient fuel, `findShiftAux x a fuel` returns an integer
-`a'` such that `x * 10^(2a') ∈ [10^20, 10^22)`. The proof builds up:
-1. If already in `[10^20, 10^22)`, the function returns `a`.
-2. Up-search converges: starting strictly below, multiplying by `100` each
-   step we cross into the window (and never overshoot, since the window has
-   multiplicative width `100`).
-3. Down-search converges: symmetric.
-4. The fuel bound `Nat.log 10 num + Nat.log 10 den + 100` always suffices.
--/
+The proof uses the fuel-sufficient termination of the search to ensure the
+integer floor `m` of `x · 100^a` is at least `lo = 10^20 ≥ 1`. -/
 
-/-- The "in window" predicate for the scale search. -/
-private def InWindow (x : ℚ) (a : ℤ) : Prop :=
-  ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * a) ∧
-    x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (22 : ℕ))
+private lemma lo_pos : 1 ≤ lo := by unfold lo; norm_num
 
-/-- If we are already in the target window, `findShiftAux` returns the current `a`. -/
-private lemma findShiftAux_of_inWindow (x : ℚ) (a : ℤ) (fuel : ℕ)
-    (hw : InWindow x a) : findShiftAux x a fuel = a := by
-  cases fuel with
-  | zero => rfl
-  | succ n =>
-    obtain ⟨hlo, hhi⟩ := hw
-    unfold findShiftAux
-    simp only
-    have h1 : ¬ (x * (10 : ℚ) ^ (2 * a) < (10 : ℚ) ^ (20 : ℕ)) := not_lt.mpr hlo
-    have h2 : ¬ ((10 : ℚ) ^ (22 : ℕ) ≤ x * (10 : ℚ) ^ (2 * a)) := not_le.mpr hhi
-    rw [if_neg h1, if_neg h2]
+private lemma hi_pos : 1 ≤ hi := by unfold hi; norm_num
 
-/-- Stepping `a` up by 1 multiplies the scaled value by 100. -/
-private lemma scaled_step_up (x : ℚ) (a : ℤ) :
-    x * (10 : ℚ) ^ (2 * (a + 1)) = x * (10 : ℚ) ^ (2 * a) * 100 := by
-  have h10ne : (10 : ℚ) ≠ 0 := by norm_num
-  have hrw : (10 : ℚ) ^ (2 * (a + 1)) = (10 : ℚ) ^ (2 * a) * (10 : ℚ) ^ 2 := by
-    have heq : (2 * (a + 1) : ℤ) = 2 * a + 2 := by ring
-    rw [heq, zpow_add₀ h10ne]
-    rfl
-  rw [hrw]; ring
+private lemma hundred_pow_eq (n : ℕ) : (100 : ℕ) ^ n = 10 ^ (2 * n) := by
+  rw [show (100 : ℕ) = 10 ^ 2 from rfl, ← pow_mul]
 
-/-- Stepping `a` down by 1 divides the scaled value by 100. -/
-private lemma scaled_step_down (x : ℚ) (a : ℤ) :
-    x * (10 : ℚ) ^ (2 * (a - 1)) * 100 = x * (10 : ℚ) ^ (2 * a) := by
-  have h10ne : (10 : ℚ) ≠ 0 := by norm_num
-  have hrw : (10 : ℚ) ^ (2 * a) = (10 : ℚ) ^ (2 * (a - 1)) * (10 : ℚ) ^ 2 := by
-    have heq : (2 * a : ℤ) = 2 * (a - 1) + 2 := by ring
-    rw [heq, zpow_add₀ h10ne]
-    rfl
-  rw [hrw]; ring
+/-- For `p, q > 0`, the implementation is positive provided the fuel exceeds
+`Nat.log 10 p + Nat.log 10 q + 100`. -/
+private lemma sqrtℚLowImpl_pos (p q fuel : ℕ) (hp : 0 < p) (hq : 0 < q)
+    (hfuel : Nat.log 10 p + Nat.log 10 q + 100 ≤ fuel) :
+    0 < sqrtℚLowImpl p q fuel := by
+  have hp_lt : p < 10 ^ (Nat.log 10 p + 1) := Nat.lt_pow_succ_log_self (by norm_num) p
+  have hq_lt : q < 10 ^ (Nat.log 10 q + 1) := Nat.lt_pow_succ_log_self (by norm_num) q
+  -- 100^fuel ≥ 10^(N + 1) and 10^(D + 21)
+  have h100_ge_p : (10 : ℕ) ^ (Nat.log 10 p + 1) ≤ 100 ^ fuel := by
+    rw [hundred_pow_eq]
+    apply Nat.pow_le_pow_right (by norm_num : 1 ≤ 10); omega
+  have h100_ge_loq : (10 : ℕ) ^ (Nat.log 10 q + 21) ≤ 100 ^ fuel := by
+    rw [hundred_pow_eq]
+    apply Nat.pow_le_pow_right (by norm_num : 1 ≤ 10); omega
+  unfold sqrtℚLowImpl
+  split_ifs with hbr1 hbr2
+  · -- Up-search branch
+    set res := shiftUpAux (lo * q) p 0 fuel
+    -- num ≥ lo * q
+    have hterm : lo * q ≤ res.2 := by
+      apply shiftUpAux_terminates
+      have h1 : lo * q ≤ 10 ^ 20 * 10 ^ (Nat.log 10 q + 1) :=
+        Nat.mul_le_mul_left _ (Nat.le_of_lt hq_lt)
+      have h2 : (10 : ℕ) ^ 20 * 10 ^ (Nat.log 10 q + 1) = 10 ^ (Nat.log 10 q + 21) := by
+        rw [← pow_add]; congr 1; omega
+      calc lo * q
+          ≤ 10 ^ 20 * 10 ^ (Nat.log 10 q + 1) := h1
+        _ = 10 ^ (Nat.log 10 q + 21) := h2
+        _ ≤ 100 ^ fuel := h100_ge_loq
+        _ ≤ p * 100 ^ fuel := Nat.le_mul_of_pos_left _ hp
+    have hnum_ge : lo ≤ res.2 / q := by
+      have : (lo * q) / q ≤ res.2 / q := Nat.div_le_div_right hterm
+      rwa [Nat.mul_div_cancel _ hq] at this
+    have hb_pos : 1 ≤ Nat.sqrt (res.2 / q) :=
+      Nat.le_sqrt'.mpr (le_trans lo_pos hnum_ge)
+    have hbq_pos : (0 : ℚ) < (Nat.sqrt (res.2 / q) : ℚ) := by exact_mod_cast hb_pos
+    have h10z_pos : (0 : ℚ) < (10 : ℚ) ^ (-(res.1 : ℤ)) := zpow_pos (by norm_num) _
+    exact mul_pos hbq_pos h10z_pos
+  · -- Branch 2: a = 0
+    push Not at hbr1
+    have hpq_ge : lo ≤ p / q := by
+      have : (lo * q) / q ≤ p / q := Nat.div_le_div_right hbr1
+      rwa [Nat.mul_div_cancel _ hq] at this
+    have hb_pos : 1 ≤ Nat.sqrt (p / q) := Nat.le_sqrt'.mpr (le_trans lo_pos hpq_ge)
+    exact_mod_cast hb_pos
+  · -- Branch 3: down-search
+    push Not at hbr1 hbr2
+    -- hbr1 : lo * q ≤ p,  hbr2 : hi * q ≤ p
+    set res := shiftDownAux (p / hi) q 0 fuel
+    -- Bound res.2: by the unconditional max bound, res.2 ≤ max q (100 * (p/hi)) ≤ p.
+    have hres2_le_p : res.2 ≤ p := by
+      have hbound : res.2 ≤ max q (100 * (p / hi)) := shiftDownAux_le_max _ _ _ _
+      have hq_le_p : q ≤ p := by
+        have hi_ge_one : 1 ≤ hi := hi_pos
+        calc q = 1 * q := (one_mul q).symm
+          _ ≤ hi * q := Nat.mul_le_mul_right _ hi_ge_one
+          _ ≤ p := hbr2
+      have h100_le_p : 100 * (p / hi) ≤ p := by
+        have hhi_ge_100 : 100 ≤ hi := by unfold hi; norm_num
+        have : p / hi ≤ p / 100 := Nat.div_le_div_left hhi_ge_100 (by norm_num)
+        calc 100 * (p / hi) ≤ 100 * (p / 100) := Nat.mul_le_mul_left _ this
+          _ ≤ p := Nat.mul_div_le _ _
+      calc res.2 ≤ max q (100 * (p / hi)) := hbound
+        _ ≤ p := max_le hq_le_p h100_le_p
+    -- res.2 must be positive (it equals q * 100^s for some s)
+    obtain ⟨s, _, _, hden_eq⟩ := shiftDownAux_invariant (p / hi) q 0 fuel
+    have hres2_pos : 0 < res.2 := by
+      have h : res.2 = q * 100 ^ s := hden_eq
+      rw [h]; positivity
+    -- p / res.2 ≥ 1
+    have hpd : 1 ≤ p / res.2 := (Nat.one_le_div_iff hres2_pos).mpr hres2_le_p
+    have hb_pos : 1 ≤ Nat.sqrt (p / res.2) := Nat.le_sqrt'.mpr hpd
+    have hbq_pos : (0 : ℚ) < (Nat.sqrt (p / res.2) : ℚ) := by exact_mod_cast hb_pos
+    have h10z_pos : (0 : ℚ) < (10 : ℚ) ^ (res.1 : ℤ) := zpow_pos (by norm_num) _
+    exact mul_pos hbq_pos h10z_pos
 
-/-- **Up-search convergence**: if `0 < x`, currently `scaled := x * 10^(2a) < 10^22`,
-and `scaled * 100^k ≥ 10^20` for some `k : ℕ`, then `findShiftAux x a fuel`
-returns a result in the window provided `fuel ≥ k`.
-
-Note: maintaining the invariant `scaled < 10^22` is automatic because each
-"up" step is taken only when `scaled < 10^20`, which then yields
-`scaled * 100 < 10^22`. -/
-private lemma findShiftAux_up {x : ℚ} :
-    ∀ (k : ℕ) (a : ℤ),
-      x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (22 : ℕ)) →
-      ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * a) * (100 : ℚ) ^ k →
-      ∀ fuel, k ≤ fuel → InWindow x (findShiftAux x a fuel) := by
-  intro k
-  induction k with
-  | zero =>
-    intro a hhi hlo fuel _
-    -- scaled * 100^0 = scaled, so 10^20 ≤ scaled < 10^22 means in window.
-    have hlo' : ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * a) := by
-      simpa using hlo
-    have hw : InWindow x a := ⟨hlo', hhi⟩
-    rw [findShiftAux_of_inWindow x a fuel hw]
-    exact hw
-  | succ j ih =>
-    intro a hhi hlo fuel hfuel
-    by_cases hcase : x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (20 : ℕ))
-    · -- scaled too low: step up. Apply IH at a+1 with k=j.
-      cases fuel with
-      | zero => omega
-      | succ f =>
-        unfold findShiftAux
-        simp only
-        rw [if_pos hcase]
-        -- New scaled = old scaled * 100; need new < 10^22.
-        have hnew_eq : x * (10 : ℚ) ^ (2 * (a + 1)) = x * (10 : ℚ) ^ (2 * a) * 100 :=
-          scaled_step_up x a
-        have hnew_lt : x * (10 : ℚ) ^ (2 * (a + 1)) < ((10 : ℚ) ^ (22 : ℕ)) := by
-          rw [hnew_eq]
-          have hpos : (0 : ℚ) < 100 := by norm_num
-          have h1 : x * (10 : ℚ) ^ (2 * a) * 100 < ((10 : ℚ) ^ (20 : ℕ)) * 100 := by
-            exact mul_lt_mul_of_pos_right hcase hpos
-          have h2 : ((10 : ℚ) ^ (20 : ℕ)) * 100 = (10 : ℚ) ^ (22 : ℕ) := by norm_num
-          linarith
-        -- New 100^j bound:
-        -- old: 10^20 ≤ x * 10^(2a) * 100^(j+1) = (x * 10^(2(a+1))) * 100^j
-        have hnew_lo : ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * (a + 1)) * (100 : ℚ) ^ j := by
-          have : x * (10 : ℚ) ^ (2 * a) * (100 : ℚ) ^ (j + 1) =
-                 x * (10 : ℚ) ^ (2 * (a + 1)) * (100 : ℚ) ^ j := by
-            rw [hnew_eq, pow_succ]; ring
-          linarith [this ▸ hlo]
-        exact ih (a + 1) hnew_lt hnew_lo f (Nat.le_of_succ_le_succ hfuel)
-    · -- scaled ≥ 10^20: combined with hhi, in window.
-      push Not at hcase
-      have hw : InWindow x a := ⟨hcase, hhi⟩
-      rw [findShiftAux_of_inWindow x a fuel hw]
-      exact hw
-
-/-- **Down-search convergence**: symmetric to `findShiftAux_up`. -/
-private lemma findShiftAux_down {x : ℚ} :
-    ∀ (k : ℕ) (a : ℤ),
-      ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * a) →
-      x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (22 : ℕ)) * (100 : ℚ) ^ k →
-      ∀ fuel, k ≤ fuel → InWindow x (findShiftAux x a fuel) := by
-  intro k
-  induction k with
-  | zero =>
-    intro a hlo hhi fuel _
-    have hhi' : x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (22 : ℕ)) := by
-      simpa using hhi
-    have hw : InWindow x a := ⟨hlo, hhi'⟩
-    rw [findShiftAux_of_inWindow x a fuel hw]
-    exact hw
-  | succ j ih =>
-    intro a hlo hhi fuel hfuel
-    by_cases hcase : ((10 : ℚ) ^ (22 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * a)
-    · -- scaled too high: step down. New scaled = old / 100.
-      cases fuel with
-      | zero => omega
-      | succ f =>
-        simp only [findShiftAux]
-        have hnotlo : ¬ (x * (10 : ℚ) ^ (2 * a) < ((10 : ℚ) ^ (20 : ℕ))) := Rat.not_lt.mpr hlo
-        rw [if_neg hnotlo, if_pos hcase]
-        -- Recurse at a-1. New scaled = old scaled / 100.
-        have hnew_eq : x * (10 : ℚ) ^ (2 * (a - 1)) * 100 = x * (10 : ℚ) ^ (2 * a) :=
-          scaled_step_down x a
-        -- 10^20 ≤ new_scaled? old ≥ 10^22 ≥ 10^20*100, so new ≥ 10^20.
-        have hnew_lo : ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * (a - 1)) := by
-          have h1 : ((10 : ℚ) ^ (22 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * (a - 1)) * 100 := by
-            rw [hnew_eq]; exact hcase
-          have h22eq : ((10 : ℚ) ^ (22 : ℕ)) = ((10 : ℚ) ^ (20 : ℕ)) * 100 := by norm_num
-          have h2 : ((10 : ℚ) ^ (20 : ℕ)) * 100 ≤ x * (10 : ℚ) ^ (2 * (a - 1)) * 100 := by
-            rw [← h22eq]; exact h1
-          have hpos : (0 : ℚ) < 100 := by norm_num
-          exact le_of_mul_le_mul_right h2 hpos
-        -- new_scaled < 10^22 * 100^j:
-        -- old / 100 < 10^22 * 100^(j+1) / 100 = 10^22 * 100^j (for j ≥ 0).
-        have hnew_hi : x * (10 : ℚ) ^ (2 * (a - 1)) < ((10 : ℚ) ^ (22 : ℕ)) * (100 : ℚ) ^ j := by
-          have h1 : x * (10 : ℚ) ^ (2 * (a - 1)) * 100 < ((10 : ℚ) ^ (22 : ℕ)) * (100 : ℚ) ^ (j + 1) := by
-            rw [hnew_eq]; exact hhi
-          have h2 : ((10 : ℚ) ^ (22 : ℕ)) * (100 : ℚ) ^ (j + 1) =
-                    (((10 : ℚ) ^ (22 : ℕ)) * (100 : ℚ) ^ j) * 100 := by
-            rw [pow_succ]; ring
-          rw [h2] at h1
-          have hpos : (0 : ℚ) < 100 := by norm_num
-          exact lt_of_mul_lt_mul_right h1 (by positivity)
-        exact ih (a - 1) hnew_lo hnew_hi f (Nat.le_of_succ_le_succ hfuel)
-    · -- scaled < 10^22: combined with hlo, in window.
-      push Not at hcase
-      have hw : InWindow x a := ⟨hlo, hcase⟩
-      rw [findShiftAux_of_inWindow x a fuel hw]
-      exact hw
-
-/-- `Nat.log 10 n` provides an upper bound: `n < 10^(Nat.log 10 n + 1)`. -/
-private lemma nat_lt_ten_pow_log_succ (n : ℕ) :
-    (n : ℚ) < (10 : ℚ) ^ (Nat.log 10 n + 1) := by
-  have h := Nat.lt_pow_succ_log_self (by norm_num : 1 < 10) n
-  have hcast : (n : ℚ) < ((10 ^ (Nat.log 10 n + 1) : ℕ) : ℚ) := by exact_mod_cast h
-  rw [Nat.cast_pow] at hcast
-  exact_mod_cast hcast
-
-/-- Useful: `0 < x.num.natAbs` for `0 < x`. -/
-private lemma num_natAbs_pos {x : ℚ} (hx : 0 < x) : 0 < x.num.natAbs :=
-  Int.natAbs_pos.mpr (ne_of_gt (Rat.num_pos.mpr hx))
-
-/-- For `0 < x`, `x ≥ 1 / x.den` since `x.num ≥ 1`. -/
-private lemma rat_ge_one_div_den {x : ℚ} (hx : 0 < x) :
-    (1 : ℚ) / (x.den : ℚ) ≤ x := by
-  have hd_pos : (0 : ℚ) < (x.den : ℚ) := by exact_mod_cast x.pos
-  have hnum_pos : 0 < x.num := Rat.num_pos.mpr hx
-  have hnum_ge_one : (1 : ℚ) ≤ (x.num : ℚ) := by exact_mod_cast hnum_pos
-  rw [div_le_iff₀ hd_pos]
-  -- 1 * den ≤ x * den, i.e., den ≤ x * den = num
-  have : x * (x.den : ℚ) = (x.num : ℚ) := by
-    rw [Rat.mul_den_eq_num]
-  rw [this]
-  linarith
-
-/-- For `0 < x`, `x ≤ x.num.natAbs` since `x.den ≥ 1`. -/
-private lemma rat_le_num {x : ℚ} (hx : 0 < x) :
-    x ≤ (x.num.natAbs : ℚ) := by
-  have hd_pos : (0 : ℚ) < (x.den : ℚ) := by exact_mod_cast x.pos
-  have hd_ge : (1 : ℚ) ≤ (x.den : ℚ) := by exact_mod_cast x.pos
-  have hnum_pos : 0 < x.num := Rat.num_pos.mpr hx
-  have hnum_natAbs : (x.num.natAbs : ℚ) = (x.num : ℚ) := by
-    rw [Nat.cast_natAbs, abs_of_pos hnum_pos]
-  rw [hnum_natAbs]
-  -- x ≤ num: since x * den = num and den ≥ 1, x ≤ x * den = num.
-  have hxd : x * (x.den : ℚ) = (x.num : ℚ) := by
-    rw [Rat.mul_den_eq_num]
-  have hpos : 0 ≤ x := le_of_lt hx
-  nlinarith [hpos, hd_ge, hxd]
-
-/-- `(100:ℚ)^k = (10:ℚ)^(2k)`. -/
-private lemma pow_hundred_eq (k : ℕ) : (100 : ℚ) ^ k = (10 : ℚ) ^ (2 * k) := by
-  rw [show (100 : ℚ) = 10 ^ 2 from by norm_num, ← pow_mul, mul_comm]
-
-/-- For `0 < x`, `findShiftAux x 0 fuel` is in window when fuel is large enough. -/
-private lemma findShift_inWindow {x : ℚ} (hx : 0 < x) :
-    InWindow x (findShift x) := by
-  unfold findShift
-  set N := Nat.log 10 x.num.natAbs with hN
-  set D := Nat.log 10 x.den with hD
-  -- Case split: is x < 10^22 or not?
-  by_cases hcase : x < ((10 : ℚ) ^ (22 : ℕ))
-  · -- Up-search. Use k = D + 11. Then 2k = 2D + 22.
-    set k : ℕ := D + 11 with hk
-    have hkbound : ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * (0 : ℤ)) * (100 : ℚ) ^ k := by
-      simp only [mul_zero, zpow_zero, mul_one]
-      -- x * 100^k ≥ (1/den) * 10^(2k) ≥ (1/10^(D+1)) * 10^(2D+22) = 10^(D+21) ≥ 10^20.
-      rw [pow_hundred_eq]
-      have hx_lb : (1 : ℚ) / (x.den : ℚ) ≤ x := rat_ge_one_div_den hx
-      have hden_lt : (x.den : ℚ) < (10 : ℚ) ^ (D + 1) := nat_lt_ten_pow_log_succ x.den
-      have hden_pos : (0 : ℚ) < (x.den : ℚ) := by exact_mod_cast x.pos
-      have h10pos : (0 : ℚ) < (10 : ℚ) ^ (D + 1) := by positivity
-      have hinv : (1 : ℚ) / (10 : ℚ) ^ (D + 1) ≤ 1 / (x.den : ℚ) :=
-        le_of_lt (one_div_lt_one_div_of_lt hden_pos hden_lt)
-      have hxd : (1 : ℚ) / (10 : ℚ) ^ (D + 1) ≤ x := le_trans hinv hx_lb
-      have h10ne : (10 : ℚ) ≠ 0 := by norm_num
-      -- Now 10^20 ≤ 1/10^(D+1) * 10^(2k):
-      have h2k : 2 * k = 2 * D + 22 := by rw [hk]; ring
-      have hsplit : (10 : ℚ) ^ (2 * k) = (10 : ℚ) ^ (D + 1) * (10 : ℚ) ^ (D + 21) := by
-        rw [← pow_add]
-        congr 1
-        omega
-      have h_eq : (1 : ℚ) / (10 : ℚ) ^ (D + 1) * (10 : ℚ) ^ (2 * k) = (10 : ℚ) ^ (D + 21) := by
-        rw [hsplit]
-        field_simp
-      have hge_20 : ((10 : ℚ) ^ (20 : ℕ)) ≤ (10 : ℚ) ^ (D + 21) := by
-        apply pow_le_pow_right₀ (by norm_num : (1:ℚ) ≤ 10)
-        omega
-      have hpos2k : (0 : ℚ) < (10 : ℚ) ^ (2 * k) := by positivity
-      calc ((10 : ℚ) ^ (20 : ℕ))
-          ≤ (10 : ℚ) ^ (D + 21) := hge_20
-        _ = (1 : ℚ) / (10 : ℚ) ^ (D + 1) * (10 : ℚ) ^ (2 * k) := h_eq.symm
-        _ ≤ x * (10 : ℚ) ^ (2 * k) :=
-            mul_le_mul_of_nonneg_right hxd (le_of_lt hpos2k)
-    have hfuel : k ≤ N + D + 100 := by rw [hk]; omega
-    have hhi0 : x * (10 : ℚ) ^ (2 * (0 : ℤ)) < ((10 : ℚ) ^ (22 : ℕ)) := by
-      simp only [mul_zero, zpow_zero, mul_one]; exact hcase
-    exact findShiftAux_up k 0 hhi0 hkbound (N + D + 100) hfuel
-  · -- Down-search. x ≥ 10^22. Use k = N.
-    push Not at hcase
-    set k : ℕ := N with hk
-    have hkbound : x * (10 : ℚ) ^ (2 * (0 : ℤ)) < ((10 : ℚ) ^ (22 : ℕ)) * (100 : ℚ) ^ k := by
-      simp only [mul_zero, zpow_zero, mul_one]
-      rw [pow_hundred_eq]
-      -- Need x < 10^22 * 10^(2k) = 10^(22 + 2k).
-      have hx_le_num : x ≤ (x.num.natAbs : ℚ) := rat_le_num hx
-      have hnum_lt : (x.num.natAbs : ℚ) < (10 : ℚ) ^ (N + 1) := nat_lt_ten_pow_log_succ x.num.natAbs
-      have hexp : ((10 : ℚ) ^ (22 : ℕ)) * (10 : ℚ) ^ (2 * k) = (10 : ℚ) ^ (22 + 2 * k) := by
-        rw [← pow_add]
-      rw [hexp]
-      calc x ≤ (x.num.natAbs : ℚ) := hx_le_num
-        _ < (10 : ℚ) ^ (N + 1) := hnum_lt
-        _ ≤ (10 : ℚ) ^ (22 + 2 * k) := by
-            apply pow_le_pow_right₀ (by norm_num : (1:ℚ) ≤ 10)
-            rw [hk]; omega
-    have hlo0 : ((10 : ℚ) ^ (20 : ℕ)) ≤ x * (10 : ℚ) ^ (2 * (0 : ℤ)) := by
-      simp only [mul_zero, zpow_zero, mul_one]
-      calc ((10 : ℚ) ^ (20 : ℕ)) ≤ ((10 : ℚ) ^ (22 : ℕ)) := by norm_num
-        _ ≤ x := hcase
-    have hfuel : k ≤ N + D + 100 := by rw [hk]; omega
-    exact findShiftAux_down k 0 hlo0 hkbound (N + D + 100) hfuel
-
+/-- For `x > 0`, `sqrtℚLow x > 0`. -/
 private lemma sqrtℚLow_pos_of_pos {y : ℚ} (hy : 0 < y) : 0 < sqrtℚLow y := by
-  unfold sqrtℚLow
-  have hy_nle : ¬ (y ≤ 0) := not_le.mpr hy
-  rw [if_neg hy_nle]
-  set a := findShift y with ha
-  set scaled : ℚ := y * (10 : ℚ) ^ (2 * a) with hscaled
-  set m : ℕ := scaled.num.toNat / scaled.den with hm
-  set b : ℕ := Nat.sqrt m with hb
-  -- Goal: 0 < (b : ℚ) * 10^(-a)
-  -- We need 0 < b. By in-window, scaled ≥ 10^20, so m ≥ 1.
-  have hwin : InWindow y a := findShift_inWindow hy
-  obtain ⟨hlo, _⟩ := hwin
-  -- scaled ≥ 10^20 ≥ 1
-  have hscaled_ge_one : (1 : ℚ) ≤ scaled := by
-    rw [hscaled]
-    calc (1 : ℚ) ≤ (10 : ℚ) ^ (20 : ℕ) := by norm_num
-      _ ≤ y * (10 : ℚ) ^ (2 * a) := hlo
-  have hscaled_pos : 0 < scaled := lt_of_lt_of_le zero_lt_one hscaled_ge_one
-  -- num ≥ den. Since 1 ≤ scaled = num/den (with den > 0), we have num ≥ den.
-  have hden_pos : 0 < scaled.den := scaled.pos
-  have hnum_pos : 0 < scaled.num := Rat.num_pos.mpr hscaled_pos
-  have hnum_ge_den : (scaled.den : ℤ) ≤ scaled.num := by
-    have hx_eq : scaled = (scaled.num : ℚ) / (scaled.den : ℚ) := (Rat.num_div_den scaled).symm
-    have hd_pos : (0 : ℚ) < (scaled.den : ℚ) := by exact_mod_cast hden_pos
-    have h1 : (1 : ℚ) * (scaled.den : ℚ) ≤ (scaled.num : ℚ) := by
-      have := hscaled_ge_one
-      rw [hx_eq] at this
-      rw [le_div_iff₀ hd_pos] at this
-      exact this
-    rw [one_mul] at h1
-    exact_mod_cast h1
-  -- m = num.toNat / den ≥ 1
-  have hm_ge_one : 1 ≤ m := by
-    rw [hm]
-    apply Nat.one_le_div_iff hden_pos |>.mpr
-    have : (scaled.den : ℤ) ≤ (scaled.num.toNat : ℤ) := by
-      rw [Int.toNat_of_nonneg (le_of_lt hnum_pos)]
-      exact hnum_ge_den
-    exact_mod_cast this
-  -- b = Nat.sqrt m ≥ Nat.sqrt 1 = 1
-  have hb_ge_one : 1 ≤ b := Nat.le_sqrt'.mpr hm_ge_one
-  have hb_pos : (0 : ℚ) < (b : ℚ) := mod_cast (Nat.lt_of_lt_of_le Nat.zero_lt_one hb_ge_one)
-  have h10a_pos : (0 : ℚ) < (10 : ℚ) ^ (-a) := by positivity
-  exact mul_pos hb_pos h10a_pos
+  rw [sqrtℚLow]
+  rw [if_neg (not_le.mpr hy)]
+  apply sqrtℚLowImpl_pos
+  · -- 0 < y.num.toNat
+    have hnum_pos : 0 < y.num := Rat.num_pos.mpr hy
+    have : (y.num.toNat : ℤ) = y.num := Int.toNat_of_nonneg (le_of_lt hnum_pos)
+    omega
+  · exact y.pos
+  · exact le_refl _
 
 /-- `√x ≤ √⁺ x` for `x ≥ 0` (Definition 47). -/
 theorem sqrt_le_sqrtℚUp {x : ℚ} (hx : 0 ≤ x) :
@@ -531,30 +495,22 @@ theorem sqrt_le_sqrtℚUp {x : ℚ} (hx : 0 ≤ x) :
     have hLow_pos_Q : 0 < sqrtℚLow y := sqrtℚLow_pos_of_pos hy_pos
     have hLow_pos_R : (0 : ℝ) < ((sqrtℚLow y : ℚ) : ℝ) := by exact_mod_cast hLow_pos_Q
     have hsq : ((sqrtℚLow y : ℚ) : ℝ) ^ 2 ≤ ((y : ℚ) : ℝ) := sqrtℚLow_sq_le y hy_nonneg
-    -- Real-cast of x is positive
     have hx_R_pos : (0 : ℝ) < ((x : ℚ) : ℝ) := by exact_mod_cast hx0'
     have hy_R : ((y : ℚ) : ℝ) = 1 / ((x : ℚ) : ℝ) := by
       rw [hy_def]; push_cast; ring
-    -- (1 / sqrtℚLow y : ℚ) cast to ℝ is 1 / ((sqrtℚLow y : ℚ) : ℝ)
     have hcast : (((1 / sqrtℚLow y : ℚ) : ℝ)) = 1 / ((sqrtℚLow y : ℚ) : ℝ) := by
       push_cast; ring
     rw [hcast]
-    -- Goal: √x ≤ 1 / sqrtℚLow y
     rw [le_div_iff₀ hLow_pos_R]
-    -- Goal: √x * sqrtℚLow y ≤ 1
-    -- (sqrtℚLow y)^2 ≤ y = 1/x. Multiply by x > 0: (sqrtℚLow y)^2 * x ≤ 1.
     have hsq' : ((sqrtℚLow y : ℚ) : ℝ) ^ 2 ≤ 1 / ((x : ℚ) : ℝ) := by rw [← hy_R]; exact hsq
     rw [le_div_iff₀ hx_R_pos] at hsq'
-    -- So (sqrtℚLow y * √x)^2 ≤ 1.
     have hprod_nn : 0 ≤ Real.sqrt ((x : ℚ) : ℝ) * ((sqrtℚLow y : ℚ) : ℝ) :=
       mul_nonneg (Real.sqrt_nonneg _) (le_of_lt hLow_pos_R)
     have h_sq_eq : (Real.sqrt ((x : ℚ) : ℝ) * ((sqrtℚLow y : ℚ) : ℝ)) ^ 2 =
         ((sqrtℚLow y : ℚ) : ℝ) ^ 2 * ((x : ℚ) : ℝ) := by
-      rw [mul_pow, Real.sq_sqrt (le_of_lt hx_R_pos)]
-      ring
+      rw [mul_pow, Real.sq_sqrt (le_of_lt hx_R_pos)]; ring
     have hprod_sq_le : (Real.sqrt ((x : ℚ) : ℝ) * ((sqrtℚLow y : ℚ) : ℝ)) ^ 2 ≤ 1 := by
       rw [h_sq_eq]; exact hsq'
-    -- From a² ≤ 1 and a ≥ 0, conclude a ≤ 1.
     nlinarith [hprod_nn, hprod_sq_le]
 
 /-- The squared norm is non-negative. -/
