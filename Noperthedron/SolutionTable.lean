@@ -148,12 +148,17 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
              Set.Icc ↑((PoseInterval.min iv).getParam p)
                      ↑((PoseInterval.max iv).getParam p) := by
     simp only [Set.mem_Icc]
-    simp only [Interval.toReal, NonemptyInterval.mem_mk] at hq
+    simp only [Interval.toReal, NonemptyInterval.mem_mk, Interval.maxPose, Interval.minPose] at hq
+    simp only [Pose.le_iff_forall_getParam] at hq
     obtain ⟨hq₁, hq₂⟩ := hq
     push_cast
     constructor
-    · sorry
-    · sorry
+    · change (PoseInterval.min iv).toReal.getParam p ≤ q.getParam p
+      specialize hq₁ p
+      exact hq₁
+    · change q.getParam p ≤ (PoseInterval.max iv).toReal.getParam p
+      specialize hq₂ p
+      exact hq₂
   obtain ⟨n, hx⟩ :=
     mem_icc_mem_some_part_ab (q.getParam p) (iv.min.getParam p) (iv.max.getParam p) h₁ N h₂
   use n
