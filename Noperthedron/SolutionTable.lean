@@ -134,12 +134,29 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
   have : q.getParam p ∈ Set.Icc ivpMin ivpMax :=
     ⟨(Pose.le_iff_forall_getParam _ _).mp hq.1 p,
      (Pose.le_iff_forall_getParam _ _).mp hq.2 p⟩
-
-  -- something like:
-  -- obtain ⟨n, hx⟩ :=
-  --    mem_icc_mem_some_part_ab (q.getParam p) (iv.min.getParam p) (iv.max.getParam p) ...
-
-  sorry
+  by_cases H : iv.min.getParam p = iv.max.getParam p
+  · use 0
+    refine mem_nth_part _ _ _ _ _ hq ?_
+    sorry
+  have h₁ : iv.min.getParam p < iv.max.getParam p := by
+    by_contra! H₁
+    have h₃ := iv.min_le_max
+    rw [Pose.le_iff_forall_getParam] at h₃
+    specialize h₃ p
+    order
+  have h₂ : q.getParam p ∈
+             Set.Icc ↑((PoseInterval.min iv).getParam p)
+                     ↑((PoseInterval.max iv).getParam p) := by
+    simp only [Set.mem_Icc]
+    simp only [Interval.toReal, NonemptyInterval.mem_mk] at hq
+    obtain ⟨hq₁, hq₂⟩ := hq
+    constructor
+    · sorry
+    · sorry
+  obtain ⟨n, hx⟩ :=
+    mem_icc_mem_some_part_ab (q.getParam p) (iv.min.getParam p) (iv.max.getParam p) h₁ N h₂
+  use n
+  exact mem_nth_part _ _ _ _ _ hq hx
 
 lemma non_rupert_parts_imp_non_rupert (p : Param) {iv : Interval} (N : ℕ) [hN : NeZero N]
     (qq : ∀ n : Fin N, ¬∃ q ∈ (Interval.nth_part p iv N n).toReal, RupertPose q exactPolyhedron.hull) :
