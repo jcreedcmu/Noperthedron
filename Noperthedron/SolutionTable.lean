@@ -137,7 +137,22 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
   by_cases H : iv.min.getParam p = iv.max.getParam p
   · use 0
     refine mem_nth_part _ _ _ _ _ hq ?_
-    sorry
+    simp only [Set.mem_Icc]
+    have h₅ : ∀ n, Interval.interpolate p iv N n = (PoseInterval.min iv).getParam p := by
+      intro n
+      simp [Interval.interpolate, H]
+    simp only [Interval.toReal, NonemptyInterval.mem_mk, Interval.maxPose, Interval.minPose] at hq
+    simp only [Pose.le_iff_forall_getParam] at hq
+    obtain ⟨hq₁, hq₂⟩ := hq
+    constructor
+    · rw [h₅]
+      push_cast
+      specialize hq₁ p
+      exact hq₁
+    · rw [h₅, H]
+      push_cast
+      specialize hq₂ p
+      exact hq₂
   have h₁ : iv.min.getParam p < iv.max.getParam p := by
     by_contra! H₁
     have h₃ := iv.min_le_max
