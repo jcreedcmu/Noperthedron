@@ -29,9 +29,6 @@ unsafe def main (args : List String) : IO Unit := do
       | 3 => "split"
       | _ => "unknown"
 
-    -- TODO: fix validation of split rows.
-    if row.nodeType = 3 then continue
-
     if row.ValidIx table ii
     then
      IO.println s!"row {ii} [{row_type_str}]: valid"
