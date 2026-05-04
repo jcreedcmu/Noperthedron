@@ -15,7 +15,6 @@ import Noperthedron.CommonCenter
 import Noperthedron.ComputationalStep
 import Noperthedron.ConvertPose
 import Noperthedron.EuclideanSpaceNotation
-import Noperthedron.Final
 import Noperthedron.Global
 import Noperthedron.Global.Basic
 import Noperthedron.Global.BoundedPartialsControlDifference
@@ -38,6 +37,7 @@ import Noperthedron.Local.Prelims
 import Noperthedron.Local.Spanp
 import Noperthedron.MainTheorem
 import Noperthedron.MatrixPose
+import Noperthedron.NoperthedronIsNotRupert
 import Noperthedron.PointSym
 import Noperthedron.Pose
 import Noperthedron.PoseClasses

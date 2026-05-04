@@ -1,5 +1,5 @@
 import Noperthedron.MainTheorem
-import Noperthedron.Final
+import Noperthedron.NoperthedronIsNotRupert
 import Noperthedron.Vertices.InteriorNonempty
 
 /-!
