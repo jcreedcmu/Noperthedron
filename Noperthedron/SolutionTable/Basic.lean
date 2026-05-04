@@ -59,26 +59,16 @@ lemma Table.RowsValid.valid_at {tab : Table} (htab : tab.RowsValid) {i : ℕ} (h
     tab[i].ValidIx tab i := htab ⟨i, hi⟩
 
 /-- The minimum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
-def Interval.minPose (iv : Interval) : Pose ℝ where
-  θ₁ := iv.min.θ₁
-  θ₂ := iv.min.θ₂
-  φ₁ := iv.min.φ₁
-  φ₂ := iv.min.φ₂
-  α := iv.min.α
+def Interval.minPose (iv : Interval) : Pose ℝ := iv.min.toReal
 
 /-- The maximum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
-def Interval.maxPose (iv : Interval) : Pose ℝ where
-  θ₁ := iv.max.θ₁
-  θ₂ := iv.max.θ₂
-  φ₁ := iv.max.φ₁
-  φ₂ := iv.max.φ₂
-  α := iv.max.α
+def Interval.maxPose (iv : Interval) : Pose ℝ := iv.max.toReal
 
 private lemma Interval.minPose_le_maxPose (iv : Interval) :
     iv.minPose ≤ iv.maxPose := by
   obtain ⟨h1, h2, h3, h4, h5⟩ := (Pose.le_iff iv.min iv.max).mp iv.fst_le_snd
   rw [Pose.le_iff]
-  simp only [Interval.minPose, Interval.maxPose]
+  simp only [Interval.minPose, Interval.maxPose, Pose.toReal]
   exact ⟨by exact_mod_cast h1, by exact_mod_cast h2, by exact_mod_cast h3,
          by exact_mod_cast h4, by exact_mod_cast h5⟩
 

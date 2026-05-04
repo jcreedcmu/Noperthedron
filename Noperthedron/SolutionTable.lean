@@ -29,13 +29,13 @@ lemma mem_nth_part (q : Pose ℝ) (iv : Interval) (p : Param) (N : ℕ) [hN : Ne
 lemma iv_max_push_cast (iv : Interval) (p : Param) :
     ((PoseInterval.max iv).getParam p : ℝ) = iv.toReal.max.getParam p := by
   cases p <;>
-    simp [Interval.toReal, Interval.minPose, Interval.maxPose, Pose.getParam]
+    simp [Interval.toReal, Interval.minPose, Interval.maxPose, Pose.getParam, Pose.toReal]
 
 @[push_cast]
 lemma iv_min_push_cast (iv : Interval) (p : Param) :
     ((PoseInterval.min iv).getParam p : ℝ) = iv.toReal.min.getParam p := by
   cases p <;>
-    simp [Interval.toReal, Interval.minPose, Interval.minPose, Pose.getParam]
+    simp [Interval.toReal, Interval.minPose, Interval.minPose, Pose.getParam, Pose.toReal]
 
 lemma mem_iv_imp_ge_min (iv : Interval) {q : Pose ℝ} (hq : q ∈ iv.toReal) (p : Param) :
     iv.min.getParam p ≤ q.getParam p := by
@@ -150,6 +150,7 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
     simp only [Set.mem_Icc]
     simp only [Interval.toReal, NonemptyInterval.mem_mk] at hq
     obtain ⟨hq₁, hq₂⟩ := hq
+    push_cast
     constructor
     · sorry
     · sorry
