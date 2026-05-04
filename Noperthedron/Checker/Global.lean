@@ -19,6 +19,13 @@ abbrev Row.G_gt_maxH (r : Row) : Prop :=
   RationalApprox.GlobalTheorem.Gℚ r.interval.centerPose r.epsilon r.S r.w >
     RationalApprox.GlobalTheorem.maxHℚ r.interval.centerPose pythonPolyQ r.epsilon r.w
 
+/-- Fast Decidable instance for `Row.G_gt_maxH` that hoists per-pose work out
+of the per-vertex iteration. See `Gℚ_gt_maxHℚ_check` in `RationalGlobal.lean`. -/
+instance (r : Row) : Decidable r.G_gt_maxH :=
+  decidable_of_iff _ <|
+    RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_check_iff
+      r.interval.centerPose r.epsilon r.S pythonPolyQ r.w
+
 /-! ## The main checker -/
 
 /-- Assertion that a row constitutes a valid application of the rational global theorem. -/

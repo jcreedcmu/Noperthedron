@@ -39,7 +39,79 @@ def TriangleQ.Bεℚ {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) 
     (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ) (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + approx.upper_sqrt_five * ε) / r < TriangleQ.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
-deriving Decidable
+
+namespace TriangleQ.Bεℚ
+
+/-- Hoisted entries of `rotMℚ_mat p.θ₂ p.φ₂` so that sin/cos partial sums
+are evaluated once per pose, not once per matrix-vector multiply. -/
+private structure MatEntries : Type where
+  m₀₀ : ℚ
+  m₀₁ : ℚ
+  m₀₂ : ℚ
+  m₁₀ : ℚ
+  m₁₁ : ℚ
+  m₁₂ : ℚ
+
+@[inline] private def matEntries (p : Pose ℚ) : MatEntries :=
+  let st := RationalApprox.sinℚ p.θ₂
+  let ct := RationalApprox.cosℚ p.θ₂
+  let sp := RationalApprox.sinℚ p.φ₂
+  let cp := RationalApprox.cosℚ p.φ₂
+  ⟨-st, ct, 0, -ct * cp, -st * cp, sp⟩
+
+@[inline] private def MatEntries.applyVec (e : MatEntries) (v : Fin 3 → ℚ) : Fin 2 → ℚ
+  | 0 => e.m₀₀ * v 0 + e.m₀₁ * v 1 + e.m₀₂ * v 2
+  | 1 => e.m₁₀ * v 0 + e.m₁₁ * v 1 + e.m₁₂ * v 2
+
+private lemma MatEntries.applyVec_eq (p : Pose ℚ) (v : Fin 3 → ℚ) :
+    (matEntries p).applyVec v = p.rotM₂ℚ v := by
+  ext i
+  unfold Pose.rotM₂ℚ RationalApprox.rotMℚ RationalApprox.rotMℚ_mat
+  rw [Matrix.toLin'_apply]
+  fin_cases i <;>
+    simp [MatEntries.applyVec, matEntries, Matrix.mulVec, dotProduct,
+          Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one]
+
+/-- Bool-valued `Bεℚ` check that hoists per-pose matrix entries and
+per-`i` `M₂·Q_i` / sqrtUp norms out of the inner-`k` `decide`. The
+outer `Fin 3` loop short-circuits via `List.all`. -/
+def check {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
+    (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ)
+    (approx : RationalApprox.Approx) : Bool :=
+  let entries := matEntries p
+  let bound := (δ + approx.upper_sqrt_five * ε) / r
+  (List.finRange 3).all fun i =>
+    let Qi_val := Q_ i
+    let M₂Qi := entries.applyVec Qi_val
+    let denom1 := approx.upper_sqrt.norm M₂Qi + approx.upper_sqrt_two * ε + 3 * κℚ
+    decide <| ∀ k : ι, k ≠ Qi i →
+      let dv := Qi_val - v_ k
+      let M₂dv := entries.applyVec dv
+      let n_dv := approx.upper_sqrt.norm dv
+      let n_M₂dv := approx.upper_sqrt.norm M₂dv
+      let numer := M₂Qi ⬝ᵥ M₂dv - 10 * κℚ
+                   - 2 * ε * (n_dv + 2 * κℚ) * (approx.upper_sqrt_two + ε)
+      let denom2 := n_M₂dv + 2 * approx.upper_sqrt_two * ε + 6 * κℚ
+      bound < numer / (denom1 * denom2)
+
+theorem check_iff {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
+    (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ) (approx : RationalApprox.Approx) :
+    check Q_ Qi v_ p ε δ r approx = true ↔ Bεℚ Q_ Qi v_ p ε δ r approx := by
+  unfold check Bεℚ Bεℚ.lhs
+  simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
+  refine forall_congr' (fun i => ?_)
+  rw [MatEntries.applyVec_eq]
+  refine forall_congr' (fun k => ?_)
+  refine forall_congr' (fun _ => ?_)
+  rw [MatEntries.applyVec_eq]
+
+instance instDecidable {ι : Type} [Fintype ι] [DecidableEq ι]
+    (Q_ : TriangleQ) (Qi : Fin 3 → ι) (v_ : ι → Fin 3 → ℚ)
+    (p : Pose ℚ) (ε δ r : ℚ) (approx : RationalApprox.Approx) :
+    Decidable (Bεℚ Q_ Qi v_ p ε δ r approx) :=
+  decidable_of_iff _ (check_iff Q_ Qi v_ p ε δ r approx)
+
+end TriangleQ.Bεℚ
 
 end Local
 

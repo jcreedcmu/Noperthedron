@@ -33,6 +33,105 @@ def maxHℚ {ι : Type} [Fintype ι] [ne : Nonempty ι]
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
 
+/-! ### Fast `Gℚ > maxHℚ` check via per-pose hoisting -/
+
+namespace Gℚ_gt_maxHℚ
+
+/-- Pre-transposed `Mᵀ·w` 3-vectors so that each per-`P` `Hℚ` evaluation is just
+three small dot products instead of three matrix-vector multiplies. -/
+private structure HEntries : Type where
+  m2tw  : Fin 3 → ℚ
+  m2θtw : Fin 3 → ℚ
+  m2φtw : Fin 3 → ℚ
+
+@[inline] private def hEntries (p : Pose ℚ) (w : Fin 2 → ℚ) : HEntries :=
+  let st := RationalApprox.sinℚ p.θ₂
+  let ct := RationalApprox.cosℚ p.θ₂
+  let sp := RationalApprox.sinℚ p.φ₂
+  let cp := RationalApprox.cosℚ p.φ₂
+  let w0 := w 0
+  let w1 := w 1
+  -- M₂  = [[-st,      ct,       0    ],
+  --        [-ct*cp,   -st*cp,   sp   ]]
+  -- M₂θ = [[-ct,     -st,       0    ],
+  --        [ st*cp,  -ct*cp,    0    ]]
+  -- M₂φ = [[ 0,       0,        0    ],
+  --        [ ct*sp,   st*sp,    cp   ]]
+  -- (Mᵀ·w)[j] = ∑ i, M[i][j] * w[i]
+  ⟨ ![-st * w0 + (-ct * cp) * w1,    ct * w0 + (-st * cp) * w1,    sp * w1],
+    ![-ct * w0 + ( st * cp) * w1,   -st * w0 + (-ct * cp) * w1,    0],
+    ![ (ct * sp) * w1,                (st * sp) * w1,              cp * w1] ⟩
+
+private lemma m2tw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2tw ⬝ᵥ P = p.rotM₂ℚ P ⬝ᵥ w := by
+  unfold Pose.rotM₂ℚ RationalApprox.rotMℚ RationalApprox.rotMℚ_mat
+  rw [Matrix.toLin'_apply]
+  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
+  ring
+
+private lemma m2θtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2θtw ⬝ᵥ P = p.rotM₂θℚ P ⬝ᵥ w := by
+  unfold Pose.rotM₂θℚ RationalApprox.rotMθℚ RationalApprox.rotMθℚ_mat
+  rw [Matrix.toLin'_apply]
+  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
+  ring
+
+private lemma m2φtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2φtw ⬝ᵥ P = p.rotM₂φℚ P ⬝ᵥ w := by
+  unfold Pose.rotM₂φℚ RationalApprox.rotMφℚ RationalApprox.rotMφℚ_mat
+  rw [Matrix.toLin'_apply]
+  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
+  ring
+
+@[inline] private def fastH (entries : HEntries) (ε : ℚ) (kappaTerm : ℚ) (P : Fin 3 → ℚ) : ℚ :=
+  entries.m2tw ⬝ᵥ P + ε * (|entries.m2θtw ⬝ᵥ P| + |entries.m2φtw ⬝ᵥ P|) + 2 * ε^2 + kappaTerm
+
+private lemma fastH_eq (p : Pose ℚ) (ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    fastH (hEntries p w) ε (3 * κℚ * (1 + 2 * ε)) P = Hℚ p ε w P := by
+  unfold fastH Hℚ
+  rw [m2tw_dot_eq, m2θtw_dot_eq, m2φtw_dot_eq]
+
+end Gℚ_gt_maxHℚ
+
+open Gℚ_gt_maxHℚ in
+/-- Bool-valued `Gℚ > maxHℚ` check that hoists the trig partial sums and
+the three `Mᵀ·w` 3-vectors to per-pose work; the `∀ P ∈ poly.v` loop
+then only does small-value dot products. -/
+def Gℚ_gt_maxHℚ_check {ι : Type} [Fintype ι] [DecidableEq ι]
+    (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ)
+    (poly : Polyhedron ι (Fin 3 → ℚ)) (w : Fin 2 → ℚ) : Bool :=
+  let entries := hEntries p w
+  let g := Gℚ p ε S w
+  let kappaTerm := 3 * κℚ * (1 + 2 * ε)
+  decide <| ∀ k : ι, g > fastH entries ε kappaTerm (poly.v k)
+
+theorem Gℚ_gt_maxHℚ_check_iff {ι : Type} [Fintype ι] [DecidableEq ι] [ne : Nonempty ι]
+    (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ)
+    (poly : Polyhedron ι (Fin 3 → ℚ)) (w : Fin 2 → ℚ) :
+    Gℚ_gt_maxHℚ_check p ε S poly w = true ↔
+      Gℚ p ε S w > maxHℚ p poly ε w := by
+  unfold Gℚ_gt_maxHℚ_check maxHℚ
+  simp only [decide_eq_true_eq]
+  constructor
+  · intro hAll
+    show (Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ).max' _ < Gℚ p ε S w
+    rw [Finset.max'_lt_iff]
+    intro y hy
+    rw [Finset.mem_image] at hy
+    obtain ⟨k, _, rfl⟩ := hy
+    have := hAll k
+    rw [Gℚ_gt_maxHℚ.fastH_eq] at this
+    exact this
+  · intro hLt k
+    rw [Gℚ_gt_maxHℚ.fastH_eq]
+    apply lt_of_le_of_lt _ hLt
+    apply Finset.le_max'
+    rw [Finset.mem_image]
+    exact ⟨k, Finset.mem_univ k, rfl⟩
+
 /--
 A compact way of saying "the pose satisfies the rational global theorem precondition at width ε".
 We require the existence of some inner-shadow vertex S from the polyhedron, and a covector w meant to express
