@@ -69,8 +69,7 @@ private lemma Interval.minPose_le_maxPose (iv : Interval) :
   obtain ⟨h1, h2, h3, h4, h5⟩ := (Pose.le_iff iv.min iv.max).mp iv.fst_le_snd
   rw [Pose.le_iff]
   simp only [Interval.minPose, Interval.maxPose, Pose.toReal]
-  exact ⟨by exact_mod_cast h1, by exact_mod_cast h2, by exact_mod_cast h3,
-         by exact_mod_cast h4, by exact_mod_cast h5⟩
+  norm_cast
 
 def Interval.toReal (iv : Interval) : PoseInterval ℝ :=
   PoseInterval.mk iv.minPose iv.maxPose iv.minPose_le_maxPose
