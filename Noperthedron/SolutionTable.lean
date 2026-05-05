@@ -250,8 +250,8 @@ theorem Row.valid_imp_not_rupert_ix
   let ⟨_rv1, rv2, rv3⟩ := row_valid
   match rv2 with
   | .asSplit y => valid_split_imp_no_rupert tab row tab_valid y rv3
-  | .asGlobal y => valid_global_imp_no_rupert tab row y
-  | .asLocal y => valid_local_imp_no_rupert tab row y
+  | .asGlobal y => valid_global_imp_no_rupert row y
+  | .asLocal y => valid_local_imp_no_rupert row y
 termination_by (tab.size - i, 3, 0)
 decreasing_by rw [_rv1]; grind
 

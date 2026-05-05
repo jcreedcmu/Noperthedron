@@ -96,8 +96,7 @@ private lemma py_κSpanning_of_rational_Q
     linarith
   exact lt_of_le_of_lt hbound hcast
 
-theorem valid_local_imp_no_rupert (_tab : Table) (row : Row)
-    (hrow : row.ValidLocal) :
+theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   let ε := row.epsilon
   let iv := row.toRealInterval

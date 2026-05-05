@@ -15,7 +15,7 @@ theorem row_epsilon_cast_eq_radius (row : Row) :
   push_cast
   rfl
 
-theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
+theorem valid_global_imp_no_rupert (row : Row)
     (hrow : row.ValidGlobal) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   let pℚ := row.interval.centerPose
