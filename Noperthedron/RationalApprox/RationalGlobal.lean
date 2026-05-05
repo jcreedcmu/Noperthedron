@@ -340,7 +340,6 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (p : Pose ℚ) (ε : ℚ) (hε : 0 ≤ ε)
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
     (happrox : κApproxPoly poly.vertices poly_)
-    (_poly_pointsym : PointSym poly.hull)
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p ε) :
     ¬ ∃ q ∈ Metric.closedBall p.toReal ε, RupertPose q poly.hull := by
   set pbar := p.toReal
@@ -380,7 +379,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
       by exact_mod_cast h_le_max
     linarith [h_le_Hℚ, h_le_max_real]
   -- Step 3: Build the precondition and apply global_theorem
-  exact GlobalTheorem.global_theorem pbar ε (Rat.cast_nonneg.mpr hε) poly _poly_pointsym {
+  exact GlobalTheorem.global_theorem pbar ε (Rat.cast_nonneg.mpr hε) poly {
     S := S_real
     S_in_poly := hS_in
     w := toR2 pc.w

@@ -32,8 +32,7 @@ theorem valid_global_imp_no_rupert (_tab : Table) (row : Row)
       (Interval.toReal_center_getParam row.interval p).symm
     refine Pose.mk.injEq .. |>.mpr ⟨h .θ₁, h .θ₂, h .φ₁, h .φ₂, h .α⟩
   have hrg := RationalApprox.GlobalTheorem.rational_global
-                 pℚ r hr exactPoly pythonPolyQ
-                 KappaApprox.exact_κApprox_python exactPoly_point_symmetric
+                 pℚ r hr exactPoly pythonPolyQ KappaApprox.exact_κApprox_python
   have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
              exactPoly pythonPolyQ KappaApprox.exact_κApprox_python pℚ r := {
     j := row.S_index

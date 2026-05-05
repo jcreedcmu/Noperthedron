@@ -475,7 +475,6 @@ The Global Theorem, [SY25] Theorem 17
 theorem global_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     (pbar : Pose ℝ) (ε : ℝ) (hε : 0 ≤ ε)
     (poly : GoodPoly ι)
-    (_poly_pointsym : PointSym poly.hull)
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     ¬ ∃ p ∈ Metric.closedBall pbar ε, RupertPose p poly.hull := by
   rintro ⟨p, p_near_pbar, p_is_rupert⟩
