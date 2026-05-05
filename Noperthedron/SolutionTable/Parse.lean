@@ -137,3 +137,10 @@ def parseRowCsv (s : String) : Except String Row := do
   }
 
 --#eval parseRowCsv "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,1,24,25,26,27"
+
+def parseSolutionTable (s : String) : Except String Table := do
+  let mut result : Array Row := #[]
+  for line in s.split "\n" do
+    let row ← parseRowCsv line.toString
+    result := result.push row
+  return result
