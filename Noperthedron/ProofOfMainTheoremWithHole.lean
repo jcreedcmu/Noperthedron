@@ -4,6 +4,10 @@ import Noperthedron.Vertices.InteriorNonempty
 
 namespace Noperthedron
 
+/--
+The existence of a well-formed `Solution.ValidTable` object implies the existence
+of a convex polyhedron that does not have the Rupert Property.
+-/
 theorem valid_table_imples_exists_not_rupert (vtab : Solution.ValidTable) : ExistsNonRupertPolyhedron :=
   ⟨Noperthedron.exactVerts, interior_exactVerts_hull_nonempty, nopert_not_rupert vtab⟩
 
