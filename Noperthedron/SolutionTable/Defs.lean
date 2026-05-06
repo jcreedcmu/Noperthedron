@@ -90,6 +90,18 @@ structure Row : Type where
 instance : ToString Row where
   toString r := s!"\{ID := {r.ID}, nodeType := {r.nodeType}, nrChildren := {r.nrChildren}, ...}"
 
+instance : Inhabited Row where
+  default := { ID := 0, nodeType := 0, nrChildren := 0, IDfirstChild := 0,
+               split := 0,
+               interval := PoseInterval.mk
+                 { θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := 0 }
+                 { θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := 0 }
+                 (by decide),
+               S_index := 0, wx_numerator := 0,
+               wy_numerator := 0, w_denominator := 0, P1_index := 0,
+               P2_index := 0, P3_index := 0, Q1_index := 0, Q2_index := 0,
+               Q3_index := 0, r' := 0, sigma_Q := ⟨0, by simp [Finset.mem_Icc]⟩}
+
 abbrev Table : Type := Array Row
 
 def interpolate (min max : ℚ) (N : ℕ) [NeZero N] (n : ℕ) : ℝ :=
