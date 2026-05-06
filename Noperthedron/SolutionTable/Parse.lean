@@ -140,7 +140,7 @@ def parseRowCsv (s : String) : Except String Row := do
 
 def parseSolutionTable (s : String) : Except String Table := do
   let mut result : Array Row := #[]
-  for line in s.split "\n" do
+  for line in s.lines.drop 1 do
     let row ← parseRowCsv line.toString
     result := result.push row
   return result
