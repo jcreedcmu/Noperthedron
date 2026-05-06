@@ -1,32 +1,33 @@
 # Noperthedron
 
-The goal of this project is to formalize the main result of
+This project formalizes the main result of
 ["A convex polyhedron without Rupert's property"](https://arxiv.org/abs/2508.18475)
 by Jakob Steininger & Sergey Yurkevich (cited as `[SY25]` herein).
 
-That is, we aim to write a Lean 4 proof that the Noperthedron does not "[fit through itself](https://en.wikipedia.org/wiki/Prince_Rupert%27s_cube)".
+We prove, using the Lean 4 theorem prover, that the Noperthedron does not "[fit through itself](https://en.wikipedia.org/wiki/Prince_Rupert%27s_cube)".
 
 <p align="center">
 <img src="./home_page/assets/noperthedron.png" width="200" alt="noperthedron">
 </p>
 
-The proof will involve constructing a large tree object and verifying that it has certain properties.
+See the [dependency graph](https://jcreedcmu.github.io/Noperthedron/blueprint/dep_graph_document.html) for a quick overview
+of our current progress.
+
+The proof involves constructing a large tree object and verifying that it has certain properties.
 The original authors performed [their version of this computation](https://github.com/Jakob256/Rupert) using Sagemath.
 We plan to perform the computation in Lean, first as a compiled program that emits a value of a carefully crafted type,
 and maybe later (as a stretch goal!) in the Lean kernel itself, avoiding the need to trust the compiler.
 
-However, our first goal is to formalize the *rest* of the math in the paper.
-
-See the [dependency graph](https://jcreedcmu.github.io/Noperthedron/blueprint/dep_graph_document.html) for a quick overview
-of our current progress.
-
 ## Project Structure
 
 The definition of the main theorem proposition lives in [MainTheorem.lean](Noperthedron/MainTheorem.lean).
-The proof of the main theorem, given existence of a valid solution table, will live in
+
+The proof of the main theorem, given existence of a valid solution table, lives in
 [ProofOfMainTheoremWithHole.lean](Noperthedron/ProofOfMainTheoremWithHole.lean).
 
-The final proof of the main theorem will live in
+The program to construct a valid solution table is [constructValidTable.lean](constructValidTable.lean).
+
+The self-contained proof of the main theorem will live in
 [ProofOfMainTheorem.lean](Noperthedron/ProofOfMainTheorem.lean).
 
 ## Getting Started
