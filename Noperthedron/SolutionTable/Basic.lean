@@ -8,7 +8,7 @@ namespace Noperthedron.Solution
 @[mk_iff]
 structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
   id_in_table : row.ID < row.IDfirstChild
-  children_in_table : row.IDfirstChild + row.nrChildren < Array.size tab
+  children_in_table : row.IDfirstChild + row.nrChildren ≤ Array.size tab
   nonzero_children : row.nrChildren ≠ 0
   children_intervals_good : ∀ (n : Fin row.nrChildren), tab[row.IDfirstChild + n].interval =
     row.interval.nth_part param row.nrChildren (hN := ⟨nonzero_children⟩) n
