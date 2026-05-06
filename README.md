@@ -27,6 +27,8 @@ The program to construct a valid solution table is [constructValidTable.lean](co
 
 The self-contained proof of the main theorem will live in
 [ProofOfMainTheorem.lean](Noperthedron/ProofOfMainTheorem.lean).
+This proof currently depends on the `sorry` axiom due to performance problems in
+[ComputationalStep.lean](Noperthedron/ComputationalStep.lean).
 
 ## Getting Started
 
