@@ -144,3 +144,17 @@ def parseSolutionTable (s : String) : Except String Table := do
     let row ← parseRowCsv line.toString
     result := result.push row
   return result
+
+def readSolutionTable (filepath : String) : IO Table := do
+  let mut rows : Array Row := Array.empty
+  let h ← IO.FS.Handle.mk filepath IO.FS.Mode.read
+  let _ ← h.getLine -- ignore first line
+  while True do
+    let line ← h.getLine
+    let line := line.trimAscii.toString
+    if line.isEmpty then break
+    let row ← match parseRowCsv line with
+              | .ok row => pure row
+              | .error e => throw (IO.userError e)
+    rows := rows.push row
+  return rows

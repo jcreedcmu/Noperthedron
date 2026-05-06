@@ -35,19 +35,7 @@ unsafe def main (args : List String) : IO Unit := do
     | [arg] => pure arg
     | _ => throw (IO.userError "expects exactly one argument")
 
-  let mut rows : Array Row := Array.empty
-  let h ← IO.FS.Handle.mk csv_filepath IO.FS.Mode.read
-  let _ ← h.getLine -- ignore first line
-  while True do
-    let line ← h.getLine
-    let line := line.trimAscii.toString
-    if line.isEmpty then break
-    let row ← match parseRowCsv line with
-              | .ok row => pure row
-              | .error e => throw (IO.userError e)
-    rows := rows.push row
-
-  let table : Table := rows
+  let table ← readSolutionTable csv_filepath
   IO.println s!"parsing done!"
 
   let h_valid_lifted ← checkRowsLoop table 0 (fun _ hj => absurd hj (Nat.not_lt_zero _))
