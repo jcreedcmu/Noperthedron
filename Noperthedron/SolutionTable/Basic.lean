@@ -53,10 +53,46 @@ deriving Decidable
 
 def Table.RowsValid (tab : Table) : Prop :=
   ∀ i : Fin (tab.size), tab[i].ValidIx tab i
-deriving Decidable
 
 lemma Table.RowsValid.valid_at {tab : Table} (htab : tab.RowsValid) {i : ℕ} (hi : i < tab.size) :
     tab[i].ValidIx tab i := htab ⟨i, hi⟩
+
+/-- Tail-recursive Bool-valued check that every row of `tab` satisfies `Row.ValidIx`,
+backing the manual `Decidable` instance for `Table.RowsValid` below. The auto-derived
+instance reduces to `Nat.decidableBallLT`, which is structurally recursive on the table
+size and overflows the runtime stack on tables with millions of rows. `Fin.foldl`
+compiles to a flat loop, so the runtime stack stays O(1). -/
+private def Table.rowsValidB (tab : Table) : Bool :=
+  Fin.foldl tab.size (init := true) fun acc i => acc && decide (tab[i].ValidIx tab i)
+
+private theorem Fin.foldl_and_factor {n : ℕ} (p : Fin n → Bool) (init : Bool) :
+    (Fin.foldl n (fun acc i => acc && p i) init) =
+      (init && Fin.foldl n (fun acc i => acc && p i) true) := by
+  induction n generalizing init with
+  | zero => simp [Fin.foldl_zero]
+  | succ n ih =>
+    rw [Fin.foldl_succ, Fin.foldl_succ,
+        ih (fun i => p i.succ) (init && p 0),
+        ih (fun i => p i.succ) (true && p 0)]
+    simp [Bool.and_assoc]
+
+private theorem Fin.foldl_and_eq_true_iff {n : ℕ} (p : Fin n → Bool) :
+    (Fin.foldl n (fun acc i => acc && p i) true) = true ↔ ∀ i, p i = true := by
+  induction n with
+  | zero => simp [Fin.foldl_zero]
+  | succ n ih =>
+    rw [Fin.foldl_succ, Fin.foldl_and_factor]
+    simp only [Bool.true_and, Bool.and_eq_true]
+    rw [ih (fun i => p i.succ), Fin.forall_fin_succ]
+
+private theorem Table.rowsValidB_eq_true_iff (tab : Table) :
+    tab.rowsValidB = true ↔ tab.RowsValid := by
+  unfold Table.rowsValidB Table.RowsValid
+  rw [Fin.foldl_and_eq_true_iff]
+  simp
+
+instance Table.RowsValid.decidable (tab : Table) : Decidable tab.RowsValid :=
+  decidable_of_iff _ tab.rowsValidB_eq_true_iff
 
 /-- The minimum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
 def Interval.minPose (iv : Interval) : Pose ℝ := iv.min.toReal
