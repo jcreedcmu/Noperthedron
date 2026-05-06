@@ -3,12 +3,14 @@ import Noperthedron.NoperthedronIsNotRupert
 import Noperthedron.Vertices.InteriorNonempty
 
 /-!
-Proof of the main theorem. We expect this to take a long time (hours) to typecheck,
-so we will need some way to hide it during routine builds.
+Proof of the main theorem.
 -/
 
 namespace Noperthedron
 
+/--
+  There exists a convex polyhedron that does not have the Rupert property.
+-/
 theorem exists_not_rupert : ExistsNonRupertPolyhedron := by
   obtain ⟨vtab⟩ := exists_solution_table
   exact ⟨Noperthedron.exactVerts, interior_exactVerts_hull_nonempty, nopert_not_rupert vtab⟩

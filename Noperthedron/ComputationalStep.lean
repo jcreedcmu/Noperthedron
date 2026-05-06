@@ -4,10 +4,16 @@ import Noperthedron.SolutionTable
 import Noperthedron.SolutionTable.Parse
 import Noperthedron.Vertices.Exact
 
+/-!
+  Expensive computational step. We expect this to take at least 40 hours to complete.
+-/
+
 namespace Noperthedron
 
 theorem exists_solution_table : ∃ (tab : Solution.ValidTable), True := by
   sorry
+  -- Currently, the below seems to be much less efficient than the equivalent
+  -- logic in contructValidTable.lean. Can we improve it somehow?
   /-
   let solution_csv : String :=
     include_str "../../noperthedron-verification-py/data/solution_tree.csv"
