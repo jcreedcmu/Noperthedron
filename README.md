@@ -15,7 +15,7 @@ of our current progress.
 
 The proof involves constructing a large tree object and verifying that it has certain properties.
 The original authors performed [their version of this computation](https://github.com/Jakob256/Rupert) using Sagemath.
-We plan to perform the computation in Lean, first as a compiled program that emits a value of a carefully crafted type,
+We perform the computation in Lean, first as a compiled program that emits a value of a carefully crafted type,
 and maybe later (as a stretch goal!) in the Lean kernel itself, avoiding the need to trust the compiler.
 
 ## Project Structure
