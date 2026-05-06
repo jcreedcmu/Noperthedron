@@ -3,6 +3,9 @@ import Noperthedron
 /-!
   Program that constructs a `ValidTable` value -- exactly what fits into the "hole" in
   Noperthedron/ProofOfMainTheoremWithHole.lean.
+
+  Accepts as input a path to a file that contains the unzipped csv from
+  https://github.com/Jakob256/Rupert/blob/main/data/solution_tree.zip
 -/
 
 open Noperthedron.Solution

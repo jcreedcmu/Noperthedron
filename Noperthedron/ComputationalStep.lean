@@ -16,6 +16,7 @@ theorem exists_solution_table : ∃ (tab : Solution.ValidTable), True := by
   -- logic in contructValidTable.lean. Can we improve it somehow?
   /-
   let solution_csv : String :=
+    -- unzipped from https://github.com/Jakob256/Rupert/blob/main/data/solution_tree.zip
     include_str "../../noperthedron-verification-py/data/solution_tree.csv"
   let tab := match Solution.parseSolutionTable solution_csv with
              | .ok s => s
