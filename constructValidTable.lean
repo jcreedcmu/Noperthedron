@@ -1,5 +1,10 @@
 import Noperthedron
 
+/-!
+  Program that constructs a `ValidTable` value -- exactly what fits into the "hole" in
+  Noperthedron/ProofOfMainTheoremWithHole.lean.
+-/
+
 open Noperthedron.Solution
 
 unsafe def main (args : List String) : IO Unit := do
