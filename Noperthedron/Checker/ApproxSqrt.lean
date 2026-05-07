@@ -226,7 +226,7 @@ private lemma shiftDownAux_le_max (numDivHi : ℕ) :
 
 private lemma sqrtℚLowImpl_nonneg (p q fuel : ℕ) : 0 ≤ sqrtℚLowImpl p q fuel := by
   unfold sqrtℚLowImpl
-  split_ifs <;> first | rfl | positivity
+  positivity
 
 theorem sqrtℚLow_nonneg (x : ℚ) : 0 ≤ sqrtℚLow x := by
   unfold sqrtℚLow

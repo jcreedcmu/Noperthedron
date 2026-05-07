@@ -168,14 +168,8 @@ private lemma toR2_rotM₂ℚ_aux (p : Pose ℚ) (v : Fin 3 → ℚ) :
   show toR2 ((rotMℚ p.θ₂ p.φ₂) v) = rotMℚℝ (p.θ₂ : ℝ) (p.φ₂ : ℝ) (toR3 v)
   unfold rotMℚ rotMℚℝ toR2 toR3
   rw [Matrix.toLin'_apply]
-  show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat p.θ₂ p.φ₂).mulVec v) i : ℝ)) =
-       (rotMℚ_mat (p.θ₂ : ℝ) (p.φ₂ : ℝ)).toEuclideanLin.toContinuousLinearMap
-         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
   rw [castℝ_mulVec_aux, ← rotMℚ_mat_castℝ_aux]
-  show WithLp.toLp 2 ((rotMℚ_mat (p.θ₂ : ℝ) (p.φ₂ : ℝ)).mulVec _) =
-       (rotMℚ_mat (p.θ₂ : ℝ) (p.φ₂ : ℝ)).toEuclideanLin
-         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-  rw [Matrix.toLpLin_apply]
+  simp
 
 /-- Bridge: real inner product of two `toR2` casts equals the rational dot product cast to ℝ. -/
 private lemma inner_toR2_aux (v w : Fin 2 → ℚ) :

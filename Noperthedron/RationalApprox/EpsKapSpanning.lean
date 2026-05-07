@@ -200,10 +200,7 @@ private lemma toR2_rotMℚ_mat_mulVec (θ φ : ℚ) (v : Fin 3 → ℚ) :
     simp only [Matrix.mulVec, dotProduct, Matrix.map_apply]
     push_cast; rfl
   rw [hmap, ← hcast]
-  show WithLp.toLp 2 ((rotMℚ_mat (θ : ℝ) (φ : ℝ)).mulVec _) =
-       (rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin
-         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-  rw [Matrix.toLpLin_apply]
+  simp
 
 private lemma inner_toR2' (v w : Fin 2 → ℚ) :
     @inner ℝ ℝ² _ (toR2 v) (toR2 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by

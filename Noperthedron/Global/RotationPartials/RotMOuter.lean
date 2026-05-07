@@ -169,8 +169,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose ℝ) (P : ℝ³) :
       have hadd := ((hcosθcosφ.neg.mul_const (P 0)).sub (hsinθcosφ.mul_const (P 1))).add (hsinφ.mul_const (P 2))
       convert hadd using 1
       · ext x
-        simp only [Pi.add_apply, Pi.sub_apply, Pi.neg_apply]
-        ring
+        simp
       · ext d
         simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.sub_apply,
                    ContinuousLinearMap.smul_apply, ContinuousLinearMap.neg_apply, smul_eq_mul]
