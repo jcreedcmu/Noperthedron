@@ -140,11 +140,7 @@ theorem radius_nonneg {R} [Field R] [LinearOrder R] [IsStrictOrderedRing R]
     (iv : PoseInterval R) : 0 ≤ iv.radius := by
   obtain ⟨h1, _, _, _, _⟩ := (Pose.le_iff iv.min iv.max).mp iv.min_le_max
   unfold PoseInterval.radius
-  have hsub : (0:R) ≤ iv.max.θ₁ - iv.min.θ₁ := sub_nonneg.mpr h1
-  have hsup : (0:R) ≤ (iv.max.θ₁ - iv.min.θ₁) ⊔ (iv.max.φ₁ - iv.min.φ₁) ⊔
-      (iv.max.θ₂ - iv.min.θ₂) ⊔ (iv.max.φ₂ - iv.min.φ₂) ⊔ (iv.max.α - iv.min.α) :=
-    le_sup_of_le_left (le_sup_of_le_left (le_sup_of_le_left (le_sup_of_le_left hsub)))
-  linarith
+  positivity
 
 end PoseInterval
 

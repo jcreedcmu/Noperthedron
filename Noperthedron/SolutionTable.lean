@@ -110,9 +110,8 @@ lemma mem_icc_mem_some_part_ab (x : ℝ) (a b : ℚ) (hab : a < b) (N : ℕ)
     have hxx : xx ∈ Set.Icc 0 (N : ℝ) := by
       simp [xx]
       constructor
-      · field_simp; simp only [zero_mul];
-        exact mul_nonneg (Nat.cast_nonneg N) (by linarith)
-      · field_simp;
+      · positivity
+      · field_simp
         have q : 0 < N := Nat.pos_of_ne_zero (Ne.symm (NeZero.ne' N))
         exact mul_le_mul_of_nonneg_left (by grind) (Nat.cast_nonneg' N)
     have q : 0 < N := Nat.pos_of_ne_zero (Ne.symm (NeZero.ne' N))

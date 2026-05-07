@@ -255,8 +255,7 @@ private lemma rat_pos_eq (x : ℚ) (hx : 0 < x) :
     have : (x.num.toNat : ℤ) = x.num := Int.toNat_of_nonneg (le_of_lt hnum_pos)
     exact_mod_cast this
   rw [hcast]
-  rw [show (x : ℝ) = ((x.num : ℝ) / (x.den : ℝ)) from by
-        push_cast [Rat.cast_def]; rfl]
+  rw [Field.ratCast_def x]
 
 /-- Core algebraic fact: from `b² · den ≤ num` (in ℕ) and `(num : ℝ) = xR · 100^a · den`,
 deduce `(b · 10^(-a))² ≤ xR` in ℝ. -/
