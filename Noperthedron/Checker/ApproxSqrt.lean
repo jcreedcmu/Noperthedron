@@ -270,12 +270,7 @@ private lemma sq_bound_aux (xR : ℝ) (a : ℤ) (numN denN b : ℕ)
   -- numN = xR · 100^a · denN, so divide by denN > 0
   have hbR' : (b : ℝ) * b ≤ xR * (100 : ℝ) ^ a := by
     rw [hscaled] at hbR
-    have hdenR_ne : (denN : ℝ) ≠ 0 := ne_of_gt hdenR
-    calc (b : ℝ) * b
-        = (b : ℝ) * b * (denN : ℝ) * (denN : ℝ)⁻¹ := by field_simp
-      _ ≤ xR * (100 : ℝ) ^ a * (denN : ℝ) * (denN : ℝ)⁻¹ := by
-          exact mul_le_mul_of_nonneg_right hbR (le_of_lt (inv_pos.mpr hdenR))
-      _ = xR * (100 : ℝ) ^ a := by field_simp
+    exact le_of_mul_le_mul_right hbR hdenR
   -- ((b) * 10^(-a))² = b² * 100^(-a)
   have hLHS : ((b : ℝ) * (10 : ℝ) ^ (-a)) ^ 2 = (b : ℝ) * b * (100 : ℝ) ^ (-a) := by
     have h10sq : ((10 : ℝ) ^ (-a)) ^ 2 = (100 : ℝ) ^ (-a) := by
