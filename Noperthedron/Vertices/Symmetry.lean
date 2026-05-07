@@ -35,12 +35,12 @@ meaningful (corresponds to a linear isometry) when restricted to triangles all
 of whose vertices share the same orbit `i`. -/
 def apply : TriangleSymmetry → VertexIndex → VertexIndex
   | .rotation m n, ⟨k, ℓ, i⟩ =>
-      ⟨⟨(k.val + n.val) % 15, Nat.mod_lt _ (by omega)⟩,
-       ⟨(ℓ.val + m.val) % 2, Nat.mod_lt _ (by omega)⟩,
+      ⟨⟨(k.val + n.val) % 15, Nat.mod_lt _ (by simp)⟩,
+       ⟨(ℓ.val + m.val) % 2, Nat.mod_lt _ (by simp)⟩,
        i⟩
   | .reflection m n, ⟨k, ℓ, i⟩ =>
-      ⟨⟨(15 - k.val + n.val) % 15, Nat.mod_lt _ (by omega)⟩,
-       ⟨(ℓ.val + m.val) % 2, Nat.mod_lt _ (by omega)⟩,
+      ⟨⟨(15 - k.val + n.val) % 15, Nat.mod_lt _ (by simp)⟩,
+       ⟨(ℓ.val + m.val) % 2, Nat.mod_lt _ (by simp)⟩,
        i⟩
 
 /-- When the symmetry has a linear-isometry witness on a given triangle. -/

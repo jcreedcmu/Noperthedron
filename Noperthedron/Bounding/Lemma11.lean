@@ -105,9 +105,8 @@ lemma convexOn_cos_sqrt : ConvexOn ℝ (Set.Icc 0 (π^2)) (cos ∘ sqrt) := by
         refine DifferentiableAt.fun_comp' _ differentiableAt_sin ?_
         exact DifferentiableAt.sqrt differentiableAt_fun_id x_pos.ne.symm
       · apply DifferentiableAt.const_mul
-        apply DifferentiableAt.sqrt
-        · simp
-        · linarith
+        refine DifferentiableAt.sqrt ?_ x_pos.ne.symm
+        simp
       · positivity
     · grind
     · intro x; apply cos_sqrt_deriv

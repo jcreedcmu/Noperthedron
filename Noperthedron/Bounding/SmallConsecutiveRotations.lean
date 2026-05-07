@@ -22,7 +22,7 @@ lemma tr_rot3_rot3 {d d' : Fin 3} {α β : ℝ} : d ≠ d' → tr (rot3 d α ∘
   intro d_ne_d'
   calc tr (rot3 d α ∘L rot3 d' β)
   _ = tr ((rot3_mat d α).toEuclideanLin.toContinuousLinearMap ∘L (rot3_mat d' β).toEuclideanLin.toContinuousLinearMap) := by simp [rot3_eq_rot3_mat_toEuclideanLin]
-  _ = tr ((rot3_mat d α * rot3_mat d' β).toEuclideanLin) := by simp [Matrix.toLpLin_eq_toLin, Matrix.toLin_mul (v₁:=?a) (v₂:=?a) (v₃:=?a)]
+  _ = tr ((rot3_mat d α * rot3_mat d' β).toEuclideanLin) := by simp
   _ = Matrix.trace (rot3_mat d α * rot3_mat d' β) := by simp only [Matrix.toLpLin_eq_toLin, Matrix.trace_toLin_eq]
   _ = cos α + cos β + cos α * cos β := by
     fin_cases d <;> fin_cases d'

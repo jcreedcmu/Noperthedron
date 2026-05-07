@@ -420,9 +420,7 @@ private lemma sqrtℚLowImpl_pos (p q fuel : ℕ) (hp : 0 < p) (hq : 0 < q)
       rwa [Nat.mul_div_cancel _ hq] at this
     have hb_pos : 1 ≤ Nat.sqrt (res.2 / q) :=
       Nat.le_sqrt'.mpr (le_trans lo_pos hnum_ge)
-    have hbq_pos : (0 : ℚ) < (Nat.sqrt (res.2 / q) : ℚ) := by exact_mod_cast hb_pos
-    have h10z_pos : (0 : ℚ) < (10 : ℚ) ^ (-(res.1 : ℤ)) := zpow_pos (by norm_num) _
-    exact mul_pos hbq_pos h10z_pos
+    positivity
   · -- Branch 2: a = 0
     push Not at hbr1
     have hpq_ge : lo ≤ p / q := by
@@ -456,10 +454,7 @@ private lemma sqrtℚLowImpl_pos (p q fuel : ℕ) (hp : 0 < p) (hq : 0 < q)
       rw [h]; positivity
     -- p / res.2 ≥ 1
     have hpd : 1 ≤ p / res.2 := (Nat.one_le_div_iff hres2_pos).mpr hres2_le_p
-    have hb_pos : 1 ≤ Nat.sqrt (p / res.2) := Nat.le_sqrt'.mpr hpd
-    have hbq_pos : (0 : ℚ) < (Nat.sqrt (p / res.2) : ℚ) := by exact_mod_cast hb_pos
-    have h10z_pos : (0 : ℚ) < (10 : ℚ) ^ (res.1 : ℤ) := zpow_pos (by norm_num) _
-    exact mul_pos hbq_pos h10z_pos
+    positivity
 
 /-- For `x > 0`, `sqrtℚLow x > 0`. -/
 private lemma sqrtℚLow_pos_of_pos {y : ℚ} (hy : 0 < y) : 0 < sqrtℚLow y := by
