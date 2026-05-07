@@ -176,8 +176,8 @@ def differentiable_deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (f
 def continuous_deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     Continuous (interpolated_deriv2 x y f) := by
   unfold interpolated_deriv2
-  refine continuous_finset_sum Finset.univ ?_; intro i hi
-  refine continuous_finset_sum Finset.univ ?_; intro j hj
+  refine continuous_finsetSum Finset.univ ?_; intro i hi
+  refine continuous_finsetSum Finset.univ ?_; intro j hj
   refine Continuous.mul (by fun_prop) ?_
   change Continuous ((fun v ↦ nth_partial i (nth_partial j f) v) ∘ (fun t ↦ (1 - t) • x + t • y))
   refine Continuous.comp ?_ (by fun_prop)

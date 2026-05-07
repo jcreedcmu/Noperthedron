@@ -20,7 +20,7 @@ rev = "main"
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
-rev = "v4.30.0-rc2"
+rev = "09178ce7676d92ddcfc6dafe90fdfa758e97002e"
 
 [[lean_lib]]
 name = "Noperthedron"
