@@ -10,7 +10,7 @@ We prove, using the Lean 4 theorem prover, that the Noperthedron does not "[fit 
 <img src="./home_page/assets/noperthedron.png" width="200" alt="noperthedron">
 </p>
 
-See the [dependency graph](https://jcreedcmu.github.io/Noperthedron/blueprint/dep_graph_document.html) for a quick overview of our current progress.
+See the [dependency graph](https://jcreedcmu.github.io/Noperthedron/blueprint/dep_graph_document.html) for an overview of the project's structure.
 
 The proof involves constructing a large tree object and verifying that it has certain properties.
 The original authors performed [their version of this computation](https://github.com/Jakob256/Rupert) using Sagemath.
