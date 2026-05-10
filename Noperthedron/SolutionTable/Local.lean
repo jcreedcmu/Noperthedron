@@ -16,35 +16,26 @@ private lemma transportTri_python (Pi : Fin 3 → VertexIndex) :
     (KappaApprox.exact_κApprox_python.transportTri Pi : Local.TriangleQ) =
       pythonVertex ∘ Pi := rfl
 
-/-- Bridge from rational `P_spanning` to real `κSpanning` for the Python polyhedron. -/
+/-- Bridge from a rational κ-spanning hypothesis on `(θ, φ)` to real `κSpanning`
+for the Python polyhedron. Used for both `P_spanning` (with `(θ₁, φ₁)`) and
+`Q_spanning` (with `(θ₂, φ₂)`). -/
 private lemma py_κSpanning_of_rational
-    (Pi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε : ℚ) (hε : 0 < ε)
+    (idx : Fin 3 → VertexIndex) (θ φ ε : ℚ) (hε : 0 < ε)
     (h : ∀ i : Fin 3,
       2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ <
-        (rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi i)))) ⬝ᵥ
-          (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi (i + 1))))) :
-    (KappaApprox.exact_κApprox_python.transportTri Pi).toReal.κSpanning
-      (p.toReal.θ₁ : ℝ) (p.toReal.φ₁ : ℝ) ε := by
-  refine ⟨by exact_mod_cast hε, fun i => ?_⟩
-  -- bridge the rational LHS to the real κSpanning LHS
-  have hreal : (((rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi i)))) ⬝ᵥ
-        (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi (i + 1)))) : ℚ) : ℝ) =
-      ⟪rotR (π / 2) (RationalApprox.rotMℚℝ (p.θ₁ : ℝ) (p.φ₁ : ℝ) (toR3 (pythonVertex (Pi i)))),
-        RationalApprox.rotMℚℝ (p.θ₁ : ℝ) (p.φ₁ : ℝ) (toR3 (pythonVertex (Pi (i + 1))))⟫ := by
-    exact RationalApprox.rot90_rotMℚ_inner_eq_real_inner _ _ _ _
-  -- Cast rational hypothesis to ℝ
-  have hi := h i
+        (rot90 *ᵥ (RationalApprox.rotMℚ_mat θ φ *ᵥ (pythonVertex (idx i)))) ⬝ᵥ
+          (RationalApprox.rotMℚ_mat θ φ *ᵥ (pythonVertex (idx (i + 1))))) :
+    (KappaApprox.exact_κApprox_python.transportTri idx).toReal.κSpanning
+      (θ : ℝ) (φ : ℝ) ε := by
+  refine ⟨mod_cast hε, fun i => ?_⟩
   have hcast : ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) <
-      (((rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi i)))) ⬝ᵥ
-        (RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ (pythonVertex (Pi (i + 1)))) : ℚ) : ℝ) := by
-    exact_mod_cast hi
-  rw [hreal] at hcast
-  -- bound 2 * ε * (sqrt_twoℚ + ε) ≥ 2 * ε * (√2 + ε), and 6 * κQ ≥ 6 * κ (equal in fact)
-  have hε_real : (0 : ℝ) ≤ (ε : ℝ) := by exact_mod_cast hε.le
-  have hsqrt2 : (√2 : ℝ) ≤ (142 / 100 : ℝ) := by
-    have h : Real.sqrt 2 < (1.42 : ℝ) :=
-      (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
-    linarith
+      ⟪rotR (π / 2) (RationalApprox.rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 (pythonVertex (idx i)))),
+        RationalApprox.rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 (pythonVertex (idx (i + 1))))⟫ := by
+    rw [← RationalApprox.rot90_rotMℚ_inner_eq_real_inner]
+    exact_mod_cast h i
+  have hε_real : (0 : ℝ) ≤ (ε : ℝ) := mod_cast hε.le
+  have hsqrt2 : (√2 : ℝ) ≤ (142 / 100 : ℝ) :=
+    ((Real.sqrt_lt' (by norm_num)).mpr (by norm_num)).le
   have hcastκ : (RationalApprox.κℚ : ℝ) = RationalApprox.κ := by
     show ((1 / 10 ^ 10 : ℚ) : ℝ) = 1 / 10 ^ 10
     push_cast; rfl
@@ -52,48 +43,7 @@ private lemma py_κSpanning_of_rational
       2 * (ε : ℝ) * (Real.sqrt 2 + ε) + 6 * RationalApprox.κ ≤
         ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) := by
     push_cast [hcastκ]
-    have hk : 2 * (ε : ℝ) * (Real.sqrt 2 + ε) ≤ 2 * (ε : ℝ) * (142 / 100 + ε) :=
-      mul_le_mul_of_nonneg_left (by linarith) (by linarith)
-    linarith
-  -- Need to convert hcast goal `2 * ε * (√2 + ε) + 6 * κ < ⟪..⟫`
-  exact lt_of_le_of_lt hbound hcast
-
-/-- Bridge from rational `Q_spanning` to real `κSpanning`. -/
-private lemma py_κSpanning_of_rational_Q
-    (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε : ℚ) (hε : 0 < ε)
-    (h : ∀ i : Fin 3,
-      2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ <
-        (rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi i)))) ⬝ᵥ
-          (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi (i + 1))))) :
-    (KappaApprox.exact_κApprox_python.transportTri Qi).toReal.κSpanning
-      (p.toReal.θ₂ : ℝ) (p.toReal.φ₂ : ℝ) ε := by
-  refine ⟨by exact_mod_cast hε, fun i => ?_⟩
-  have hreal : (((rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi i)))) ⬝ᵥ
-        (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi (i + 1)))) : ℚ) : ℝ) =
-      ⟪rotR (π / 2) (RationalApprox.rotMℚℝ (p.θ₂ : ℝ) (p.φ₂ : ℝ) (toR3 (pythonVertex (Qi i)))),
-        RationalApprox.rotMℚℝ (p.θ₂ : ℝ) (p.φ₂ : ℝ) (toR3 (pythonVertex (Qi (i + 1))))⟫ := by
-    exact RationalApprox.rot90_rotMℚ_inner_eq_real_inner _ _ _ _
-  have hi := h i
-  have hcast : ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) <
-      (((rot90 *ᵥ (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi i)))) ⬝ᵥ
-        (RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ (pythonVertex (Qi (i + 1)))) : ℚ) : ℝ) := by
-    exact_mod_cast hi
-  rw [hreal] at hcast
-  have hε_real : (0 : ℝ) ≤ (ε : ℝ) := by exact_mod_cast hε.le
-  have hsqrt2 : (√2 : ℝ) ≤ (142 / 100 : ℝ) := by
-    have h : Real.sqrt 2 < (1.42 : ℝ) :=
-      (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
-    linarith
-  have hcastκ : (RationalApprox.κℚ : ℝ) = RationalApprox.κ := by
-    show ((1 / 10 ^ 10 : ℚ) : ℝ) = 1 / 10 ^ 10
-    push_cast; rfl
-  have hbound :
-      2 * (ε : ℝ) * (Real.sqrt 2 + ε) + 6 * RationalApprox.κ ≤
-        ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) := by
-    push_cast [hcastκ]
-    have hk : 2 * (ε : ℝ) * (Real.sqrt 2 + ε) ≤ 2 * (ε : ℝ) * (142 / 100 + ε) :=
-      mul_le_mul_of_nonneg_left (by linarith) (by linarith)
-    linarith
+    nlinarith [hε_real, hsqrt2]
   exact lt_of_le_of_lt hbound hcast
 
 theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
@@ -150,9 +100,11 @@ theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
       interval_cases row.sigma_Q.val <;> simp
     · exact hrow.X₂_inner_gt
   case hspan1 =>
-    exact py_κSpanning_of_rational row.Pi row.interval.centerPose ε hε hrow.P_spanning
+    exact py_κSpanning_of_rational row.Pi
+      row.interval.centerPose.θ₁ row.interval.centerPose.φ₁ ε hε hrow.P_spanning
   case hspan2 =>
-    exact py_κSpanning_of_rational_Q row.Qi row.interval.centerPose ε hε hrow.Q_spanning
+    exact py_κSpanning_of_rational row.Qi
+      row.interval.centerPose.θ₂ row.interval.centerPose.φ₂ ε hε hrow.Q_spanning
   -- Final goal: derive False from `this : ¬ ∃ p ∈ Metric.closedBall pℚ.toReal ε, RupertPose p exactPoly.hull`
   rw [hpbar_eq] at this
   push Not at this
