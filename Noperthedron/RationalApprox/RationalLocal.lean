@@ -364,7 +364,7 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     have hr₁i : (approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) >
         r + √2 * ε + 3 * κ := by
       have hcast : ((approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℚ) : ℝ) >
-          ((r + approx.upper_sqrt_two * ε + 3 * κℚ : ℚ) : ℝ) := by exact_mod_cast hr₁ i
+          ((r + approx.upper_sqrt_two * ε + 3 * κℚ : ℚ) : ℝ) := mod_cast hr₁ i
       push_cast [cast_κℚ] at hcast
       linarith [h_us2_eps]
     rw [abs_le] at hMQ

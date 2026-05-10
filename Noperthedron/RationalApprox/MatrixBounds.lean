@@ -174,7 +174,7 @@ theorem Mφℚ_norm_bounded {θ φ : ℝ} (hθ : θ ∈ Set.Icc (-4) 4) (hφ : �
 /-- Convert `Set.Icc` membership from `ℤ` bounds to `ℝ` bounds. -/
 lemma icc_int_to_real (x : Set.Icc ((-4 : ℤ)) 4) :
     (x : ℝ) ∈ Set.Icc ((-4 : ℝ)) 4 :=
-  ⟨by exact_mod_cast x.property.1, by exact_mod_cast x.property.2⟩
+  ⟨mod_cast x.property.1, mod_cast x.property.2⟩
 
 /-- Common bound: ‖A P - Aℚ P_‖ ≤ 2κ + κ² when ‖A - Aℚ‖ ≤ κ, ‖Aℚ‖ ≤ 1 + κ,
 ‖P‖ ≤ 1, and ‖P - P_‖ ≤ κ. -/

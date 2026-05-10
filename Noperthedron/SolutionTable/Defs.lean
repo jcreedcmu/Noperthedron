@@ -121,7 +121,7 @@ def interpolates_le (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : �
   have h := (Pose.le_iff_forall_getParam iv.min iv.max).mp iv.fst_le_snd b
   rcases eq_or_ne b param with rfl | hne
   · simp [Interval.interpolate, AffineMap.lineMap]
-    have : N ≠ 0 := Ne.symm (NeZero.ne' N)
+    have : N ≠ 0 := NeZero.ne N
     field_simp
     linarith
   · simpa [Pose.getParam_setParam_of_ne _ hne]
@@ -155,7 +155,7 @@ def Interval.ofIntPose (mn mx : Pose ℤ) (h : mn ≤ mx) : Interval :=
       obtain ⟨h1, h2, h3, h4, h5⟩ := (Pose.le_iff mn mx).mp h
       rw [Pose.le_iff]
       refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
-        exact div_le_div_of_nonneg_right (by exact_mod_cast ‹_›) hD)
+        exact div_le_div_of_nonneg_right (mod_cast ‹_›) hD)
 
 /-- Center of an interval box along one parameter, as a rational. -/
 def Interval.center (iv : Interval) (p : Param) : ℚ :=

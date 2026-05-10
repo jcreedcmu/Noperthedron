@@ -167,7 +167,7 @@ lemma norm_sub_le_prod1 (mv : MatVec 1 1)
     exact Real.sqrt_sq_eq_abs (v.ofLp 0 - w.ofLp 0)
   rw [← this]
   calc ‖mv.compA (EuclideanSpace.single 0 1) - mv.compB (EuclideanSpace.single 0 1)‖
-  _ = ‖(mv.compA - mv.compB) (EuclideanSpace.single 0 1)‖ := by rfl
+  _ = ‖(mv.compA - mv.compB) (EuclideanSpace.single 0 1)‖ := rfl
   _ ≤ ‖(mv.compA - mv.compB)‖ * ‖EuclideanSpace.single 0 1‖ :=
     (mv.compA - mv.compB).le_opNorm _
   _ ≤ ‖(mv.compA - mv.compB)‖ := by simp

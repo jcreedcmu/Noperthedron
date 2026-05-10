@@ -45,7 +45,7 @@ lemma UpperSqrt_norm_le {n : ℕ} (s : UpperSqrt) (v : Fin n → ℚ) :
   have h_norm_sq := toLp_norm_sq_eq_dotProduct v
   have h_dot_nn : (0 : ℝ) ≤ ((v ⬝ᵥ v : ℚ) : ℝ) := by
     rw [← h_norm_sq]; exact sq_nonneg _
-  have h_dot_nn_ℚ : (0 : ℚ) ≤ v ⬝ᵥ v := by exact_mod_cast h_dot_nn
+  have h_dot_nn_ℚ : (0 : ℚ) ≤ v ⬝ᵥ v := mod_cast h_dot_nn
   calc ‖WithLp.toLp 2 (fun i => (v i : ℝ))‖
       = √(‖WithLp.toLp 2 (fun i => (v i : ℝ))‖ ^ 2) := by
         rw [Real.sqrt_sq (norm_nonneg _)]
@@ -59,7 +59,7 @@ lemma LowerSqrt_norm_ge {n : ℕ} (s : LowerSqrt) (v : Fin n → ℚ) :
   have h_norm_sq := toLp_norm_sq_eq_dotProduct v
   have h_dot_nn : (0 : ℝ) ≤ ((v ⬝ᵥ v : ℚ) : ℝ) := by
     rw [← h_norm_sq]; exact sq_nonneg _
-  have h_dot_nn_ℚ : (0 : ℚ) ≤ v ⬝ᵥ v := by exact_mod_cast h_dot_nn
+  have h_dot_nn_ℚ : (0 : ℚ) ≤ v ⬝ᵥ v := mod_cast h_dot_nn
   calc (↑(s.f (v ⬝ᵥ v)) : ℝ)
       ≤ √(((v ⬝ᵥ v : ℚ) : ℝ)) := s.bound _ h_dot_nn_ℚ
     _ = √(‖WithLp.toLp 2 (fun i => (v i : ℝ))‖ ^ 2) := by rw [h_norm_sq]

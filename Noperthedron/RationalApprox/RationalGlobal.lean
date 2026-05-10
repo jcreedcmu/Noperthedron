@@ -281,7 +281,7 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
   have hRθ_abs := abs_le_abs_add_of_norm_sub_le h_RMθ
   have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
   have h_κ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; push_cast; norm_num
-  have hε_real : (0 : ℝ) ≤ ε := by exact_mod_cast hε
+  have hε_real : (0 : ℝ) ≤ ε := mod_cast hε
   show _ ≤ _
   push_cast
   rw [h_κ]
@@ -326,7 +326,7 @@ private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
                 |((rotMφℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ)| + 3 * κ :=
     abs_le_abs_add_of_norm_sub_le h_Mφ
   have h_κ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; push_cast; norm_num
-  have hε_real : (0 : ℝ) ≤ ε := by exact_mod_cast hε
+  have hε_real : (0 : ℝ) ≤ ε := mod_cast hε
   push_cast
   rw [h_κ]
   nlinarith [hm_le, hθ_abs, hφ_abs,
@@ -364,11 +364,10 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     have hk_norm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
     have hk_approx : ‖poly.vertices.v k - poly_.toReal.v k'‖ ≤ κ := happrox.approx k
     have h_le_Hℚ : GlobalTheorem.H pbar ε (toR2 pc.w) (poly.vertices.v k) ≤
-                    Hℚ p ε pc.w (poly_.v k') := by
-      have := H_le_Hℚ hε hk_norm
-                (show ‖poly.vertices.v k - toR3 (poly_.v k')‖ ≤ κ from hk_approx)
-                pc.w_unit pc.p_in_4
-      exact this
+                    Hℚ p ε pc.w (poly_.v k') :=
+      H_le_Hℚ hε hk_norm
+        (show ‖poly.vertices.v k - toR3 (poly_.v k')‖ ≤ κ from hk_approx)
+        pc.w_unit pc.p_in_4
     have h_le_max : Hℚ p ε pc.w (poly_.v k') ≤ maxHℚ p poly_ ε pc.w := by
       unfold maxHℚ
       have : (Hℚ p ε pc.w ∘ poly_.v) k' ∈
@@ -376,7 +375,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
         Finset.mem_image_of_mem _ (Finset.mem_univ k')
       exact Finset.le_max' _ _ this
     have h_le_max_real : ((Hℚ p ε pc.w (poly_.v k') : ℚ) : ℝ) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) :=
-      by exact_mod_cast h_le_max
+      mod_cast h_le_max
     linarith [h_le_Hℚ, h_le_max_real]
   -- Step 3: Build the precondition and apply global_theorem
   exact GlobalTheorem.global_theorem pbar ε (Rat.cast_nonneg.mpr hε) poly {
@@ -387,6 +386,6 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     exceeds := by
       have hG_le := Gℚ_le_G hε hS_norm hS_approx pc.w_unit pc.p_in_4
       have hexceeds_real : ((Gℚ p ε (poly_.v pc.j) pc.w : ℚ) : ℝ) >
-                            ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := by exact_mod_cast pc.exceeds
+                            ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := mod_cast pc.exceeds
       linarith [hG_le, hexceeds_real, h_maxH_le]
   }

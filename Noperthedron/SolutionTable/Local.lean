@@ -37,8 +37,7 @@ private lemma py_κSpanning_of_rational
   have hsqrt2 : (√2 : ℝ) ≤ (142 / 100 : ℝ) :=
     ((Real.sqrt_lt' (by norm_num)).mpr (by norm_num)).le
   have hcastκ : (RationalApprox.κℚ : ℝ) = RationalApprox.κ := by
-    show ((1 / 10 ^ 10 : ℚ) : ℝ) = 1 / 10 ^ 10
-    push_cast; rfl
+    simp [RationalApprox.κℚ, RationalApprox.κ]
   have hbound :
       2 * (ε : ℝ) * (Real.sqrt 2 + ε) + 6 * RationalApprox.κ ≤
         ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) := by

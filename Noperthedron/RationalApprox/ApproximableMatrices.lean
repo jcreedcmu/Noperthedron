@@ -131,7 +131,7 @@ theorem dist_le_kappa_entry_error (d : RationalApprox.DistLeKappaEntry) (x y : �
     abs_nonneg (RewritableEntry.actual y d.2 - RewritableEntry.approx y d.2),
     abs_nonneg (RewritableEntry.actual x d.1 - RewritableEntry.approx x d.1),
     abs_nonneg (RewritableEntry.approx y d.2 ),
-    show 0 ≤ κ by exact div_nonneg zero_le_one <| by norm_num]
+    show 0 ≤ κ by simp [κ]]
 
 /--
 The error bound `3 * (2 * κ / 7 + κ^2 / 49)` is less than or equal to `κ`.

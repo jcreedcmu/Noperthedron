@@ -81,9 +81,9 @@ lemma mem_upper_half (q : Pose ℝ) (iv : Interval) (p : Param)
 
 lemma mem_icc_mem_some_part (x : ℝ) (N : ℕ) [NeZero N] (hx : x ∈ Set.Icc 0 (N : ℝ)) :
     ∃ n : Fin N, x ∈ Set.Icc (n : ℝ) (n + 1) := by
-  have hz : N ≠ 0 := Ne.symm (NeZero.ne' N)
+  have hz : N ≠ 0 := NeZero.ne N
   if h : x = N then
-    use ⟨N - 1, Nat.sub_one_lt (Ne.symm (NeZero.ne' N))⟩
+    use ⟨N - 1, Nat.sub_one_lt (NeZero.ne N)⟩
     constructor
     · simp [h]
     · simp only [h]; rw [Nat.cast_sub (show 1 ≤ N by grind)]; simp
@@ -112,9 +112,9 @@ lemma mem_icc_mem_some_part_ab (x : ℝ) (a b : ℚ) (hab : a < b) (N : ℕ)
       constructor
       · positivity
       · field_simp
-        have q : 0 < N := Nat.pos_of_ne_zero (Ne.symm (NeZero.ne' N))
+        have q : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
         exact mul_le_mul_of_nonneg_left (by grind) (Nat.cast_nonneg' N)
-    have q : 0 < N := Nat.pos_of_ne_zero (Ne.symm (NeZero.ne' N))
+    have q : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
     obtain ⟨n, h3⟩ := mem_icc_mem_some_part xx N hxx
     simp [xx] at h3
     field_simp at h3
@@ -144,14 +144,8 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
     simp only [Pose.le_iff_forall_getParam] at hq
     obtain ⟨hq₁, hq₂⟩ := hq
     constructor
-    · rw [h₅]
-      push_cast
-      specialize hq₁ p
-      exact hq₁
-    · rw [h₅, H]
-      push_cast
-      specialize hq₂ p
-      exact hq₂
+    · rw [h₅]; push_cast; exact hq₁ p
+    · rw [h₅, H]; push_cast; exact hq₂ p
   have h₁ : iv.min.getParam p < iv.max.getParam p := by
     by_contra! H₁
     have h₃ := iv.min_le_max
@@ -168,11 +162,9 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
     push_cast
     constructor
     · change (PoseInterval.min iv).toReal.getParam p ≤ q.getParam p
-      specialize hq₁ p
-      exact hq₁
+      exact hq₁ p
     · change q.getParam p ≤ (PoseInterval.max iv).toReal.getParam p
-      specialize hq₂ p
-      exact hq₂
+      exact hq₂ p
   obtain ⟨n, hx⟩ :=
     mem_icc_mem_some_part_ab (q.getParam p) (iv.min.getParam p) (iv.max.getParam p) h₁ N h₂
   use n

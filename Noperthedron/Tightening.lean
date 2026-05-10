@@ -190,7 +190,7 @@ theorem lemma7_3 (θ φ : ℝ) :
     rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
   simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, lemma7_3_calculation]
   have h1 : (fun a ↦ -(rotM (θ + π / 15) (π - φ)) ((RzC (16 * π / 15)) a)) =
-    (fun a ↦ -(rotM (θ + π / 15) (π - φ)) a) ∘ (RzC (16 * π / 15)) := by rfl
+    (fun a ↦ -(rotM (θ + π / 15) (π - φ)) a) ∘ (RzC (16 * π / 15)) := rfl
   have h2 : (rotM (θ + π / 15) (π - φ)) '' ↑exactVerts =
       (-rotM (θ + π / 15) (π - φ)) '' ↑exactVerts := by
     rw [neg_lin_eq_lin_neg (rotM (θ + π / 15) (π - φ)), Set.image_comp]
@@ -319,19 +319,19 @@ theorem tighten_θ (p : Pose ℝ) :
   · calc p.inner '' exactPolyhedron.hull
     _ = (p.rotR ∘ p.rotM₁) '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
     _ = p.rotR '' (p.rotM₁ '' exactPolyhedron.hull) := by rw [Set.image_comp]
-    _ = p.rotR '' (rotM p.θ₁ p.φ₁ '' exactPolyhedron.hull) := by rfl
+    _ = p.rotR '' (rotM p.θ₁ p.φ₁ '' exactPolyhedron.hull) := rfl
     _ = p.rotR '' (rotM (p.θ₁ + k₁ * (2 * π / 15)) p.φ₁ '' exactPolyhedron.hull) := by
         rw [← lemma7_1_iterated k₁]
-    _ = p.rotR '' (p2.rotM₁ '' exactPolyhedron.hull) := by rfl
+    _ = p.rotR '' (p2.rotM₁ '' exactPolyhedron.hull) := rfl
     _ = (p.rotR ∘ p2.rotM₁) '' exactPolyhedron.hull := by rw [Set.image_comp]
-    _ = (p2.rotR ∘ p2.rotM₁) '' exactPolyhedron.hull := by rfl
+    _ = (p2.rotR ∘ p2.rotM₁) '' exactPolyhedron.hull := rfl
     _ = p2.inner '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
   · calc p.outer '' exactPolyhedron.hull
     _ = p.rotM₂ '' exactPolyhedron.hull := by rw [Pose.outer_eq_M]
-    _ = rotM p.θ₂ p.φ₂ '' exactPolyhedron.hull := by rfl
+    _ = rotM p.θ₂ p.φ₂ '' exactPolyhedron.hull := rfl
     _ = rotM (p.θ₂ + k₂ * (2 * π / 15)) p.φ₂ '' exactPolyhedron.hull := by
         rw [← lemma7_1_iterated k₂]
-    _ = p2.rotM₂ '' exactPolyhedron.hull := by rfl
+    _ = p2.rotM₂ '' exactPolyhedron.hull := rfl
     _ = p2.outer '' exactPolyhedron.hull := by rw [Pose.outer_eq_M]
 
 theorem tighten_α (p : Pose ℝ) :
@@ -351,9 +351,9 @@ theorem tighten_α (p : Pose ℝ) :
   · ring_nf
   calc p.inner '' exactPolyhedron.hull
   _ = (p.rotR ∘ p.rotM₁) '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
-  _ = (rotR (p.α) ∘L rotM p.θ₁ p.φ₁) '' exactPolyhedron.hull := by rfl
+  _ = (rotR (p.α) ∘L rotM p.θ₁ p.φ₁) '' exactPolyhedron.hull := rfl
   _ = (rotR (p.α + k * π) ∘L rotM p.θ₁ p.φ₁) '' exactPolyhedron.hull := by rw [lemma7_2_iterated k]
-  _ = (p1.rotR ∘ p1.rotM₁) '' exactPolyhedron.hull := by rfl
+  _ = (p1.rotR ∘ p1.rotM₁) '' exactPolyhedron.hull := rfl
   _ = p1.inner '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
 
 theorem rupert_post_tightening (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull)

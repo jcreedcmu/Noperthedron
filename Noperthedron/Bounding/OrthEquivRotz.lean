@@ -336,7 +336,7 @@ lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3))
     u.symm v = WithLp.toLp 2 (U⁻¹.mulVec v) := by
   rw [hu, inv_euclidean_eq_euclidean_symm]
   have (qq : Euc(3) ≃ₗ[ℝ] Euc(3)) : ((Matrix.toEuclideanLin.symm (qq.toLinearMap)).toEuclideanLin v) =
-      (Matrix.toEuclideanLin.symm (qq.toLinearMap)).mulVec v := by rfl
+      (Matrix.toEuclideanLin.symm (qq.toLinearMap)).mulVec v := rfl
   simp only [LinearEquiv.apply_symm_apply, LinearEquiv.coe_coe] at this
   rw [←this]
 

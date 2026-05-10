@@ -117,8 +117,8 @@ theorem one_plus_cos_mul_one_plus_cos_ge'' {a b : ℝ} (a_nonneg : 0 ≤ a) (a_l
   rw [two_mul_cos_mul_cos]
   let f := cos ∘ sqrt
   calc
-    2 * cos √(x ^ 2 + y ^ 2) = _ := by rfl
-    _ = 2 * f (x ^ 2 + y ^ 2) := by rfl
+    2 * cos √(x ^ 2 + y ^ 2) = _ := rfl
+    _ = 2 * f (x ^ 2 + y ^ 2) := rfl
     _ = 2 * f (1/2 * (x - y)^2 + 1/2 * (x + y)^2) := by ring_nf
     _ ≤ 2 * (1/2 * f ((x - y)^2) + 1/2 * f ((x + y)^2)) := by
       subst ha hb

@@ -39,9 +39,9 @@ theorem valid_global_imp_no_rupert (row : Row)
     p_in_4 := hrow.center_in_fourQ
     w := row.w
     w_unit := by
-      have h_wd : (0 : ℝ) < (row.w_denominator : ℝ) := by exact_mod_cast hrow.w_denominator_pos
+      have h_wd : (0 : ℝ) < (row.w_denominator : ℝ) := mod_cast hrow.w_denominator_pos
       have h_unit : ((row.wx_numerator : ℝ)) ^ 2 + ((row.wy_numerator : ℝ)) ^ 2 =
-          ((row.w_denominator : ℝ)) ^ 2 := by exact_mod_cast hrow.w_unit
+          ((row.w_denominator : ℝ)) ^ 2 := mod_cast hrow.w_unit
       rw [show (toR2 row.w) = WithLp.toLp 2 (fun i => (row.w i : ℝ)) from rfl,
           EuclideanSpace.norm_eq, ← Real.sqrt_one]
       congr 1

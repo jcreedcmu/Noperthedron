@@ -264,8 +264,8 @@ private lemma sq_bound_aux (xR : ℝ) (a : ℤ) (numN denN b : ℕ)
     (hscaled : (numN : ℝ) = xR * (100 : ℝ) ^ a * (denN : ℝ))
     (hb : b * b * denN ≤ numN) :
     ((b : ℝ) * (10 : ℝ) ^ (-a)) ^ 2 ≤ xR := by
-  have hdenR : (0 : ℝ) < (denN : ℝ) := by exact_mod_cast hden
-  have hbR : (b : ℝ) * b * (denN : ℝ) ≤ (numN : ℝ) := by exact_mod_cast hb
+  have hdenR : (0 : ℝ) < (denN : ℝ) := mod_cast hden
+  have hbR : (b : ℝ) * b * (denN : ℝ) ≤ (numN : ℝ) := mod_cast hb
   -- numN = xR · 100^a · denN, so divide by denN > 0
   have hbR' : (b : ℝ) * b ≤ xR * (100 : ℝ) ^ a := by
     rw [hscaled] at hbR
@@ -310,7 +310,7 @@ private lemma sqrtℚLowImpl_sq_le (p q fuel : ℕ) (hq : 0 < q) :
       rw [hnum, hk]
       push_cast
       rw [zpow_natCast]
-      have hqne : (q : ℝ) ≠ 0 := ne_of_gt (by exact_mod_cast hq)
+      have hqne : (q : ℝ) ≠ 0 := ne_of_gt (mod_cast hq)
       field_simp
     · calc Nat.sqrt (res.2 / q) * Nat.sqrt (res.2 / q) * q
           ≤ (res.2 / q) * q := Nat.mul_le_mul_right _ (Nat.sqrt_le _)
@@ -321,7 +321,7 @@ private lemma sqrtℚLowImpl_sq_le (p q fuel : ℕ) (hq : 0 < q) :
     rw [show ((Nat.sqrt (p / q) : ℝ))
         = ((Nat.sqrt (p / q) : ℝ)) * (10 : ℝ) ^ (-(0 : ℤ)) from by simp]
     apply sq_bound_aux ((p : ℝ) / q) (0 : ℤ) p q (Nat.sqrt (p / q)) hq
-    · have hqne : (q : ℝ) ≠ 0 := ne_of_gt (by exact_mod_cast hq)
+    · have hqne : (q : ℝ) ≠ 0 := ne_of_gt (mod_cast hq)
       field_simp
     · calc Nat.sqrt (p / q) * Nat.sqrt (p / q) * q
           ≤ (p / q) * q := Nat.mul_le_mul_right _ (Nat.sqrt_le _)
@@ -341,7 +341,7 @@ private lemma sqrtℚLowImpl_sq_le (p q fuel : ℕ) (hq : 0 < q) :
     · rw [hden, hk]
       push_cast
       rw [zpow_neg, zpow_natCast]
-      have hqne : (q : ℝ) ≠ 0 := ne_of_gt (by exact_mod_cast hq)
+      have hqne : (q : ℝ) ≠ 0 := ne_of_gt (mod_cast hq)
       have h100ne : (100 : ℝ) ≠ 0 := by norm_num
       have h100ne' : (100 : ℝ)^s ≠ 0 := pow_ne_zero _ h100ne
       field_simp
@@ -482,9 +482,9 @@ theorem sqrt_le_sqrtℚUp {x : ℚ} (hx : 0 ≤ x) :
     have hy_pos : 0 < y := by rw [hy_def]; exact one_div_pos.mpr hx0'
     have hy_nonneg : 0 ≤ y := le_of_lt hy_pos
     have hLow_pos_Q : 0 < sqrtℚLow y := sqrtℚLow_pos_of_pos hy_pos
-    have hLow_pos_R : (0 : ℝ) < ((sqrtℚLow y : ℚ) : ℝ) := by exact_mod_cast hLow_pos_Q
+    have hLow_pos_R : (0 : ℝ) < ((sqrtℚLow y : ℚ) : ℝ) := mod_cast hLow_pos_Q
     have hsq : ((sqrtℚLow y : ℚ) : ℝ) ^ 2 ≤ ((y : ℚ) : ℝ) := sqrtℚLow_sq_le y hy_nonneg
-    have hx_R_pos : (0 : ℝ) < ((x : ℚ) : ℝ) := by exact_mod_cast hx0'
+    have hx_R_pos : (0 : ℝ) < ((x : ℚ) : ℝ) := mod_cast hx0'
     have hy_R : ((y : ℚ) : ℝ) = 1 / ((x : ℚ) : ℝ) := by
       rw [hy_def]; push_cast; ring
     have hcast : (((1 / sqrtℚLow y : ℚ) : ℝ)) = 1 / ((sqrtℚLow y : ℚ) : ℝ) := by

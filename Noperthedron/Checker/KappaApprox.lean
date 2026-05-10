@@ -146,9 +146,9 @@ private lemma cosQ_combined_error (k : Fin 15) :
   have mvt : |Real.cos ↑q - Real.cos (2 * π * (k' : ℝ) / 15)| ≤
       |↑q - 2 * π * (k' : ℝ) / 15| := abs_cos_sub_cos_le _ _
   have hpi_pos : 0 ≤ π - (piQ : ℝ) := le_of_lt (sub_pos.mpr piQ_lt_pi)
-  have habs : |(↑q : ℝ)| < 3 := by exact_mod_cast piQ_angle_abs_lt_three k' hk'_ge hk'_le
+  have habs : |(↑q : ℝ)| < 3 := mod_cast piQ_angle_abs_lt_three k' hk'_ge hk'_le
   have hk_abs : |(k' : ℝ)| ≤ 7 := by
-    rw [abs_le]; exact ⟨by exact_mod_cast hk'_ge, by exact_mod_cast hk'_le⟩
+    rw [abs_le]; exact ⟨mod_cast hk'_ge, mod_cast hk'_le⟩
   have hdiff : |↑q - 2 * π * (k' : ℝ) / 15| ≤ 14 / 15 * (1 / 10 ^ 20) := by
     rw [hq_eq, show 2 * (piQ : ℝ) * (k' : ℝ) / 15 - 2 * π * (k' : ℝ) / 15 =
         -(2 * (k' : ℝ) / 15 * (π - (piQ : ℝ))) from by ring, abs_neg, abs_mul, abs_div, abs_mul]
@@ -186,9 +186,9 @@ private lemma sinQ_combined_error (k : Fin 15) :
   have mvt : |Real.sin ↑q - Real.sin (2 * π * (k' : ℝ) / 15)| ≤
       |↑q - 2 * π * (k' : ℝ) / 15| := abs_sin_sub_sin_le _ _
   have hpi_pos : 0 ≤ π - (piQ : ℝ) := le_of_lt (sub_pos.mpr piQ_lt_pi)
-  have habs : |(↑q : ℝ)| < 3 := by exact_mod_cast piQ_angle_abs_lt_three k' hk'_ge hk'_le
+  have habs : |(↑q : ℝ)| < 3 := mod_cast piQ_angle_abs_lt_three k' hk'_ge hk'_le
   have hk_abs : |(k' : ℝ)| ≤ 7 := by
-    rw [abs_le]; exact ⟨by exact_mod_cast hk'_ge, by exact_mod_cast hk'_le⟩
+    rw [abs_le]; exact ⟨mod_cast hk'_ge, mod_cast hk'_le⟩
   have hdiff : |↑q - 2 * π * (k' : ℝ) / 15| ≤ 14 / 15 * (1 / 10 ^ 20) := by
     rw [hq_eq, show 2 * (piQ : ℝ) * (k' : ℝ) / 15 - 2 * π * (k' : ℝ) / 15 =
         -(2 * (k' : ℝ) / 15 * (π - (piQ : ℝ))) from by ring, abs_neg, abs_mul, abs_div, abs_mul]

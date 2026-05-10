@@ -78,25 +78,19 @@ theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
   let ⟨Yco, ⟨Ypos, Ysum⟩⟩ := hY -- [SY25] calls these
   let ⟨Zco, ⟨Zpos, Zsum⟩⟩ := hZ -- Yco = λ and Zco = ν
 
-  have Yvec : Y = Vm *ᵥ Yco := by
+  have aux : ∀ {W : Euc(3)} {Wco : Fin 3 → ℝ}, W = ∑ x, Wco x • V x → W = Vm *ᵥ Wco := by
+    intro W Wco hsum
     ext i
     simp [Vm, Matrix.mulVec, dotProduct]
     ring_nf
-    have : Y.ofLp i = (∑ x, Yco x • V x).ofLp i := congr(WithLp.ofLp $Ysum i)
+    have : W.ofLp i = (∑ x, Wco x • V x).ofLp i := congr(WithLp.ofLp $hsum i)
     simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
       smul_eq_mul] at this
     conv at this => enter [2, 2, x]; rw [mul_comm]; skip
     exact this
 
-  have Zvec : Z = Vm *ᵥ Zco := by
-    ext i
-    simp [Vm, Matrix.mulVec, dotProduct]
-    ring_nf
-    have : Z.ofLp i = (∑ x, Zco x • V x).ofLp i := congr(WithLp.ofLp $Zsum i)
-    simp only [WithLp.ofLp_sum, WithLp.ofLp_smul, Finset.sum_apply, Pi.smul_apply,
-      smul_eq_mul] at this
-    conv at this => enter [2, 2, x]; rw [mul_comm]; skip
-    exact this
+  have Yvec : Y = Vm *ᵥ Yco := aux Ysum
+  have Zvec : Z = Vm *ᵥ Zco := aux Zsum
 
   have helper (co : Fin 3 → ℝ) (i : Fin 3) : (Vmᵀ * Vm * matOfVec co) i 0 = (Vmᵀ *ᵥ Vm *ᵥ co) i := by
     simp only [Fin.isValue, Matrix.mul_apply, Matrix.transpose_apply, Fin.sum_univ_three, matOfVec,
@@ -118,8 +112,8 @@ theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
 
   have hz := by calc
     ‖Y‖^2 = ⟪Y, Y⟫ := by rw [real_inner_self_eq_norm_sq Y]
-    _     = Ymᵀ * Ym := by rfl
-    _     = (matOfVec Y)ᵀ * (matOfVec Y) := by rfl
+    _     = Ymᵀ * Ym := rfl
+    _     = (matOfVec Y)ᵀ * (matOfVec Y) := rfl
     _     = (matOfVec (Vm *ᵥ Yco))ᵀ * (matOfVec (Vm *ᵥ Yco)) := by rw [Yvec]
     _     = (matOfVec Yco)ᵀ * (Vmᵀ * Vm * matOfVec Yco) := by
               simp only [matOfVec_mulVec, Matrix.transpose_mul, Fin.isValue]
@@ -134,8 +128,8 @@ theorem langles {Y Z : Euc(3)} {V : Vec3} (hYZ : ‖Y‖ = ‖Z‖)
               repeat rw [Matrix.mul_assoc]
     _     = ((matOfVec (Vm *ᵥ Zco))ᵀ * (matOfVec (Vm *ᵥ Zco))) := by rw [matOfVec_mulVec]
     _     = ((matOfVec Z)ᵀ * (matOfVec Z)) := by rw [Zvec]
-    _     = Zmᵀ * Zm := by rfl
-    _     = ⟪Z, Z⟫ := by rfl
+    _     = Zmᵀ * Zm := rfl
+    _     = ⟪Z, Z⟫ := rfl
     _     = ‖Z‖^2 := by rw [real_inner_self_eq_norm_sq Z]
 
   rw [show ‖Y‖^2 = ‖Z‖^2 from congrFun (congrArg HPow.hPow hYZ) 2] at hz
