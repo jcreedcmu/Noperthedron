@@ -94,7 +94,6 @@ lemma boundDelta_at_eq (p : Pose ℚ) (P Q : Fin 3 → ℚ) :
        = fun (j : Fin 2) =>
          (Matrix.toLin' _ ((Matrix.toLin' _ : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ)) P)) j -
          ((Matrix.toLin' _ : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ)) Q) j from rfl]
-  set_option linter.unusedSimpArgs false in
   simp [Matrix.toLin'_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
         Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
 

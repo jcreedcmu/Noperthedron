@@ -20,7 +20,6 @@ lemma Triangle.toMatrix_col (P : Local.Triangle) (j : Fin 3) : P.toMatrix.col j 
 def Triangle.toSymMatrix (P : Local.Triangle) : Matrix (Fin 3) (Fin 3) ℝ :=
   (P.toMatrix.transpose) * P.toMatrix
 
-set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma Triangle.toSymMatrix_apply (P : Triangle) (i j : Fin 3) :
     P.toSymMatrix i j = ⟪P j, P i⟫ := by
@@ -59,7 +58,6 @@ lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)
     let f : Euc(3) →ₗ[ℝ] Euc(3) := A.toEuclideanLin
     have hf_inner : ∀ x y : Euc(3), ⟪f x, f y⟫ = ⟪x, y⟫ := by
       intro x y
-      set_option backward.isDefEq.respectTransparency false in
       simp only [EuclideanSpace.inner_eq_star_dotProduct, Matrix.ofLp_toLpLin, Matrix.toLin'_apply,
         star_trivial, f]
       -- goal: `A *ᵥ y.ofLp ⬝ᵥ A *ᵥ x.ofLp = y.ofLp ⬝ᵥ x.ofLp`

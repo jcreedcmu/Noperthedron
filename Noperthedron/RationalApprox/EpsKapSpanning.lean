@@ -27,7 +27,6 @@ structure _root_.Local.Triangle.κSpanning (P : Triangle) (θ φ ε : ℝ) : Pro
 def κApproxTri (A A' : Triangle) : Prop :=
   ∀ i, ‖A i - A' i‖ ≤ κ
 
-set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma norm_transpose_euc_lin {n m : ℕ} (M : Matrix (Fin n) (Fin m) ℝ) :
     ‖Mᵀ.toEuclideanLin.toContinuousLinearMap‖ = ‖M.toEuclideanLin.toContinuousLinearMap‖ := by
@@ -44,7 +43,6 @@ noncomputable
 def mapOfCovec {n : ℕ} (v : Euc(n)) : Euc(1) →L[ℝ] Euc(n) :=
   (innerSL ℝ (EuclideanSpace.single 0 (1 : ℝ))).smulRight v
 
-set_option backward.isDefEq.respectTransparency false in
 private lemma mapOfCovec_apply {n : ℕ} (v : Euc(n)) (c : Euc(1)) : mapOfCovec v c = c 0 • v := by
   simp [mapOfCovec, ContinuousLinearMap.smulRight_apply, EuclideanSpace.inner_single_left]
 
