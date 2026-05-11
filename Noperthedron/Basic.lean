@@ -278,12 +278,6 @@ noncomputable
 def rotMφφ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   (rotMφφ_mat θ φ).toEuclideanLin.toContinuousLinearMap
 
-theorem sin_neg_pi_div_two : Real.sin (-(π / 2)) = -1 := by
-  simp only [Real.sin_neg, Real.sin_pi_div_two]
-
-theorem cos_neg_pi_div_two : Real.cos (-(π / 2)) = 0 := by
-  simp only [Real.cos_neg, Real.cos_pi_div_two]
-
 infixr:80 " ∘ᵃ " => AffineMap.comp
 
 -- This is R(α) M(θ, φ) in (5) in [SY25] § 2.2,
