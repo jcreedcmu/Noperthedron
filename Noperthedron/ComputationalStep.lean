@@ -6,6 +6,8 @@ import Noperthedron.Vertices.Exact
 
 /-!
   Expensive computational step. We expect this to take at least 40 hours to complete.
+
+  `constructValidTable.lean` establishes the same result via an executable program.
 -/
 
 namespace Noperthedron
