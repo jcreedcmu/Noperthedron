@@ -331,6 +331,11 @@ theorem Rz_comp_right_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3))
       simpa only [Rz_preserves_norm α] using hc.2 (RzL α x)
   rw [h_sets_eq]
 
+lemma vecX_norm_one (θ φ : ℝ) : ‖vecX θ φ‖ = 1 := by
+  simp only [vecX_identity, ContinuousLinearMap.coe_comp', Function.comp_apply,
+    Rz_preserves_norm, Ry_preserves_norm]
+  simp [PiLp.norm_eq_of_L2, Fin.sum_univ_three]
+
 theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine le_antisymm ?_ ?_
   · refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_

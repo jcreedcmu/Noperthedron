@@ -104,12 +104,12 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
       linarith
     simp only [inner_self_eq_norm_sq_to_K, Real.ringHom_apply] at hS_orthogonal
     rw [sq_eq_sq_iff_abs_eq_abs, abs_norm, ← Real.norm_eq_abs] at hS_orthogonal
-    rw [←one_mul ‖S‖, ← vecX_norm_one θ φ] at hS_orthogonal
+    rw [←one_mul ‖S‖, ← Bounding.vecX_norm_one θ φ] at hS_orthogonal
     symm at hS_orthogonal
     have hXnz : vecX θ φ ≠ 0 := by
       intro H
       apply_fun (fun x ↦ ‖x‖) at H
-      simp [vecX_norm_one] at H
+      simp [Bounding.vecX_norm_one] at H
     rw [norm_inner_eq_norm_iff hXnz hSz] at hS_orthogonal
     obtain ⟨r, hr₁, hr₂⟩ := hS_orthogonal
     use r
@@ -117,7 +117,7 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
   have h₄ : 0 < lam := by
     have h₃ : lam = ⟪vecX θ φ, lam • vecX θ φ⟫ := by
       rw [real_inner_smul_self_right]
-      simp [vecX_norm_one]
+      simp [Bounding.vecX_norm_one]
     rw [← hlam] at h₃
     unfold S at h₃
     simp only [inner_add_right, real_inner_smul_right] at h₃

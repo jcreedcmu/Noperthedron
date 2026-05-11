@@ -40,7 +40,7 @@ private lemma vecXℚ_norm_le (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     ‖vecXℚℝ θ φ‖ ≤ 1 + κ := by
   calc ‖vecXℚℝ θ φ‖
     _ ≤ ‖vecX θ φ‖ + ‖vecX θ φ - vecXℚℝ θ φ‖ := norm_le_insert _ _
-    _ = 1 + ‖vecX θ φ - vecXℚℝ θ φ‖ := by rw [vecX_norm_one]
+    _ = 1 + ‖vecX θ φ - vecXℚℝ θ φ‖ := by rw [Bounding.vecX_norm_one]
     _ ≤ 1 + κ := by gcongr; exact vecX_sub_vecXℚ_norm_le θ φ hθ hφ
 
 /-!

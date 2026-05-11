@@ -119,8 +119,8 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   let Z := K (vecX p.θ₂ p.φ₂)
   have hδnn : 0 ≤ δ := by
     specialize hδ 0; linarith only [hδ, norm_nonneg (p_.rotR (p_.rotM₁ (P 0)) - p_.rotM₂ (Q 0))]
-  have hY : ‖Y‖ = 1 := by simp [Y, vecX_norm_one]
-  have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, vecX_norm_one]
+  have hY : ‖Y‖ = 1 := by simp [Y, Bounding.vecX_norm_one]
+  have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, Bounding.vecX_norm_one]
   have hα : |p.α - p_.α| ≤ ε := mem_closed_ball_abs_sub_α hΨ₁
   have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closed_ball_abs_sub_θ₁ hΨ₁
   have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closed_ball_abs_sub_φ₁ hΨ₁
