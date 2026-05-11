@@ -46,7 +46,7 @@ lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ exactVerts) (k 
   congr 1; congr 1
   rw [← Rz_mat_add_int_mul_two_pi ((↑↑k + K) / 15)]
   congr 1; congr 1
-  have hnn := Int.emod_nonneg (↑↑k + K) (show (15 : ℤ) ≠ 0 by omega)
+  have hnn := Int.emod_nonneg (↑↑k + K) (show (15 : ℤ) ≠ 0 by simp)
   field_simp
   norm_cast
   rw [Int.toNat_of_nonneg hnn]
