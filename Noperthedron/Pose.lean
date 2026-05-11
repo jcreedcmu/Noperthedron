@@ -97,9 +97,9 @@ inductive equiv {α : Type} [PoseLike α] (p1 p2 : α) : Prop where
   | off_by_neg : innerShadow p1 = -innerShadow p2 ∧ outerShadow p1 = -outerShadow p2 → equiv p1 p2
 
 
-def innerParams (p : Pose ℝ) : ℝ³ := WithLp.toLp 2 ![p.α, p.θ₁, p.φ₁]
+def innerParams (p : Pose ℝ) : ℝ³ := !₂[p.α, p.θ₁, p.φ₁]
 
-def outerParams (p : Pose ℝ) : ℝ² := WithLp.toLp 2 ![p.θ₂, p.φ₂]
+def outerParams (p : Pose ℝ) : ℝ² := !₂[p.θ₂, p.φ₂]
 
 lemma p_outer_eq_outer_shadow (p : Pose ℝ) (S : Set ℝ³) : p.outer '' S  = outerShadow p S := by
   simp only [Pose.outer, outerProj, outerShadow]
