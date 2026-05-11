@@ -28,8 +28,7 @@ Proof: The condition implies P ⊆ {x : ⟪Q, x⟫ ≤ ‖Q‖²}, so convexHull
 But Q is on the boundary of this half-space, so Q ∉ interior(convexHull P).
 -/
 private lemma angle_condition_implies_not_interior {P : Finset Euc(2)} {Q : Euc(2)}
-    (_hQ : Q ∈ P) (hQ_ne_zero : Q ≠ 0)
-    (h_angle : ∀ Pᵢ ∈ P, Pᵢ ≠ Q → ⟪Q, Q - Pᵢ⟫ > 0) :
+    (hQ_ne_zero : Q ≠ 0) (h_angle : ∀ Pᵢ ∈ P, Pᵢ ≠ Q → ⟪Q, Q - Pᵢ⟫ > 0) :
     Q ∉ interior (convexHull ℝ (P : Set Euc(2))) := by
   intro hQ_int
   -- From h_angle: all Pᵢ ≠ Q satisfy ⟪Q, Pᵢ⟫ < ‖Q‖²
@@ -219,7 +218,7 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
         calc ⟪Q, Q - Pᵢ⟫ ≥ δ / r * (‖Q‖ * ‖Q - Pᵢ‖) := h'
           _ > 0 := by positivity
       have hQ_ne_zero : Q ≠ 0 := norm_pos_iff.mp hQ_pos
-      exact absurd hA_interior (angle_condition_implies_not_interior hQ hQ_ne_zero h_angle)
+      exact absurd hA_interior (angle_condition_implies_not_interior hQ_ne_zero h_angle)
     · -- If ‖A - Q‖ > 0
       have h_AQ_pos : 0 < ‖A - Q‖ := lt_of_le_of_ne h_AQ_nonneg (Ne.symm hAQ_zero)
       calc 2 * ⟪Q, A - Q⟫ + ‖A - Q‖^2
