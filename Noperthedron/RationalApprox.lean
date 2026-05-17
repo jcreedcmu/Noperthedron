@@ -15,3 +15,4 @@ import Noperthedron.RationalApprox.BoundsKappa
 import Noperthedron.RationalApprox.BoundsKappa3
 import Noperthedron.RationalApprox.BoundsKappa4
 import Noperthedron.RationalApprox.DeltaKappa
+import Noperthedron.RationalApprox.NewtonSqrt
