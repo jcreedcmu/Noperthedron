@@ -1,3 +1,4 @@
+import Noperthedron.SolutionTable.AeqApproxBridge
 import Noperthedron.SolutionTable.Basic
 import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Global
