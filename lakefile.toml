@@ -15,12 +15,12 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "tryAtEachStep"
 git = "https://github.com/dwrensha/tryAtEachStep"
-rev = "main"
+rev = "lean-v4.30.0"
 
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
-rev = "09178ce7676d92ddcfc6dafe90fdfa758e97002e"
+rev = "v4.30.0"
 
 [[lean_lib]]
 name = "Noperthedron"
