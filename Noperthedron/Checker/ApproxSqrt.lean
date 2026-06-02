@@ -1,4 +1,4 @@
-import Mathlib.Data.Real.Sqrt
+import Mathlib.Analysis.Real.Sqrt
 
 import Noperthedron.RationalApprox.Basic
 

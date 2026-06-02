@@ -359,7 +359,7 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
       simp_all [Matrix.mul_assoc, Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec]
     simp_all only [dotProduct, Fin.sum_univ_three, Fin.isValue]
     intro x
-    exact congr_arg Real.sqrt ( by simpa only [ sq ] using hU_dot x x )
+    exact congr_arg Real.sqrt ( by simpa only [ sq, Matrix.orthogonalGroup.to_linear_equiv_apply ] using hU_dot x x )
   refine ⟨u, γ, hγ, ?_⟩
   ext x i
   simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,

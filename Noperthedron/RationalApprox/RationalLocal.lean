@@ -487,7 +487,6 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
         exact approx.upper_sqrt_five_gt_sqrt_five.le
       have hbe_ℝ : ((δ + approx.upper_sqrt_five * ε) / r : ℝ) <
           (Local.TriangleQ.Bεℚ.lhs Q_ℚ v_ℚ p_ℚ ε approx : ℝ) := mod_cast hbe
-      push_cast at hbe_ℝ
       exact h_le.trans_lt hbe_ℝ
     -- Helper facts
     have hκ_pos : (0 : ℝ) < κ := by unfold κ; norm_num

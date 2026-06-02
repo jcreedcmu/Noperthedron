@@ -134,7 +134,7 @@ theorem second_partial_inner_rotM_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
     fin_cases k <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
   have hscale : nth_partial j (nth_partial i (rotproj_outer_unit S w)) y =
       nth_partial j (nth_partial i f) y / ‖S‖ := by
-    simpa using nth_partial_nth_partial_div_const i j f ‖S‖ y
+    exact nth_partial_nth_partial_div_const i j f ‖S‖ y
       (hf_smooth.differentiable (by decide))
       ((hf_smooth.fderiv_right (by decide : (1 : WithTop ℕ∞) + 1 ≤ 2) |>.clm_apply
         contDiff_const).differentiable (by decide))

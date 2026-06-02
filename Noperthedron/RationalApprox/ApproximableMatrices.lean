@@ -1,5 +1,5 @@
 import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Data.Real.StarOrdered
+import Mathlib.Algebra.Order.Star.Real
 import Noperthedron.RationalApprox.Lemma39
 import Noperthedron.RationalApprox.TrigLemmas
 

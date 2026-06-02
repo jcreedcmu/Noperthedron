@@ -2,7 +2,7 @@ import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.Calculus.Taylor
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Mathlib.Data.Int.Star
-import Mathlib.Data.Real.StarOrdered
+import Mathlib.Algebra.Order.Star.Real
 import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.Lemma39
 import Noperthedron.RationalApprox.Lemma42

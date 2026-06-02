@@ -80,4 +80,4 @@ theorem nopert_not_rupert (vtab : Solution.ValidTable) : ¬ IsRupert exactVerts 
   intro r
   refine nopert_not_rupert_set vtab ?_
   rw [rupert_iff_rupert_set exactVerts] at r
-  simpa [exactVerts, exactPolyhedron, Polyhedron.hull] using r
+  simpa [exactVerts, exactPolyhedron, Polyhedron.hull, Set.range] using r

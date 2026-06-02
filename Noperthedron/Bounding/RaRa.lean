@@ -1,5 +1,6 @@
+import Mathlib.Algebra.Order.Star.Real
+import Mathlib.AlgebraicTopology.SimplexCategory.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
-import Mathlib.Data.Real.StarOrdered
 import Noperthedron.Basic
 
 open scoped RealInnerProductSpace Real
@@ -48,7 +49,7 @@ theorem norm_RxL_sub_RxL_eq {α α_ : ℝ} : ‖RxL α - RxL α_‖ = ‖rotR α
   intro hx
   apply Iff.intro
   · intro h₁ v
-    simpa using h₁ !₂[0, v 0, v 1]
+    simpa [Matrix.vecHead, Matrix.vecTail] using h₁ !₂[0, v 0, v 1]
   · intro h₁ v
     specialize h₁ !₂[v 1, v 2]
     simp only [Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_zero, Matrix.cons_val_one,
@@ -74,7 +75,7 @@ theorem norm_RyL_sub_RyL_eq {α α_ : ℝ} : ‖RyL α - RyL α_‖ = ‖rotR α
   intro hx
   apply Iff.intro
   · intro h₁ v
-    simpa using h₁ !₂[v 0, 0, v 1]
+    simpa [Matrix.vecHead, Matrix.vecTail] using h₁ !₂[v 0, 0, v 1]
   · intro h₁ v
     specialize h₁ !₂[v 0, v 2]
     simp only [Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_zero, Matrix.cons_val_one,
@@ -100,7 +101,7 @@ theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α
   intro hx
   apply Iff.intro
   · intro h₁ v
-    simpa using h₁ !₂[v 0, v 1, 0]
+    simpa [Matrix.vecHead, Matrix.vecTail] using h₁ !₂[v 0, v 1, 0]
   · intro h₁ v
     specialize h₁ !₂[v 0, v 1]
     simp only [Matrix.vecHead, Matrix.vecTail, Matrix.cons_val_zero, Matrix.cons_val_one,

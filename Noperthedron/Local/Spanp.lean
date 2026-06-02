@@ -1,5 +1,5 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Data.Real.Hom
+import Mathlib.Algebra.Order.Archimedean.Real.Hom
 
 import Noperthedron.EuclideanSpaceNotation
 
