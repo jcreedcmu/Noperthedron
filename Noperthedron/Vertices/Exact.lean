@@ -132,6 +132,14 @@ def exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
 
 def exactVertSet : Set ℝ³ := exactVerts
 
+theorem exactVerts_pointsym : PointSym exactVertSet := by
+  intro x hx
+  simp only [exactVertSet, exactVerts, Finset.coe_image, exactVertex, Int.reduceNeg,
+    Finset.coe_univ, Set.image_univ, Set.mem_range] at *
+  obtain ⟨y, hy⟩ := hx
+  obtain ⟨k, ℓ, i⟩ := y
+  exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hy]; fin_cases ℓ <;> simp [neg_smul]⟩
+
 noncomputable
 abbrev exactHull : Set ℝ³ := convexHull ℝ exactVerts
 
@@ -161,12 +169,8 @@ def exactPolyhedron : Polyhedron VertexIndex ℝ³ := {
 }
 
 theorem exactPolyhedron_point_symmetric : PointSym exactPolyhedron.hull := by
-  simp only [exactPolyhedron, Polyhedron.hull]
-  simp only [exactVertex, Int.reduceNeg] at *
-  refine hull_preserves_pointsym ?_
-  rintro x ⟨j, hj⟩
-  obtain ⟨k, ℓ, i⟩ := j
-  exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hj]; fin_cases ℓ <;> simp [neg_smul]⟩
+  simpa [exactPolyhedron, Polyhedron.hull, exactVertSet, exactVerts, Set.range] using
+    hull_preserves_pointsym exactVerts_pointsym
 
 lemma exactPolyhedron_hull : exactPolyhedron.hull = exactHull := by
   simp only [Polyhedron.hull, exactPolyhedron, exactHull, exactVerts, Finset.coe_image,
@@ -183,21 +187,8 @@ def exactPoly : GoodPoly VertexIndex := {
   radius_eq_one := exactVertex_radius_one
 }
 
-theorem exactVerts_pointsym : PointSym exactVertSet := by
-  intro x hx
-  simp only [exactVertSet, exactVerts, Finset.coe_image, exactVertex, Int.reduceNeg,
-    Finset.coe_univ, Set.image_univ, Set.mem_range] at *
-  obtain ⟨y, hy⟩ := hx
-  obtain ⟨k, ℓ, i⟩ := y
-  exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hy]; fin_cases ℓ <;> simp [neg_smul]⟩
-
 /--
 The noperthedron is pointsymmetric.
 -/
 theorem exactPoly_point_symmetric : PointSym exactPoly.hull := by
-  simp only [exactPoly, GoodPoly.hull, Polyhedron.hull]
-  simp only [exactVertex, exactPolyhedron, Int.reduceNeg] at *
-  refine hull_preserves_pointsym ?_
-  rintro x ⟨j, hj⟩
-  obtain ⟨k, ℓ, i⟩ := j
-  exact ⟨⟨k, 1 - ℓ, i⟩, by rw [← hj]; fin_cases ℓ <;> simp [neg_smul]⟩
+  simpa [exactPoly, GoodPoly.hull] using exactPolyhedron_point_symmetric

@@ -19,15 +19,6 @@ rotations, and ignoring translations.
 
 open scoped Matrix
 
-lemma segment_lemma (k : ℝ) (a v : ℝ²) : k • a + k • v + k • (a - v) = (k * 2) • a := by
- rw [smul_sub]
- calc (k • a + k • v) + (k • a - k • v)
- _ = k • a + (k • v + (k • a - k • v)) := by rw [add_assoc]
- _ = k • a + (k • v + ((-(k • v)) + k • a)) := by nth_rw 5 [add_comm]; rfl
- _ = k • a + ((k • v + (-(k • v))) + k • a) := by nth_rw 1 [add_assoc]
- _ = k • a + k • a := by rw [add_neg_cancel, zero_add]
- _ = (k * 2) • a := by rw [← add_smul, ← mul_two]
-
 /--
 Suppose A and B are both pointsymmetric subsets of ℝ². Suppose B is convex.
 If some translate of A is contained in B, then A is contained in B.
@@ -40,10 +31,7 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
   have h2 : a - v ∈ B := by
     have han : -a ∈ A := psa a ha
     have hnav : -a + v ∈ B := hin ⟨-a, han, rfl⟩
-    have hnn : -(-a + v) ∈ B := psb (-a + v) hnav
-    have e : -(-a + v) = a - v := by grind only
-    rw [e] at hnn
-    exact hnn
+    simpa [sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using psb (-a + v) hnav
   have segment_sub_b := convex_iff_segment_subset.mp b_convex h1 h2
   exact segment_sub_b (mem_segment_add_sub a v)
 
