@@ -25,8 +25,7 @@ There is no pose that makes the Noperthedron have the Rupert property
 -/
 theorem no_nopert_pose (vtab : Solution.ValidTable) :
     ¬ ∃ v : Pose ℝ, RupertPose v exactPolyhedron.hull := by
-  intro r
-  obtain ⟨p, r⟩ := r
+  rintro ⟨p, r⟩
   exact no_nopert_tight_pose vtab (Tightening.rupert_tightening p r)
 
 /--
@@ -44,13 +43,11 @@ There is no pose that makes the Noperthedron have the Rupert property
 -/
 theorem no_nopert_matrix_pose (vtab : Solution.ValidTable) :
     ¬ ∃ p : MatrixPose, RupertPose p exactPolyhedron.hull := by
-  intro r
-  obtain ⟨p, r⟩ := r
-  have hconvex : Convex ℝ exactPolyhedron.hull := by
-    unfold Polyhedron.hull
-    exact convex_convexHull ℝ _
-  have r' := rupert_implies_rot_rupert exactPolyhedron_point_symmetric hconvex p r
-  exact no_nopert_rot_pose vtab ⟨p, r'⟩
+  rintro ⟨p, r⟩
+  refine no_nopert_rot_pose vtab ⟨p, ?_⟩
+  refine rupert_implies_rot_rupert exactPolyhedron_point_symmetric ?_ p r
+  unfold Polyhedron.hull
+  exact convex_convexHull ℝ _
 
 /--
 If a set is Rupert according to the standard definition, then we can

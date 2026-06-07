@@ -130,11 +130,9 @@ def exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
   · simp only [Cpt]
     grind [c3_norm_bound]
 
-def exactVertSet : Set ℝ³ := exactVerts
-
-theorem exactVerts_pointsym : PointSym exactVertSet := by
+theorem exactVerts_pointsym : PointSym (exactVerts : Set ℝ³) := by
   intro x hx
-  simp only [exactVertSet, exactVerts, Finset.coe_image, exactVertex, Int.reduceNeg,
+  simp only [exactVerts, Finset.coe_image, exactVertex, Int.reduceNeg,
     Finset.coe_univ, Set.image_univ, Set.mem_range] at *
   obtain ⟨y, hy⟩ := hx
   obtain ⟨k, ℓ, i⟩ := y
@@ -169,7 +167,7 @@ def exactPolyhedron : Polyhedron VertexIndex ℝ³ := {
 }
 
 theorem exactPolyhedron_point_symmetric : PointSym exactPolyhedron.hull := by
-  simpa [exactPolyhedron, Polyhedron.hull, exactVertSet, exactVerts, Set.range] using
+  simpa [exactPolyhedron, Polyhedron.hull, exactVerts, Set.range] using
     hull_preserves_pointsym exactVerts_pointsym
 
 lemma exactPolyhedron_hull : exactPolyhedron.hull = exactHull := by

@@ -7,17 +7,16 @@ def PointSym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
 Projection preserves the property of being pointsymmetric.
 -/
 theorem proj_preserves_point_sym {S : Set ℝ³} (s_sym : PointSym S) : PointSym (proj_xy '' S) := by
-  intro a ⟨b, hb, he⟩
-  use -b
-  refine ⟨?_, ?_⟩
-  · exact s_sym b hb
-  · simp [proj_xy] ; ext i; fin_cases i;
-    · simp only [Fin.isValue, Fin.zero_eta, Matrix.cons_val_zero, PiLp.neg_apply,
-        neg_inj, ←he]
-      rfl
-    · simp only [Fin.isValue, Fin.mk_one, Matrix.cons_val_one,
-        Matrix.cons_val_fin_one, PiLp.neg_apply, neg_inj, ←he]
-      rfl
+  rintro _ ⟨b, hb, rfl⟩
+  refine ⟨-b, s_sym b hb, ?_⟩
+  ext i
+  fin_cases i <;> simp [proj_xy]
+
+theorem continuousLinearMap_preserves_point_sym {m n : ℕ} (f : Euc(n) →L[ℝ] Euc(m))
+    {S : Set (Euc(n))} (s_sym : PointSym S) : PointSym (f '' S) := by
+  rintro _ ⟨y, hy, rfl⟩
+  refine ⟨-y, s_sym y hy, ?_⟩
+  rw [f.map_neg]
 
 /--
 Pointsymmetric flip as a homeomorphism
@@ -38,7 +37,8 @@ lemma neg_image_eq_if_pointsym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) 
   · rintro ⟨y, hy, rfl⟩
     exact hA y hy
   · intro hx
-    exact ⟨-x, hA x hx, by simp⟩
+    refine ⟨-x, hA x hx, ?_⟩
+    simp
 
 lemma pointsym_of_neg_image_eq {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
     (hS : (-·) '' S = S) : PointSym S := by
@@ -74,8 +74,9 @@ Rotation preserves the property of being pointsymmetric.
 theorem rotation_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
     (s_sym : PointSym S) (rot : Matrix.specialOrthogonalGroup (Fin n) ℝ) :
     PointSym (rot.1.toEuclideanLin '' S) := by
-  intro a ⟨y, hy, e⟩
-  aesop
+  rintro _ ⟨y, hy, rfl⟩
+  refine ⟨-y, s_sym y hy, ?_⟩
+  rw [rot.1.toEuclideanLin.map_neg]
 
 /--
 Taking the convex hull preserves point symmetry.

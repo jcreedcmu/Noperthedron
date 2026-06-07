@@ -9,26 +9,13 @@ import Noperthedron.Vertices.Exact
 open Real
 namespace Noperthedron.Tightening
 
-lemma rotM_preserves_pointsymmetry {θ φ : ℝ} (X : Finset ℝ³) (hX : PointSym (X : Set ℝ³)) :
-    PointSym (rotM θ φ '' X) := by
-  intro x hx
-  simp only [Set.mem_image] at hx ⊢
-  obtain ⟨y, hy, hy2⟩ := hx
-  exact ⟨-y, hX y hy, by rw [← hy2, (rotM θ φ).map_neg]⟩
-
-lemma rotR_preserves_pointsymmetry {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
-    PointSym (rotR α '' X) := by
-  intro x hx
-  simp only [Set.mem_image] at hx ⊢
-  obtain ⟨y, hy, hy2⟩ := hx
-  exact ⟨-y, hX y hy, by rw [← hy2, (rotR α).map_neg]⟩
-
 lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
     rotR (α + π) '' X = rotR α '' X := by
   have : rotR (α + π) = (-·) ∘ rotR α := by
     ext x i; fin_cases i <;> (simp [rotR, Matrix.vecHead, Matrix.vecTail]; ring_nf)
   rw [this, Set.image_comp]
-  exact neg_image_eq_if_pointsym (rotR α '' X) (rotR_preserves_pointsymmetry X hX)
+  exact neg_image_eq_if_pointsym (rotR α '' X)
+    (continuousLinearMap_preserves_point_sym (rotR α) hX)
 
 lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ exactVerts) (k : ℤ) :
     RzC (2 * π * k / 15) x ∈ exactVerts := by
@@ -56,10 +43,7 @@ lemma nopert_vertices_rotation_invariant (k : ℤ) :
     (RzC (2 * π * k / 15)) '' exactVerts = exactVerts := by
   ext x
   constructor
-  · intro hx
-    simp_all only [Set.mem_image, SetLike.mem_coe]
-    obtain ⟨y, hy, hy2⟩ := hx
-    rw [← hy2]
+  · rintro ⟨y, hy, rfl⟩
     exact rotation_preserves_nopert_vertices y hy k
   · intro hx
     simp_all only [Set.mem_image, SetLike.mem_coe]
@@ -73,17 +57,20 @@ lemma nopert_vertices_rotation_invariant (k : ℤ) :
       rw [← AddChar.map_add_eq_mul RzC]
       ring_nf; simp
 
-lemma app_hull_eq_hull_app (p : Set ℝ³) (f : ℝ³ →L[ℝ] ℝ²) :
-    f '' (convexHull ℝ p) = convexHull ℝ (f '' p) :=
-  f.image_convexHull _
+lemma exact_hull_image_eq_of_vertices_image_eq {f g : ℝ³ →L[ℝ] ℝ²}
+    (h : f '' (exactVerts : Set ℝ³) = g '' (exactVerts : Set ℝ³)) :
+    f '' exactPolyhedron.hull = g '' exactPolyhedron.hull := by
+  rw [exactPolyhedron_hull]
+  change (f : ℝ³ →ₗ[ℝ] ℝ²) '' convexHull ℝ (exactVerts : Set ℝ³) =
+    (g : ℝ³ →ₗ[ℝ] ℝ²) '' convexHull ℝ (exactVerts : Set ℝ³)
+  rw [LinearMap.image_convexHull, LinearMap.image_convexHull]
+  simpa using congrArg (convexHull ℝ) h
 
 /- [SY25] Lemma 7 -/
 
 theorem lemma7_1 (θ φ : ℝ) :
     (rotM (θ + 2/15*π) φ) '' exactPolyhedron.hull = rotM θ φ '' exactPolyhedron.hull := by
-  rw [exactPolyhedron_hull]
-  suffices h : (rotM (θ + 2/15*π) φ) '' exactVerts = rotM θ φ '' exactVerts by
-    rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
+  apply exact_hull_image_eq_of_vertices_image_eq
   suffices h : (RzL (-(θ + 2/15*π))) '' exactVerts = (RzL (-θ)) '' exactVerts by
     repeat rw [rotM_identity]
     push_cast
@@ -114,15 +101,13 @@ theorem lemma7_1_iterated {θ φ : ℝ} (k : ℤ) :
 
 theorem lemma7_2 (θ φ α : ℝ) :
     (rotR (α + π) ∘ rotM θ φ) '' exactPolyhedron.hull = (rotR α ∘ rotM θ φ) '' exactPolyhedron.hull := by
-  rw [exactPolyhedron_hull]
-  suffices h : (rotR (α + π) ∘L rotM θ φ) '' exactVerts =
-      (rotR α ∘L rotM θ φ) '' exactVerts by
-    change (rotR (α + π) ∘L rotM θ φ) '' exactHull = (rotR α ∘L rotM θ φ) '' exactHull
-    rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
+  change (rotR (α + π) ∘L rotM θ φ) '' exactPolyhedron.hull =
+    (rotR α ∘L rotM θ φ) '' exactPolyhedron.hull
+  apply exact_hull_image_eq_of_vertices_image_eq
   push_cast
   repeat rw [Set.image_comp]
   refine rotR_add_pi_eq_if_pointsym (rotM θ φ '' exactVerts)
-    (rotM_preserves_pointsymmetry exactVerts exactVerts_pointsym)
+    (continuousLinearMap_preserves_point_sym (rotM θ φ) exactVerts_pointsym)
 
 theorem lemma7_2_iterated {θ φ α : ℝ} (k : ℤ) :
     (rotR (α + k * π) ∘L rotM θ φ) '' exactPolyhedron.hull =
@@ -185,9 +170,7 @@ lemma neg_lin_eq_lin_neg (f : ℝ³ →L[ℝ] ℝ²) : ⇑(-f) = f ∘ (fun x =>
 
 theorem lemma7_3 (θ φ : ℝ) :
     (flip_y ∘L rotM θ φ) '' exactPolyhedron.hull = (rotM (θ + π / 15) (π - φ)) '' exactPolyhedron.hull := by
-  rw [exactPolyhedron_hull]
-  suffices h : (flip_y ∘L rotM θ φ) '' exactVerts = (rotM (θ + π / 15) (π - φ)) '' exactVerts by
-    rw [app_hull_eq_hull_app, app_hull_eq_hull_app, h]
+  apply exact_hull_image_eq_of_vertices_image_eq
   simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, lemma7_3_calculation]
   have h1 : (fun a ↦ -(rotM (θ + π / 15) (π - φ)) ((RzC (16 * π / 15)) a)) =
     (fun a ↦ -(rotM (θ + π / 15) (π - φ)) a) ∘ (RzC (16 * π / 15)) := rfl
