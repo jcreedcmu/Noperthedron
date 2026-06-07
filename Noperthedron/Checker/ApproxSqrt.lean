@@ -416,16 +416,13 @@ private lemma sqrtℚLowImpl_pos (p q fuel : ℕ) (hp : 0 < p) (hq : 0 < q)
         _ ≤ 100 ^ fuel := h100_ge_loq
         _ ≤ p * 100 ^ fuel := Nat.le_mul_of_pos_left _ hp
     have hnum_ge : lo ≤ res.2 / q := by
-      have : (lo * q) / q ≤ res.2 / q := Nat.div_le_div_right hterm
-      rwa [Nat.mul_div_cancel _ hq] at this
+      rwa [← Nat.le_div_iff_mul_le hq] at hterm
     have hb_pos : 1 ≤ Nat.sqrt (res.2 / q) :=
       Nat.le_sqrt'.mpr (le_trans lo_pos hnum_ge)
     positivity
   · -- Branch 2: a = 0
     push Not at hbr1
-    have hpq_ge : lo ≤ p / q := by
-      have : (lo * q) / q ≤ p / q := Nat.div_le_div_right hbr1
-      rwa [Nat.mul_div_cancel _ hq] at this
+    have hpq_ge : lo ≤ p / q := (Nat.le_div_iff_mul_le hq).mpr hbr1
     have hb_pos : 1 ≤ Nat.sqrt (p / q) := Nat.le_sqrt'.mpr (le_trans lo_pos hpq_ge)
     exact_mod_cast hb_pos
   · -- Branch 3: down-search
@@ -435,11 +432,7 @@ private lemma sqrtℚLowImpl_pos (p q fuel : ℕ) (hp : 0 < p) (hq : 0 < q)
     -- Bound res.2: by the unconditional max bound, res.2 ≤ max q (100 * (p/hi)) ≤ p.
     have hres2_le_p : res.2 ≤ p := by
       have hbound : res.2 ≤ max q (100 * (p / hi)) := shiftDownAux_le_max _ _ _ _
-      have hq_le_p : q ≤ p := by
-        have hi_ge_one : 1 ≤ hi := hi_pos
-        calc q = 1 * q := (one_mul q).symm
-          _ ≤ hi * q := Nat.mul_le_mul_right _ hi_ge_one
-          _ ≤ p := hbr2
+      have hq_le_p : q ≤ p := le_of_mul_le_of_one_le_right hbr2 hi_pos
       have h100_le_p : 100 * (p / hi) ≤ p := by
         have hhi_ge_100 : 100 ≤ hi := by unfold hi; norm_num
         have : p / hi ≤ p / 100 := Nat.div_le_div_left hhi_ge_100 (by norm_num)
@@ -462,9 +455,7 @@ private lemma sqrtℚLow_pos_of_pos {y : ℚ} (hy : 0 < y) : 0 < sqrtℚLow y :=
   rw [if_neg (not_le.mpr hy)]
   apply sqrtℚLowImpl_pos
   · -- 0 < y.num.toNat
-    have hnum_pos : 0 < y.num := Rat.num_pos.mpr hy
-    have : (y.num.toNat : ℤ) = y.num := Int.toNat_of_nonneg (le_of_lt hnum_pos)
-    omega
+    exact Int.pos_iff_toNat_pos.mp (Rat.num_pos.mpr hy)
   · exact y.pos
   · exact le_refl _
 

@@ -160,11 +160,7 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
     simp only [Pose.le_iff_forall_getParam] at hq
     obtain ⟨hq₁, hq₂⟩ := hq
     push_cast
-    constructor
-    · change (PoseInterval.min iv).toReal.getParam p ≤ q.getParam p
-      exact hq₁ p
-    · change q.getParam p ≤ (PoseInterval.max iv).toReal.getParam p
-      exact hq₂ p
+    exact Prod.mk_le_mk.mp this
   obtain ⟨n, hx⟩ :=
     mem_icc_mem_some_part_ab (q.getParam p) (iv.min.getParam p) (iv.max.getParam p) h₁ N h₂
   use n
