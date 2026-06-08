@@ -192,7 +192,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
         ((-Real.cos pbar.θ₁ * S 0 - Real.sin pbar.θ₁ * S 1) • proj1) pbar.innerParams := by
       have h1 := hsinθ.neg.mul_const (S 0)
       have h2 := hcosθ.mul_const (S 1)
-      convert h1.add h2 using 1
+      convert! h1.add h2 using 1
       ext d
       simp [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
       ring
@@ -210,7 +210,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
       have h1 := hcosθcosφ.neg.mul_const (S 0)
       have h2 := hsinθcosφ.mul_const (S 1)
       have h3 := hsinφ.mul_const (S 2)
-      convert (h1.sub h2).add h3 using 1 <;> ext d <;>
+      convert! (h1.sub h2).add h3 using 1 <;> ext d <;>
         simp [ContinuousLinearMap.add_apply, ContinuousLinearMap.sub_apply,
               ContinuousLinearMap.smul_apply, ContinuousLinearMap.neg_apply, smul_eq_mul]; ring
     fin_cases i

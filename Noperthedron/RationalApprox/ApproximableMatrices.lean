@@ -164,7 +164,7 @@ theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
       ‖(A.map (fun d => d.actual (x.val) (y.val)) -
         A.map (fun d => d.approx (x.val) (y.val))).toEuclideanLin.toContinuousLinearMap‖ ≤
       δ * Real.sqrt (m.val * n.val) := by
-    convert norm_le_delta_sqrt_dims _ hδ_pos hδ_bound using 1
+    convert! norm_le_delta_sqrt_dims _ hδ_pos hδ_bound using 1
   refine le_trans ?_ ( norm_le_delta_sqrt_dims_applied.trans ?_)
   · simp_all [clinActual, clinApprox]
   · refine le_trans ( mul_le_mul_of_nonneg_left h_sqrt_bound <| by positivity ) ?_

@@ -33,7 +33,7 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
     have h₁ := Local.abs_sub_inner_le M M_ P (P - Q)
     grw [hP] at h₁
     rw [one_mul] at h₁
-    grw [Bounding.norm_M_sub_lt hε hθ hφ] at h₁
+    grw [Bounding.norm_M_sub_lt hε hθ hφ, Bounding.norm_M_sub_lt hε hθ hφ] at h₁
     rw [Bounding.rotM_norm_one, Bounding.rotM_norm_one] at h₁
     have h₂ : ‖P - Q‖ * (√2 * ε) * (1 + 1 + √2 * ε) = 2 * ε * ‖P - Q‖ * (√2 + ε) := by grind
     rw [h₂] at h₁

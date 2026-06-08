@@ -75,7 +75,7 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
 
     -- lemma 13 -> Bounding.norm_M_sub_lt
     have h₃ := Bounding.norm_M_sub_lt hε hθ hφ
-    grw [h₃] at h₂
+    grw [h₃, h₃] at h₂
     have h₄ : √2 * ε + √2 * ε + √2 * ε * (√2 * ε) = 2 * ε * (√2 + ε) := by
       rw [show √2 * ε * (√2 * ε) = √2^2 * ε^2 by ring]
       simp only [Nat.ofNat_nonneg, Real.sq_sqrt]

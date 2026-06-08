@@ -110,7 +110,7 @@ theorem cos_approx_aux (x : ℝ) (n : ℕ) :
 theorem sin_psum_approx (x : ℝ) (n : ℕ) : |Real.sin x - sin_psum n x| ≤ |x|^(2 * n + 1) / (2 * n + 1)! := by
   have := RationalApprox.sin_approx_aux x n
   simp only [ge_iff_le]
-  convert this using 3
+  rw [sin_psum]; convert this using 3
 
 theorem cos_psum_approx (x : ℝ) (n : ℕ) : |Real.cos x - cos_psum n x| ≤ |x|^(2 * n) / (2 * n)! := by
   have := RationalApprox.cos_approx_aux x n

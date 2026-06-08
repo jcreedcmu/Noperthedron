@@ -81,7 +81,7 @@ theorem linearIndR_key :
 theorem affineIndVertsRAffine : AffineIndependent ℝ affineIndVertsR := by
   rw [affineIndependent_iff_linearIndependent_vsub ℝ affineIndVertsR 3]
   rw [← linearIndependent_equiv (finSuccAboveEquiv 3)]
-  convert linearIndR_key using 1
+  convert! linearIndR_key using 1
   ext1 i; fin_cases i
     <;> simp [affineIndVertsR, linearIndVerts, finSuccAboveEquiv, Fin.succAbove]
     <;> ring_nf

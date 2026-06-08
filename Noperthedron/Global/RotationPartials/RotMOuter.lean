@@ -128,7 +128,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose ℝ) (P : ℝ³) :
         ((-Real.cos pbar.θ₂ * P 0 - Real.sin pbar.θ₂ * P 1) • proj0) pbar.outerParams := by
       have h1 := hsinθ.neg.mul_const (P 0)
       have h2 := hcosθ.mul_const (P 1)
-      convert h1.add h2 using 1
+      convert! h1.add h2 using 1
       ext d
       simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
                  ContinuousLinearMap.neg_apply, neg_mul]
@@ -167,7 +167,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose ℝ) (P : ℝ³) :
           (Real.sin pbar.θ₂ • (-(Real.sin pbar.φ₂) • proj1) + Real.cos pbar.φ₂ • (Real.cos pbar.θ₂ • proj0))
           pbar.outerParams := hsinθ.mul hcosφ
       have hadd := ((hcosθcosφ.neg.mul_const (P 0)).sub (hsinθcosφ.mul_const (P 1))).add (hsinφ.mul_const (P 2))
-      convert hadd using 1
+      convert! hadd using 1
       · ext x
         simp
       · ext d
@@ -229,7 +229,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose ℝ) (P : ℝ³) :
         ((Real.sin pbar.θ₂ * P 0 - Real.cos pbar.θ₂ * P 1) • proj0) pbar.outerParams := by
       have h1 := hcosθ.neg.mul_const (P 0)
       have h2 := hsinθ.mul_const (P 1)
-      convert h1.sub h2 using 1
+      convert! h1.sub h2 using 1
       ext d
       simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
                  ContinuousLinearMap.neg_apply, neg_mul, neg_neg]
@@ -258,7 +258,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose ℝ) (P : ℝ³) :
         (Real.cos pbar.θ₂ • (-(Real.sin pbar.φ₂) • proj1) + Real.cos pbar.φ₂ • (-(Real.sin pbar.θ₂) • proj0))
         pbar.outerParams := hcosθ.mul hcosφ
     have hadd := ((hsinθcosφ.mul_const (P 0)).sub (hcosθcosφ.mul_const (P 1)))
-    convert hadd using 1
+    convert! hadd using 1
     ext d
     simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.add_apply,
                ContinuousLinearMap.smul_apply, smul_eq_mul, neg_mul,
@@ -352,7 +352,7 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose ℝ) (P : ℝ³) :
         ((P 2) • (-(Real.sin pbar.φ₂) • proj1))
         pbar.outerParams := hcosφ.mul_const (P 2)
     have hadd := h1.add (h2.add h3)
-    convert hadd using 1
+    convert! hadd using 1
     · ext x
       simp only [Pi.add_apply]
       ring

@@ -44,10 +44,8 @@ def interpolator_has_deriv {n : ℕ} (x y : E n) (t : ℝ) :
   -- I don't really like this proof, I'd prefer something that more incrementally
   -- "discovers" the derivative of interpolator instead of building it all up and then
   -- `convert`ing it to the desired form.
-  convert ((hasDerivAt_id t).const_sub 1).smul_const x |>.add ((hasDerivAt_id t).smul_const y) using 1
-  ext i
-  simp only [PiLp.sub_apply, neg_smul, one_smul, PiLp.add_apply, PiLp.neg_apply]
-  ring_nf
+  convert! ((hasDerivAt_id t).const_sub 1).smul_const x |>.add ((hasDerivAt_id t).smul_const y) using 1
+  module
 
 private noncomputable
 def interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) : ℝ → ℝ  :=
@@ -141,11 +139,11 @@ def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDi
   rw [hasDerivAt_iff_hasFDerivAt]
   have hd (i : Fin n) : HasDerivAt (fun t => nth_partial i f (interpolator x y t))
       (∑ j, (y j - x j) * nth_partial j (nth_partial i f) (interpolator x y t)) t := by
-    convert HasFDerivAt.comp_hasDerivAt t (c2_imp_partials_c1 fc |>.differentiable_one _ |>.hasFDerivAt)
+    convert! HasFDerivAt.comp_hasDerivAt t (c2_imp_partials_c1 fc |>.differentiable_one _ |>.hasFDerivAt)
       (interpolator_has_deriv x y t)
     rw [nth_partial_def]
     rfl
-  convert HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (hd i)))
+  convert! HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (hd i)))
   all_goals try unfold interpolator
   · rw [Finset.sum_fn]
   · ext; simp only [toSpanSingleton_apply, smul_eq_mul, Finset.mul_sum, one_mul, coe_sum', Finset.sum_apply]

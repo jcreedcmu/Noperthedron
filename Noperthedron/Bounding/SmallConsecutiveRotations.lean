@@ -68,7 +68,8 @@ theorem norm_RxRy_minus_id_le_wlog {d d' : Fin 3} {α β : ℝ} :
   _ = ‖u.toLinearIsometry.toContinuousLinearMap ∘L (RzL γ - 1) ∘L u.symm.toLinearIsometry.toContinuousLinearMap‖ := by
     congr 1; ext x; simp [sub_eq_add_neg]
   _ = ‖RzL γ - 1‖ := by
-    rw [LinearIsometry.norm_toContinuousLinearMap_comp, ContinuousLinearMap.opNorm_comp_linearIsometryEquiv]
+    rw [LinearIsometry.norm_toContinuousLinearMap_comp]
+    exact ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ u.symm
   _ = ‖RzC γ - 1‖ := rfl
   _ ≤ |γ| := by
     rw [← RzC.map_zero_eq_one]
@@ -156,8 +157,8 @@ theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
   have h_norm_conj (A : Euc(3) →L[ℝ] Euc(3)) :
       ‖u.toLinearIsometry.toContinuousLinearMap ∘L A ∘L
        u.symm.toLinearIsometry.toContinuousLinearMap‖ = ‖A‖ := by
-    rw [LinearIsometry.norm_toContinuousLinearMap_comp,
-        ContinuousLinearMap.opNorm_comp_linearIsometryEquiv]
+    rw [LinearIsometry.norm_toContinuousLinearMap_comp]
+    exact ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ u.symm
   have h_norm_eq : ‖(u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L
       u.symm.toLinearIsometry.toContinuousLinearMap) - 1‖ = ‖RzL γ - 1‖ := by
     convert h_norm_conj (RzL γ - 1) using 2; ext; simp [sub_eq_add_neg]
