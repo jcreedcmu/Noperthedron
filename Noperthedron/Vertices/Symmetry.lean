@@ -174,8 +174,7 @@ private theorem congruent_of_rotation (Pi Qi : Fin 3 → VertexIndex)
       show 2 * π * ((k.val + n.val : ℕ) : ℝ) / 15 = φ + θ by push_cast; rw [hφ_def, hθ_def]; ring,
       RzL_apply_add]
   set w := RzL φ (RzL θ (Cpt i))
-  have cast_eq : ∀ (j : ℕ), (-1 : ℤ)^j • w = ((-1 : ℝ)^j) • w := fun j => by
-    rw [← Int.cast_smul_eq_zsmul ℝ]; push_cast; rfl
+  have cast_eq : ∀ (j : ℕ), (-1 : ℤ)^j • w = ((-1 : ℝ)^j) • w := fun j => by norm_cast
   rw [cast_eq, cast_eq, hs_def, smul_smul, ← pow_add, add_comm m.val ℓ.val,
       ← neg_one_pow_eq_pow_mod_two]
 
@@ -237,8 +236,7 @@ private theorem congruent_of_reflection (Pi Qi : Fin 3 → VertexIndex)
         push_cast [Nat.cast_sub hk_le]; rw [hφ_def, hθ_def]; ring,
       RzL_periodic]
   set w := RzL (φ + -θ) (Cpt i₀) with hw_def
-  have cast_eq : ∀ (j : ℕ), (-1 : ℤ)^j • w = ((-1 : ℝ)^j) • w := fun j => by
-    rw [← Int.cast_smul_eq_zsmul ℝ]; push_cast; rfl
+  have cast_eq : ∀ (j : ℕ), (-1 : ℤ)^j • w = ((-1 : ℝ)^j) • w := fun j => by norm_cast
   rw [cast_eq, cast_eq, hs_def, smul_smul, ← pow_add, add_comm m.val ℓ.val,
       ← neg_one_pow_eq_pow_mod_two]
 

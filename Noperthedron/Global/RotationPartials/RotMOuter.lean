@@ -129,10 +129,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose ℝ) (P : ℝ³) :
       have h1 := hsinθ.neg.mul_const (P 0)
       have h2 := hcosθ.mul_const (P 1)
       convert! h1.add h2 using 1
-      ext d
-      simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
-                 ContinuousLinearMap.neg_apply, neg_mul]
-      ring
+      module
     exact hf
   · simp only [Fin.isValue]
     have hfunc : (fun x : ℝ² => ((rotM (x.ofLp 0) (x.ofLp 1)) P).ofLp (1 : Fin 2)) =
@@ -170,10 +167,7 @@ lemma HasFDerivAt.rotM_outer (pbar : Pose ℝ) (P : ℝ³) :
       convert! hadd using 1
       · ext x
         simp
-      · ext d
-        simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.sub_apply,
-                   ContinuousLinearMap.smul_apply, ContinuousLinearMap.neg_apply, smul_eq_mul]
-        ring
+      · module
     exact hf
 
 -- Fréchet derivative of rotMθ: columns are [rotMθθ, rotMθφ]
@@ -230,10 +224,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose ℝ) (P : ℝ³) :
       have h1 := hcosθ.neg.mul_const (P 0)
       have h2 := hsinθ.mul_const (P 1)
       convert! h1.sub h2 using 1
-      ext d
-      simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
-                 ContinuousLinearMap.neg_apply, neg_mul, neg_neg]
-      ring
+      module
     exact hf
   · simp only [Fin.isValue]
     have hfunc : (fun x : ℝ² => ((rotMθ (x.ofLp 0) (x.ofLp 1)) P).ofLp (1 : Fin 2)) =
@@ -259,11 +250,7 @@ lemma HasFDerivAt.rotMθ_outer (pbar : Pose ℝ) (P : ℝ³) :
         pbar.outerParams := hcosθ.mul hcosφ
     have hadd := ((hsinθcosφ.mul_const (P 0)).sub (hcosθcosφ.mul_const (P 1)))
     convert! hadd using 1
-    ext d
-    simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.add_apply,
-               ContinuousLinearMap.smul_apply, smul_eq_mul, neg_mul,
-               proj0, proj1, PiLp.proj_apply]
-    ring
+    module
 
 -- Fréchet derivative of rotMφ as a function of (θ, φ)
 -- Columns: [rotMθφ, rotMφφ] (derivatives w.r.t. θ, φ respectively)
@@ -356,9 +343,6 @@ lemma HasFDerivAt.rotMφ_outer (pbar : Pose ℝ) (P : ℝ³) :
     · ext x
       simp only [Pi.add_apply]
       ring
-    · ext d
-      simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
-                 neg_mul, proj0, proj1, PiLp.proj_apply]
-      ring
+    · module
 
 end GlobalTheorem

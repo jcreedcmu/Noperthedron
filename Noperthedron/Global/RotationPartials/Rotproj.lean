@@ -193,9 +193,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
       have h1 := hsinθ.neg.mul_const (S 0)
       have h2 := hcosθ.mul_const (S 1)
       convert! h1.add h2 using 1
-      ext d
-      simp [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
-      ring
+      module
     have hcosθcosφ : HasStrictFDerivAt (fun x : ℝ³ => Real.cos (x.ofLp 1) * Real.cos (x.ofLp 2))
         (Real.cos pbar.θ₁ • (-(Real.sin pbar.φ₁) • proj2) + Real.cos pbar.φ₁ • (-(Real.sin pbar.θ₁) • proj1))
         pbar.innerParams := hcosθ.mul hcosφ
