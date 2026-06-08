@@ -1,7 +1,7 @@
 import Mathlib.Algebra.Order.Archimedean.Real.Hom
 import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Data.Matrix.Invertible
 import Mathlib.Analysis.InnerProductSpace.LinearMap
+import Mathlib.LinearAlgebra.Matrix.Invertible
 
 import Noperthedron.Basic
 import Noperthedron.Local.EpsSpanning
