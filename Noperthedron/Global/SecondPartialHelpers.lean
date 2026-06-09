@@ -211,72 +211,44 @@ lemma fderiv_rotR_rotMθ_in_e1 (S : ℝ³) (y : E 3) :
     (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y)
       (EuclideanSpace.single 1 1) =
     rotR (y.ofLp 0) (rotMθθ (y.ofLp 1) (y.ofLp 2) S) := by
-  rw [← (differentiableAt_rotR_rotMθ S y).lineDeriv_eq_fderiv]
-  have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S))
-      (rotR (y.ofLp 0) (rotMθθ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 1 1) := by
-    unfold HasLineDerivAt
-    simp_rw [fun t => show rotR ((y + t • EuclideanSpace.single 1 1).ofLp 0)
-        (rotMθ ((y + t • EuclideanSpace.single 1 1).ofLp 1) ((y + t • EuclideanSpace.single 1 1).ofLp 2) S) =
-        rotR (y.ofLp 0) (rotMθ (y.ofLp 1 + t) (y.ofLp 2) S) by
-      rw [coord_e1_at0, coord_e1_same, coord_e1_at2, add_comm]]
-    exact hasDerivAt_comp_add _ _ _ (by simpa [LinearMap.comp_toSpanSingleton] using
-      ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp
-        (y.ofLp 1) (hasDerivAt_rotMθ_θ (y.ofLp 1) (y.ofLp 2) S).hasFDerivAt).hasDerivAt)
-  exact hline.lineDeriv
+  refine fderiv_single_eq (differentiableAt_rotR_rotMθ S y) ?_
+  simp only [coord_e1_at0, coord_e1_same, coord_e1_at2]
+  exact hasDerivAt_comp_add _ _ _
+    ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
+      (hasDerivAt_rotMθ_θ (y.ofLp 1) (y.ofLp 2) S))
 
 /-- fderiv of rotR ∘ rotMθ in direction e2 gives rotR ∘ rotMθφ -/
 lemma fderiv_rotR_rotMθ_in_e2 (S : ℝ³) (y : E 3) :
     (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y)
       (EuclideanSpace.single 2 1) =
     rotR (y.ofLp 0) (rotMθφ (y.ofLp 1) (y.ofLp 2) S) := by
-  rw [← (differentiableAt_rotR_rotMθ S y).lineDeriv_eq_fderiv]
-  have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S))
-      (rotR (y.ofLp 0) (rotMθφ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 2 1) := by
-    unfold HasLineDerivAt
-    simp_rw [fun t => show rotR ((y + t • EuclideanSpace.single 2 1).ofLp 0)
-        (rotMθ ((y + t • EuclideanSpace.single 2 1).ofLp 1) ((y + t • EuclideanSpace.single 2 1).ofLp 2) S) =
-        rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2 + t) S) by
-      rw [coord_e2_at0, coord_e2_at1, coord_e2_same, add_comm]]
-    exact hasDerivAt_comp_add _ _ _ (by simpa [LinearMap.comp_toSpanSingleton] using
-      ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp
-        (y.ofLp 2) (hasDerivAt_rotMθ_φ (y.ofLp 1) (y.ofLp 2) S).hasFDerivAt).hasDerivAt)
-  exact hline.lineDeriv
+  refine fderiv_single_eq (differentiableAt_rotR_rotMθ S y) ?_
+  simp only [coord_e2_at0, coord_e2_at1, coord_e2_same]
+  exact hasDerivAt_comp_add _ _ _
+    ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
+      (hasDerivAt_rotMθ_φ (y.ofLp 1) (y.ofLp 2) S))
 
 /-- fderiv of rotR ∘ rotMφ in direction e1 gives rotR ∘ rotMθφ -/
 lemma fderiv_rotR_rotMφ_in_e1 (S : ℝ³) (y : E 3) :
     (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y)
       (EuclideanSpace.single 1 1) =
     rotR (y.ofLp 0) (rotMθφ (y.ofLp 1) (y.ofLp 2) S) := by
-  rw [← (differentiableAt_rotR_rotMφ S y).lineDeriv_eq_fderiv]
-  have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S))
-      (rotR (y.ofLp 0) (rotMθφ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 1 1) := by
-    unfold HasLineDerivAt
-    simp_rw [fun t => show rotR ((y + t • EuclideanSpace.single 1 1).ofLp 0)
-        (rotMφ ((y + t • EuclideanSpace.single 1 1).ofLp 1) ((y + t • EuclideanSpace.single 1 1).ofLp 2) S) =
-        rotR (y.ofLp 0) (rotMφ (y.ofLp 1 + t) (y.ofLp 2) S) by
-      rw [coord_e1_at0, coord_e1_same, coord_e1_at2, add_comm]]
-    exact hasDerivAt_comp_add _ _ _ (by simpa [LinearMap.comp_toSpanSingleton] using
-      ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp
-        (y.ofLp 1) (hasDerivAt_rotMφ_θ (y.ofLp 1) (y.ofLp 2) S).hasFDerivAt).hasDerivAt)
-  exact hline.lineDeriv
+  refine fderiv_single_eq (differentiableAt_rotR_rotMφ S y) ?_
+  simp only [coord_e1_at0, coord_e1_same, coord_e1_at2]
+  exact hasDerivAt_comp_add _ _ _
+    ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
+      (hasDerivAt_rotMφ_θ (y.ofLp 1) (y.ofLp 2) S))
 
 /-- fderiv of rotR ∘ rotMφ in direction e2 gives rotR ∘ rotMφφ -/
 lemma fderiv_rotR_rotMφ_in_e2 (S : ℝ³) (y : E 3) :
     (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y)
       (EuclideanSpace.single 2 1) =
     rotR (y.ofLp 0) (rotMφφ (y.ofLp 1) (y.ofLp 2) S) := by
-  rw [← (differentiableAt_rotR_rotMφ S y).lineDeriv_eq_fderiv]
-  have hline : HasLineDerivAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S))
-      (rotR (y.ofLp 0) (rotMφφ (y.ofLp 1) (y.ofLp 2) S)) y (EuclideanSpace.single 2 1) := by
-    unfold HasLineDerivAt
-    simp_rw [fun t => show rotR ((y + t • EuclideanSpace.single 2 1).ofLp 0)
-        (rotMφ ((y + t • EuclideanSpace.single 2 1).ofLp 1) ((y + t • EuclideanSpace.single 2 1).ofLp 2) S) =
-        rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2 + t) S) by
-      rw [coord_e2_at0, coord_e2_at1, coord_e2_same, add_comm]]
-    exact hasDerivAt_comp_add _ _ _ (by simpa [LinearMap.comp_toSpanSingleton] using
-      ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp
-        (y.ofLp 2) (hasDerivAt_rotMφ_φ (y.ofLp 1) (y.ofLp 2) S).hasFDerivAt).hasDerivAt)
-  exact hline.lineDeriv
+  refine fderiv_single_eq (differentiableAt_rotR_rotMφ S y) ?_
+  simp only [coord_e2_at0, coord_e2_at1, coord_e2_same]
+  exact hasDerivAt_comp_add _ _ _
+    ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
+      (hasDerivAt_rotMφ_φ (y.ofLp 1) (y.ofLp 2) S))
 
 /-!
 ## A[i,j] Table for Second Partials
