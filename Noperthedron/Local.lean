@@ -68,9 +68,6 @@ def Triangle.Bε {ι : Type} (Q : Triangle) (Qi : Fin 3 → ι)
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
     (δ + √5 * ε) / r < Triangle.Bε.lhs (Q i) (v k) p ε
 
---instance : Membership Triangle (Finset ℝ³) where
---  mem set tri := ∀ i : Fin 3, (tri i) ∈ set
-
 /-- The condition on δ in the Local Theorem -/
 def BoundDelta (δ : ℝ) (p : Pose ℝ) (P Q : Triangle) : Prop :=
   ∀ i : Fin 3, δ ≥ ‖p.rotR (p.rotM₁ (P i)) - p.rotM₂ (Q i)‖/2
@@ -110,16 +107,8 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     : ¬∃ p ∈ Metric.closedBall p_ ε, RupertPose p poly.hull := by
   obtain ⟨Pi, Qi, cong_tri, δ, r, hr, hr₁, hδ, ae₁, ae₂, span₁, span₂, be⟩ := pc
   have hε : 0 < ε := span₁.pos
-  let P : Triangle := poly.vertices.v ∘ Pi
-  let Q : Triangle := poly.vertices.v ∘ Qi
-  change Triangle.Congruent P Q at cong_tri
-  change Triangle.Aε p_.vecX₁ P ε at ae₁
-  change Triangle.Aε p_.vecX₂ Q ε at ae₂
-  change Triangle.Spanning P p_.θ₁ p_.φ₁ ε at span₁
-  change Triangle.Spanning Q p_.θ₂ p_.φ₂ ε at span₂
-  change Triangle.Bε Q Qi poly.vertices.v p_ ε δ r at be
-  change BoundR r ε p_ Q at hr₁
-  change BoundDelta δ p_ P Q at hδ
+  set P : Triangle := poly.vertices.v ∘ Pi
+  set Q : Triangle := poly.vertices.v ∘ Qi
   rintro ⟨p, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL⟩ := cong_tri
   obtain ⟨σP, hσP₁, hσP₂⟩ := ae₁
@@ -127,8 +116,7 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   let Y := vecX p.θ₁ p.φ₁
   let K := (-1 : ℝ)^(σP + σQ) • L.toContinuousLinearMap
   let Z := K (vecX p.θ₂ p.φ₂)
-  have hδnn : 0 ≤ δ := by
-    specialize hδ 0; linarith only [hδ, norm_nonneg (p_.rotR (p_.rotM₁ (P 0)) - p_.rotM₂ (Q 0))]
+  have hδnn : 0 ≤ δ := le_trans (by positivity) (hδ 0)
   have hY : ‖Y‖ = 1 := by simp [Y, Bounding.vecX_norm_one]
   have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, Bounding.vecX_norm_one]
   have hα : |p.α - p_.α| ≤ ε := mem_closed_ball_abs_sub_α hΨ₁
@@ -139,15 +127,11 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
   have hP_ (i) : ‖P_ i‖ ≤ 1 := by
-    rw [norm_smul, Real.norm_eq_abs]
-    show |(-1 : ℝ) ^ σP| * ‖poly.vertices.v (Pi i)‖ ≤ 1
-    grw [poly.vertex_radius_le_one (Pi i)]
-    simp
+    rw [norm_smul, Real.norm_eq_abs, abs_neg_one_pow, one_mul]
+    exact poly.vertex_radius_le_one (Pi i)
   have hQ_ (i) : ‖Q_ i‖ ≤ 1 := by
-    rw [norm_smul, Real.norm_eq_abs]
-    show |(-1 : ℝ) ^ σQ| * ‖poly.vertices.v (Qi i)‖ ≤ 1
-    grw [poly.vertex_radius_le_one (Qi i)]
-    simp
+    rw [norm_smul, Real.norm_eq_abs, abs_neg_one_pow, one_mul]
+    exact poly.vertex_radius_le_one (Qi i)
   have hPQ_ (i) : P_ i = K (Q_ i) := by
     simp [P_, Q_, K]
     rw [smul_smul, hL]
@@ -175,8 +159,7 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
       use c, hc₁
       simp [hc₂, map_sum, map_smul, ←hPQ_]
   suffices h₂ : ∀ i, ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ by
-    have hYZ : ‖Y‖ = ‖Z‖ := by simp [hY, hZ]
-    have h₃ := langles hYZ h₁.1 h₁.2
+    have h₃ := langles (hY.trans hZ.symm) h₁.1 h₁.2
     simp only [real_inner_comm Y, real_inner_comm Z] at h₃
     obtain h₃ | h₃ | h₃ := h₃ <;> exact lt_iff_not_ge.mp (h₂ _) h₃
   intro i
@@ -187,8 +170,7 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have hT : ‖T i - p_.rotM₂ (Q i)‖ ≤ δ := by
     simp only [T, midpoint_sub_right, invOf_eq_inv]
     rw [norm_smul, Real.norm_eq_abs, show |(2:ℝ)⁻¹| = 2⁻¹ by norm_num]
-    specialize hδ i
-    linarith
+    linarith [hδ i]
   -- apply lemma 30
   have hP₁ : ‖P i‖ ≤ 1 := poly.vertex_radius_le_one (Pi i)
   obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
@@ -284,8 +266,9 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have h_YP : ⟪Y, P_ i⟫ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := by simp only [P_, real_inner_smul_right]
   rw [h_ZP, h_YP]
   -- Both sides positive after sign, compare via absolute values
-  have hZQ_sign : 0 < (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by simp only [Q_, real_inner_smul_right] at hZQ_pos; exact hZQ_pos
-  have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := by rw [← h_YP]; exact hYP_pos
+  have hZQ_sign : 0 < (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
+    simpa only [Q_, real_inner_smul_right] using hZQ_pos
+  have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := h_YP ▸ hYP_pos
   calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ = |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := (abs_of_pos hZQ_sign).symm
     _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_neg_one_pow, one_mul]
     _ < |⟪Y, P i⟫| := sq_lt_sq.mp h_inner_sq
