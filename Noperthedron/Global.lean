@@ -308,7 +308,7 @@ private lemma nth_partial_rotproj_outer_0 (pbar : Pose ℝ) (P : ℝ³) (w : ℝ
     ((Differentiable.rotM_outer P).differentiableAt)]
   congr 1
   rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
-  ext i; simp [rotM'_apply]
+  ext i; simp
 
 private lemma nth_partial_rotproj_outer_1 (pbar : Pose ℝ) (P : ℝ³) (w : ℝ²) :
     nth_partial 1 (rotproj_outer P w) pbar.outerParams = ⟪rotMφ pbar.θ₂ pbar.φ₂ P, w⟫ := by
@@ -317,7 +317,7 @@ private lemma nth_partial_rotproj_outer_1 (pbar : Pose ℝ) (P : ℝ³) (w : ℝ
     ((Differentiable.rotM_outer P).differentiableAt)]
   congr 1
   rw [(HasFDerivAt.rotM_outer pbar P).fderiv]
-  ext i; simp [rotM'_apply]
+  ext i; simp
 
 lemma partials_helper3 {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :

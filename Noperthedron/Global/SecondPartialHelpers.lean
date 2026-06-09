@@ -196,6 +196,16 @@ lemma hasDerivAt_comp_add (f : ℝ → ℝ²) (f' : ℝ²) (a : ℝ) (hf : HasDe
   have hf' : HasDerivAt f f' (a + 0) := by simp only [add_zero]; exact hf
   exact HasDerivAt.comp_const_add a 0 hf'
 
+/-- For a differentiable function, the `fderiv` along a basis direction can be computed
+as the one-variable derivative along the line through that direction. -/
+lemma fderiv_single_eq {n : ℕ} {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {f : E n → F} {y : E n} {i : Fin n} {d : F}
+    (hdiff : DifferentiableAt ℝ f y)
+    (hline : HasDerivAt (fun t : ℝ => f (y + t • EuclideanSpace.single i 1)) d 0) :
+    fderiv ℝ f y (EuclideanSpace.single i 1) = d := by
+  rw [← hdiff.lineDeriv_eq_fderiv]
+  exact HasLineDerivAt.lineDeriv hline
+
 /-- fderiv of rotR ∘ rotMθ in direction e1 gives rotR ∘ rotMθθ -/
 lemma fderiv_rotR_rotMθ_in_e1 (S : ℝ³) (y : E 3) :
     (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y)
