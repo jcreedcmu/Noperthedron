@@ -2,6 +2,7 @@ import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Noperthedron.Local.EpsSpanning
 import Noperthedron.RationalApprox.Basic
+import Noperthedron.RationalApprox.Cast
 import Noperthedron.RationalApprox.Lemma42
 import Noperthedron.RationalApprox.MatrixBounds
 
@@ -182,36 +183,6 @@ theorem ek_spanning_imp_e_spanning (P P' : Triangle)
 
 /-! ### Bridges from rational matrix-form spanning condition to `κSpanning` -/
 
-private lemma toR2_rotMℚ_mat_mulVec (θ φ : ℚ) (v : Fin 3 → ℚ) :
-    toR2 (rotMℚ_mat θ φ *ᵥ v) = rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 v) := by
-  unfold toR2 toR3 rotMℚℝ
-  rw [show (rotMℚ_mat θ φ *ᵥ v) = (rotMℚ_mat θ φ).toLin' v from rfl]
-  rw [Matrix.toLin'_apply]
-  show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat θ φ).mulVec v) i : ℝ)) =
-       (rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-  have hcast : (rotMℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMℚ_mat θ φ).map (fun x => (x : ℝ)) := by
-    ext i j; fin_cases i <;> fin_cases j <;> simp [rotMℚ_mat, sinℚ_match, cosℚ_match]
-  have hmap : (fun i : Fin 2 => (((rotMℚ_mat θ φ).mulVec v) i : ℝ)) =
-        ((rotMℚ_mat θ φ).map (fun x => (x : ℝ))).mulVec (fun i => (v i : ℝ)) := by
-    ext i
-    simp only [Matrix.mulVec, dotProduct, Matrix.map_apply]
-    push_cast; rfl
-  rw [hmap, ← hcast]
-  simp
-
-private lemma inner_toR2' (v w : Fin 2 → ℚ) :
-    @inner ℝ ℝ² _ (toR2 v) (toR2 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
-  unfold toR2
-  have h := EuclideanSpace.inner_eq_star_dotProduct
-    (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 2))
-    (WithLp.toLp 2 (fun i => (w i : ℝ)))
-  simp only [star_trivial] at h
-  rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
-       (WithLp.toLp 2 (fun i => (w i : ℝ))) =
-       (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
-  simp [dotProduct]
-
 /-- Bridge: the rational `rot90 *ᵥ ...` spanning form casts to the real `κSpanning` form. -/
 lemma rot90_rotMℚ_inner_eq_real_inner (θ φ : ℚ) (v w : Fin 3 → ℚ) :
     (((!![(0 : ℚ), -1; 1, 0] *ᵥ (rotMℚ_mat θ φ *ᵥ v)) ⬝ᵥ
@@ -221,7 +192,7 @@ lemma rot90_rotMℚ_inner_eq_real_inner (θ φ : ℚ) (v w : Fin 3 → ℚ) :
   rw [← toR2_rotMℚ_mat_mulVec, ← toR2_rotMℚ_mat_mulVec]
   rw [show rotR (π / 2) (toR2 (rotMℚ_mat θ φ *ᵥ v)) =
         toR2 (!![(0 : ℚ), -1; 1, 0] *ᵥ (rotMℚ_mat θ φ *ᵥ v)) from ?_]
-  · exact (inner_toR2' _ _).symm
+  · exact (inner_toR2 _ _).symm
   · -- rotR(π/2) applied to toR2 u = toR2 (rot90 *ᵥ u)
     set u : Fin 2 → ℚ := rotMℚ_mat θ φ *ᵥ v
     show (rotR_mat (π / 2)).toEuclideanLin.toContinuousLinearMap (toR2 u) =

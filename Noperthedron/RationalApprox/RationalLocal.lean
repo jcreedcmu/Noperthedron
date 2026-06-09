@@ -1,5 +1,6 @@
 import Noperthedron.Local
 import Noperthedron.RationalApprox.Basic
+import Noperthedron.RationalApprox.Cast
 import Noperthedron.RationalApprox.EpsKapSpanning
 import Noperthedron.RationalApprox.BoundsKappa3
 import Noperthedron.RationalApprox.BoundsKappa4
@@ -128,95 +129,6 @@ def κApproxPoly.transportTri {ι : Type} [Fintype ι]
   fun i => B.v (hpoly.bijection (Pi i))
 
 namespace LocalTheorem
-
-/-! ### Universal bridge lemmas between the rational `Fin n → ℚ` and real `ℝⁿ` worlds. -/
-
-private lemma cast_κℚ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; norm_num
-
-private lemma toR3_sub (v w : Fin 3 → ℚ) : toR3 (v - w) = toR3 v - toR3 w := by
-  unfold toR3; ext i; simp
-
-private lemma toR2_sub (v w : Fin 2 → ℚ) : toR2 (v - w) = toR2 v - toR2 w := by
-  unfold toR2; ext i; simp
-
-private lemma toR3_vecXℚ (θ φ : ℚ) : toR3 (vecXℚ θ φ) = vecXℚℝ (↑θ : ℝ) ↑φ := by
-  ext j; unfold toR3 vecXℚ vecXℚℝ
-  fin_cases j <;> simp [sinℚ_match, cosℚ_match]
-
-private lemma inner_toR3 (v w : Fin 3 → ℚ) :
-    @inner ℝ ℝ³ _ (toR3 v) (toR3 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
-  unfold toR3
-  have h := EuclideanSpace.inner_eq_star_dotProduct
-    (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 3))
-    (WithLp.toLp 2 (fun i => (w i : ℝ)))
-  simp only [star_trivial] at h
-  rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
-       (WithLp.toLp 2 (fun i => (w i : ℝ))) =
-       (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
-  simp [dotProduct]
-
-private lemma inner_toR2 (v w : Fin 2 → ℚ) :
-    @inner ℝ ℝ² _ (toR2 v) (toR2 w) = ((v ⬝ᵥ w : ℚ) : ℝ) := by
-  unfold toR2
-  have h := EuclideanSpace.inner_eq_star_dotProduct
-    (WithLp.toLp 2 (fun i => (v i : ℝ)) : EuclideanSpace ℝ (Fin 2))
-    (WithLp.toLp 2 (fun i => (w i : ℝ)))
-  simp only [star_trivial] at h
-  rw [show @inner ℝ _ _ (WithLp.toLp 2 (fun i => (v i : ℝ)))
-       (WithLp.toLp 2 (fun i => (w i : ℝ))) =
-       (fun i => (w i : ℝ)) ⬝ᵥ (fun i => (v i : ℝ)) from h, dotProduct_comm]
-  simp [dotProduct]
-
-private lemma castℝ_mulVec {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℚ) (v : Fin n → ℚ) :
-    (fun i => ((M.mulVec v) i : ℝ)) =
-      (M.map (fun x => (x : ℝ))).mulVec (fun i => (v i : ℝ)) := by
-  ext i; push_cast [Matrix.mulVec, dotProduct]; rfl
-
-private lemma rotMℚ_mat_castℝ (θ φ : ℚ) :
-    (rotMℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMℚ_mat θ φ).map (fun x => (x : ℝ)) := by
-  ext i j; fin_cases i <;> fin_cases j <;> simp [rotMℚ_mat, sinℚ_match, cosℚ_match]
-
-private lemma rotRℚ_mat_castℝ (α : ℚ) :
-    (rotRℚ_mat (α : ℝ)) = (rotRℚ_mat α).map (fun x => (x : ℝ)) := by
-  ext i j; fin_cases i <;> fin_cases j <;> simp [rotRℚ_mat, sinℚ_match, cosℚ_match]
-
-private lemma toR2_rotMℚ (θ φ : ℚ) (v : Fin 3 → ℚ) :
-    toR2 (rotMℚ θ φ v) = rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 v) := by
-  unfold rotMℚ rotMℚℝ toR2 toR3
-  rw [Matrix.toLin'_apply]
-  show WithLp.toLp 2 (fun i : Fin 2 => (((rotMℚ_mat θ φ).mulVec v) i : ℝ)) =
-       (rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin.toContinuousLinearMap
-         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-  rw [castℝ_mulVec, ← rotMℚ_mat_castℝ]
-  show WithLp.toLp 2 ((rotMℚ_mat (θ : ℝ) (φ : ℝ)).mulVec _) =
-       (rotMℚ_mat (θ : ℝ) (φ : ℝ)).toEuclideanLin
-         (WithLp.toLp 2 (fun i : Fin 3 => (v i : ℝ)))
-  rw [Matrix.toLpLin_apply]
-
-private lemma toR2_rotRℚ (α : ℚ) (v : Fin 2 → ℚ) :
-    toR2 (rotRℚ α v) = rotRℚℝ (α : ℝ) (toR2 v) := by
-  unfold rotRℚ rotRℚℝ toR2
-  rw [Matrix.toLin'_apply]
-  show WithLp.toLp 2 (fun i : Fin 2 => (((rotRℚ_mat α).mulVec v) i : ℝ)) =
-       (rotRℚ_mat (α : ℝ)).toEuclideanLin.toContinuousLinearMap
-         (WithLp.toLp 2 (fun i : Fin 2 => (v i : ℝ)))
-  rw [castℝ_mulVec, ← rotRℚ_mat_castℝ]
-  show WithLp.toLp 2 ((rotRℚ_mat (α : ℝ)).mulVec _) =
-       (rotRℚ_mat (α : ℝ)).toEuclideanLin
-         (WithLp.toLp 2 (fun i : Fin 2 => (v i : ℝ)))
-  rw [Matrix.toLpLin_apply]
-
-private lemma toR2_pose_rotM₂ℚ (p : Pose ℚ) (v : Fin 3 → ℚ) :
-    toR2 (p.rotM₂ℚ v) = p.toReal.rotM₂ℚℝ (toR3 v) :=
-  toR2_rotMℚ p.θ₂ p.φ₂ v
-
-private lemma toR2_pose_rotM₁ℚ (p : Pose ℚ) (v : Fin 3 → ℚ) :
-    toR2 (p.rotM₁ℚ v) = p.toReal.rotM₁ℚℝ (toR3 v) :=
-  toR2_rotMℚ p.θ₁ p.φ₁ v
-
-private lemma toR2_pose_rotRℚ (p : Pose ℚ) (v : Fin 2 → ℚ) :
-    toR2 (p.rotRℚ v) = p.toReal.rotRℚℝ (toR2 v) :=
-  toR2_rotRℚ p.α v
 
 /--
 Helper used inside `rational_local`'s `Aε` bridge: rephrases the rational

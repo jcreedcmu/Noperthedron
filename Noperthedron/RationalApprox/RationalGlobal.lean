@@ -280,7 +280,7 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
   have hR'_abs := abs_le_abs_add_of_norm_sub_le h_R'M
   have hRθ_abs := abs_le_abs_add_of_norm_sub_le h_RMθ
   have hRφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφ
-  have h_κ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; push_cast; norm_num
+  have h_κ : ((κℚ : ℚ) : ℝ) = κ := cast_κℚ
   have hε_real : (0 : ℝ) ≤ ε := mod_cast hε
   show _ ≤ _
   push_cast
@@ -325,7 +325,7 @@ private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
   have hφ_abs : |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| ≤
                 |((rotMφℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ)| + 3 * κ :=
     abs_le_abs_add_of_norm_sub_le h_Mφ
-  have h_κ : ((κℚ : ℚ) : ℝ) = κ := by unfold κℚ κ; push_cast; norm_num
+  have h_κ : ((κℚ : ℚ) : ℝ) = κ := cast_κℚ
   have hε_real : (0 : ℝ) ≤ ε := mod_cast hε
   push_cast
   rw [h_κ]
