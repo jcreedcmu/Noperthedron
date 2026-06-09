@@ -48,68 +48,50 @@ private lemma py_κSpanning_of_rational
 theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   let ε := row.epsilon
-  let iv := row.toRealInterval
-  let pbar := iv.center
-  rintro ⟨q, hqi, hqr⟩
   obtain ⟨s, hs₁, hs₂⟩ := hrow.exists_symmetry
   have hε : 0 < ε := hrow.epsilon_pos
-  have hpbar_eq : row.interval.centerPose.toReal = pbar := by
-    show row.interval.centerPose.toReal = row.interval.toReal.center
-    have h (p : Param) : ((row.interval.center p : ℚ) : ℝ) =
-        row.interval.toReal.center.getParam p :=
-      (Interval.toReal_center_getParam row.interval p).symm
-    refine Pose.mk.injEq .. |>.mpr ⟨h .θ₁, h .θ₂, h .φ₁, h .φ₂, h .α⟩
-  have := RationalApprox.LocalTheorem.rational_local
-           exactPoly pythonPolyQ KappaApprox.exact_κApprox_python
-           row.Pi row.Qi
-           (Noperthedron.TriangleSymmetry.congruent_of_apply s row.Pi row.Qi hs₁ hs₂)
-           row.interval.centerPose hrow.center_in_fourQ
-           ε row.δ row.r hε hrow.rpos RationalApprox.sqrtApprox hrow.r_valid
-           ?hdelta
-           ?hx1
-           ?hx2
-           ?hspan1
-           ?hspan2
-           hrow.Bεℚ
-  case hdelta =>
-    intro i
-    -- row.δ rewrites to Finset.max' over BoundDeltaℚi via Row.δ_eq_max'_BoundDeltaℚi.
-    have hi_mem : RationalApprox.LocalTheorem.BoundDeltaℚi
-        row.interval.centerPose (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi)
-        RationalApprox.sqrtApprox i ∈
-        Finset.image (RationalApprox.LocalTheorem.BoundDeltaℚi
+  have pc : RationalApprox.LocalTheorem.RationalLocalTheoremPrecondition
+      exactPoly pythonPolyQ KappaApprox.exact_κApprox_python
+      row.interval.centerPose ε := {
+    Pi := row.Pi
+    Qi := row.Qi
+    cong_tri := Noperthedron.TriangleSymmetry.congruent_of_apply s row.Pi row.Qi hs₁ hs₂
+    hp := hrow.center_in_fourQ
+    δ := row.δ
+    r := row.r
+    hr := hrow.rpos
+    approx := RationalApprox.sqrtApprox
+    hr₁ := hrow.r_valid
+    hδ := by
+      intro i
+      -- row.δ rewrites to Finset.max' over BoundDeltaℚi via Row.δ_eq_max'_BoundDeltaℚi.
+      have hi_mem : RationalApprox.LocalTheorem.BoundDeltaℚi
           row.interval.centerPose (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi)
-          RationalApprox.sqrtApprox) Finset.univ :=
-      Finset.mem_image_of_mem _ (Finset.mem_univ i)
-    have hle := Finset.le_max' _ _ hi_mem
-    show row.δ ≥ RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
-      (KappaApprox.exact_κApprox_python.transportTri row.Pi)
-      (KappaApprox.exact_κApprox_python.transportTri row.Qi) RationalApprox.sqrtApprox i
-    rw [transportTri_python row.Pi, transportTri_python row.Qi,
-        Row.δ_eq_max'_BoundDeltaℚi]
-    exact hle
-  case hx1 =>
-    refine ⟨0, by simp, ?_⟩
-    exact hrow.X₁_inner_gt
-  case hx2 =>
-    refine ⟨row.sigma_Q.val, ?_, ?_⟩
-    · have hmem := row.sigma_Q.property
-      simp only [Finset.mem_Icc] at hmem
-      obtain ⟨_, h2⟩ := hmem
-      interval_cases row.sigma_Q.val <;> simp
-    · exact hrow.X₂_inner_gt
-  case hspan1 =>
-    exact py_κSpanning_of_rational row.Pi
+          RationalApprox.sqrtApprox i ∈
+          Finset.image (RationalApprox.LocalTheorem.BoundDeltaℚi
+            row.interval.centerPose (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi)
+            RationalApprox.sqrtApprox) Finset.univ :=
+        Finset.mem_image_of_mem _ (Finset.mem_univ i)
+      have hle := Finset.le_max' _ _ hi_mem
+      show row.δ ≥ RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
+        (KappaApprox.exact_κApprox_python.transportTri row.Pi)
+        (KappaApprox.exact_κApprox_python.transportTri row.Qi) RationalApprox.sqrtApprox i
+      rw [transportTri_python row.Pi, transportTri_python row.Qi,
+          Row.δ_eq_max'_BoundDeltaℚi]
+      exact hle
+    ae₁ := ⟨0, by simp, hrow.X₁_inner_gt⟩
+    ae₂ := ⟨row.sigma_Q.val, by
+        have hmem := row.sigma_Q.property
+        simp only [Finset.mem_Icc] at hmem
+        obtain ⟨_, h2⟩ := hmem
+        interval_cases row.sigma_Q.val <;> simp,
+      hrow.X₂_inner_gt⟩
+    span₁ := py_κSpanning_of_rational row.Pi
       row.interval.centerPose.θ₁ row.interval.centerPose.φ₁ ε hε hrow.P_spanning
-  case hspan2 =>
-    exact py_κSpanning_of_rational row.Qi
+    span₂ := py_κSpanning_of_rational row.Qi
       row.interval.centerPose.θ₂ row.interval.centerPose.φ₂ ε hε hrow.Q_spanning
-  -- Final goal: derive False from `this : ¬ ∃ p ∈ Metric.closedBall pℚ.toReal ε, RupertPose p exactPoly.hull`
-  rw [hpbar_eq] at this
-  push Not at this
-  refine this q ?_ hqr
-  have hqi' : q ∈ iv := hqi
-  have hmem : q ∈ Metric.closedBall iv.center iv.radius :=
-    mem_closed_ball_center_of_mem iv q hqi'
-  rw [(row_epsilon_cast_eq_radius row).symm] at hmem
-  exact hmem
+    be := hrow.Bεℚ
+  }
+  exact no_rupert_in_interval_of_ball row
+    (RationalApprox.LocalTheorem.rational_local exactPoly pythonPolyQ
+      KappaApprox.exact_κApprox_python row.interval.centerPose ε pc)

@@ -273,25 +273,44 @@ def BoundRℚ (r ε : ℚ) (p : Pose ℚ) (Q_ : Local.TriangleQ) (approx : Appro
 deriving Decidable
 
 /--
+A compact way of saying "the rational pose `p_` satisfies the Rational Local
+Theorem precondition at width `ε`": indices `Pi`, `Qi` of a pair of congruent
+triangles among the vertices of `poly`, the bounds `δ` and `r`, and a
+square-root approximation scheme, with all the hypotheses of [SY25] Theorem 48
+packaged together. This is the form produced by the computational checker.
+-/
+structure RationalLocalTheoremPrecondition {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
+    (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
+    (hpoly : κApproxPoly poly.vertices poly_)
+    (p_ : Pose ℚ) (ε : ℚ) : Type where
+  Pi : Fin 3 → ι
+  Qi : Fin 3 → ι
+  cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi)
+  hp : p_ ∈ fourInterval ℚ
+  δ : ℚ
+  r : ℚ
+  hr : 0 < r
+  approx : Approx
+  hr₁ : BoundRℚ r ε p_ (hpoly.transportTri Qi) approx
+  hδ : BoundDeltaℚ δ p_ (hpoly.transportTri Pi) (hpoly.transportTri Qi) approx
+  ae₁ : (hpoly.transportTri Pi).Aεℚ p_.vecX₁ℚ ε approx
+  ae₂ : (hpoly.transportTri Qi).Aεℚ p_.vecX₂ℚ ε approx
+  span₁ : (hpoly.transportTri Pi).toReal.κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε
+  span₂ : (hpoly.transportTri Qi).toReal.κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε
+  be : Local.TriangleQ.Bεℚ (hpoly.transportTri Qi) Qi
+        (fun k => poly_.v (hpoly.bijection k)) p_ ε δ r approx
+
+/--
 [SY25] Theorem 48 "The Rational Local Theorem"
 -/
 theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
     (hpoly : κApproxPoly poly.vertices poly_)
-    (Pi Qi : Fin 3 → ι)
-    (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
-    (p_ : Pose ℚ) (hp : p_ ∈ fourInterval ℚ)
-    (ε δ r : ℚ) (hε : 0 < ε) (hr : 0 < r)
-    (approx : Approx)
-    (hr₁ : BoundRℚ r ε p_ (hpoly.transportTri Qi) approx)
-    (hδ : BoundDeltaℚ δ p_ (hpoly.transportTri Pi) (hpoly.transportTri Qi) approx)
-    (ae₁ : (hpoly.transportTri Pi).Aεℚ p_.vecX₁ℚ ε approx)
-    (ae₂ : (hpoly.transportTri Qi).Aεℚ p_.vecX₂ℚ ε approx)
-    (span₁ : (hpoly.transportTri Pi).toReal.κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε)
-    (span₂ : (hpoly.transportTri Qi).toReal.κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε)
-    (be : Local.TriangleQ.Bεℚ (hpoly.transportTri Qi) Qi
-          (fun k => poly_.v (hpoly.bijection k)) p_ ε δ r approx)
+    (p_ : Pose ℚ) (ε : ℚ)
+    (pc : RationalLocalTheoremPrecondition poly poly_ hpoly p_ ε)
     : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
+  obtain ⟨Pi, Qi, cong_tri, hp, δ, r, hr, approx,
+          hr₁, hδ, ae₁, ae₂, span₁, span₂, be⟩ := pc
   have hεℝ : 0 < (ε : ℝ) := span₁.pos
   -- Keep a handle on the rational pose before shadowing.
   let p_ℚ : Pose ℚ := p_
@@ -608,5 +627,8 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
       _ ≤ bounds_kappa4_Aℚ Q_ℚ v_ℚ p_ℚ ε approx.upper_sqrt := hBεℚ_le
       _ ≤ bounds_kappa4_A (Q i) (poly.vertices.v k) θ₂ φ₂ ε := hbk4
   -- Apply local_theorem
-  exact Local.local_theorem poly Pi Qi cong_tri p_ ε δ r hεℝ (Rat.cast_pos.mpr hr)
-    hr₁' hδ' ae₁' ae₂' span₁' span₂' be'
+  exact Local.local_theorem poly p_ ε
+    { Pi := Pi, Qi := Qi, cong_tri := cong_tri, δ := δ, r := r,
+      hr := Rat.cast_pos.mpr hr,
+      hr₁ := hr₁', hδ := hδ', ae₁ := ae₁', ae₂ := ae₂',
+      span₁ := span₁', span₂ := span₂', be := be' }

@@ -79,27 +79,37 @@ def BoundDelta (δ : ℝ) (p : Pose ℝ) (P Q : Triangle) : Prop :=
 def BoundR (r ε : ℝ) (p : Pose ℝ) (Q : Triangle): Prop :=
   ∀ i : Fin 3, ‖p.rotM₂ (Q i)‖ > r + √2 * ε
 
--- TODO: Somehow separate out the "local theorem precondition"
--- predicate in a way that is suitable for the computational step's
--- tree check.
+/--
+A compact way of saying "the pose `p_` satisfies the Local Theorem precondition
+at width `ε`": indices `Pi`, `Qi` of a pair of congruent triangles among the
+vertices of `poly`, together with bounds `δ` and `r`, witnessing that no pose
+within `ε` of `p_` can be a Rupert pose.
+-/
+structure LocalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
+    (poly : GoodPoly ι) (p_ : Pose ℝ) (ε : ℝ) : Type where
+  Pi : Fin 3 → ι
+  Qi : Fin 3 → ι
+  cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi)
+  δ : ℝ
+  r : ℝ
+  hr : 0 < r
+  hr₁ : BoundR r ε p_ (poly.vertices.v ∘ Qi)
+  hδ : BoundDelta δ p_ (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi)
+  ae₁ : Triangle.Aε p_.vecX₁ (poly.vertices.v ∘ Pi) ε
+  ae₂ : Triangle.Aε p_.vecX₂ (poly.vertices.v ∘ Qi) ε
+  span₁ : Triangle.Spanning (poly.vertices.v ∘ Pi) p_.θ₁ p_.φ₁ ε
+  span₂ : Triangle.Spanning (poly.vertices.v ∘ Qi) p_.θ₂ p_.φ₂ ε
+  be : Triangle.Bε (poly.vertices.v ∘ Qi) Qi poly.vertices.v p_ ε δ r
 
 /--
   [SY25] Theorem 36
 -/
 theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
-    (poly : GoodPoly ι)
-    (Pi Qi : Fin 3 → ι)
-    (cong_tri : Triangle.Congruent (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
-    (p_ : Pose ℝ)
-    (ε δ r : ℝ) (hε : 0 < ε) (hr : 0 < r)
-    (hr₁ : BoundR r ε p_ (poly.vertices.v ∘ Qi))
-    (hδ : BoundDelta δ p_ (poly.vertices.v ∘ Pi) (poly.vertices.v ∘ Qi))
-    (ae₁ : Triangle.Aε p_.vecX₁ (poly.vertices.v ∘ Pi) ε)
-    (ae₂ : Triangle.Aε p_.vecX₂ (poly.vertices.v ∘ Qi) ε)
-    (span₁ : Triangle.Spanning (poly.vertices.v ∘ Pi) p_.θ₁ p_.φ₁ ε)
-    (span₂ : Triangle.Spanning (poly.vertices.v ∘ Qi) p_.θ₂ p_.φ₂ ε)
-    (be : Triangle.Bε (poly.vertices.v ∘ Qi) Qi poly.vertices.v p_ ε δ r)
+    (poly : GoodPoly ι) (p_ : Pose ℝ) (ε : ℝ)
+    (pc : LocalTheoremPrecondition poly p_ ε)
     : ¬∃ p ∈ Metric.closedBall p_ ε, RupertPose p poly.hull := by
+  obtain ⟨Pi, Qi, cong_tri, δ, r, hr, hr₁, hδ, ae₁, ae₂, span₁, span₂, be⟩ := pc
+  have hε : 0 < ε := span₁.pos
   let P : Triangle := poly.vertices.v ∘ Pi
   let Q : Triangle := poly.vertices.v ∘ Qi
   change Triangle.Congruent P Q at cong_tri

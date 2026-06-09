@@ -15,24 +15,37 @@ theorem row_epsilon_cast_eq_radius (row : Row) :
   push_cast
   rfl
 
+/-- Shared tail of the global and local bridge theorems: a "no Rupert pose
+in the closed ball around the center pose at radius `row.epsilon`" conclusion
+(as produced by `rational_global` / `rational_local`) yields "no Rupert pose
+in the row's interval". -/
+theorem no_rupert_in_interval_of_ball (row : Row)
+    (h : ¬ ∃ q ∈ Metric.closedBall row.interval.centerPose.toReal
+        ((row.epsilon : ℚ) : ℝ), RupertPose q exactPoly.hull) :
+    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
+  rintro ⟨q, hqi, hqr⟩
+  let iv := row.toRealInterval
+  have hpbar_eq : row.interval.centerPose.toReal = iv.center := by
+    show row.interval.centerPose.toReal = row.interval.toReal.center
+    have hc (p : Param) : ((row.interval.center p : ℚ) : ℝ) =
+        row.interval.toReal.center.getParam p :=
+      (Interval.toReal_center_getParam row.interval p).symm
+    refine Pose.mk.injEq .. |>.mpr ⟨hc .θ₁, hc .θ₂, hc .φ₁, hc .φ₂, hc .α⟩
+  rw [hpbar_eq] at h
+  push Not at h
+  refine h q ?_ hqr
+  have hqi' : q ∈ iv := hqi
+  have hmem : q ∈ Metric.closedBall iv.center iv.radius :=
+    mem_closed_ball_center_of_mem iv q hqi'
+  rw [(row_epsilon_cast_eq_radius row).symm] at hmem
+  exact hmem
+
 theorem valid_global_imp_no_rupert (row : Row)
     (hrow : row.ValidGlobal) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   let pℚ := row.interval.centerPose
-  let iv := row.toRealInterval
-  let pbar := iv.center
   let r := row.interval.radius
-  rintro ⟨q, hqi, hqr⟩
-  have hqi' : q ∈ iv := hqi
   have hr : 0 ≤ r := PoseInterval.radius_nonneg row.interval
-  have hpbar_eq : pℚ.toReal = pbar := by
-    show row.interval.centerPose.toReal = row.interval.toReal.center
-    have h (p : Param) : ((row.interval.center p : ℚ) : ℝ) =
-        row.interval.toReal.center.getParam p :=
-      (Interval.toReal_center_getParam row.interval p).symm
-    refine Pose.mk.injEq .. |>.mpr ⟨h .θ₁, h .θ₂, h .φ₁, h .φ₂, h .α⟩
-  have hrg := RationalApprox.GlobalTheorem.rational_global
-                 pℚ r hr exactPoly pythonPolyQ KappaApprox.exact_κApprox_python
   have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
              exactPoly pythonPolyQ KappaApprox.exact_κApprox_python pℚ r := {
     j := row.S_index
@@ -52,11 +65,6 @@ theorem valid_global_imp_no_rupert (row : Row)
       linarith
     exceeds := hrow.G_gt_maxH
   }
-  specialize hrg pc
-  rw [hpbar_eq] at hrg
-  push Not at hrg
-  refine hrg q ?_ hqr
-  have hmem : q ∈ Metric.closedBall iv.center iv.radius :=
-    mem_closed_ball_center_of_mem iv q hqi'
-  rw [(row_epsilon_cast_eq_radius row).symm] at hmem
-  exact hmem
+  exact no_rupert_in_interval_of_ball row
+    (RationalApprox.GlobalTheorem.rational_global pℚ r hr
+      exactPoly pythonPolyQ KappaApprox.exact_κApprox_python pc)
