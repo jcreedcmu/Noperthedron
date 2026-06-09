@@ -166,8 +166,8 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have hQ₁ : ‖Q i‖ ≤ 1 := poly.vertex_radius_le_one (Qi i)
   -- apply lemma 15
   have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
-  let T (i) : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
-  have hT : ‖T i - p_.rotM₂ (Q i)‖ ≤ δ := by
+  let T : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
+  have hT : ‖T - p_.rotM₂ (Q i)‖ ≤ δ := by
     simp only [T, midpoint_sub_right, invOf_eq_inv]
     rw [norm_smul, Real.norm_eq_abs, show |(2:ℝ)⁻¹| = 2⁻¹ by norm_num]
     linarith [hδ i]
@@ -175,38 +175,28 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have hP₁ : ‖P i‖ ≤ 1 := poly.vertex_radius_le_one (Pi i)
   obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
   -- apply lemma 33
-  have h₅ (k : ι) (hkQ : k ≠ Qi i) :=
-    coss (Q := poly.vertices.v k) hQ₁ (poly.vertex_radius_le_one k) hε hθ₂ hφ₂ ?pos
-  case pos =>
-    have h₆ := be i k hkQ
-    unfold Triangle.Bε.lhs at h₆
-    have h₇ : 0 < (δ + √5 * ε) / r := by positivity
-    unfold Pose.rotM₂ at h₆
-    exact h₇.trans h₆
   have h₅' (k : ι) (hkQ : k ≠ Qi i) :
       (δ + √5 * ε) / r <
         ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - poly.vertices.v k)⟫ /
         (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - poly.vertices.v k)‖) := by
     have h₆ := be i k hkQ
     unfold Triangle.Bε.lhs Pose.rotM₂ at h₆
-    specialize h₅ k hkQ
+    have h₅ := coss (Q := poly.vertices.v k) hQ₁ (poly.vertex_radius_le_one k) hε hθ₂ hφ₂
+      ((show (0:ℝ) < (δ + √5 * ε) / r by positivity).trans h₆)
     linarith only [h₅, h₆]
   -- apply lemma 32
   let pm : Finset Euc(2) :=
     Finset.image (rotM p.θ₂ p.φ₂) (Finset.image poly.vertices.v Finset.univ)
-  have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) (T i) pm := by
+  have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) T pm := by
     refine inner_ge_implies_LMD (r := r) ?_ ?_ hr h₃ ?_
     · exact Finset.mem_image_of_mem _
         (Finset.mem_image.mpr ⟨Qi i, Finset.mem_univ _, rfl⟩)
-    · simp only [T, Pose.rotR, Pose.rotM₁, Pose.rotM₂]
-      rw [Metric.mem_ball, dist_eq_norm, norm_sub_rev] at hd₂
+    · rw [Metric.mem_ball, dist_eq_norm, norm_sub_rev] at hd₂
       rw [add_comm, norm_sub_rev]
       exact hd₂
     · intro Pᵢ hPᵢ hPᵢQ
-      simp only [Finset.mem_image, pm] at hPᵢ
-      obtain ⟨q, hq₁, rfl⟩ := hPᵢ
-      simp only [Finset.mem_univ, true_and] at hq₁
-      obtain ⟨k, rfl⟩ := hq₁
+      simp only [pm, Finset.mem_image, Finset.mem_univ, true_and] at hPᵢ
+      obtain ⟨q, ⟨k, rfl⟩, rfl⟩ := hPᵢ
       have hkQ : k ≠ Qi i := fun h => hPᵢQ (by rw [h]; rfl)
       rw [← map_sub]
       linarith [h₅' k hkQ]
@@ -220,9 +210,7 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
       rw [Pose.outer_shadow_eq_M]
       have hpoly_hull : poly.hull =
           convexHull ℝ (↑(Finset.image poly.vertices.v Finset.univ) : Set ℝ³) := by
-        unfold GoodPoly.hull
-        simp only [Polyhedron.hull, Finset.coe_image, Finset.coe_univ, Set.image_univ]
-        congr 1
+        simp [GoodPoly.hull, Polyhedron.hull, Set.range]
       rw [hpoly_hull]
       have hpm : (↑pm : Set ℝ²) =
           p.rotM₂ '' ↑(Finset.image poly.vertices.v Finset.univ) := by
@@ -233,27 +221,22 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
       simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
     rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
   -- Step 2: Combine with hd₁ to get sect membership, apply LMD for norm bound
-  have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (δ + √5 * ε) (T i) pm :=
+  have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (δ + √5 * ε) T pm :=
     ⟨by rw [add_comm]; exact hd₁, h_in_interior_outer⟩
   have h_norm_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := by
     rw [← Bounding.rotR_preserves_norm p.α]; exact h₈ _ h_sect
   -- Step 3: Apply pythagoras to convert norm bounds to inner product bounds
   have h_inner_sq : ⟪vecX p.θ₂ p.φ₂, Q i⟫^2 < ⟪Y, P i⟫^2 := by
-    have h_pyth₁ := Local.pythagoras (θ := p.θ₁) (φ := p.φ₁) (P i)
-    have h_pyth₂ := Local.pythagoras (θ := p.θ₂) (φ := p.φ₂) (Q i)
-    have h_norm_eq : ‖P i‖ = ‖Q i‖ := by rw [hL i]; exact LinearIsometry.norm_map L (Q i)
+    have h_norm_eq : ‖P i‖ = ‖Q i‖ := by rw [hL i, L.norm_map]
     rw [←sq_lt_sq₀ (norm_nonneg _) (norm_nonneg _)] at h_norm_bound
     -- pythagoras gives: ‖rotM θ φ P‖² = ‖P‖² - ⟪vecX θ φ, P⟫²
     -- So: ‖P‖² - ⟪Y, P i⟫² < ‖Q‖² - ⟪vecX θ₂ φ₂, Q i⟫² with ‖P‖ = ‖Q‖
-    simp only [h_pyth₁, h_pyth₂, h_norm_eq] at h_norm_bound
+    simp only [Local.pythagoras, h_norm_eq] at h_norm_bound
     linarith
   -- Step 4: Handle sign conventions using |(-1)^σ * x| = |x|
   have hYP_pos : 0 < ⟪Y, P_ i⟫ := by
     have h_eq : ⟪vecX p_.θ₁ p_.φ₁, P_ i⟫ = (-1 : ℝ)^σP * ⟪p_.vecX₁, P i⟫ := by simp only [P_, real_inner_smul_right, Pose.vecX₁]
     exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ (by rw [h_eq]; exact hσP₂ i)
-  have hZQ_pos : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
-    have h_eq : ⟪vecX p_.θ₂ p_.φ₂, Q_ i⟫ = (-1 : ℝ)^σQ * ⟪p_.vecX₂, Q i⟫ := by simp only [Q_, real_inner_smul_right, Pose.vecX₂]
-    exact Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂ (by rw [h_eq]; exact hσQ₂ i)
   -- ⟪Z, P_ i⟫ = (-1)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ and ⟪Y, P_ i⟫ = (-1)^σP * ⟪Y, P i⟫
   have h_ZP : ⟪Z, P_ i⟫ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
     simp only [Z, K, P_, ContinuousLinearMap.coe_smul', _root_.Pi.smul_apply,
@@ -265,11 +248,10 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     rw [←mul_assoc, h_exp]
   have h_YP : ⟪Y, P_ i⟫ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := by simp only [P_, real_inner_smul_right]
   rw [h_ZP, h_YP]
-  -- Both sides positive after sign, compare via absolute values
-  have hZQ_sign : 0 < (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
-    simpa only [Q_, real_inner_smul_right] using hZQ_pos
+  -- The right-hand side is positive, so compare via absolute values
   have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := h_YP ▸ hYP_pos
-  calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ = |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := (abs_of_pos hZQ_sign).symm
+  calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫
+      ≤ |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := le_abs_self _
     _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_neg_one_pow, one_mul]
     _ < |⟪Y, P i⟫| := sq_lt_sq.mp h_inner_sq
     _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_neg_one_pow, one_mul]
