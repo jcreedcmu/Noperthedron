@@ -1,10 +1,10 @@
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Noperthedron.Basic
 import Noperthedron.Bounding.OpNorm
-import Noperthedron.Bounding.RaRa
 
 /-!
 
-Material for [SY25] Lemma 12.
+Material for [SY25] Lemma 10 and Lemma 12.
 
 -/
 
@@ -81,62 +81,42 @@ theorem dist_rot3 {d : Fin 3} {α α' : ℝ} :
         _ ≤ N * ‖v‖ := h
         _ = N := by simp [norm_v_one]
 
-theorem dist_rot2_apply {α α' : ℝ} {v : ℝ²} :
-  ‖(rot2 α - rot2 α') v‖ = 2 * |sin ((α - α') / 2)| * ‖v‖ := by
-    simp only [rot2, rot2_mat, AddChar.coe_mk, ContinuousLinearMap.coe_sub',
-      LinearMap.coe_toContinuousLinearMap', Pi.sub_apply, Matrix.toLpLin_apply,
-      Matrix.mulVec_eq_sum, op_smul_eq_smul, Fin.sum_univ_two, Fin.isValue,
-      WithLp.toLp_add, WithLp.toLp_smul, ENNReal.toReal_ofNat, Nat.ofNat_pos, PiLp.norm_eq_sum,
-      PiLp.sub_apply, PiLp.add_apply, PiLp.smul_apply, Matrix.transpose_apply,
-      Matrix.of_apply, smul_eq_mul, norm_eq_abs, rpow_ofNat, sq_abs, mul_neg, one_div]
-    calc
-      ((v 0 * cos α + -(v 1 * sin α) - (v 0 * cos α' + -(v 1 * sin α'))) ^ 2 +
-          (v 0 * sin α + v 1 * cos α - (v 0 * sin α' + v 1 * cos α')) ^ 2) ^ (2 : ℝ)⁻¹
-          = ((2 * sin ((α - α') / 2)) ^ 2 * (v 0 ^ 2 + v 1 ^ 2)) ^ (2 : ℝ)⁻¹ := by
-        have one_neg_cos_nonneg : 0 ≤ 1 - cos (α - α') := by simp [cos_le_one]
-        refine (rpow_left_inj ?_ ?_ ?_).mpr ?_ <;> try positivity
-        calc
-          (v 0 * cos α + -(v 1 * sin α) - (v 0 * cos α' + -(v 1 * sin α'))) ^ 2 +
-              (v 0 * sin α + v 1 * cos α - (v 0 * sin α' + v 1 * cos α')) ^ 2
-              = (v 0 * (cos α - cos α') - v 1 * (sin α - sin α')) ^ 2 +
-                (v 0 * (sin α - sin α') + v 1 * (cos α - cos α')) ^ 2 := by ring_nf
-          _ = 4 * (v 0 ^ 2 + v 1 ^ 2) * (sin ((α - α') / 2)) ^ 2 *
-              ((sin ((α + α') / 2)) ^ 2 + (cos ((α + α') / 2)) ^ 2) := by
-            simp only [Fin.isValue, cos_sub_cos, neg_mul, mul_neg, sin_sub_sin, sq]
-            ring_nf
-          _ = 4 * (v 0 ^ 2 + v 1 ^ 2) * (sin ((α - α') / 2)) ^ 2 := by simp [sin_sq_add_cos_sq]
-          _ = (2 * sin ((α - α') / 2)) ^ 2 * (v 0 ^ 2 + v 1 ^ 2) := by ring
-      _ = 2 * |sin ((α - α') / 2)| * (v 0 ^ 2 + v 1 ^ 2) ^ (2 : ℝ)⁻¹ := by
-        rw [mul_rpow, inv_eq_one_div, rpow_div_two_eq_sqrt]
-        all_goals try positivity
-        simp only [Fin.isValue, sqrt_sq_eq_abs, abs_mul, Nat.abs_ofNat, rpow_one, one_div]
+/-- The difference of two rotations is a scalar multiple of a rotation. -/
+lemma rotR_sub_rotR (α α' : ℝ) :
+    rotR α - rotR α' = (2 * sin ((α - α') / 2)) • rotR ((α + α') / 2 + π / 2) := by
+  ext v i
+  fin_cases i <;>
+    simp [rotR, rotR_mat, AddChar.coe_mk, Matrix.toLpLin_apply,
+      Matrix.vecHead, Matrix.vecTail, cos_add_pi_div_two, sin_add_pi_div_two]
+  · linear_combination v.ofLp 0 * cos_sub_cos α α' - v.ofLp 1 * sin_sub_sin α α'
+  · linear_combination v.ofLp 0 * sin_sub_sin α α' + v.ofLp 1 * cos_sub_cos α α'
 
-theorem dist_rot2 {α α' : ℝ} :
-    ‖rot2 α - rot2 α'‖ = 2 * |sin ((α - α') / 2)| := by
-  refine ContinuousLinearMap.opNorm_eq_of_bounds ?_ ?_ ?_
-  · positivity
-  · intro v
-    rw [dist_rot2_apply]
-  · intro N N_nonneg h
-    specialize h !₂[1, 0]
-    have norm_xhat_eq_one : ‖!₂[(1 : ℝ), 0]‖ = 1 := by simp [PiLp.norm_eq_sum, Fin.sum_univ_two]
-    calc
-      2 * |sin ((α - α') / 2)| = ‖(rot2 α - rot2 α') !₂[(1 : ℝ), 0]‖ := by
-        simp only [dist_rot2_apply, norm_xhat_eq_one, mul_one]
-      _ ≤ N * ‖!₂[(1 : ℝ), 0]‖ := h
-      _ = N := by simp [norm_xhat_eq_one]
+theorem dist_rotR {α α' : ℝ} : ‖rotR α - rotR α'‖ = 2 * |sin ((α - α') / 2)| := by
+  rw [rotR_sub_rotR, norm_smul, rotR_norm_one, mul_one, Real.norm_eq_abs, abs_mul, abs_two]
 
-theorem dist_rot3_eq_dist_rot {d : Fin 3} {α α' : ℝ} : ‖rot3 d α - rot3 d α'‖ = ‖rot2 α - rot2 α'‖ := by
-  simp only [dist_rot3, dist_rot2]
+theorem dist_rot3_eq_dist_rotR {d : Fin 3} {α α' : ℝ} :
+    ‖rot3 d α - rot3 d α'‖ = ‖rotR α - rotR α'‖ := by
+  rw [dist_rot3, dist_rotR]
 
-lemma two_mul_abs_sin_half_le {α : ℝ} : 2 * |sin (α / 2)| ≤ |α| := by
-  have h : |sin (α / 2)| ≤ |α / 2| := abs_sin_le_abs
-  rw [abs_div] at h
-  linarith
+/- [SY25] Lemma 10 -/
 
-theorem dist_rot2_le_dist {α α' : ℝ} : ‖rot2 α - rot2 α'‖ ≤ ‖α - α'‖ := by
-  rw [dist_rot2]
-  exact two_mul_abs_sin_half_le
+theorem norm_rotR_sub_rotR_lt {ε α α_ : ℝ} (hε : 0 < ε) (hα : |α - α_| ≤ ε) :
+    ‖rotR α - rotR α_‖ < ε := by
+  rw [dist_rotR]
+  rcases eq_or_ne α α_ with rfl | hne
+  · simpa using hε
+  · have h := abs_sin_lt_abs (div_ne_zero (sub_ne_zero.mpr hne) two_ne_zero)
+    rw [abs_div, abs_two] at h
+    linarith
+
+theorem norm_RxL_sub_RxL_eq {α α_ : ℝ} : ‖RxL α - RxL α_‖ = ‖rotR α - rotR α_‖ :=
+  dist_rot3_eq_dist_rotR (d := 0)
+
+theorem norm_RyL_sub_RyL_eq {α α_ : ℝ} : ‖RyL α - RyL α_‖ = ‖rotR α - rotR α_‖ :=
+  dist_rot3_eq_dist_rotR (d := 1)
+
+theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α - rotR α_‖ :=
+  dist_rot3_eq_dist_rotR (d := 2)
 
 def rot3_eq_rot3_mat_toEuclideanLin {d : Fin 3} {θ : ℝ}: rot3 d θ = (rot3_mat d θ).toEuclideanLin := by
   fin_cases d <;> simp [RxL, RyL, RzL, rot3, rot3_mat]

@@ -3,7 +3,6 @@ import Noperthedron.Bounding
 import Noperthedron.Bounding.BoundingUtil
 import Noperthedron.Bounding.OpNorm
 import Noperthedron.Bounding.OrthEquivRotz
-import Noperthedron.Bounding.RaRa
 import Noperthedron.Bounding.SmallConsecutiveRotations
 import Noperthedron.Checker.ApproxSqrt
 import Noperthedron.Checker.Global

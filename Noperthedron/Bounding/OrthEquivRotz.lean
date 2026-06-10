@@ -16,7 +16,6 @@ The following was proved by Aristotle:
 
 import Noperthedron.Basic
 import Noperthedron.Bounding.OpNorm
-import Noperthedron.Bounding.RaRa
 import Noperthedron.Bounding.BoundingUtil
 import Noperthedron.RealMod
 
