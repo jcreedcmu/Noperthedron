@@ -2,6 +2,8 @@ import Noperthedron.Basic
 
 namespace Bounding
 
+open scoped Matrix
+
 theorem norm_one_of_preserves_norm {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (hf : (v : E n) → ‖f v‖ = ‖v‖) :
     ‖f‖ = 1 := by
   have decrease (x : E n) : ‖f x‖ ≤ 1 * ‖x‖ := by rw [hf x]; simp
@@ -10,13 +12,6 @@ theorem norm_one_of_preserves_norm {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m
     have he : ‖e‖ = 1 := by simp [e]
     have z := k e; rw [hf, he, mul_one] at z; exact z
   exact ContinuousLinearMap.opNorm_eq_of_bounds (by norm_num) decrease increase
-
-theorem norm_one_of_preserves_sq_norm {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m}
-    (hf : (v : E n) → ‖f v‖^2 = ‖v‖^2) : ‖f‖ = 1 := by
-  refine norm_one_of_preserves_norm ?_
-  intro v
-  suffices h : ‖f v‖^2 = ‖v‖^2 by simp_all
-  exact hf v
 
 theorem rotR_preserves_norm (α : ℝ) :
     ∀ (v : E 2), ‖rotR α v‖ = ‖v‖ := by
@@ -94,192 +89,165 @@ private lemma inner_sq_add_inner_sq_le {a0 a1 a2 b0 b1 b2 x y z : ℝ}
 A `2 × 3` matrix whose rows are orthogonal to each other and have norm at most
 one has operator norm at most one (as a map `ℝ³ →L[ℝ] ℝ²` between Euclidean
 spaces). This is Bessel's inequality.
+
+The matrix is stated as a literal so that uses can instantiate it by unification,
+leaving only scalar side goals.
 -/
-theorem opNorm_le_one_of_orthogonal_rows {A : Matrix (Fin 2) (Fin 3) ℝ}
-    (horth : A 0 ⬝ᵥ A 1 = 0) (h0 : A 0 ⬝ᵥ A 0 ≤ 1) (h1 : A 1 ⬝ᵥ A 1 ≤ 1) :
-    ‖A.toEuclideanLin.toContinuousLinearMap‖ ≤ 1 := by
-  simp only [dotProduct, Fin.sum_univ_three, ← pow_two] at horth h0 h1
+theorem opNorm_le_one_of_orthogonal_rows {a b c d e f : ℝ}
+    (horth : a * d + b * e + c * f = 0)
+    (h0 : a^2 + b^2 + c^2 ≤ 1) (h1 : d^2 + e^2 + f^2 ≤ 1) :
+    ‖(!![a, b, c; d, e, f]).toEuclideanLin.toContinuousLinearMap‖ ≤ 1 := by
   refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one ?_
   intro v
   rw [one_mul, ← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)]
   simp only [PiLp.norm_sq_eq_of_L2, Real.norm_eq_abs, sq_abs, Fin.sum_univ_two,
     Fin.sum_univ_three, LinearMap.coe_toContinuousLinearMap', Matrix.ofLp_toLpLin,
-    Matrix.toLin'_apply, Matrix.mulVec, dotProduct]
-  exact inner_sq_add_inner_sq_le horth h0 h1
+    Matrix.toLin'_apply, Matrix.cons_mulVec, Matrix.cons_dotProduct,
+    Matrix.dotProduct_of_isEmpty, Matrix.empty_mulVec, Fin.isValue, add_zero,
+    Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one,
+    Matrix.vecHead, Matrix.vecTail, Function.comp_apply, Fin.succ_zero_eq_one,
+    Fin.succ_one_eq_two]
+  linarith [inner_sq_add_inner_sq_le (x := v.ofLp 0) (y := v.ofLp 1) (z := v.ofLp 2) horth h0 h1]
 
 private lemma mul_sin_sq_add_cos_sq (k θ : ℝ) : k * (Real.sin θ ^ 2 + Real.cos θ ^ 2) = k := by
   rw [Real.sin_sq_add_cos_sq, mul_one]
 
-theorem rotMθ_norm_le_one (θ φ : ℝ) : ‖rotMθ θ φ‖ ≤ 1 := by
-  refine opNorm_le_one_of_orthogonal_rows ?_ ?_ ?_ <;>
-    simp [rotMθ_mat, dotProduct, Fin.sum_univ_three]
-  all_goals
-    linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ,
-      Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq φ,
-      Real.cos_sq_le_one φ, Real.sin_sq_le_one φ]
+theorem rotMθ_norm_le_one (θ φ : ℝ) : ‖rotMθ θ φ‖ ≤ 1 :=
+  opNorm_le_one_of_orthogonal_rows
+    (by ring)
+    (by linarith [Real.sin_sq_add_cos_sq θ])
+    (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.cos_sq_le_one φ])
 
-theorem rotMφ_norm_le_one (θ φ : ℝ) : ‖rotMφ θ φ‖ ≤ 1 := by
-  refine opNorm_le_one_of_orthogonal_rows ?_ ?_ ?_ <;>
-    simp [rotMφ_mat, dotProduct, Fin.sum_univ_three]
-  all_goals
-    linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ,
-      Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq φ,
-      Real.cos_sq_le_one φ, Real.sin_sq_le_one φ]
+theorem rotMφ_norm_le_one (θ φ : ℝ) : ‖rotMφ θ φ‖ ≤ 1 :=
+  opNorm_le_one_of_orthogonal_rows
+    (by ring)
+    (by linarith [zero_le_one (α := ℝ)])
+    (by linarith [mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ, Real.sin_sq_add_cos_sq φ])
 
 -- Operator norm bounds for second derivative matrices
-theorem rotMθθ_norm_le_one (θ φ : ℝ) : ‖rotMθθ θ φ‖ ≤ 1 := by
-  refine opNorm_le_one_of_orthogonal_rows ?_ ?_ ?_ <;>
-    simp [rotMθθ_mat, dotProduct, Fin.sum_univ_three]
-  all_goals
-    linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ,
-      Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq φ,
-      Real.cos_sq_le_one φ, Real.sin_sq_le_one φ]
+theorem rotMθθ_norm_le_one (θ φ : ℝ) : ‖rotMθθ θ φ‖ ≤ 1 :=
+  opNorm_le_one_of_orthogonal_rows
+    (by ring)
+    (by linarith [Real.sin_sq_add_cos_sq θ])
+    (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.cos_sq_le_one φ])
 
-theorem rotMθφ_norm_le_one (θ φ : ℝ) : ‖rotMθφ θ φ‖ ≤ 1 := by
-  refine opNorm_le_one_of_orthogonal_rows ?_ ?_ ?_ <;>
-    simp [rotMθφ_mat, dotProduct, Fin.sum_univ_three]
-  all_goals
-    linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ,
-      Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq φ,
-      Real.cos_sq_le_one φ, Real.sin_sq_le_one φ]
+theorem rotMθφ_norm_le_one (θ φ : ℝ) : ‖rotMθφ θ φ‖ ≤ 1 :=
+  opNorm_le_one_of_orthogonal_rows
+    (by ring)
+    (by linarith [zero_le_one (α := ℝ)])
+    (by linarith [mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ, Real.sin_sq_le_one φ])
 
-theorem rotMφφ_norm_le_one (θ φ : ℝ) : ‖rotMφφ θ φ‖ ≤ 1 := by
-  refine opNorm_le_one_of_orthogonal_rows ?_ ?_ ?_ <;>
-    simp [rotMφφ_mat, dotProduct, Fin.sum_univ_three]
-  all_goals
-    linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ,
-      Real.sin_sq_add_cos_sq θ, Real.sin_sq_add_cos_sq φ,
-      Real.cos_sq_le_one φ, Real.sin_sq_le_one φ]
+theorem rotMφφ_norm_le_one (θ φ : ℝ) : ‖rotMφφ θ φ‖ ≤ 1 :=
+  opNorm_le_one_of_orthogonal_rows
+    (by ring)
+    (by linarith [zero_le_one (α := ℝ)])
+    (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.sin_sq_add_cos_sq φ])
 
-theorem Rx_preserves_norm (α : ℝ) :
-    ∀ (v : E 3), ‖(RxL α) v‖ = ‖v‖ := by
-  intro v
-  suffices h : ‖(RxL α) v‖^2 = ‖v‖^2  by simp_all
-  simp only [RxL, Rx_mat, PiLp.norm_sq_eq_of_L2]
-  simp only [LinearMap.coe_toContinuousLinearMap', Matrix.ofLp_toLpLin,
-    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
-    Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, Matrix.cons_val]
-  ring_nf
-  convert_to (v 0)^2
-           + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
-           + (v 2)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
-           = _
-  · ring_nf
-  simp
+/- Rotations as linear isometries -/
+
+lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
+    rot3_mat d θ ∈ Matrix.orthogonalGroup (Fin 3) ℝ := by
+  unfold rot3_mat
+  fin_cases d <;>
+  · constructor <;>
+    · ext i j
+      fin_cases i <;> fin_cases j <;>
+      · try simp [Matrix.mul_apply, Fin.sum_univ_succ]
+        try ring_nf
+        try simp [Real.sin_sq]
+
+noncomputable def OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
+    : Euc(n) ≃ₗ[ℝ] Euc(n) :=
+  WithLp.linearEquiv 2 ℝ (Fin n → ℝ) ≪≫ₗ
+    Matrix.UnitaryGroup.toLinearEquiv A ≪≫ₗ
+    (WithLp.linearEquiv 2 ℝ (Fin n → ℝ)).symm
+
+lemma OrthogonalGroup.toLinearEquiv_apply {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
+    OrthogonalGroup.toLinearEquiv A x = A.1.mulVec x := by
+  rfl
+
+/-- An orthogonal matrix gives a linear isometry equivalence of Euclidean space. -/
+noncomputable def OrthogonalGroup.toLinearIsometryEquiv {n : ℕ}
+    (A : Matrix.orthogonalGroup (Fin n) ℝ) : Euc(n) ≃ₗᵢ[ℝ] Euc(n) :=
+  (OrthogonalGroup.toLinearEquiv A).isometryOfInner fun x y => by
+    have hA : A.1ᵀ * A.1 = 1 := A.2.1
+    have key : (A.1 *ᵥ x) ⬝ᵥ (A.1 *ᵥ y) = x ⬝ᵥ y := by
+      rw [Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec, hA, Matrix.vecMul_one]
+    simp only [PiLp.inner_apply, RCLike.inner_apply, conj_trivial,
+      OrthogonalGroup.toLinearEquiv_apply]
+    simpa [dotProduct, mul_comm] using key
+
+lemma OrthogonalGroup.toLinearIsometryEquiv_apply {n : ℕ}
+    (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
+    OrthogonalGroup.toLinearIsometryEquiv A x = A.1.mulVec x :=
+  OrthogonalGroup.toLinearEquiv_apply A x
+
+/-- The rotation `rot3 d θ`, bundled as a linear isometry equivalence. -/
+noncomputable def rot3Isometry (d : Fin 3) (θ : ℝ) : ℝ³ ≃ₗᵢ[ℝ] ℝ³ :=
+  OrthogonalGroup.toLinearIsometryEquiv ⟨rot3_mat d θ, rot3_mat_mem_O3 d θ⟩
+
+lemma rot3_eq_rot3Isometry (d : Fin 3) (θ : ℝ) :
+    (rot3 d θ : ℝ³ →L[ℝ] ℝ³) = (rot3Isometry d θ).toLinearIsometry.toContinuousLinearMap := by
+  ext v
+  fin_cases d <;> rfl
+
+theorem rot3_preserves_norm (d : Fin 3) (α : ℝ) (v : ℝ³) : ‖rot3 d α v‖ = ‖v‖ := by
+  rw [rot3_eq_rot3Isometry]
+  exact (rot3Isometry d α).norm_map v
 
 /- [SY25] Lemma 9 -/
 
+theorem lemma9 {d : Fin 3} (α : ℝ) : ‖rot3 d α‖ = 1 := by
+  rw [rot3_eq_rot3Isometry]
+  exact (rot3Isometry d α).toLinearIsometry.norm_toContinuousLinearMap
+
+theorem rot3_preserves_op_norm (d : Fin 3) (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)) :
+    ‖(rot3 d α : ℝ³ →L[ℝ] ℝ³) ∘L A‖ = ‖A‖ := by
+  rw [rot3_eq_rot3Isometry]
+  exact (rot3Isometry d α).toLinearIsometry.norm_toContinuousLinearMap_comp
+
+theorem rot3_comp_right_preserves_op_norm (d : Fin 3) (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)) :
+    ‖A ∘L (rot3 d α : ℝ³ →L[ℝ] ℝ³)‖ = ‖A‖ := by
+  rw [rot3_eq_rot3Isometry]
+  exact ContinuousLinearMap.opNorm_comp_linearIsometryEquiv A (rot3Isometry d α)
+
+theorem Rx_preserves_norm (α : ℝ) : ∀ (v : E 3), ‖(RxL α) v‖ = ‖v‖ :=
+  rot3_preserves_norm 0 α
+
 theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 :=
-  norm_one_of_preserves_norm (Rx_preserves_norm α)
+  lemma9 (d := 0) α
 
 theorem Rx_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
-    ‖(RxL α).comp A‖ = ‖A‖ := by
-  simp only [ContinuousLinearMap.norm_def]
-  simp_rw [ContinuousLinearMap.comp_apply, Rx_preserves_norm]
+    ‖(RxL α).comp A‖ = ‖A‖ :=
+  rot3_preserves_op_norm 0 α A
 
-theorem Ry_preserves_norm (α : ℝ) :
-    ∀ (v : E 3), ‖(RyL α) v‖ = ‖v‖ := by
-  intro v
-  suffices h : ‖(RyL α) v‖^2 = ‖v‖^2  by simp_all
-  simp only [RyL, Ry_mat, PiLp.norm_sq_eq_of_L2]
-  simp only [LinearMap.coe_toContinuousLinearMap', Matrix.ofLp_toLpLin,
-    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
-    Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, Matrix.cons_val]
-  ring_nf
-  convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
-             + (v 1)^2
-             + (v 2)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
-           = _
-  · ring_nf
-  simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
+theorem Ry_preserves_norm (α : ℝ) : ∀ (v : E 3), ‖(RyL α) v‖ = ‖v‖ :=
+  rot3_preserves_norm 1 α
 
 theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 :=
-  norm_one_of_preserves_norm (Ry_preserves_norm α)
+  lemma9 (d := 1) α
 
 theorem Ry_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
-    ‖(RyL α).comp A‖ = ‖A‖ := by
-  simp only [ContinuousLinearMap.norm_def]
-  simp_rw [ContinuousLinearMap.comp_apply, Ry_preserves_norm]
+    ‖(RyL α).comp A‖ = ‖A‖ :=
+  rot3_preserves_op_norm 1 α A
 
 theorem Ry_comp_right_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
-    ‖A ∘L (RyL α)‖ = ‖A‖ := by
-  simp only [ContinuousLinearMap.norm_def]
-  simp_rw [ContinuousLinearMap.comp_apply]
-  have h_sets_eq : {c : ℝ | 0 ≤ c ∧ ∀ x : Euc(3), ‖A (RyL α x)‖ ≤ c * ‖x‖} =
-                   {c : ℝ | 0 ≤ c ∧ ∀ x : Euc(3), ‖A x‖ ≤ c * ‖x‖} := by
-    have h_inv : ∀ x : Euc(3), ∃ y : Euc(3), RyL α y = x := by
-      have h_inv : Function.Bijective (RyL α) := by
-        have h_bijective : Function.Injective (RyL α) := by
-          intro x y hxy
-          have := Ry_preserves_norm α (x - y)
-          simp only [map_sub, sub_self, norm_zero, hxy] at this
-          exact sub_eq_zero.mp (norm_eq_zero.mp this.symm)
-        exact ⟨h_bijective, LinearMap.surjective_of_injective h_bijective⟩
-      exact h_inv.surjective
-    ext c
-    apply Iff.intro
-    · intro hc;
-      refine ⟨hc.1, fun x ↦ ?_⟩
-      obtain ⟨ y, rfl ⟩ := h_inv x
-      have := hc.2 y
-      nth_rw 2 [←Ry_preserves_norm α] at this
-      exact this
-    · intro hc
-      refine ⟨hc.1, fun x ↦ ?_⟩
-      simpa only [Ry_preserves_norm α] using hc.2 (RyL α x)
-  rw [h_sets_eq]
+    ‖A ∘L (RyL α)‖ = ‖A‖ :=
+  rot3_comp_right_preserves_op_norm 1 α A
 
-theorem Rz_preserves_norm (α : ℝ) :
-    ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ := by
-  intro v
-  suffices h : ‖(RzL α) v‖^2 = ‖v‖^2  by simp_all
-  simp only [RzL, Rz_mat, PiLp.norm_sq_eq_of_L2]
-  simp only [LinearMap.coe_toContinuousLinearMap', Matrix.ofLp_toLpLin,
-    Matrix.toLin'_apply, Matrix.mulVec, Matrix.of_apply, Matrix.vec3_dotProduct,
-    Real.norm_eq_abs, sq_abs, Fin.sum_univ_three, Matrix.cons_val]
-  ring_nf
-  convert_to (v 0)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
-           + (v 1)^2 * (Real.cos α ^ 2 + Real.sin α ^ 2)
-           + (v 2)^2
-           = _
-  · ring_nf
-  simp only [Fin.isValue, Real.cos_sq_add_sin_sq, mul_one]
+theorem Rz_preserves_norm (α : ℝ) : ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ :=
+  rot3_preserves_norm 2 α
 
 theorem Rz_norm_one (α : ℝ) : ‖RzL α‖ = 1 :=
-  norm_one_of_preserves_norm (Rz_preserves_norm α)
+  lemma9 (d := 2) α
 
 theorem Rz_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
-    ‖(RzL α).comp A‖ = ‖A‖ := by
-  simp only [ContinuousLinearMap.norm_def]
-  simp_rw [ContinuousLinearMap.comp_apply, Rz_preserves_norm]
+    ‖(RzL α).comp A‖ = ‖A‖ :=
+  rot3_preserves_op_norm 2 α A
 
 theorem Rz_comp_right_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
-    ‖A ∘L (RzL α)‖ = ‖A‖ := by
-  simp only [ContinuousLinearMap.norm_def]
-  simp_rw [ContinuousLinearMap.comp_apply]
-  have h_sets_eq : {c : ℝ | 0 ≤ c ∧ ∀ x : Euc(3), ‖A (RzL α x)‖ ≤ c * ‖x‖} =
-                   {c : ℝ | 0 ≤ c ∧ ∀ x : Euc(3), ‖A x‖ ≤ c * ‖x‖} := by
-    have h_inv : ∀ x : Euc(3), ∃ y : Euc(3), RzL α y = x := by
-      have h_inv : Function.Bijective (RzL α) := by
-        have h_bijective : Function.Injective (RzL α) := by
-          intro x y hxy
-          have := Rz_preserves_norm α (x - y)
-          simp only [map_sub, sub_self, norm_zero, hxy] at this
-          exact sub_eq_zero.mp (norm_eq_zero.mp this.symm)
-        exact ⟨h_bijective, LinearMap.surjective_of_injective h_bijective⟩
-      exact h_inv.surjective
-    ext c
-    apply Iff.intro
-    · intro hc;
-      refine ⟨hc.1, fun x ↦ ?_⟩
-      obtain ⟨ y, rfl ⟩ := h_inv x
-      have := hc.2 y
-      nth_rw 2 [←Rz_preserves_norm α] at this
-      exact this
-    · intro hc
-      refine ⟨hc.1, fun x ↦ ?_⟩
-      simpa only [Rz_preserves_norm α] using hc.2 (RzL α x)
-  rw [h_sets_eq]
+    ‖A ∘L (RzL α)‖ = ‖A‖ :=
+  rot3_comp_right_preserves_op_norm 2 α A
 
 lemma vecX_norm_one (θ φ : ℝ) : ‖vecX θ φ‖ = 1 := by
   simp only [vecX_identity, ContinuousLinearMap.coe_comp', Function.comp_apply,
@@ -288,11 +256,10 @@ lemma vecX_norm_one (θ φ : ℝ) : ‖vecX θ φ‖ = 1 := by
 
 theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine le_antisymm ?_ ?_
-  · refine opNorm_le_one_of_orthogonal_rows ?_ ?_ ?_ <;>
-      simp [rotM_mat, dotProduct, Fin.sum_univ_three]
-    all_goals
-      linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.sin_sq_add_cos_sq θ,
-        Real.sin_sq_add_cos_sq φ]
+  · exact opNorm_le_one_of_orthogonal_rows
+      (by ring)
+      (by linarith [Real.sin_sq_add_cos_sq θ])
+      (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.sin_sq_add_cos_sq φ])
   · rw [ContinuousLinearMap.norm_def]
     refine le_csInf ?_ ?_
     · exact ⟨‖rotM θ φ‖, norm_nonneg _, fun x => ContinuousLinearMap.le_opNorm _ _⟩
@@ -301,13 +268,6 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
       have h : Real.sin θ * (Real.cos θ * Real.cos φ) + -(Real.cos θ * (Real.sin θ * Real.cos φ)) = 0 := by
         ring
       simpa [rotM, rotM_mat, EuclideanSpace.norm_eq, Fin.sum_univ_succ, ←sq, h] using hb
-
-theorem lemma9 {d : Fin 3} (α : ℝ) : ‖rot3 d α‖ = 1 := by
-  fin_cases d
-  all_goals simp only [rot3]
-  · exact Rx_norm_one α
-  · exact Ry_norm_one α
-  · exact Rz_norm_one α
 
 theorem reduceL_norm : ‖reduceL‖ = 1 := by
   simpa [rotM, reduceL, rotM_mat] using Bounding.rotM_norm_one 0 0

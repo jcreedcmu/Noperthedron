@@ -31,44 +31,7 @@ open Real
 open scoped Real
 open scoped Matrix
 
-noncomputable def OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
-    : Euc(n) ≃ₗ[ℝ] Euc(n) :=
-  WithLp.linearEquiv 2 ℝ (Fin n → ℝ) ≪≫ₗ
-    Matrix.UnitaryGroup.toLinearEquiv A ≪≫ₗ
-    (WithLp.linearEquiv 2 ℝ (Fin n → ℝ)).symm
-
-lemma OrthogonalGroup.toLinearEquiv_apply {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
-    OrthogonalGroup.toLinearEquiv A x = A.1.mulVec x := by
-  rfl
-
-/-- An orthogonal matrix gives a linear isometry equivalence of Euclidean space. -/
-noncomputable def OrthogonalGroup.toLinearIsometryEquiv {n : ℕ}
-    (A : Matrix.orthogonalGroup (Fin n) ℝ) : Euc(n) ≃ₗᵢ[ℝ] Euc(n) :=
-  (OrthogonalGroup.toLinearEquiv A).isometryOfInner fun x y => by
-    have hA : A.1ᵀ * A.1 = 1 := A.2.1
-    have key : (A.1 *ᵥ x) ⬝ᵥ (A.1 *ᵥ y) = x ⬝ᵥ y := by
-      rw [Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec, hA, Matrix.vecMul_one]
-    simp only [PiLp.inner_apply, RCLike.inner_apply, conj_trivial,
-      OrthogonalGroup.toLinearEquiv_apply]
-    simpa [dotProduct, mul_comm] using key
-
-lemma OrthogonalGroup.toLinearIsometryEquiv_apply {n : ℕ}
-    (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
-    OrthogonalGroup.toLinearIsometryEquiv A x = A.1.mulVec x :=
-  OrthogonalGroup.toLinearEquiv_apply A x
-
 section AristotleLemmas
-
-lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
-    rot3_mat d θ ∈ Matrix.orthogonalGroup (Fin 3) ℝ := by
-  unfold rot3_mat
-  fin_cases d <;>
-  · constructor <;>
-    · ext i j
-      fin_cases i <;> fin_cases j <;>
-      · try simp [Matrix.mul_apply, Fin.sum_univ_succ]
-        try ring_nf
-        try simp [Real.sin_sq]
 
 lemma rot3_mat_mem_SO3 (d : Fin 3) (θ : ℝ) :
     rot3_mat d θ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
@@ -159,7 +122,8 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
 /-- Every unit vector in `ℝ³` has spherical coordinates. -/
 lemma exists_spherical_coords (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
     ∃ β α : ℝ, v = ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
-  simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv ⊢
+  simp only [EuclideanSpace.norm_eq, norm_eq_abs, sq_abs, Fin.sum_univ_three, Fin.isValue,
+    sqrt_eq_one, Nat.succ_eq_add_one, Nat.reduceAdd] at hv ⊢
   use Real.arccos (v 2), Complex.arg (v 0 + v 1 * Complex.I)
   have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧
       Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
