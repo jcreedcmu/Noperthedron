@@ -83,8 +83,12 @@ theorem lemma12 {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     have h := norm_rot3_comp_rot3_sq (α := α) (β := β) d_ne_d'
     have hle : ‖rot3 d α ∘L rot3 d' β - 1‖^2 ≤ α^2 + β^2 := by
       rw [h]
-      nlinarith [two_mul_one_sub_cos_le α, two_mul_one_sub_cos_le β,
-        mul_nonneg (sub_nonneg.mpr (Real.cos_le_one α)) (sub_nonneg.mpr (Real.cos_le_one β))]
+      have h2 : 0 ≤ (1 - Real.cos α) * (1 - Real.cos β) :=
+        mul_nonneg (sub_nonneg.mpr (Real.cos_le_one α)) (sub_nonneg.mpr (Real.cos_le_one β))
+      have h3 : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) =
+          2 * (1 - Real.cos α) + 2 * (1 - Real.cos β) - (1 - Real.cos α) * (1 - Real.cos β) := by
+        ring
+      linarith [two_mul_one_sub_cos_le α, two_mul_one_sub_cos_le β]
     calc ‖rot3 d α ∘L rot3 d' β - 1‖
         = √(‖rot3 d α ∘L rot3 d' β - 1‖^2) := (Real.sqrt_sq (norm_nonneg _)).symm
       _ ≤ √(α^2 + β^2) := Real.sqrt_le_sqrt hle
