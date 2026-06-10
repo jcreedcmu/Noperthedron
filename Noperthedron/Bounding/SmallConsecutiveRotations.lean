@@ -43,23 +43,18 @@ The squared norm of the difference between the composition of two rotations and 
 theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖^2 = 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) := by
   obtain ⟨u, γ, _, h_comp⟩ := rot3_rot3_orth_equiv_rotz (α := α) (β := β) (d := d) (d' := d')
-  have h_norm_conj (A : Euc(3) →L[ℝ] Euc(3)) :
-      ‖u.toLinearIsometry.toContinuousLinearMap ∘L A ∘L
-       u.symm.toLinearIsometry.toContinuousLinearMap‖ = ‖A‖ := by
-    rw [LinearIsometry.norm_toContinuousLinearMap_comp]
-    exact ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ u.symm
-  have h_norm_eq : ‖(u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L
-      u.symm.toLinearIsometry.toContinuousLinearMap) - 1‖ = ‖RzL γ - 1‖ := by
-    convert h_norm_conj (RzL γ - 1) using 2; ext; simp [sub_eq_add_neg]
-  have h_norm_sq : ‖RzL γ - 1‖^2 = 2 * (1 - Real.cos γ) := by
-    have h_norm : ‖RzL γ - 1‖ = 2 * |Real.sin (γ / 2)| := by
-      have := @Bounding.dist_rot3 2 γ 0; aesop
-    rw [h_norm, mul_pow, sq_abs, Real.sin_sq, Real.cos_sq]; ring_nf
-  have h_trace : tr (rot3 d α ∘L rot3 d' β) = 1 + 2 * Real.cos γ := by
-    convert tr_RzL using 1
-    convert LinearMap.trace_conj' _ _ using 2; aesop
-  rw [h_comp, h_norm_eq, h_norm_sq]
-  linarith [tr_rot3_rot3 (α := α) (β := β) h, h_trace]
+  have h_norm : ‖rot3 d α ∘L rot3 d' β - 1‖ = 2 * |Real.sin (γ / 2)| := by
+    have h_conj : rot3 d α ∘L rot3 d' β - 1 = u.toLinearIsometry.toContinuousLinearMap ∘L
+        (RzL γ - 1) ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
+      rw [h_comp]; ext x; simp
+    rw [h_conj, LinearIsometry.norm_toContinuousLinearMap_comp]
+    exact (ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ u.symm).trans
+      (by simpa [rot3] using dist_rot3 (d := 2) (α := γ) (α' := 0))
+  have h_tr : Real.cos α + Real.cos β + Real.cos α * Real.cos β = 1 + 2 * Real.cos γ := by
+    rw [← tr_rot3_rot3 h, ← tr_RzL (α := γ), h_comp]
+    exact LinearMap.trace_conj' (RzL γ : ℝ³ →ₗ[ℝ] ℝ³) u.toLinearEquiv
+  rw [h_norm, h_tr, mul_pow, sq_abs, Real.sin_sq, Real.cos_sq]
+  ring_nf
 
 end AristotleLemmas
 
