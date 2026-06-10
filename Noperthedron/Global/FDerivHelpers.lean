@@ -34,22 +34,31 @@ private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 -- This is needed for the second derivative ∂²/∂α² of rotproj_inner
 lemma HasDerivAt_rotR' (α : ℝ) (v : ℝ²) :
     HasDerivAt (rotR' · v) (-(rotR α v)) α := by
-  have h_f : (rotR' · v) = (fun α' => !₂[-Real.sin α' * v 0 - Real.cos α' * v 1,
-      Real.cos α' * v 0 - Real.sin α' * v 1]) := by
-    ext α' i
-    fin_cases i <;> simp [rotR', rotR'_mat, Matrix.toLpLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
-  have h_f' : -(rotR α v) = !₂[-Real.cos α * v 0 + Real.sin α * v 1,
-      -Real.sin α * v 0 - Real.cos α * v 1] := by
-    ext i
-    fin_cases i <;> simp [rotR, rotR_mat, Matrix.toLpLin_apply, Matrix.vecHead, Matrix.vecTail] <;> ring
-  rw [h_f, h_f']
-  refine hasDerivAt_lp2 ?_ ?_
-  · convert hasDerivAt_sin_cos_lincomb (-v 0) (-v 1) α using 1
-    · funext; ring
-    · ring
-  · convert hasDerivAt_cos_sin_lincomb (v 0) (-v 1) α using 1
-    · funext; ring
-    · ring
+  have h := hasDerivAt_toEuclideanLin_apply (M := rotR'_mat) (M' := (-rotR_mat ·)) (t := α)
+    (fun i j => ?_) v
+  · have e : ((-rotR_mat α).toEuclideanLin).toContinuousLinearMap v = -(rotR α v) := by
+      ext i
+      fin_cases i <;>
+        simp only [rotR, rotR_mat, AddChar.coe_mk, Matrix.neg_of, Matrix.neg_cons, neg_neg,
+          Matrix.neg_empty, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
+          Matrix.cons_mulVec, Matrix.cons_dotProduct, Matrix.vecHead, Matrix.vecTail,
+          Fin.isValue, neg_mul, Nat.succ_eq_add_one, Nat.reduceAdd, Function.comp_apply,
+          Fin.succ_zero_eq_one, Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec,
+          Fin.zero_eta, Fin.mk_one, Matrix.cons_val_zero, Matrix.cons_val_one,
+          Matrix.cons_val_fin_one, PiLp.neg_apply, neg_add_rev] <;>
+        ring
+    rw [e] at h
+    exact h
+  · fin_cases i <;> fin_cases j <;>
+      simp only [rotR'_mat, rotR_mat, Matrix.neg_apply, Matrix.of_apply, Matrix.cons_val',
+        Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, Matrix.empty_val',
+        Fin.zero_eta, Fin.isValue, Fin.mk_one, neg_neg]
+    · exact (Real.hasDerivAt_sin α).neg
+    · have h := (Real.hasDerivAt_cos α).neg
+      rw [neg_neg] at h
+      exact h
+    · exact Real.hasDerivAt_cos α
+    · exact (Real.hasDerivAt_sin α).neg
 
 /-- fderiv of rotR with any M in direction e₀ gives rotR' -/
 lemma fderiv_rotR_any_M_in_e0 (S : Euc(3)) (y : E 3) (M : ℝ → ℝ → ℝ³ →L[ℝ] ℝ²)
