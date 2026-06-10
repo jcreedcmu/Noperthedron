@@ -2,6 +2,7 @@ import Mathlib.Algebra.Order.Archimedean.Real.Hom
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 import Noperthedron.Basic
+import Noperthedron.Bounding.OpNorm
 import Noperthedron.PoseInterval
 
 namespace Local
@@ -9,19 +10,30 @@ namespace Local
 open scoped RealInnerProductSpace Real
 open scoped Matrix
 
-/-- [SY25] Lemma 21 -/
+/-- [SY25] Lemma 21.
+
+`rotM θ φ` consists of the first two rows of a rotation whose third row is
+`vecX θ φ`, so this is Parseval for that rotated orthonormal basis. -/
 theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
     ‖rotM θ φ P‖ ^ 2 = ‖P‖ ^ 2 - ⟪vecX θ φ, P⟫ ^ 2 := by
-  simp only [rotM, rotM_mat, neg_mul, LinearMap.coe_toContinuousLinearMap',
-    EuclideanSpace.norm_sq_eq, Matrix.ofLp_toLpLin, Matrix.toLin'_apply, Matrix.mulVec,
-    Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_fin_one, Real.norm_eq_abs, sq_abs,
-    Fin.sum_univ_succ, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_dotProduct, Matrix.vecHead,
-    Matrix.vecTail, Nat.succ_eq_add_one, Nat.reduceAdd, Function.comp_apply, Fin.succ_zero_eq_one,
-    Fin.succ_one_eq_two, zero_mul, Matrix.dotProduct_of_isEmpty, add_zero, Finset.univ_unique,
-    Fin.default_eq_zero, Matrix.cons_val_succ, Finset.sum_const, Finset.card_singleton, one_smul,
-    Finset.sum_singleton, inner, vecX, RCLike.mul_re, RCLike.re_to_real,
-    RCLike.im_to_real, mul_zero, sub_zero]
-  grind [Real.sin_sq, star_trivial]
+  set w : ℝ³ := RyL φ (RzL (-θ) P) with hw
+  have h1 : rotM θ φ P = reduceL w := by rw [rotM_identity]; rfl
+  have h2 : ⟪vecX θ φ, P⟫ = w 2 := by
+    rw [vecX_identity,
+      show ((RzL θ ∘L RyL (-φ)) !₂[0, 0, 1] : ℝ³) = rot3 2 θ (rot3 1 (-φ) !₂[0, 0, 1]) from rfl,
+      Bounding.inner_rot3_left, Bounding.inner_rot3_left, neg_neg,
+      show (rot3 1 φ (rot3 2 (-θ) P) : ℝ³) = w from rfl]
+    simp [PiLp.inner_apply, Fin.sum_univ_three]
+  have h3 : ‖w‖ = ‖P‖ := by rw [hw, Bounding.Ry_preserves_norm, Bounding.Rz_preserves_norm]
+  have h4 : ‖reduceL w‖ ^ 2 + w 2 ^ 2 = ‖w‖ ^ 2 := by
+    have e : reduceL w = !₂[w 1, -(w 0)] := by
+      ext i; fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+    rw [e, PiLp.norm_sq_eq_of_L2, PiLp.norm_sq_eq_of_L2, Fin.sum_univ_two, Fin.sum_univ_three]
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one,
+      Real.norm_eq_abs, sq_abs]
+    ring
+  rw [h1, h2, ← h3]
+  linarith [h4]
 
 /-- [SY25] Lemma 24 -/
 theorem abs_sub_inner_bars_le {m n : ℕ} (A B A_ B_ : Euc(m) →L[ℝ] Euc(n)) (P₁ P₂ : Euc(m)) :

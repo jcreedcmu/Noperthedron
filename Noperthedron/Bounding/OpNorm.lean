@@ -3,6 +3,7 @@ import Noperthedron.Basic
 namespace Bounding
 
 open scoped Matrix
+open scoped RealInnerProductSpace
 
 theorem norm_one_of_preserves_norm {n m : ℕ} [NeZero n] {f : E n →L[ℝ] E m} (hf : (v : E n) → ‖f v‖ = ‖v‖) :
     ‖f‖ = 1 := by
@@ -194,6 +195,22 @@ lemma rot3_eq_rot3Isometry (d : Fin 3) (θ : ℝ) :
 theorem rot3_preserves_norm (d : Fin 3) (α : ℝ) (v : ℝ³) : ‖rot3 d α v‖ = ‖v‖ := by
   rw [rot3_eq_rot3Isometry]
   exact (rot3Isometry d α).norm_map v
+
+lemma rot3Isometry_apply (d : Fin 3) (θ : ℝ) (v : ℝ³) :
+    rot3Isometry d θ v = rot3 d θ v := by
+  rw [rot3_eq_rot3Isometry]
+  rfl
+
+lemma rot3_neg_apply (d : Fin 3) (θ : ℝ) (v : ℝ³) : rot3 d θ (rot3 d (-θ) v) = v := by
+  rw [← ContinuousLinearMap.comp_apply, ← ContinuousLinearMap.mul_def, ← AddChar.map_add_eq_mul]
+  simp
+
+/-- Moving a rotation to the other side of an inner product inverts its angle. -/
+lemma inner_rot3_left (d : Fin 3) (θ : ℝ) (a b : ℝ³) :
+    ⟪rot3 d θ a, b⟫ = ⟪a, rot3 d (-θ) b⟫ := by
+  nth_rw 1 [show b = rot3 d θ (rot3 d (-θ) b) from (rot3_neg_apply d θ b).symm]
+  rw [← rot3Isometry_apply, ← rot3Isometry_apply]
+  exact (rot3Isometry d θ).inner_map_map a (rot3 d (-θ) b)
 
 /- [SY25] Lemma 9 -/
 
