@@ -1,6 +1,5 @@
 import Mathlib.Algebra.Order.Archimedean.Real.Hom
 import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Analysis.InnerProductSpace.LinearMap
 import Mathlib.LinearAlgebra.Matrix.Invertible
 
 import Noperthedron.Basic
@@ -55,21 +54,9 @@ lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)
                   invOf_mul_self (a := Q.toMatrixᵀ)
                 rw [h1, mul_invOf_self, one_mul]
     -- Bundle `A` as a linear isometry.
-    let f : Euc(3) →ₗ[ℝ] Euc(3) := A.toEuclideanLin
-    have hf_inner : ∀ x y : Euc(3), ⟪f x, f y⟫ = ⟪x, y⟫ := by
-      intro x y
-      simp only [EuclideanSpace.inner_eq_star_dotProduct, Matrix.ofLp_toLpLin, Matrix.toLin'_apply,
-        star_trivial, f]
-      -- goal: `A *ᵥ y.ofLp ⬝ᵥ A *ᵥ x.ofLp = y.ofLp ⬝ᵥ x.ofLp`
-      calc
-        A *ᵥ y.ofLp ⬝ᵥ A *ᵥ x.ofLp
-            = (A *ᵥ y.ofLp) ᵥ* A ⬝ᵥ x.ofLp := Matrix.dotProduct_mulVec _ _ _
-        _   = y.ofLp ᵥ* (Aᵀ * A) ⬝ᵥ x.ofLp := by
-                simpa using congrArg (fun t => t ⬝ᵥ x.ofLp)
-                  (Matrix.vecMul_mulVec (A := A) (B := A) (x := y.ofLp))
-        _   = y.ofLp ⬝ᵥ x.ofLp := by
-                simp [hA]
-    let L : Euc(3) →ₗᵢ[ℝ] Euc(3) := f.isometryOfInner hf_inner
+    have hA' : A ∈ Matrix.orthogonalGroup (Fin 3) ℝ := ⟨hA, mul_eq_one_comm.mp hA⟩
+    let L : Euc(3) →ₗᵢ[ℝ] Euc(3) :=
+      (Bounding.OrthogonalGroup.toLinearIsometryEquiv ⟨A, hA'⟩).toLinearIsometry
     refine ⟨L, ?_⟩
     intro i
     -- Use `A * Q = P` to show `L (Q i) = P i`.
@@ -87,5 +74,6 @@ lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)
     have h_mulVec' : A *ᵥ (Q i).ofLp = (P i).ofLp := by
       simpa [Triangle.toMatrix_col] using h_mulVec
     ext j
-    have : (L (Q i)).ofLp = (P i).ofLp := by simp [L, f, h_mulVec']
-    exact (congrFun this j).symm
+    have happ : (L (Q i)).ofLp = (P i).ofLp :=
+      (Bounding.OrthogonalGroup.toLinearIsometryEquiv_apply ⟨A, hA'⟩ (Q i)).trans h_mulVec'
+    exact (congrFun happ j).symm
