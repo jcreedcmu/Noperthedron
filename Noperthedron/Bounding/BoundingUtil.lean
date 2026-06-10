@@ -11,88 +11,121 @@ Material for [SY25] Lemma 10 and Lemma 12.
 namespace Bounding
 open Real
 
-theorem dist_rot3_apply {d : Fin 3} {α α' : ℝ} {v : ℝ³} :
-  ‖(rot3 d α - rot3 d α') v‖ = 2 * |sin ((α - α') / 2)| * ‖(WithLp.toLp 2 (Fin.removeNth d v) : ℝ²)‖ := by
-    let ix (i : Fin 3) : Fin 3 := match d, i with
-      | 0,0 => 0
-      | 0,1 => 1
-      | 0,2 => 2
-      | 1,0 => 1
-      | 1,1 => 0
-      | 1,2 => 2
-      | 2,0 => 2
-      | 2,1 => 0
-      | 2,2 => 1
-    fin_cases d <;>
-    · try simp [rot3, RxC, RyC, RzC, RxL, RyL, RzL, Rx_mat, Ry_mat, Rz_mat, AddChar.coe_mk, ContinuousLinearMap.coe_sub',
-        LinearMap.coe_toContinuousLinearMap', Pi.sub_apply, Matrix.toLpLin_apply,
-        Matrix.mulVec_eq_sum, op_smul_eq_smul, Fin.sum_univ_three, Fin.isValue,
-        WithLp.toLp_add, WithLp.toLp_smul, ENNReal.toReal_ofNat, Nat.ofNat_pos, PiLp.norm_eq_sum,
-        PiLp.sub_apply, PiLp.add_apply, PiLp.smul_apply, Matrix.transpose_apply,
-        Matrix.of_apply, smul_eq_mul, norm_eq_abs, rpow_ofNat, sq_abs, mul_one, mul_zero, add_zero,
-        sub_self, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, zero_add, mul_neg, one_div,
-        Fin.sum_univ_two]
-      calc
-        _ = ((v (ix 1) * cos α + -(v (ix 2) * sin α) - (v (ix 1) * cos α' + -(v (ix 2) * sin α'))) ^ 2 +
-          (v (ix 1) * sin α + v (ix 2) * cos α - (v (ix 1) * sin α' + v (ix 2) * cos α')) ^ 2) ^ (2 : ℝ)⁻¹ := by simp only [ix]
-        _ = ((2 * sin ((α - α') / 2)) ^ 2 * (v (ix 1) ^ 2 + v (ix 2) ^ 2)) ^ (2 : ℝ)⁻¹ := by
-          have one_neg_cos_nonneg : 0 ≤ 1 - cos (α - α') := by simp [cos_le_one]
-          refine (rpow_left_inj ?_ ?_ ?_).mpr ?_ <;> try positivity
-          calc
-            _ = (v (ix 1) * cos α + -(v (ix 2) * sin α) - (v (ix 1) * cos α' + -(v (ix 2) * sin α'))) ^ 2 +
-              (v (ix 1) * sin α + v (ix 2) * cos α - (v (ix 1) * sin α' + v (ix 2) * cos α')) ^ 2 := by simp [ix]
-            _ = (v (ix 1) * (cos α - cos α') - v (ix 2) * (sin α - sin α')) ^ 2 +
-                (v (ix 1) * (sin α - sin α') + v (ix 2) * (cos α - cos α')) ^ 2 := by ring_nf
-            _ = 4 * (v (ix 1) ^ 2 + v (ix 2) ^ 2) * (sin ((α - α') / 2)) ^ 2 *
-                ((sin ((α + α') / 2)) ^ 2 + (cos ((α + α') / 2)) ^ 2) := by
-              simp [sin_sub_sin, cos_sub_cos, sq]
-              ring_nf
-            _ = 4 * (v (ix 1) ^ 2 + v (ix 2) ^ 2) * (sin ((α - α') / 2)) ^ 2 := by simp [sin_sq_add_cos_sq]
-            _ = (2 * sin ((α - α') / 2)) ^ 2 * (v (ix 1) ^ 2 + v (ix 2) ^ 2) := by ring
-        _ = 2 * |sin ((α - α') / 2)| * (v (ix 1) ^ 2 + v (ix 2) ^ 2) ^ (2 : ℝ)⁻¹ := by
-          rw [mul_rpow, inv_eq_one_div, rpow_div_two_eq_sqrt]
-          all_goals try positivity
-          simp [sqrt_sq_eq_abs]
-
-theorem dist_rot3 {d : Fin 3} {α α' : ℝ} :
-  ‖rot3 d α - rot3 d α'‖ = 2 * |sin ((α - α') / 2)| := by
-    refine ContinuousLinearMap.opNorm_eq_of_bounds ?_ ?_ ?_
-    · positivity
-    · intro v
-      rw [dist_rot3_apply]
-      gcongr
-      simp [PiLp.norm_eq_sum, Fin.sum_univ_three]
-      apply rpow_le_rpow
-      · positivity
-      · fin_cases d <;> simp [Fin.removeNth_apply, Fin.succAbove] <;> positivity
-      · positivity
-
-    · intro N N_nonneg h
-      let v : ℝ³ := if d = 0 then !₂[0, 1, 0] else !₂[1, 0, 0]
-      have norm_v_one : ‖v‖ = 1 := by
-        unfold v
-        split <;> simp [PiLp.norm_eq_sum, Fin.sum_univ_three]
-      specialize h v
-      calc
-        2 * |sin ((α - α') / 2)| = ‖(rot3 d α - rot3 d α') v‖ := by
-          rw [dist_rot3_apply]
-          fin_cases d <;>
-            simp [v, PiLp.norm_eq_sum, Fin.removeNth_apply, Fin.succAbove]
-        _ ≤ N * ‖v‖ := h
-        _ = N := by simp [norm_v_one]
+/-- The difference of two rotation matrices is a scalar multiple of a rotation matrix. -/
+lemma rotR_mat_sub_rotR_mat (α α' : ℝ) :
+    rotR_mat α - rotR_mat α' = (2 * sin ((α - α') / 2)) • rotR_mat ((α + α') / 2 + π / 2) := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp only [rotR_mat, Fin.zero_eta, Fin.isValue, Matrix.sub_apply, Matrix.of_apply, Matrix.cons_val',
+      Matrix.cons_val_zero, Matrix.cons_val_fin_one, cos_add_pi_div_two,
+      sin_add_pi_div_two, Matrix.smul_apply, smul_eq_mul, mul_neg, Fin.mk_one,
+      Matrix.cons_val_one, sub_neg_eq_add]
+  · linear_combination cos_sub_cos α α'
+  · linear_combination -sin_sub_sin α α'
+  · linear_combination sin_sub_sin α α'
+  · linear_combination cos_sub_cos α α'
 
 /-- The difference of two rotations is a scalar multiple of a rotation. -/
 lemma rotR_sub_rotR (α α' : ℝ) :
     rotR α - rotR α' = (2 * sin ((α - α') / 2)) • rotR ((α + α') / 2 + π / 2) := by
-  ext v i
-  fin_cases i <;>
-    simp [rotR, rotR_mat, AddChar.coe_mk, Matrix.toLpLin_apply,
-      Matrix.vecHead, Matrix.vecTail, cos_add_pi_div_two, sin_add_pi_div_two]
-  · linear_combination v.ofLp 0 * cos_sub_cos α α' - v.ofLp 1 * sin_sub_sin α α'
-  · linear_combination v.ofLp 0 * sin_sub_sin α α' + v.ofLp 1 * cos_sub_cos α α'
+  have e : ∀ θ, (rotR θ : ℝ² →L[ℝ] ℝ²) = (rotR_mat θ).toEuclideanLin.toContinuousLinearMap :=
+    fun _ => rfl
+  have h := congrArg (fun M : Matrix (Fin 2) (Fin 2) ℝ => M.toEuclideanLin.toContinuousLinearMap)
+    (rotR_mat_sub_rotR_mat α α')
+  simp only [map_sub, map_smul] at h
+  rw [e, e, e]
+  exact h
 
 theorem dist_rotR {α α' : ℝ} : ‖rotR α - rotR α'‖ = 2 * |sin ((α - α') / 2)| := by
   rw [rotR_sub_rotR, norm_smul, rotR_norm_one, mul_one, Real.norm_eq_abs, abs_mul, abs_two]
+
+/-- The diagonal matrix of the projection onto the coordinate plane perpendicular to axis `d`. -/
+noncomputable def projPerp_mat (d : Fin 3) : Matrix (Fin 3) (Fin 3) ℝ :=
+  Matrix.diagonal fun i => if i = d then 0 else 1
+
+/-- The orthogonal projection of `ℝ³` onto the coordinate plane perpendicular to axis `d`. -/
+noncomputable def projPerpL (d : Fin 3) : ℝ³ →L[ℝ] ℝ³ :=
+  (projPerp_mat d).toEuclideanLin.toContinuousLinearMap
+
+lemma projPerpL_apply (d : Fin 3) (v : ℝ³) (i : Fin 3) :
+    projPerpL d v i = if i = d then 0 else v i := by
+  simp [projPerpL, projPerp_mat, Matrix.mulVec_diagonal, ite_mul]
+
+lemma projPerpL_norm_one (d : Fin 3) : ‖projPerpL d‖ = 1 := by
+  refine ContinuousLinearMap.opNorm_eq_of_bounds zero_le_one (fun v => ?_) (fun N _ h => ?_)
+  · rw [one_mul, ← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)]
+    simp only [PiLp.norm_sq_eq_of_L2, Real.norm_eq_abs, sq_abs]
+    refine Finset.sum_le_sum fun i _ => ?_
+    rw [projPerpL_apply]
+    split
+    · simpa using sq_nonneg _
+    · exact le_rfl
+  · obtain ⟨j, hj⟩ := exists_ne d
+    have h2 : projPerpL d (EuclideanSpace.single j 1) = EuclideanSpace.single j 1 := by
+      ext i
+      rw [projPerpL_apply]
+      rcases eq_or_ne i d with rfl | hi
+      · simp [hj.symm]
+      · simp [hi]
+    have h1 := h (EuclideanSpace.single j 1)
+    rw [h2] at h1
+    simpa using h1
+
+/-- The difference of two rotation matrices about axis `d` is a scalar multiple of a rotation
+matrix times the projection onto the plane of rotation. -/
+lemma rot3_mat_sub_rot3_mat (d : Fin 3) (α α' : ℝ) :
+    rot3_mat d α - rot3_mat d α' =
+      (2 * sin ((α - α') / 2)) • (rot3_mat d ((α + α') / 2 + π / 2) * projPerp_mat d) := by
+  fin_cases d
+  all_goals (
+    ext i j
+    fin_cases i <;> fin_cases j <;>
+      simp only [rot3_mat, Rx_mat, Fin.zero_eta, Fin.isValue, Matrix.sub_apply, Matrix.of_apply,
+        Matrix.cons_val', Matrix.cons_val_zero, Matrix.cons_val_fin_one, sub_self,
+        cos_add_pi_div_two, sin_add_pi_div_two, projPerp_mat, Matrix.cons_mul,
+        Nat.succ_eq_add_one, Nat.reduceAdd, Matrix.empty_mul, Equiv.symm_apply_apply,
+        Matrix.smul_apply, Matrix.vecMul_diagonal, ↓reduceIte, mul_zero, smul_eq_mul,
+        Fin.mk_one, Matrix.cons_val_one, one_ne_zero, mul_one, Fin.reduceFinMk,
+        Matrix.cons_val, Fin.reduceEq, mul_neg, sub_neg_eq_add, Ry_mat, zero_ne_one,
+        Rz_mat])
+  · linear_combination cos_sub_cos α α'
+  · linear_combination -sin_sub_sin α α'
+  · linear_combination sin_sub_sin α α'
+  · linear_combination cos_sub_cos α α'
+  · linear_combination cos_sub_cos α α'
+  · linear_combination -sin_sub_sin α α'
+  · linear_combination sin_sub_sin α α'
+  · linear_combination cos_sub_cos α α'
+  · linear_combination cos_sub_cos α α'
+  · linear_combination -sin_sub_sin α α'
+  · linear_combination sin_sub_sin α α'
+  · linear_combination cos_sub_cos α α'
+
+def rot3_eq_rot3_mat_toEuclideanLin {d : Fin 3} {θ : ℝ}: rot3 d θ = (rot3_mat d θ).toEuclideanLin := by
+  fin_cases d <;> simp [RxL, RyL, RzL, rot3, rot3_mat]
+
+/-- The difference of two rotations about axis `d` is a scalar multiple of a rotation
+composed with the projection onto the plane of rotation. -/
+lemma rot3_sub_rot3 (d : Fin 3) (α α' : ℝ) :
+    (rot3 d α : ℝ³ →L[ℝ] ℝ³) - rot3 d α' =
+      (2 * sin ((α - α') / 2)) • ((rot3 d ((α + α') / 2 + π / 2) : ℝ³ →L[ℝ] ℝ³) ∘L projPerpL d) := by
+  have hmul : ((rot3_mat d ((α + α') / 2 + π / 2) * projPerp_mat d).toEuclideanLin).toContinuousLinearMap
+      = ((rot3_mat d ((α + α') / 2 + π / 2)).toEuclideanLin).toContinuousLinearMap ∘L projPerpL d := by
+    ext v
+    simp [projPerpL]
+  have e : ∀ θ : ℝ, (rot3 d θ : ℝ³ →L[ℝ] ℝ³) = (rot3_mat d θ).toEuclideanLin.toContinuousLinearMap := by
+    intro θ
+    fin_cases d <;> rfl
+  have h := congrArg (fun M : Matrix (Fin 3) (Fin 3) ℝ => M.toEuclideanLin.toContinuousLinearMap)
+    (rot3_mat_sub_rot3_mat d α α')
+  simp only [map_sub, map_smul, hmul] at h
+  rw [e, e, e]
+  exact h
+
+theorem dist_rot3 {d : Fin 3} {α α' : ℝ} :
+  ‖rot3 d α - rot3 d α'‖ = 2 * |sin ((α - α') / 2)| := by
+    rw [rot3_sub_rot3, norm_smul, rot3_preserves_op_norm, projPerpL_norm_one, mul_one,
+      Real.norm_eq_abs, abs_mul, abs_two]
 
 theorem dist_rot3_eq_dist_rotR {d : Fin 3} {α α' : ℝ} :
     ‖rot3 d α - rot3 d α'‖ = ‖rotR α - rotR α'‖ := by
@@ -117,8 +150,5 @@ theorem norm_RyL_sub_RyL_eq {α α_ : ℝ} : ‖RyL α - RyL α_‖ = ‖rotR α
 
 theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α - rotR α_‖ :=
   dist_rot3_eq_dist_rotR (d := 2)
-
-def rot3_eq_rot3_mat_toEuclideanLin {d : Fin 3} {θ : ℝ}: rot3 d θ = (rot3_mat d θ).toEuclideanLin := by
-  fin_cases d <;> simp [RxL, RyL, RzL, rot3, rot3_mat]
 
 end Bounding
