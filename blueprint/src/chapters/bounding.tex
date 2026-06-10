@@ -23,38 +23,6 @@ See \cite{polyhedron.without.rupert}, Lemma 10.
 
 
 
-\begin{lemma} \label{lem:jensen}
-\lean{Bounding.one_plus_cos_mul_one_plus_cos_ge}
-\leanok
-    For all $a,b \in \R$ with $|a|,|b|\leq 2$ the following inequality holds:
-    \[
-        (1+\cos(a))(1+\cos(b))\geq 2+2\cos\Big(\sqrt{a^2+b^2}\Big),
-    \]
-    with equality only for $a=0$ or $b=0$.
-\end{lemma}
-
-\begin{proof}
-\leanok
-Use the Jensen inequality. See \cite{polyhedron.without.rupert}, Lemma 11.
-\end{proof}
-
-\begin{lemma} \label{lem:RxRy_wlog}
-\lean{Bounding.norm_RxRy_minus_id_le_wlog}
-\leanok
-For any $|\alpha|,|\beta| \le 2$ and any distinct coordinate
-axes $d, d' \in \{x,y,z\}$ one has
-\[
-    \|R_d(\alpha)R_{d'}(\beta)-\id\| \leq  \sqrt{\alpha^2+\beta^2}
-\]
-with equality only for $\alpha = \beta = 0$.
-\end{lemma}
-
-\begin{proof}
-\uses{lem:jensen, lem:RaRa}
-\leanok
-See \cite{polyhedron.without.rupert}, Lemma 12.
-\end{proof}
-
 \begin{lemma} \label{lem:RxRy}
 \lean{Bounding.lemma12, Bounding.lemma12_equality_iff}
 \leanok
@@ -67,8 +35,18 @@ with equality only for $\alpha = \beta = 0$.
 
 \begin{proof}
 \leanok
-\uses{lem:RxRy_wlog}
-See \cite{polyhedron.without.rupert}, Lemma 12.
+The composition $R_d(\alpha)R_{d'}(\beta)$ is a rotation, i.e.\ conjugate
+to some $R_z(\gamma)$ by an isometry, which gives
+$\|R_d(\alpha)R_{d'}(\beta)-\id\|^2 = 2(1-\cos\gamma)
+= 3 - \tr(R_d(\alpha)R_{d'}(\beta))
+= 3 - (\cos\alpha + \cos\beta + \cos\alpha\cos\beta)$.
+Writing the right hand side as
+$2(1-\cos\alpha) + 2(1-\cos\beta) - (1-\cos\alpha)(1-\cos\beta)$
+and using $2(1-\cos x) \leq x^2$ (with equality only at $x = 0$)
+yields the bound and the equality condition.
+This is a direct route to \cite{polyhedron.without.rupert}, Lemma 12,
+that avoids the Jensen-inequality argument of Lemma 11 and the
+doubling induction.
 \end{proof}
 
 \begin{lemma} \label{lem:sqrt2}

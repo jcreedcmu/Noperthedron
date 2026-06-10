@@ -1,7 +1,6 @@
 import Noperthedron.Basic
 import Noperthedron.Bounding.OpNorm
 import Noperthedron.Bounding.RaRa
-import Noperthedron.Bounding.Lemma11
 
 /-!
 

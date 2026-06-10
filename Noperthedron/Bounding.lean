@@ -1,5 +1,4 @@
 import Noperthedron.Basic
-import Noperthedron.Bounding.Lemma11
 import Noperthedron.Bounding.SmallConsecutiveRotations
 import Noperthedron.Bounding.OpNorm
 

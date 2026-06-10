@@ -1,7 +1,6 @@
 import Noperthedron.Basic
 import Noperthedron.Bounding
 import Noperthedron.Bounding.BoundingUtil
-import Noperthedron.Bounding.Lemma11
 import Noperthedron.Bounding.OpNorm
 import Noperthedron.Bounding.OrthEquivRotz
 import Noperthedron.Bounding.RaRa
