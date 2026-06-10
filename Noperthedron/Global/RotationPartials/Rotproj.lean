@@ -44,12 +44,7 @@ Components:
 -/
 noncomputable
 def rotprojRM' (pbar : Pose ℝ) (S : ℝ³) : ℝ³ →L[ℝ] ℝ² :=
-  let M : Matrix (Fin 2) (Fin 3) ℝ := Matrix.of fun i j =>
-    match j with
-    | 0 => (pbar.rotR' (pbar.rotM₁ S)) i
-    | 1 => (pbar.rotR (pbar.rotM₁θ S)) i
-    | 2 => (pbar.rotR (pbar.rotM₁φ S)) i
-  M.toEuclideanLin.toContinuousLinearMap
+  columnsCLM ![pbar.rotR' (pbar.rotM₁ S), pbar.rotR (pbar.rotM₁θ S), pbar.rotR (pbar.rotM₁φ S)]
 
 /--
 The Fréchet derivative of `rotproj_inner S w` at `pbar.innerParams`.
@@ -62,17 +57,17 @@ def rotproj_inner' (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) : ℝ³ →L[ℝ] �
 @[simp]
 lemma rotprojRM'_single_0 (pbar : Pose ℝ) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 0 1) = pbar.rotR' (pbar.rotM₁ S) := by
-  ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
+  simp [rotprojRM']
 
 @[simp]
 lemma rotprojRM'_single_1 (pbar : Pose ℝ) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 1 1) = pbar.rotR (pbar.rotM₁θ S) := by
-  ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
+  simp [rotprojRM']
 
 @[simp]
 lemma rotprojRM'_single_2 (pbar : Pose ℝ) (S : ℝ³) :
     (rotprojRM' pbar S) (EuclideanSpace.single 2 1) = pbar.rotR (pbar.rotM₁φ S) := by
-  ext i; fin_cases i <;> simp [rotprojRM', Matrix.mulVec, Matrix.of_apply]
+  simp [rotprojRM']
 
 lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
     HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams := by

@@ -206,6 +206,30 @@ lemma fderiv_single_eq {n : ℕ} {F : Type*} [NormedAddCommGroup F] [NormedSpace
   rw [← hdiff.lineDeriv_eq_fderiv]
   exact HasLineDerivAt.lineDeriv hline
 
+/-- The continuous linear map `E n →L[ℝ] ℝ²` with prescribed values on the standard basis. -/
+noncomputable def columnsCLM {n : ℕ} (cols : Fin n → ℝ²) : E n →L[ℝ] ℝ² :=
+  (Matrix.of fun i j => (cols j) i).toEuclideanLin.toContinuousLinearMap
+
+@[simp]
+lemma columnsCLM_single {n : ℕ} (cols : Fin n → ℝ²) (i : Fin n) :
+    columnsCLM cols (EuclideanSpace.single i 1) = cols i := by
+  ext k
+  simp [columnsCLM]
+
+/-- A differentiable map whose directional derivatives along the standard basis are
+`cols i` has Fréchet derivative `columnsCLM cols`. -/
+lemma hasFDerivAt_of_partials {n : ℕ} {f : E n → ℝ²} {y : E n} (cols : Fin n → ℝ²)
+    (hdiff : DifferentiableAt ℝ f y)
+    (h : ∀ i, HasDerivAt (fun t : ℝ => f (y + t • EuclideanSpace.single i 1)) (cols i) 0) :
+    HasFDerivAt f (columnsCLM cols) y := by
+  have hfd : fderiv ℝ f y = columnsCLM cols := by
+    refine ContinuousLinearMap.coe_injective
+      ((EuclideanSpace.basisFun (Fin n) ℝ).toBasis.ext fun i => ?_)
+    simp only [OrthonormalBasis.coe_toBasis, EuclideanSpace.basisFun_apply,
+      ContinuousLinearMap.coe_coe, columnsCLM_single]
+    exact fderiv_single_eq hdiff (h i)
+  exact hfd ▸ hdiff.hasFDerivAt
+
 /-- fderiv of rotR ∘ rotMθ in direction e1 gives rotR ∘ rotMθθ -/
 lemma fderiv_rotR_rotMθ_in_e1 (S : ℝ³) (y : E 3) :
     (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y)
