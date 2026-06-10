@@ -29,11 +29,35 @@ namespace Bounding
 
 open Real
 open scoped Real
+open scoped Matrix
+
+noncomputable def OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
+    : Euc(n) ≃ₗ[ℝ] Euc(n) :=
+  WithLp.linearEquiv 2 ℝ (Fin n → ℝ) ≪≫ₗ
+    Matrix.UnitaryGroup.toLinearEquiv A ≪≫ₗ
+    (WithLp.linearEquiv 2 ℝ (Fin n → ℝ)).symm
+
+lemma OrthogonalGroup.toLinearEquiv_apply {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
+    OrthogonalGroup.toLinearEquiv A x = A.1.mulVec x := by
+  rfl
+
+/-- An orthogonal matrix gives a linear isometry equivalence of Euclidean space. -/
+noncomputable def OrthogonalGroup.toLinearIsometryEquiv {n : ℕ}
+    (A : Matrix.orthogonalGroup (Fin n) ℝ) : Euc(n) ≃ₗᵢ[ℝ] Euc(n) :=
+  (OrthogonalGroup.toLinearEquiv A).isometryOfInner fun x y => by
+    have hA : A.1ᵀ * A.1 = 1 := A.2.1
+    have key : (A.1 *ᵥ x) ⬝ᵥ (A.1 *ᵥ y) = x ⬝ᵥ y := by
+      rw [Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec, hA, Matrix.vecMul_one]
+    simp only [PiLp.inner_apply, RCLike.inner_apply, conj_trivial,
+      OrthogonalGroup.toLinearEquiv_apply]
+    simpa [dotProduct, mul_comm] using key
+
+lemma OrthogonalGroup.toLinearIsometryEquiv_apply {n : ℕ}
+    (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
+    OrthogonalGroup.toLinearIsometryEquiv A x = A.1.mulVec x :=
+  OrthogonalGroup.toLinearEquiv_apply A x
 
 section AristotleLemmas
-
-open scoped Matrix
-open Bounding
 
 lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
     rot3_mat d θ ∈ Matrix.orthogonalGroup (Fin 3) ℝ := by
@@ -132,23 +156,32 @@ lemma SO3_fixing_z_is_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.spe
   use γ
   simp_all
 
+/-- Every unit vector in `ℝ³` has spherical coordinates. -/
+lemma exists_spherical_coords (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
+    ∃ β α : ℝ, v = ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
+  simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv ⊢
+  use Real.arccos (v 2), Complex.arg (v 0 + v 1 * Complex.I)
+  have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧
+      Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
+    rw [Real.cos_arccos, Real.sin_arccos] <;>
+      try linarith [sq_nonneg (1 + v 2), sq_nonneg (1 - v 2), sq_nonneg (v 0), sq_nonneg (v 1)]
+    exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv.symm⟩
+  by_cases h : v 0 + v 1 * Complex.I = 0
+  · simp_all
+    simp_all [Complex.ext_iff]
+    ext i
+    fin_cases i <;> tauto
+  · have hpos : 0 < v 0 ^ 2 + v 1 ^ 2 := by
+      rw [← Complex.normSq_add_mul_I]
+      exact Complex.normSq_pos.mpr h
+    simp_all [Complex.cos_arg, Complex.sin_arg]
+    simp [Complex.normSq, Complex.norm_def] at *
+    simp [← sq, mul_div_cancel₀ _ (ne_of_gt <| Real.sqrt_pos.mpr hpos)]
+    ext i; fin_cases i <;> rfl
+
 lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1) :
     ∃ U : Matrix (Fin 3) (Fin 3) ℝ, U ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ ∧ U.mulVec ![0, 0, 1] = v := by
-  -- Let $U$ be a rotation matrix such that $U \cdot \mathbf{e}_3 = v$. Since $v$ is a unit vector, we can construct such a matrix using the Rodrigues' rotation formula. We'll use the fact that any unit vector in $\mathbb{R}^3$ can be written as $v = \cos \theta \mathbf{e}_3 + \sin \theta (\cos \phi \mathbf{e}_1 + \sin \phi \mathbf{e}_2)$ for some $\theta$ and $\phi$.
-  obtain ⟨θ, ϕ, hθϕ⟩ : ∃ θ ϕ : ℝ, v = ![Real.sin θ * Real.cos ϕ, Real.sin θ * Real.sin ϕ, Real.cos θ] := by
-    simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv ⊢
-    use Real.arccos ( v 2 ), Complex.arg (v 0 + v 1 * Complex.I)
-    -- By definition of arccos and argument, we can express v 0, v 1, and v 2 in terms of θ and ϕ.
-    have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧ Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
-      rw [ Real.cos_arccos, Real.sin_arccos ] <;> try nlinarith
-      exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv.symm⟩
-    by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
-    · simp_all [Complex.ext_iff]
-      ext i
-      fin_cases i <;> tauto
-    · simp [Complex.normSq, Complex.norm_def] at *
-      simp [← sq, mul_div_cancel₀ _ (show √( v 0 ^ 2 + v 1 ^ 2 ) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by nlinarith [ mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by norm_num [ Complex.ext_iff, sq ] ; constructor <;> nlinarith ] ) ]
-      ext i; fin_cases i <;> rfl
+  obtain ⟨θ, ϕ, hθϕ⟩ := exists_spherical_coords v hv
   use rot3_mat 2 ϕ * rot3_mat 1 (-θ)
   constructor
   · exact Submonoid.mul_mem _ (rot3_mat_mem_SO3 2 ϕ) (rot3_mat_mem_SO3 1 _)
@@ -183,44 +216,11 @@ lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
   let v : EuclideanSpace ℝ (Fin 3) := M.toEuclideanLin !₂[0, 0, 1]
   -- SO3 matrices preserve norms, so ‖v‖ = 1
   have hv_norm : ‖v‖ = 1 := by
-    have key : Mᵀ * M = 1 := by
-      have h := hM.1.1; simp only [Matrix.star_eq_conjTranspose] at h; exact h
-    simp only [v, Matrix.toLpLin_apply, EuclideanSpace.norm_eq]
-    -- The calculation (M*ᵥe)·(M*ᵥe) = e·((MᵀM)*ᵥe) = e·e = 1
-    have hdot : (M *ᵥ ![0, 0, 1]) ⬝ᵥ (M *ᵥ ![0, 0, 1]) = 1 := by
-      have : (M *ᵥ ![0, 0, 1]) ⬝ᵥ (M *ᵥ ![0, 0, 1]) =
-             ![0, 0, 1] ⬝ᵥ ((Mᵀ * M) *ᵥ ![0, 0, 1]) := by
-        simp only [dotProduct, Matrix.mulVec, Fin.sum_univ_three, Matrix.mul_apply,
-          Matrix.transpose_apply]
-        ring
-      rw [this, key, Matrix.one_mulVec]
-      simp [dotProduct, Fin.sum_univ_three]
-    simp only [Real.sqrt_eq_one]
-    have hsq : ∑ i, (M *ᵥ ![0, 0, 1]) i ^ 2 = 1 := by
-      simp only [dotProduct, Fin.sum_univ_three] at hdot
-      simp only [Fin.sum_univ_three, sq]
-      convert hdot using 2
-    simp only [Fin.sum_univ_three, sq] at hsq ⊢
-    convert hsq using 2
-    all_goals simp [Real.norm_eq_abs]
+    have h1 : v = OrthogonalGroup.toLinearIsometryEquiv ⟨M, hM.1⟩ !₂[0, 0, 1] := rfl
+    rw [h1, LinearIsometryEquiv.norm_map]
+    simp [EuclideanSpace.norm_eq, Fin.sum_univ_three]
   -- Use spherical coordinates: v = [sin β cos α, sin β sin α, cos β]
-  obtain ⟨β, α, hv_eq⟩ : ∃ β α : ℝ,
-      (v : Fin 3 → ℝ) = ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
-    simp [EuclideanSpace.norm_eq, Fin.sum_univ_three] at hv_norm ⊢
-    use Real.arccos (v 2), Complex.arg (v 0 + v 1 * Complex.I)
-    have h_cos_sin : Real.cos (Real.arccos (v 2)) = v 2 ∧
-        Real.sin (Real.arccos (v 2)) = Real.sqrt (v 0 ^ 2 + v 1 ^ 2) := by
-      rw [Real.cos_arccos, Real.sin_arccos] <;> try nlinarith
-      exact ⟨rfl, congrArg Real.sqrt <| sub_eq_iff_eq_add.mpr hv_norm.symm⟩
-    by_cases h : v 0 + v 1 * Complex.I = 0 <;> simp_all [Complex.cos_arg, Complex.sin_arg]
-    · simp_all [Complex.ext_iff]
-      ext i; fin_cases i <;> tauto
-    · simp [Complex.normSq, Complex.norm_def] at *
-      simp [← sq, mul_div_cancel₀ _
-        (show √(v 0 ^ 2 + v 1 ^ 2) ≠ 0 from ne_of_gt <| Real.sqrt_pos.mpr <| by
-          nlinarith [mul_self_pos.mpr <| show v 0 ^ 2 + v 1 ^ 2 ≠ 0 from fun h' => h <| by
-            norm_num [Complex.ext_iff, sq]; constructor <;> nlinarith])]
-      ext i; fin_cases i <;> rfl
+  obtain ⟨β, α, hv_eq⟩ := exists_spherical_coords v hv_norm
   -- N = Ry(β) * Rz(-α) * M fixes [0,0,1]
   -- (First Rz(-α) removes azimuthal angle, then Ry(β) brings to z-axis)
   let N := Ry_mat β * Rz_mat (-α) * M
@@ -256,18 +256,15 @@ lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
 @[simp]
 lemma Rz_mat_zero : Rz_mat 0 = 1 := by simp [Rz_mat, Matrix.one_fin_three]
 
--- TODO something like this really ought to exist in mathlib.
 lemma specialOrthogonalGroup_mem_inv {n : ℕ} {U : Matrix (Fin n) (Fin n) ℝ}
     (U_SO3 : U ∈ Matrix.specialOrthogonalGroup (Fin n) ℝ) :
     U⁻¹ ∈ Matrix.specialOrthogonalGroup (Fin n) ℝ := by
-  have h_inv : U * U.transpose = 1 ∧ U.transpose * U = 1 := by
-    have h_ortho : U * U.transpose = 1 := U_SO3.1.2
-    have h_ortho' : U.transpose * U = 1 := by rw [← mul_eq_one_comm, h_ortho]
-    exact ⟨h_ortho, h_ortho'⟩
-  have h_inv : U⁻¹ = U.transpose := by
-    rw [Matrix.inv_eq_right_inv h_inv.1]
-  simp_all only [Matrix.mem_specialOrthogonalGroup_iff, Matrix.det_transpose, and_true]
-  constructor <;> aesop
+  let u : Matrix.specialOrthogonalGroup (Fin n) ℝ := ⟨U, U_SO3⟩
+  have h : (↑u⁻¹ : Matrix (Fin n) (Fin n) ℝ) * U = 1 := by
+    simpa only [MulMemClass.coe_mul, OneMemClass.coe_one] using
+      congrArg Subtype.val (inv_mul_cancel u)
+  rw [Matrix.inv_eq_left_inv h]
+  exact u⁻¹.2
 
 lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ), A = U * Rz_mat γ * U⁻¹ := by
@@ -312,52 +309,27 @@ lemma SO3_is_conj_Rz_within_pi (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matr
 
 end AristotleLemmas
 
-noncomputable def Matrix.OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
-    : Euc(n) ≃ₗ[ℝ] Euc(n) :=
-  WithLp.linearEquiv 2 ℝ (Fin n → ℝ) ≪≫ₗ
-    Matrix.UnitaryGroup.toLinearEquiv A ≪≫ₗ
-    (WithLp.linearEquiv 2 ℝ (Fin n → ℝ)).symm
-
-lemma Matrix.orthogonalGroup.to_linear_equiv_apply {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ) (x : Euc(n)) :
-    Matrix.OrthogonalGroup.toLinearEquiv A x = A.1.mulVec x := by
-  rfl
-
-lemma inv_euclidean_eq_euclidean_symm (u : Euc(3) ≃ₗ[ℝ] Euc(3)) :
-    (Matrix.toEuclideanLin.symm u.toLinearMap)⁻¹ = Matrix.toEuclideanLin.symm u.symm.toLinearMap := by
-  rw [Matrix.inv_eq_right_inv]
-  rw [← Matrix.toLpLin_symm_comp]
-  simp only [LinearEquiv.comp_coe, LinearEquiv.symm_trans_self, LinearEquiv.refl_toLinearMap]
-  exact Matrix.toLpLin_symm_id 2
-
-lemma euclidean_linear_equiv_inverse (v : ℝ³) (u : Euc(3) ≃ₗ[ℝ] Euc(3)) (U : Matrix (Fin 3) (Fin 3) ℝ)
-    (hu : U = Matrix.toEuclideanLin.symm u.toLinearMap) :
-    u.symm v = WithLp.toLp 2 (U⁻¹.mulVec v) := by
-  rw [hu, inv_euclidean_eq_euclidean_symm]
-  have (qq : Euc(3) ≃ₗ[ℝ] Euc(3)) : ((Matrix.toEuclideanLin.symm (qq.toLinearMap)).toEuclideanLin v) =
-      (Matrix.toEuclideanLin.symm (qq.toLinearMap)).mulVec v := rfl
-  simp only [LinearEquiv.apply_symm_apply, LinearEquiv.coe_coe] at this
-  rw [←this]
-
 lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
     rot3 d α ∘L rot3 d' β =
       u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
   have dd'_so3 : rot3_mat d α * rot3_mat d' β ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
     Submonoid.mul_mem _ (Bounding.rot3_mat_mem_SO3 d α) (Bounding.rot3_mat_mem_SO3 d' β)
-
-  obtain ⟨ U, hU, γ, hγ, h ⟩ := SO3_is_conj_Rz_within_pi ( rot3_mat d α * rot3_mat d' β ) dd'_so3
-  -- Let $u$ be the linear isometry equivalence corresponding to $U$.
-  obtain ⟨u, hu⟩ : ∃ u : Euc(3) ≃ₗᵢ[ℝ] Euc(3), ∀ x : Euc(3), u x = U.mulVec x := by
-    have hU_orthogonal : U.transpose * U = 1 := hU.1
-    refine ⟨ { Matrix.OrthogonalGroup.toLinearEquiv ⟨U, hU⟩ with norm_map' := ?_ },
-               Matrix.orthogonalGroup.to_linear_equiv_apply ⟨U, hU⟩ ⟩
-    simp_all [EuclideanSpace.norm_eq, Fin.sum_univ_three]
-    -- Since $U$ is orthogonal, we have $U^T U = I$, which implies that $U$ preserves the dot product.
-    have hU_dot : ∀ x y : Euc(3), dotProduct (U.mulVec x) (U.mulVec y) = dotProduct x y := by
-      simp_all [Matrix.mul_assoc, Matrix.dotProduct_mulVec, Matrix.vecMul_mulVec]
-    simp_all only [dotProduct, Fin.sum_univ_three, Fin.isValue]
+  obtain ⟨U, hU, γ, hγ, h⟩ := SO3_is_conj_Rz_within_pi (rot3_mat d α * rot3_mat d' β) dd'_so3
+  let u : Euc(3) ≃ₗᵢ[ℝ] Euc(3) := OrthogonalGroup.toLinearIsometryEquiv ⟨U, hU⟩
+  have hu : ∀ x : Euc(3), u x = U.mulVec x :=
+    OrthogonalGroup.toLinearIsometryEquiv_apply ⟨U, hU⟩
+  have hU_det : IsUnit U.det := by
+    have h1 := congrArg Matrix.det hU.2
+    rw [Matrix.det_mul, Matrix.det_one] at h1
+    exact isUnit_iff_ne_zero.mpr (left_ne_zero_of_mul_eq_one h1)
+  have hu_symm : ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) := by
     intro x
-    exact congr_arg Real.sqrt ( by simpa only [ sq, Matrix.orthogonalGroup.to_linear_equiv_apply ] using hU_dot x x )
+    apply u.injective
+    rw [LinearIsometryEquiv.apply_symm_apply]
+    refine WithLp.ofLp_injective 2 ?_
+    rw [hu]
+    simp [Matrix.mulVec_mulVec, Matrix.mul_nonsing_inv _ hU_det]
   refine ⟨u, γ, hγ, ?_⟩
   ext x i
   simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
@@ -369,15 +341,7 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
       simp
     rw [←h_expand]
     fin_cases d <;> fin_cases d' <;> rfl
-  · have : U = Matrix.toEuclideanLin.symm u.toLinearMap := by
-      suffices h : Matrix.toEuclideanLin U = u.toLinearMap from
-        (LinearEquiv.eq_symm_apply Matrix.toEuclideanLin).mpr h
-      ext1 x
-      specialize hu x
-      rw [show U.mulVec x.ofLp = (Matrix.toEuclideanLin U) x by simp] at hu
-      exact WithLp.ofLp_injective 2 hu |>.symm
-    rw [show ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) from
-      fun x => euclidean_linear_equiv_inverse x u U this]
+  · rw [show ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) from hu_symm]
     simp [RzL, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
     simp [Matrix.mul_apply]
     simp [Fin.sum_univ_three, Matrix.vecHead, Matrix.vecTail, Matrix.vecMul]
