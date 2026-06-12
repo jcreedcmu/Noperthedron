@@ -4,7 +4,7 @@ import Noperthedron.PoseInterval
 import Noperthedron.Tightening
 import Noperthedron.ConvertPose
 import Noperthedron.CommonCenter
-import Noperthedron.ComputationalStep
+import Noperthedron.SolutionTable
 import Noperthedron.Vertices.Exact
 
 open scoped Matrix
