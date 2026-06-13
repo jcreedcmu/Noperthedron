@@ -8,7 +8,7 @@ This project request had uuid: 120c93b3-4a3e-4d3e-830e-897e5a663c20
 The following was proved by Aristotle:
 
 - lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
-    ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ico (-π) π ∧
+    ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
     rot3 d α ∘L rot3 d' β =
       u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap
 
@@ -278,35 +278,29 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     rot3 d α ∘L rot3 d' β =
       u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
   have dd'_so3 : rot3_mat d α * rot3_mat d' β ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
-    Submonoid.mul_mem _ (Bounding.rot3_mat_mem_SO3 d α) (Bounding.rot3_mat_mem_SO3 d' β)
+    Submonoid.mul_mem _ (rot3_mat_mem_SO3 d α) (rot3_mat_mem_SO3 d' β)
   obtain ⟨U, hU, γ, hγ, h⟩ := SO3_is_conj_Rz_within_pi (rot3_mat d α * rot3_mat d' β) dd'_so3
   let u : Euc(3) ≃ₗᵢ[ℝ] Euc(3) := OrthogonalGroup.toLinearIsometryEquiv ⟨U, hU⟩
-  have hu : ∀ x : Euc(3), u x = U.mulVec x :=
+  have hu : ∀ x : Euc(3), (u x).ofLp = U *ᵥ x.ofLp :=
     OrthogonalGroup.toLinearIsometryEquiv_apply ⟨U, hU⟩
-  have hU_det : IsUnit U.det := by
-    have h1 := congrArg Matrix.det hU.2
-    rw [Matrix.det_mul, Matrix.det_one] at h1
-    exact isUnit_iff_ne_zero.mpr (left_ne_zero_of_mul_eq_one h1)
-  have hu_symm : ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) := by
-    intro x
-    apply u.injective
-    rw [LinearIsometryEquiv.apply_symm_apply]
-    refine WithLp.ofLp_injective 2 ?_
-    rw [hu]
-    simp [Matrix.mulVec_mulVec, Matrix.mul_nonsing_inv _ hU_det]
+  have hU_det : IsUnit U.det := Matrix.isUnit_det_of_left_inverse hU.1
+  have hu_symm : ∀ x : Euc(3), (u.symm x).ofLp = U⁻¹ *ᵥ x.ofLp := fun x => by
+    have h2 := hu (u.symm x)
+    rw [LinearIsometryEquiv.apply_symm_apply] at h2
+    rw [h2, Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ hU_det, Matrix.one_mulVec]
+  -- The map `M ↦ M.toEuclideanLin.toContinuousLinearMap` turns matrix products into composition.
+  have toCLM_mul : ∀ A B : Matrix (Fin 3) (Fin 3) ℝ,
+      (A * B).toEuclideanLin.toContinuousLinearMap
+        = A.toEuclideanLin.toContinuousLinearMap ∘L B.toEuclideanLin.toContinuousLinearMap := by
+    intro A B; ext v; simp
+  -- `u` and `u.symm` are exactly the continuous linear maps of `U` and `U⁻¹`.
+  have hU_clm : u.toLinearIsometry.toContinuousLinearMap = U.toEuclideanLin.toContinuousLinearMap := by
+    ext x; simp [hu]
+  have hUinv_clm :
+      u.symm.toLinearIsometry.toContinuousLinearMap = U⁻¹.toEuclideanLin.toContinuousLinearMap := by
+    ext x; simp [hu_symm]
   refine ⟨u, γ, hγ, ?_⟩
-  ext x i
-  simp only [ContinuousLinearMap.coe_comp', Function.comp_apply,
-    LinearIsometry.coe_toContinuousLinearMap, LinearIsometryEquiv.coe_toLinearIsometry, hu,
-    Matrix.mulVec]
-  convert congr(Matrix.mulVec $h x i) using 1
-  · have h_expand : ∀ (A B : Matrix (Fin 3) (Fin 3) ℝ) (x : Euc(3)),
-                      (A.toEuclideanLin (B.toEuclideanLin x)) = (A * B).mulVec x := by
-      simp
-    rw [←h_expand]
-    fin_cases d <;> fin_cases d' <;> rfl
-  · rw [show ∀ x : Euc(3), u.symm x = WithLp.toLp 2 (U⁻¹.mulVec x) from hu_symm]
-    simp [RzL, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-    simp [Matrix.mul_apply]
-    simp [Fin.sum_univ_three, Matrix.vecHead, Matrix.vecTail, Matrix.vecMul]
-    ring_nf
+  have lhs_eq : rot3 d α ∘L rot3 d' β
+      = (rot3_mat d α * rot3_mat d' β).toEuclideanLin.toContinuousLinearMap := by
+    rw [toCLM_mul]; fin_cases d <;> fin_cases d' <;> rfl
+  rw [lhs_eq, h, toCLM_mul, toCLM_mul, hU_clm, hUinv_clm, RzL, ContinuousLinearMap.comp_assoc]
