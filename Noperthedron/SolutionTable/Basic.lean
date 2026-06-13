@@ -94,6 +94,122 @@ private theorem Table.rowsValidB_eq_true_iff (tab : Table) :
 instance Table.RowsValid.decidable (tab : Table) : Decidable tab.RowsValid :=
   decidable_of_iff _ tab.rowsValidB_eq_true_iff
 
+/-! ### Parallel validity checking
+
+`Table.rowsValidParB` splits the index range into chunks and checks them
+concurrently via `Task.spawn`. Since `Task.spawn fn` is *definitionally*
+`⟨fn ()⟩`, the parallelism is invisible to the logic, and correctness is proved
+exactly as for the sequential checker. This matters for
+`Noperthedron.exists_solution_table`, where `native_decide` runs this check
+over a table with ~18.7 million rows. -/
+
+private theorem task_get_spawn {α : Type} (fn : Unit → α) (prio : Task.Priority) :
+    (Task.spawn fn prio).get = fn () := rfl
+
+/-- `Row.ValidIx` at index `i` as a `Bool`, vacuously `true` past the end of the
+table (chunks are allowed to overhang the end). -/
+private def Table.validIxB (tab : Table) (i : ℕ) : Bool :=
+  if h : i < tab.size then decide (tab[i].ValidIx tab i) else true
+
+private theorem Table.validIxB_eq_true_iff (tab : Table) (i : ℕ) :
+    tab.validIxB i = true ↔ ∀ h : i < tab.size, tab[i].ValidIx tab i := by
+  unfold Table.validIxB
+  split
+  · rename_i h
+    rw [decide_eq_true_iff]
+    exact ⟨fun hv _ => hv, fun hv => hv h⟩
+  · rename_i h
+    simp only [true_iff]
+    exact fun h' => absurd h' h
+
+/-- Check validity of the rows with indices in `[start, start + cnt)`, as a flat
+`Fin.foldl` loop (see `Table.rowsValidB` for why this matters). -/
+private def Table.chunkValidB (tab : Table) (start cnt : ℕ) : Bool :=
+  Fin.foldl cnt (init := true) fun acc j => acc && tab.validIxB (start + j.val)
+
+private theorem Table.chunkValidB_eq_true_iff (tab : Table) (start cnt : ℕ) :
+    tab.chunkValidB start cnt = true ↔
+      ∀ k, start ≤ k → k < start + cnt → tab.validIxB k = true := by
+  unfold Table.chunkValidB
+  rw [Fin.foldl_and_eq_true_iff (fun j => tab.validIxB (start + j.val))]
+  constructor
+  · intro h k hk1 hk2
+    have := h ⟨k - start, by omega⟩
+    rwa [Nat.add_sub_cancel' hk1] at this
+  · intro h j
+    exact h (start + j.val) (Nat.le_add_right _ _) (by have := j.isLt; omega)
+
+/-- Check all rows of the table for validity, splitting the work into `nTasks`
+chunks of size `chunkSize` that run concurrently via `Task.spawn`. The leading
+`decide` guard ensures that the chunks cover the whole table, so that
+`Table.rowsValid_of_rowsValidChunkedB` holds for arbitrary (even nonsensical)
+values of `nTasks` and `chunkSize`. -/
+def Table.rowsValidChunkedB (tab : Table) (nTasks chunkSize : ℕ) : Bool :=
+  decide (tab.size ≤ nTasks * chunkSize) &&
+    (((List.range nTasks).map fun t =>
+        Task.spawn fun _ => tab.chunkValidB (t * chunkSize) chunkSize).all Task.get)
+
+theorem Table.rowsValid_of_rowsValidChunkedB {tab : Table} {nTasks chunkSize : ℕ}
+    (h : tab.rowsValidChunkedB nTasks chunkSize = true) : tab.RowsValid := by
+  unfold Table.rowsValidChunkedB at h
+  rw [Bool.and_eq_true, decide_eq_true_iff, List.all_eq_true] at h
+  obtain ⟨hsize, hall⟩ := h
+  intro i
+  have hc0 : 0 < chunkSize := by
+    rcases Nat.eq_zero_or_pos chunkSize with hc | hc
+    · subst hc; have := i.isLt; omega
+    · exact hc
+  have ht : (i : ℕ) / chunkSize < nTasks :=
+    (Nat.div_lt_iff_lt_mul hc0).mpr (lt_of_lt_of_le i.isLt hsize)
+  have hchunk : tab.chunkValidB ((i : ℕ) / chunkSize * chunkSize) chunkSize = true := by
+    have := hall _ (List.mem_map.mpr ⟨(i : ℕ) / chunkSize, List.mem_range.mpr ht, rfl⟩)
+    rwa [task_get_spawn] at this
+  rw [Table.chunkValidB_eq_true_iff] at hchunk
+  have hk : tab.validIxB (i : ℕ) = true := by
+    have hdm := Nat.div_add_mod (i : ℕ) chunkSize
+    have hm := Nat.mod_lt (i : ℕ) hc0
+    rw [Nat.mul_comm] at hdm
+    exact hchunk (i : ℕ) (by omega) (by omega)
+  rw [Table.validIxB_eq_true_iff] at hk
+  exact hk i.isLt
+
+/-- Parallel analogue of `Table.rowsValidB`, splitting the table into `nTasks`
+chunks of (near-)equal size. -/
+def Table.rowsValidParB (tab : Table) (nTasks : ℕ) : Bool :=
+  tab.rowsValidChunkedB nTasks (tab.size / nTasks + 1)
+
+theorem Table.rowsValid_of_rowsValidParB {tab : Table} {nTasks : ℕ}
+    (h : tab.rowsValidParB nTasks = true) : tab.RowsValid :=
+  Table.rowsValid_of_rowsValidChunkedB h
+
+/--
+info: 'Noperthedron.Solution.Table.rowsValid_of_rowsValidParB' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms Table.rowsValid_of_rowsValidParB
+
+/-- The parallel checker is complete: for a positive number of tasks it agrees
+with `Table.RowsValid`. (Soundness, which is the direction the final proof
+needs, holds for any `nTasks`; see `Table.rowsValid_of_rowsValidParB`.) -/
+theorem Table.rowsValidParB_eq_true_iff {tab : Table} {nTasks : ℕ} (hn : 0 < nTasks) :
+    tab.rowsValidParB nTasks = true ↔ tab.RowsValid := by
+  refine ⟨Table.rowsValid_of_rowsValidParB, fun hv => ?_⟩
+  unfold Table.rowsValidParB Table.rowsValidChunkedB
+  rw [Bool.and_eq_true, decide_eq_true_iff, List.all_eq_true]
+  constructor
+  · have hdm := Nat.div_add_mod tab.size nTasks
+    have hm := Nat.mod_lt tab.size hn
+    rw [Nat.mul_succ]
+    omega
+  · intro b hb
+    rw [List.mem_map] at hb
+    obtain ⟨t, _, rfl⟩ := hb
+    rw [task_get_spawn, Table.chunkValidB_eq_true_iff]
+    intro k _ _
+    rw [Table.validIxB_eq_true_iff]
+    intro hk
+    exact hv ⟨k, hk⟩
+
 /-- The minimum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
 def Interval.minPose (iv : Interval) : Pose ℝ := iv.min.toReal
 

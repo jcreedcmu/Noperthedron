@@ -64,6 +64,7 @@ import Noperthedron.Rupert.Equivalences.Util
 import Noperthedron.Rupert.Set
 import Noperthedron.SolutionTable
 import Noperthedron.SolutionTable.Basic
+import Noperthedron.SolutionTable.Check
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.SolutionTable.Global
 import Noperthedron.SolutionTable.Local

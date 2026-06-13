@@ -145,6 +145,37 @@ def parseSolutionTable (s : String) : Except String Table := do
     result := result.push row
   return result
 
+/-- Parse a contiguous range of lines into rows. -/
+private def parseChunk (lns : Array String.Slice) (start stop : ℕ) :
+    Except String (Array Row) := Id.run do
+  let mut out : Array Row := Array.mkEmpty (stop - start)
+  for ln in lns.extract start stop do
+    match parseRowCsv ln.toString with
+    | .ok row => out := out.push row
+    | .error e => return .error e
+  return .ok out
+
+/-- Parallel version of `parseSolutionTable`: split the lines after the header
+into `nTasks` contiguous chunks, parse each chunk in its own `Task`, and
+concatenate the results in order. No correctness lemmas are needed: every
+property of the resulting table that the proofs rely on is checked downstream
+(by `Table.rowsValidParB` etc.), so the parser need not be trusted. -/
+def parseSolutionTablePar (s : String) (nTasks : ℕ) : Except String Table := Id.run do
+  let mut lns : Array String.Slice := #[]
+  for ln in s.lines do
+    lns := lns.push ln
+  let n := lns.size
+  let chunkSize := (n - 1) / nTasks + 1
+  -- index 0 is the header line, so chunk `t` covers lines [1 + t * chunkSize, 1 + (t+1) * chunkSize)
+  let tasks := (List.range nTasks).map fun t =>
+    Task.spawn fun _ => parseChunk lns (1 + t * chunkSize) (min n (1 + (t + 1) * chunkSize))
+  let mut result : Array Row := Array.mkEmpty (n - 1)
+  for tsk in tasks do
+    match tsk.get with
+    | .ok rows => result := result ++ rows
+    | .error e => return .error e
+  return .ok result
+
 def readSolutionTable (filepath : String) : IO Table := do
   let mut rows : Array Row := Array.empty
   let h ← IO.FS.Handle.mk filepath IO.FS.Mode.read
