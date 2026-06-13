@@ -182,6 +182,12 @@ theorem Table.rowsValid_of_rowsValidParB {tab : Table} {nTasks : ℕ}
     (h : tab.rowsValidParB nTasks = true) : tab.RowsValid :=
   Table.rowsValid_of_rowsValidChunkedB h
 
+/--
+info: 'Noperthedron.Solution.Table.rowsValid_of_rowsValidParB' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms Table.rowsValid_of_rowsValidParB
+
 /-- The parallel checker is complete: for a positive number of tasks it agrees
 with `Table.RowsValid`. (Soundness, which is the direction the final proof
 needs, holds for any `nTasks`; see `Table.rowsValid_of_rowsValidParB`.) -/
