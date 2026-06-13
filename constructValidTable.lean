@@ -9,7 +9,9 @@ import Noperthedron.SolutionTable.Check
 
   This runs the same parallel parse-and-check functions that `native_decide`
   evaluates in Noperthedron/ComputationalStep.lean, but compiled to native
-  code, so it is considerably faster. It serves as a dry run for that step.
+  code, so it is considerably faster.
+
+  Running this takes about 2.5 hours on a 16-core machine.
 -/
 
 open Noperthedron.Solution

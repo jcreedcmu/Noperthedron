@@ -7,16 +7,16 @@ import Noperthedron.Vertices.Exact
 
 /-!
   Expensive computational step: `native_decide` parses the SY25 solution-tree
-  CSV and checks every row of the resulting ~18.7-million-row table. The work
-  is split into parallel tasks (see `Solution.checkSolutionCsv`), so on an
-  N-core machine it runs roughly N× faster than the sequential check; expect
-  it to take a few hours on 16 cores. Memory: the CSV is 2.5 GB and the parsed
-  table is several times that, so a machine with ≳32 GB of RAM is recommended.
+  CSV and checks every row of the resulting ~18.7-million-row table. On a 16
+  core machine, this takes about 30 hours and consumes about 55 GB of memory.
+  It would potentially go faster if we set `precompiledModules = true`.
 
-  `constructValidTable.lean` runs the same parse-and-check functions as a
-  natively compiled executable, which is faster than the `native_decide`
-  evaluation here (the interpreter executes the module's compiled IR but is
-  slower than optimized native code). It is useful as a dry run.
+  The full check is commented out so that it doesn't bog down compilation
+  as we work on the rest of the project.
+
+  To run the same check in a standalone native executable, try
+  `constructValidTable.lean`, which should take about 2.5 hours on a 16-core
+  machine.
 -/
 
 namespace Noperthedron
@@ -24,11 +24,13 @@ namespace Noperthedron
 /-- The Steininger–Yurkevich solution tree, unzipped from
 https://github.com/Jakob256/Rupert/blob/main/data/solution_tree.zip -/
 def solution_csv : String :=
-  include_str "../../noperthedron-verification-py/data/solution_tree.csv"
+  -- Uncomment the following line and point it to the file's location.
+  -- include_str "../../noperthedron-verification-py/data/solution_tree.csv"
+  sorry
 
 theorem exists_solution_table : ∃ (_ : Solution.ValidTable), True := by
   have h : Solution.checkSolutionCsv solution_csv 64 512 = true := by
-    -- Uncomment the following step to run the full check.
+    -- Uncomment the following step.
     -- native_decide
     sorry
   exact Solution.checkSolutionCsv_sound h
