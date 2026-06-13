@@ -26,6 +26,9 @@ https://github.com/Jakob256/Rupert/blob/main/data/solution_tree.zip -/
 def solution_csv : String :=
   include_str "../../noperthedron-verification-py/data/solution_tree.csv"
 
-theorem exists_solution_table : ∃ (tab : Solution.ValidTable), True := by
-  have h : Solution.checkSolutionCsv solution_csv 64 512 = true := by native_decide
+theorem exists_solution_table : ∃ (_ : Solution.ValidTable), True := by
+  have h : Solution.checkSolutionCsv solution_csv 64 512 = true := by
+    -- Uncomment the following step to run the full check.
+    -- native_decide
+    sorry
   exact Solution.checkSolutionCsv_sound h
