@@ -1,19 +1,3 @@
-/-
-This file was edited by Aristotle.
-
-Lean version: leanprover/lean4:v4.24.0
-Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
-This project request had uuid: 120c93b3-4a3e-4d3e-830e-897e5a663c20
-
-The following was proved by Aristotle:
-
-- lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
-    ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
-    rot3 d α ∘L rot3 d' β =
-      u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap
-
--/
-
 import Noperthedron.Basic
 import Noperthedron.Bounding.OpNorm
 import Noperthedron.Bounding.BoundingUtil
@@ -30,8 +14,6 @@ namespace Bounding
 open Real
 open scoped Real
 open scoped Matrix
-
-section AristotleLemmas
 
 lemma rot3_mat_mem_SO3 (d : Fin 3) (θ : ℝ) :
     rot3_mat d θ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
@@ -270,8 +252,6 @@ lemma SO3_is_conj_Rz_within_pi (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matr
   obtain ⟨U, U_SO, γ, hγ⟩ := SO3_is_conj_Rz A hA
   obtain ⟨γ', γ'_in, hγ'⟩ := Rz_mod_two_pi γ
   use U, U_SO, γ', γ'_in, hγ'▸hγ
-
-end AristotleLemmas
 
 lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
     ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
