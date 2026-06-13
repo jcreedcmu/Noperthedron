@@ -158,45 +158,34 @@ Uses the fact that SO3 matrices preserve unit vectors and spherical coordinates.
 lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
     (hM : M ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
     ∃ α β γ : ℝ, M = Rz_mat α * Ry_mat β * Rz_mat γ := by
-  -- v = M * [0,0,1] is a unit vector
+  -- `v = M · e_z` is a unit vector; read off its spherical coordinates.
   let v : EuclideanSpace ℝ (Fin 3) := M.toEuclideanLin !₂[0, 0, 1]
-  -- SO3 matrices preserve norms, so ‖v‖ = 1
   have hv_norm : ‖v‖ = 1 := by
     have h1 : v = OrthogonalGroup.toLinearIsometryEquiv ⟨M, hM.1⟩ !₂[0, 0, 1] := rfl
     rw [h1, LinearIsometryEquiv.norm_map]
     simp [EuclideanSpace.norm_eq, Fin.sum_univ_three]
-  -- Use spherical coordinates: v = [sin β cos α, sin β sin α, cos β]
   obtain ⟨β, α, hv_eq⟩ := exists_spherical_coords v hv_norm
-  -- N = Ry(β) * Rz(-α) * M fixes [0,0,1]
-  -- (First Rz(-α) removes azimuthal angle, then Ry(β) brings to z-axis)
+  have hMz : M *ᵥ ![0, 0, 1] =
+      ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
+    ext i; simpa only [v, Matrix.toLpLin_apply] using congrFun hv_eq i
+  -- `N = Ry(β)·Rz(-α)·M` fixes `e_z` (Rz(-α) kills the azimuth, Ry(β) tilts to the pole),
+  -- so it is some `Rz(γ)`.
   let N := Ry_mat β * Rz_mat (-α) * M
   have hN_SO3 : N ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
     Submonoid.mul_mem _ (Submonoid.mul_mem _ (rot3_mat_mem_SO3 1 β) (rot3_mat_mem_SO3 2 (-α))) hM
   have hN_fixes_z : N.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1] := by
-    simp only [N, Matrix.mul_assoc, Matrix.toLpLin_apply]
-    have hv_sph : M *ᵥ ![0, 0, 1] =
-        ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
-      ext i
-      simp only [v, Matrix.toLpLin_apply] at hv_eq
-      exact congrFun hv_eq i
-    have h_calc : (Ry_mat β * (Rz_mat (-α) * M)) *ᵥ ![0, 0, 1] = ![0, 0, 1] := by
-      calc (Ry_mat β * (Rz_mat (-α) * M)) *ᵥ ![0, 0, 1]
-          = Ry_mat β *ᵥ (Rz_mat (-α) *ᵥ (M *ᵥ ![0, 0, 1])) := by
-              rw [← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec]
-        _ = Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] := by rw [hv_sph, Rz_neg_mulVec_spherical]
-        _ = ![0, 0, 1] := Ry_mulVec_to_z β
-    simp only [h_calc]
-  -- By SO3_fixing_z_is_Rz, N = Rz(γ) for some γ
+    simp only [N, Matrix.toLpLin_apply, ← Matrix.mulVec_mulVec, hMz,
+      Rz_neg_mulVec_spherical, Ry_mulVec_to_z]
   obtain ⟨γ, hγ⟩ := SO3_fixing_z_is_Rz N hN_SO3 hN_fixes_z
-  -- M = Rz(α) * Ry(-β) * Rz(γ) from N = Ry(β) * Rz(-α) * M = Rz(γ)
-  use α, -β, γ
-  have h2 : Ry_mat (-β) * Rz_mat γ = Rz_mat (-α) * M := by
-    have h1 : Rz_mat γ = Ry_mat β * Rz_mat (-α) * M := hγ ▸ rfl
-    rw [h1, ← Matrix.mul_assoc, ← Matrix.mul_assoc, neg_Ry_mat_mul, Matrix.one_mul]
-  calc M = Rz_mat α * (Rz_mat (-α) * M) := by
-           rw [← Matrix.mul_assoc, Rz_mat_mul_neg, Matrix.one_mul]
-       _ = Rz_mat α * (Ry_mat (-β) * Rz_mat γ) := by rw [h2]
-       _ = Rz_mat α * Ry_mat (-β) * Rz_mat γ := by rw [Matrix.mul_assoc]
+  -- Inverting `N = Ry(β)·Rz(-α)·M`: `M = Rz(α)·Ry(-β)·N = Rz(α)·Ry(-β)·Rz(γ)`.
+  refine ⟨α, -β, γ, ?_⟩
+  have hinv : Rz_mat α * Ry_mat (-β) * (Ry_mat β * Rz_mat (-α)) = 1 := by
+    rw [Matrix.mul_assoc, ← Matrix.mul_assoc (Ry_mat (-β)), neg_Ry_mat_mul, Matrix.one_mul,
+      Rz_mat_mul_neg]
+  have hMN : Rz_mat α * Ry_mat (-β) * N = M := by
+    show Rz_mat α * Ry_mat (-β) * (Ry_mat β * Rz_mat (-α) * M) = M
+    rw [← Matrix.mul_assoc, hinv, Matrix.one_mul]
+  rw [← hMN, hγ]
 
 /-- Rz(0) = 1. -/
 @[simp]
