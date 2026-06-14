@@ -25,10 +25,11 @@ The proof of the main theorem, given existence of a valid solution table, lives 
 
 The program to construct a valid solution table is [constructValidTable.lean](constructValidTable.lean).
 
-The self-contained proof of the main theorem will live in
+The complete proof of the main theorem lives in
 [ProofOfMainTheorem.lean](Noperthedron/ProofOfMainTheorem.lean).
-This proof currently depends on the `sorry` axiom due to performance problems in
-[ComputationalStep.lean](Noperthedron/ComputationalStep.lean).
+Its most expensive step, in
+[ComputationalStep.lean](Noperthedron/ComputationalStep.lean),
+is commented out and replaced by a sorry so that every CI run does not take days to complete.
 
 ## Getting Started
 
