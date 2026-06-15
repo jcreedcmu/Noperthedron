@@ -15,13 +15,13 @@ lemma nth_partial_const_smul {n : ℕ} (i : Fin n) (c : ℝ) (f : E n → ℝ) (
     (hf : DifferentiableAt ℝ f x) :
     nth_partial i (c • f) x = c * nth_partial i f x := by
   simp only [nth_partial]
-  rw [fderiv_const_smul hf, ContinuousLinearMap.smul_apply, smul_eq_mul]
+  rw [fderiv_const_smul hf, smul_apply, smul_eq_mul]
 
 /-- Partial derivative of f/c equals (partial of f)/c -/
 lemma nth_partial_div_const {n : ℕ} (i : Fin n) (f : E n → ℝ) (c : ℝ) (x : E n)
     (hf : DifferentiableAt ℝ f x) :
     nth_partial i (fun y => f y / c) x = nth_partial i f x / c := by
-  simp only [div_eq_mul_inv, nth_partial, fderiv_mul_const hf, ContinuousLinearMap.smul_apply,
+  simp only [div_eq_mul_inv, nth_partial, fderiv_mul_const hf, smul_apply,
     smul_eq_mul, mul_comm]
 
 lemma nth_partial_nth_partial_div_const {n : ℕ} (i j : Fin n) (f : E n → ℝ) (c : ℝ) (x : E n)

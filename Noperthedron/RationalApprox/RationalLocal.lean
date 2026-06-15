@@ -321,7 +321,7 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     have h_rotR_diff_apply : ‖p_.rotR (p_.rotM₁ℚℝ (P_ i)) - p_.rotRℚℝ (p_.rotM₁ℚℝ (P_ i))‖ ≤
         κ * ((1 + κ) * (1 + κ)) := by
       have := ContinuousLinearMap.le_opNorm (p_.rotR - p_.rotRℚℝ) (p_.rotM₁ℚℝ (P_ i))
-      simp only [ContinuousLinearMap.sub_apply] at this
+      simp only [sub_apply] at this
       exact this.trans (mul_le_mul h_rotRdiff h_rotM₁ℚ_norm (norm_nonneg _) (by linarith))
     -- ‖real - rational‖ ≤ 6κ
     have hM₁diff : ‖rotM (↑θ₁ : ℝ) ↑φ₁ - rotMℚℝ ↑θ₁ ↑φ₁‖ ≤ κ :=

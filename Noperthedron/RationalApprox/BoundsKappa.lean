@@ -50,8 +50,7 @@ private lemma inner_four_kappa {E F G : Type*}
     (hAdiff : ‖A - Aℚ‖ ≤ κ)
     (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
     ‖@inner ℝ G _ (R (A P)) w - @inner ℝ G _ (Rℚ (Aℚ P_)) w‖ ≤ 4 * κ := by
-  rw [← inner_sub_left, show R (A P) - Rℚ (Aℚ P_) = R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_) from by
-    simp [map_sub, ContinuousLinearMap.sub_apply]]
+  rw [← inner_sub_left, show R (A P) - Rℚ (Aℚ P_) = R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_) by simp]
   have hAP_diff : ‖A P - Aℚ P_‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hAdiff hAℚnorm hP approx
   have hAℚP_ : ‖Aℚ P_‖ ≤ (1 + κ) * (1 + κ) := approx_image_norm_le hAℚnorm hP approx

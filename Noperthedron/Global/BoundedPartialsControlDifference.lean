@@ -103,7 +103,7 @@ def interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDif
       = ((fderiv ℝ f (interpolator x y t)).comp (interpolator' x y)) := by
     unfold interpolator' interpolator
     ext
-    simp only [toSpanSingleton_apply, smul_eq_mul, one_mul, coe_comp', Function.comp_apply,
+    simp only [toSpanSingleton_apply, smul_eq_mul, one_mul, coe_comp, Function.comp_apply,
       one_smul]
     rw [nth_partial_def f]
     congr
@@ -124,7 +124,8 @@ def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDi
   convert! HasFDerivAt.sum fun i _ => (HasDerivAt.hasFDerivAt (HasDerivAt.const_mul (y i - x i) (hd i)))
   all_goals try unfold interpolator
   · rw [Finset.sum_fn]
-  · ext; simp only [toSpanSingleton_apply, smul_eq_mul, Finset.mul_sum, one_mul, coe_sum', Finset.sum_apply]
+  · ext
+    simp only [toSpanSingleton_apply, smul_eq_mul, Finset.mul_sum, one_mul, FunLike.coe_sum, Finset.sum_apply]
     rw [Finset.sum_comm]
     apply Finset.sum_congr rfl; intro i hi
     apply Finset.sum_congr rfl; intro j hj

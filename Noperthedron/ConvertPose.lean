@@ -24,7 +24,7 @@ lemma rotRM_mat_mem_SO3 (θ φ α : ℝ) : rotRM_mat θ φ α ∈ Matrix.special
 lemma rotRM_eq_rotRM_mat (θ φ α : ℝ) :
     rotRM θ φ α = (rotRM_mat θ φ α).toEuclideanLin.toContinuousLinearMap := by
   ext v
-  simp only [rotRM, rotRM_mat, RzL, RyL, ContinuousLinearMap.coe_comp', Function.comp_apply,
+  simp only [rotRM, rotRM_mat, RzL, RyL, ContinuousLinearMap.coe_comp, Function.comp_apply,
     LinearMap.coe_toContinuousLinearMap']
   simp only [Matrix.toLpLin_apply, Matrix.mulVec_mulVec, Matrix.mul_assoc]
 

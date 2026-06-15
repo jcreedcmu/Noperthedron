@@ -72,7 +72,7 @@ theorem norm_X_sub_lt {ε θ θ_ φ φ_ : ℝ} (hε : 0 < ε) (hθ : |θ - θ_| 
       simp [hθ₁, hφ₁]
     rw [h₂]
     positivity
-  simp only [vecX_identity, ←ContinuousLinearMap.sub_apply]
+  simp only [vecX_identity, ← sub_apply]
   grw [ContinuousLinearMap.le_opNorm]
   have h₉₉ : ‖!₂[0, 0, (1:ℝ)]‖ = 1 := by
     simp [EuclideanSpace.norm_eq, Fin.sum_univ_three]
@@ -133,7 +133,7 @@ theorem norm_M_apply_gt {ε r θ θ_ φ φ_ : ℝ} {P : ℝ³}
     (hP : ‖P‖ ≤ 1) (hε : 0 < ε) (hθ : |θ - θ_| ≤ ε) (hφ : |φ - φ_| ≤ ε)
     (hM : r + √2 * ε < ‖rotM θ_ φ_ P‖) : r < ‖rotM θ φ P‖ := by
   have h₁ : ‖rotM θ_ φ_ P‖ - ‖rotM θ φ - rotM θ_ φ_‖ * ‖P‖ ≤ ‖rotM θ φ P‖ := by
-    grw [←ContinuousLinearMap.le_opNorm, ContinuousLinearMap.sub_apply]
+    grw [←ContinuousLinearMap.le_opNorm, sub_apply]
     suffices ‖(rotM θ_ φ_) P‖ ≤ ‖(rotM θ φ) P‖ + ‖(rotM θ φ) P - (rotM θ_ φ_) P‖ by linarith
     exact norm_le_insert ((rotM θ φ) P) ((rotM θ_ φ_) P)
   have h₂ := norm_M_sub_lt hε hθ hφ

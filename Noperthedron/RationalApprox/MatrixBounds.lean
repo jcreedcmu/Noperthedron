@@ -187,8 +187,7 @@ lemma clm_approx_apply_sub {E F : Type*}
   calc ‖A P - Aℚ P_‖
     _ = ‖(A P - Aℚ P) + (Aℚ P - Aℚ P_)‖ := by congr 1; abel
     _ ≤ ‖A P - Aℚ P‖ + ‖Aℚ P - Aℚ P_‖ := norm_add_le _ _
-    _ = ‖(A - Aℚ) P‖ + ‖Aℚ (P - P_)‖ := by
-        rw [ContinuousLinearMap.sub_apply, map_sub]
+    _ = ‖(A - Aℚ) P‖ + ‖Aℚ (P - P_)‖ := by rw [sub_apply, map_sub]
     _ ≤ ‖A - Aℚ‖ * ‖P‖ + ‖Aℚ‖ * ‖P - P_‖ :=
         add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
     _ ≤ κ * 1 + (1 + κ) * κ :=
@@ -207,8 +206,7 @@ lemma clm_approx_apply_sub₂ {E F : Type*}
   calc ‖A P - Aℚ P_‖
     _ = ‖(A P - Aℚ P) + (Aℚ P - Aℚ P_)‖ := by congr 1; abel
     _ ≤ ‖A P - Aℚ P‖ + ‖Aℚ P - Aℚ P_‖ := norm_add_le _ _
-    _ = ‖(A - Aℚ) P‖ + ‖Aℚ (P - P_)‖ := by
-        rw [ContinuousLinearMap.sub_apply, map_sub]
+    _ = ‖(A - Aℚ) P‖ + ‖Aℚ (P - P_)‖ := by rw [sub_apply, map_sub]
     _ ≤ ‖A - Aℚ‖ * ‖P‖ + ‖Aℚ‖ * ‖P - P_‖ :=
         add_le_add (ContinuousLinearMap.le_opNorm _ _) (ContinuousLinearMap.le_opNorm _ _)
     _ ≤ κ * 2 + (1 + κ) * (2 * κ) :=

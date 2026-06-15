@@ -26,7 +26,7 @@ lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ exactVerts) (k 
   subst hb
   simp only [exactVerts, exactVertex, Finset.mem_image, Finset.mem_univ, true_and]
   rw [ContinuousLinearMap.map_smul_of_tower]
-  simp only [← RzC_coe, ← ContinuousLinearMap.mul_apply, ← AddChar.map_add_eq_mul RzC]
+  simp only [← RzC_coe, ← mul_apply_eq_comp, ← AddChar.map_add_eq_mul RzC]
   refine ⟨⟨⟨(((↑↑k : ℤ) + K) % 15).toNat, by omega⟩, ℓ, i⟩, ?_⟩
   congr 1
   simp only [RzC, RzL, AddChar.coe_mk]
@@ -79,7 +79,7 @@ theorem lemma7_1 (θ φ : ℝ) :
   change (RzC (-(θ + 2 / 15 * π))) '' exactVerts = (RzC (-θ)) '' exactVerts
   ring_nf
   conv => enter [1, 1, a]; simp only [AddChar.map_add_eq_mul]
-  rw [ContinuousLinearMap.coe_mul', Set.image_comp,
+  rw [ContinuousLinearMap.mul_def, ContinuousLinearMap.coe_comp, Set.image_comp,
     show π * (-2 / 15) = 2 * π * (-1:ℤ) / 15 by ring_nf,
     nopert_vertices_rotation_invariant]
 
@@ -171,7 +171,7 @@ lemma neg_lin_eq_lin_neg (f : ℝ³ →L[ℝ] ℝ²) : ⇑(-f) = f ∘ (fun x =>
 theorem lemma7_3 (θ φ : ℝ) :
     (flip_y ∘L rotM θ φ) '' exactPolyhedron.hull = (rotM (θ + π / 15) (π - φ)) '' exactPolyhedron.hull := by
   apply exact_hull_image_eq_of_vertices_image_eq
-  simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, lemma7_3_calculation]
+  simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, lemma7_3_calculation]
   have h1 : (fun a ↦ -(rotM (θ + π / 15) (π - φ)) ((RzC (16 * π / 15)) a)) =
     (fun a ↦ -(rotM (θ + π / 15) (π - φ)) a) ∘ (RzC (16 * π / 15)) := rfl
   have h2 : (rotM (θ + π / 15) (π - φ)) '' ↑exactVerts =

@@ -267,7 +267,7 @@ theorem Rz_comp_right_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3))
   rot3_comp_right_preserves_op_norm 2 α A
 
 lemma vecX_norm_one (θ φ : ℝ) : ‖vecX θ φ‖ = 1 := by
-  simp only [vecX_identity, ContinuousLinearMap.coe_comp', Function.comp_apply,
+  simp only [vecX_identity, ContinuousLinearMap.coe_comp, Function.comp_apply,
     Rz_preserves_norm, Ry_preserves_norm]
   simp [PiLp.norm_eq_of_L2, Fin.sum_univ_three]
 

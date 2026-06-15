@@ -34,8 +34,7 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
     have h₂ : rotR α_ (rotM θ₁_ φ₁_ P) - T = T - rotM θ₂_ φ₂_ Q := by simp [T]
     rw [h₂]
     grw [hT]
-    rw [←ContinuousLinearMap.comp_apply, ←ContinuousLinearMap.comp_apply,
-        ←ContinuousLinearMap.sub_apply]
+    rw [←ContinuousLinearMap.comp_apply, ←ContinuousLinearMap.comp_apply, ← sub_apply]
     grw [ContinuousLinearMap.le_opNorm]
     gcongr 1
     grw [mul_le_of_le_one_right (norm_nonneg _) hP]
@@ -43,7 +42,7 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
   · grw [norm_sub_le_norm_sub_add_norm_sub _ (rotM θ₂_ φ₂_ Q) _]
     rw [norm_sub_rev _ T]
     grw [hT]
-    rw [←ContinuousLinearMap.sub_apply]
+    rw [← sub_apply]
     grw [ContinuousLinearMap.le_opNorm]
     grw [mul_le_of_le_one_right (norm_nonneg _) hQ, Bounding.norm_M_sub_lt hε hθ₂ hφ₂]
     gcongr 2
@@ -239,7 +238,7 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ (by rw [h_eq]; exact hσP₂ i)
   -- ⟪Z, P_ i⟫ = (-1)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ and ⟪Y, P_ i⟫ = (-1)^σP * ⟪Y, P i⟫
   have h_ZP : ⟪Z, P_ i⟫ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
-    simp only [Z, K, P_, ContinuousLinearMap.coe_smul', _root_.Pi.smul_apply,
+    simp only [Z, K, P_, FunLike.coe_smul', _root_.Pi.smul_apply,
       LinearIsometry.coe_toContinuousLinearMap, inner_smul_left, real_inner_smul_right, RCLike.conj_to_real]
     rw [hL i, L.inner_map_map]
     have h_exp : (-1 : ℝ)^(σP + σQ) * (-1 : ℝ)^σP = (-1 : ℝ)^σQ := by

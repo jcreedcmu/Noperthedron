@@ -148,10 +148,10 @@ noncomputable def rotR_equiv (δ : ℝ) : ℝ² ≃L[ℝ] ℝ² where
     invFun := rotR (-δ)
     left_inv := fun v => by
       rw [← ContinuousLinearMap.comp_apply, rotR_comp, neg_add_cancel, AddChar.map_zero_eq_one,
-        ContinuousLinearMap.one_apply]
+          one_apply_eq_self]
     right_inv := fun v => by
       rw [← ContinuousLinearMap.comp_apply, rotR_comp, add_neg_cancel, AddChar.map_zero_eq_one,
-        ContinuousLinearMap.one_apply]
+          one_apply_eq_self]
     map_add' := fun x y => by simp only [map_add]
     map_smul' := fun r x => by simp only [map_smul, RingHom.id_apply]
   }

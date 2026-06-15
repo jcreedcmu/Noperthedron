@@ -25,8 +25,7 @@ lemma delta_kappa (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_
   have term1 : ‖rotR α (rotM θ φ P) - rotRℚℝ α (rotMℚℝ θ φ P)‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hRdiff (Rℚ_norm_bounded _ (α.property))
       (clm_unit_apply_le (le_of_eq (Bounding.rotM_norm_one _ _)) hP)
-      (by rw [show (rotM ↑θ ↑φ) P - (rotMℚℝ ↑θ ↑φ) P = (rotM ↑θ ↑φ - rotMℚℝ ↑θ ↑φ) P from
-              (ContinuousLinearMap.sub_apply _ _ _).symm]
+      (by rw [← sub_apply]
           calc ‖(rotM ↑θ ↑φ - rotMℚℝ ↑θ ↑φ) P‖
             _ ≤ ‖rotM ↑θ ↑φ - rotMℚℝ ↑θ ↑φ‖ * ‖P‖ := ContinuousLinearMap.le_opNorm _ _
             _ ≤ κ * 1 := mul_le_mul hMdiff hP (norm_nonneg _) (by norm_num [κ])

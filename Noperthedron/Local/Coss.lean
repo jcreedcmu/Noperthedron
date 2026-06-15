@@ -48,7 +48,7 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
          grw [hP, Bounding.norm_M_sub_lt hε hθ hφ]
          simp
       have h₂ : ‖M P‖ - ‖M - M_‖ * ‖P‖ ≤ ‖M P‖ - ‖M P - M_ P‖ := by
-        rw [← ContinuousLinearMap.sub_apply]
+        rw [← sub_apply]
         grw [←ContinuousLinearMap.le_opNorm]
       have h₃ : ‖M P‖ - ‖M P - M_ P‖ ≤ ‖M_ P‖ := by
          linarith only [norm_le_norm_add_norm_sub' (M P) (M_ P)]
@@ -61,6 +61,6 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
         linarith only
       have h₂ : ‖M (P - Q)‖ - ‖M - M_‖ * ‖P - Q‖ ≤ ‖M_ (P - Q)‖ := by
         grw [←ContinuousLinearMap.le_opNorm]
-        rw [ContinuousLinearMap.sub_apply]
+        rw [sub_apply]
         linarith only [norm_le_norm_add_norm_sub' (M (P - Q)) (M_ (P - Q))]
       linarith only [h₁, h₂]

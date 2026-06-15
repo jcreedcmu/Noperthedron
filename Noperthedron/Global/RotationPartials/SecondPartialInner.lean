@@ -75,8 +75,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     show nth_partial 0 (nth_partial 0 _) x = _
     rw [second_partial_col0 S w x,
       fderiv_rotR'_rotM_in_e0 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)]
-    simp only [ContinuousLinearMap.neg_apply, ContinuousLinearMap.coe_comp',
-      Function.comp_apply, inner_neg_left]
+    simp only [neg_apply, ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
   · -- (0, 1): rotR' α ∘L rotMθ θ φ
     refine ⟨rotR' α ∘L rotMθ θ φ,
       comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one α)) (Bounding.rotMθ_norm_le_one θ φ), ?_⟩
@@ -95,7 +94,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     show nth_partial 1 (nth_partial 0 _) x = _
     rw [second_partial_col0 S w x,
       fderiv_rotR'_rotM_in_e1 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)]
-    simp only [ContinuousLinearMap.coe_comp', Function.comp_apply]
+    simp only [ContinuousLinearMap.coe_comp, Function.comp_apply]
   · -- (1, 1): rotR α ∘L rotMθθ θ φ
     refine ⟨rotR α ∘L rotMθθ θ φ,
       comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMθθ_norm_le_one θ φ), ?_⟩
@@ -112,7 +111,7 @@ private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i 
     show nth_partial 2 (nth_partial 0 _) x = _
     rw [second_partial_col0 S w x,
       fderiv_rotR'_rotM_in_e2 S x α θ φ rfl rfl rfl (differentiableAt_rotR'_rotM S x)]
-    simp only [ContinuousLinearMap.coe_comp', Function.comp_apply]
+    simp only [ContinuousLinearMap.coe_comp, Function.comp_apply]
   · -- (2, 1): rotR α ∘L rotMθφ θ φ
     refine ⟨rotR α ∘L rotMθφ θ φ,
       comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one α)) (Bounding.rotMθφ_norm_le_one θ φ), ?_⟩
