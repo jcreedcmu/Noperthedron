@@ -111,15 +111,15 @@ lemma contains_iff_components {R} [PartialOrder R] {iv : PoseInterval R} {p : Po
   simp only [contains, NonemptyInterval.mem_def, Set.mem_Icc, Pose.le_iff]
   grind
 
-def contains.θ₁Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
+theorem contains.θ₁Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁ := (contains_iff_components.mp c).1
-def contains.θ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
+theorem contains.θ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂ := (contains_iff_components.mp c).2.1
-def contains.φ₁Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
+theorem contains.φ₁Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁ := (contains_iff_components.mp c).2.2.1
-def contains.φ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
+theorem contains.φ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂ := (contains_iff_components.mp c).2.2.2.1
-def contains.αBound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
+theorem contains.αBound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.α ∈ Set.Icc iv.min.α iv.max.α := (contains_iff_components.mp c).2.2.2.2
 
 noncomputable def center {R} [Field R] [PartialOrder R] (iv : PoseInterval R) : Pose R where

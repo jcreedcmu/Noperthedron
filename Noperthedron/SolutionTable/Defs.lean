@@ -113,7 +113,7 @@ def Interval.interpolate (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n
 /--
 The two endpoints constructed below by `Interval.nth_part` are correctly oriented.
 -/
-def interpolates_le (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : ℕ) :
+theorem interpolates_le (param : Param) (iv : Interval) (N : ℕ) [NeZero N] (n : ℕ) :
     iv.min.setParam param (iv.interpolate param N ↑n) ≤
     iv.max.setParam param (iv.interpolate param N (↑n + 1)) := by
   rw [Pose.le_iff_forall_getParam]

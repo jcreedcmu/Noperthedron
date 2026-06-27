@@ -34,8 +34,8 @@ private noncomputable
 def interpolator' {n : ℕ} (x y : E n) : ℝ →L[ℝ] E n :=
   ContinuousLinearMap.toSpanSingleton ℝ (y - x)
 
-private noncomputable
-def interpolator_has_deriv {n : ℕ} (x y : E n) (t : ℝ) :
+private
+theorem interpolator_has_deriv {n : ℕ} (x y : E n) (t : ℝ) :
     HasFDerivAt (interpolator x y) (interpolator' x y) t := by
   unfold interpolator'
   rw [← hasDerivAt_iff_hasFDerivAt]
@@ -92,7 +92,7 @@ lemma c2_imp_partials_c1 {n : ℕ} {f : E n → ℝ} {j : Fin n} (fc : ContDiff 
   (apply ContDiff.fderiv_apply <;> try fun_prop); norm_num
 
 open ContinuousLinearMap in
-def interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
+theorem interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
     HasDerivAt (interpolated x y f) (interpolated_deriv x y f t) t := by
   unfold interpolated interpolated_deriv
   rw [hasDerivAt_iff_hasFDerivAt]
@@ -111,7 +111,7 @@ def interpolated_has_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDif
   exact HasFDerivAt.comp t hfd (interpolator_has_deriv x y t)
 
 open ContinuousLinearMap in
-def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
+theorem interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) (t : ℝ) :
     HasDerivAt (interpolated_deriv x y f) (interpolated_deriv2 x y f t) t := by
   unfold interpolated_deriv interpolated_deriv2
   rw [hasDerivAt_iff_hasFDerivAt]
@@ -131,17 +131,17 @@ def interpolated_has_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDi
     apply Finset.sum_congr rfl; intro j hj
     ring_nf
 
-def deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
+theorem deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     deriv (interpolated x y f) = interpolated_deriv x y f := by
   ext t
   exact (interpolated_has_deriv x y f fc t).deriv
 
-def deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
+theorem deriv_interpolated2 {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     deriv (interpolated_deriv x y f) = interpolated_deriv2 x y f := by
   ext t
   exact (interpolated_has_deriv2 x y f fc t).deriv
 
-def differentiable_deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
+theorem differentiable_deriv_interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) (fc : ContDiff ℝ 2 f) :
     Differentiable ℝ (interpolated_deriv x y f) := by
   unfold interpolated_deriv
   refine Differentiable.fun_sum ?_; intro i hi

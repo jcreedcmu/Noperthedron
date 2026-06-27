@@ -270,7 +270,7 @@ theorem tighten_φ₂ (p : Pose ℝ) :
 def NopertEquiv (p q : Pose ℝ) : Prop :=
   RupertPose p exactPolyhedron.hull ↔ RupertPose q exactPolyhedron.hull
 
-def inner_outer_imp_nopert_equiv {p q : Pose ℝ}
+theorem inner_outer_imp_nopert_equiv {p q : Pose ℝ}
     (hinner : p.inner '' exactPolyhedron.hull = q.inner '' exactPolyhedron.hull)
     (houter : p.outer '' exactPolyhedron.hull = q.outer '' exactPolyhedron.hull) :
     NopertEquiv p q := by

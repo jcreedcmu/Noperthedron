@@ -114,7 +114,7 @@ lemma exactVerts_nonempty : exactVerts.Nonempty := by
   use exactVertex 0
   simp [exactVerts]
 
-def exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
+theorem exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
   intro v hv
   simp only [exactVerts, Finset.mem_image, Finset.mem_univ, true_and] at hv ⊢
   obtain ⟨j, hj⟩ := hv
