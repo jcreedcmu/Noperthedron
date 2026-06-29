@@ -73,7 +73,7 @@ theorem inner_shadow_lemma (p : MatrixPose) (S : Set ℝ³) :
   ext1 v
   simp only [Function.comp_apply]
   nth_rw 2 [add_comm]
-  rw [← proj_xy_eq_proj_xyL, proj_offset_commute p.innerOffset v]
+  rw [proj_xyL_offset_commute p.innerOffset v]
 
 /-- Matrix multiplication yields RzL composition. -/
 lemma Rz_mul_toEuclideanLin (δ : ℝ) (M : Matrix (Fin 3) (Fin 3) ℝ) (v : ℝ³) :

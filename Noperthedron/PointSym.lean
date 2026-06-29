@@ -71,10 +71,8 @@ Rotation preserves the property of being pointsymmetric.
 -/
 theorem rotation_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
     (s_sym : PointSym S) (rot : Matrix.specialOrthogonalGroup (Fin n) ℝ) :
-    PointSym (rot.1.toEuclideanLin '' S) := by
-  rintro _ ⟨y, hy, rfl⟩
-  refine ⟨-y, s_sym y hy, ?_⟩
-  rw [rot.1.toEuclideanLin.map_neg]
+    PointSym (rot.1.toEuclideanLin '' S) :=
+  continuousLinearMap_preserves_point_sym rot.1.toEuclideanLin.toContinuousLinearMap s_sym
 
 /--
 Taking the convex hull preserves point symmetry.

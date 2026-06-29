@@ -1,5 +1,4 @@
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
-import Noperthedron.Rupert.Basic
+import Noperthedron.Basic
 import Noperthedron.Rupert.Set
 open Pointwise
 open Matrix
@@ -7,15 +6,7 @@ open Matrix
 /-- Projecting from ℝ³ to ℝ² is linear -/
 noncomputable
 def proj_xy_linear : ℝ³ →ₗ[ℝ] ℝ² :=
-  {
-   toFun := proj_xy,
-   map_add' := by
-     intro x y;
-     ext i; fin_cases i <;> simp [proj_xy]
-   ,
-   map_smul' := by
-     intro x y; ext i; fin_cases i <;> simp [proj_xy]
-   }
+  (proj_xyL : ℝ³ →L[ℝ] ℝ²).toLinearMap
 
 noncomputable
 def rotation_affine (rot : SO3) : ℝ³ →ᵃ[ℝ] ℝ³ := (Matrix.toEuclideanLin rot).toAffineMap

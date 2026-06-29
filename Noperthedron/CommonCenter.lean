@@ -37,26 +37,25 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
 
 theorem shadow_outer_pres_convex {S : Set ℝ³} (s_conv : Convex ℝ S) (p : MatrixPose) :
   Convex ℝ (outerShadow p S) := by
-  change Convex ℝ (proj_xyL ∘ PoseLike.outer p '' S)
+  change Convex ℝ ((proj_xyL ∘ PoseLike.outer p) '' S)
   rw [Set.image_comp]
-  rw [← proj_xy_eq_proj_xyL]
-  exact proj_preserves_convex (rotation_preserves_convex s_conv p.outerRot)
+  exact Convex.linear_image (rotation_preserves_convex s_conv p.outerRot)
+    (proj_xyL : ℝ³ →L[ℝ] ℝ²).toLinearMap
 
 theorem shadow_outer_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
   PointSym (outerShadow p S) := by
-  change PointSym (proj_xyL ∘ PoseLike.outer p '' S)
+  change PointSym ((proj_xyL ∘ PoseLike.outer p) '' S)
   rw [Set.image_comp]
-  rw [← proj_xy_eq_proj_xyL]
-  exact proj_preserves_point_sym (rotation_preserves_point_sym (s_psym) p.outerRot)
+  exact continuousLinearMap_preserves_point_sym proj_xyL
+    (rotation_preserves_point_sym s_psym p.outerRot)
 
 theorem shadow_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
   PointSym (innerShadow p.zeroOffset S) := by
-  change PointSym (proj_xyL ∘ PoseLike.inner p.zeroOffset '' S)
+  change PointSym ((proj_xyL ∘ PoseLike.inner p.zeroOffset) '' S)
   rw [Set.image_comp]
-  rw [← proj_xy_eq_proj_xyL]
-  refine proj_preserves_point_sym ?_
   simp only [MatrixPose.zero_offset_elim]
-  exact rotation_preserves_point_sym s_psym p.innerRot
+  exact continuousLinearMap_preserves_point_sym proj_xyL
+    (rotation_preserves_point_sym s_psym p.innerRot)
 
 /--
 We can pull out the shift baked into innerShadow all the way outside
@@ -71,10 +70,9 @@ lemma shadows_eq {S : Set ℝ³} (p : MatrixPose) :
   rw [← Set.image_comp]
   change ((p.shift ∘ proj_xyL) ∘ p.innerRotPart) '' S =
      ((proj_xyL ∘ p.innerOffsetPart) ∘ p.innerRotPart) '' S
-  rw [← proj_xy_eq_proj_xyL]
-  have : p.shift ∘ proj_xy = proj_xy ∘ p.innerOffsetPart := funext fun v ↦ by
+  have : p.shift ∘ proj_xyL = proj_xyL ∘ p.innerOffsetPart := funext fun v ↦ by
     simpa [MatrixPose.shift, MatrixPose.innerOffsetPart] using
-      proj_offset_commute p.innerOffset v
+      proj_xyL_offset_commute p.innerOffset v
   rw [this]
 
 /--

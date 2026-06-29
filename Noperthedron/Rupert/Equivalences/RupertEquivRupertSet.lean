@@ -11,8 +11,13 @@ theorem rupert_imp_rupert_set (v : Finset ℝ³) :
   have inner_shadow_closed : IsClosed inner_shadow := by
     have inner_shadow_is_txed_convex_hull : tx '' (convexHull ℝ v) = convexHull ℝ (tx '' v) := by
       apply AffineMap.image_convexHull
-    change inner_shadow = convexHull ℝ (tx '' v) at inner_shadow_is_txed_convex_hull
-    rw [inner_shadow_is_txed_convex_hull]
+    have htx : tx '' (convexHull ℝ v) = inner_shadow := by
+      change (fun a => inner_offset + proj_xyL (inner_rot.toEuclideanLin a)) ''
+          (convexHull ℝ (v : Set ℝ³)) =
+        {x | ∃ p ∈ convexHull ℝ (v : Set ℝ³), inner_offset + proj_xy (inner_rot.toEuclideanLin p) = x}
+      rw [← proj_xy_eq_proj_xyL]
+      rfl
+    rw [← htx, inner_shadow_is_txed_convex_hull]
     apply Set.Finite.isClosed_convexHull
     exact Set.toFinite (⇑tx '' ↑v)
   rw [closure_eq_iff_isClosed.mpr inner_shadow_closed]
