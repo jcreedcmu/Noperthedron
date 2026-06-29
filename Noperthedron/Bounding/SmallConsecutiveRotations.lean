@@ -49,7 +49,10 @@ theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
       rw [h_comp]; ext x; simp
     rw [h_conj, LinearIsometry.norm_toContinuousLinearMap_comp]
     refine (ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ u.symm).trans ?_
-    simpa [rot3] using dist_rot3 (d := 2) (α := γ) (α' := 0)
+    rw [← RzC_coe]
+    have hdist := dist_rot3 (d := 2) (α := γ) (α' := 0)
+    simp only [rot3, AddChar.map_zero_eq_one, sub_zero] at hdist
+    exact hdist
   have h_tr : Real.cos α + Real.cos β + Real.cos α * Real.cos β = 1 + 2 * Real.cos γ := by
     rw [← tr_rot3_rot3 h, ← tr_RzL (α := γ), h_comp]
     exact LinearMap.trace_conj' (RzL γ : ℝ³ →ₗ[ℝ] ℝ³) u.toLinearEquiv

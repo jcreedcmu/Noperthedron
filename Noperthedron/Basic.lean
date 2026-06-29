@@ -11,17 +11,15 @@ def flip_y_mat : Matrix (Fin 2) (Fin 2) ℝ :=
   !![1,  0;
      0, -1]
 
-@[simp]
 noncomputable
 def flip_y : (ℝ² →L[ℝ] ℝ²) := flip_y_mat |>.toEuclideanLin.toContinuousLinearMap
 
-@[simp]
 noncomputable
 def flip_y_equiv : (ℝ² ≃L[ℝ] ℝ²) := {
   flip_y with
   invFun := flip_y,
-  left_inv := by intro v; ext i; fin_cases i <;> (simp [Matrix.vecHead, Matrix.vecTail])
-  right_inv := by intro v; ext i; fin_cases i <;> (simp [Matrix.vecHead, Matrix.vecTail])
+  left_inv := by intro v; ext i; fin_cases i <;> (simp [flip_y, Matrix.vecHead, Matrix.vecTail])
+  right_inv := by intro v; ext i; fin_cases i <;> (simp [flip_y, Matrix.vecHead, Matrix.vecTail])
 }
 
 -- dimension reduction with a rotation baked in
@@ -31,7 +29,6 @@ def reduce_mat : Matrix (Fin 2) (Fin 3) ℝ :=
   !![0,  1, 0;
      -1, 0, 0]
 
-@[simp]
 noncomputable
 def reduceL : (ℝ³ →L[ℝ] ℝ²) := reduce_mat |>.toEuclideanLin.toContinuousLinearMap
 
@@ -70,7 +67,6 @@ def Rx_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
 noncomputable
 def RxL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rx_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
-@[simp]
 noncomputable
 def RxC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
   toFun α := RxL α
@@ -92,7 +88,6 @@ def Ry_mat (θ : ℝ) : (Matrix (Fin 3) (Fin 3) ℝ) :=
 noncomputable
 def RyL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Ry_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
-@[simp]
 noncomputable
 def RyC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
   toFun α := RyL α
@@ -115,7 +110,6 @@ def Rz_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
 noncomputable
 def RzL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rz_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
-@[simp]
 noncomputable
 def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
   toFun α := RzL α
@@ -180,7 +174,6 @@ def rotR : AddChar ℝ (ℝ² →L[ℝ] ℝ²) where
      }
 
 -- Derivative of rotR with respect to its parameter
-@[simp]
 noncomputable
 def rotR' (α : ℝ) : ℝ² →L[ℝ] ℝ² :=
   (rotR'_mat α).toEuclideanLin.toContinuousLinearMap
@@ -276,17 +269,20 @@ lemma vecX_identity (θ φ : ℝ) :
   fin_cases i <;> simp [RyL, RzL, Matrix.vecHead, Matrix.vecTail, vecX]
 
 lemma rotM_identity (θ φ : ℝ) : rotM θ φ = reduceL ∘L RyL φ ∘L RzL (-θ) := by
+  unfold reduceL
   ext v i
   fin_cases i <;> (simp [RzL, RyL, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]; try ring_nf)
 
 lemma rotprojRM_identity (θ φ α : ℝ) : rotprojRM θ φ α = reduceL ∘L RzL α ∘L RyL φ ∘L RzL (-θ) := by
   simp only [rotprojRM]
+  unfold reduceL
   ext v i
   fin_cases i <;>
   · simp [RzL, RyL, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
     ring_nf
 
 lemma reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
+  unfold reduceL
   ext v i
   simp only [RzL, proj_xyL, proj_xy_mat]
   fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]

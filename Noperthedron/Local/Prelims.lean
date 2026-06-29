@@ -27,7 +27,7 @@ theorem pythagoras {θ φ : ℝ} (P : Euc(3)) :
   have h3 : ‖w‖ = ‖P‖ := by rw [hw, Bounding.Ry_preserves_norm, Bounding.Rz_preserves_norm]
   have h4 : ‖reduceL w‖ ^ 2 + w 2 ^ 2 = ‖w‖ ^ 2 := by
     have e : reduceL w = !₂[w 1, -(w 0)] := by
-      ext i; fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+      ext i; fin_cases i <;> simp [reduceL, Matrix.vecHead, Matrix.vecTail]
     rw [e, PiLp.norm_sq_eq_of_L2, PiLp.norm_sq_eq_of_L2, Fin.sum_univ_two, Fin.sum_univ_three]
     simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one,
       Real.norm_eq_abs, sq_abs]

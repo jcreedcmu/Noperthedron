@@ -103,7 +103,7 @@ lemma rot3_mat_sub_rot3_mat (d : Fin 3) (α α' : ℝ) :
 
 theorem rot3_eq_rot3_mat_toEuclideanLin {d : Fin 3} {θ : ℝ} :
     rot3 d θ = (rot3_mat d θ).toEuclideanLin := by
-  fin_cases d <;> simp [RxL, RyL, RzL, rot3, rot3_mat]
+  fin_cases d <;> rfl
 
 /-- The difference of two rotations about axis `d` is a scalar multiple of a rotation
 composed with the projection onto the plane of rotation. -/

@@ -187,6 +187,7 @@ theorem lemma7_3 (θ φ : ℝ) :
   exact nopert_vertices_rotation_invariant 8
 
 lemma flip_rotR_swap_minus (α : ℝ) : flip_y ∘L rotR α = rotR (-α) ∘L flip_y := by
+  unfold flip_y
   ext v i; fin_cases i <;> (simp [rotR]; ring_nf)
 
 noncomputable
