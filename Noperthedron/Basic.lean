@@ -286,15 +286,14 @@ lemma rotprojRM_identity (θ φ α : ℝ) : rotprojRM θ φ α = reduceL ∘L Rz
   · simp [RzL, RyL, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
     ring_nf
 
-lemma projxy_rotRM_eq_rotprojRM (θ φ α : ℝ) : proj_xyL ∘ rotRM θ φ α = rotprojRM θ φ α := by
-  ext v i; fin_cases i <;>
-  · simp [proj_xyL, proj_xy_mat, RyL, RzL, rotprojRM, rotRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
-    ring_nf
-
 lemma reduce_identity : reduceL = proj_xyL ∘L RzL (-(π / 2)) := by
   ext v i
   simp only [RzL, proj_xyL, proj_xy_mat]
   fin_cases i <;> simp [Matrix.vecHead, Matrix.vecTail]
+
+lemma projxy_rotRM_eq_rotprojRM (θ φ α : ℝ) : proj_xyL ∘ rotRM θ φ α = rotprojRM θ φ α := by
+  rw [rotprojRM_identity, reduce_identity]
+  rfl
 
 /-- Projecting to xy after Rz rotation equals 2D rotation after projection. -/
 @[simp]

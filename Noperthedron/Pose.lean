@@ -108,11 +108,11 @@ lemma p_outer_eq_outer_shadow (p : Pose ℝ) (S : Set ℝ³) : p.outer '' S  = o
 
 lemma proj_rm_eq_m (θ φ : ℝ) (v : ℝ³) :
     proj_xyL (rotRM θ φ 0 v) = rotM θ φ v := by
-  ext i
-  simp [proj_xyL, proj_xy_mat, RyL, RzL, rotRM, rotM,
-        Matrix.vecHead, Matrix.vecTail, rotM_mat]
-  congr 2
-  ring
+  change (proj_xyL ∘ rotRM θ φ 0) v = rotM θ φ v
+  rw [projxy_rotRM_eq_rotprojRM]
+  change ((_root_.rotR 0) ∘L rotM θ φ) v = rotM θ φ v
+  rw [AddChar.map_zero_eq_one]
+  rfl
 
 /--
 If we have a convex polyhedron with p being a pose witness of the
@@ -159,9 +159,6 @@ lemma pose_off_by_neg {p1 p2 : Pose ℝ} : p1.inner = -p2.inner ∧ p1.outer = -
 lemma inner_eq_RM (p : Pose ℝ)  :
     p.inner = (p.rotR ∘ p.rotM₁) := by
   ext1 v
-  simp only [Pose.inner, innerProj, PoseLike.inner]
-  simp only [ AffineMap.coe_comp,
-    LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
   change (proj_xyL ∘ rotRM p.θ₁ p.φ₁ p.α) v = p.rotR (p.rotM₁ v)
   rw [projxy_rotRM_eq_rotprojRM]
   rfl
@@ -225,48 +222,22 @@ lemma matrix_rm_eq_imp_pose_equiv {p q : Pose ℝ} (rme : p.rotR ∘ p.rotM₁ =
     (rm2 : p.rotM₂ = q.rotM₂) : equiv p q := by
   refine pose_on_the_nose ?_
   constructor
-  · simp only [inner, innerProj, PoseLike.inner]
-    ext1 v
-    simp only [AffineMap.coe_comp,
-      LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
-    change (proj_xyL ∘ rotRM p.θ₁ p.φ₁ p.α) v = (proj_xyL ∘ rotRM q.θ₁ q.φ₁ q.α) v
-    rw [projxy_rotRM_eq_rotprojRM, projxy_rotRM_eq_rotprojRM]
-    simp only [rotprojRM]
-    change (p.rotR ∘ p.rotM₁) v = (q.rotR ∘ q.rotM₁) v
-    rw [rme]
-  · simp only [outer, outerProj, PoseLike.outer]
-    ext1 v
-    simp only [AffineMap.coe_comp,
-      LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
-    change (proj_xyL ∘ rotRM p.θ₂ p.φ₂ 0) v = (proj_xyL ∘ rotRM q.θ₂ q.φ₂ 0) v
-    rw [projxy_rotRM_eq_rotprojRM, projxy_rotRM_eq_rotprojRM]
-    simp only [rotprojRM, AddChar.map_zero_eq_one]
-    change (p.rotM₂) v = (q.rotM₂) v
-    rw [rm2]
+  · ext1 v
+    rw [inner_eq_RM p, inner_eq_RM q, rme]
+  · ext1 v
+    rw [outer_eq_M p, outer_eq_M q, rm2]
 
 lemma matrix_rm_eq_neg_imp_pose_equiv {p q : Pose ℝ} (rme : p.rotR ∘ p.rotM₁ = -(q.rotR ∘ q.rotM₁))
     (rm2 : p.rotM₂ = -q.rotM₂) : equiv p q := by
   refine pose_off_by_neg ?_
   constructor
-  · simp only [inner, innerProj, PoseLike.inner]
-    ext1 v
-    simp only [AffineMap.coe_comp,
-      LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
-    change (proj_xyL ∘ rotRM p.θ₁ p.φ₁ p.α) v = -(proj_xyL ∘ rotRM q.θ₁ q.φ₁ q.α) v
-    rw [projxy_rotRM_eq_rotprojRM, projxy_rotRM_eq_rotprojRM]
-    simp only [rotprojRM]
-    change (p.rotR ∘ p.rotM₁) v = -(q.rotR ∘ q.rotM₁) v
-    rw [rme]
+  · ext1 v
+    change p.inner v = -(q.inner v)
+    rw [inner_eq_RM p, inner_eq_RM q, rme]
     rfl
-  · simp only [outer, outerProj, PoseLike.outer]
-    ext1 v
-    simp only [AffineMap.coe_comp,
-      LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
-    change (proj_xyL ∘ rotRM p.θ₂ p.φ₂ 0) v = -(proj_xyL ∘ rotRM q.θ₂ q.φ₂ 0) v
-    rw [projxy_rotRM_eq_rotprojRM, projxy_rotRM_eq_rotprojRM]
-    simp only [rotprojRM, AddChar.map_zero_eq_one]
-    change (p.rotM₂) v = -(q.rotM₂) v
-    rw [rm2]
+  · ext1 v
+    change p.outer v = -(q.outer v)
+    rw [outer_eq_M p, outer_eq_M q, rm2]
     rfl
 
 lemma matrix_eq_imp_pose_equiv {p q : Pose ℝ} (re : p.rotR = q.rotR)
@@ -275,6 +246,6 @@ lemma matrix_eq_imp_pose_equiv {p q : Pose ℝ} (re : p.rotR = q.rotR)
 
 lemma matrix_neg_imp_pose_equiv {p q : Pose ℝ} (re : p.rotR = -q.rotR)
     (rm1 : p.rotM₁ = q.rotM₁) (rm2 : p.rotM₂ = -q.rotM₂) : equiv p q := by
-  exact matrix_rm_eq_neg_imp_pose_equiv (by rw [re, rm1]; ext; simp) rm2
+  exact matrix_rm_eq_neg_imp_pose_equiv (by rw [re, rm1]; ext v; rfl) rm2
 
 end Pose

@@ -223,7 +223,9 @@ theorem tighten_φ₁_π (p : Pose ℝ) (hφ₁ : p.φ₁ ∈ Set.Icc 0 (2 * π)
     refine ⟨by grind, ?_⟩
     refine Pose.matrix_rm_eq_imp_pose_equiv ?_ ?_
     · simp only [Pose.rotR, Pose.rotM₁, rotR_add_pi_eq_neg_rotR, rotM_mod_eq_neg_rotM]
-      ext; simp
+      funext v
+      change rotR p.α (rotM p.θ₁ p.φ₁ v) = (-rotR p.α) ((-rotM p.θ₁ p.φ₁) v)
+      rw [neg_apply, neg_apply, map_neg, neg_neg]
     · simp only [Pose.rotM₂]
 
 theorem tighten_φ₂_π (p : Pose ℝ) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (2 * π)) :
@@ -236,8 +238,11 @@ theorem tighten_φ₂_π (p : Pose ℝ) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (2 * π)
     refine ⟨by grind, ?_⟩
     refine Pose.matrix_rm_eq_neg_imp_pose_equiv ?_ ?_
     · simp only [Pose.rotR, Pose.rotM₁, rotR_add_pi_eq_neg_rotR]
-      ext; simp
-    · simp [Pose.rotM₂, rotM_mod_eq_neg_rotM]
+      funext v
+      change rotR p.α (rotM p.θ₁ p.φ₁ v) = (-(-rotR p.α)) (rotM p.θ₁ p.φ₁ v)
+      rw [neg_neg]
+    · simp only [Pose.rotM₂, rotM_mod_eq_neg_rotM]
+      rw [neg_neg]
 
 theorem tighten_φ₂_π2 (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull)
     (hφ₂ : p.φ₂ ∈ Set.Icc 0 π) :
