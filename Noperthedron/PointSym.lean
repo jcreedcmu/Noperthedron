@@ -1,22 +1,20 @@
-import Noperthedron.Rupert.Basic
+import Noperthedron.Basic
 
 def PointSym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
  ∀ x ∈ A, -x ∈ A
-
-/--
-Projection preserves the property of being pointsymmetric.
--/
-theorem proj_preserves_point_sym {S : Set ℝ³} (s_sym : PointSym S) : PointSym (proj_xy '' S) := by
-  rintro _ ⟨b, hb, rfl⟩
-  refine ⟨-b, s_sym b hb, ?_⟩
-  ext i
-  fin_cases i <;> simp [proj_xy]
 
 theorem continuousLinearMap_preserves_point_sym {m n : ℕ} (f : Euc(n) →L[ℝ] Euc(m))
     {S : Set (Euc(n))} (s_sym : PointSym S) : PointSym (f '' S) := by
   rintro _ ⟨y, hy, rfl⟩
   refine ⟨-y, s_sym y hy, ?_⟩
   rw [f.map_neg]
+
+/--
+Projection preserves the property of being pointsymmetric.
+-/
+theorem proj_preserves_point_sym {S : Set ℝ³} (s_sym : PointSym S) : PointSym (proj_xy '' S) := by
+  rw [proj_xy_eq_proj_xyL]
+  exact continuousLinearMap_preserves_point_sym proj_xyL s_sym
 
 /--
 Pointsymmetric flip as a homeomorphism

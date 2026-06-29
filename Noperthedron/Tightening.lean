@@ -11,9 +11,9 @@ namespace Noperthedron.Tightening
 
 lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
     rotR (α + π) '' X = rotR α '' X := by
-  have : rotR (α + π) = (-·) ∘ rotR α := by
-    ext x i; fin_cases i <;> (simp [rotR, Matrix.vecHead, Matrix.vecTail]; ring_nf)
-  rw [this, Set.image_comp]
+  rw [rotR_add_pi_eq_neg_rotR]
+  change ((-·) ∘ rotR α) '' X = rotR α '' X
+  rw [Set.image_comp]
   exact neg_image_eq_if_pointsym (rotR α '' X)
     (continuousLinearMap_preserves_point_sym (rotR α) hX)
 

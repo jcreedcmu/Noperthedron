@@ -187,13 +187,15 @@ lemma outer_shadow_eq_M (p : Pose ℝ) (S : Set ℝ³) :
 
 lemma poselike_inner_eq_proj_inner (p : Pose ℝ) :
     proj_xyL ∘ PoseLike.inner p = p.inner := by
-  ext v i; fin_cases i <;>
-    simp [proj_xyL, proj_xy_mat, Matrix.vecHead, PoseLike.inner, Pose.inner, innerProj]
+  ext v
+  simp only [PoseLike.inner, Pose.inner, innerProj, AffineMap.coe_comp,
+    LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
 
 lemma poselike_outer_eq_proj_outer (p : Pose ℝ) :
     proj_xyL ∘ PoseLike.outer p = p.outer := by
-  ext v i; fin_cases i <;>
-    simp [proj_xyL, proj_xy_mat, Matrix.vecHead, PoseLike.outer, Pose.outer, outerProj]
+  ext v
+  simp only [PoseLike.outer, Pose.outer, outerProj, AffineMap.coe_comp,
+    LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
 
 lemma equiv_rupert_imp_rupert {P : Type} [PoseLike P] {p1 p2 : P} {S : Set ℝ³} (e : equiv p1 p2) (r : RupertPose p1 S) :
     RupertPose p2 S := by
