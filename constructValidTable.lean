@@ -4,14 +4,17 @@ import Noperthedron.SolutionTable.Check
   Program that constructs a `ValidTable` value -- exactly what fits into the "hole" in
   Noperthedron/ProofOfMainTheoremWithHole.lean.
 
-  Accepts as input a path to a file that contains the unzipped csv from
-  https://github.com/Jakob256/Rupert/blob/main/data/solution_tree.zip
+  Accepts as input a path to a csv file contains the solution data.
 
   This runs the same parallel parse-and-check functions that `native_decide`
   evaluates in Noperthedron/ComputationalStep.lean, but compiled to native
   code, so it is considerably faster.
 
-  Running this takes about 2.5 hours on a 16-core machine.
+  Running on the solution tree from solution_table_v3.zip takes about 85 minutes on
+  a 16-core machine.
+
+  To get the solution tree, make sure you have git-lfs installed and you've fetched
+  the full solution_table_v3.zip file. then unzip it into solution_table_v3.csv.
 -/
 
 open Noperthedron.Solution

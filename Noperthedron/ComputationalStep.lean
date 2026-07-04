@@ -8,24 +8,24 @@ import Noperthedron.Vertices.Exact
 /-!
   Expensive computational step: `native_decide` parses the SY25 solution-tree
   CSV and checks every row of the resulting ~18.7-million-row table. On a 16
-  core machine, this takes about 30 hours and consumes about 55 GB of memory.
-  It would potentially go faster if we set `precompiledModules = true`.
+  core machine, this takes between 15 and 30 hours and consumes about 55 GB of
+  memory. It would potentially go faster if we set `precompiledModules = true`.
 
   The full check is commented out so that it doesn't bog down compilation
   as we work on the rest of the project.
 
   To run the same check in a standalone native executable, try
-  `constructValidTable.lean`, which should take about 2.5 hours on a 16-core
+  `constructValidTable.lean`, which should take about 1.25 hours on a 16-core
   machine.
 -/
 
 namespace Noperthedron
 
-/-- The Steininger–Yurkevich solution tree, unzipped from
-https://github.com/Jakob256/Rupert/blob/main/data/solution_tree.zip -/
+/-- An optimized version of the Steininger–Yurkevich solution tree,
+downloaded from git-lfs and unzipped. -/
 def solution_csv : String :=
   -- Uncomment the following line and point it to the file's location.
-  -- include_str "../../noperthedron-verification-py/data/solution_tree.csv"
+  -- include_str "../solution_tree_v3.csv"
   sorry
 
 theorem exists_solution_table : ∃ (_ : Solution.ValidTable), True := by
