@@ -11,16 +11,34 @@ open Real
 /-!
 # Triangle symmetries
 
-A finite collection of vertex-index permutations, each of which corresponds to
-a linear isometry of ℝ³ when applied to the triangles it is "applicable" to.
+A finite collection of vertex-index permutations, each realized by a linear
+isometry of ℝ³ on the triangles it is `applicable` to
+(`congruent_of_apply`). The checker (`Row.ValidLocal.exists_symmetry`) uses
+this to establish that the triangles `Pi` and `Qi` of a local row are
+congruent.
 
-* `rotation m n` is a polyhedron-wide symmetry — applicable to any triangle.
-* `reflection m n` is an orbit-restricted symmetry — only applicable to
-  triangles whose three vertices share the same orbit index `i`.
+Recall `exactVertex ⟨k, ℓ, i⟩ = (-1)^ℓ • Rz(2πk/15) (Cpt i)`, so the vertices
+form three orbits of 30 (indexed by `i`), each generated from the base point
+`Cpt i` by the z-rotation index `k` and the negation index `ℓ`.
 
-There is no group structure here: the reflections are genuinely different
-objects from the rotations, because the underlying linear isometry of ℝ³
-depends on which orbit `i ∈ {0,1,2}` the triangle lives in.
+* `rotation m n` sends `⟨k, ℓ, i⟩ ↦ ⟨k + n, ℓ + m, i⟩`, realized by
+  `v ↦ (-1)^m • Rz(2πn/15) v` — a symmetry of the whole polyhedron, hence
+  applicable to any triangle.
+* `reflection m n` sends `⟨k, ℓ, i⟩ ↦ ⟨n - k, ℓ + m, i⟩`, realized by
+  `v ↦ (-1)^m • Rz(2πn/15) (refl v)` where `refl` is the reflection across
+  the vertical plane through the z-axis and `Cpt i`. That plane depends on
+  the orbit `i`, so this is a different isometry for each orbit, and it maps
+  vertices to vertices only within that orbit — hence a reflection is
+  applicable only to triangles whose vertices all lie in a single orbit.
+
+The constructor names describe the action on the 15-fold index
+(`k ↦ k + n` vs `k ↦ n - k`), not orientation: e.g. `rotation 1 n` is
+realized by the rotoreflection `-Rz(2πn/15)`.
+
+The index permutations would form a group under composition
+(≅ `ZMod 2 × DihedralGroup 15`), but we never need that structure, and the
+realizing isometries do not assemble into a single action of it on ℝ³ (for
+reflections the isometry depends on the triangle's orbit).
 -/
 
 inductive TriangleSymmetry where
@@ -30,9 +48,11 @@ deriving DecidableEq, Fintype, Repr, Nonempty
 
 namespace TriangleSymmetry
 
-/-- Apply a symmetry to a vertex index. For `reflection`, the result is only
-meaningful (corresponds to a linear isometry) when restricted to triangles all
-of whose vertices share the same orbit `i`. -/
+/-- Apply a symmetry to a vertex index: `rotation m n` sends
+`⟨k, ℓ, i⟩ ↦ ⟨k + n, ℓ + m, i⟩` and `reflection m n` sends
+`⟨k, ℓ, i⟩ ↦ ⟨n - k, ℓ + m, i⟩`. For `reflection`, the result corresponds to
+a linear isometry only on triangles all of whose vertices share the same
+orbit `i`. -/
 def apply : TriangleSymmetry → VertexIndex → VertexIndex
   | .rotation m n, ⟨k, ℓ, i⟩ =>
       ⟨⟨(k.val + n.val) % 15, Nat.mod_lt _ (by simp)⟩,
@@ -73,10 +93,13 @@ private lemma RzL_nat_mod_15 (x : ℕ) :
       rw [hcast]; linear_combination (2 * π / 15) * hreal,
       RzL_periodic]
 
+private lemma int_neg_one_pow_smul (j : ℕ) (w : ℝ³) :
+    (-1 : ℤ)^j • w = ((-1 : ℝ)^j) • w := by norm_cast
+
 /-! ### Orbit reflection
 
-For a vector `(a, b, _) ≠ 0` in the `xy`-plane, the reflection through the plane
-containing the z-axis and `(a, b, 0)` is realized by a 3×3 orthogonal matrix. -/
+For `(a, b) ≠ (0, 0)`, the reflection of ℝ³ across the vertical plane
+containing the z-axis and the point `(a, b, 0)`, as a 3×3 orthogonal matrix. -/
 
 private noncomputable def orbitReflMat (a b : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
   !![(a^2 - b^2) / (a^2 + b^2), 2 * a * b / (a^2 + b^2), 0;
@@ -108,8 +131,10 @@ private lemma orbitReflL_preserves_norm (a b : ℝ) (hab : a^2 + b^2 ≠ 0) (w :
   field_simp
   ring
 
-/-- The key identity: the orbit reflection applied to `RzL θ` of a vector
-`(a, b, c)` (in its own orbit) yields `RzL (-θ)` of that vector. -/
+/-- The key identity: `(a, b, c)` lies in the mirror plane of
+`orbitReflL a b`, so it is fixed by the reflection, and reflecting reverses
+the direction of rotation about the z-axis:
+`refl (Rz θ v) = Rz (-θ) (refl v) = Rz (-θ) v` for `v = (a, b, c)`. -/
 private lemma orbitReflL_RzL_eq (a b c θ : ℝ) (hab : a^2 + b^2 ≠ 0) :
     orbitReflL a b (RzL θ !₂[a, b, c]) = RzL (-θ) !₂[a, b, c] := by
   -- Compute RzL θ !₂[a, b, c] componentwise.
@@ -144,8 +169,8 @@ private lemma Cpt_eq_vec (i₀ : Fin 3) :
 private lemma Cpt_xy_sq_pos (i₀ : Fin 3) : 0 < (Cpt i₀ 0)^2 + (Cpt i₀ 1)^2 := by
   fin_cases i₀ <;> simp [Cpt, C1R, C2R, C3R, C1, C2, C3] <;> norm_num
 
-/-- The rotation case: the map `(k, ℓ, i) ↦ (k + n, ℓ + m, i)` corresponds to
-`v ↦ (-1)^m • RzL(2π n / 15)(v)`, which is a polyhedron-wide linear isometry. -/
+/-- The rotation case: `⟨k, ℓ, i⟩ ↦ ⟨k + n, ℓ + m, i⟩` is realized by
+`v ↦ (-1)^m • Rz(2πn/15) v`, the same linear isometry for every triangle. -/
 private theorem congruent_of_rotation (Pi Qi : Fin 3 → VertexIndex)
     (m : ZMod 2) (n : ZMod 15)
     (hpq : ∀ j, Pi j = TriangleSymmetry.apply (.rotation m n) (Qi j)) :
@@ -173,15 +198,13 @@ private theorem congruent_of_rotation (Pi Qi : Fin 3 → VertexIndex)
       RzL_nat_mod_15,
       show 2 * π * ((k.val + n.val : ℕ) : ℝ) / 15 = φ + θ by push_cast; rw [hφ_def, hθ_def]; ring,
       RzL_apply_add]
-  set w := RzL φ (RzL θ (Cpt i))
-  have cast_eq : ∀ (j : ℕ), (-1 : ℤ)^j • w = ((-1 : ℝ)^j) • w := fun j => by norm_cast
-  rw [cast_eq, cast_eq, hs_def, smul_smul, ← pow_add, add_comm m.val ℓ.val,
-      ← neg_one_pow_eq_pow_mod_two]
+  rw [int_neg_one_pow_smul, int_neg_one_pow_smul, hs_def, smul_smul, ← pow_add,
+      add_comm m.val ℓ.val, ← neg_one_pow_eq_pow_mod_two]
 
-/-- The reflection case: for a triangle with all three vertices in orbit `i₀`,
-the map `(k, ℓ, i₀) ↦ (-k + n, ℓ + m, i₀)` corresponds to a linear isometry
-of ℝ³ (the composition of `±I`, a rotation about `z`, and the reflection
-through the plane spanned by `Cpt i₀` and the `z`-axis). -/
+/-- The reflection case: on a triangle whose vertices all lie in orbit `i₀`,
+`⟨k, ℓ, i₀⟩ ↦ ⟨n - k, ℓ + m, i₀⟩` is realized by the linear isometry
+`v ↦ (-1)^m • Rz(2πn/15) (refl v)`, where `refl` is the reflection across the
+vertical plane through the z-axis and `Cpt i₀`. -/
 private theorem congruent_of_reflection (Pi Qi : Fin 3 → VertexIndex)
     (m : ZMod 2) (n : ZMod 15)
     (h_app : (Qi 0).i = (Qi 1).i ∧ (Qi 1).i = (Qi 2).i)
@@ -235,10 +258,8 @@ private theorem congruent_of_reflection (Pi Qi : Fin 3 → VertexIndex)
       show 2 * π * ((15 - k.val + n.val : ℕ) : ℝ) / 15 = (φ + -θ) + (1 : ℤ) * (2 * π) by
         push_cast [Nat.cast_sub hk_le]; rw [hφ_def, hθ_def]; ring,
       RzL_periodic]
-  set w := RzL (φ + -θ) (Cpt i₀) with hw_def
-  have cast_eq : ∀ (j : ℕ), (-1 : ℤ)^j • w = ((-1 : ℝ)^j) • w := fun j => by norm_cast
-  rw [cast_eq, cast_eq, hs_def, smul_smul, ← pow_add, add_comm m.val ℓ.val,
-      ← neg_one_pow_eq_pow_mod_two]
+  rw [int_neg_one_pow_smul, int_neg_one_pow_smul, hs_def, smul_smul, ← pow_add,
+      add_comm m.val ℓ.val, ← neg_one_pow_eq_pow_mod_two]
 
 /-- Key theorem: whenever `Pi j = s.apply (Qi j)` for all `j` and the symmetry
 is applicable to `Qi`, the triangles `Pi` and `Qi` are congruent. -/
