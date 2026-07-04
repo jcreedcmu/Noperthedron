@@ -22,20 +22,57 @@ def cos_psum {k : Type} [Field k] (n : ℕ) (x : k) : k :=
   ∑ i ∈ Finset.range n, (-1) ^ i * (x ^ (2 * i) / (2 * i)!)
 
 /--
-Sine partial sum $x - x^3/3! + x^5/5! - ⋯ + x^{25}/25!$
--/
-def sinℚ {k : Type} [Field k] := sin_psum (k := k) 13
+Round down to a multiple of `10⁻¹³`. Applied to the trig partial sums so that
+the checker's rational arithmetic runs on small denominators (the raw partial
+sums have denominators around `10²¹²`, making every downstream `ℚ` operation
+a large-integer gcd). The rounding error is absorbed into the `κ/7` trig
+budget of `sinℚ_approx'`/`cosℚ_approx'`. Defined via `Int.floor` so that it
+commutes with the cast `ℚ → ℝ` (`Rat.floor_cast`). -/
+def round13 {k : Type} [Field k] [LinearOrder k] [FloorRing k] (x : k) : k :=
+  ⌊x * 10 ^ 13⌋ / 10 ^ 13
 
-lemma sinℚ_match (x : ℚ) : sinℚ (k := ℚ) x = sinℚ (k := ℝ) x := by
-  unfold sinℚ sin_psum; push_cast; rfl
+lemma round13_cast (x : ℚ) : ((round13 x : ℚ) : ℝ) = round13 (x : ℝ) := by
+  unfold round13; norm_cast
+
+lemma abs_round13_sub_le {k : Type} [Field k] [LinearOrder k] [IsStrictOrderedRing k]
+    [FloorRing k] (x : k) : |round13 x - x| ≤ 1 / 10 ^ 13 := by
+  have h10 : (0 : k) < 10 ^ 13 := by positivity
+  have h1 : ((⌊x * 10 ^ 13⌋ : ℤ) : k) ≤ x * 10 ^ 13 := Int.floor_le _
+  have h2 : x * 10 ^ 13 < ((⌊x * 10 ^ 13⌋ : ℤ) : k) + 1 := Int.lt_floor_add_one _
+  have hrw : round13 x - x = (((⌊x * 10 ^ 13⌋ : ℤ) : k) - x * 10 ^ 13) / 10 ^ 13 := by
+    unfold round13; field_simp
+  rw [hrw, abs_div, abs_of_pos h10]
+  gcongr
+  rw [abs_le]
+  constructor <;> linarith
 
 /--
-Cosine partial sum $1 - x^2/2! + x^4/4! - ⋯ + x^{24}/24!$
+Sine partial sum $x - x^3/3! + x^5/5! - ⋯ + x^{25}/25!$, rounded down to a
+multiple of `10⁻¹³` (see `round13`).
 -/
-def cosℚ {k : Type} [Field k] := cos_psum (k := k) 13
+def sinℚ {k : Type} [Field k] [LinearOrder k] [FloorRing k] (x : k) : k :=
+  round13 (sin_psum 13 x)
+
+lemma sinℚ_match (x : ℚ) : sinℚ (k := ℚ) x = sinℚ (k := ℝ) x := by
+  have h : ((sin_psum 13 x : ℚ) : ℝ) = sin_psum 13 (x : ℝ) := by
+    unfold sin_psum; push_cast; rfl
+  unfold sinℚ round13
+  rw [← h]
+  norm_cast
+
+/--
+Cosine partial sum $1 - x^2/2! + x^4/4! - ⋯ + x^{24}/24!$, rounded down to a
+multiple of `10⁻¹³` (see `round13`).
+-/
+def cosℚ {k : Type} [Field k] [LinearOrder k] [FloorRing k] (x : k) : k :=
+  round13 (cos_psum 13 x)
 
 lemma cosℚ_match (x : ℚ) : cosℚ (k := ℚ) x = cosℚ (k := ℝ) x := by
-  unfold cosℚ cos_psum; push_cast; rfl
+  have h : ((cos_psum 13 x : ℚ) : ℝ) = cos_psum 13 (x : ℝ) := by
+    unfold cos_psum; push_cast; rfl
+  unfold cosℚ round13
+  rw [← h]
+  norm_cast
 
 /--
 Frequently used constant for controlling the degree of approximation
@@ -62,24 +99,24 @@ structure κApproxPoly {ι₁ ι₂ : Type} [Fintype ι₁] [Fintype ι₂]
 
 end
 
-def rotMℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
+def rotMℚ_mat {k : Type} [Field k] [LinearOrder k] [FloorRing k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
   !![-sinℚ θ, cosℚ θ, 0; -cosℚ θ * cosℚ φ, -sinℚ θ * cosℚ φ, sinℚ φ]
 
-def rotMθℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
+def rotMθℚ_mat {k : Type} [Field k] [LinearOrder k] [FloorRing k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
   !![-cosℚ θ, -sinℚ θ, 0; sinℚ θ * cosℚ φ, -cosℚ θ * cosℚ φ, 0]
 
-def rotMφℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
+def rotMφℚ_mat {k : Type} [Field k] [LinearOrder k] [FloorRing k] (θ : k) (φ : k) : Matrix (Fin 2) (Fin 3) k :=
   !![0, 0, 0; cosℚ θ * sinℚ φ, sinℚ θ * sinℚ φ, cosℚ φ]
 
-def rotRℚ_mat {k : Type} [Field k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
+def rotRℚ_mat {k : Type} [Field k] [LinearOrder k] [FloorRing k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
   !![cosℚ α, -sinℚ α;
      sinℚ α,  cosℚ α]
 
-def rotR'ℚ_mat {k : Type} [Field k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
+def rotR'ℚ_mat {k : Type} [Field k] [LinearOrder k] [FloorRing k] (α : k) : Matrix (Fin 2) (Fin 2) k :=
   !![-sinℚ α, -cosℚ α;
      cosℚ α,  -sinℚ α]
 
-def vecXℚ_mat {k : Type} [Field k] (θ : k) (φ : k) : Matrix (Fin 3) (Fin 1) k :=
+def vecXℚ_mat {k : Type} [Field k] [LinearOrder k] [FloorRing k] (θ : k) (φ : k) : Matrix (Fin 3) (Fin 1) k :=
   !![ cosℚ θ * sinℚ φ; sinℚ θ * sinℚ φ; cosℚ φ ]
 
 /-

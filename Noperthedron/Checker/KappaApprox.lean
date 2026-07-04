@@ -57,33 +57,39 @@ lemma pi_sub_piQ_lt : π - (piQ : ℝ) < 1 / 10 ^ 20 := by
   have : (3.14159265358979323847 : ℝ) = (piQ : ℝ) + 1 / 10 ^ 20 := by norm_num [piQ]
   linarith
 
-/-! ## sinQ/cosQ agreement with sinℚ/cosℚ -/
+/-! ## sinQ/cosQ agreement with the raw partial sums
 
-/-- The computable Horner-form `sinQ` agrees with the Finset.sum-form `sinℚ`. -/
-theorem sinQ_eq_sinℚ (x : ℚ) : sinQ x = sinℚ (k := ℚ) x := by
-  simp only [sinQ, sinℚ, sin_psum, Finset.sum_range_succ, Finset.sum_range_zero]
+`sinQ`/`cosQ` (Horner form, used for the exact-vertex validation) stay
+*unrounded*: they agree with `sin_psum 13`/`cos_psum 13` exactly, not with the
+`round13`-rounded `sinℚ`/`cosℚ` used for pose trigonometry. -/
+
+/-- The computable Horner-form `sinQ` agrees with the raw partial sum. -/
+theorem sinQ_eq_sin_psum (x : ℚ) : sinQ x = sin_psum 13 x := by
+  simp only [sinQ, sin_psum, Finset.sum_range_succ, Finset.sum_range_zero]
   ring
 
-/-- The computable Horner-form `cosQ` agrees with the Finset.sum-form `cosℚ`. -/
-theorem cosQ_eq_cosℚ (x : ℚ) : cosQ x = cosℚ (k := ℚ) x := by
-  simp only [cosQ, cosℚ, cos_psum, Finset.sum_range_succ, Finset.sum_range_zero]
+/-- The computable Horner-form `cosQ` agrees with the raw partial sum. -/
+theorem cosQ_eq_cos_psum (x : ℚ) : cosQ x = cos_psum 13 x := by
+  simp only [cosQ, cos_psum, Finset.sum_range_succ, Finset.sum_range_zero]
   ring
 
-/-- sinQ at a rational x, cast to ℝ, equals sinℚ at the cast argument. -/
-theorem sinQ_cast (x : ℚ) : (sinQ x : ℝ) = sinℚ (k := ℝ) (x : ℝ) := by
-  rw [sinQ_eq_sinℚ, sinℚ_match]
+/-- sinQ at a rational x, cast to ℝ, equals the raw partial sum at the cast argument. -/
+theorem sinQ_cast (x : ℚ) : (sinQ x : ℝ) = sin_psum 13 (x : ℝ) := by
+  rw [sinQ_eq_sin_psum]
+  unfold sin_psum; push_cast; rfl
 
-/-- cosQ at a rational x, cast to ℝ, equals cosℚ at the cast argument. -/
-theorem cosQ_cast (x : ℚ) : (cosQ x : ℝ) = cosℚ (k := ℝ) (x : ℝ) := by
-  rw [cosQ_eq_cosℚ, cosℚ_match]
+/-- cosQ at a rational x, cast to ℝ, equals the raw partial sum at the cast argument. -/
+theorem cosQ_cast (x : ℚ) : (cosQ x : ℝ) = cos_psum 13 (x : ℝ) := by
+  rw [cosQ_eq_cos_psum]
+  unfold cos_psum; push_cast; rfl
 
 /-- Taylor remainder bound: |sin(x) - ↑(sinQ q)| ≤ |x|^27/27! when x = ↑q. -/
 theorem sinQ_approx (q : ℚ) : |Real.sin q - (sinQ q : ℝ)| ≤ |↑q| ^ 27 / 27! := by
-  rw [sinQ_cast]; exact sinℚ_approx q
+  rw [sinQ_cast]; exact sin_psum_approx (q : ℝ) 13
 
 /-- Taylor remainder bound: |cos(x) - ↑(cosQ q)| ≤ |x|^26/26! when x = ↑q. -/
 theorem cosQ_approx (q : ℚ) : |Real.cos q - (cosQ q : ℝ)| ≤ |↑q| ^ 26 / 26! := by
-  rw [cosQ_cast]; exact cosℚ_approx q
+  rw [cosQ_cast]; exact cos_psum_approx (q : ℝ) 13
 
 /-! ## Left-leg validation: k > 0 vertex -/
 

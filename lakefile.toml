@@ -29,3 +29,7 @@ name = "Noperthedron"
 name = "constructValidTable"
 root = "constructValidTable"
 buildType = "release"
+[[lean_exe]]
+name = "benchRows"
+root = "benchRows"
+buildType = "release"

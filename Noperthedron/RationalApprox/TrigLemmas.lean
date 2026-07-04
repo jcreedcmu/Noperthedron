@@ -119,18 +119,37 @@ theorem cos_psum_approx (x : ℝ) (n : ℕ) : |Real.cos x - cos_psum n x| ≤ |x
   refine Finset.sum_congr rfl fun _ _ => ?_
   simp [field]
 
-theorem sinℚ_approx (x : ℝ) : |Real.sin x - sinℚ x| ≤ |x|^27 / 27! :=
-  sin_psum_approx x 13
+theorem sinℚ_approx (x : ℝ) : |Real.sin x - sinℚ x| ≤ |x|^27 / 27! + 1 / 10 ^ 13 := by
+  have h1 := sin_psum_approx x 13
+  have h2 := abs_round13_sub_le (k := ℝ) (sin_psum 13 x)
+  rw [abs_sub_comm] at h2
+  calc |Real.sin x - sinℚ x|
+      ≤ |Real.sin x - sin_psum 13 x| + |sin_psum 13 x - sinℚ x| :=
+        abs_sub_le (Real.sin x) (sin_psum 13 x) (sinℚ x)
+    _ ≤ |x|^27 / 27! + 1 / 10 ^ 13 := by
+        refine add_le_add ?_ h2
+        exact_mod_cast h1
 
-theorem cosℚ_approx (x : ℝ) : |Real.cos x - cosℚ x| ≤ |x|^26 / 26! :=
-  cos_psum_approx x 13
+theorem cosℚ_approx (x : ℝ) : |Real.cos x - cosℚ x| ≤ |x|^26 / 26! + 1 / 10 ^ 13 := by
+  have h1 := cos_psum_approx x 13
+  have h2 := abs_round13_sub_le (k := ℝ) (cos_psum 13 x)
+  rw [abs_sub_comm] at h2
+  calc |Real.cos x - cosℚ x|
+      ≤ |Real.cos x - cos_psum 13 x| + |cos_psum 13 x - cosℚ x| :=
+        abs_sub_le (Real.cos x) (cos_psum 13 x) (cosℚ x)
+    _ ≤ |x|^26 / 26! + 1 / 10 ^ 13 := by
+        refine add_le_add ?_ h2
+        exact_mod_cast h1
 
-/- The below are [SY25] Lemma 38 -/
+/- The below are [SY25] Lemma 38. Note the budget arithmetic: at `|x| ≤ 4` the
+raw Taylor error is `4²⁷/27! ≈ 1.7e-12` (sin) and `4²⁶/26! ≈ 1.12e-11` (cos),
+and the `round13` rounding adds `1e-13`; both sums stay below `κ/7 ≈ 1.43e-11`
+(the cos case with ~21% slack — rounding coarser than `10⁻¹²` would not fit). -/
 theorem sinℚ_approx' (x : ℝ) (hx : x ∈ Set.Icc (-4) 4) : |Real.sin x - sinℚ x| ≤ κ / 7 := by
   have hx' : |x| ≤ 4 := abs_le.mpr hx
   have z := sinℚ_approx x
   grw [hx'] at z
-  have : 4 ^ 27 / ↑27! ≤ κ / 7 := by
+  have : 4 ^ 27 / ↑27! + 1 / 10 ^ 13 ≤ κ / 7 := by
     norm_num [κ]
   grw [← this]
   exact z
@@ -139,7 +158,7 @@ theorem cosℚ_approx' (x : ℝ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cos
   have hx' : |x| ≤ 4 := abs_le.mpr hx
   have z := cosℚ_approx x
   grw [hx'] at z
-  have : 4 ^ 26 / ↑26! ≤ κ / 7 := by
+  have : 4 ^ 26 / ↑26! + 1 / 10 ^ 13 ≤ κ / 7 := by
     norm_num [κ]
   grw [← this]
   exact z
