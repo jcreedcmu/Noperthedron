@@ -87,9 +87,7 @@ theorem lemma12 {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
           2 * (1 - Real.cos α) + 2 * (1 - Real.cos β) - (1 - Real.cos α) * (1 - Real.cos β) := by
         ring
       linarith [two_mul_one_sub_cos_le α, two_mul_one_sub_cos_le β]
-    calc ‖rot3 d α ∘L rot3 d' β - 1‖
-        = √(‖rot3 d α ∘L rot3 d' β - 1‖^2) := (Real.sqrt_sq (norm_nonneg _)).symm
-      _ ≤ √(α^2 + β^2) := Real.sqrt_le_sqrt hle
+    exact le_sqrt_of_sq_le hle
 
 theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖ = √(α^2 + β^2) ↔ (α = 0 ∧ β = 0) := by

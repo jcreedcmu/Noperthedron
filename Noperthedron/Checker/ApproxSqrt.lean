@@ -489,9 +489,8 @@ theorem sqrt_le_sqrtℚUp {x : ℚ} (hx : 0 ≤ x) :
     have h_sq_eq : (Real.sqrt ((x : ℚ) : ℝ) * ((sqrtℚLow y : ℚ) : ℝ)) ^ 2 =
         ((sqrtℚLow y : ℚ) : ℝ) ^ 2 * ((x : ℚ) : ℝ) := by
       rw [mul_pow, Real.sq_sqrt (le_of_lt hx_R_pos)]; ring
-    have hprod_sq_le : (Real.sqrt ((x : ℚ) : ℝ) * ((sqrtℚLow y : ℚ) : ℝ)) ^ 2 ≤ 1 := by
-      rw [h_sq_eq]; exact hsq'
-    nlinarith [hprod_nn, hprod_sq_le]
+    rw [← sq_le_one_iff₀ hprod_nn, h_sq_eq]
+    exact hsq'
 
 /-- The squared norm is non-negative. -/
 private lemma normSqℚ_nonneg {n : ℕ} (v : Fin n → ℚ) : 0 ≤ normSqℚ v := by
