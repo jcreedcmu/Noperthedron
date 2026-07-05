@@ -5,166 +5,55 @@ import Noperthedron.Vertices.Exact
 
 namespace Noperthedron.Solution
 
-lemma mem_pose_interval_iff (q : Pose ℝ) (iv : Interval) :
+/-- `Pose.toReal` commutes with `getParam`. -/
+lemma _root_.Pose.toReal_getParam (p : Pose ℚ) (a : Param) :
+    p.toReal.getParam a = (p.getParam a : ℝ) := by
+  cases a <;> rfl
+
+/-- Membership in the realification of a rational `Interval`, read off one parameter
+at a time. This is the single entry point for interval-membership reasoning below. -/
+lemma mem_toReal_iff {q : Pose ℝ} {iv : Interval} :
     q ∈ iv.toReal ↔
-      q.θ₁ ∈ Set.Icc (iv.min.θ₁ : ℝ) (iv.max.θ₁ : ℝ) ∧
-      q.φ₁ ∈ Set.Icc (iv.min.φ₁ : ℝ) (iv.max.φ₁ : ℝ) ∧
-      q.θ₂ ∈ Set.Icc (iv.min.θ₂ : ℝ) (iv.max.θ₂ : ℝ) ∧
-      q.φ₂ ∈ Set.Icc (iv.min.φ₂ : ℝ) (iv.max.φ₂ : ℝ) ∧
-      q.α ∈ Set.Icc (iv.min.α : ℝ) (iv.max.α : ℝ)
-      := by
+      ∀ p : Param, q.getParam p ∈ Set.Icc (iv.min.getParam p : ℝ) (iv.max.getParam p : ℝ) := by
   show q ∈ Set.Icc iv.minPose iv.maxPose ↔ _
-  simp only [Set.mem_Icc, Pose.le_iff, Interval.minPose, Interval.maxPose, Set.mem_Icc]
-  tauto
+  simp only [Set.mem_Icc, Pose.le_iff_forall_getParam, Interval.minPose, Interval.maxPose,
+    Pose.toReal_getParam, ← forall_and]
 
 lemma mem_nth_part (q : Pose ℝ) (iv : Interval) (p : Param) (N : ℕ) [hN : NeZero N] (n : Fin N)
     (hq : q ∈ iv.toReal)
     (bound : q.getParam p ∈ Set.Icc (iv.interpolate p N n : ℝ) (iv.interpolate p N (n + 1) : ℝ)) :
     q ∈ (iv.nth_part p N n).toReal := by
-  rw [mem_pose_interval_iff] at hq ⊢
-  have ⟨_, _, _, _, _⟩ := hq
-  fin_cases p <;> simp_all [Interval.nth_part, Pose.getParam, Pose.setParam]
+  rw [mem_toReal_iff] at hq ⊢
+  intro p'
+  rcases eq_or_ne p' p with rfl | hne
+  · simpa [Interval.nth_part, PoseInterval.min, PoseInterval.max] using bound
+  · simpa [Interval.nth_part, PoseInterval.min, PoseInterval.max, hne] using hq p'
 
-@[push_cast]
-lemma iv_max_push_cast (iv : Interval) (p : Param) :
-    ((PoseInterval.max iv).getParam p : ℝ) = iv.toReal.max.getParam p := by
-  cases p <;>
-    simp [Interval.toReal, Interval.minPose, Interval.maxPose, Pose.getParam, Pose.toReal]
-
-@[push_cast]
-lemma iv_min_push_cast (iv : Interval) (p : Param) :
-    ((PoseInterval.min iv).getParam p : ℝ) = iv.toReal.min.getParam p := by
-  cases p <;>
-    simp [Interval.toReal, Interval.minPose, Interval.minPose, Pose.getParam, Pose.toReal]
-
-lemma mem_iv_imp_ge_min (iv : Interval) {q : Pose ℝ} (hq : q ∈ iv.toReal) (p : Param) :
-    iv.min.getParam p ≤ q.getParam p := by
-  simp [Interval.toReal] at hq
-  obtain ⟨hq, _⟩ := hq
-  push_cast
-  exact Pose.le_iff_forall_getParam iv.toReal.min q |>.mp hq p
-
-lemma mem_iv_imp_le_max (iv : Interval) {q : Pose ℝ} (hq : q ∈ iv.toReal) (p : Param) :
-    q.getParam p ≤ iv.max.getParam p := by
-  simp [Interval.toReal] at hq
-  obtain ⟨_, hq⟩ := hq
-  push_cast
-  exact Pose.le_iff_forall_getParam q iv.toReal.max |>.mp hq p
-
-lemma mem_lower_half (q : Pose ℝ) (iv : Interval) (p : Param)
-    (hq : q ∈ iv.toReal)
-    (lower : q.getParam p ≤ (((iv.min.getParam p + iv.max.getParam p) / 2 : ℚ) : ℝ)) :
-    q ∈ (iv.lower_half p).toReal := by
-  apply mem_nth_part q iv p 2 0 hq
-  constructor
-  · simp [Interval.interpolate, AffineMap.lineMap]
-    exact mem_iv_imp_ge_min iv hq p
-  · simp [Interval.interpolate, AffineMap.lineMap]
-    grw [lower]
-    simp only [Rat.cast_div, Rat.cast_add, Rat.cast_ofNat]
-    ring_nf
-    rfl
-
-lemma mem_upper_half (q : Pose ℝ) (iv : Interval) (p : Param)
-    (hq : q ∈ iv.toReal)
-    (upper : (((iv.min.getParam p + iv.max.getParam p) / 2 : ℚ) : ℝ) ≤ q.getParam p) :
-    q ∈ (iv.upper_half p).toReal := by
-  apply mem_nth_part q iv p 2 1 hq
-  constructor
-  · simp [Interval.interpolate, AffineMap.lineMap]
-    grw [← upper]
-    simp only [Rat.cast_div, Rat.cast_add, Rat.cast_ofNat]
-    ring_nf
-    rfl
-  · simp [Interval.interpolate, AffineMap.lineMap]
-    exact mem_iv_imp_le_max iv hq p
-
-lemma mem_icc_mem_some_part (x : ℝ) (N : ℕ) [NeZero N] (hx : x ∈ Set.Icc 0 (N : ℝ)) :
-    ∃ n : Fin N, x ∈ Set.Icc (n : ℝ) (n + 1) := by
-  have hz : N ≠ 0 := NeZero.ne N
-  if h : x = N then
-    use ⟨N - 1, Nat.sub_one_lt (NeZero.ne N)⟩
-    constructor
-    · simp [h]
-    · simp only [h]; rw [Nat.cast_sub (show 1 ≤ N by grind)]; simp
-  else
-    have hN : x < N := Std.lt_of_le_of_ne hx.2 h
-    have : ⌊x⌋.toNat < N :=
-      (Int.toNat_lt (Int.floor_nonneg.mpr hx.1)).mpr (Int.floor_lt.mpr hN)
-    use ⟨⌊x⌋.toNat, this⟩
-    constructor
-    · change (↑⌊x⌋.toNat : ℤ) ≤ x
-      rw [Int.toNat_of_nonneg (Int.floor_nonneg.mpr hx.1)]
-      exact Int.floor_le x
-    · change x ≤ (⌊x⌋.toNat : ℤ) + 1
-      rw [Int.toNat_of_nonneg (Int.floor_nonneg.mpr hx.1)]
-      exact_mod_cast le_of_lt (Int.lt_floor_add_one x)
-
-lemma mem_icc_mem_some_part_ab (x : ℝ) (a b : ℚ) (hab : a < b) (N : ℕ)
-    [NeZero N] (hx : x ∈ Set.Icc (a : ℝ) (b : ℝ)) :
-    ∃ n : Fin N, x ∈ Set.Icc (interpolate a b N n) (interpolate a b N (n + 1)) := by
-    let xx := N * (x - a) / (b - a)
-    have h : 0 < (↑b : ℝ) - (↑a : ℝ) := by
-      exact_mod_cast (Rat.lt_iff_sub_pos a b).mp hab
-    obtain ⟨hx1, hx2⟩ := hx
-    have hxx : xx ∈ Set.Icc 0 (N : ℝ) := by
-      simp [xx]
-      constructor
-      · positivity
-      · field_simp
-        have q : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
-        exact mul_le_mul_of_nonneg_left (by grind) (Nat.cast_nonneg' N)
-    have q : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
-    obtain ⟨n, h3⟩ := mem_icc_mem_some_part xx N hxx
-    simp [xx] at h3
-    field_simp at h3
-    ring_nf at h3
-    use n
-    constructor <;>
-    · simp [interpolate, AffineMap.lineMap]
-      field_simp
-      grind
+/-- Discrete intermediate value: a point lying between the first and last terms of a
+finite sequence lies between some pair of consecutive terms. (No monotonicity needed.) -/
+lemma exists_mem_Icc_consecutive (c : ℕ → ℝ) (M : ℕ) {x : ℝ}
+    (hx : x ∈ Set.Icc (c 0) (c (M + 1))) :
+    ∃ n : Fin (M + 1), x ∈ Set.Icc (c n) (c (n + 1)) := by
+  induction M with
+  | zero => exact ⟨0, hx⟩
+  | succ M ih =>
+    rcases le_total x (c (M + 1)) with h | h
+    · obtain ⟨n, hn⟩ := ih ⟨hx.1, h⟩
+      exact ⟨n.castSucc, hn⟩
+    · exact ⟨Fin.last (M + 1), h, hx.2⟩
 
 lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
      (N : ℕ) [NeZero N] (hq : q ∈ iv.toReal) :
      ∃ n : Fin N, q ∈ (iv.nth_part p N n).toReal := by
-  let ivpMin := iv.toReal.min.getParam p
-  let ivpMax := iv.toReal.max.getParam p
-  have : q.getParam p ∈ Set.Icc ivpMin ivpMax :=
-    ⟨(Pose.le_iff_forall_getParam _ _).mp hq.1 p,
-     (Pose.le_iff_forall_getParam _ _).mp hq.2 p⟩
-  by_cases H : iv.min.getParam p = iv.max.getParam p
-  · use 0
-    refine mem_nth_part _ _ _ _ _ hq ?_
-    simp only [Set.mem_Icc]
-    have h₅ : ∀ n, Interval.interpolate p iv N n = (PoseInterval.min iv).getParam p := by
-      intro n
-      simp [Interval.interpolate, H]
-    simp only [Interval.toReal, NonemptyInterval.mem_mk, Interval.maxPose, Interval.minPose] at hq
-    simp only [Pose.le_iff_forall_getParam] at hq
-    obtain ⟨hq₁, hq₂⟩ := hq
-    constructor
-    · rw [h₅]; push_cast; exact hq₁ p
-    · rw [h₅, H]; push_cast; exact hq₂ p
-  have h₁ : iv.min.getParam p < iv.max.getParam p := by
-    by_contra! H₁
-    have h₃ := iv.min_le_max
-    rw [Pose.le_iff_forall_getParam] at h₃
-    specialize h₃ p
-    order
-  have h₂ : q.getParam p ∈
-             Set.Icc ↑((PoseInterval.min iv).getParam p)
-                     ↑((PoseInterval.max iv).getParam p) := by
-    simp only [Set.mem_Icc]
-    simp only [Interval.toReal, NonemptyInterval.mem_mk, Interval.maxPose, Interval.minPose] at hq
-    simp only [Pose.le_iff_forall_getParam] at hq
-    obtain ⟨hq₁, hq₂⟩ := hq
-    push_cast
-    exact Prod.mk_le_mk.mp this
-  obtain ⟨n, hx⟩ :=
-    mem_icc_mem_some_part_ab (q.getParam p) (iv.min.getParam p) (iv.max.getParam p) h₁ N h₂
-  use n
-  exact mem_nth_part _ _ _ _ _ hq hx
+  obtain ⟨M, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (NeZero.ne N)
+  have h0 : iv.interpolate p (M + 1) 0 = iv.min.getParam p := by
+    simp [Interval.interpolate]
+  have h1 : iv.interpolate p (M + 1) (M + 1) = iv.max.getParam p := by
+    simp [Interval.interpolate, div_self (by positivity : ((M : ℚ) + 1) ≠ 0)]
+  obtain ⟨n, hn⟩ := exists_mem_Icc_consecutive
+    (fun k => (iv.interpolate p (M + 1) k : ℝ)) M
+    (by simpa only [h0, h1] using mem_toReal_iff.mp hq p)
+  exact ⟨n, mem_nth_part q iv p (M + 1) n hq hn⟩
 
 lemma non_rupert_parts_imp_non_rupert (p : Param) {iv : Interval} (N : ℕ) [hN : NeZero N]
     (qq : ∀ n : Fin N, ¬∃ q ∈ (Interval.nth_part p iv N n).toReal, RupertPose q exactPolyhedron.hull) :
@@ -173,25 +62,16 @@ lemma non_rupert_parts_imp_non_rupert (p : Param) {iv : Interval} (N : ℕ) [hN 
   obtain ⟨n, hq1⟩ := mem_interval_imp_mem_some_part q iv p N hq1
   exact qq n ⟨q, hq1, hq2⟩
 
--- these two are used in the cube-fold part of the proof below
-lemma mem_interval_imp_mem_union_halves (q : Pose ℝ) (iv : Interval) (p : Param)
-     (hq : q ∈ iv.toReal) :
-     q ∈ (iv.lower_half p).toReal ∨ q ∈ (iv.upper_half p).toReal := by
-  let midr : ℝ := (((iv.min.getParam p + iv.max.getParam p) / 2 : ℚ) : ℝ)
-  if h : q.getParam p ≤ midr then
-    left; exact mem_lower_half q iv p hq h
-  else
-    right; exact mem_upper_half q iv p hq (Std.le_of_not_ge h)
-
+/-- Since the two halves are `nth_part 2 0` and `nth_part 2 1`, this is
+`non_rupert_parts_imp_non_rupert` at `N = 2`. Used in the cube-fold part of the proof below. -/
 lemma non_rupert_halves_imp_non_rupert {p : Param} {iv : Interval}
     (q1 : ¬∃ q ∈ (Interval.lower_half p iv).toReal, RupertPose q exactPolyhedron.hull)
     (q2 : ¬∃ q ∈ (Interval.upper_half p iv).toReal, RupertPose q exactPolyhedron.hull) :
     ¬∃ q ∈ iv.toReal, RupertPose q exactPolyhedron.hull := by
-  rintro ⟨q, hq1, hq2⟩
-  replace hq1 := mem_interval_imp_mem_union_halves q iv p hq1
-  rcases hq1 with h | h
-  · exact q1 ⟨q, h, hq2⟩
-  · exact q2 ⟨q, h, hq2⟩
+  refine non_rupert_parts_imp_non_rupert p 2 fun n => ?_
+  fin_cases n
+  · exact q1
+  · exact q2
 
 /-
 This is a decently big mutual induction over several predicates establishing the validity of our interval checking.
