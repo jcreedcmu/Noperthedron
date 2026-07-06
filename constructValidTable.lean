@@ -35,15 +35,7 @@ def main (args : List String) : IO Unit := do
   if h_nonempty : 0 < table.size then
     if h_first : table[0].interval = rowZero.interval then
       if h_valid_b : table.rowsValidParB 512 then
-        let validTable : ValidTable := {
-          table := table
-          rows_valid := Table.rowsValid_of_rowsValidParB h_valid_b
-          nonempty := h_nonempty
-          contains_tightInterval := by
-            rw [show (table[0].interval : Set (Pose ℝ)) = (rowZero.interval : Set (Pose ℝ))
-                from by rw [h_first]]
-            exact rowZero_contains_tightInterval
-        }
+        let validTable : ValidTable := Table.validTableOfChecks h_nonempty h_first h_valid_b
         IO.println s!"ValidTable constructed with {validTable.table.size} rows."
       else
         throw (IO.userError "table rows are not valid")

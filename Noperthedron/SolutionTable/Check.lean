@@ -27,17 +27,26 @@ def Table.checkFullB (tab : Table) (nTasks : ℕ) : Bool :=
     decide (tab[0].interval = rowZero.interval) && tab.rowsValidParB nTasks
   else false
 
+/-- Assemble a `ValidTable` from the three facts that `Table.checkFullB` checks:
+nonemptiness, row 0 carrying `rowZero.interval`, and the parallel row-validity check. -/
+def Table.validTableOfChecks {tab : Table} {nTasks : ℕ} (h_nonempty : 0 < tab.size)
+    (h_first : tab[0].interval = rowZero.interval)
+    (h_valid : tab.rowsValidParB nTasks = true) : ValidTable where
+  table := tab
+  rows_valid := Table.rowsValid_of_rowsValidParB h_valid
+  nonempty := h_nonempty
+  contains_tightInterval := by
+    rw [show (tab[0].interval : Set (Pose ℝ)) = (rowZero.interval : Set (Pose ℝ))
+        from by rw [h_first]]
+    exact rowZero_contains_tightInterval
+
 theorem Table.exists_validTable_of_checkFullB {tab : Table} {nTasks : ℕ}
     (h : tab.checkFullB nTasks = true) : ∃ _ : ValidTable, True := by
   unfold Table.checkFullB at h
   split at h
   case isTrue hpos =>
     rw [Bool.and_eq_true, decide_eq_true_iff] at h
-    obtain ⟨hz, hv⟩ := h
-    refine ⟨⟨tab, Table.rowsValid_of_rowsValidParB hv, hpos, ?_⟩, trivial⟩
-    rw [show (tab[0].interval : Set (Pose ℝ)) = (rowZero.interval : Set (Pose ℝ))
-        from by rw [hz]]
-    exact rowZero_contains_tightInterval
+    exact ⟨Table.validTableOfChecks hpos h.1 h.2, trivial⟩
   case isFalse => exact absurd h (by simp)
 
 /-- Parse the solution-tree CSV (in `parseTasks` parallel chunks) and check
