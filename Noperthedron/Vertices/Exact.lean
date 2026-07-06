@@ -150,17 +150,6 @@ lemma exactVertex_norm_le_one (j : VertexIndex) : ‖exactVertex j‖ ≤ 1 := b
   · simp [Cpt, c2_norm_le_one]
   · simp [Cpt, c3_norm_le_one]
 
-/--
-The radius of the noperthedron is 1.
--/
-theorem exactVertex_radius_one : Polyhedron.radius ⟨exactVertex⟩ = 1 := by
-  rw [Polyhedron.radius_iff]
-  constructor
-  · use ⟨0, 0, 0⟩
-    simp [exactVertex, exactVertex, Cpt, Bounding.Rz_preserves_norm, c1_norm_one]
-  · intro j
-    exact exactVertex_norm_le_one j
-
 noncomputable
 def exactPolyhedron : Polyhedron VertexIndex ℝ³ := {
   v := exactVertex
@@ -182,7 +171,7 @@ def exactPoly : GoodPoly VertexIndex := {
     rintro j
     refine exactVerts_nontriv _ ?_
     simp [exactVerts, exactPolyhedron]
-  radius_eq_one := exactVertex_radius_one
+  vertex_radius_le_one := exactVertex_norm_le_one
 }
 
 /--

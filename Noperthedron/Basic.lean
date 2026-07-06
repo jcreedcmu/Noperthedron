@@ -337,30 +337,10 @@ def Polyhedron.toReal {ι : Type} (p : Polyhedron ι (Fin 3 → ℚ)) : Polyhedr
 def Polyhedron.hull {ι : Type} [Fintype ι] (poly : Polyhedron ι ℝ³) : Set ℝ³ :=
   convexHull ℝ { poly.v i | i }
 
-noncomputable
-def Polyhedron.radius {ι X : Type} [Fintype ι] [ne : Nonempty ι] [Norm X] (p : Polyhedron ι X) : ℝ :=
-  (Finset.image (fun x ↦ ‖p.v x‖) Finset.univ).max'
-    (by rw [Finset.image_nonempty]; exact Finset.univ_nonempty_iff.mpr ne)
-
-theorem Polyhedron.radius_iff {r : ℝ} {ι X : Type} [Fintype ι] [ne : Nonempty ι] [Norm X]
-    (iv : Polyhedron ι X) :
-    iv.radius = r ↔ (∃ i, ‖iv.v i‖ = r) ∧ ∀ i, ‖iv.v i‖ ≤ r := by
-  constructor
-  · intro h
-    simp only [Polyhedron.radius, Finset.max'_eq_iff] at h
-    grind
-  · intro h
-    simpa [Polyhedron.radius, Finset.max'_eq_iff]
-
 structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] where
   vertices : Polyhedron ι ℝ³
   nontriv : ∀ i, 0 < ‖vertices.v i‖
-  radius_eq_one : vertices.radius = 1
+  vertex_radius_le_one : ∀ i, ‖vertices.v i‖ ≤ 1
 
 def GoodPoly.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) : Set ℝ³ :=
   poly.vertices.hull
-
-theorem GoodPoly.vertex_radius_le_one {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) :
-    ∀ i, ‖poly.vertices.v i‖ ≤ 1 := by
-  have := poly.radius_eq_one
-  rw [Polyhedron.radius_iff] at this; exact this.2

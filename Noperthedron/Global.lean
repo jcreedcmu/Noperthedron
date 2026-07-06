@@ -91,17 +91,25 @@ def maxH {ι : Type} [Fintype ι] [ne : Nonempty ι]
 
 /--
 A compact way of saying "the pose satisfies the global theorem precondition at width ε".
-We require the existence of some inner-shadow vertex S from the polyhedron, and a covector w meant to express
-the direction we're projecting ℝ² → ℝ to find that S "sticks out too far" compared to all the
-other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
+We require the index `Si` of some inner-shadow vertex of the polyhedron, and a covector w meant
+to express the direction we're projecting ℝ² → ℝ to find that the vertex "sticks out too far"
+compared to all the other outer-shadow vertices P (which the calculation of H iterates over)
+in the polygon that lies in ℝ².
 -/
 structure GlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (p : Pose ℝ) (ε : ℝ) : Type where
-  S : ℝ³
-  S_in_poly : S ∈ Set.range poly.vertices.v
+  Si : ι
   w : ℝ²
   w_unit : ‖w‖ = 1
-  exceeds : G p ε S w > maxH p poly ε w
+  exceeds : G p ε (poly.vertices.v Si) w > maxH p poly ε w
+
+/-- The inner-shadow vertex singled out by the precondition. -/
+noncomputable
+def GlobalTheoremPrecondition.S
+    {ι : Type} [Fintype ι] [Nonempty ι]
+    {poly : GoodPoly ι} {p : Pose ℝ} {ε : ℝ}
+    (hp : GlobalTheoremPrecondition poly p ε) : ℝ³ :=
+  poly.vertices.v hp.Si
 
 noncomputable
 def GlobalTheoremPrecondition.Sval
@@ -113,14 +121,14 @@ def GlobalTheoremPrecondition.Sval
 theorem GlobalTheoremPrecondition.norm_S_le_one
     {ι : Type} [Fintype ι] [Nonempty ι]
     {poly : GoodPoly ι} {p : Pose ℝ} {ε : ℝ}
-    (hp : GlobalTheoremPrecondition poly p ε) : ‖hp.S‖ ≤ 1 := by
-  obtain ⟨i, hi⟩ := hp.S_in_poly; rw [← hi]; exact poly.vertex_radius_le_one i
+    (hp : GlobalTheoremPrecondition poly p ε) : ‖hp.S‖ ≤ 1 :=
+  poly.vertex_radius_le_one hp.Si
 
 theorem GlobalTheoremPrecondition.norm_S_gt_zero
     {ι : Type} [Fintype ι] [Nonempty ι]
     {poly : GoodPoly ι} {p : Pose ℝ} {ε : ℝ}
-    (hp : GlobalTheoremPrecondition poly p ε) : 0 < ‖hp.S‖ := by
-  obtain ⟨i, hi⟩ := hp.S_in_poly; rw [← hi]; exact poly.nontriv i
+    (hp : GlobalTheoremPrecondition poly p ε) : 0 < ‖hp.S‖ :=
+  poly.nontriv hp.Si
 
 theorem GlobalTheoremPrecondition.norm_S_ne_zero
     {ι : Type} [Fintype ι] [Nonempty ι]
@@ -460,8 +468,7 @@ theorem global_theorem_gt_reasoning {ι : Type} [Fintype ι] [Nonempty ι]
   have sval_in_img_inner : pc.Sval p ∈ imgInner p (Finset.image poly.vertices.v Finset.univ) pc.w := by
     simp only [Finset.mem_image, imgInner, GlobalTheoremPrecondition.Sval, Finset.mem_univ,
       true_and]
-    obtain ⟨i, hi⟩ := pc.S_in_poly
-    exact ⟨pc.S, ⟨i, hi⟩, rfl⟩
+    exact ⟨pc.S, ⟨pc.Si, rfl⟩, rfl⟩
   calc
     maxInner p poly pc.w
     _ ≥ pc.Sval p := Finset.le_max' (H2 := sval_in_img_inner)

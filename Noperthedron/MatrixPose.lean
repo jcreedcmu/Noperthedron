@@ -13,9 +13,6 @@ structure MatrixPose : Type where
 
 namespace MatrixPose
 
-def IsRot (p : MatrixPose) : Prop :=
-  p.innerOffset = 0
-
 def zeroOffset (p : MatrixPose) : MatrixPose :=
   { p with innerOffset := 0 }
 

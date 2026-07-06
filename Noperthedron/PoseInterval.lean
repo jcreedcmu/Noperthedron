@@ -33,20 +33,6 @@ end PoseInterval
 
 /--
 The 5d box in parameter space that represents what constraints we can
-impose on angles merely from general considerations about rotations.
--/
-noncomputable
-def mediumInterval : PoseInterval ℝ :=
-  PoseInterval.mk
-    { θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := -π }
-    { θ₁ := 2 * π, θ₂ := 2 * π, φ₁ := π, φ₂ := π, α := π }
-    (by
-      rw [Pose.le_iff]
-      have hπ := Real.pi_pos.le
-      refine ⟨?_, ?_, hπ, hπ, ?_⟩ <;> linarith [Real.pi_pos])
-
-/--
-The 5d box in parameter space that represents what constraints we can
 impose on angles taking advantage of the particular symmetries of the
 Noperthedron.
 -/
@@ -175,10 +161,6 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp
   rw [Pose.mem_closedBall_iff]
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
     (simp only [PoseInterval.center, Real.dist_eq, abs_sub_le_iff]; constructor <;> linarith)
-
-theorem nonempty_closed_ball_radius_nonneg {R} [MetricSpace R] (p q : Pose R) (r : ℝ)
-    (hpq : p ∈ Metric.closedBall q r) :
-    0 ≤ r := le_trans dist_nonneg hpq
 
 lemma closed_ball_imp_inner_params_near {p q : Pose ℝ} {ε : ℝ}
     (hq : q ∈ Metric.closedBall p ε) :

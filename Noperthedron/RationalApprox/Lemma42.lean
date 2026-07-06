@@ -150,12 +150,6 @@ lemma allNormsBelow_def {n m : ℕ} (mv : MatVec n m)
       have h_bsr_nonneg : 0 ≤ bsr.reverse.prod := le_trans tl.maxNormList_non_neg ih_bound
       exact mul_le_mul ih_bound h_max_le (le_of_lt (lt_max_of_lt_right one_pos)) h_bsr_nonneg
 
-lemma norm_sub_le_bound {n m : ℕ} (mv : MatVec n m)
-    (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ)
-    {bs : List ℝ} (hbs1 : ∀ b ∈ bs, 1 ≤ b) (hb : mv.allNormsBelow bs) :
-    ‖mv.compA - mv.compB‖ ≤ mv.size * κ * bs.prod := by
-  grw [norm_sub_le_prod mv κ κ_pos hκ, allNormsBelow_def mv hbs1 hb]
-
 lemma norm_sub_le_prod1 (mv : MatVec 1 1)
     (κ : ℝ) (κ_pos : κ > 0) (hκ : mv.DiffBoundedBy κ) :
     |mv.valA - mv.valB| ≤ mv.size * κ * mv.maxNormList.prod := by

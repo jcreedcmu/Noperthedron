@@ -348,7 +348,6 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
   let j := pc.j
   let i := happrox.bijection.symm j
   let S_real := poly.vertices.v i
-  have hS_in : S_real ∈ Set.range poly.vertices.v := ⟨i, rfl⟩
   have hS_approx : ‖S_real - poly_.toReal.v j‖ ≤ κ := by
     show ‖poly.vertices.v (happrox.bijection.symm j) - poly_.toReal.v j‖ ≤ κ
     have := happrox.approx (happrox.bijection.symm j)
@@ -379,8 +378,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     linarith [h_le_Hℚ, h_le_max_real]
   -- Step 3: Build the precondition and apply global_theorem
   exact GlobalTheorem.global_theorem pbar ε (Rat.cast_nonneg.mpr hε) poly {
-    S := S_real
-    S_in_poly := hS_in
+    Si := i
     w := toR2 pc.w
     w_unit := pc.w_unit
     exceeds := by

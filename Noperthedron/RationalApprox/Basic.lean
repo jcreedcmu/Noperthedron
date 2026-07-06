@@ -31,9 +31,6 @@ commutes with the cast `ℚ → ℝ` (`Rat.floor_cast`). -/
 def round13 {k : Type} [Field k] [LinearOrder k] [FloorRing k] (x : k) : k :=
   ⌊x * 10 ^ 13⌋ / 10 ^ 13
 
-lemma round13_cast (x : ℚ) : ((round13 x : ℚ) : ℝ) = round13 (x : ℝ) := by
-  unfold round13; norm_cast
-
 lemma abs_round13_sub_le {k : Type} [Field k] [LinearOrder k] [IsStrictOrderedRing k]
     [FloorRing k] (x : k) : |round13 x - x| ≤ 1 / 10 ^ 13 := by
   have h10 : (0 : k) < 10 ^ 13 := by positivity
@@ -80,14 +77,6 @@ of rational versions to real counterparts.
 -/
 def κℚ : ℚ := 1 / 10^10
 def κ : ℝ := 1 / 10^10
-
-def κApproxMat {m n : ℕ}
-    (A : Matrix (Fin m) (Fin n) ℝ)
-    (A' : Matrix (Fin m) (Fin n) ℚ) : Prop :=
-  ‖(A - A'.map (fun x => (↑x : ℝ))).toEuclideanLin.toContinuousLinearMap‖ ≤ κ
-
-def κApproxPoint {m n : ℕ} (A A' : Matrix (Fin m) (Fin n) ℝ) : Prop :=
-  ‖(A - A').toEuclideanLin.toContinuousLinearMap‖ ≤ κ
 
 /--
   A real polyhedron A and a rational polyhedron B that is a κ-approximation of A.
@@ -139,9 +128,6 @@ def rotRℚ (α : ℚ) : (Fin 2 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
 def rotR'ℚ (α : ℚ) : (Fin 2 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
   rotR'ℚ_mat α |>.toLin'
 
-def vecXLℚ (θ φ : ℚ) : (Fin 1 → ℚ) →ₗ[ℚ] (Fin 3 → ℚ) :=
-  vecXℚ_mat θ φ |>.toLin'
-
 def vecXℚ (θ : ℚ) (φ : ℚ) : (Fin 3 → ℚ) :=
   ![ cosℚ θ * sinℚ φ, sinℚ θ * sinℚ φ, cosℚ φ ]
 
@@ -168,7 +154,6 @@ def _root_.Pose.rotM₂φℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2
   _root_.RationalApprox.rotMφℚ p.θ₂ p.φ₂
 
 def _root_.Pose.innerℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) := p.rotRℚ ∘ₗ p.rotM₁ℚ
-def _root_.Pose.outerℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) := p.rotM₂ℚ
 def _root_.Pose.vecX₁ℚ (p : Pose ℚ) : (Fin 3 → ℚ) := vecXℚ (p.θ₁) (p.φ₁)
 def _root_.Pose.vecX₂ℚ (p : Pose ℚ) : (Fin 3 → ℚ) := vecXℚ (p.θ₂) (p.φ₂)
 
@@ -202,17 +187,8 @@ def vecXℚℝ (θ : ℝ) (φ : ℝ) : ℝ³ :=
 
 noncomputable section
 def _root_.Pose.rotRℚℝ (p : Pose ℝ) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotRℚℝ p.α
-def _root_.Pose.rotR'ℚℝ (p : Pose ℝ) : ℝ² →L[ℝ] ℝ² := _root_.RationalApprox.rotR'ℚℝ p.α
 def _root_.Pose.rotM₁ℚℝ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMℚℝ p.θ₁ p.φ₁
 def _root_.Pose.rotM₂ℚℝ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMℚℝ p.θ₂ p.φ₂
-def _root_.Pose.rotM₁θℚℝ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMθℚℝ p.θ₁ p.φ₁
-def _root_.Pose.rotM₂θℚℝ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMθℚℝ p.θ₂ p.φ₂
-def _root_.Pose.rotM₁φℚℝ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚℝ p.θ₁ p.φ₁
-def _root_.Pose.rotM₂φℚℝ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := _root_.RationalApprox.rotMφℚℝ p.θ₂ p.φ₂
-def _root_.Pose.innerℚℝ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := p.rotRℚℝ ∘L p.rotM₁ℚℝ
-def _root_.Pose.outerℚℝ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := p.rotM₂
-def _root_.Pose.vecX₁ℚℝ (p : Pose ℝ) : ℝ³ := vecXℚℝ (p.θ₁) (p.φ₁)
-def _root_.Pose.vecX₂ℚℝ (p : Pose ℝ) : ℝ³ := vecXℚℝ (p.θ₂) (p.φ₂)
 end
 
 structure UpperSqrt where
@@ -234,9 +210,3 @@ structure Approx where
   upper_sqrt_two_gt_sqrt_two : upper_sqrt_two > √2
   upper_sqrt_five : ℚ
   upper_sqrt_five_gt_sqrt_five : upper_sqrt_five > √5
-
-def Approx.upper_norm {n : ℕ} (approx : Approx) (v : Fin n → ℚ) : ℚ :=
-  approx.upper_sqrt.f (v ⬝ᵥ v)
-
-def Approx.lower_norm {n : ℕ} (approx : Approx) (v : Fin n → ℚ) : ℚ :=
-  approx.lower_sqrt.f (v ⬝ᵥ v)

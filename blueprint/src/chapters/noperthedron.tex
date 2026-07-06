@@ -36,19 +36,6 @@ ${98 \over 100} < \| C_3 \| < {99 \over 100}$.
 Trivial arithmetic.
 \end{proof}
 
-\begin{lemma}
-\label{lem:radius_noperthedron_one}
-\lean{Noperthedron.exactVertex_radius_one}
-\leanok
-The radius of the Noperthedron is one.
-\end{lemma}
-\begin{proof}
-\leanok
-\uses{c1_c2_c3_norms, thm:polyhedron_radius_iff, lemma:nopert_verts_norm_le_one}
-By \cref{c1_c2_c3_norms}, \cref{thm:pointsymmetrize_pres_radius},
-and \cref{lemma:half_nopert_verts_norm_le_one}.
-\end{proof}
-
 Rotations about the $x, y, z$ axes $R_x,R_y,R_z:$  $\mathbb{R}\to \mathbb{R}^{3\times 3}$
 are defined in the usual way:
     \[

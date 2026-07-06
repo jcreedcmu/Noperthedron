@@ -14,7 +14,7 @@ variable {P Q Q_ P_ : ℝ³} {θ φ : Set.Icc (-4 : ℝ) 4}
 /-!
 ## Helper: vector norm difference bound
 
-The operator norm bound `‖vecXL θ φ - vecXLℚ θ φ‖ ≤ κ` implies
+The operator norm bound `‖vecXL θ φ - vecXLℚℝ θ φ‖ ≤ κ` implies
 the vector norm bound `‖vecX θ φ - vecXℚ θ φ‖ ≤ κ` because `vecX`
 is the image of the unit basis vector under the column-matrix linear map `vecXL`.
 -/
@@ -22,7 +22,7 @@ is the image of the unit basis vector under the column-matrix linear map `vecXL`
 private lemma vecX_sub_vecXℚ_norm_le (θ φ : ℝ) (hθ : θ ∈ Set.Icc (-4) 4)
     (hφ : φ ∈ Set.Icc (-4) 4) :
     ‖vecX θ φ - vecXℚℝ θ φ‖ ≤ κ := by
-  -- vecX θ φ - vecXℚ θ φ = (vecXL θ φ - vecXLℚ θ φ) (single 0 1)
+  -- vecX θ φ - vecXℚ θ φ = (vecXL θ φ - vecXLℚℝ θ φ) (single 0 1)
   have h_eq : vecX θ φ - vecXℚℝ θ φ = (vecXL θ φ - vecXLℚℝ θ φ) (EuclideanSpace.single 0 1) := by
     simp [vecX, vecXℚℝ, vecXL, vecX_mat, vecXLℚℝ, vecXℚ_mat, sub_apply, Matrix.toLpLin_apply]
     ext i; fin_cases i <;> simp

@@ -134,10 +134,6 @@ theorem is_rupert_imp_inner_in_outer (p : Pose ℝ)
   use v
   simpa
 
-variable (X Y : Type) [TopologicalSpace X] [TopologicalSpace Y] {s t : Set X}
-
-example : (s ⊆ closure s) := subset_closure
-
 lemma inner_shadow_eq_img_inner (p : Pose ℝ) (S : Set ℝ³) :
     innerShadow p S = p.inner '' S := by
   rfl
