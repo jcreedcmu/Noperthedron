@@ -175,17 +175,3 @@ def parseSolutionTablePar (s : String) (nTasks : ℕ) : Except String Table := I
     | .ok rows => result := result ++ rows
     | .error e => return .error e
   return .ok result
-
-def readSolutionTable (filepath : String) : IO Table := do
-  let mut rows : Array Row := Array.empty
-  let h ← IO.FS.Handle.mk filepath IO.FS.Mode.read
-  let _ ← h.getLine -- ignore first line
-  while True do
-    let line ← h.getLine
-    let line := line.trimAscii.toString
-    if line.isEmpty then break
-    let row ← match parseRowCsv line with
-              | .ok row => pure row
-              | .error e => throw (IO.userError e)
-    rows := rows.push row
-  return rows

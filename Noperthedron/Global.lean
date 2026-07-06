@@ -25,18 +25,6 @@ private lemma f_le_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty) (w : E n 
   grw [fx_le_fvmax ⟨x, hx⟩]
   exact hw1 x hx
 
-private lemma extract_constant {n : ℕ} {V : Finset (E n)} (w : E n → ℝ)
-    (S : E n) (hs : S ∈ convexHull ℝ V) (f : E n →ₗ[ℝ] ℝ) :
-    ∑ x ∈ V, ↑(w x) * (Finset.image (⇑f) V).max = ↑(∑ x ∈ V, w x) * (Finset.image (⇑f) V).max := by
-  let ⟨S', hS'⟩ := convexHull_nonempty_iff.mp ⟨S, hs⟩
-  let ⟨m, hm⟩ := Finset.max_of_mem (Finset.mem_image_of_mem f hS')
-  rw [hm]
-  suffices h : (WithBot.some (∑ x ∈ V, (w x) * m)) = WithBot.some ((∑ x ∈ V, w x) * m) by
-    push_cast at h ⊢
-    exact h
-  refine congrArg WithBot.some ?_
-  rw [← Finset.sum_mul]
-
 theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (f : E n →ₗ[ℝ] ℝ) :
     f S ≤ (V.image f).max' (Finset.image_nonempty.mpr Vne) := by
