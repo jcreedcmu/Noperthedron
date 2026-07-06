@@ -134,16 +134,15 @@ termination_by (tab.size - row.ID, 2, 0)
 theorem valid_single_param_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsValid)
     (hr : Row.ValidSingleParamSplit tab row) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  rcases hr with ⟨_, h⟩ | ⟨_, h⟩ | ⟨_, h⟩ | ⟨_, h⟩ | ⟨_, h⟩ <;>
-  · exact valid_param_split_imp_no_rupert tab row htab _ h
+  obtain ⟨p, -, h⟩ := hr
+  exact valid_param_split_imp_no_rupert tab row htab p h
 termination_by (tab.size - row.ID, 1, 0)
 
 theorem valid_full_split_imp_no_rupert (tab : Table) (row : Row) (htab : tab.RowsValid)
     (_hgt : row.ID < row.IDfirstChild)
     (_hlt : row.ID < tab.size)
     (hi : tab.HasIntervals row.IDfirstChild
-      (cubeFold [Interval.lower_half, Interval.upper_half]
-       row.interval [Param.θ₁, Param.φ₁, Param.θ₂, Param.φ₂, Param.α])) :
+      (cubeFold [Interval.lower_half, Interval.upper_half] row.interval Param.splitOrder)) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   exact has_intervals_imp_no_rupert tab htab row.IDfirstChild row.interval _ hi
 termination_by (tab.size - row.ID, 1, 0)

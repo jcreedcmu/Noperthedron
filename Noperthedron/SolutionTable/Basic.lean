@@ -16,13 +16,17 @@ structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop w
 instance (tab : Table) (row : Row) (param : Param) : Decidable (Row.ValidSplitParam tab row param) :=
   decidable_of_iff _ (Row.validSplitParam_iff tab row param).symm
 
+/-- The row's `split` code selects a single parameter (via `Param.ofSplitCode?`),
+and the row is a valid split of its interval along that parameter. -/
 def Row.ValidSingleParamSplit (tab : Table) (row : Row) : Prop :=
-    ((row.split = 1 ∧ row.ValidSplitParam tab .θ₁) ∨
-     (row.split = 2 ∧ row.ValidSplitParam tab .φ₁) ∨
-     (row.split = 3 ∧ row.ValidSplitParam tab .θ₂) ∨
-     (row.split = 4 ∧ row.ValidSplitParam tab .φ₂) ∨
-     (row.split = 5 ∧ row.ValidSplitParam tab .α))
-deriving Decidable
+  ∃ p, Param.ofSplitCode? row.split = some p ∧ row.ValidSplitParam tab p
+
+instance (tab : Table) (row : Row) : Decidable (row.ValidSingleParamSplit tab) := by
+  unfold Row.ValidSingleParamSplit
+  generalize Param.ofSplitCode? row.split = code
+  cases code with
+  | none => exact .isFalse (by simp)
+  | some p => exact decidable_of_iff (row.ValidSplitParam tab p) (by simp)
 
 def Table.HasIntervals (tab : Table) (start : ℕ) (intervals : List Interval) : Prop :=
   ∀ i : Fin intervals.length,
@@ -31,7 +35,8 @@ deriving Decidable
 
 def Row.ValidFullSplit (tab : Table) (row : Row) : Prop :=
   row.nrChildren = 32 ∧ row.split = 6 ∧ row.IDfirstChild > row.ID ∧
-  tab.HasIntervals row.IDfirstChild (cubeFold [Interval.lower_half, Interval.upper_half] row.interval [.θ₁, .φ₁, .θ₂, .φ₂, .α])
+  tab.HasIntervals row.IDfirstChild
+    (cubeFold [Interval.lower_half, Interval.upper_half] row.interval Param.splitOrder)
 deriving Decidable
 
 def Row.ValidSplit (tab : Table) (row : Row) : Prop :=

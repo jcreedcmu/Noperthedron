@@ -16,6 +16,20 @@ def DENOMQ : ℚ := 15360000
 inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
 deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq, Nonempty
 
+/-- The canonical split order of the five pose parameters, matching the CSV
+`split` codes 1–5 and the full-split `cubeFold` order. -/
+def Param.splitOrder : List Param := [.θ₁, .φ₁, .θ₂, .φ₂, .α]
+
+/-- Decode a CSV `split` column code (1–5) into the parameter being split. -/
+def Param.ofSplitCode? : ℕ → Option Param
+  | 0 => none
+  | n + 1 => Param.splitOrder[n]?
+
+#guard Param.ofSplitCode? 0 = none
+#guard Param.ofSplitCode? 1 = some .θ₁
+#guard Param.ofSplitCode? 5 = some .α
+#guard Param.ofSplitCode? 6 = none
+
 end Noperthedron.Solution
 
 /-! ## `Param`-indexed access on `Pose` -/
