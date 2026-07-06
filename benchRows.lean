@@ -38,7 +38,7 @@ def main (args : List String) : IO Unit := do
   bench "local:  trig only   " ltable trigSum
   bench "local:  Row.delta   " ltable (fun r => decide (0 ≤ r.δ))
   bench "local:  B-eps check " ltable (fun r =>
-    Local.TriangleQ.Bεℚ.check (pythonVertex ∘ r.Qi) r.Qi pythonVertex
+    Local.TriangleQ.Bεℚ.check r.Qi pythonVertex
       r.interval.centerPose r.epsilon r.δ r.r RationalApprox.sqrtApprox)
   bench "local:  vertex walk " ltable (fun r =>
     -- cost of just enumerating VertexIndex and reading pythonVertex coords

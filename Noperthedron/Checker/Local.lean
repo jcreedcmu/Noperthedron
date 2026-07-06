@@ -172,7 +172,7 @@ structure Row.ValidLocal (row : Row) : Prop where
   r_valid : RationalApprox.LocalTheorem.BoundRℚ
               row.r row.epsilon row.interval.centerPose (pythonVertex ∘ row.Qi) sqrtApprox
   Bεℚ : Local.TriangleQ.Bεℚ
-    (pythonVertex ∘ row.Qi) row.Qi pythonVertex row.interval.centerPose
+    row.Qi pythonVertex row.interval.centerPose
     row.epsilon row.δ row.r sqrtApprox
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=

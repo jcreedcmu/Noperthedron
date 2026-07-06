@@ -34,12 +34,15 @@ def TriangleQ.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
    / ((approx.upper_sqrt.norm (p.rotM₂ℚ v₁) + approx.upper_sqrt_two * ε + 3 * κℚ) * (approx.upper_sqrt.norm (p.rotM₂ℚ (v₁ - v₂)) + 2 * approx.upper_sqrt_two * ε + 6 * κℚ))
 
 /--
-Condition B_ε^ℚ from [SY25] Theorem 48
+Condition B_ε^ℚ from [SY25] Theorem 48. As in `Local.Bε`, the triangle it
+constrains is `v_ ∘ Qi`; taking the indices `Qi` rather than the triangle
+itself guarantees that the triangle's vertices are among the polyhedron's
+vertices `v_`.
 -/
-def TriangleQ.Bεℚ {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
+def TriangleQ.Bεℚ {ι : Type} [Fintype ι] [DecidableEq ι] (Qi : Fin 3 → ι)
     (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ) (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
-    (δ + approx.upper_sqrt_five * ε) / r < TriangleQ.Bεℚ.lhs (Q_ i) (v_ k) p ε approx
+    (δ + approx.upper_sqrt_five * ε) / r < TriangleQ.Bεℚ.lhs (v_ (Qi i)) (v_ k) p ε approx
 
 namespace TriangleQ.Bεℚ
 
@@ -76,13 +79,13 @@ private lemma MatEntries.applyVec_eq (p : Pose ℚ) (v : Fin 3 → ℚ) :
 /-- Bool-valued `Bεℚ` check that hoists per-pose matrix entries and
 per-`i` `M₂·Q_i` / sqrtUp norms out of the inner-`k` `decide`. The
 outer `Fin 3` loop short-circuits via `List.all`. -/
-def check {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
+def check {ι : Type} [Fintype ι] [DecidableEq ι] (Qi : Fin 3 → ι)
     (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ)
     (approx : RationalApprox.Approx) : Bool :=
   let entries := matEntries p
   let bound := (δ + approx.upper_sqrt_five * ε) / r
   (List.finRange 3).all fun i =>
-    let Qi_val := Q_ i
+    let Qi_val := v_ (Qi i)
     let M₂Qi := entries.applyVec Qi_val
     let denom1 := approx.upper_sqrt.norm M₂Qi + approx.upper_sqrt_two * ε + 3 * κℚ
     decide <| ∀ k : ι, k ≠ Qi i →
@@ -95,9 +98,9 @@ def check {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) (Qi : Fin 3
       let denom2 := n_M₂dv + 2 * approx.upper_sqrt_two * ε + 6 * κℚ
       bound < numer / (denom1 * denom2)
 
-theorem check_iff {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) (Qi : Fin 3 → ι)
+theorem check_iff {ι : Type} [Fintype ι] [DecidableEq ι] (Qi : Fin 3 → ι)
     (v_ : ι → Fin 3 → ℚ) (p : Pose ℚ) (ε δ r : ℚ) (approx : RationalApprox.Approx) :
-    check Q_ Qi v_ p ε δ r approx = true ↔ Bεℚ Q_ Qi v_ p ε δ r approx := by
+    check Qi v_ p ε δ r approx = true ↔ Bεℚ Qi v_ p ε δ r approx := by
   unfold check Bεℚ Bεℚ.lhs
   simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
   refine forall_congr' (fun i => ?_)
@@ -107,10 +110,10 @@ theorem check_iff {ι : Type} [Fintype ι] [DecidableEq ι] (Q_ : TriangleQ) (Qi
   rw [MatEntries.applyVec_eq]
 
 instance instDecidable {ι : Type} [Fintype ι] [DecidableEq ι]
-    (Q_ : TriangleQ) (Qi : Fin 3 → ι) (v_ : ι → Fin 3 → ℚ)
+    (Qi : Fin 3 → ι) (v_ : ι → Fin 3 → ℚ)
     (p : Pose ℚ) (ε δ r : ℚ) (approx : RationalApprox.Approx) :
-    Decidable (Bεℚ Q_ Qi v_ p ε δ r approx) :=
-  decidable_of_iff _ (check_iff Q_ Qi v_ p ε δ r approx)
+    Decidable (Bεℚ Qi v_ p ε δ r approx) :=
+  decidable_of_iff _ (check_iff Qi v_ p ε δ r approx)
 
 end TriangleQ.Bεℚ
 
@@ -209,7 +212,7 @@ structure RationalLocalTheoremPrecondition {ι : Type} [Fintype ι] [DecidableEq
   ae₂ : (hpoly.transportTri Qi).Aεℚ p_.vecX₂ℚ ε approx
   span₁ : (hpoly.transportTri Pi).toReal.κSpanning (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) ε
   span₂ : (hpoly.transportTri Qi).toReal.κSpanning (p_.θ₂ : ℝ) (p_.φ₂ : ℝ) ε
-  be : Local.TriangleQ.Bεℚ (hpoly.transportTri Qi) Qi
+  be : Local.TriangleQ.Bεℚ Qi
         (fun k => poly_.v (hpoly.bijection k)) p_ ε δ r approx
 
 /--
@@ -402,7 +405,8 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     -- The rational forms of Q_ i and v_ (definitionally equal via toR3).
     let Q_ℚ : Fin 3 → ℚ := (hpoly.transportTri Qi) i
     -- Get the Bεℚ hypothesis
-    have hbe := be i k hne_k
+    have hbe : (δ + approx.upper_sqrt_five * ε) / r <
+        Local.TriangleQ.Bεℚ.lhs Q_ℚ v_ℚ p_ℚ ε approx := be i k hne_k
     show (δ + √5 * ε) / r < Local.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
     -- Use the bridge to rewrite `Bεℚ.lhs` into explicit real form.
     have h_bridge_Qv := h_Bεℚ_lhs_bridge Q_ℚ v_ℚ
