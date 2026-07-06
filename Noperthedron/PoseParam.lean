@@ -26,6 +26,9 @@ def Param.ofSplitCode? : ℕ → Option Param
 
 #guard Param.ofSplitCode? 0 = none
 #guard Param.ofSplitCode? 1 = some .θ₁
+#guard Param.ofSplitCode? 2 = some .φ₁
+#guard Param.ofSplitCode? 3 = some .θ₂
+#guard Param.ofSplitCode? 4 = some .φ₂
 #guard Param.ofSplitCode? 5 = some .α
 #guard Param.ofSplitCode? 6 = none
 
