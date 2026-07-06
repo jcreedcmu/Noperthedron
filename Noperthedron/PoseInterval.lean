@@ -3,6 +3,7 @@ import Noperthedron.Rupert.Basic
 import Noperthedron.PoseClasses
 import Noperthedron.Basic
 import Noperthedron.Pose
+import Noperthedron.PoseParam
 
 open scoped Matrix
 open scoped Real
@@ -76,6 +77,11 @@ def Pose.toReal (p : Pose ℚ) : Pose ℝ where
 @[simp] lemma Pose.toReal_φ₂ (p : Pose ℚ) : p.toReal.φ₂ = (p.φ₂ : ℝ) := rfl
 @[simp] lemma Pose.toReal_α (p : Pose ℚ) : p.toReal.α = (p.α : ℝ) := rfl
 
+/-- `Pose.toReal` commutes with `getParam`. -/
+lemma Pose.toReal_getParam (p : Pose ℚ) (a : Noperthedron.Solution.Param) :
+    p.toReal.getParam a = (p.getParam a : ℝ) := by
+  cases a <;> rfl
+
 instance {α : Type*} [Preorder α] [DecidableLE α] (p : α) (iv : NonemptyInterval α) :
     Decidable (p ∈ iv) :=
   decidable_of_iff _ NonemptyInterval.mem_def.symm
@@ -97,16 +103,22 @@ lemma contains_iff_components {R} [PartialOrder R] {iv : PoseInterval R} {p : Po
   simp only [contains, NonemptyInterval.mem_def, Set.mem_Icc, Pose.le_iff]
   grind
 
+theorem contains.getParamBound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R}
+    (c : contains iv p) (a : Noperthedron.Solution.Param) :
+    p.getParam a ∈ Set.Icc (iv.min.getParam a) (iv.max.getParam a) := by
+  obtain ⟨h1, h2, h3, h4, h5⟩ := contains_iff_components.mp c
+  cases a <;> assumption
+
 theorem contains.θ₁Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
-    p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁ := (contains_iff_components.mp c).1
+    p.θ₁ ∈ Set.Icc iv.min.θ₁ iv.max.θ₁ := c.getParamBound .θ₁
 theorem contains.θ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
-    p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂ := (contains_iff_components.mp c).2.1
+    p.θ₂ ∈ Set.Icc iv.min.θ₂ iv.max.θ₂ := c.getParamBound .θ₂
 theorem contains.φ₁Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
-    p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁ := (contains_iff_components.mp c).2.2.1
+    p.φ₁ ∈ Set.Icc iv.min.φ₁ iv.max.φ₁ := c.getParamBound .φ₁
 theorem contains.φ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
-    p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂ := (contains_iff_components.mp c).2.2.2.1
+    p.φ₂ ∈ Set.Icc iv.min.φ₂ iv.max.φ₂ := c.getParamBound .φ₂
 theorem contains.αBound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
-    p.α ∈ Set.Icc iv.min.α iv.max.α := (contains_iff_components.mp c).2.2.2.2
+    p.α ∈ Set.Icc iv.min.α iv.max.α := c.getParamBound .α
 
 noncomputable def center {R} [Field R] [PartialOrder R] (iv : PoseInterval R) : Pose R where
   θ₁ := (iv.min.θ₁ + iv.max.θ₁) / 2
@@ -162,25 +174,12 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
     (simp only [PoseInterval.center, Real.dist_eq, abs_sub_le_iff]; constructor <;> linarith)
 
-lemma mem_closed_ball_abs_sub_α {p q : Pose ℝ} {ε : ℝ}
-    (hq : p ∈ Metric.closedBall q ε) : |p.α - q.α| ≤ ε :=
-  ((Pose.mem_closedBall_iff.mp hq).2.2.2.2)
-
-lemma mem_closed_ball_abs_sub_θ₁ {p q : Pose ℝ} {ε : ℝ}
-    (hq : p ∈ Metric.closedBall q ε) : |p.θ₁ - q.θ₁| ≤ ε :=
-  (Pose.mem_closedBall_iff.mp hq).1
-
-lemma mem_closed_ball_abs_sub_φ₁ {p q : Pose ℝ} {ε : ℝ}
-    (hq : p ∈ Metric.closedBall q ε) : |p.φ₁ - q.φ₁| ≤ ε :=
-  (Pose.mem_closedBall_iff.mp hq).2.2.1
-
-lemma mem_closed_ball_abs_sub_θ₂ {p q : Pose ℝ} {ε : ℝ}
-    (hq : p ∈ Metric.closedBall q ε) : |p.θ₂ - q.θ₂| ≤ ε :=
-  (Pose.mem_closedBall_iff.mp hq).2.1
-
-lemma mem_closed_ball_abs_sub_φ₂ {p q : Pose ℝ} {ε : ℝ}
-    (hq : p ∈ Metric.closedBall q ε) : |p.φ₂ - q.φ₂| ≤ ε :=
-  (Pose.mem_closedBall_iff.mp hq).2.2.2.1
+/-- Each parameter of a pose in a closed ball is within `ε` of the center's. -/
+lemma mem_closedBall_abs_sub_getParam {p q : Pose ℝ} {ε : ℝ}
+    (hq : p ∈ Metric.closedBall q ε) (a : Noperthedron.Solution.Param) :
+    |p.getParam a - q.getParam a| ≤ ε := by
+  rw [← Real.dist_eq]
+  exact Pose.mem_closedBall_iff_forall_getParam.mp hq a
 
 /--
 `p` lies in the closed box of per-axis radii `εθ₁ εφ₁ εθ₂ εφ₂ εα` around `pbar`.

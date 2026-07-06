@@ -207,11 +207,11 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have hδnn : 0 ≤ δ := le_trans (by positivity) (hδ 0)
   have hY : ‖Y‖ = 1 := by simp [Y, Bounding.vecX_norm_one]
   have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, Bounding.vecX_norm_one]
-  have hα : |p.α - p_.α| ≤ ε := mem_closed_ball_abs_sub_α hΨ₁
-  have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closed_ball_abs_sub_θ₁ hΨ₁
-  have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closed_ball_abs_sub_φ₁ hΨ₁
-  have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := mem_closed_ball_abs_sub_θ₂ hΨ₁
-  have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := mem_closed_ball_abs_sub_φ₂ hΨ₁
+  have hα : |p.α - p_.α| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .α
+  have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .θ₁
+  have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .φ₁
+  have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .θ₂
+  have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .φ₂
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
   have hP_ (i) : ‖P_ i‖ ≤ 1 := by

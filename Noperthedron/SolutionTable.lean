@@ -5,11 +5,6 @@ import Noperthedron.Vertices.Exact
 
 namespace Noperthedron.Solution
 
-/-- `Pose.toReal` commutes with `getParam`. -/
-lemma _root_.Pose.toReal_getParam (p : Pose ℚ) (a : Param) :
-    p.toReal.getParam a = (p.getParam a : ℝ) := by
-  cases a <;> rfl
-
 /-- Membership in the realification of a rational `Interval`, read off one parameter
 at a time. This is the single entry point for interval-membership reasoning below. -/
 lemma mem_toReal_iff {q : Pose ℝ} {iv : Interval} :
