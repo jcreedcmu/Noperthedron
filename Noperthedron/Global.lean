@@ -341,7 +341,7 @@ lemma partials_helper3 {pbar : Pose ℝ} {εα εθ₁ εφ₁ εθ₂ εφ₂ :
   by_cases hP : ‖P‖ = 0
   · simp [norm_eq_zero.mp hP, Pose.rotM₂θ, ContinuousLinearMap.map_zero]
   · simp only [GlobalTheoremPrecondition.fu_outer]
-    rw [show rotproj_outer_unit P pc.w = fun x => rotproj_outer P pc.w x / ‖P‖ from rfl]
+    rw [funext (rotproj_outer_unit_eq P pc.w)]
     rw [nth_partial_div_const 0 (rotproj_outer P pc.w) ‖P‖ pbar.outerParams
       ((Differentiable.inner ℝ (Differentiable.rotM_outer P) (differentiable_const pc.w)).differentiableAt)]
     rw [nth_partial_rotproj_outer_0]
@@ -355,7 +355,7 @@ lemma partials_helper4 {pbar : Pose ℝ} {εα εθ₁ εφ₁ εθ₂ εφ₂ :
   by_cases hP : ‖P‖ = 0
   · simp [norm_eq_zero.mp hP, Pose.rotM₂φ, ContinuousLinearMap.map_zero]
   · simp only [GlobalTheoremPrecondition.fu_outer]
-    rw [show rotproj_outer_unit P pc.w = fun x => rotproj_outer P pc.w x / ‖P‖ from rfl]
+    rw [funext (rotproj_outer_unit_eq P pc.w)]
     rw [nth_partial_div_const 1 (rotproj_outer P pc.w) ‖P‖ pbar.outerParams
       ((Differentiable.inner ℝ (Differentiable.rotM_outer P) (differentiable_const pc.w)).differentiableAt)]
     rw [nth_partial_rotproj_outer_1]
