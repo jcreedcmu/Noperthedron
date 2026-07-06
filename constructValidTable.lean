@@ -10,11 +10,11 @@ import Noperthedron.SolutionTable.Check
   evaluates in Noperthedron/ComputationalStep.lean, but compiled to native
   code, so it is considerably faster.
 
-  Running on the solution tree from solution_table_v3.zip takes about 85 minutes on
+  Running on the solution tree from solution_table_v4.zip takes about 65 minutes on
   a 16-core machine.
 
   To get the solution tree, make sure you have git-lfs installed and you've fetched
-  the full solution_table_v3.zip file. then unzip it into solution_table_v3.csv.
+  the full solution_table_v4.zip file. then unzip it into solution_table_v4.csv.
 -/
 
 open Noperthedron.Solution
