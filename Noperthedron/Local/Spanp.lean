@@ -14,11 +14,9 @@ def Spanp {n : ℕ} (v : Fin n → Euc(n)) : Set Euc(n) :=
 /-- [SY25] Lemma 23 -/
 theorem langles {Y Z : Euc(3)} {V : Fin 3 → Euc(3)} (hYZ : ‖Y‖ = ‖Z‖)
     (hY : Y ∈ Spanp V) (hZ : Z ∈ Spanp V) :
-    ⟪V 0, Y⟫ ≤ ⟪V 0, Z⟫ ∨ ⟪V 1, Y⟫ ≤ ⟪V 1, Z⟫ ∨ ⟪V 2, Y⟫ ≤ ⟪V 2, Z⟫ := by
-  by_contra h
-  simp only [Fin.isValue, not_or, not_le] at h
-  obtain ⟨h1, h2, h3⟩ := h
-  have hlt : ∀ i, ⟪V i, Z⟫ < ⟪V i, Y⟫ := by intro i; fin_cases i <;> assumption
+    ∃ i, ⟪V i, Y⟫ ≤ ⟪V i, Z⟫ := by
+  by_contra hlt
+  push Not at hlt
   obtain ⟨Yco, Ypos, Ysum⟩ := hY
   obtain ⟨Zco, Zpos, Zsum⟩ := hZ
   -- Inner products against `Y` and `Z` expand along their positive combinations,

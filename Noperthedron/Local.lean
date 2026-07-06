@@ -156,9 +156,9 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
       use c, hc₁
       simp [hc₂, map_sum, map_smul, ←hPQ_]
   suffices h₂ : ∀ i, ⟪Z, P_ i⟫ < ⟪Y, P_ i⟫ by
-    have h₃ := langles (hY.trans hZ.symm) h₁.1 h₁.2
-    simp only [real_inner_comm Y, real_inner_comm Z] at h₃
-    obtain h₃ | h₃ | h₃ := h₃ <;> exact lt_iff_not_ge.mp (h₂ _) h₃
+    obtain ⟨i, h₃⟩ := langles (hY.trans hZ.symm) h₁.1 h₁.2
+    rw [real_inner_comm Y (P_ i), real_inner_comm Z (P_ i)] at h₃
+    exact lt_iff_not_ge.mp (h₂ i) h₃
   intro i
   have hQ₁ : ‖Q i‖ ≤ 1 := poly.vertex_radius_le_one (Qi i)
   -- apply lemma 15

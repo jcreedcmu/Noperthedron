@@ -25,12 +25,10 @@ See \cite{polyhedron.without.rupert}, Lemma 21.
 \begin{lemma} \label{lem:langles}
   \lean{Local.langles}
   \leanok
-Let $V_1,V_2,V_3,Y,Z \in \R^3$ with $\|Y \|=\| Z \|$ and $Y,Z \in \mathrm{span}^+(V_1,V_2,V_3)$. Then at least one of the following inequalities does not hold:
-\begin{align*}
-    \langle V_1, Y \rangle > \langle V_1, Z \rangle,\\
-    \langle V_2, Y \rangle > \langle V_2, Z \rangle,\\
-    \langle V_3, Y \rangle > \langle V_3, Z \rangle.
-\end{align*}
+Let $V_1,V_2,V_3,Y,Z \in \R^3$ with $\|Y \|=\| Z \|$ and $Y,Z \in \mathrm{span}^+(V_1,V_2,V_3)$. Then there exists an $i$ with
+\[
+    \langle V_i, Y \rangle \leq \langle V_i, Z \rangle.
+\]
 \end{lemma}
 
 \begin{proof}
