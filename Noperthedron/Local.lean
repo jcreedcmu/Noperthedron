@@ -16,37 +16,33 @@ namespace Local
 open scoped RealInnerProductSpace Real
 open scoped Matrix
 
-/-- [SY25] Lemma 30 -/
+/--
+[SY25] Lemma 30, with the two disc memberships around the midpoint T combined
+into a single bound on the distance between the two shadow points.
+-/
 theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_: ℝ} {P Q : Euc(3)}
     (hP : ‖P‖ ≤ 1) (hQ : ‖Q‖ ≤ 1)
     (hε : 0 < ε)
     (hθ₁ : |θ₁ - θ₁_| ≤ ε) (hφ₁ : |φ₁ - φ₁_| ≤ ε)
     (hθ₂ : |θ₂ - θ₂_| ≤ ε) (hφ₂ : |φ₂ - φ₂_| ≤ ε)
-    (hα : |α - α_| ≤ ε) :
-    let T : Euc(2) := midpoint ℝ (rotR α_ (rotM θ₁_ φ₁_ P)) (rotM θ₂_ φ₂_ Q)
-    ‖T - rotM θ₂_ φ₂_ Q‖ ≤ δ →
-    (rotR α (rotM θ₁ φ₁ P) ∈ Metric.ball T (√5 * ε + δ) ∧
-     rotM θ₂ φ₂ Q ∈ Metric.ball T (√5 * ε + δ)) := by
-  intro T hT
-  simp only [mem_ball_iff_norm]
-  constructor
-  · grw [norm_sub_le_norm_sub_add_norm_sub _ (rotR α_ (rotM θ₁_ φ₁_ P)) _]
-    have h₂ : rotR α_ (rotM θ₁_ φ₁_ P) - T = T - rotM θ₂_ φ₂_ Q := by simp [T]
-    rw [h₂]
-    grw [hT]
+    (hα : |α - α_| ≤ ε)
+    (hδ : ‖rotR α_ (rotM θ₁_ φ₁_ P) - rotM θ₂_ φ₂_ Q‖ ≤ 2 * δ) :
+    ‖rotR α (rotM θ₁ φ₁ P) - rotM θ₂ φ₂ Q‖ < 2 * (δ + √5 * ε) := by
+  have h₁ : ‖rotR α (rotM θ₁ φ₁ P) - rotR α_ (rotM θ₁_ φ₁_ P)‖ < √5 * ε := by
     rw [←ContinuousLinearMap.comp_apply, ←ContinuousLinearMap.comp_apply, ← sub_apply]
-    grw [ContinuousLinearMap.le_opNorm]
-    gcongr 1
-    grw [mul_le_of_le_one_right (norm_nonneg _) hP]
+    grw [ContinuousLinearMap.le_opNorm, mul_le_of_le_one_right (norm_nonneg _) hP]
     exact Bounding.norm_RM_sub_RM_le hε hθ₁ hφ₁ hα
-  · grw [norm_sub_le_norm_sub_add_norm_sub _ (rotM θ₂_ φ₂_ Q) _]
-    rw [norm_sub_rev _ T]
-    grw [hT]
+  have h₂ : ‖rotM θ₂_ φ₂_ Q - rotM θ₂ φ₂ Q‖ < √2 * ε := by
     rw [← sub_apply]
-    grw [ContinuousLinearMap.le_opNorm]
-    grw [mul_le_of_le_one_right (norm_nonneg _) hQ, Bounding.norm_M_sub_lt hε hθ₂ hφ₂]
-    gcongr 2
-    norm_num
+    grw [ContinuousLinearMap.le_opNorm, mul_le_of_le_one_right (norm_nonneg _) hQ]
+    exact Bounding.norm_M_sub_lt hε (by rwa [abs_sub_comm]) (by rwa [abs_sub_comm])
+  have h₃ : √2 * ε ≤ √5 * ε :=
+    mul_le_mul_of_nonneg_right (Real.sqrt_le_sqrt (by norm_num)) hε.le
+  have h₄ := norm_sub_le_norm_sub_add_norm_sub
+    (rotR α (rotM θ₁ φ₁ P)) (rotR α_ (rotM θ₁_ φ₁_ P)) (rotM θ₂ φ₂ Q)
+  have h₅ := norm_sub_le_norm_sub_add_norm_sub
+    (rotR α_ (rotM θ₁_ φ₁_ P)) (rotM θ₂_ φ₂_ Q) (rotM θ₂ φ₂ Q)
+  linarith
 
 /--
 Condition A_ε from [SY25] Theorem 36
@@ -165,14 +161,13 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have hQ₁ : ‖Q i‖ ≤ 1 := poly.vertex_radius_le_one (Qi i)
   -- apply lemma 15
   have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
-  let T : Euc(2) := midpoint ℝ (p_.rotR (p_.rotM₁ (P i))) (p_.rotM₂ (Q i))
-  have hT : ‖T - p_.rotM₂ (Q i)‖ ≤ δ := by
-    simp only [T, midpoint_sub_right, invOf_eq_inv]
-    rw [norm_smul, Real.norm_eq_abs, show |(2:ℝ)⁻¹| = 2⁻¹ by norm_num]
-    linarith [hδ i]
   -- apply lemma 30
   have hP₁ : ‖P i‖ ≤ 1 := poly.vertex_radius_le_one (Pi i)
-  obtain ⟨hd₁, hd₂⟩ := inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα hT
+  have hd : ‖rotR p.α (rotM p.θ₁ p.φ₁ (P i)) - rotM p.θ₂ p.φ₂ (Q i)‖ < 2 * (δ + √5 * ε) := by
+    refine inCirc hP₁ hQ₁ hε hθ₁ hφ₁ hθ₂ hφ₂ hα ?_
+    have h := hδ i
+    simp only [Pose.rotR, Pose.rotM₁, Pose.rotM₂] at h
+    linarith
   -- apply lemma 33
   have h₅' (k : ι) (hkQ : k ≠ Qi i) :
       (δ + √5 * ε) / r <
@@ -186,13 +181,10 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   -- apply lemma 32
   let pm : Finset Euc(2) :=
     Finset.image (rotM p.θ₂ p.φ₂) (Finset.image poly.vertices.v Finset.univ)
-  have h₈ : LocallyMaximallyDistant (δ + √5 * ε) (rotM p.θ₂ p.φ₂ (Q i)) T pm := by
-    refine inner_ge_implies_LMD (r := r) ?_ ?_ hr h₃ ?_
+  have h₈ : LocallyMaximallyDistant (2 * (δ + √5 * ε)) (rotM p.θ₂ p.φ₂ (Q i)) pm := by
+    refine inner_ge_implies_LMD (r := r) ?_ hr h₃ ?_
     · exact Finset.mem_image_of_mem _
         (Finset.mem_image.mpr ⟨Qi i, Finset.mem_univ _, rfl⟩)
-    · rw [Metric.mem_ball, dist_eq_norm, norm_sub_rev] at hd₂
-      rw [add_comm, norm_sub_rev]
-      exact hd₂
     · intro Pᵢ hPᵢ hPᵢQ
       simp only [pm, Finset.mem_image, Finset.mem_univ, true_and] at hPᵢ
       obtain ⟨q, ⟨k, rfl⟩, rfl⟩ := hPᵢ
@@ -219,9 +211,10 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     have h_inner_eq : p.inner (P i) = rotR p.α (rotM p.θ₁ p.φ₁ (P i)) := by
       simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
     rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
-  -- Step 2: Combine with hd₁ to get sect membership, apply LMD for norm bound
-  have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (δ + √5 * ε) T pm :=
-    ⟨by rw [add_comm]; exact hd₁, h_in_interior_outer⟩
+  -- Step 2: Combine with hd to get sect membership, apply LMD for norm bound
+  have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈
+      sect (2 * (δ + √5 * ε)) (rotM p.θ₂ p.φ₂ (Q i)) pm :=
+    ⟨mem_ball_iff_norm.mpr hd, h_in_interior_outer⟩
   have h_norm_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := by
     rw [← Bounding.rotR_preserves_norm p.α]; exact h₈ _ h_sect
   -- Step 3: Apply pythagoras to convert norm bounds to inner product bounds

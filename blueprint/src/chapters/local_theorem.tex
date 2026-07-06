@@ -112,41 +112,46 @@ See \cite{polyhedron.without.rupert}, Lemma 28.
 \begin{lemma} \label{lem:inCirc}
   \lean{Local.inCirc}
   \leanok
-    Let $P, Q \in \R^3$ with $\|P\|, \|Q\| \leq 1$. Let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \R$, then set
+    Let $P, Q \in \R^3$ with $\|P\|, \|Q\| \leq 1$. Let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \R$ with
     \[
-        T \coloneqq \left(R(\alphab) M(\thetab_1, \phib_1) P + M(\thetab_2, \phib_2) Q\right)/2 \in \R^2,
+        \|R(\alphab) M(\thetab_1, \phib_1) P - M(\thetab_2, \phib_2) Q\| \leq 2\delta.
     \]
-    and $\delta \geq \|T - M(\thetab_2, \phib_2) Q\|$. Finally, let $\theta_1, \phi_1, \theta_2, \phi_2, \alpha \in \R$ with $|\thetab_1-\theta_1|, |\phib_1 - \phi_1|, |\thetab_2-\theta_2|, |\phib_2-\phi_2|, |\alphab - \alpha| \leq \epsilon$. Then $R(\alpha)M(\theta_1, \phi_1) P, M(\theta_2, \phi_2) Q \in \Circ_{\delta + \sqrt{5} \epsilon}(T)$.
+    Finally, let $\theta_1, \phi_1, \theta_2, \phi_2, \alpha \in \R$ with $|\thetab_1-\theta_1|, |\phib_1 - \phi_1|, |\thetab_2-\theta_2|, |\phib_2-\phi_2|, |\alphab - \alpha| \leq \epsilon$. Then
+    \[
+        \|R(\alpha)M(\theta_1, \phi_1) P - M(\theta_2, \phi_2) Q\| < 2(\delta + \sqrt{5} \epsilon).
+    \]
 \end{lemma}
 
 \begin{proof}
 \uses{lem:sqrt2, lem:sqrt5}
 \leanok
-See \cite{polyhedron.without.rupert}, Lemma 30.
+See \cite{polyhedron.without.rupert}, Lemma 30, which states that both points lie in the disc of radius $\delta + \sqrt{5}\epsilon$ around their midpoint at the reference pose; here the two memberships are combined into a single bound on the distance between the two points.
 \end{proof}
 
 \begin{definition}
   \label{def:LMD}
   \lean{Local.LocallyMaximallyDistant}
   \leanok
-    Let $\PP \subset \R^2$ be a convex polygon and $Q \in \PP$ one of its vertices. Assume that for some $\overline{Q} \in \R^2$ it holds that $Q \in \Circ_{\delta}(\overline{Q})$, i.e. $\|Q - \overline{Q}\| < \delta$. Define $\Sect_\delta(\overline{Q}) \coloneqq \Circ_{\delta}(\overline{Q}) \cap \PP^\circ$ as the intersection between $\Circ_{\delta}(\overline{Q})$ and the interior of the convex hull of $\PP$.
+    Let $\PP \subset \R^2$ be a convex polygon and $Q \in \PP$ one of its vertices. Define $\Sect_\delta(Q) \coloneqq \Circ_{\delta}(Q) \cap \PP^\circ$ as the intersection between $\Circ_{\delta}(Q)$ and the interior of the convex hull of $\PP$.
 
-    Moreover, $Q \in \PP$ is called \emph{$\delta$-locally maximally distant with respect to $\overline{Q}$ ($\delta$-LMD$(\overline{Q})$)} if for all $A \in \Sect_\delta(\overline{Q})$ it holds that $\|Q\| > \|A\|$.
+    Moreover, $Q \in \PP$ is called \emph{$\delta$-locally maximally distant ($\delta$-LMD)} if for all $A \in \Sect_\delta(Q)$ it holds that $\|Q\| > \|A\|$.
+
+    (This simplifies Definition 31 of \cite{polyhedron.without.rupert}, which centers the disc at an auxiliary point $\overline{Q}$ with $\|Q - \overline{Q}\| < \delta$; the only role of $\overline{Q}$ is to bound $\|A - Q\| < 2\delta$, so we center the disc at $Q$ itself, with the radius playing the role of the paper's $2\delta$.)
 \end{definition}
 
 \begin{lemma} \label{lem:LMD}
   \uses{def:LMD}
   \lean{Local.inner_ge_implies_LMD}
   \leanok
-    Let $\PP$ be a convex polygon and $Q \in \PP$ be one of its vertices. Let $\overline{Q} \in \R^2$ with $\|Q - \overline{Q}\| < \delta$ for some $\delta>0$. Assume that for some $r > 0 $ such that $\|Q\| > r$ it holds that
+    Let $\PP$ be a convex polygon and $Q \in \PP$ be one of its vertices. Let $\delta > 0$. Assume that for some $r > 0 $ such that $\|Q\| > r$ it holds that
     \[
         \frac{\langle Q, Q - P_j \rangle}{\|Q\|\|Q - P_j\|} \geq \delta/r,
     \]
-    for all other vertices $P_j \in \PP \setminus Q$. Then $Q \in \PP$ is $\delta$-locally maximally distant with respect to $\overline{Q}$.
+    for all other vertices $P_j \in \PP \setminus Q$. Then $Q \in \PP$ is $2\delta$-locally maximally distant.
 \end{lemma}
 
 \begin{proof}\leanok
-See \cite{polyhedron.without.rupert}, Lemma 32.
+See \cite{polyhedron.without.rupert}, Lemma 32: the disc of radius $2\delta$ around $Q$ contains the paper's disc of radius $\delta$ around any $\overline{Q}$ with $\|Q - \overline{Q}\| < \delta$ (cf.\ Definition~\ref{def:LMD}).
 \end{proof}
 
 \begin{lemma} \label{lem:coss}

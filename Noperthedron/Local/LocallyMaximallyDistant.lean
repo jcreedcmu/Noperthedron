@@ -14,11 +14,13 @@ def sect (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Set Euc(2) :=
   Metric.ball Q δ ∩ interior (convexHull ℝ P)
 
 /--
-[SY25] Definition 31
-"Q is δ-locally maximally distant with respect to Q_" or "Q is δ-LMD(Q_)".
+[SY25] Definition 31, simplified: the paper's "Q is δ-LMD with respect to Q_"
+uses a ball around an auxiliary center Q_ with ‖Q - Q_‖ < δ, whose only role is
+to bound ‖A - Q‖ < 2δ for A in that ball. We center the ball at Q itself, so
+the radius here corresponds to the paper's 2δ.
 -/
-def LocallyMaximallyDistant (δ : ℝ) (Q Q_ : Euc(2)) (P : Finset Euc(2)) : Prop :=
-  ∀ A ∈ sect δ Q_ P, ‖A‖ < ‖Q‖
+def LocallyMaximallyDistant (δ : ℝ) (Q : Euc(2)) (P : Finset Euc(2)) : Prop :=
+  ∀ A ∈ sect δ Q P, ‖A‖ < ‖Q‖
 
 /--
 If P lies in the closed halfspace {x | ⟪Q, x⟫ ≤ ‖Q‖²}, then Q is not in the interior of the
@@ -39,13 +41,17 @@ private lemma not_mem_interior_of_le_halfspace {P : Finset Euc(2)} {Q : Euc(2)}
   simp at h_mem
 
 /--
-[SY25] Lemma 32
+[SY25] Lemma 32, adapted to the Q-centered `LocallyMaximallyDistant`: the ball
+of radius 2δ around Q contains the paper's ball of radius δ around any Q_ with
+‖Q - Q_‖ < δ, and the cosine bound δ/r is unchanged.
 -/
-theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
-    (hQ : Q ∈ P) (hQ_ : ‖Q - Q_‖ < δ) (hr : 0 < r) (hrQ : r < ‖Q‖)
+theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q : Euc(2)} {δ r : ℝ}
+    (hQ : Q ∈ P) (hr : 0 < r) (hrQ : r < ‖Q‖)
     (hle : ∀ Pᵢ ∈ P, Pᵢ ≠ Q → δ / r ≤ ⟪Q, Q - Pᵢ⟫ / (‖Q‖ * ‖Q - Pᵢ‖)) :
-    LocallyMaximallyDistant δ Q Q_ P := by
-  have hδ_pos : 0 < δ := (norm_nonneg _).trans_lt hQ_
+    LocallyMaximallyDistant (2 * δ) Q P := by
+  rintro A ⟨hA_ball, hA_int⟩
+  rw [Metric.mem_ball, dist_eq_norm] at hA_ball
+  have hδ_pos : 0 < δ := by linarith [norm_nonneg (A - Q)]
   have hQ_pos : 0 < ‖Q‖ := hr.trans hrQ
   -- Every vertex y satisfies ⟪Q, y⟫ + (δ/r)‖Q‖ ⋅ dist y Q ≤ ‖Q‖²: with equality for y = Q,
   -- and by the angle hypothesis for y ≠ Q.
@@ -61,13 +67,12 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
   have h_convexOn : ConvexOn ℝ Set.univ fun x : Euc(2) => ⟪Q, x⟫ + δ / r * ‖Q‖ * dist x Q :=
     ((innerSL ℝ Q).toLinearMap.convexOn convex_univ).add
       ((convexOn_univ_dist Q).smul (by positivity))
-  have h_hull : ∀ A ∈ convexHull ℝ (P : Set Euc(2)),
-      ⟪Q, A⟫ + δ / r * ‖Q‖ * ‖A - Q‖ ≤ ‖Q‖ ^ 2 := by
-    intro A hA
-    obtain ⟨y, hy, hAy⟩ := h_convexOn.exists_ge_of_mem_convexHull (Set.subset_univ _) hA
+  have h_hull : ∀ B ∈ convexHull ℝ (P : Set Euc(2)),
+      ⟪Q, B⟫ + δ / r * ‖Q‖ * ‖B - Q‖ ≤ ‖Q‖ ^ 2 := by
+    intro B hB
+    obtain ⟨y, hy, hBy⟩ := h_convexOn.exists_ge_of_mem_convexHull (Set.subset_univ _) hB
     rw [← dist_eq_norm]
-    exact hAy.trans (h_vertex y hy)
-  rintro A ⟨hA_ball, hA_int⟩
+    exact hBy.trans (h_vertex y hy)
   -- A ≠ Q: dropping the nonnegative distance term from h_vertex puts P in the closed
   -- halfspace {x | ⟪Q, x⟫ ≤ ‖Q‖²}, so Q is not in the interior of the hull.
   have hA_ne_Q : A ≠ Q := by
@@ -77,11 +82,7 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
     have h0 : 0 ≤ δ / r * ‖Q‖ * dist y Q := by positivity
     linarith [h_vertex y hy]
   have hAQ_pos : 0 < ‖A - Q‖ := norm_sub_pos_iff.mpr hA_ne_Q
-  -- A is within δ of Q_, and Q is within δ of Q_, so ‖A - Q‖ < 2δ; moreover 2δ < 2(δ/r)‖Q‖.
-  have hAQ_lt : ‖A - Q‖ < 2 * δ :=
-    calc ‖A - Q‖ ≤ ‖A - Q_‖ + ‖Q_ - Q‖ := norm_sub_le_norm_sub_add_norm_sub A Q_ Q
-      _ < δ + δ := add_lt_add (by rwa [← dist_eq_norm]) (by rwa [norm_sub_rev])
-      _ = 2 * δ := (two_mul δ).symm
+  -- A is within 2δ of Q, and 2δ < 2(δ/r)‖Q‖ since r < ‖Q‖.
   have h2δ : 2 * δ < 2 * (δ / r) * ‖Q‖ :=
     calc 2 * δ = 2 * δ * 1 := (mul_one _).symm
       _ < 2 * δ * (‖Q‖ / r) := by
@@ -94,7 +95,7 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q Q_ : Euc(2)} {δ r : ℝ}
   have h_sq : ‖A‖ ^ 2 < ‖Q‖ ^ 2 := by
     have h3 : ‖A - Q‖ ^ 2 < 2 * (δ / r) * ‖Q‖ * ‖A - Q‖ := by
       rw [sq]
-      exact mul_lt_mul_of_pos_right (hAQ_lt.trans h2δ) hAQ_pos
+      exact mul_lt_mul_of_pos_right (hA_ball.trans h2δ) hAQ_pos
     have h_inner := h_hull A (interior_subset hA_int)
     simp only [inner_sub_right, real_inner_self_eq_norm_sq] at h_expand
     linarith
