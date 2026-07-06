@@ -391,7 +391,7 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
       linarith
     linarith [hδiℝ, h_chain]
   -- Bridge: Bεℚ → Bε
-  have be' : Triangle.Bε Q Qi poly.vertices.v p_ ε δ r := by
+  have be' : Local.Bε Qi poly.vertices.v p_ ε δ r := by
     intro i k hne_k
     -- Map k to v_ in poly_
     let k' := hpoly.bijection k
@@ -403,7 +403,7 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     let Q_ℚ : Fin 3 → ℚ := (hpoly.transportTri Qi) i
     -- Get the Bεℚ hypothesis
     have hbe := be i k hne_k
-    show (δ + √5 * ε) / r < Local.Triangle.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
+    show (δ + √5 * ε) / r < Local.Bε.lhs (Q i) (poly.vertices.v k) p_ ε
     -- Use the bridge to rewrite `Bεℚ.lhs` into explicit real form.
     have h_bridge_Qv := h_Bεℚ_lhs_bridge Q_ℚ v_ℚ
     -- Bridge from approx.upper_sqrt_five to √5 (since upper_sqrt_five > √5)

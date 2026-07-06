@@ -51,17 +51,19 @@ def Triangle.Aε (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
   ∃ σ ∈ ({0, 1} : Set ℕ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > √2 * ε
 
 noncomputable
-def Triangle.Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) : ℝ :=
+def Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) : ℝ :=
    (⟪p.rotM₂ v₁, p.rotM₂ (v₁ - v₂)⟫ - 2 * ε * ‖v₁ - v₂‖ * (√2 + ε))
    / ((‖p.rotM₂ v₁‖ + √2 * ε) * (‖p.rotM₂ (v₁ - v₂)‖ + 2 * √2 * ε))
 
 /--
-Condition B_ε from [SY25] Theorem 36
+Condition B_ε from [SY25] Theorem 36. The triangle it constrains is `v ∘ Qi`;
+taking the indices `Qi` rather than the triangle itself guarantees that the
+triangle's vertices are among the polyhedron's vertices `v`.
 -/
-def Triangle.Bε {ι : Type} (Q : Triangle) (Qi : Fin 3 → ι)
+def Bε {ι : Type} (Qi : Fin 3 → ι)
     (v : ι → Euc(3)) (p : Pose ℝ) (ε δ r : ℝ) : Prop :=
   ∀ i : Fin 3, ∀ k : ι, k ≠ Qi i →
-    (δ + √5 * ε) / r < Triangle.Bε.lhs (Q i) (v k) p ε
+    (δ + √5 * ε) / r < Bε.lhs (v (Qi i)) (v k) p ε
 
 /-- The condition on δ in the Local Theorem -/
 def BoundDelta (δ : ℝ) (p : Pose ℝ) (P Q : Triangle) : Prop :=
@@ -91,7 +93,7 @@ structure LocalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
   ae₂ : Triangle.Aε p_.vecX₂ (poly.vertices.v ∘ Qi) ε
   span₁ : Triangle.Spanning (poly.vertices.v ∘ Pi) p_.θ₁ p_.φ₁ ε
   span₂ : Triangle.Spanning (poly.vertices.v ∘ Qi) p_.θ₂ p_.φ₂ ε
-  be : Triangle.Bε (poly.vertices.v ∘ Qi) Qi poly.vertices.v p_ ε δ r
+  be : Bε Qi poly.vertices.v p_ ε δ r
 
 /--
   [SY25] Theorem 36
@@ -173,8 +175,9 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
       (δ + √5 * ε) / r <
         ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - poly.vertices.v k)⟫ /
         (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - poly.vertices.v k)‖) := by
-    have h₆ := be i k hkQ
-    unfold Triangle.Bε.lhs Pose.rotM₂ at h₆
+    have h₆ : (δ + √5 * ε) / r < Bε.lhs (Q i) (poly.vertices.v k) p_ ε :=
+      be i k hkQ
+    unfold Bε.lhs Pose.rotM₂ at h₆
     have h₅ := coss (Q := poly.vertices.v k) hQ₁ (poly.vertex_radius_le_one k) hε hθ₂ hφ₂
       ((show (0:ℝ) < (δ + √5 * ε) / r by positivity).trans h₆)
     linarith only [h₅, h₆]
