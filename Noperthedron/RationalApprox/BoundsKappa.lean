@@ -12,9 +12,14 @@ namespace RationalApprox
 /-!
 ## Helper lemma
 
-The 3κ bound pattern: for any pair of continuous linear maps `A, Aℚ` where
+The 2κ+κ² bound pattern: for any pair of continuous linear maps `A, Aℚ` where
 `‖A - Aℚ‖ ≤ κ`, `‖Aℚ‖ ≤ 1 + κ`, and points `P, P_` with
-`‖P‖ ≤ 1`, `‖P - P_‖ ≤ κ`, we get `|⟪A P, w⟫ - ⟪Aℚ P_, w⟫| ≤ 3κ`.
+`‖P‖ ≤ 1`, `‖P - P_‖ ≤ κ`, we get `|⟪A P, w⟫ - ⟪Aℚ P_, w⟫| ≤ 2κ + κ²`.
+
+The constants here are kept tight (not rounded up to `3κ`/`4κ`): the checker
+(`RationalGlobal.lean`) rounds its hoisted `Mᵀ·w` vectors with `round13v` and
+absorbs that additional `≤ 3(1+κ)/10¹³` dot-product error into the remaining
+`κ - O(κ²)` slack before rounding the totals up to `3κ`/`4κ`.
 -/
 
 private lemma inner_three_kappa {E F : Type*}
@@ -24,15 +29,15 @@ private lemma inner_three_kappa {E F : Type*}
     (hAℚnorm : ‖Aℚ‖ ≤ 1 + κ)
     (hAdiff : ‖A - Aℚ‖ ≤ κ) (hP : ‖P‖ ≤ 1)
     (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖@inner ℝ F _ (A P) w - @inner ℝ F _ (Aℚ P_) w‖ ≤ 3 * κ := by
+    ‖@inner ℝ F _ (A P) w - @inner ℝ F _ (Aℚ P_) w‖ ≤ 2 * κ + κ ^ 2 := by
   rw [← inner_sub_left]
   calc ‖@inner ℝ F _ (A P - Aℚ P_) w‖
     _ ≤ ‖A P - Aℚ P_‖ * ‖w‖ := norm_inner_le_norm (𝕜 := ℝ) _ _
     _ = ‖A P - Aℚ P_‖ := by rw [hw, mul_one]
-    _ ≤ 3 * κ := (clm_approx_apply_sub hAdiff hAℚnorm hP approx).trans (by unfold κ; norm_num)
+    _ ≤ 2 * κ + κ ^ 2 := clm_approx_apply_sub hAdiff hAℚnorm hP approx
 
 /-!
-## 4κ bounds
+## 3κ + 3κ² + κ³ bounds
 
 For the composed maps R ∘ A, we decompose:
   R(A P) - Rℚ(Aℚ P_) = R(A P - Aℚ P_) + (R - Rℚ)(Aℚ P_)
@@ -49,7 +54,7 @@ private lemma inner_four_kappa {E F G : Type*}
     (hAℚnorm : ‖Aℚ‖ ≤ 1 + κ)
     (hAdiff : ‖A - Aℚ‖ ≤ κ)
     (hP : ‖P‖ ≤ 1) (approx : ‖P - P_‖ ≤ κ) (hw : ‖w‖ = 1) :
-    ‖@inner ℝ G _ (R (A P)) w - @inner ℝ G _ (Rℚ (Aℚ P_)) w‖ ≤ 4 * κ := by
+    ‖@inner ℝ G _ (R (A P)) w - @inner ℝ G _ (Rℚ (Aℚ P_)) w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   rw [← inner_sub_left, show R (A P) - Rℚ (Aℚ P_) = R (A P - Aℚ P_) + (R - Rℚ) (Aℚ P_) by simp]
   have hAP_diff : ‖A P - Aℚ P_‖ ≤ 2 * κ + κ ^ 2 :=
     clm_approx_apply_sub hAdiff hAℚnorm hP approx
@@ -63,7 +68,7 @@ private lemma inner_four_kappa {E F G : Type*}
     _ ≤ 1 * (2 * κ + κ ^ 2) + κ * ((1 + κ) * (1 + κ)) := by
         have : (0 : ℝ) ≤ κ := by unfold κ; norm_num
         gcongr
-    _ ≤ 4 * κ := by unfold κ; norm_num
+    _ = 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by ring
 
 section rational
 
@@ -78,7 +83,7 @@ matrix-mulVec versions).
 
 lemma bounds_kappa_RM
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR α (rotM θ φ P), toR2 w⟫ - rotRℚ α (rotMℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR α (rotM θ φ P), toR2 w⟫ - rotRℚ α (rotMℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -94,7 +99,7 @@ lemma bounds_kappa_RM
 
 lemma bounds_kappa_R'M
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR' α (rotM θ φ P), toR2 w⟫ - rotR'ℚ α (rotMℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR' α (rotM θ φ P), toR2 w⟫ - rotR'ℚ α (rotMℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotR'ℚℝ (α:ℝ) (rotMℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotR'ℚ α (rotMℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -110,7 +115,7 @@ lemma bounds_kappa_R'M
 
 lemma bounds_kappa_RMθ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR α (rotMθ θ φ P), toR2 w⟫ - rotRℚ α (rotMθℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR α (rotMθ θ φ P), toR2 w⟫ - rotRℚ α (rotMθℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMθℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -126,7 +131,7 @@ lemma bounds_kappa_RMθ
 
 lemma bounds_kappa_RMφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR α (rotMφ θ φ P), toR2 w⟫ - rotRℚ α (rotMφℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR α (rotMφ θ φ P), toR2 w⟫ - rotRℚ α (rotMφℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMφℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -142,7 +147,7 @@ lemma bounds_kappa_RMφ
 
 lemma bounds_kappa_R'Mθ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR' α (rotMθ θ φ P), toR2 w⟫ - rotR'ℚ α (rotMθℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR' α (rotMθ θ φ P), toR2 w⟫ - rotR'ℚ α (rotMθℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotR'ℚℝ (α:ℝ) (rotMθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotR'ℚ α (rotMθℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -158,7 +163,7 @@ lemma bounds_kappa_R'Mθ
 
 lemma bounds_kappa_R'Mφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR' α (rotMφ θ φ P), toR2 w⟫ - rotR'ℚ α (rotMφℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR' α (rotMφ θ φ P), toR2 w⟫ - rotR'ℚ α (rotMφℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotR'ℚℝ (α:ℝ) (rotMφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotR'ℚ α (rotMφℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -174,7 +179,7 @@ lemma bounds_kappa_R'Mφ
 
 lemma bounds_kappa_RMθθ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR α (rotMθθ θ φ P), toR2 w⟫ - rotRℚ α (rotMθθℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR α (rotMθθ θ φ P), toR2 w⟫ - rotRℚ α (rotMθθℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMθθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMθθℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -190,7 +195,7 @@ lemma bounds_kappa_RMθθ
 
 lemma bounds_kappa_RMθφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR α (rotMθφ θ φ P), toR2 w⟫ - rotRℚ α (rotMθφℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR α (rotMθφ θ φ P), toR2 w⟫ - rotRℚ α (rotMθφℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMθφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMθφℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -206,7 +211,7 @@ lemma bounds_kappa_RMθφ
 
 lemma bounds_kappa_RMφφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotR α (rotMφφ θ φ P), toR2 w⟫ - rotRℚ α (rotMφφℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+    ‖⟪rotR α (rotMφφ θ φ P), toR2 w⟫ - rotRℚ α (rotMφφℚ θ φ P_) ⬝ᵥ w‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMφφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
       ((rotRℚ α (rotMφφℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
@@ -222,7 +227,7 @@ lemma bounds_kappa_RMφφ
 
 lemma bounds_kappa_M
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotM θ φ P, toR2 w⟫ - rotMℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+    ‖⟪rotM θ φ P, toR2 w⟫ - rotMℚ θ φ P_ ⬝ᵥ w‖ ≤ 2 * κ + κ ^ 2 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotMℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
@@ -236,7 +241,7 @@ lemma bounds_kappa_M
 
 lemma bounds_kappa_Mθ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotMθ θ φ P, toR2 w⟫ - rotMθℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+    ‖⟪rotMθ θ φ P, toR2 w⟫ - rotMθℚ θ φ P_ ⬝ᵥ w‖ ≤ 2 * κ + κ ^ 2 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotMθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMθℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
@@ -250,7 +255,7 @@ lemma bounds_kappa_Mθ
 
 lemma bounds_kappa_Mφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotMφ θ φ P, toR2 w⟫ - rotMφℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+    ‖⟪rotMφ θ φ P, toR2 w⟫ - rotMφℚ θ φ P_ ⬝ᵥ w‖ ≤ 2 * κ + κ ^ 2 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotMφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMφℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
@@ -264,7 +269,7 @@ lemma bounds_kappa_Mφ
 
 lemma bounds_kappa_Mθθ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotMθθ θ φ P, toR2 w⟫ - rotMθθℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+    ‖⟪rotMθθ θ φ P, toR2 w⟫ - rotMθθℚ θ φ P_ ⬝ᵥ w‖ ≤ 2 * κ + κ ^ 2 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotMθθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMθθℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
@@ -278,7 +283,7 @@ lemma bounds_kappa_Mθθ
 
 lemma bounds_kappa_Mθφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotMθφ θ φ P, toR2 w⟫ - rotMθφℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+    ‖⟪rotMθφ θ φ P, toR2 w⟫ - rotMθφℚ θ φ P_ ⬝ᵥ w‖ ≤ 2 * κ + κ ^ 2 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotMθφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMθφℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
@@ -292,7 +297,7 @@ lemma bounds_kappa_Mθφ
 
 lemma bounds_kappa_Mφφ
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
-    ‖⟪rotMφφ θ φ P, toR2 w⟫ - rotMφφℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+    ‖⟪rotMφφ θ φ P, toR2 w⟫ - rotMφφℚ θ φ P_ ⬝ᵥ w‖ ≤ 2 * κ + κ ^ 2 := by
   have h_bridge :
       @inner ℝ ℝ² _ (rotMφφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
       ((rotMφφℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
