@@ -140,6 +140,86 @@ lemma bounds_kappa_RMφ
     (Mφ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     hP approx hw
 
+lemma bounds_kappa_R'Mθ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
+    ‖⟪rotR' α (rotMθ θ φ P), toR2 w⟫ - rotR'ℚ α (rotMθℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+  have h_bridge :
+      @inner ℝ ℝ² _ (rotR'ℚℝ (α:ℝ) (rotMθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
+      ((rotR'ℚ α (rotMθℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
+    simp only [rotR'ℚ, rotMθℚ, Matrix.toLin'_apply]
+    exact inner_two_bridge _ _ _ _ (rotR'ℚ_mat_castℝ α) (rotMθℚ_mat_castℝ θ φ) _ _
+  rw [← h_bridge]
+  exact inner_four_kappa
+    (le_of_eq (Bounding.rotR'_norm_one _))
+    (R'_difference_norm_bounded _ (cast_Icc4_mem α))
+    (Mθℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    (Mθ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    hP approx hw
+
+lemma bounds_kappa_R'Mφ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
+    ‖⟪rotR' α (rotMφ θ φ P), toR2 w⟫ - rotR'ℚ α (rotMφℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+  have h_bridge :
+      @inner ℝ ℝ² _ (rotR'ℚℝ (α:ℝ) (rotMφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
+      ((rotR'ℚ α (rotMφℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
+    simp only [rotR'ℚ, rotMφℚ, Matrix.toLin'_apply]
+    exact inner_two_bridge _ _ _ _ (rotR'ℚ_mat_castℝ α) (rotMφℚ_mat_castℝ θ φ) _ _
+  rw [← h_bridge]
+  exact inner_four_kappa
+    (le_of_eq (Bounding.rotR'_norm_one _))
+    (R'_difference_norm_bounded _ (cast_Icc4_mem α))
+    (Mφℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    (Mφ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    hP approx hw
+
+lemma bounds_kappa_RMθθ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
+    ‖⟪rotR α (rotMθθ θ φ P), toR2 w⟫ - rotRℚ α (rotMθθℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+  have h_bridge :
+      @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMθθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
+      ((rotRℚ α (rotMθθℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
+    simp only [rotRℚ, rotMθθℚ, Matrix.toLin'_apply]
+    exact inner_two_bridge _ _ _ _ (rotRℚ_mat_castℝ α) (rotMθθℚ_mat_castℝ θ φ) _ _
+  rw [← h_bridge]
+  exact inner_four_kappa
+    (le_of_eq (Bounding.rotR_norm_one _))
+    (R_difference_norm_bounded _ (cast_Icc4_mem α))
+    (Mθθℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    (Mθθ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    hP approx hw
+
+lemma bounds_kappa_RMθφ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
+    ‖⟪rotR α (rotMθφ θ φ P), toR2 w⟫ - rotRℚ α (rotMθφℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+  have h_bridge :
+      @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMθφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
+      ((rotRℚ α (rotMθφℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
+    simp only [rotRℚ, rotMθφℚ, Matrix.toLin'_apply]
+    exact inner_two_bridge _ _ _ _ (rotRℚ_mat_castℝ α) (rotMθφℚ_mat_castℝ θ φ) _ _
+  rw [← h_bridge]
+  exact inner_four_kappa
+    (le_of_eq (Bounding.rotR_norm_one _))
+    (R_difference_norm_bounded _ (cast_Icc4_mem α))
+    (Mθφℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    (Mθφ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    hP approx hw
+
+lemma bounds_kappa_RMφφ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
+    ‖⟪rotR α (rotMφφ θ φ P), toR2 w⟫ - rotRℚ α (rotMφφℚ θ φ P_) ⬝ᵥ w‖ ≤ 4 * κ := by
+  have h_bridge :
+      @inner ℝ ℝ² _ (rotRℚℝ (α:ℝ) (rotMφφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_))) (toR2 w) =
+      ((rotRℚ α (rotMφφℚ θ φ P_) ⬝ᵥ w : ℚ) : ℝ) := by
+    simp only [rotRℚ, rotMφφℚ, Matrix.toLin'_apply]
+    exact inner_two_bridge _ _ _ _ (rotRℚ_mat_castℝ α) (rotMφφℚ_mat_castℝ θ φ) _ _
+  rw [← h_bridge]
+  exact inner_four_kappa
+    (le_of_eq (Bounding.rotR_norm_one _))
+    (R_difference_norm_bounded _ (cast_Icc4_mem α))
+    (Mφφℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    (Mφφ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    hP approx hw
+
 lemma bounds_kappa_M
     (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
     ‖⟪rotM θ φ P, toR2 w⟫ - rotMℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
@@ -180,6 +260,48 @@ lemma bounds_kappa_Mφ
   exact inner_three_kappa
     (Mφℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     (Mφ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    hP approx hw
+
+lemma bounds_kappa_Mθθ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
+    ‖⟪rotMθθ θ φ P, toR2 w⟫ - rotMθθℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+  have h_bridge :
+      @inner ℝ ℝ² _ (rotMθθℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
+      ((rotMθθℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
+    simp only [rotMθθℚ, Matrix.toLin'_apply]
+    exact inner_one_bridge _ _ (rotMθθℚ_mat_castℝ θ φ) _ _
+  rw [← h_bridge]
+  exact inner_three_kappa
+    (Mθθℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    (Mθθ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    hP approx hw
+
+lemma bounds_kappa_Mθφ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
+    ‖⟪rotMθφ θ φ P, toR2 w⟫ - rotMθφℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+  have h_bridge :
+      @inner ℝ ℝ² _ (rotMθφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
+      ((rotMθφℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
+    simp only [rotMθφℚ, Matrix.toLin'_apply]
+    exact inner_one_bridge _ _ (rotMθφℚ_mat_castℝ θ φ) _ _
+  rw [← h_bridge]
+  exact inner_three_kappa
+    (Mθφℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    (Mθφ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    hP approx hw
+
+lemma bounds_kappa_Mφφ
+    (hP : ‖P‖ ≤ 1) (approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1) :
+    ‖⟪rotMφφ θ φ P, toR2 w⟫ - rotMφφℚ θ φ P_ ⬝ᵥ w‖ ≤ 3 * κ := by
+  have h_bridge :
+      @inner ℝ ℝ² _ (rotMφφℚℝ (θ:ℝ) (φ:ℝ) (toR3 P_)) (toR2 w) =
+      ((rotMφφℚ θ φ P_ ⬝ᵥ w : ℚ) : ℝ) := by
+    simp only [rotMφφℚ, Matrix.toLin'_apply]
+    exact inner_one_bridge _ _ (rotMφφℚ_mat_castℝ θ φ) _ _
+  rw [← h_bridge]
+  exact inner_three_kappa
+    (Mφφℚ_norm_bounded (cast_Icc4_mem θ) (cast_Icc4_mem φ))
+    (Mφφ_difference_norm_bounded _ _ (cast_Icc4_mem θ) (cast_Icc4_mem φ))
     hP approx hw
 
 end rational

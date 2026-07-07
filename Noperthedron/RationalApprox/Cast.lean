@@ -73,6 +73,18 @@ lemma rotMφℚ_mat_castℝ (θ φ : ℚ) :
     (rotMφℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMφℚ_mat θ φ).map (fun x => (x : ℝ)) := by
   ext i j; fin_cases i <;> fin_cases j <;> simp [rotMφℚ_mat, sinℚ_match, cosℚ_match]
 
+lemma rotMθθℚ_mat_castℝ (θ φ : ℚ) :
+    (rotMθθℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMθθℚ_mat θ φ).map (fun x => (x : ℝ)) := by
+  ext i j; fin_cases i <;> fin_cases j <;> simp [rotMθθℚ_mat, sinℚ_match, cosℚ_match]
+
+lemma rotMθφℚ_mat_castℝ (θ φ : ℚ) :
+    (rotMθφℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMθφℚ_mat θ φ).map (fun x => (x : ℝ)) := by
+  ext i j; fin_cases i <;> fin_cases j <;> simp [rotMθφℚ_mat, sinℚ_match, cosℚ_match]
+
+lemma rotMφφℚ_mat_castℝ (θ φ : ℚ) :
+    (rotMφφℚ_mat (θ : ℝ) (φ : ℝ)) = (rotMφφℚ_mat θ φ).map (fun x => (x : ℝ)) := by
+  ext i j; fin_cases i <;> fin_cases j <;> simp [rotMφφℚ_mat, sinℚ_match, cosℚ_match]
+
 lemma rotRℚ_mat_castℝ (α : ℚ) :
     (rotRℚ_mat (α : ℝ)) = (rotRℚ_mat α).map (fun x => (x : ℝ)) := by
   ext i j; fin_cases i <;> fin_cases j <;> simp [rotRℚ_mat, sinℚ_match, cosℚ_match]
