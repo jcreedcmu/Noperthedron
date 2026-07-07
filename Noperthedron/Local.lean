@@ -95,6 +95,75 @@ structure LocalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
   span₂ : Triangle.Spanning (poly.vertices.v ∘ Qi) p_.θ₂ p_.φ₂ ε
   be : Bε Qi poly.vertices.v p_ ε δ r
 
+/-- The Locally-Maximally-Distant step of `local_theorem` ([SY25] Lemmas 33 and 32):
+under `BoundR` and `Bε` at the center pose `p_`, the projected `Qi i` vertex is
+locally maximally distant among all projected vertices, at any pose `p` within `ε`. -/
+private lemma lmd_step {ι : Type} [Fintype ι] [Nonempty ι]
+    (poly : GoodPoly ι) {p_ p : Pose ℝ} {ε δ r : ℝ}
+    (Qi : Fin 3 → ι) (i : Fin 3)
+    (hε : 0 < ε) (hr : 0 < r) (hδnn : 0 ≤ δ)
+    (hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε) (hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε)
+    (hr₁ : BoundR r ε p_ (poly.vertices.v ∘ Qi))
+    (be : Bε Qi poly.vertices.v p_ ε δ r) :
+    LocallyMaximallyDistant (2 * (δ + √5 * ε)) (rotM p.θ₂ p.φ₂ (poly.vertices.v (Qi i)))
+      (Finset.image (rotM p.θ₂ p.φ₂) (Finset.image poly.vertices.v Finset.univ)) := by
+  have hQ₁ : ‖poly.vertices.v (Qi i)‖ ≤ 1 := poly.vertex_radius_le_one (Qi i)
+  -- apply lemma 15
+  have h₃ : r < ‖rotM p.θ₂ p.φ₂ (poly.vertices.v (Qi i))‖ :=
+    Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
+  -- apply lemma 33
+  have h₅' (k : ι) (hkQ : k ≠ Qi i) :
+      (δ + √5 * ε) / r <
+        ⟪(rotM p.θ₂ p.φ₂) (poly.vertices.v (Qi i)),
+         (rotM p.θ₂ p.φ₂) (poly.vertices.v (Qi i) - poly.vertices.v k)⟫ /
+        (‖(rotM p.θ₂ p.φ₂) (poly.vertices.v (Qi i))‖ *
+         ‖(rotM p.θ₂ p.φ₂) (poly.vertices.v (Qi i) - poly.vertices.v k)‖) := by
+    have h₆ : (δ + √5 * ε) / r < Bε.lhs (poly.vertices.v (Qi i)) (poly.vertices.v k) p_ ε :=
+      be i k hkQ
+    unfold Bε.lhs Pose.rotM₂ at h₆
+    have h₅ := coss (Q := poly.vertices.v k) hQ₁ (poly.vertex_radius_le_one k) hε hθ₂ hφ₂
+      ((show (0:ℝ) < (δ + √5 * ε) / r by positivity).trans h₆)
+    linarith only [h₅, h₆]
+  -- apply lemma 32
+  refine inner_ge_implies_LMD (r := r) ?_ hr h₃ ?_
+  · exact Finset.mem_image_of_mem _
+      (Finset.mem_image.mpr ⟨Qi i, Finset.mem_univ _, rfl⟩)
+  · intro Pᵢ hPᵢ hPᵢQ
+    simp only [Finset.mem_image, Finset.mem_univ, true_and] at hPᵢ
+    obtain ⟨q, ⟨k, rfl⟩, rfl⟩ := hPᵢ
+    have hkQ : k ≠ Qi i := fun h => hPᵢQ (by rw [h])
+    rw [← map_sub]
+    linarith [h₅' k hkQ]
+
+/-- At a Rupert pose `p`, each inner-projected vertex lies in the interior of the
+convex hull of the outer-projected vertices. -/
+private lemma inner_vertex_mem_interior {ι : Type} [Fintype ι] [Nonempty ι]
+    (poly : GoodPoly ι) (p : Pose ℝ) (j : ι) (hΨ₂ : RupertPose p poly.hull) :
+    rotR p.α (rotM p.θ₁ p.φ₁ (poly.vertices.v j)) ∈
+      interior (convexHull ℝ
+        (↑(Finset.image (rotM p.θ₂ p.φ₂) (Finset.image poly.vertices.v Finset.univ)) : Set ℝ²)) := by
+  have h_inner_in_closure : p.inner (poly.vertices.v j) ∈ closure (innerShadow p poly.hull) := by
+    rw [Pose.inner_shadow_eq_img_inner]
+    refine subset_closure (Set.mem_image_of_mem _ (subset_convexHull ℝ _ ?_))
+    exact ⟨j, rfl⟩
+  have h_outer_eq : outerShadow p poly.hull = convexHull ℝ
+      (↑(Finset.image (rotM p.θ₂ p.φ₂) (Finset.image poly.vertices.v Finset.univ)) : Set ℝ²) := by
+    rw [Pose.outer_shadow_eq_M]
+    have hpoly_hull : poly.hull =
+        convexHull ℝ (↑(Finset.image poly.vertices.v Finset.univ) : Set ℝ³) := by
+      simp [GoodPoly.hull, Polyhedron.hull, Set.range]
+    rw [hpoly_hull]
+    have hpm : (↑(Finset.image (rotM p.θ₂ p.φ₂)
+          (Finset.image poly.vertices.v Finset.univ)) : Set ℝ²) =
+        p.rotM₂ '' ↑(Finset.image poly.vertices.v Finset.univ) := by
+      simp only [Finset.coe_image, Pose.rotM₂]
+    rw [hpm]
+    exact AffineMap.image_convexHull p.rotM₂.toAffineMap _
+  have h_inner_eq : p.inner (poly.vertices.v j) =
+      rotR p.α (rotM p.θ₁ p.φ₁ (poly.vertices.v j)) := by
+    simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
+  rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
+
 /--
   [SY25] Theorem 36
 -/
@@ -161,8 +230,6 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     exact lt_iff_not_ge.mp (h₂ i) h₃
   intro i
   have hQ₁ : ‖Q i‖ ≤ 1 := poly.vertex_radius_le_one (Qi i)
-  -- apply lemma 15
-  have h₃ : r < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := Bounding.norm_M_apply_gt hQ₁ hε hθ₂ hφ₂ (hr₁ i)
   -- apply lemma 30
   have hP₁ : ‖P i‖ ≤ 1 := poly.vertex_radius_le_one (Pi i)
   have hd : ‖rotR p.α (rotM p.θ₁ p.φ₁ (P i)) - rotM p.θ₂ p.φ₂ (Q i)‖ < 2 * (δ + √5 * ε) := by
@@ -170,50 +237,15 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     have h := hδ i
     simp only [Pose.rotR, Pose.rotM₁, Pose.rotM₂] at h
     linarith
-  -- apply lemma 33
-  have h₅' (k : ι) (hkQ : k ≠ Qi i) :
-      (δ + √5 * ε) / r <
-        ⟪(rotM p.θ₂ p.φ₂) (Q i), (rotM p.θ₂ p.φ₂) (Q i - poly.vertices.v k)⟫ /
-        (‖(rotM p.θ₂ p.φ₂) (Q i)‖ * ‖(rotM p.θ₂ p.φ₂) (Q i - poly.vertices.v k)‖) := by
-    have h₆ : (δ + √5 * ε) / r < Bε.lhs (Q i) (poly.vertices.v k) p_ ε :=
-      be i k hkQ
-    unfold Bε.lhs Pose.rotM₂ at h₆
-    have h₅ := coss (Q := poly.vertices.v k) hQ₁ (poly.vertex_radius_le_one k) hε hθ₂ hφ₂
-      ((show (0:ℝ) < (δ + √5 * ε) / r by positivity).trans h₆)
-    linarith only [h₅, h₆]
-  -- apply lemma 32
+  -- apply lemmas 33 and 32
   let pm : Finset Euc(2) :=
     Finset.image (rotM p.θ₂ p.φ₂) (Finset.image poly.vertices.v Finset.univ)
-  have h₈ : LocallyMaximallyDistant (2 * (δ + √5 * ε)) (rotM p.θ₂ p.φ₂ (Q i)) pm := by
-    refine inner_ge_implies_LMD (r := r) ?_ hr h₃ ?_
-    · exact Finset.mem_image_of_mem _
-        (Finset.mem_image.mpr ⟨Qi i, Finset.mem_univ _, rfl⟩)
-    · intro Pᵢ hPᵢ hPᵢQ
-      simp only [pm, Finset.mem_image, Finset.mem_univ, true_and] at hPᵢ
-      obtain ⟨q, ⟨k, rfl⟩, rfl⟩ := hPᵢ
-      have hkQ : k ≠ Qi i := fun h => hPᵢQ (by rw [h]; rfl)
-      rw [← map_sub]
-      linarith [h₅' k hkQ]
+  have h₈ : LocallyMaximallyDistant (2 * (δ + √5 * ε)) (rotM p.θ₂ p.φ₂ (Q i)) pm :=
+    lmd_step poly Qi i hε hr hδnn hθ₂ hφ₂ hr₁ be
   -- Step 1: Show rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ sect (interior of pm)
-  have h_in_interior_outer : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈ interior (convexHull ℝ (↑pm : Set ℝ²)) := by
-    have h_inner_in_closure : p.inner (P i) ∈ closure (innerShadow p poly.hull) := by
-      rw [Pose.inner_shadow_eq_img_inner]
-      refine subset_closure (Set.mem_image_of_mem _ (subset_convexHull ℝ _ ?_))
-      exact ⟨Pi i, rfl⟩
-    have h_outer_eq : outerShadow p poly.hull = convexHull ℝ (↑pm : Set ℝ²) := by
-      rw [Pose.outer_shadow_eq_M]
-      have hpoly_hull : poly.hull =
-          convexHull ℝ (↑(Finset.image poly.vertices.v Finset.univ) : Set ℝ³) := by
-        simp [GoodPoly.hull, Polyhedron.hull, Set.range]
-      rw [hpoly_hull]
-      have hpm : (↑pm : Set ℝ²) =
-          p.rotM₂ '' ↑(Finset.image poly.vertices.v Finset.univ) := by
-        simp only [pm, Finset.coe_image, Pose.rotM₂]
-      rw [hpm]
-      exact AffineMap.image_convexHull p.rotM₂.toAffineMap _
-    have h_inner_eq : p.inner (P i) = rotR p.α (rotM p.θ₁ p.φ₁ (P i)) := by
-      simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
-    rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
+  have h_in_interior_outer : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈
+      interior (convexHull ℝ (↑pm : Set ℝ²)) :=
+    inner_vertex_mem_interior poly p (Pi i) hΨ₂
   -- Step 2: Combine with hd to get sect membership, apply LMD for norm bound
   have h_sect : rotR p.α (rotM p.θ₁ p.φ₁ (P i)) ∈
       sect (2 * (δ + √5 * ε)) (rotM p.θ₂ p.φ₂ (Q i)) pm :=
