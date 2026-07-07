@@ -290,7 +290,7 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
                     |((rotRℚ p_.α (rotMθℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)| +
                     |((rotRℚ p_.α (rotMφℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)|) +
          9 * ((ε : ℝ))^2 / 2 + 4 * κ * (1 + 3 * ((ε : ℝ)))) ≤ _
-  nlinarith [hi_le, hR'_abs, hRθ_abs, hRφ_abs,
+  nlinarith only [hi_le, hR'_abs, hRθ_abs, hRφ_abs, hε_real,
              abs_nonneg (((rotR'ℚ p_.α (rotMℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)),
              abs_nonneg (((rotRℚ p_.α (rotMθℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ)),
              abs_nonneg (((rotRℚ p_.α (rotMφℚ p_.θ₁ p_.φ₁ S_) ⬝ᵥ w : ℚ) : ℝ))]
@@ -329,7 +329,7 @@ private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
   have hε_real : (0 : ℝ) ≤ ε := mod_cast hε
   push_cast
   rw [h_κ]
-  nlinarith [hm_le, hθ_abs, hφ_abs,
+  nlinarith only [hm_le, hθ_abs, hφ_abs, hε_real,
              abs_nonneg (((rotMθℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ)),
              abs_nonneg (((rotMφℚ pbar.θ₂ pbar.φ₂ P_ ⬝ᵥ w : ℚ) : ℝ))]
 
@@ -349,9 +349,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
   let i := happrox.bijection.symm j
   let S_real := poly.vertices.v i
   have hS_approx : ‖S_real - poly_.toReal.v j‖ ≤ κ := by
-    show ‖poly.vertices.v (happrox.bijection.symm j) - poly_.toReal.v j‖ ≤ κ
-    have := happrox.approx (happrox.bijection.symm j)
-    rwa [Equiv.apply_symm_apply] at this
+    simpa [S_real, i, j, Polyhedron.toReal] using happrox.approx (happrox.bijection.symm j)
   have hS_norm : ‖S_real‖ ≤ 1 := poly.vertex_radius_le_one i
   -- Step 2: Show maxH_real ≤ maxHℚ
   have h_maxH_le : GlobalTheorem.maxH pbar poly ε (toR2 pc.w) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := by
@@ -367,12 +365,9 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
       H_le_Hℚ hε hk_norm
         (show ‖poly.vertices.v k - toR3 (poly_.v k')‖ ≤ κ from hk_approx)
         pc.w_unit pc.p_in_4
-    have h_le_max : Hℚ p ε pc.w (poly_.v k') ≤ maxHℚ p poly_ ε pc.w := by
-      unfold maxHℚ
-      have : (Hℚ p ε pc.w ∘ poly_.v) k' ∈
-              Finset.image (Hℚ p ε pc.w ∘ poly_.v) Finset.univ :=
-        Finset.mem_image_of_mem _ (Finset.mem_univ k')
-      exact Finset.le_max' _ _ this
+    have h_le_max : Hℚ p ε pc.w (poly_.v k') ≤ maxHℚ p poly_ ε pc.w :=
+      Finset.le_max' _ ((Hℚ p ε pc.w ∘ poly_.v) k')
+        (Finset.mem_image_of_mem _ (Finset.mem_univ k'))
     have h_le_max_real : ((Hℚ p ε pc.w (poly_.v k') : ℚ) : ℝ) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) :=
       mod_cast h_le_max
     linarith [h_le_Hℚ, h_le_max_real]
