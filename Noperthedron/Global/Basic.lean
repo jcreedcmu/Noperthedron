@@ -31,7 +31,18 @@ lemma nth_partial_nth_partial_div_const {n : ℕ} (i j : Fin n) (f : E n → ℝ
   rw [funext fun z => nth_partial_div_const i f c z (hf z)]
   exact nth_partial_div_const j (nth_partial i f) c x (hg x)
 
+lemma nth_partial_nth_partial_nth_partial_div_const {n : ℕ} (i j k : Fin n) (f : E n → ℝ)
+    (c : ℝ) (x : E n) (hf : Differentiable ℝ f) (hg : Differentiable ℝ (nth_partial k f))
+    (hh : Differentiable ℝ (nth_partial j (nth_partial k f))) :
+    nth_partial i (nth_partial j (nth_partial k (fun y => f y / c))) x =
+      nth_partial i (nth_partial j (nth_partial k f)) x / c := by
+  rw [funext fun z => nth_partial_nth_partial_div_const k j f c z hf hg]
+  exact nth_partial_div_const i (nth_partial j (nth_partial k f)) c x (hh x)
+
 def mixed_partials_bounded {n : ℕ} (f : E n → ℝ) : Prop :=
   ∀ (x : E n) (i j : Fin n), abs ((nth_partial i <| nth_partial j <| f) x) ≤ 1
+
+def third_partials_bounded {n : ℕ} (f : E n → ℝ) : Prop :=
+  ∀ (x : E n) (i j k : Fin n), |nth_partial i (nth_partial j (nth_partial k f)) x| ≤ 1
 
 end GlobalTheorem
