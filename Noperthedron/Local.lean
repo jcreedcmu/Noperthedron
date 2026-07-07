@@ -48,7 +48,7 @@ theorem inCirc {δ ε θ₁ θ₁_ θ₂ θ₂_ φ₁ φ₁_ φ₂ φ₂_ α α_
 Condition A_ε from [SY25] Theorem 36
 -/
 def Triangle.Aε (X : ℝ³) (P : Triangle) (ε : ℝ) : Prop :=
-  ∃ σ ∈ ({0, 1} : Set ℕ), ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > √2 * ε
+  ∃ σ : ℕ, ∀ i : Fin 3, (-1)^σ * ⟪X, P i⟫ > √2 * ε
 
 noncomputable
 def Bε.lhs (v₁ v₂ : Euc(3)) (p : Pose ℝ) (ε : ℝ) : ℝ :=
@@ -199,8 +199,8 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   set Q : Triangle := poly.vertices.v ∘ Qi
   rintro ⟨p, hΨ₁, hΨ₂⟩
   obtain ⟨L, hL⟩ := cong_tri
-  obtain ⟨σP, hσP₁, hσP₂⟩ := ae₁
-  obtain ⟨σQ, hσQ₁, hσQ₂⟩ := ae₂
+  obtain ⟨σP, hσP₂⟩ := ae₁
+  obtain ⟨σQ, hσQ₂⟩ := ae₂
   let Y := vecX p.θ₁ p.φ₁
   let K := (-1 : ℝ)^(σP + σQ) • L.toContinuousLinearMap
   let Z := K (vecX p.θ₂ p.φ₂)

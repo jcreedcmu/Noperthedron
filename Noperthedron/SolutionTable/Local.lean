@@ -79,13 +79,8 @@ theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
       rw [transportTri_python row.Pi, transportTri_python row.Qi,
           Row.δ_eq_max'_BoundDeltaℚi]
       exact hle
-    ae₁ := ⟨0, by simp, hrow.X₁_inner_gt⟩
-    ae₂ := ⟨row.sigma_Q.val, by
-        have hmem := row.sigma_Q.property
-        simp only [Finset.mem_Icc] at hmem
-        obtain ⟨_, h2⟩ := hmem
-        interval_cases row.sigma_Q.val <;> simp,
-      hrow.X₂_inner_gt⟩
+    ae₁ := ⟨0, hrow.X₁_inner_gt⟩
+    ae₂ := ⟨row.sigma_Q.val, hrow.X₂_inner_gt⟩
     span₁ := py_κSpanning_of_rational row.Pi
       row.interval.centerPose.θ₁ row.interval.centerPose.φ₁ ε hε hrow.P_spanning
     span₂ := py_κSpanning_of_rational row.Qi

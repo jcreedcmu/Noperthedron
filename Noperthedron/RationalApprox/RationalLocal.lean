@@ -26,7 +26,7 @@ deriving Decidable
 Condition A_ε^ℚ from [SY25] Theorem 48
 -/
 def TriangleQ.Aεℚ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
-  ∃ σ ∈ ({0, 1} : Set ℕ), TriangleQ.Aεℚσ X P_ ε σ approx
+  ∃ σ : ℕ, TriangleQ.Aεℚσ X P_ ε σ approx
 
 def TriangleQ.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
    (approx : RationalApprox.Approx) : ℚ :=
@@ -145,8 +145,8 @@ private lemma aε_bridge {θ φ : ℚ} {ε : ℚ} {approx : Approx}
     (hAε : T.Aεℚ (vecXℚ θ φ) ε approx)
     (hεℝ : 0 < (ε : ℝ)) :
     R.Aε (vecX (θ : ℝ) (φ : ℝ)) ε := by
-  obtain ⟨σ, hσ₁, hσ₂⟩ := hAε
-  refine ⟨σ, hσ₁, fun i => ?_⟩
+  obtain ⟨σ, hσ₂⟩ := hAε
+  refine ⟨σ, fun i => ?_⟩
   set θsub : Set.Icc (-4 : ℝ) 4 := ⟨(θ : ℝ), hθ⟩
   set φsub : Set.Icc (-4 : ℝ) 4 := ⟨(φ : ℝ), hφ⟩
   have hX : ‖⟪vecX (θsub : ℝ) (φsub : ℝ), R i⟫ -
