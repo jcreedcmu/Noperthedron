@@ -305,6 +305,13 @@ See \cite{polyhedron.without.rupert}, Corollary 51.
     \[
         (\theta_1, \phi_1, \theta_2, \phi_2, \alpha) \in [\thetab_1\pm\epsilon,\phib_1\pm\epsilon,\thetab_2\pm\epsilon,\phib_2\pm\epsilon,\alphab\pm\epsilon] \subseteq \R^5.
     \]
+
+    (In the Lean formalization, the applied vector $\Miib \widetilde{Q}_i$ in the
+    $r$-condition $\| \Miib \widetilde{Q}_i \|_{-} > r + \sqrt{2} \epsilon + 3\kappa$
+    is additionally rounded down componentwise to a multiple of $10^{-13}$ ---
+    \texttt{Pose.rotM₂Rℚ}, as in condition B$^{\Q}_\epsilon$ --- so that the
+    checker's lower norm runs on small denominators; the resulting perturbation of
+    at most $2 \cdot 10^{-13}$ is absorbed into the $3\kappa$ term.)
 \end{theorem}
 
 \begin{proof}

@@ -36,12 +36,6 @@ noncomputable
 abbrev Row.Q (r : Row) : Local.Triangle :=
   ![exactVertex r.Q1_index, exactVertex r.Q2_index, exactVertex r.Q3_index]
 
-abbrev Row.M₁_ (r : Row) : Matrix (Fin 2) (Fin 3) ℚ :=
-  RationalApprox.rotMℚ_mat r.θ₁ r.φ₁
-
-abbrev Row.M₂_ (r : Row) : Matrix (Fin 2) (Fin 3) ℚ :=
-  RationalApprox.rotMℚ_mat r.θ₂ r.φ₂
-
 abbrev Row.X₁ (r : Row) : Fin 3 → ℚ := RationalApprox.vecXℚ r.θ₁ r.φ₁
 
 abbrev Row.X₂ (r : Row) : Fin 3 → ℚ := RationalApprox.vecXℚ r.θ₂ r.φ₂
@@ -54,6 +48,71 @@ abbrev Row.r (row : Row) : ℚ :=
 
 open scoped Matrix
 open RationalApprox (sqrtApprox κℚ)
+
+/-! ### Spanning condition: hoisted trig, scalarized applied vectors -/
+
+/-- The rational matrix form of the ε-κ-spanning condition on the triangle `T`
+for angles `(θ, φ)` (cf. `Local.Triangle.κSpanning`). Named so that its
+`Decidable` instance (via `Spanningℚ.check`) can hoist the trig entries of
+`rotMℚ_mat θ φ` out of the `i`-loop and bind the applied vectors' components
+as scalars; the generic `mulVec`/`dotProduct` instances would re-evaluate the
+trig partial sums on every component access. -/
+def Spanningℚ (θ φ ε : ℚ) (T : Fin 3 → Fin 3 → ℚ) : Prop :=
+  ∀ i : Fin 3,
+    2 * ε * (sqrt_twoℚ + ε) + 6 * κℚ <
+    (rot90 *ᵥ (RationalApprox.rotMℚ_mat θ φ *ᵥ T i)) ⬝ᵥ
+      (RationalApprox.rotMℚ_mat θ φ *ᵥ T (i + 1))
+
+namespace Spanningℚ
+
+open RationalApprox (sinℚ cosℚ)
+
+/-- The spanning dot product `⟨rot90 · M·v, M·w⟩` in scalar form. -/
+private lemma term_eq (θ φ : ℚ) (v w : Fin 3 → ℚ) :
+    (rot90 *ᵥ (RationalApprox.rotMℚ_mat θ φ *ᵥ v)) ⬝ᵥ
+      (RationalApprox.rotMℚ_mat θ φ *ᵥ w) =
+    -(-cosℚ θ * cosℚ φ * v 0 + -sinℚ θ * cosℚ φ * v 1 + sinℚ φ * v 2) *
+        (-sinℚ θ * w 0 + cosℚ θ * w 1) +
+      (-sinℚ θ * v 0 + cosℚ θ * v 1) *
+        (-cosℚ θ * cosℚ φ * w 0 + -sinℚ θ * cosℚ φ * w 1 + sinℚ φ * w 2) := by
+  simp only [dotProduct, Matrix.mulVec, rot90, Matrix.of_apply, Matrix.cons_val',
+    Matrix.cons_val_fin_one, RationalApprox.rotMℚ_mat, neg_mul, Fin.sum_univ_three,
+    Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val,
+    Fin.sum_univ_two, zero_mul, add_zero, one_mul, neg_add_rev, neg_neg, zero_add]
+
+/-- Bool-valued `Spanningℚ` check: trig partial sums are evaluated once per
+pose and everything the `i`-loop touches is bound as a scalar. -/
+def check (θ φ ε : ℚ) (T : Fin 3 → Fin 3 → ℚ) : Bool :=
+  let st := sinℚ θ
+  let ct := cosℚ θ
+  let sp := sinℚ φ
+  let cp := cosℚ φ
+  let lhs := 2 * ε * (sqrt_twoℚ + ε) + 6 * κℚ
+  (List.finRange 3).all fun i =>
+    let v := T i
+    let w := T (i + 1)
+    let v0 := v 0
+    let v1 := v 1
+    let v2 := v 2
+    let w0 := w 0
+    let w1 := w 1
+    let w2 := w 2
+    decide (lhs <
+      -(-ct * cp * v0 + -st * cp * v1 + sp * v2) * (-st * w0 + ct * w1) +
+        (-st * v0 + ct * v1) * (-ct * cp * w0 + -st * cp * w1 + sp * w2))
+
+theorem check_iff (θ φ ε : ℚ) (T : Fin 3 → Fin 3 → ℚ) :
+    check θ φ ε T = true ↔ Spanningℚ θ φ ε T := by
+  unfold check Spanningℚ
+  simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
+  refine forall_congr' fun i => ?_
+  rw [term_eq θ φ (T i) (T (i + 1))]
+
+instance instDecidable (θ φ ε : ℚ) (T : Fin 3 → Fin 3 → ℚ) :
+    Decidable (Spanningℚ θ φ ε T) :=
+  decidable_of_iff _ (check_iff θ φ ε T)
+
+end Spanningℚ
 
 /-! ### `Row.δ`: max over per-`i` `BoundDeltaℚi` values, hoisting trig once -/
 
@@ -148,7 +207,130 @@ theorem Row.δ_eq_max'_BoundDeltaℚi (row : Row) :
   unfold RationalApprox.LocalTheorem.BoundDeltaℚi
   exact Row.δ.boundDelta_at_eq _ _ _
 
-/-- Assertion that a row constitutes a valid application of the rational global theorem. -/
+/-! ### Precomputed pairwise vertex-difference norms for `Bεℚ`
+
+The `n_dv` term of `Bεℚ.check` — `sqrtApprox.upper_sqrt.norm (Q_i − v_k)` —
+is pose-independent, but costs a `sqrtℚUp` call on a denominator-`10³²`
+input for each of the 270 `(i, k)` pairs of every local row. `sqrtDvTable`
+precomputes all 90 × 90 pairs once per process, and `BεℚPy.check` is the
+`pythonVertexA`/`sqrtApprox` specialization of `Bεℚ.check` that reads it
+(the `Bεℚ` predicate itself is unchanged). -/
+
+/-- Decode the flat index `45·ℓ + 15·i + k` (see `sqrtDv_eq`). -/
+private def ofFlat (m : ℕ) (h : m < 90) : VertexIndex :=
+  ⟨⟨m % 15, by omega⟩, ⟨m / 45, by omega⟩, ⟨m / 15 % 3, by omega⟩⟩
+
+/-- All 90 × 90 pairwise `upper_sqrt` vertex-difference norms, indexed by the
+flat pair index `flat a * 90 + flat b` with `flat ⟨k, ℓ, i⟩ = 45·ℓ + 15·i + k`. -/
+def sqrtDvTable : Array ℚ :=
+  Array.ofFn (n := 8100) fun j =>
+    sqrtApprox.upper_sqrt.norm
+      (pythonVertexA (ofFlat (j.val / 90) (by omega)) -
+        pythonVertexA (ofFlat (j.val % 90) (by omega)))
+
+/-- Table-backed pairwise vertex-difference norm: equal to
+`sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b)` by `sqrtDv_eq`. -/
+def sqrtDv (a b : VertexIndex) : ℚ :=
+  sqrtDvTable[(45 * a.ℓ.val + 15 * a.i.val + a.k.val) * 90 +
+      (45 * b.ℓ.val + 15 * b.i.val + b.k.val)]'(by
+    have h1 := a.ℓ.isLt
+    have h2 := a.i.isLt
+    have h3 := a.k.isLt
+    have h4 := b.ℓ.isLt
+    have h5 := b.i.isLt
+    have h6 := b.k.isLt
+    rw [sqrtDvTable, Array.size_ofFn]
+    omega)
+
+lemma sqrtDv_eq (a b : VertexIndex) :
+    sqrtDv a b = sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b) := by
+  obtain ⟨ka, ℓa, ia⟩ := a
+  obtain ⟨kb, ℓb, ib⟩ := b
+  have h1 := ℓa.isLt
+  have h2 := ia.isLt
+  have h3 := ka.isLt
+  have h4 := ℓb.isLt
+  have h5 := ib.isLt
+  have h6 := kb.isLt
+  have e1 : ((45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)) / 90 =
+      45 * ℓa.val + 15 * ia.val + ka.val := by omega
+  have e2 : ((45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)) % 90 =
+      45 * ℓb.val + 15 * ib.val + kb.val := by omega
+  have f1 : (45 * ℓa.val + 15 * ia.val + ka.val) % 15 = ka.val := by omega
+  have f2 : (45 * ℓa.val + 15 * ia.val + ka.val) / 45 = ℓa.val := by omega
+  have f3 : (45 * ℓa.val + 15 * ia.val + ka.val) / 15 % 3 = ia.val := by omega
+  have g1 : (45 * ℓb.val + 15 * ib.val + kb.val) % 15 = kb.val := by omega
+  have g2 : (45 * ℓb.val + 15 * ib.val + kb.val) / 45 = ℓb.val := by omega
+  have g3 : (45 * ℓb.val + 15 * ib.val + kb.val) / 15 % 3 = ib.val := by omega
+  simp only [sqrtDv, sqrtDvTable, Array.getElem_ofFn, ofFlat, e1, e2, f1, f2, f3,
+    g1, g2, g3, Fin.eta]
+
+namespace BεℚPy
+
+open Local.TriangleQ.Bεℚ (matEntries rotM₂Rℚ_c0 rotM₂Rℚ_c1)
+
+/-- `Bεℚ.check` specialized to `pythonVertexA` and `sqrtApprox`: the
+pose-independent `n_dv` norms come from `sqrtDvTable`, and the components of
+`Q_i` are bound as scalars outside the `k`-loop. -/
+def check (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) : Bool :=
+  let entries := matEntries p
+  let bound := (δ + sqrtApprox.upper_sqrt_five * ε) / r
+  (List.finRange 3).all fun i =>
+    let Qi_idx := Qi i
+    let Qi_val := pythonVertexA Qi_idx
+    let qv0 := Qi_val 0
+    let qv1 := Qi_val 1
+    let qv2 := Qi_val 2
+    let q0 := RationalApprox.round13 (entries.m₀₀ * qv0 + entries.m₀₁ * qv1 + entries.m₀₂ * qv2)
+    let q1 := RationalApprox.round13 (entries.m₁₀ * qv0 + entries.m₁₁ * qv1 + entries.m₁₂ * qv2)
+    let denom1 := sqrtApprox.upper_sqrt.f (q0 * q0 + q1 * q1)
+                  + sqrtApprox.upper_sqrt_two * ε + 3 * κℚ
+    decide <| ∀ k : VertexIndex, k ≠ Qi_idx →
+      let vk := pythonVertexA k
+      let dv0 := qv0 - vk 0
+      let dv1 := qv1 - vk 1
+      let dv2 := qv2 - vk 2
+      let d0 := RationalApprox.round13 (entries.m₀₀ * dv0 + entries.m₀₁ * dv1 + entries.m₀₂ * dv2)
+      let d1 := RationalApprox.round13 (entries.m₁₀ * dv0 + entries.m₁₁ * dv1 + entries.m₁₂ * dv2)
+      let numer := q0 * d0 + q1 * d1 - 10 * κℚ
+                   - 2 * ε * (sqrtDv Qi_idx k + 2 * κℚ) * (sqrtApprox.upper_sqrt_two + ε)
+      let denom2 := sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1)
+                    + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ
+      bound < numer / (denom1 * denom2)
+
+theorem check_iff (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) :
+    check Qi p ε δ r = true ↔
+      Local.TriangleQ.Bεℚ Qi pythonVertexA p ε δ r sqrtApprox := by
+  unfold check Local.TriangleQ.Bεℚ Local.TriangleQ.Bεℚ.lhs
+  simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
+  refine forall_congr' (fun i => ?_)
+  refine forall_congr' (fun k => ?_)
+  refine forall_congr' (fun _ => ?_)
+  simp only [show ∀ c : Fin 3, pythonVertexA (Qi i) c - pythonVertexA k c =
+    (pythonVertexA (Qi i) - pythonVertexA k) c from fun _ => rfl]
+  rw [sqrtDv_eq,
+      ← rotM₂Rℚ_c0 p (pythonVertexA (Qi i)), ← rotM₂Rℚ_c1 p (pythonVertexA (Qi i)),
+      ← rotM₂Rℚ_c0 p (pythonVertexA (Qi i) - pythonVertexA k),
+      ← rotM₂Rℚ_c1 p (pythonVertexA (Qi i) - pythonVertexA k)]
+  simp only [RationalApprox.UpperSqrt.norm, dotProduct, Fin.sum_univ_two, Fin.sum_univ_three]
+
+/-- Specialized decision procedure for the `Bεℚ` conjunct of `Row.ValidLocal`;
+the priority bump makes `Row.ValidLocal`'s `Decidable` instance pick it over
+the generic `Bεℚ.instDecidable`. -/
+instance (priority := high) instDecidablePy (Qi : Fin 3 → VertexIndex)
+    (p : Pose ℚ) (ε δ r : ℚ) :
+    Decidable (Local.TriangleQ.Bεℚ Qi pythonVertexA p ε δ r sqrtApprox) :=
+  decidable_of_iff _ (check_iff Qi p ε δ r)
+
+end BεℚPy
+
+/-- Assertion that a row constitutes a valid application of the rational global theorem.
+
+The vertex functions are the table-backed `pythonVertexA` (equal to
+`pythonVertex` by `pythonVertexA_eq`), so the hot loops of the `Decidable`
+instance read precomputed coordinates instead of re-dividing on every access. -/
 @[mk_iff]
 structure Row.ValidLocal (row : Row) : Prop where
   nodeType_eq : row.nodeType = 2
@@ -157,22 +339,16 @@ structure Row.ValidLocal (row : Row) : Prop where
   exists_symmetry : ∃ s : TriangleSymmetry,
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
   X₁_inner_gt : Local.TriangleQ.Aεℚσ
-                  row.X₁ (pythonVertex ∘ row.Pi) row.epsilon 0 sqrtApprox
+                  row.X₁ (pythonVertexA ∘ row.Pi) row.epsilon 0 sqrtApprox
   X₂_inner_gt : Local.TriangleQ.Aεℚσ
-                  row.X₂ (pythonVertex ∘ row.Qi) row.epsilon row.sigma_Q.val sqrtApprox
-  P_spanning : ∀ i : Fin 3,
-    2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κℚ <
-    (rot90 *ᵥ (row.M₁_ *ᵥ (pythonVertex (row.Pi i)))) ⬝ᵥ
-      (row.M₁_ *ᵥ (pythonVertex ((row.Pi (i + 1)))))
-  Q_spanning : ∀ i : Fin 3,
-    2 * row.epsilon * (sqrt_twoℚ + row.epsilon) + 6 * κℚ <
-    (rot90 *ᵥ (row.M₂_ *ᵥ (pythonVertex (row.Qi i)))) ⬝ᵥ
-      (row.M₂_ *ᵥ (pythonVertex ((row.Qi (i + 1)))))
+                  row.X₂ (pythonVertexA ∘ row.Qi) row.epsilon row.sigma_Q.val sqrtApprox
+  P_spanning : Spanningℚ row.θ₁ row.φ₁ row.epsilon (pythonVertexA ∘ row.Pi)
+  Q_spanning : Spanningℚ row.θ₂ row.φ₂ row.epsilon (pythonVertexA ∘ row.Qi)
   rpos : 0 < row.r
   r_valid : RationalApprox.LocalTheorem.BoundRℚ
-              row.r row.epsilon row.interval.centerPose (pythonVertex ∘ row.Qi) sqrtApprox
+              row.r row.epsilon row.interval.centerPose (pythonVertexA ∘ row.Qi) sqrtApprox
   Bεℚ : Local.TriangleQ.Bεℚ
-    row.Qi pythonVertex row.interval.centerPose
+    row.Qi pythonVertexA row.interval.centerPose
     row.epsilon row.δ row.r sqrtApprox
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=

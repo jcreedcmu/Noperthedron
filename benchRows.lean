@@ -6,6 +6,7 @@ with rough attribution (trig evaluation, `Row.δ`). Run:
 -/
 
 open Noperthedron Noperthedron.Solution
+open scoped Matrix
 
 def bench (label : String) (rows : Array Row) (f : Row → Bool) : IO Unit := do
   let t0 ← IO.monoNanosNow
@@ -40,6 +41,8 @@ def main (args : List String) : IO Unit := do
   bench "local:  B-eps check " ltable (fun r =>
     Local.TriangleQ.Bεℚ.check r.Qi pythonVertex
       r.interval.centerPose r.epsilon r.δ r.r RationalApprox.sqrtApprox)
+  bench "local:  B-eps checkPy" ltable (fun r =>
+    BεℚPy.check r.Qi r.interval.centerPose r.epsilon r.δ r.r)
   bench "local:  vertex walk " ltable (fun r =>
     -- cost of just enumerating VertexIndex and reading pythonVertex coords
     decide (∀ k : VertexIndex, pythonVertex k 0 + pythonVertex k 1 + pythonVertex k 2 < 4))
@@ -50,3 +53,18 @@ def main (args : List String) : IO Unit := do
         RationalApprox.sqrtApprox.upper_sqrt.norm (pythonVertex (r.Qi i) - pythonVertex k) < 4))
   bench "local:  symmetry    " ltable (fun r =>
     decide (∃ s : TriangleSymmetry, s.applicable r.Qi ∧ ∀ i, r.Pi i = s.apply (r.Qi i)))
+  bench "local:  X1 inner    " ltable (fun r =>
+    decide (Local.TriangleQ.Aεℚσ r.X₁ (pythonVertexA ∘ r.Pi) r.epsilon 0
+      RationalApprox.sqrtApprox))
+  bench "local:  X2 inner    " ltable (fun r =>
+    decide (Local.TriangleQ.Aεℚσ r.X₂ (pythonVertexA ∘ r.Qi) r.epsilon r.sigma_Q.val
+      RationalApprox.sqrtApprox))
+  bench "local:  P spanning  " ltable (fun r =>
+    decide (Spanningℚ r.θ₁ r.φ₁ r.epsilon (pythonVertexA ∘ r.Pi)))
+  bench "local:  Q spanning  " ltable (fun r =>
+    decide (Spanningℚ r.θ₂ r.φ₂ r.epsilon (pythonVertexA ∘ r.Qi)))
+  bench "local:  r_valid     " ltable (fun r =>
+    decide (RationalApprox.LocalTheorem.BoundRℚ r.r r.epsilon r.interval.centerPose
+      (pythonVertexA ∘ r.Qi) RationalApprox.sqrtApprox))
+  bench "local:  center/eps  " ltable (fun r =>
+    decide (r.interval.centerPose ∈ fourInterval ℚ ∧ 0 < r.epsilon))

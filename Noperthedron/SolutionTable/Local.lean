@@ -21,18 +21,17 @@ for the Python polyhedron. Used for both `P_spanning` (with `(θ₁, φ₁)`) an
 `Q_spanning` (with `(θ₂, φ₂)`). -/
 private lemma py_κSpanning_of_rational
     (idx : Fin 3 → VertexIndex) (θ φ ε : ℚ) (hε : 0 < ε)
-    (h : ∀ i : Fin 3,
-      2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ <
-        (rot90 *ᵥ (RationalApprox.rotMℚ_mat θ φ *ᵥ (pythonVertex (idx i)))) ⬝ᵥ
-          (RationalApprox.rotMℚ_mat θ φ *ᵥ (pythonVertex (idx (i + 1))))) :
+    (h : Spanningℚ θ φ ε (pythonVertexA ∘ idx)) :
     (KappaApprox.exact_κApprox_python.transportTri idx).toReal.κSpanning
       (θ : ℝ) (φ : ℝ) ε := by
   refine ⟨mod_cast hε, fun i => ?_⟩
+  have hi := h i
+  simp only [Function.comp_apply, pythonVertexA_eq] at hi
   have hcast : ((2 * ε * (sqrt_twoℚ + ε) + 6 * RationalApprox.κℚ : ℚ) : ℝ) <
       ⟪rotR (π / 2) (RationalApprox.rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 (pythonVertex (idx i)))),
         RationalApprox.rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 (pythonVertex (idx (i + 1))))⟫ := by
     rw [← RationalApprox.rot90_rotMℚ_inner_eq_real_inner]
-    exact_mod_cast h i
+    exact_mod_cast hi
   have hε_real : (0 : ℝ) ≤ (ε : ℝ) := mod_cast hε.le
   have hsqrt2 : (√2 : ℝ) ≤ (142 / 100 : ℝ) :=
     ((Real.sqrt_lt' (by norm_num)).mpr (by norm_num)).le
@@ -61,7 +60,7 @@ theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
     r := row.r
     hr := hrow.rpos
     approx := RationalApprox.sqrtApprox
-    hr₁ := hrow.r_valid
+    hr₁ := by have h := hrow.r_valid; rwa [pythonVertexA_eq] at h
     hδ := by
       intro i
       -- row.δ rewrites to Finset.max' over BoundDeltaℚi via Row.δ_eq_max'_BoundDeltaℚi.
@@ -79,13 +78,13 @@ theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
       rw [transportTri_python row.Pi, transportTri_python row.Qi,
           Row.δ_eq_max'_BoundDeltaℚi]
       exact hle
-    ae₁ := ⟨0, hrow.X₁_inner_gt⟩
-    ae₂ := ⟨row.sigma_Q.val, hrow.X₂_inner_gt⟩
+    ae₁ := ⟨0, by have h := hrow.X₁_inner_gt; rwa [pythonVertexA_eq] at h⟩
+    ae₂ := ⟨row.sigma_Q.val, by have h := hrow.X₂_inner_gt; rwa [pythonVertexA_eq] at h⟩
     span₁ := py_κSpanning_of_rational row.Pi
       row.interval.centerPose.θ₁ row.interval.centerPose.φ₁ ε hε hrow.P_spanning
     span₂ := py_κSpanning_of_rational row.Qi
       row.interval.centerPose.θ₂ row.interval.centerPose.φ₂ ε hε hrow.Q_spanning
-    be := hrow.Bεℚ
+    be := by have h := hrow.Bεℚ; rwa [pythonVertexA_eq] at h
   }
   exact no_rupert_in_interval_of_ball row
     (RationalApprox.LocalTheorem.rational_local exactPoly pythonPolyQ

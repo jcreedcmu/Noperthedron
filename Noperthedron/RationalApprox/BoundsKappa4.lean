@@ -108,6 +108,17 @@ private lemma norm_le_round13v_upper (s : UpperSqrt) (v : Fin 2 → ℚ) :
   have h2 : ‖toR2 (round13v v)‖ ≤ ↑(s.norm (round13v v)) := UpperSqrt_norm_le s _
   linarith [norm_toR2_round13v_sub_le v]
 
+/-- The `LowerSqrt` norm of the rounded vector is at most the cast norm of the
+unrounded vector plus `2/10¹³`. Absorbs the `Pose.rotM₂Rℚ` rounding of
+`BoundRℚ` into its `3κℚ` term (see `rational_local`). -/
+lemma LowerSqrt_norm_round13v_le (s : LowerSqrt) (v : Fin 2 → ℚ) :
+    ((s.norm (round13v v) : ℚ) : ℝ) ≤ ‖toR2 v‖ + 2 / 10 ^ 13 := by
+  have h1 : ((s.norm (round13v v) : ℚ) : ℝ) ≤ ‖toR2 (round13v v)‖ :=
+    LowerSqrt_norm_ge s _
+  have h2 : ‖toR2 (round13v v)‖ ≤ ‖toR2 v‖ + ‖toR2 (round13v v) - toR2 v‖ :=
+    norm_le_insert' _ _
+  linarith [norm_toR2_round13v_sub_le v]
+
 /-- Rounding both applied vectors perturbs their dot product by at most
 `2/10¹²`, given (generous) norm bounds on the unrounded vectors. -/
 private lemma round_dot_error {u₁ u₂ : Fin 2 → ℚ}

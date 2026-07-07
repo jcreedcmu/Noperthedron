@@ -114,6 +114,45 @@ def pythonVertexCurried : Fin 2 → Fin 3 → Fin 15 → Fin 3 → ℚ := ![
 
 def pythonVertex (idx : VertexIndex) : Fin 3 → ℚ := pythonVertexCurried idx.ℓ idx.i idx.k
 
+/-! ### Precomputed coordinate table
+
+Every coordinate access through `pythonVertex` pays a `ℚ` division (and gcd)
+inside `mkV`. The checkers' hot loops instead read through `pythonVertexA`,
+which looks the (already normalized) values up in the flat table below —
+a top-level constant, so it is computed once per process. -/
+
+/-- All 270 vertex coordinates, flattened as `(45·ℓ + 15·i + k)·3 + c`. -/
+def pythonVertexTable : Array ℚ :=
+  Array.ofFn (n := 270) fun j =>
+    pythonVertexCurried ⟨j.val / 135, by omega⟩ ⟨j.val / 45 % 3, by omega⟩
+      ⟨j.val / 3 % 15, by omega⟩ ⟨j.val % 3, by omega⟩
+
+/-- Table-backed `pythonVertex`: one array read per coordinate, no division.
+Provably equal to `pythonVertex` (`pythonVertexA_eq`); used by the hot loops
+of the local checker. -/
+def pythonVertexA (idx : VertexIndex) : Fin 3 → ℚ := fun c =>
+  pythonVertexTable[(45 * idx.ℓ.val + 15 * idx.i.val + idx.k.val) * 3 + c.val]'(by
+    have h1 := idx.ℓ.isLt
+    have h2 := idx.i.isLt
+    have h3 := idx.k.isLt
+    have h4 := c.isLt
+    rw [pythonVertexTable, Array.size_ofFn]
+    omega)
+
+lemma pythonVertexA_eq : pythonVertexA = pythonVertex := by
+  funext idx c
+  obtain ⟨k, ℓ, i⟩ := idx
+  have h1 := ℓ.isLt
+  have h2 := i.isLt
+  have h3 := k.isLt
+  have h4 := c.isLt
+  have e1 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) / 135 = ℓ.val := by omega
+  have e2 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) / 45 % 3 = i.val := by omega
+  have e3 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) / 3 % 15 = k.val := by omega
+  have e4 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) % 3 = c.val := by omega
+  simp only [pythonVertexA, pythonVertexTable, Array.getElem_ofFn, pythonVertex,
+    e1, e2, e3, e4, Fin.eta]
+
 def pythonPolyQ : Polyhedron VertexIndex (Fin 3 → ℚ) := ⟨pythonVertex⟩
 
 noncomputable
