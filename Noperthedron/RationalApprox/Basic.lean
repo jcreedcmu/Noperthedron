@@ -43,6 +43,51 @@ lemma abs_round13_sub_le {k : Type} [Field k] [LinearOrder k] [IsStrictOrderedRi
   rw [abs_le]
   constructor <;> linarith
 
+/-- Componentwise `round13`: round each coordinate of a vector down to a
+multiple of `10⁻¹³`. Applied to the per-pose hoisted vectors of the global
+and local checkers so that the per-vertex dot products run on small
+denominators; the rounding error is absorbed into the `κ` budgets.
+
+NOTE: like every `Fin n → k` value, this is a closure, so each access
+re-rounds. The checkers' hot loops must read each component once into a
+scalar `let` or structure field (see `HScalars` in RationalGlobal.lean). -/
+def round13v {k : Type} [Field k] [LinearOrder k] [FloorRing k] {n : ℕ}
+    (v : Fin n → k) : Fin n → k :=
+  fun i => round13 (v i)
+
+/-- Rounding the left vector of a dot product perturbs it by at most
+`(∑ i, |P i|) / 10¹³`. -/
+lemma abs_round13v_dot_sub_le {k : Type} [Field k] [LinearOrder k]
+    [IsStrictOrderedRing k] [FloorRing k] {n : ℕ} (v P : Fin n → k) :
+    |round13v v ⬝ᵥ P - v ⬝ᵥ P| ≤ (∑ i, |P i|) / 10 ^ 13 := by
+  have h : round13v v ⬝ᵥ P - v ⬝ᵥ P = ∑ i, (round13 (v i) - v i) * P i := by
+    simp only [dotProduct, round13v, ← Finset.sum_sub_distrib, sub_mul]
+  rw [h, Finset.sum_div]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
+  rw [abs_mul]
+  calc |round13 (v i) - v i| * |P i|
+      ≤ (1 / 10 ^ 13) * |P i| :=
+        mul_le_mul_of_nonneg_right (abs_round13_sub_le _) (abs_nonneg _)
+    _ = |P i| / 10 ^ 13 := by ring
+
+/-- Rounding both vectors of a dot product perturbs it by at most
+`(∑ i, |round13v u₂ i| + ∑ i, |u₁ i|) / 10¹³`. -/
+lemma abs_round13v_dot_round13v_sub_le {k : Type} [Field k] [LinearOrder k]
+    [IsStrictOrderedRing k] [FloorRing k] {n : ℕ} (u₁ u₂ : Fin n → k) :
+    |round13v u₁ ⬝ᵥ round13v u₂ - u₁ ⬝ᵥ u₂| ≤
+      ((∑ i, |round13v u₂ i|) + ∑ i, |u₁ i|) / 10 ^ 13 := by
+  have h1 := abs_round13v_dot_sub_le u₁ (round13v u₂)
+  have h2 : |u₁ ⬝ᵥ round13v u₂ - u₁ ⬝ᵥ u₂| ≤ (∑ i, |u₁ i|) / 10 ^ 13 := by
+    rw [dotProduct_comm u₁ (round13v u₂), dotProduct_comm u₁ u₂]
+    exact abs_round13v_dot_sub_le u₂ u₁
+  calc |round13v u₁ ⬝ᵥ round13v u₂ - u₁ ⬝ᵥ u₂|
+      = |(round13v u₁ ⬝ᵥ round13v u₂ - u₁ ⬝ᵥ round13v u₂) +
+          (u₁ ⬝ᵥ round13v u₂ - u₁ ⬝ᵥ u₂)| := by congr 1; ring
+    _ ≤ |round13v u₁ ⬝ᵥ round13v u₂ - u₁ ⬝ᵥ round13v u₂| +
+        |u₁ ⬝ᵥ round13v u₂ - u₁ ⬝ᵥ u₂| := abs_add_le _ _
+    _ ≤ (∑ i, |round13v u₂ i|) / 10 ^ 13 + (∑ i, |u₁ i|) / 10 ^ 13 := add_le_add h1 h2
+    _ = ((∑ i, |round13v u₂ i|) + ∑ i, |u₁ i|) / 10 ^ 13 := by ring
+
 /--
 Sine partial sum $x - x^3/3! + x^5/5! - ⋯ + x^{25}/25!$, rounded down to a
 multiple of `10⁻¹³` (see `round13`).
@@ -152,6 +197,14 @@ def _root_.Pose.rotM₁φℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2
 
 def _root_.Pose.rotM₂φℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) :=
   _root_.RationalApprox.rotMφℚ p.θ₂ p.φ₂
+
+/-- `rotM₂ℚ` with the resulting 2-vector rounded down componentwise to
+multiples of `10⁻¹³` (see `round13v`). Used by the local certificate `Bεℚ` so
+that its per-vertex-pair dot products and `UpperSqrt` norms run on small
+denominators; the rounding error is absorbed into the `κ` budgets of
+`bounds_kappa4`. -/
+def _root_.Pose.rotM₂Rℚ (p : Pose ℚ) (v : Fin 3 → ℚ) : Fin 2 → ℚ :=
+  round13v (p.rotM₂ℚ v)
 
 def _root_.Pose.innerℚ (p : Pose ℚ) : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ) := p.rotRℚ ∘ₗ p.rotM₁ℚ
 def _root_.Pose.vecX₁ℚ (p : Pose ℚ) : (Fin 3 → ℚ) := vecXℚ (p.θ₁) (p.φ₁)

@@ -238,6 +238,13 @@ See \cite{polyhedron.without.rupert}, Lemma 49.
         A_{\Q} =         \frac{\langle M_{\Q} \widetilde{P}, M_{\Q} (\widetilde{P}-\widetilde{Q})\rangle - 10\kappa - 2 \epsilon ( \|\widetilde{P}-\widetilde{Q}\| + 2 \kappa ) \cdot  (\sqrt{2}+\varepsilon)}{ \big(\| M_{\Q} \widetilde{P}\|_{+}+\sqrt{2} \varepsilon + 3\kappa \big) \cdot \big(\|M_{\Q}(\widetilde{P}-\widetilde{Q})\|_{+}+2 \sqrt{2} \varepsilon + 6\kappa\big)}.
     \]
     Assume that $A \geq 0$. Then it holds that $A \geq A_{\Q}$.
+
+    (In the Lean formalization, each applied vector $M_{\Q} \widetilde{x}$ appearing in
+    $A_{\Q}$ is additionally rounded down componentwise to a multiple of $10^{-13}$
+    --- \texttt{Pose.rotM₂Rℚ} --- so that the checker's dot products and norms run on
+    small denominators; the resulting perturbation, at most $2 \cdot 10^{-12}$ in the
+    numerator and $2 \cdot 10^{-13}$ in each norm, is absorbed into the
+    $10\kappa$, $3\kappa$ and $6\kappa$ terms.)
 \end{corollary}
 \begin{proof}
 \leanok
