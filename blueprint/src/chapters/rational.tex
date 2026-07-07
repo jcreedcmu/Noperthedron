@@ -91,21 +91,31 @@ RationalApprox.R'_difference_norm_bounded,
 RationalApprox.M_difference_norm_bounded,
 RationalApprox.Mθ_difference_norm_bounded,
 RationalApprox.Mφ_difference_norm_bounded,
+RationalApprox.Mθθ_difference_norm_bounded,
+RationalApprox.Mθφ_difference_norm_bounded,
+RationalApprox.Mφφ_difference_norm_bounded,
 RationalApprox.X_difference_norm_bounded,
 RationalApprox.Rℚ_norm_bounded,
 RationalApprox.Mℚ_norm_bounded,
 RationalApprox.R'ℚ_norm_bounded,
 RationalApprox.Mθℚ_norm_bounded,
-RationalApprox.Mφℚ_norm_bounded }
+RationalApprox.Mφℚ_norm_bounded,
+RationalApprox.Mθθℚ_norm_bounded,
+RationalApprox.Mθφℚ_norm_bounded,
+RationalApprox.Mφφℚ_norm_bounded }
     Let $\alpha,\theta,\phi\in [-4,4]$. Then it holds that
     \begin{align*}
         \|R(\alpha)-R_{\Q}(\alpha)\|, \|R'(\alpha)-R_{\Q}'(\alpha)\|,\|X(\theta,\phi)-X_{\Q}(\theta, \phi)\|, \|M(\theta, \phi)-M_{\Q}(\theta, \phi)\|, \\
         \|M^\theta(\theta,\phi)-M_{\Q}^\theta(\theta,\phi)\|,
-        \|M^\phi(\theta,\phi) - M_{\Q}^\phi(\theta,\phi)\|\leq \kappa.
+        \|M^\phi(\theta,\phi) - M_{\Q}^\phi(\theta,\phi)\|,
+        \|M^{\theta\theta}(\theta,\phi)-M_{\Q}^{\theta\theta}(\theta,\phi)\|,
+        \|M^{\theta\phi}(\theta,\phi)-M_{\Q}^{\theta\phi}(\theta,\phi)\|,
+        \|M^{\phi\phi}(\theta,\phi)-M_{\Q}^{\phi\phi}(\theta,\phi)\|\leq \kappa.
     \end{align*}
     Moreover,
     \[
-        \|R_{\Q}(\alpha)\|, \|R'_{\Q}(\alpha)\|, \|M_{\Q}(\theta, \phi)\|, \|M_{\Q}^{\theta}(\theta,\varphi)\|, \|M_{\Q}^{\phi}(\theta,\varphi)\| \leq 1+\kappa
+        \|R_{\Q}(\alpha)\|, \|R'_{\Q}(\alpha)\|, \|M_{\Q}(\theta, \phi)\|, \|M_{\Q}^{\theta}(\theta,\varphi)\|, \|M_{\Q}^{\phi}(\theta,\varphi)\|,
+        \|M_{\Q}^{\theta\theta}(\theta,\varphi)\|, \|M_{\Q}^{\theta\phi}(\theta,\varphi)\|, \|M_{\Q}^{\phi\phi}(\theta,\varphi)\| \leq 1+\kappa
     \]
 \end{corollary}
 
@@ -138,7 +148,15 @@ RationalApprox.bounds_kappa_Mφ,
 RationalApprox.bounds_kappa_RM,
 RationalApprox.bounds_kappa_R'M,
 RationalApprox.bounds_kappa_RMθ,
-RationalApprox.bounds_kappa_RMφ
+RationalApprox.bounds_kappa_RMφ,
+RationalApprox.bounds_kappa_Mθθ,
+RationalApprox.bounds_kappa_Mθφ,
+RationalApprox.bounds_kappa_Mφφ,
+RationalApprox.bounds_kappa_R'Mθ,
+RationalApprox.bounds_kappa_R'Mφ,
+RationalApprox.bounds_kappa_RMθθ,
+RationalApprox.bounds_kappa_RMθφ,
+RationalApprox.bounds_kappa_RMφφ
 }
     Let $\alpha, \theta, \phi \in [-4,4]$, $P\in \R^3$ with $\|P\| \leq 1$ and let $\widetilde{P}$ be a $\kappa$-rational approximation of $P$. Set $M = M(\theta, \phi)$ and $M_{\Q} = M_{\Q}(\theta, \phi)$, $M^\theta = M^\theta(\theta, \phi)$, $M^\theta_{\Q} = M^\theta_{\Q}(\theta, \phi)$, $M^\phi = M^\phi(\theta, \phi)$, $M^\phi_{\Q} = M^\phi_{\Q}(\theta, \phi)$ as well as $R = R(\alpha)$, $R_{\Q} = R_{\Q}(\alpha)$, $R' = R'(\alpha)$, $R'_{\Q} = R'_{\Q}(\alpha)$. Finally let $w \in \R^2$ with $\|w\| = 1$. Then:
     \begin{align}
@@ -148,8 +166,12 @@ RationalApprox.bounds_kappa_RMφ
         | \langle R M P, w\rangle - \langle R_{\Q} M_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa,\label{eq:boundskappa4} \\
         | \langle R' M P, w\rangle - \langle R'_{\Q} M_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa,\\
         | \langle R M^\theta P, w\rangle - \langle R_{\Q} M^\theta_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa,\\
-        | \langle R M^\phi P, w\rangle - \langle R_{\Q} M^\phi_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa.
+        | \langle R M^\phi P, w\rangle - \langle R_{\Q} M^\phi_{\Q} \widetilde{P}, w\rangle | & \leq 4\kappa,
     \end{align}
+    and the same bounds hold with $M$ replaced by any of the second-derivative
+    matrices $M^{\theta\theta}, M^{\theta\phi}, M^{\phi\phi}$ (at $3\kappa$
+    without a rotation factor, at $4\kappa$ with $R$ in front) and with $R'$ in
+    place of $R$ in front of $M^\theta$ and $M^\phi$ (at $4\kappa$).
 \end{lemma}
 \begin{proof}
 \leanok
@@ -164,9 +186,13 @@ See \cite{polyhedron.without.rupert}, Lemma 44.
     Let $\PPP$ be a pointsymmetric convex polyhedron with radius $\rho =1$ and $\widetilde{\PPP}$ a $\kappa$-rational approximation. Let $\widetilde{S} \in \widetilde{\PPP}$. Further let $\epsilon>0$ and $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \Q \cap [-4,4]$.
     Let $w\in\Q^2$ be a unit vector. Denote $\Mib \coloneqq M_{\Q}(\thetab_1, \phib_1)$, $ \Miib \coloneqq M_{\Q}(\thetab_2, \phib_2)$ as well as $\Mib^{\theta} \coloneqq M_{\Q}^\theta(\thetab_1, \phib_1)$, $\Mib^{\phi} \coloneqq M_{\Q}^\phi(\thetab_1, \phib_1)$ and analogously for $\Miib^{\theta}, \Miib^{\phi}$. Finally set
     \begin{align*}
-        G^{\Q}& \coloneqq \langle R_{\Q}(\alphab) \Mib \widetilde{S},w \rangle - \epsilon\cdot\big(|\langle R_{\Q}'(\alphab)  \Mib \widetilde{S},w \rangle|+|\langle R_{\Q}(\alphab) \Mib^\theta \widetilde{S},w \rangle|+|\langle R_{\Q}(\alphab) \Mib^\phi \widetilde{S},w \rangle|\big) \\
-        & \hspace{11cm}- 9\epsilon^2/2 - 4\kappa ( 1 + 3 \epsilon),\\
-        H^{\Q}_P & \coloneqq \langle \Miib P,w \rangle + \epsilon\cdot\big(|\langle \Miib^\theta P,w \rangle|+|\langle  \Miib^\varphi P,w \rangle|\big) + 2\epsilon^2 + 3\kappa( 1+2\epsilon).
+        G^{\Q} \coloneqq{}& \langle R_{\Q}(\alphab) \Mib \widetilde{S},w \rangle - \epsilon\cdot\big(|\langle R_{\Q}'(\alphab)  \Mib \widetilde{S},w \rangle|+|\langle R_{\Q}(\alphab) \Mib^\theta \widetilde{S},w \rangle|+|\langle R_{\Q}(\alphab) \Mib^\phi \widetilde{S},w \rangle|\big) \\
+        &- \frac{\epsilon^2}{2}\cdot\big(|\langle R_{\Q}(\alphab) \Mib \widetilde{S},w \rangle|
+          + 2|\langle R_{\Q}'(\alphab) \Mib^\theta \widetilde{S},w \rangle| + 2|\langle R_{\Q}'(\alphab) \Mib^\phi \widetilde{S},w \rangle|\\
+        &\qquad\quad + |\langle R_{\Q}(\alphab) \Mib^{\theta\theta} \widetilde{S},w \rangle| + 2|\langle R_{\Q}(\alphab) \Mib^{\theta\phi} \widetilde{S},w \rangle| + |\langle R_{\Q}(\alphab) \Mib^{\phi\phi} \widetilde{S},w \rangle|\big)\\
+        & \hspace{9cm}- 9\epsilon^3/2 - 4\kappa \big( 1 + 3 \epsilon + \tfrac92\epsilon^2\big),\\
+        H^{\Q}_P \coloneqq{}& \langle \Miib P,w \rangle + \epsilon\cdot\big(|\langle \Miib^\theta P,w \rangle|+|\langle  \Miib^\varphi P,w \rangle|\big)\\
+        &+ \frac{\epsilon^2}{2}\cdot\big(|\langle \Miib^{\theta\theta} P,w \rangle| + 2|\langle \Miib^{\theta\phi} P,w \rangle| + |\langle \Miib^{\phi\phi} P,w \rangle|\big) + \frac{4\epsilon^3}{3} + 3\kappa( 1+2\epsilon+2\epsilon^2).
     \end{align*}
     If $G^{\Q}>\max_{P\in \widetilde{\PPP}} H^{\Q}_P$ then there does not exist a solution to Rupert's condition to $\PPP$ with
     \[
