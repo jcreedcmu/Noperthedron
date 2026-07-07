@@ -396,7 +396,7 @@ lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
   have S_norm_pos : 0 < ‖pc.S‖ := pc.norm_S_gt_zero
   have S_norm_le_one : ‖pc.S‖ ≤ 1 := pc.norm_S_le_one
   have hz := bounded_partials_control_difference
-    pc.fu (rotation_partials_exist S_norm_pos)
+    pc.fu ((rotation_partials_exist S_norm_pos).of_le (by norm_num))
     pbar.innerParams p.innerParams ε hε
     (closed_ball_imp_inner_params_near p_near_pbar)
     (rotation_partials_bounded pc.S pc.w_unit)
@@ -437,7 +437,7 @@ lemma global_theorem_inequality_iv {ι : Type} [Fintype ι] [Nonempty ι]
   have P_norm_le_one : ‖P‖ ≤ 1 := poly.vertex_radius_le_one i
 
   have hz := bounded_partials_control_difference
-    (pc.fu_outer P) (rotation_partials_exist_outer P_norm_pos)
+    (pc.fu_outer P) ((rotation_partials_exist_outer P_norm_pos).of_le (by norm_num))
     pbar.outerParams p.outerParams ε hε
     (closed_ball_imp_outer_params_near p_near_pbar)
     (rotation_partials_bounded_outer P pc.w_unit)

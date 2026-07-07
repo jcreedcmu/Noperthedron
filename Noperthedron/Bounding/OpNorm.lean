@@ -144,6 +144,19 @@ theorem rotMφφ_norm_le_one (θ φ : ℝ) : ‖rotMφφ θ φ‖ ≤ 1 :=
     (by linarith [zero_le_one (α := ℝ)])
     (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.sin_sq_add_cos_sq φ])
 
+-- Operator norm bounds for the mixed third derivative matrices
+theorem rotMθθφ_norm_le_one (θ φ : ℝ) : ‖rotMθθφ θ φ‖ ≤ 1 :=
+  opNorm_le_one_of_orthogonal_rows
+    (by ring)
+    (by linarith [zero_le_one (α := ℝ)])
+    (by linarith [mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ, Real.sin_sq_le_one φ])
+
+theorem rotMθφφ_norm_le_one (θ φ : ℝ) : ‖rotMθφφ θ φ‖ ≤ 1 :=
+  opNorm_le_one_of_orthogonal_rows
+    (by ring)
+    (by linarith [zero_le_one (α := ℝ)])
+    (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.cos_sq_le_one φ])
+
 /- Rotations as linear isometries -/
 
 lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
