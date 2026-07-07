@@ -118,10 +118,11 @@ private lemma m2φφtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → 
         Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
   ring
 
-@[inline] private def fastH (entries : HEntries) (ε : ℚ) (kappaTerm : ℚ) (P : Fin 3 → ℚ) : ℚ :=
-  entries.m2tw ⬝ᵥ P + ε * (|entries.m2θtw ⬝ᵥ P| + |entries.m2φtw ⬝ᵥ P|)
-    + ε^2 / 2 * (|entries.m2θθtw ⬝ᵥ P| + 2 * |entries.m2θφtw ⬝ᵥ P| + |entries.m2φφtw ⬝ᵥ P|)
-    + 4 * ε^3 / 3 + kappaTerm
+@[inline] private def fastH (entries : HEntries) (εθ εφ : ℚ) (kappaTerm : ℚ) (P : Fin 3 → ℚ) : ℚ :=
+  entries.m2tw ⬝ᵥ P + εθ * |entries.m2θtw ⬝ᵥ P| + εφ * |entries.m2φtw ⬝ᵥ P|
+    + 1 / 2 * (εθ^2 * |entries.m2θθtw ⬝ᵥ P| + 2 * (εθ * εφ) * |entries.m2θφtw ⬝ᵥ P|
+        + εφ^2 * |entries.m2φφtw ⬝ᵥ P|)
+    + (εθ + εφ)^3 / 6 + kappaTerm
 
 /-- Pre-computed `(M_combined)ᵀ·w` 3-vectors for the nine matrix chains in
 `Gℚ` (`R·M₁`, `R'·M₁`, `R·M₁θ`, `R·M₁φ`, `R'·M₁θ`, `R'·M₁φ`, `R·M₁θθ`,
@@ -286,13 +287,15 @@ private lemma m1φφRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 →
         Matrix.cons_val_zero, Matrix.cons_val_one]
   ring
 
-@[inline] private def fastG (entries : GEntries) (ε : ℚ) (S : Fin 3 → ℚ) : ℚ :=
+@[inline] private def fastG (entries : GEntries) (εα εθ εφ : ℚ) (S : Fin 3 → ℚ) : ℚ :=
   entries.m1RTw ⬝ᵥ S -
-   (ε * (|entries.m1R'Tw ⬝ᵥ S| + |entries.m1θRTw ⬝ᵥ S| + |entries.m1φRTw ⬝ᵥ S|)
-     + ε^2 / 2 * (|entries.m1RTw ⬝ᵥ S|
-         + 2 * |entries.m1θR'Tw ⬝ᵥ S| + 2 * |entries.m1φR'Tw ⬝ᵥ S|
-         + |entries.m1θθRTw ⬝ᵥ S| + 2 * |entries.m1θφRTw ⬝ᵥ S| + |entries.m1φφRTw ⬝ᵥ S|)
-     + 9 * ε^3 / 2 + 4 * κℚ * (1 + 3 * ε + 9/2 * ε^2))
+   (εα * |entries.m1R'Tw ⬝ᵥ S| + εθ * |entries.m1θRTw ⬝ᵥ S| + εφ * |entries.m1φRTw ⬝ᵥ S|
+     + 1 / 2 * (εα^2 * |entries.m1RTw ⬝ᵥ S|
+         + 2 * (εα * εθ) * |entries.m1θR'Tw ⬝ᵥ S| + 2 * (εα * εφ) * |entries.m1φR'Tw ⬝ᵥ S|
+         + εθ^2 * |entries.m1θθRTw ⬝ᵥ S| + 2 * (εθ * εφ) * |entries.m1θφRTw ⬝ᵥ S|
+         + εφ^2 * |entries.m1φφRTw ⬝ᵥ S|)
+     + (εα + εθ + εφ)^3 / 6
+     + 4 * κℚ * (1 + (εα + εθ + εφ) + (εα + εθ + εφ)^2 / 2))
 
 /-- The rounded hoisted `H`-side vectors as strict scalar fields. A
 `Fin 3 → ℚ` value is a closure whose components (including their `round13`
@@ -330,16 +333,16 @@ private structure HScalars : Type where
 /-- `fastH` on precomputed scalars, with the dot products written out. Takes
 the vertex coordinates as scalars so each is read (a `ℚ` division for the
 table's vertex functions) only once per vertex. -/
-@[inline] private def fastHs (e : HScalars) (ε : ℚ) (kappaTerm : ℚ) (p0 p1 p2 : ℚ) : ℚ :=
+@[inline] private def fastHs (e : HScalars) (εθ εφ : ℚ) (kappaTerm : ℚ) (p0 p1 p2 : ℚ) : ℚ :=
   e.a0 * p0 + e.a1 * p1 + e.a2 * p2
-    + ε * (|e.b0 * p0 + e.b1 * p1 + e.b2 * p2| + |e.c0 * p0 + e.c1 * p1 + e.c2 * p2|)
-    + ε^2 / 2 * (|e.d0 * p0 + e.d1 * p1 + e.d2 * p2|
-        + 2 * |e.e0 * p0 + e.e1 * p1 + e.e2 * p2|
-        + |e.f0 * p0 + e.f1 * p1 + e.f2 * p2|)
-    + 4 * ε^3 / 3 + kappaTerm
+    + εθ * |e.b0 * p0 + e.b1 * p1 + e.b2 * p2| + εφ * |e.c0 * p0 + e.c1 * p1 + e.c2 * p2|
+    + 1 / 2 * (εθ^2 * |e.d0 * p0 + e.d1 * p1 + e.d2 * p2|
+        + 2 * (εθ * εφ) * |e.e0 * p0 + e.e1 * p1 + e.e2 * p2|
+        + εφ^2 * |e.f0 * p0 + e.f1 * p1 + e.f2 * p2|)
+    + (εθ + εφ)^3 / 6 + kappaTerm
 
-private lemma fastHs_scalars_eq (e : HEntries) (ε kt : ℚ) (P : Fin 3 → ℚ) :
-    fastHs e.scalars ε kt (P 0) (P 1) (P 2) = fastH e ε kt P := by
+private lemma fastHs_scalars_eq (e : HEntries) (εθ εφ kt : ℚ) (P : Fin 3 → ℚ) :
+    fastHs e.scalars εθ εφ kt (P 0) (P 1) (P 2) = fastH e εθ εφ kt P := by
   simp only [fastHs, HEntries.scalars, fastH, dotProduct, Fin.sum_univ_three]
 
 /-! #### Two-tier `H` test
@@ -353,18 +356,18 @@ test decides exactly `g > fastHs`. -/
 
 /-- Upper bound for `fastHs` that replaces the three second-order dot
 products by the precomputed scalar `soBound * (|p0| + |p1| + |p2|)`. -/
-@[inline] private def cheapHs (e : HScalars) (ε kappaTerm soBound p0 p1 p2 : ℚ) : ℚ :=
+@[inline] private def cheapHs (e : HScalars) (εθ εφ kappaTerm soBound p0 p1 p2 : ℚ) : ℚ :=
   e.a0 * p0 + e.a1 * p1 + e.a2 * p2
-    + ε * (|e.b0 * p0 + e.b1 * p1 + e.b2 * p2| + |e.c0 * p0 + e.c1 * p1 + e.c2 * p2|)
+    + εθ * |e.b0 * p0 + e.b1 * p1 + e.b2 * p2| + εφ * |e.c0 * p0 + e.c1 * p1 + e.c2 * p2|
     + soBound * (|p0| + |p1| + |p2|)
-    + 4 * ε^3 / 3 + kappaTerm
+    + (εθ + εφ)^3 / 6 + kappaTerm
 
-/-- The per-pose scalar for `cheapHs`: `ε²/2` times the weighted ∞-norms of
-the three second-order vectors. -/
-@[inline] private def soBound (e : HScalars) (ε : ℚ) : ℚ :=
-  ε^2 / 2 * (max |e.d0| (max |e.d1| |e.d2|)
-    + 2 * max |e.e0| (max |e.e1| |e.e2|)
-    + max |e.f0| (max |e.f1| |e.f2|))
+/-- The per-pose scalar for `cheapHs`: the `(εθ², 2εθεφ, εφ²)/2`-weighted
+∞-norms of the three second-order vectors. -/
+@[inline] private def soBound (e : HScalars) (εθ εφ : ℚ) : ℚ :=
+  1 / 2 * (εθ^2 * max |e.d0| (max |e.d1| |e.d2|)
+    + 2 * (εθ * εφ) * max |e.e0| (max |e.e1| |e.e2|)
+    + εφ^2 * max |e.f0| (max |e.f1| |e.f2|))
 
 private lemma abs_dot3_le (d0 d1 d2 p0 p1 p2 : ℚ) :
     |d0 * p0 + d1 * p1 + d2 * p2| ≤
@@ -380,41 +383,33 @@ private lemma abs_dot3_le (d0 d1 d2 p0 p1 p2 : ℚ) :
           gcongr
     _ = max |d0| (max |d1| |d2|) * (|p0| + |p1| + |p2|) := by ring
 
-private lemma fastHs_le_cheapHs (e : HScalars) (ε kt p0 p1 p2 : ℚ) :
-    fastHs e ε kt p0 p1 p2 ≤ cheapHs e ε kt (soBound e ε) p0 p1 p2 := by
+private lemma fastHs_le_cheapHs {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
+    (e : HScalars) (kt p0 p1 p2 : ℚ) :
+    fastHs e εθ εφ kt p0 p1 p2 ≤ cheapHs e εθ εφ kt (soBound e εθ εφ) p0 p1 p2 := by
   unfold fastHs cheapHs soBound
-  have hd := abs_dot3_le e.d0 e.d1 e.d2 p0 p1 p2
-  have he := abs_dot3_le e.e0 e.e1 e.e2 p0 p1 p2
-  have hf := abs_dot3_le e.f0 e.f1 e.f2 p0 p1 p2
-  have key : ε^2 / 2 * (|e.d0 * p0 + e.d1 * p1 + e.d2 * p2|
-        + 2 * |e.e0 * p0 + e.e1 * p1 + e.e2 * p2|
-        + |e.f0 * p0 + e.f1 * p1 + e.f2 * p2|)
-      ≤ ε^2 / 2 * ((max |e.d0| (max |e.d1| |e.d2|)
-          + 2 * max |e.e0| (max |e.e1| |e.e2|)
-          + max |e.f0| (max |e.f1| |e.f2|)) * (|p0| + |p1| + |p2|)) :=
-    mul_le_mul_of_nonneg_left (by linarith [hd, he, hf]) (by positivity)
-  have hrw : ε^2 / 2 * ((max |e.d0| (max |e.d1| |e.d2|)
-          + 2 * max |e.e0| (max |e.e1| |e.e2|)
-          + max |e.f0| (max |e.f1| |e.f2|)) * (|p0| + |p1| + |p2|))
-      = ε^2 / 2 * (max |e.d0| (max |e.d1| |e.d2|)
-          + 2 * max |e.e0| (max |e.e1| |e.e2|)
-          + max |e.f0| (max |e.f1| |e.f2|)) * (|p0| + |p1| + |p2|) := by ring
-  linarith [hrw ▸ key]
+  have hd := mul_le_mul_of_nonneg_left (abs_dot3_le e.d0 e.d1 e.d2 p0 p1 p2)
+    (mul_nonneg hεθ hεθ)
+  have he := mul_le_mul_of_nonneg_left (abs_dot3_le e.e0 e.e1 e.e2 p0 p1 p2)
+    (mul_nonneg hεθ hεφ)
+  have hf := mul_le_mul_of_nonneg_left (abs_dot3_le e.f0 e.f1 e.f2 p0 p1 p2)
+    (mul_nonneg hεφ hεφ)
+  linarith [hd, he, hf]
 
 /-- One vertex of the two-tier test: try `cheapHs` (three dot products),
 fall back to the exact `fastHs` (six) only if it fails. `Bool.or` is
 short-circuiting, so the fallback is not evaluated when the cheap test
 passes. -/
-@[inline] private def tieredHs_lt (e : HScalars) (ε kappaTerm soB g p0 p1 p2 : ℚ) : Bool :=
-  decide (g > cheapHs e ε kappaTerm soB p0 p1 p2) ||
-  decide (g > fastHs e ε kappaTerm p0 p1 p2)
+@[inline] private def tieredHs_lt (e : HScalars) (εθ εφ kappaTerm soB g p0 p1 p2 : ℚ) : Bool :=
+  decide (g > cheapHs e εθ εφ kappaTerm soB p0 p1 p2) ||
+  decide (g > fastHs e εθ εφ kappaTerm p0 p1 p2)
 
-private lemma tieredHs_lt_iff (e : HScalars) (ε kt g p0 p1 p2 : ℚ) :
-    tieredHs_lt e ε kt (soBound e ε) g p0 p1 p2 = true ↔
-      g > fastHs e ε kt p0 p1 p2 := by
+private lemma tieredHs_lt_iff {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
+    (e : HScalars) (kt g p0 p1 p2 : ℚ) :
+    tieredHs_lt e εθ εφ kt (soBound e εθ εφ) g p0 p1 p2 = true ↔
+      g > fastHs e εθ εφ kt p0 p1 p2 := by
   simp only [tieredHs_lt, Bool.or_eq_true, decide_eq_true_eq]
-  exact ⟨fun h => h.elim (fun hc => lt_of_le_of_lt (fastHs_le_cheapHs e ε kt p0 p1 p2) hc) id,
-    .inr⟩
+  exact ⟨fun h => h.elim
+    (fun hc => lt_of_le_of_lt (fastHs_le_cheapHs hεθ hεφ e kt p0 p1 p2) hc) id, .inr⟩
 
 end Gℚ_gt_maxHℚ
 
@@ -422,44 +417,48 @@ open Gℚ_gt_maxHℚ in
 /--
 A measure of how far an inner-shadow vertex S can "stick out".
 
-Second-order certificate: the ε-penalty carries the first partials, the
-exact second partials at the center (with multiplicities from the symmetric
-3×3 table), and a `9ε³/2` Lagrange remainder. The nine hoisted
-`(R·M₁)ᵀ·w`-style 3-vectors are rounded down to multiples of `10⁻¹³`
-(`gEntriesR`); the `4κℚ(1+3ε+(9/2)ε²)` term absorbs the `sinℚ`/`cosℚ`
-approximation error and this rounding for each chain at its weight
-(see `Gℚ_le_G`).
+Second-order anisotropic certificate: the per-axis radii `εα`, `εθ`, `εφ`
+weight the first partials, the exact second partials at the center (with
+multiplicities from the symmetric 3×3 table), and an `(εα+εθ+εφ)³/6`
+Lagrange remainder. The nine hoisted `(R·M₁)ᵀ·w`-style 3-vectors are rounded
+down to multiples of `10⁻¹³` (`gEntriesR`); with `E = εα+εθ+εφ`, the
+`4κℚ(1+E+E²/2)` term absorbs the `sinℚ`/`cosℚ` approximation error and this
+rounding for each chain at its weight (see `Gℚ_le_G`). On the diagonal
+`εα = εθ = εφ = ε` this recovers the isotropic remainder `9ε³/2` and slack
+`4κℚ(1+3ε+(9/2)ε²)`.
 -/
-def Gℚ (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) : ℚ :=
-  fastG (gEntriesR p w) ε S
+def Gℚ (p : Pose ℚ) (εα εθ εφ : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) : ℚ :=
+  fastG (gEntriesR p w) εα εθ εφ S
 
 open Gℚ_gt_maxHℚ in
 /--
 A measure of how far an outer-shadow vertex P can "reach" along w.
 
-Second-order certificate with Lagrange remainder `4ε³/3`. The six hoisted
-`M₂ᵀ·w`-style 3-vectors are rounded down to multiples of `10⁻¹³`
-(`hEntriesR`); the `3κℚ(1+2ε+2ε²)` term absorbs both the `sinℚ`/`cosℚ`
-approximation error and this rounding (see `H_le_Hℚ`).
+Second-order anisotropic certificate with per-axis radii `εθ`, `εφ` and
+Lagrange remainder `(εθ+εφ)³/6`. The six hoisted `M₂ᵀ·w`-style 3-vectors are
+rounded down to multiples of `10⁻¹³` (`hEntriesR`); with `E = εθ+εφ`, the
+`3κℚ(1+E+E²/2)` term absorbs both the `sinℚ`/`cosℚ` approximation error and
+this rounding (see `H_le_Hℚ`). On the diagonal `εθ = εφ = ε` this recovers
+the isotropic remainder `4ε³/3` and slack `3κℚ(1+2ε+2ε²)`.
 -/
-def Hℚ (p : Pose ℚ) (ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : ℚ :=
-  fastH (hEntriesR p w) ε (3 * κℚ * (1 + 2 * ε + 2 * ε^2)) P
+def Hℚ (p : Pose ℚ) (εθ εφ : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) : ℚ :=
+  fastH (hEntriesR p w) εθ εφ (3 * κℚ * (1 + (εθ + εφ) + (εθ + εφ)^2 / 2)) P
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
 -/
 def maxHℚ {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (p : Pose ℚ) (poly : Polyhedron ι (Fin 3 → ℚ)) (ε : ℚ) (w : Fin 2 → ℚ) : ℚ :=
-  Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ  |>.max' <| by
+    (p : Pose ℚ) (poly : Polyhedron ι (Fin 3 → ℚ)) (εθ εφ : ℚ) (w : Fin 2 → ℚ) : ℚ :=
+  Finset.image (Hℚ p εθ εφ w ∘ poly.v) Finset.univ  |>.max' <| by
     simp only [Finset.image_nonempty]
     exact Finset.univ_nonempty_iff.mpr ne
 
-private lemma fastG_eq_Gℚ (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
-    Gℚ_gt_maxHℚ.fastG (Gℚ_gt_maxHℚ.gEntriesR p w) ε S = Gℚ p ε S w := rfl
+private lemma fastG_eq_Gℚ (p : Pose ℚ) (εα εθ εφ : ℚ) (S : Fin 3 → ℚ) (w : Fin 2 → ℚ) :
+    Gℚ_gt_maxHℚ.fastG (Gℚ_gt_maxHℚ.gEntriesR p w) εα εθ εφ S = Gℚ p εα εθ εφ S w := rfl
 
-private lemma fastH_eq_Hℚ (p : Pose ℚ) (ε : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
-    Gℚ_gt_maxHℚ.fastH (Gℚ_gt_maxHℚ.hEntriesR p w) ε (3 * κℚ * (1 + 2 * ε + 2 * ε^2)) P =
-      Hℚ p ε w P :=
+private lemma fastH_eq_Hℚ (p : Pose ℚ) (εθ εφ : ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    Gℚ_gt_maxHℚ.fastH (Gℚ_gt_maxHℚ.hEntriesR p w) εθ εφ
+      (3 * κℚ * (1 + (εθ + εφ) + (εθ + εφ)^2 / 2)) P = Hℚ p εθ εφ w P :=
   rfl
 
 open Gℚ_gt_maxHℚ in
@@ -469,26 +468,26 @@ rounded `Mᵀ·w` 3-vectors to per-pose work for both `Gℚ` and `Hℚ`; the
 two-tier `tieredHs_lt` decides all but the near-binding vertices with the
 three first-order dot products alone. -/
 def Gℚ_gt_maxHℚ_check {ι : Type} [Fintype ι] [DecidableEq ι]
-    (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ)
+    (p : Pose ℚ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℚ) (S : Fin 3 → ℚ)
     (poly : Polyhedron ι (Fin 3 → ℚ)) (w : Fin 2 → ℚ) : Bool :=
   let hscalars := (hEntriesR p w).scalars
-  let g := fastG (gEntriesR p w) ε S
-  let kappaTerm := 3 * κℚ * (1 + 2 * ε + 2 * ε^2)
-  let soB := soBound hscalars ε
+  let g := fastG (gEntriesR p w) εα εθ₁ εφ₁ S
+  let kappaTerm := 3 * κℚ * (1 + (εθ₂ + εφ₂) + (εθ₂ + εφ₂)^2 / 2)
+  let soB := soBound hscalars εθ₂ εφ₂
   decide <| ∀ k : ι,
-    tieredHs_lt hscalars ε kappaTerm soB g (poly.v k 0) (poly.v k 1) (poly.v k 2) = true
+    tieredHs_lt hscalars εθ₂ εφ₂ kappaTerm soB g (poly.v k 0) (poly.v k 1) (poly.v k 2) = true
 
 theorem Gℚ_gt_maxHℚ_check_iff {ι : Type} [Fintype ι] [DecidableEq ι] [ne : Nonempty ι]
-    (p : Pose ℚ) (ε : ℚ) (S : Fin 3 → ℚ)
-    (poly : Polyhedron ι (Fin 3 → ℚ)) (w : Fin 2 → ℚ) :
-    Gℚ_gt_maxHℚ_check p ε S poly w = true ↔
-      Gℚ p ε S w > maxHℚ p poly ε w := by
+    (p : Pose ℚ) (εα εθ₁ εφ₁ : ℚ) {εθ₂ εφ₂ : ℚ} (hεθ₂ : 0 ≤ εθ₂) (hεφ₂ : 0 ≤ εφ₂)
+    (S : Fin 3 → ℚ) (poly : Polyhedron ι (Fin 3 → ℚ)) (w : Fin 2 → ℚ) :
+    Gℚ_gt_maxHℚ_check p εα εθ₁ εφ₁ εθ₂ εφ₂ S poly w = true ↔
+      Gℚ p εα εθ₁ εφ₁ S w > maxHℚ p poly εθ₂ εφ₂ w := by
   unfold Gℚ_gt_maxHℚ_check maxHℚ
-  simp only [decide_eq_true_eq, Gℚ_gt_maxHℚ.tieredHs_lt_iff]
+  simp only [decide_eq_true_eq, Gℚ_gt_maxHℚ.tieredHs_lt_iff hεθ₂ hεφ₂]
   rw [fastG_eq_Gℚ]
   constructor
   · intro hAll
-    show (Finset.image (Hℚ p ε w ∘ poly.v) Finset.univ).max' _ < Gℚ p ε S w
+    show (Finset.image (Hℚ p εθ₂ εφ₂ w ∘ poly.v) Finset.univ).max' _ < Gℚ p εα εθ₁ εφ₁ S w
     rw [Finset.max'_lt_iff]
     intro y hy
     rw [Finset.mem_image] at hy
@@ -504,19 +503,21 @@ theorem Gℚ_gt_maxHℚ_check_iff {ι : Type} [Fintype ι] [DecidableEq ι] [ne 
     exact ⟨k, Finset.mem_univ k, rfl⟩
 
 /--
-A compact way of saying "the pose satisfies the rational global theorem precondition at width ε".
+A compact way of saying "the pose satisfies the rational global theorem precondition at
+per-axis widths `εα εθ₁ εφ₁ εθ₂ εφ₂`".
 We require the existence of some inner-shadow vertex S from the polyhedron, and a covector w meant to express
 the direction we're projecting ℝ² → ℝ to find that S "sticks out too far" compared to all the
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
-    (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℚ) (ε : ℚ) : Type where
+    (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℚ)
+    (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℚ) : Type where
   j : ι
   p_in_4 : p ∈ fourInterval ℚ
   w : Fin 2 → ℚ
   w_unit : ‖toR2 w‖ = 1
-  exceeds : Gℚ p ε (poly_.v j) w > maxHℚ p poly_ ε w
+  exceeds : Gℚ p εα εθ₁ εφ₁ (poly_.v j) w > maxHℚ p poly_ εθ₂ εφ₂ w
 
 private lemma abs_le_abs_add_of_norm_sub_le {a b C : ℝ} (h : ‖a - b‖ ≤ C) : |a| ≤ |b| + C := by
   linarith [abs_sub_abs_le_abs_sub a b, (Real.norm_eq_abs _).symm ▸ h]
@@ -575,29 +576,30 @@ private lemma norm_sub_round13v_dot_le₄ {x : ℝ} {v P_ : Fin 3 → ℚ}
     ‖x - ((round13v v ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
   (norm_sub_round13v_dot_le hbase hsum).trans (by unfold κ; norm_num)
 
-private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
+private lemma Gℚ_le_G {p_ : Pose ℚ} {εα εθ εφ : ℚ}
+    (hεα : 0 ≤ εα) (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
     {S : ℝ³} {S_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - toR3 S_‖ ≤ κ) (hw : ‖toR2 w‖ = 1)
     (hp : (fourInterval ℚ).contains p_) :
-    Gℚ p_ ε S_ w ≤ GlobalTheorem.G p_.toReal ε ε ε S (toR2 w) := by
+    Gℚ p_ εα εθ εφ S_ w ≤ GlobalTheorem.G p_.toReal εα εθ εφ S (toR2 w) := by
   set pbar := p_.toReal with hpbar
   have hsum := sum_abs_le_of_approx hS hS_approx
   unfold Gℚ Gℚ_gt_maxHℚ.fastG GlobalTheorem.G
   rw [show pbar.inner S = pbar.rotR (pbar.rotM₁ S) by rw [Pose.inner_eq_RM]; rfl]
   show _ ≤ ⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-        ((ε : ℝ) * |⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-         (ε : ℝ) * |⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-         (ε : ℝ) * |⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-         1 / 2 * ((ε : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * ((ε : ℝ) * (ε : ℝ)) *
+        ((εα : ℝ) * |⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+         (εθ : ℝ) * |⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+         (εφ : ℝ) * |⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+         1 / 2 * ((εα : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    2 * ((εα : ℝ) * (εθ : ℝ)) *
                       |⟪rotR' (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * ((ε : ℝ) * (ε : ℝ)) *
+                    2 * ((εα : ℝ) * (εφ : ℝ)) *
                       |⟪rotR' (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    (ε : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotMθθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * ((ε : ℝ) * (ε : ℝ)) *
+                    (εθ : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotMθθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    2 * ((εθ : ℝ) * (εφ : ℝ)) *
                       |⟪rotR (p_.α : ℝ) (rotMθφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    (ε : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotMφφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫|) +
-         ((ε : ℝ) + (ε : ℝ) + (ε : ℝ))^3 / 6)
+                    (εφ : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotMφφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫|) +
+         ((εα : ℝ) + (εθ : ℝ) + (εφ : ℝ))^3 / 6)
   have h_RM : ‖⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
       (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1RTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
     refine norm_sub_round13v_dot_le₄ ?_ hsum
@@ -675,57 +677,42 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
   have hθφ_abs := abs_le_abs_add_of_norm_sub_le h_RMθφ
   have hφφ_abs := abs_le_abs_add_of_norm_sub_le h_RMφφ
   have h_κ : ((κℚ : ℚ) : ℝ) = κ := cast_κℚ
-  have hε_real : (0 : ℝ) ≤ ε := mod_cast hε
+  have hεα_real : (0 : ℝ) ≤ εα := mod_cast hεα
+  have hεθ_real : (0 : ℝ) ≤ εθ := mod_cast hεθ
+  have hεφ_real : (0 : ℝ) ≤ εφ := mod_cast hεφ
   show _ ≤ _
   push_cast
   rw [h_κ]
-  show _ -
-        ((ε : ℝ) * (|(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1R'Tw ⬝ᵥ S_ : ℚ) : ℝ)| +
-                    |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θRTw ⬝ᵥ S_ : ℚ) : ℝ)| +
-                    |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1φRTw ⬝ᵥ S_ : ℚ) : ℝ)|) +
-         ((ε : ℝ))^2 / 2 * (|(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1RTw ⬝ᵥ S_ : ℚ) : ℝ)| +
-                    2 * |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θR'Tw ⬝ᵥ S_ : ℚ) : ℝ)| +
-                    2 * |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1φR'Tw ⬝ᵥ S_ : ℚ) : ℝ)| +
-                    |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θθRTw ⬝ᵥ S_ : ℚ) : ℝ)| +
-                    2 * |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θφRTw ⬝ᵥ S_ : ℚ) : ℝ)| +
-                    |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1φφRTw ⬝ᵥ S_ : ℚ) : ℝ)|) +
-         9 * ((ε : ℝ))^3 / 2 + 4 * κ * (1 + 3 * ((ε : ℝ)) + 9/2 * ((ε : ℝ))^2)) ≤ _
-  -- `ε·Σ|real| ≤ ε·Σ(|rational| + 4κ)` for both penalty groups; the
-  -- `4κ(1 + 3ε + (9/2)ε²)` term closes the gap.
-  have hfo := mul_le_mul_of_nonneg_left
-    (add_le_add (add_le_add hR'_abs hRθ_abs) hRφ_abs) hε_real
-  have hso := mul_le_mul_of_nonneg_left
-    (by linarith [hRM_abs, hR'θ_abs, hR'φ_abs, hθθ_abs, hθφ_abs, hφφ_abs] :
-      |⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-        2 * |⟪rotR' (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-        2 * |⟪rotR' (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-        |⟪rotR (p_.α : ℝ) (rotMθθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-        2 * |⟪rotR (p_.α : ℝ) (rotMθφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-        |⟪rotR (p_.α : ℝ) (rotMφφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| ≤
-      |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1RTw ⬝ᵥ S_ : ℚ) : ℝ)| +
-        2 * |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θR'Tw ⬝ᵥ S_ : ℚ) : ℝ)| +
-        2 * |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1φR'Tw ⬝ᵥ S_ : ℚ) : ℝ)| +
-        |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θθRTw ⬝ᵥ S_ : ℚ) : ℝ)| +
-        2 * |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θφRTw ⬝ᵥ S_ : ℚ) : ℝ)| +
-        |(((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1φφRTw ⬝ᵥ S_ : ℚ) : ℝ)| + 36 * κ)
-    (by positivity : (0:ℝ) ≤ (ε : ℝ)^2 / 2)
-  linarith [hi_le, hfo, hso]
+  -- Each weighted `|real dot|` is at most the same weight times
+  -- `|rational dot| + 4κ`; with `E = εα+εθ+εφ`, the accumulated per-term
+  -- `4κ`-weights sum to exactly `4κ(E + E²/2)`, so together with the `4κ`
+  -- from `hi_le` the `4κ(1 + E + E²/2)` slack closes the gap.
+  have hfoα := mul_le_mul_of_nonneg_left hR'_abs hεα_real
+  have hfoθ := mul_le_mul_of_nonneg_left hRθ_abs hεθ_real
+  have hfoφ := mul_le_mul_of_nonneg_left hRφ_abs hεφ_real
+  have hsoαα := mul_le_mul_of_nonneg_left hRM_abs (mul_nonneg hεα_real hεα_real)
+  have hsoαθ := mul_le_mul_of_nonneg_left hR'θ_abs (mul_nonneg hεα_real hεθ_real)
+  have hsoαφ := mul_le_mul_of_nonneg_left hR'φ_abs (mul_nonneg hεα_real hεφ_real)
+  have hsoθθ := mul_le_mul_of_nonneg_left hθθ_abs (mul_nonneg hεθ_real hεθ_real)
+  have hsoθφ := mul_le_mul_of_nonneg_left hθφ_abs (mul_nonneg hεθ_real hεφ_real)
+  have hsoφφ := mul_le_mul_of_nonneg_left hφφ_abs (mul_nonneg hεφ_real hεφ_real)
+  linarith [hi_le, hfoα, hfoθ, hfoφ, hsoαα, hsoαθ, hsoαφ, hsoθθ, hsoθφ, hsoφφ]
 
-private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
+private lemma H_le_Hℚ {pbar : Pose ℚ} {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
     {P : ℝ³} {P_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
     (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1)
     (hp : (fourInterval ℚ).contains pbar) :
-    GlobalTheorem.H pbar.toReal ε ε (toR2 w) P ≤ Hℚ pbar ε w P_ := by
+    GlobalTheorem.H pbar.toReal εθ εφ (toR2 w) P ≤ Hℚ pbar εθ εφ w P_ := by
   have hsum := sum_abs_le_of_approx hP hP_approx
   unfold GlobalTheorem.H Hℚ Gℚ_gt_maxHℚ.fastH Pose.rotM₂ Pose.rotM₂θ Pose.rotM₂φ
         Pose.rotM₂θθ Pose.rotM₂θφ Pose.rotM₂φφ
   show ⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ +
-        (ε : ℝ) * |⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-        (ε : ℝ) * |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-        1 / 2 * ((ε : ℝ)^2 * |⟪rotMθθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-                   2 * ((ε : ℝ) * (ε : ℝ)) * |⟪rotMθφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-                   (ε : ℝ)^2 * |⟪rotMφφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫|) +
-        ((ε : ℝ) + (ε : ℝ))^3 / 6 ≤ _
+        (εθ : ℝ) * |⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+        (εφ : ℝ) * |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+        1 / 2 * ((εθ : ℝ)^2 * |⟪rotMθθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+                   2 * ((εθ : ℝ) * (εφ : ℝ)) * |⟪rotMθφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+                   (εφ : ℝ)^2 * |⟪rotMφφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫|) +
+        ((εθ : ℝ) + (εφ : ℝ))^3 / 6 ≤ _
   have h_M : ‖⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ -
       (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2tw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ := by
     refine norm_sub_round13v_dot_le₃ ?_ hsum
@@ -772,34 +759,34 @@ private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
   have hθφ_abs := abs_le_abs_add_of_norm_sub_le h_Mθφ
   have hφφ_abs := abs_le_abs_add_of_norm_sub_le h_Mφφ
   have h_κ : ((κℚ : ℚ) : ℝ) = κ := cast_κℚ
-  have hε_real : (0 : ℝ) ≤ ε := mod_cast hε
+  have hεθ_real : (0 : ℝ) ≤ εθ := mod_cast hεθ
+  have hεφ_real : (0 : ℝ) ≤ εφ := mod_cast hεφ
   push_cast
   rw [h_κ]
-  -- `ε·Σ|real| ≤ ε·Σ(|rational| + 3κ)` for both penalty groups; the
-  -- `3κ(1 + 2ε + 2ε²)` term closes the gap.
-  have hfo := mul_le_mul_of_nonneg_left (add_le_add hθ_abs hφ_abs) hε_real
-  have hso := mul_le_mul_of_nonneg_left
-    (by linarith [hθθ_abs, hθφ_abs, hφφ_abs] :
-      |⟪rotMθθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-        2 * |⟪rotMθφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-        |⟪rotMφφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| ≤
-      |(((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2θθtw ⬝ᵥ P_ : ℚ) : ℝ)| +
-        2 * |(((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2θφtw ⬝ᵥ P_ : ℚ) : ℝ)| +
-        |(((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2φφtw ⬝ᵥ P_ : ℚ) : ℝ)| + 12 * κ)
-    (by positivity : (0:ℝ) ≤ (ε : ℝ)^2 / 2)
-  linarith [hm_le, hfo, hso]
+  -- Each weighted `|real dot|` is at most the same weight times
+  -- `|rational dot| + 3κ`; with `E = εθ+εφ`, the accumulated per-term
+  -- `3κ`-weights sum to exactly `3κ(E + E²/2)`, so together with the `3κ`
+  -- from `hm_le` the `3κ(1 + E + E²/2)` slack closes the gap.
+  have hfoθ := mul_le_mul_of_nonneg_left hθ_abs hεθ_real
+  have hfoφ := mul_le_mul_of_nonneg_left hφ_abs hεφ_real
+  have hsoθθ := mul_le_mul_of_nonneg_left hθθ_abs (mul_nonneg hεθ_real hεθ_real)
+  have hsoθφ := mul_le_mul_of_nonneg_left hθφ_abs (mul_nonneg hεθ_real hεφ_real)
+  have hsoφφ := mul_le_mul_of_nonneg_left hφφ_abs (mul_nonneg hεφ_real hεφ_real)
+  linarith [hm_le, hfoθ, hfoφ, hsoθθ, hsoθφ, hsoφφ]
 
 /--
-[SY25] Theorem 43
+[SY25] Theorem 43, with per-axis widths and a box conclusion in place of the
+closed ball.
 -/
 theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
-    (p : Pose ℚ) (ε : ℚ) (hε : 0 ≤ ε)
+    (p : Pose ℚ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℚ)
+    (hεα : 0 ≤ εα) (hεθ₁ : 0 ≤ εθ₁) (hεφ₁ : 0 ≤ εφ₁) (hεθ₂ : 0 ≤ εθ₂) (hεφ₂ : 0 ≤ εφ₂)
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
     (happrox : κApproxPoly poly.vertices poly_)
-    (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p ε) :
-    ¬ ∃ q ∈ Metric.closedBall p.toReal ε, RupertPose q poly.hull := by
+    (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p εα εθ₁ εφ₁ εθ₂ εφ₂) :
+    ¬ ∃ q, Pose.near p.toReal (εθ₁ : ℝ) (εφ₁ : ℝ) (εθ₂ : ℝ) (εφ₂ : ℝ) (εα : ℝ) q ∧
+      RupertPose q poly.hull := by
   set pbar := p.toReal
-  have hp4 : (fourInterval ℝ).contains pbar := fourInterval_contains_toReal pc.p_in_4
   -- Step 1: Map S from poly_ to poly via the bijection
   let j := pc.j
   let i := happrox.bijection.symm j
@@ -810,7 +797,8 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     rwa [Equiv.apply_symm_apply] at this
   have hS_norm : ‖S_real‖ ≤ 1 := poly.vertex_radius_le_one i
   -- Step 2: Show maxH_real ≤ maxHℚ
-  have h_maxH_le : GlobalTheorem.maxH pbar poly ε ε (toR2 pc.w) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := by
+  have h_maxH_le : GlobalTheorem.maxH pbar poly εθ₂ εφ₂ (toR2 pc.w) ≤
+      ((maxHℚ p poly_ εθ₂ εφ₂ pc.w : ℚ) : ℝ) := by
     unfold GlobalTheorem.maxH
     apply Finset.max'_le
     simp only [Function.comp, Finset.mem_image, Finset.mem_univ, true_and]
@@ -818,31 +806,32 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     let k' := happrox.bijection k
     have hk_norm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
     have hk_approx : ‖poly.vertices.v k - poly_.toReal.v k'‖ ≤ κ := happrox.approx k
-    have h_le_Hℚ : GlobalTheorem.H pbar ε ε (toR2 pc.w) (poly.vertices.v k) ≤
-                    Hℚ p ε pc.w (poly_.v k') :=
-      H_le_Hℚ hε hk_norm
+    have h_le_Hℚ : GlobalTheorem.H pbar εθ₂ εφ₂ (toR2 pc.w) (poly.vertices.v k) ≤
+                    Hℚ p εθ₂ εφ₂ pc.w (poly_.v k') :=
+      H_le_Hℚ hεθ₂ hεφ₂ hk_norm
         (show ‖poly.vertices.v k - toR3 (poly_.v k')‖ ≤ κ from hk_approx)
         pc.w_unit pc.p_in_4
-    have h_le_max : Hℚ p ε pc.w (poly_.v k') ≤ maxHℚ p poly_ ε pc.w := by
+    have h_le_max : Hℚ p εθ₂ εφ₂ pc.w (poly_.v k') ≤ maxHℚ p poly_ εθ₂ εφ₂ pc.w := by
       unfold maxHℚ
-      have : (Hℚ p ε pc.w ∘ poly_.v) k' ∈
-              Finset.image (Hℚ p ε pc.w ∘ poly_.v) Finset.univ :=
+      have : (Hℚ p εθ₂ εφ₂ pc.w ∘ poly_.v) k' ∈
+              Finset.image (Hℚ p εθ₂ εφ₂ pc.w ∘ poly_.v) Finset.univ :=
         Finset.mem_image_of_mem _ (Finset.mem_univ k')
       exact Finset.le_max' _ _ this
-    have h_le_max_real : ((Hℚ p ε pc.w (poly_.v k') : ℚ) : ℝ) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) :=
+    have h_le_max_real : ((Hℚ p εθ₂ εφ₂ pc.w (poly_.v k') : ℚ) : ℝ) ≤
+        ((maxHℚ p poly_ εθ₂ εφ₂ pc.w : ℚ) : ℝ) :=
       mod_cast h_le_max
     linarith [h_le_Hℚ, h_le_max_real]
-  -- Step 3: Build the (diagonal) box precondition and apply global_theorem,
-  -- shrinking the closed ball into the per-axis box via `Pose.near_of_mem_closedBall`.
-  have hε' : (0 : ℝ) ≤ (ε : ℝ) := Rat.cast_nonneg.mpr hε
-  rintro ⟨q, hq_ball, hq_rupert⟩
-  exact GlobalTheorem.global_theorem pbar ε ε ε ε ε hε' hε' hε' hε' hε' poly {
+  -- Step 3: Build the box precondition and apply global_theorem directly.
+  rintro ⟨q, hq_near, hq_rupert⟩
+  exact GlobalTheorem.global_theorem pbar εα εθ₁ εφ₁ εθ₂ εφ₂
+    (Rat.cast_nonneg.mpr hεα) (Rat.cast_nonneg.mpr hεθ₁) (Rat.cast_nonneg.mpr hεφ₁)
+    (Rat.cast_nonneg.mpr hεθ₂) (Rat.cast_nonneg.mpr hεφ₂) poly {
     Si := i
     w := toR2 pc.w
     w_unit := pc.w_unit
     exceeds := by
-      have hG_le := Gℚ_le_G hε hS_norm hS_approx pc.w_unit pc.p_in_4
-      have hexceeds_real : ((Gℚ p ε (poly_.v pc.j) pc.w : ℚ) : ℝ) >
-                            ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := mod_cast pc.exceeds
+      have hG_le := Gℚ_le_G hεα hεθ₁ hεφ₁ hS_norm hS_approx pc.w_unit pc.p_in_4
+      have hexceeds_real : ((Gℚ p εα εθ₁ εφ₁ (poly_.v pc.j) pc.w : ℚ) : ℝ) >
+                            ((maxHℚ p poly_ εθ₂ εφ₂ pc.w : ℚ) : ℝ) := mod_cast pc.exceeds
       linarith [hG_le, hexceeds_real, h_maxH_le]
-  } ⟨q, Pose.near_of_mem_closedBall hq_ball, hq_rupert⟩
+  } ⟨q, hq_near, hq_rupert⟩
