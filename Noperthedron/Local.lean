@@ -164,6 +164,28 @@ private lemma inner_vertex_mem_interior {ι : Type} [Fintype ι] [Nonempty ι]
     simp only [Pose.inner_eq_RM, Pose.rotR, Pose.rotM₁, Function.comp_apply]
   rw [← h_outer_eq, ← h_inner_eq]; exact hΨ₂ h_inner_in_closure
 
+/-- Convert a strict comparison of projected norms into a strict comparison of squared
+inner products with the axis vectors, via `pythagoras` (tail of `local_theorem`). -/
+private lemma inner_sq_lt_of_rotM_norm_lt {θ₁ φ₁ θ₂ φ₂ : ℝ} {P Q : Euc(3)}
+    (h_norm_eq : ‖P‖ = ‖Q‖)
+    (h : ‖rotM θ₁ φ₁ P‖ < ‖rotM θ₂ φ₂ Q‖) :
+    ⟪vecX θ₂ φ₂, Q⟫ ^ 2 < ⟪vecX θ₁ φ₁, P⟫ ^ 2 := by
+  rw [← sq_lt_sq₀ (norm_nonneg _) (norm_nonneg _)] at h
+  simp only [Local.pythagoras, h_norm_eq] at h
+  linarith
+
+/-- Turn a squared comparison into a signed one: if `x² < y²` and the `(-1)^σP`-signed `y`
+is positive, then any signed `x` lies below it (tail of `local_theorem`). -/
+private lemma neg_one_pow_mul_lt_of_sq_lt_sq {x y : ℝ} (σQ σP : ℕ)
+    (hsq : x ^ 2 < y ^ 2) (hy : 0 < (-1 : ℝ) ^ σP * y) :
+    (-1 : ℝ) ^ σQ * x < (-1 : ℝ) ^ σP * y :=
+  calc (-1 : ℝ) ^ σQ * x
+      ≤ |(-1 : ℝ) ^ σQ * x| := le_abs_self _
+    _ = |x| := by rw [abs_mul, abs_neg_one_pow, one_mul]
+    _ < |y| := sq_lt_sq.mp hsq
+    _ = |(-1 : ℝ) ^ σP * y| := by rw [abs_mul, abs_neg_one_pow, one_mul]
+    _ = (-1 : ℝ) ^ σP * y := abs_of_pos hy
+
 /--
   [SY25] Theorem 36
 -/
@@ -193,11 +215,9 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
   have hP_ (i) : ‖P_ i‖ ≤ 1 := by
-    rw [norm_smul, Real.norm_eq_abs, abs_neg_one_pow, one_mul]
-    exact poly.vertex_radius_le_one (Pi i)
+    simpa [P_, P, norm_smul, abs_neg_one_pow] using poly.vertex_radius_le_one (Pi i)
   have hQ_ (i) : ‖Q_ i‖ ≤ 1 := by
-    rw [norm_smul, Real.norm_eq_abs, abs_neg_one_pow, one_mul]
-    exact poly.vertex_radius_le_one (Qi i)
+    simpa [Q_, Q, norm_smul, abs_neg_one_pow] using poly.vertex_radius_le_one (Qi i)
   have hPQ_ (i) : P_ i = K (Q_ i) := by
     simp [P_, Q_, K]
     rw [smul_smul, hL]
@@ -207,16 +227,14 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     norm_num
   have h₁ : Y ∈ Spanp P_ ∧ Z ∈ Spanp P_ := by
     constructor
-    · have h₄ (i) : 0 < ⟪vecX p.θ₁ p.φ₁, P_ i⟫ := by
-        specialize hσP₂ i
-        rw [←real_inner_smul_right] at hσP₂
-        exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ hσP₂
+    · have h₄ (i) : 0 < ⟪vecX p.θ₁ p.φ₁, P_ i⟫ :=
+        Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁
+          (by simpa [P_, Pose.vecX₁, ← real_inner_smul_right] using hσP₂ i)
       refine vecX_spanning P_ hθ₁ hφ₁ ?_ hP_ h₄
       exact spanning_neg σP span₁
-    · have h₅ (i) : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ := by
-        specialize hσQ₂ i
-        rw [←real_inner_smul_right] at hσQ₂
-        exact Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂ hσQ₂
+    · have h₅ (i) : 0 < ⟪vecX p.θ₂ p.φ₂, Q_ i⟫ :=
+        Bounding.XPgt0 (hQ_ i) hε hθ₂ hφ₂
+          (by simpa [Q_, Pose.vecX₂, ← real_inner_smul_right] using hσQ₂ i)
       have h₆ : vecX p.θ₂ p.φ₂ ∈ Spanp Q_ := by
         refine vecX_spanning Q_ hθ₂ hφ₂ ?_ hQ_ h₅
         exact spanning_neg σQ span₂
@@ -253,17 +271,12 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have h_norm_bound : ‖rotM p.θ₁ p.φ₁ (P i)‖ < ‖rotM p.θ₂ p.φ₂ (Q i)‖ := by
     rw [← Bounding.rotR_preserves_norm p.α]; exact h₈ _ h_sect
   -- Step 3: Apply pythagoras to convert norm bounds to inner product bounds
-  have h_inner_sq : ⟪vecX p.θ₂ p.φ₂, Q i⟫^2 < ⟪Y, P i⟫^2 := by
-    have h_norm_eq : ‖P i‖ = ‖Q i‖ := by rw [hL i, L.norm_map]
-    rw [←sq_lt_sq₀ (norm_nonneg _) (norm_nonneg _)] at h_norm_bound
-    -- pythagoras gives: ‖rotM θ φ P‖² = ‖P‖² - ⟪vecX θ φ, P⟫²
-    -- So: ‖P‖² - ⟪Y, P i⟫² < ‖Q‖² - ⟪vecX θ₂ φ₂, Q i⟫² with ‖P‖ = ‖Q‖
-    simp only [Local.pythagoras, h_norm_eq] at h_norm_bound
-    linarith
+  have h_inner_sq : ⟪vecX p.θ₂ p.φ₂, Q i⟫^2 < ⟪Y, P i⟫^2 :=
+    inner_sq_lt_of_rotM_norm_lt (by rw [hL i, L.norm_map]) h_norm_bound
   -- Step 4: Handle sign conventions using |(-1)^σ * x| = |x|
-  have hYP_pos : 0 < ⟪Y, P_ i⟫ := by
-    have h_eq : ⟪vecX p_.θ₁ p_.φ₁, P_ i⟫ = (-1 : ℝ)^σP * ⟪p_.vecX₁, P i⟫ := by simp only [P_, real_inner_smul_right, Pose.vecX₁]
-    exact Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁ (by rw [h_eq]; exact hσP₂ i)
+  have hYP_pos : 0 < ⟪Y, P_ i⟫ :=
+    Bounding.XPgt0 (hP_ i) hε hθ₁ hφ₁
+      (by simpa [P_, Pose.vecX₁, ← real_inner_smul_right] using hσP₂ i)
   -- ⟪Z, P_ i⟫ = (-1)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ and ⟪Y, P_ i⟫ = (-1)^σP * ⟪Y, P i⟫
   have h_ZP : ⟪Z, P_ i⟫ = (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫ := by
     simp only [Z, K, P_, FunLike.coe_smul', _root_.Pi.smul_apply,
@@ -276,10 +289,4 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have h_YP : ⟪Y, P_ i⟫ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := by simp only [P_, real_inner_smul_right]
   rw [h_ZP, h_YP]
   -- The right-hand side is positive, so compare via absolute values
-  have hYP_sign : 0 < (-1 : ℝ)^σP * ⟪Y, P i⟫ := h_YP ▸ hYP_pos
-  calc (-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫
-      ≤ |(-1 : ℝ)^σQ * ⟪vecX p.θ₂ p.φ₂, Q i⟫| := le_abs_self _
-    _ = |⟪vecX p.θ₂ p.φ₂, Q i⟫| := by rw [abs_mul, abs_neg_one_pow, one_mul]
-    _ < |⟪Y, P i⟫| := sq_lt_sq.mp h_inner_sq
-    _ = |(-1 : ℝ)^σP * ⟪Y, P i⟫| := by rw [abs_mul, abs_neg_one_pow, one_mul]
-    _ = (-1 : ℝ)^σP * ⟪Y, P i⟫ := abs_of_pos hYP_sign
+  exact neg_one_pow_mul_lt_of_sq_lt_sq σQ σP h_inner_sq (h_YP ▸ hYP_pos)
