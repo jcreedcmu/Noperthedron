@@ -34,8 +34,8 @@ rotation map once, at the matrix-entry level; the `differentiableAt_*` family be
 
 /-- Joint differentiability of `rotM` in the two angles and the vector. -/
 @[fun_prop]
-lemma differentiable_rotM_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {f g : E → ℝ} {h : E → ℝ³}
+lemma differentiable_rotM_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
     (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
     Differentiable ℝ fun x => rotM (f x) (g x) (h x) := by
   rw [differentiable_piLp]; intro i
@@ -43,8 +43,8 @@ lemma differentiable_rotM_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace �
 
 /-- Joint differentiability of `rotMθ` in the two angles and the vector. -/
 @[fun_prop]
-lemma differentiable_rotMθ_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {f g : E → ℝ} {h : E → ℝ³}
+lemma differentiable_rotMθ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
     (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
     Differentiable ℝ fun x => rotMθ (f x) (g x) (h x) := by
   rw [differentiable_piLp]; intro i
@@ -52,8 +52,8 @@ lemma differentiable_rotMθ_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace
 
 /-- Joint differentiability of `rotMφ` in the two angles and the vector. -/
 @[fun_prop]
-lemma differentiable_rotMφ_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {f g : E → ℝ} {h : E → ℝ³}
+lemma differentiable_rotMφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
     (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
     Differentiable ℝ fun x => rotMφ (f x) (g x) (h x) := by
   rw [differentiable_piLp]; intro i
@@ -61,8 +61,8 @@ lemma differentiable_rotMφ_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace
 
 /-- Joint differentiability of `rotR` in the angle and the vector. -/
 @[fun_prop]
-lemma differentiable_rotR_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {f : E → ℝ} {h : E → ℝ²}
+lemma differentiable_rotR_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f : X → ℝ} {h : X → ℝ²}
     (hf : Differentiable ℝ f) (hh : Differentiable ℝ h) :
     Differentiable ℝ fun x => rotR (f x) (h x) := by
   rw [differentiable_piLp]; intro i
@@ -70,8 +70,8 @@ lemma differentiable_rotR_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace �
 
 /-- Joint differentiability of `rotR'` in the angle and the vector. -/
 @[fun_prop]
-lemma differentiable_rotR'_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {f : E → ℝ} {h : E → ℝ²}
+lemma differentiable_rotR'_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f : X → ℝ} {h : X → ℝ²}
     (hf : Differentiable ℝ f) (hh : Differentiable ℝ h) :
     Differentiable ℝ fun x => rotR' (f x) (h x) := by
   rw [differentiable_piLp]; intro i
@@ -187,10 +187,7 @@ The result is: `fderiv (⟪f·, w⟫) y d = ⟪fderiv f y d, w⟫` when `w` is c
 lemma fderiv_inner_const {n : ℕ} (f : E n → ℝ²) (w : ℝ²) (y : E n) (d : E n)
     (hf : DifferentiableAt ℝ f y) :
     (fderiv ℝ (fun z => ⟪f z, w⟫) y) d = ⟪(fderiv ℝ f y) d, w⟫ := by
-  have hInner := fderiv_inner_apply ℝ hf (differentiableAt_const w) d
-  rw [(hasFDerivAt_const w y).fderiv] at hInner
-  simp only [zero_apply, inner_zero_right, zero_add] at hInner
-  exact hInner
+  simpa [(hasFDerivAt_const w y).fderiv] using fderiv_inner_apply ℝ hf (differentiableAt_const w) d
 
 /-- |⟪A S, w⟫ / ‖S‖| ≤ 1 when ‖A‖ ≤ 1 and ‖w‖ = 1 -/
 lemma inner_bound_helper (A : ℝ³ →L[ℝ] ℝ²) (S : ℝ³) (w : ℝ²)
@@ -271,10 +268,8 @@ These factor out the lineDeriv_eq_fderiv + HasLineDerivAt pattern.
 
 /-- Helper for deriv → fderiv composition pattern -/
 lemma hasDerivAt_comp_add (f : ℝ → ℝ²) (f' : ℝ²) (a : ℝ) (hf : HasDerivAt f f' a) :
-    HasDerivAt (fun t => f (a + t)) f' 0 := by
-  have hid : HasDerivAt (fun t : ℝ => a + t) 1 0 := by simpa using (hasDerivAt_id 0).const_add a
-  have hf' : HasDerivAt f f' (a + 0) := by simp only [add_zero]; exact hf
-  exact HasDerivAt.comp_const_add a 0 hf'
+    HasDerivAt (fun t => f (a + t)) f' 0 :=
+  HasDerivAt.comp_const_add a 0 (by simpa using hf)
 
 /-- For a differentiable function, the `fderiv` along a basis direction can be computed
 as the one-variable derivative along the line through that direction. -/
