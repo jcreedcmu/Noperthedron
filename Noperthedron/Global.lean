@@ -65,19 +65,32 @@ theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
 -- imported from Noperthedron.Global.RotationPartials (via SecondPartialInner/SecondPartialOuter)
 
 /--
-A measure of how far an inner-shadow vertex S can "stick out"
+A measure of how far an inner-shadow vertex S can "stick out".
+
+Second-order version: the ε-penalty carries the first partials, the exact
+second partials at the center (weighted by multiplicity from the symmetric
+3×3 table), and a `(3³/6)·ε³ = 9ε³/2` Lagrange remainder from the bounded
+third partials.  [SY25] uses the weaker first-order penalty `9ε²/2`.
 -/
 noncomputable
 def G (p : Pose ℝ) (ε : ℝ) (S : ℝ³) (w : ℝ²) : ℝ :=
   ⟪p.inner S, w⟫ - (ε * (|⟪p.rotR' (p.rotM₁ S), w⟫| + |⟪p.rotR (p.rotM₁θ S), w⟫| + |⟪p.rotR (p.rotM₁φ S), w⟫|)
-  + 9 * ε^2 / 2)
+  + ε^2 / 2 * (|⟪p.rotR (p.rotM₁ S), w⟫|
+      + 2 * |⟪p.rotR' (p.rotM₁θ S), w⟫| + 2 * |⟪p.rotR' (p.rotM₁φ S), w⟫|
+      + |⟪p.rotR (p.rotM₁θθ S), w⟫| + 2 * |⟪p.rotR (p.rotM₁θφ S), w⟫|
+      + |⟪p.rotR (p.rotM₁φφ S), w⟫|)
+  + 9 * ε^3 / 2)
 
 /--
 A measure of how far an outer-shadow vertex P can "reach" along w.
+
+Second-order version; the Lagrange remainder is `(2³/6)·ε³ = 4ε³/3`.
 -/
 noncomputable
 def H (p : Pose ℝ) (ε : ℝ) (w : ℝ²) (P : ℝ³) : ℝ :=
-  ⟪p.rotM₂ P, w⟫ + ε * (|⟪p.rotM₂θ P, w⟫| + |⟪p.rotM₂φ P, w⟫|) + 2 * ε^2
+  ⟪p.rotM₂ P, w⟫ + ε * (|⟪p.rotM₂θ P, w⟫| + |⟪p.rotM₂φ P, w⟫|)
+  + ε^2 / 2 * (|⟪p.rotM₂θθ P, w⟫| + 2 * |⟪p.rotM₂θφ P, w⟫| + |⟪p.rotM₂φφ P, w⟫|)
+  + 4 * ε^3 / 3
 
 /--
 A measure of how far all of the outer-shadow vertices can "reach" along w.
@@ -369,6 +382,89 @@ lemma partials_helper_outer {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι
   rw [Finset.mul_sum, Fin.sum_univ_two, ← abs_norm, ← abs_mul, ← abs_mul]
   rw [partials_helper3 pc P, partials_helper4 pc P]
 
+private lemma innerParams_0 (pbar : Pose ℝ) : pbar.innerParams.ofLp 0 = pbar.α := by
+  simp [Pose.innerParams]
+private lemma innerParams_1 (pbar : Pose ℝ) : pbar.innerParams.ofLp 1 = pbar.θ₁ := by
+  simp [Pose.innerParams]
+private lemma innerParams_2 (pbar : Pose ℝ) : pbar.innerParams.ofLp 2 = pbar.φ₁ := by
+  simp [Pose.innerParams]
+private lemma outerParams_0 (pbar : Pose ℝ) : pbar.outerParams.ofLp 0 = pbar.θ₂ := by
+  simp [Pose.outerParams]
+private lemma outerParams_1 (pbar : Pose ℝ) : pbar.outerParams.ofLp 1 = pbar.φ₂ := by
+  simp [Pose.outerParams]
+
+private lemma second_partials_key {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
+    {poly : GoodPoly ι} (pc : GlobalTheoremPrecondition poly pbar ε) (i j : Fin 3) :
+    ‖pc.S‖ * |nth_partial i (nth_partial j pc.fu) pbar.innerParams| =
+      |⟪inner_second_partial_A pbar.α pbar.θ₁ pbar.φ₁ i j pc.S, pc.w⟫| := by
+  have hSne := pc.norm_S_ne_zero
+  have hf_smooth : ContDiff ℝ 2 (rotproj_inner pc.S pc.w) := by
+    change ContDiff ℝ 2 (fun x : ℝ³ => ⟪rotprojRM (x 1) (x 2) (x 0) pc.S, pc.w⟫)
+    simp [inner, rotprojRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
+    fun_prop
+  have hg_diff : Differentiable ℝ (nth_partial j (rotproj_inner pc.S pc.w)) :=
+    (hf_smooth.fderiv_right (by decide : (1 : WithTop ℕ∞) + 1 ≤ 2) |>.clm_apply
+      contDiff_const).differentiable (by decide)
+  have hdiv : nth_partial i (nth_partial j pc.fu) pbar.innerParams =
+      nth_partial i (nth_partial j (rotproj_inner pc.S pc.w)) pbar.innerParams / ‖pc.S‖ :=
+    nth_partial_nth_partial_div_const j i (rotproj_inner pc.S pc.w) ‖pc.S‖ pbar.innerParams
+      (Differentiable.rotproj_inner pc.S pc.w) hg_diff
+  rw [hdiv, second_partial_rotproj_inner_eq pc.S pc.w pbar.innerParams i j,
+    innerParams_0, innerParams_1, innerParams_2, abs_div, abs_norm]
+  field_simp
+
+/-- The weighted sum of second-partial magnitudes appearing in `G` equals
+`‖S‖` times the full 3×3 sum of second partials of `pc.fu` at the center. -/
+lemma second_partials_helper {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
+    {poly : GoodPoly ι} (pc : GlobalTheoremPrecondition poly pbar ε) :
+    |⟪pbar.rotR (pbar.rotM₁ pc.S), pc.w⟫|
+      + 2 * |⟪pbar.rotR' (pbar.rotM₁θ pc.S), pc.w⟫| + 2 * |⟪pbar.rotR' (pbar.rotM₁φ pc.S), pc.w⟫|
+      + |⟪pbar.rotR (pbar.rotM₁θθ pc.S), pc.w⟫| + 2 * |⟪pbar.rotR (pbar.rotM₁θφ pc.S), pc.w⟫|
+      + |⟪pbar.rotR (pbar.rotM₁φφ pc.S), pc.w⟫|
+    = ‖pc.S‖ * ∑ i, ∑ j, |nth_partial i (nth_partial j pc.fu) pbar.innerParams| := by
+  simp only [Fin.sum_univ_three, mul_add, second_partials_key pc]
+  simp only [inner_second_partial_A, neg_apply, ContinuousLinearMap.coe_comp,
+    Function.comp_apply, inner_neg_left, abs_neg]
+  simp only [Pose.rotR, Pose.rotR', Pose.rotM₁, Pose.rotM₁θ, Pose.rotM₁φ,
+    Pose.rotM₁θθ, Pose.rotM₁θφ, Pose.rotM₁φφ]
+  ring
+
+private lemma second_partials_key_outer {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
+    {poly : GoodPoly ι} (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³)
+    (hP : ‖P‖ ≠ 0) (i j : Fin 2) :
+    ‖P‖ * |nth_partial i (nth_partial j (pc.fu_outer P)) pbar.outerParams| =
+      |⟪outer_second_partial_A pbar.θ₂ pbar.φ₂ i j P, pc.w⟫| := by
+  have hf_smooth : ContDiff ℝ 2 (fun z : ℝ² => ⟪rotM (z.ofLp 0) (z.ofLp 1) P, pc.w⟫) := by
+    apply ContDiff.inner ℝ _ contDiff_const
+    rw [contDiff_piLp]; intro m
+    simp only [rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
+    fin_cases m <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
+  have hg_diff : Differentiable ℝ
+      (nth_partial j (fun z : ℝ² => ⟪rotM (z.ofLp 0) (z.ofLp 1) P, pc.w⟫)) :=
+    (hf_smooth.fderiv_right (by decide : (1 : WithTop ℕ∞) + 1 ≤ 2) |>.clm_apply
+      contDiff_const).differentiable (by decide)
+  have hdiv : nth_partial i (nth_partial j (pc.fu_outer P)) pbar.outerParams =
+      nth_partial i (nth_partial j (fun z : ℝ² => ⟪rotM (z.ofLp 0) (z.ofLp 1) P, pc.w⟫))
+        pbar.outerParams / ‖P‖ :=
+    nth_partial_nth_partial_div_const j i _ ‖P‖ pbar.outerParams
+      (hf_smooth.differentiable (by decide)) hg_diff
+  rw [hdiv, second_partial_rotproj_outer_eq P pc.w pbar.outerParams i j,
+    outerParams_0, outerParams_1, abs_div, abs_norm]
+  field_simp
+
+/-- Outer analog of `second_partials_helper`. -/
+lemma second_partials_helper_outer {pbar : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι]
+    {poly : GoodPoly ι} (pc : GlobalTheoremPrecondition poly pbar ε) (P : ℝ³) :
+    |⟪pbar.rotM₂θθ P, pc.w⟫| + 2 * |⟪pbar.rotM₂θφ P, pc.w⟫| + |⟪pbar.rotM₂φφ P, pc.w⟫|
+    = ‖P‖ * ∑ i, ∑ j, |nth_partial i (nth_partial j (pc.fu_outer P)) pbar.outerParams| := by
+  by_cases hP : ‖P‖ = 0
+  · rw [norm_eq_zero.mp hP]
+    simp [Pose.rotM₂θθ, Pose.rotM₂θφ, Pose.rotM₂φφ]
+  · simp only [Fin.sum_univ_two, mul_add, second_partials_key_outer pc P hP]
+    simp only [outer_second_partial_A]
+    simp only [Pose.rotM₂θθ, Pose.rotM₂θφ, Pose.rotM₂φφ]
+    ring
+
 theorem fu_times_norm_S_eq_f {pbar p : Pose ℝ} {ε : ℝ} {ι : Type} [Fintype ι] [Nonempty ι] {poly : GoodPoly ι}
     (pc : GlobalTheoremPrecondition poly pbar ε) :
     pc.fu p.innerParams * ‖pc.S‖ = pc.f p.innerParams := by
@@ -395,19 +491,30 @@ lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
     G pbar ε pc.S pc.w ≤ pc.Sval p := by
   have S_norm_pos : 0 < ‖pc.S‖ := pc.norm_S_gt_zero
   have S_norm_le_one : ‖pc.S‖ ≤ 1 := pc.norm_S_le_one
-  have hz := bounded_partials_control_difference
-    pc.fu ((rotation_partials_exist S_norm_pos).of_le (by norm_num))
+  have hz := bounded_partials_control_difference2
+    pc.fu (rotation_partials_exist S_norm_pos)
     pbar.innerParams p.innerParams ε hε
     (closed_ball_imp_inner_params_near p_near_pbar)
-    (rotation_partials_bounded pc.S pc.w_unit)
+    (rotation_third_partials_bounded pc.S pc.w_unit)
   simp only [G]
   refine sub_le_of_abs_sub_le_right ?_
-  have hzs := mul_le_mul_of_nonneg_right hz (ha := le_of_lt S_norm_pos)
-  rw [← rotproj_helper pc, partials_helper pc]
-  norm_num at hzs
-  ring_nf at hzs ⊢
-  nth_grw 3 [S_norm_le_one] at hzs
-  simp_all only [one_mul]
+  have h0 := mul_le_mul_of_nonneg_right hz (ha := le_of_lt S_norm_pos)
+  rw [rotproj_helper pc] at h0
+  have h1 : (ε * ∑ i, |nth_partial i pc.fu pbar.innerParams|
+        + ε ^ 2 / 2 * ∑ i, ∑ j, |nth_partial i (nth_partial j pc.fu) pbar.innerParams|
+        + ((3 : ℕ) : ℝ) ^ 3 / 6 * ε ^ 3) * ‖pc.S‖
+      = ε * (‖pc.S‖ * ∑ i, |nth_partial i pc.fu pbar.innerParams|)
+        + ε ^ 2 / 2 * (‖pc.S‖ * ∑ i, ∑ j, |nth_partial i (nth_partial j pc.fu) pbar.innerParams|)
+        + 9 / 2 * ε ^ 3 * ‖pc.S‖ := by
+    push_cast
+    ring
+  rw [h1, ← partials_helper pc, ← second_partials_helper pc] at h0
+  refine h0.trans ?_
+  have hcube : 9 / 2 * ε ^ 3 * ‖pc.S‖ ≤ 9 / 2 * ε ^ 3 := by
+    nth_rewrite 2 [← mul_one (9 / 2 * ε ^ 3)]
+    exact mul_le_mul_of_nonneg_left S_norm_le_one
+      (mul_nonneg (by norm_num) (pow_nonneg hε 3))
+  linarith
 
 /--
 Use the analytic bounds on rotations, Lemmas 19 and 20.
@@ -436,25 +543,34 @@ lemma global_theorem_inequality_iv {ι : Type} [Fintype ι] [Nonempty ι]
   have P_norm_nonzero : ‖P‖ ≠ 0 := Ne.symm (ne_of_lt P_norm_pos)
   have P_norm_le_one : ‖P‖ ≤ 1 := poly.vertex_radius_le_one i
 
-  have hz := bounded_partials_control_difference
-    (pc.fu_outer P) ((rotation_partials_exist_outer P_norm_pos).of_le (by norm_num))
+  have hz := bounded_partials_control_difference2
+    (pc.fu_outer P) (rotation_partials_exist_outer P_norm_pos)
     pbar.outerParams p.outerParams ε hε
     (closed_ball_imp_outer_params_near p_near_pbar)
-    (rotation_partials_bounded_outer P pc.w_unit)
-  simp_all only [H]
+    (rotation_third_partials_bounded_outer P pc.w_unit)
+  simp only [H]
   rw [abs_sub_comm] at hz
   replace hz := sub_le_of_abs_sub_le_right hz
   rw [tsub_le_iff_right] at hz
   replace hz := mul_le_mul_of_nonneg_right hz (ha := le_of_lt P_norm_pos)
   rw [add_mul] at hz
   rw [pc.fu_pose_eq_outer P_norm_nonzero, pc.fu_pose_eq_outer P_norm_nonzero] at hz
-  rw [partials_helper_outer pc]
+  have h1 : (ε * ∑ i, |nth_partial i (pc.fu_outer P) pbar.outerParams|
+        + ε ^ 2 / 2 * ∑ i, ∑ j, |nth_partial i (nth_partial j (pc.fu_outer P)) pbar.outerParams|
+        + ((2 : ℕ) : ℝ) ^ 3 / 6 * ε ^ 3) * ‖P‖
+      = ε * (‖P‖ * ∑ i, |nth_partial i (pc.fu_outer P) pbar.outerParams|)
+        + ε ^ 2 / 2 * (‖P‖ * ∑ i, ∑ j, |nth_partial i (nth_partial j (pc.fu_outer P)) pbar.outerParams|)
+        + 4 / 3 * ε ^ 3 * ‖P‖ := by
+    push_cast
+    ring
+  rw [h1, ← partials_helper_outer pc P, ← second_partials_helper_outer pc P] at hz
   rw [show pbar.rotM₂ P = pbar.outer P by rw [Pose.outer_eq_M]]
-  conv => enter [2, 1, 1]; rw [real_inner_comm]
-  ring_nf at hz ⊢
-  nth_grw 2 [P_norm_le_one] at hz
-  simp only [mul_one] at hz
-  exact hz
+  rw [real_inner_comm pc.w (pbar.outer P)]
+  have hcube : 4 / 3 * ε ^ 3 * ‖P‖ ≤ 4 / 3 * ε ^ 3 := by
+    nth_rewrite 2 [← mul_one (4 / 3 * ε ^ 3)]
+    exact mul_le_mul_of_nonneg_left P_norm_le_one
+      (mul_nonneg (by norm_num) (pow_nonneg hε 3))
+  linarith
 
 /--
 Here we run through the "sequence of inequalities [which yield] the desired contradiction"
