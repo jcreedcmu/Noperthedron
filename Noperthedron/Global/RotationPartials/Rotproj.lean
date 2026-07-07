@@ -27,9 +27,8 @@ private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 lemma Differentiable.rotprojRM (S : ℝ³) :
     Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
   unfold _root_.rotprojRM
-  rw [differentiable_piLp]
-  intro i
-  fin_cases i <;> simp [rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
+  exact differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotM_comp (by fun_prop) (by fun_prop) (differentiable_const S))
 
 @[fun_prop]
 lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_inner S w) :=

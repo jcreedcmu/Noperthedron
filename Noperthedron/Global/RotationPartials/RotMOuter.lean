@@ -41,10 +41,8 @@ def rotM' (pbar : Pose ℝ) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
   columnsCLM ![rotMθ pbar.θ₂ pbar.φ₂ P, rotMφ pbar.θ₂ pbar.φ₂ P]
 
 lemma Differentiable.rotM_outer (P : ℝ³) :
-    Differentiable ℝ fun (x : ℝ²) => (rotM (x 0) (x 1)) P := by
-  rw [differentiable_piLp]
-  intro i
-  fin_cases i <;> simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
+    Differentiable ℝ fun (x : ℝ²) => (rotM (x 0) (x 1)) P :=
+  differentiable_rotM_comp (by fun_prop) (by fun_prop) (differentiable_const P)
 
 @[simp]
 lemma rotM'_single_0 (pbar : Pose ℝ) (P : ℝ³) :
