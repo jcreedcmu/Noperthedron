@@ -579,22 +579,25 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
     {S : ℝ³} {S_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
     (hS : ‖S‖ ≤ 1) (hS_approx : ‖S - toR3 S_‖ ≤ κ) (hw : ‖toR2 w‖ = 1)
     (hp : (fourInterval ℚ).contains p_) :
-    Gℚ p_ ε S_ w ≤ GlobalTheorem.G p_.toReal ε S (toR2 w) := by
+    Gℚ p_ ε S_ w ≤ GlobalTheorem.G p_.toReal ε ε ε S (toR2 w) := by
   set pbar := p_.toReal with hpbar
   have hsum := sum_abs_le_of_approx hS hS_approx
   unfold Gℚ Gℚ_gt_maxHℚ.fastG GlobalTheorem.G
   rw [show pbar.inner S = pbar.rotR (pbar.rotM₁ S) by rw [Pose.inner_eq_RM]; rfl]
   show _ ≤ ⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-        ((ε : ℝ) * (|⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    |⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    |⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫|) +
-         (ε : ℝ)^2 / 2 * (|⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * |⟪rotR' (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * |⟪rotR' (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    |⟪rotR (p_.α : ℝ) (rotMθθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * |⟪rotR (p_.α : ℝ) (rotMθφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    |⟪rotR (p_.α : ℝ) (rotMφφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫|) +
-         9 * (ε : ℝ)^3 / 2)
+        ((ε : ℝ) * |⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+         (ε : ℝ) * |⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+         (ε : ℝ) * |⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+         1 / 2 * ((ε : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    2 * ((ε : ℝ) * (ε : ℝ)) *
+                      |⟪rotR' (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    2 * ((ε : ℝ) * (ε : ℝ)) *
+                      |⟪rotR' (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    (ε : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotMθθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    2 * ((ε : ℝ) * (ε : ℝ)) *
+                      |⟪rotR (p_.α : ℝ) (rotMθφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
+                    (ε : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotMφφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫|) +
+         ((ε : ℝ) + (ε : ℝ) + (ε : ℝ))^3 / 6)
   have h_RM : ‖⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
       (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1RTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
     refine norm_sub_round13v_dot_le₄ ?_ hsum
@@ -712,17 +715,17 @@ private lemma H_le_Hℚ {pbar : Pose ℚ} {ε : ℚ} (hε : 0 ≤ ε)
     {P : ℝ³} {P_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
     (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1)
     (hp : (fourInterval ℚ).contains pbar) :
-    GlobalTheorem.H pbar.toReal ε (toR2 w) P ≤ Hℚ pbar ε w P_ := by
+    GlobalTheorem.H pbar.toReal ε ε (toR2 w) P ≤ Hℚ pbar ε w P_ := by
   have hsum := sum_abs_le_of_approx hP hP_approx
   unfold GlobalTheorem.H Hℚ Gℚ_gt_maxHℚ.fastH Pose.rotM₂ Pose.rotM₂θ Pose.rotM₂φ
         Pose.rotM₂θθ Pose.rotM₂θφ Pose.rotM₂φφ
   show ⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ +
-        (ε : ℝ) * (|⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-                   |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫|) +
-        (ε : ℝ)^2 / 2 * (|⟪rotMθθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-                   2 * |⟪rotMθφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-                   |⟪rotMφφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫|) +
-        4 * (ε : ℝ)^3 / 3 ≤ _
+        (ε : ℝ) * |⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+        (ε : ℝ) * |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+        1 / 2 * ((ε : ℝ)^2 * |⟪rotMθθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+                   2 * ((ε : ℝ) * (ε : ℝ)) * |⟪rotMθφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
+                   (ε : ℝ)^2 * |⟪rotMφφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫|) +
+        ((ε : ℝ) + (ε : ℝ))^3 / 6 ≤ _
   have h_M : ‖⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ -
       (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2tw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ := by
     refine norm_sub_round13v_dot_le₃ ?_ hsum
@@ -807,7 +810,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     rwa [Equiv.apply_symm_apply] at this
   have hS_norm : ‖S_real‖ ≤ 1 := poly.vertex_radius_le_one i
   -- Step 2: Show maxH_real ≤ maxHℚ
-  have h_maxH_le : GlobalTheorem.maxH pbar poly ε (toR2 pc.w) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := by
+  have h_maxH_le : GlobalTheorem.maxH pbar poly ε ε (toR2 pc.w) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := by
     unfold GlobalTheorem.maxH
     apply Finset.max'_le
     simp only [Function.comp, Finset.mem_image, Finset.mem_univ, true_and]
@@ -815,7 +818,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     let k' := happrox.bijection k
     have hk_norm : ‖poly.vertices.v k‖ ≤ 1 := poly.vertex_radius_le_one k
     have hk_approx : ‖poly.vertices.v k - poly_.toReal.v k'‖ ≤ κ := happrox.approx k
-    have h_le_Hℚ : GlobalTheorem.H pbar ε (toR2 pc.w) (poly.vertices.v k) ≤
+    have h_le_Hℚ : GlobalTheorem.H pbar ε ε (toR2 pc.w) (poly.vertices.v k) ≤
                     Hℚ p ε pc.w (poly_.v k') :=
       H_le_Hℚ hε hk_norm
         (show ‖poly.vertices.v k - toR3 (poly_.v k')‖ ≤ κ from hk_approx)
@@ -829,8 +832,11 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     have h_le_max_real : ((Hℚ p ε pc.w (poly_.v k') : ℚ) : ℝ) ≤ ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) :=
       mod_cast h_le_max
     linarith [h_le_Hℚ, h_le_max_real]
-  -- Step 3: Build the precondition and apply global_theorem
-  exact GlobalTheorem.global_theorem pbar ε (Rat.cast_nonneg.mpr hε) poly {
+  -- Step 3: Build the (diagonal) box precondition and apply global_theorem,
+  -- shrinking the closed ball into the per-axis box via `Pose.near_of_mem_closedBall`.
+  have hε' : (0 : ℝ) ≤ (ε : ℝ) := Rat.cast_nonneg.mpr hε
+  rintro ⟨q, hq_ball, hq_rupert⟩
+  exact GlobalTheorem.global_theorem pbar ε ε ε ε ε hε' hε' hε' hε' hε' poly {
     Si := i
     w := toR2 pc.w
     w_unit := pc.w_unit
@@ -839,4 +845,4 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
       have hexceeds_real : ((Gℚ p ε (poly_.v pc.j) pc.w : ℚ) : ℝ) >
                             ((maxHℚ p poly_ ε pc.w : ℚ) : ℝ) := mod_cast pc.exceeds
       linarith [hG_le, hexceeds_real, h_maxH_le]
-  }
+  } ⟨q, Pose.near_of_mem_closedBall hq_ball, hq_rupert⟩
