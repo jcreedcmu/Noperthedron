@@ -493,9 +493,19 @@ lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
   have S_norm_le_one : ‖pc.S‖ ≤ 1 := pc.norm_S_le_one
   have hz := bounded_partials_control_difference2
     pc.fu (rotation_partials_exist S_norm_pos)
-    pbar.innerParams p.innerParams ε hε
+    pbar.innerParams p.innerParams (fun _ => ε) (fun _ => hε)
     (closed_ball_imp_inner_params_near p_near_pbar)
     (rotation_third_partials_bounded pc.S pc.w_unit)
+  -- specialize the per-axis bound back to the scalar (constant-vector) shape
+  replace hz : |pc.fu pbar.innerParams - pc.fu p.innerParams|
+      ≤ ε * ∑ i, |nth_partial i pc.fu pbar.innerParams|
+        + ε ^ 2 / 2 * ∑ i, ∑ j, |nth_partial i (nth_partial j pc.fu) pbar.innerParams|
+        + ((3 : ℕ) : ℝ) ^ 3 / 6 * ε ^ 3 := by
+    refine hz.trans (le_of_eq ?_)
+    simp only [← Finset.mul_sum, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+      nsmul_eq_mul]
+    push_cast
+    ring
   simp only [G]
   refine sub_le_of_abs_sub_le_right ?_
   have h0 := mul_le_mul_of_nonneg_right hz (ha := le_of_lt S_norm_pos)
@@ -545,9 +555,19 @@ lemma global_theorem_inequality_iv {ι : Type} [Fintype ι] [Nonempty ι]
 
   have hz := bounded_partials_control_difference2
     (pc.fu_outer P) (rotation_partials_exist_outer P_norm_pos)
-    pbar.outerParams p.outerParams ε hε
+    pbar.outerParams p.outerParams (fun _ => ε) (fun _ => hε)
     (closed_ball_imp_outer_params_near p_near_pbar)
     (rotation_third_partials_bounded_outer P pc.w_unit)
+  -- specialize the per-axis bound back to the scalar (constant-vector) shape
+  replace hz : |pc.fu_outer P pbar.outerParams - pc.fu_outer P p.outerParams|
+      ≤ ε * ∑ i, |nth_partial i (pc.fu_outer P) pbar.outerParams|
+        + ε ^ 2 / 2 * ∑ i, ∑ j, |nth_partial i (nth_partial j (pc.fu_outer P)) pbar.outerParams|
+        + ((2 : ℕ) : ℝ) ^ 3 / 6 * ε ^ 3 := by
+    refine hz.trans (le_of_eq ?_)
+    simp only [← Finset.mul_sum, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+      nsmul_eq_mul]
+    push_cast
+    ring
   simp only [H]
   rw [abs_sub_comm] at hz
   replace hz := sub_le_of_abs_sub_le_right hz
