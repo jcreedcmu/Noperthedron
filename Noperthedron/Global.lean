@@ -525,7 +525,7 @@ Use the analytic bounds on rotations, Lemmas 19 and 20.
 lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
     (pbar p : Pose ℝ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℝ)
     (hεα : 0 ≤ εα) (hεθ₁ : 0 ≤ εθ₁) (hεφ₁ : 0 ≤ εφ₁)
-    (p_near_pbar : Pose.near pbar εθ₁ εφ₁ εθ₂ εφ₂ εα p)
+    (p_near_pbar : Pose.near pbar εα εθ₁ εφ₁ εθ₂ εφ₂ p)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar εα εθ₁ εφ₁ εθ₂ εφ₂) :
     G pbar εα εθ₁ εφ₁ pc.S pc.w ≤ pc.Sval p := by
@@ -579,7 +579,7 @@ Use the analytic bounds on rotations, Lemmas 19 and 20.
 lemma global_theorem_inequality_iv {ι : Type} [Fintype ι] [Nonempty ι]
     (pbar p : Pose ℝ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℝ)
     (hεθ₂ : 0 ≤ εθ₂) (hεφ₂ : 0 ≤ εφ₂)
-    (p_near_pbar : Pose.near pbar εθ₁ εφ₁ εθ₂ εφ₂ εα p)
+    (p_near_pbar : Pose.near pbar εα εθ₁ εφ₁ εθ₂ εφ₂ p)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar εα εθ₁ εφ₁ εθ₂ εφ₂) :
     maxOuter p poly pc.w ≤ maxH pbar poly εθ₂ εφ₂ pc.w := by
@@ -650,7 +650,7 @@ Here we run through the "sequence of inequalities [which yield] the desired cont
 theorem global_theorem_gt_reasoning {ι : Type} [Fintype ι] [Nonempty ι]
     (pbar p : Pose ℝ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℝ)
     (hεα : 0 ≤ εα) (hεθ₁ : 0 ≤ εθ₁) (hεφ₁ : 0 ≤ εφ₁) (hεθ₂ : 0 ≤ εθ₂) (hεφ₂ : 0 ≤ εφ₂)
-    (p_near_pbar : Pose.near pbar εθ₁ εφ₁ εθ₂ εφ₂ εα p)
+    (p_near_pbar : Pose.near pbar εα εθ₁ εφ₁ εθ₂ εφ₂ p)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar εα εθ₁ εφ₁ εθ₂ εφ₂) :
     maxInner p poly pc.w > maxOuter p poly pc.w := by
@@ -676,7 +676,7 @@ theorem global_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     (hεα : 0 ≤ εα) (hεθ₁ : 0 ≤ εθ₁) (hεφ₁ : 0 ≤ εφ₁) (hεθ₂ : 0 ≤ εθ₂) (hεφ₂ : 0 ≤ εφ₂)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar εα εθ₁ εφ₁ εθ₂ εφ₂) :
-    ¬ ∃ p, Pose.near pbar εθ₁ εφ₁ εθ₂ εφ₂ εα p ∧ RupertPose p poly.hull := by
+    ¬ ∃ p, Pose.near pbar εα εθ₁ εφ₁ εθ₂ εφ₂ p ∧ RupertPose p poly.hull := by
   rintro ⟨p, p_near_pbar, p_is_rupert⟩
   have hgt := global_theorem_gt_reasoning pbar p εα εθ₁ εφ₁ εθ₂ εφ₂
     hεα hεθ₁ hεφ₁ hεθ₂ hεφ₂ p_near_pbar poly pc

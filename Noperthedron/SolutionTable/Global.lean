@@ -45,7 +45,7 @@ center pose at the row's per-axis half-widths. -/
 theorem near_center_of_mem_toReal (row : Row) {q : Pose ℝ}
     (hq : q ∈ row.interval.toReal) :
     Pose.near row.interval.centerPose.toReal
-      (row.εθ₁ : ℝ) (row.εφ₁ : ℝ) (row.εθ₂ : ℝ) (row.εφ₂ : ℝ) (row.εα : ℝ) q := by
+      (row.εα : ℝ) (row.εθ₁ : ℝ) (row.εφ₁ : ℝ) (row.εθ₂ : ℝ) (row.εφ₂ : ℝ) q := by
   rw [NonemptyInterval.mem_def] at hq
   obtain ⟨hlo, hhi⟩ := hq
   rw [Pose.le_iff] at hlo hhi

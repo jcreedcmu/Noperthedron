@@ -128,6 +128,34 @@ private lemma nth_partial_neg (f : E 3 → ℝ) (i : Fin 3) (x : E 3) :
   rw [fderiv_neg]
   simp only [neg_apply]
 
+/-- All three partials of one column `y ↦ ⟪X (y 0) (N (y 1) (y 2) S), w⟫` of the
+second-partial table, given the head derivative in the `e₀` direction (`h0`) and
+the two matrix-family derivatives (`hθ`, `hφ`). -/
+private lemma nth_partial_inner_col (S : ℝ³) (w : ℝ²) (x : E 3)
+    (X : ℝ → ℝ² →L[ℝ] ℝ²) (N : ℝ → ℝ → ℝ³ →L[ℝ] ℝ²) {D0 Nθ' Nφ' : ℝ²} (i : Fin 3)
+    (hdiff : DifferentiableAt ℝ (fun z : E 3 => X (z.ofLp 0) (N (z.ofLp 1) (z.ofLp 2) S)) x)
+    (h0 : (fderiv ℝ (fun z : E 3 => X (z.ofLp 0) (N (z.ofLp 1) (z.ofLp 2) S)) x)
+      (EuclideanSpace.single 0 1) = D0)
+    (hθ : HasDerivAt (fun t => N t (x.ofLp 2) S) Nθ' (x.ofLp 1))
+    (hφ : HasDerivAt (fun t => N (x.ofLp 1) t S) Nφ' (x.ofLp 2)) :
+    nth_partial i (fun y : E 3 => ⟪X (y.ofLp 0) (N (y.ofLp 1) (y.ofLp 2) S), w⟫) x =
+      ⟪![D0, X (x.ofLp 0) Nθ', X (x.ofLp 0) Nφ'] i, w⟫ := by
+  unfold nth_partial
+  rw [fderiv_inner_const _ w x _ hdiff]
+  congr 1
+  fin_cases i
+  · exact h0
+  · exact fderiv_head_family_in_e1 S x X N Nθ' hdiff hθ
+  · exact fderiv_head_family_in_e2 S x X N Nφ' hdiff hφ
+
+/-- Match one entry of the `nth_partial_inner_col` vector against the
+`inner_third_partial_A` table (normalizing signs and `∘L` applications). -/
+local macro "third_partial_match" : tactic =>
+  `(tactic| simp only [inner_third_partial_A, Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk,
+      Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons,
+      Matrix.cons_val_two, Matrix.tail_cons, map_neg, neg_apply,
+      ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left])
+
 theorem third_partial_rotproj_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i j k : Fin 3) :
     nth_partial i (nth_partial j (nth_partial k (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i j k S, w⟫ := by
@@ -141,147 +169,83 @@ theorem third_partial_rotproj_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i j k 
   · -- column (0,0): A₂ = -(rotR ∘L rotM)
     show nth_partial i (nth_partial 0 (nth_partial 0 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 0 0 S, w⟫
-    rw [nth_partial_nth_partial_rotproj_inner S w 0 0, hneg00, nth_partial_neg]
-    show -(nth_partial i (fun y => ⟪rotR (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫) x) = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotM S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR_any_M_in_e0 S x rotM (differentiableAt_rotR_rotM S x)]
-      simp only [inner_third_partial_A, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
-    · rw [fderiv_head_family_in_e1 S x rotR rotM _ (differentiableAt_rotR_rotM S x)
-        (hasDerivAt_rotM_θ (x.ofLp 1) (x.ofLp 2) S)]
-      simp only [inner_third_partial_A, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
-    · rw [fderiv_head_family_in_e2 S x rotR rotM _ (differentiableAt_rotR_rotM S x)
-        (hasDerivAt_rotM_φ (x.ofLp 1) (x.ofLp 2) S)]
-      simp only [inner_third_partial_A, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
+    rw [nth_partial_nth_partial_rotproj_inner S w 0 0, hneg00, nth_partial_neg,
+      nth_partial_inner_col S w x rotR rotM i (differentiableAt_rotR_rotM S x)
+        (fderiv_rotR_any_M_in_e0 S x rotM (differentiableAt_rotR_rotM S x))
+        (hasDerivAt_rotM_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotM_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
   · -- column (0,1): A₂ = rotR' ∘L rotMθ
     show nth_partial i (nth_partial 0 (nth_partial 1 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 0 1 S, w⟫
     rw [nth_partial_nth_partial_rotproj_inner S w 0 1]
     show nth_partial i (fun y => ⟪rotR' (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫) x = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR'_rotMθ S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR'_any_M_in_e0 S x rotMθ (differentiableAt_rotR'_rotMθ S x)]
-      simp only [inner_third_partial_A, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
-    · rw [fderiv_head_family_in_e1 S x rotR' rotMθ _ (differentiableAt_rotR'_rotMθ S x)
-        (hasDerivAt_rotMθ_θ (x.ofLp 1) (x.ofLp 2) S)]; rfl
-    · rw [fderiv_head_family_in_e2 S x rotR' rotMθ _ (differentiableAt_rotR'_rotMθ S x)
-        (hasDerivAt_rotMθ_φ (x.ofLp 1) (x.ofLp 2) S)]; rfl
+    rw [nth_partial_inner_col S w x rotR' rotMθ i (differentiableAt_rotR'_rotMθ S x)
+      (fderiv_rotR'_any_M_in_e0 S x rotMθ (differentiableAt_rotR'_rotMθ S x))
+      (hasDerivAt_rotMθ_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotMθ_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
   · -- column (0,2): A₂ = rotR' ∘L rotMφ
     show nth_partial i (nth_partial 0 (nth_partial 2 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 0 2 S, w⟫
     rw [nth_partial_nth_partial_rotproj_inner S w 0 2]
     show nth_partial i (fun y => ⟪rotR' (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S), w⟫) x = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR'_rotMφ S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR'_any_M_in_e0 S x rotMφ (differentiableAt_rotR'_rotMφ S x)]
-      simp only [inner_third_partial_A, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
-    · rw [fderiv_head_family_in_e1 S x rotR' rotMφ _ (differentiableAt_rotR'_rotMφ S x)
-        (hasDerivAt_rotMφ_θ (x.ofLp 1) (x.ofLp 2) S)]; rfl
-    · rw [fderiv_head_family_in_e2 S x rotR' rotMφ _ (differentiableAt_rotR'_rotMφ S x)
-        (hasDerivAt_rotMφ_φ (x.ofLp 1) (x.ofLp 2) S)]; rfl
+    rw [nth_partial_inner_col S w x rotR' rotMφ i (differentiableAt_rotR'_rotMφ S x)
+      (fderiv_rotR'_any_M_in_e0 S x rotMφ (differentiableAt_rotR'_rotMφ S x))
+      (hasDerivAt_rotMφ_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotMφ_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
   · -- column (1,0): A₂ = rotR' ∘L rotMθ (mixed-partial symmetry)
     show nth_partial i (nth_partial 1 (nth_partial 0 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 1 0 S, w⟫
     rw [nth_partial_nth_partial_rotproj_inner S w 1 0]
     show nth_partial i (fun y => ⟪rotR' (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫) x = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR'_rotMθ S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR'_any_M_in_e0 S x rotMθ (differentiableAt_rotR'_rotMθ S x)]
-      simp only [inner_third_partial_A, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
-    · rw [fderiv_head_family_in_e1 S x rotR' rotMθ _ (differentiableAt_rotR'_rotMθ S x)
-        (hasDerivAt_rotMθ_θ (x.ofLp 1) (x.ofLp 2) S)]; rfl
-    · rw [fderiv_head_family_in_e2 S x rotR' rotMθ _ (differentiableAt_rotR'_rotMθ S x)
-        (hasDerivAt_rotMθ_φ (x.ofLp 1) (x.ofLp 2) S)]; rfl
+    rw [nth_partial_inner_col S w x rotR' rotMθ i (differentiableAt_rotR'_rotMθ S x)
+      (fderiv_rotR'_any_M_in_e0 S x rotMθ (differentiableAt_rotR'_rotMθ S x))
+      (hasDerivAt_rotMθ_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotMθ_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
   · -- column (1,1): A₂ = rotR ∘L rotMθθ
     show nth_partial i (nth_partial 1 (nth_partial 1 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 1 1 S, w⟫
     rw [nth_partial_nth_partial_rotproj_inner S w 1 1]
     show nth_partial i (fun y => ⟪rotR (y.ofLp 0) (rotMθθ (y.ofLp 1) (y.ofLp 2) S), w⟫) x = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMθθ S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR_any_M_in_e0 S x rotMθθ (differentiableAt_rotR_rotMθθ S x)]; rfl
-    · rw [fderiv_head_family_in_e1 S x rotR rotMθθ _ (differentiableAt_rotR_rotMθθ S x)
-        (hasDerivAt_rotMθθ_θ (x.ofLp 1) (x.ofLp 2) S)]
-      simp only [inner_third_partial_A, map_neg, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
-    · rw [fderiv_head_family_in_e2 S x rotR rotMθθ _ (differentiableAt_rotR_rotMθθ S x)
-        (hasDerivAt_rotMθθ_φ (x.ofLp 1) (x.ofLp 2) S)]; rfl
+    rw [nth_partial_inner_col S w x rotR rotMθθ i (differentiableAt_rotR_rotMθθ S x)
+      (fderiv_rotR_any_M_in_e0 S x rotMθθ (differentiableAt_rotR_rotMθθ S x))
+      (hasDerivAt_rotMθθ_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotMθθ_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
   · -- column (1,2): A₂ = rotR ∘L rotMθφ
     show nth_partial i (nth_partial 1 (nth_partial 2 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 1 2 S, w⟫
     rw [nth_partial_nth_partial_rotproj_inner S w 1 2]
     show nth_partial i (fun y => ⟪rotR (y.ofLp 0) (rotMθφ (y.ofLp 1) (y.ofLp 2) S), w⟫) x = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMθφ S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR_any_M_in_e0 S x rotMθφ (differentiableAt_rotR_rotMθφ S x)]; rfl
-    · rw [fderiv_head_family_in_e1 S x rotR rotMθφ _ (differentiableAt_rotR_rotMθφ S x)
-        (hasDerivAt_rotMθφ_θ (x.ofLp 1) (x.ofLp 2) S)]; rfl
-    · rw [fderiv_head_family_in_e2 S x rotR rotMθφ _ (differentiableAt_rotR_rotMθφ S x)
-        (hasDerivAt_rotMθφ_φ (x.ofLp 1) (x.ofLp 2) S)]; rfl
+    rw [nth_partial_inner_col S w x rotR rotMθφ i (differentiableAt_rotR_rotMθφ S x)
+      (fderiv_rotR_any_M_in_e0 S x rotMθφ (differentiableAt_rotR_rotMθφ S x))
+      (hasDerivAt_rotMθφ_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotMθφ_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
   · -- column (2,0): A₂ = rotR' ∘L rotMφ (mixed-partial symmetry)
     show nth_partial i (nth_partial 2 (nth_partial 0 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 2 0 S, w⟫
     rw [nth_partial_nth_partial_rotproj_inner S w 2 0]
     show nth_partial i (fun y => ⟪rotR' (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S), w⟫) x = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR'_rotMφ S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR'_any_M_in_e0 S x rotMφ (differentiableAt_rotR'_rotMφ S x)]
-      simp only [inner_third_partial_A, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
-    · rw [fderiv_head_family_in_e1 S x rotR' rotMφ _ (differentiableAt_rotR'_rotMφ S x)
-        (hasDerivAt_rotMφ_θ (x.ofLp 1) (x.ofLp 2) S)]; rfl
-    · rw [fderiv_head_family_in_e2 S x rotR' rotMφ _ (differentiableAt_rotR'_rotMφ S x)
-        (hasDerivAt_rotMφ_φ (x.ofLp 1) (x.ofLp 2) S)]; rfl
+    rw [nth_partial_inner_col S w x rotR' rotMφ i (differentiableAt_rotR'_rotMφ S x)
+      (fderiv_rotR'_any_M_in_e0 S x rotMφ (differentiableAt_rotR'_rotMφ S x))
+      (hasDerivAt_rotMφ_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotMφ_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
   · -- column (2,1): A₂ = rotR ∘L rotMθφ (mixed-partial symmetry)
     show nth_partial i (nth_partial 2 (nth_partial 1 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 2 1 S, w⟫
     rw [nth_partial_nth_partial_rotproj_inner S w 2 1]
     show nth_partial i (fun y => ⟪rotR (y.ofLp 0) (rotMθφ (y.ofLp 1) (y.ofLp 2) S), w⟫) x = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMθφ S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR_any_M_in_e0 S x rotMθφ (differentiableAt_rotR_rotMθφ S x)]; rfl
-    · rw [fderiv_head_family_in_e1 S x rotR rotMθφ _ (differentiableAt_rotR_rotMθφ S x)
-        (hasDerivAt_rotMθφ_θ (x.ofLp 1) (x.ofLp 2) S)]; rfl
-    · rw [fderiv_head_family_in_e2 S x rotR rotMθφ _ (differentiableAt_rotR_rotMθφ S x)
-        (hasDerivAt_rotMθφ_φ (x.ofLp 1) (x.ofLp 2) S)]; rfl
+    rw [nth_partial_inner_col S w x rotR rotMθφ i (differentiableAt_rotR_rotMθφ S x)
+      (fderiv_rotR_any_M_in_e0 S x rotMθφ (differentiableAt_rotR_rotMθφ S x))
+      (hasDerivAt_rotMθφ_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotMθφ_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
   · -- column (2,2): A₂ = rotR ∘L rotMφφ
     show nth_partial i (nth_partial 2 (nth_partial 2 (rotproj_inner S w))) x =
       ⟪inner_third_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i 2 2 S, w⟫
     rw [nth_partial_nth_partial_rotproj_inner S w 2 2]
     show nth_partial i (fun y => ⟪rotR (y.ofLp 0) (rotMφφ (y.ofLp 1) (y.ofLp 2) S), w⟫) x = _
-    unfold nth_partial
-    rw [fderiv_inner_const _ w x _ (differentiableAt_rotR_rotMφφ S x)]
-    fin_cases i <;>
-      simp only [Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
-    · rw [fderiv_rotR_any_M_in_e0 S x rotMφφ (differentiableAt_rotR_rotMφφ S x)]; rfl
-    · rw [fderiv_head_family_in_e1 S x rotR rotMφφ _ (differentiableAt_rotR_rotMφφ S x)
-        (hasDerivAt_rotMφφ_θ (x.ofLp 1) (x.ofLp 2) S)]; rfl
-    · rw [fderiv_head_family_in_e2 S x rotR rotMφφ _ (differentiableAt_rotR_rotMφφ S x)
-        (hasDerivAt_rotMφφ_φ (x.ofLp 1) (x.ofLp 2) S)]
-      simp only [inner_third_partial_A, map_neg, neg_apply,
-        ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
+    rw [nth_partial_inner_col S w x rotR rotMφφ i (differentiableAt_rotR_rotMφφ S x)
+      (fderiv_rotR_any_M_in_e0 S x rotMφφ (differentiableAt_rotR_rotMφφ S x))
+      (hasDerivAt_rotMφφ_θ (x.ofLp 1) (x.ofLp 2) S) (hasDerivAt_rotMφφ_φ (x.ofLp 1) (x.ofLp 2) S)]
+    fin_cases i <;> third_partial_match
 
 /- [SY25] Lemma 19 (inner part) -/
 theorem third_partial_inner_rotM_inner (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1)

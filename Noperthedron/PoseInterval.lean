@@ -187,6 +187,6 @@ lemma mem_closed_ball_abs_sub_φ₂ {p q : Pose ℝ} {ε : ℝ}
 This is the anisotropic analog of `p ∈ Metric.closedBall pbar ε`; at equal radii
 the two coincide.
 -/
-def Pose.near (pbar : Pose ℝ) (εθ₁ εφ₁ εθ₂ εφ₂ εα : ℝ) (p : Pose ℝ) : Prop :=
+def Pose.near (pbar : Pose ℝ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℝ) (p : Pose ℝ) : Prop :=
   |p.θ₁ - pbar.θ₁| ≤ εθ₁ ∧ |p.φ₁ - pbar.φ₁| ≤ εφ₁ ∧
   |p.θ₂ - pbar.θ₂| ≤ εθ₂ ∧ |p.φ₂ - pbar.φ₂| ≤ εφ₂ ∧ |p.α - pbar.α| ≤ εα

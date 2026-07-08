@@ -70,54 +70,6 @@ these through `HEntries.scalars`, which forces each component once.) -/
   ⟨round13v e.m2tw, round13v e.m2θtw, round13v e.m2φtw,
    round13v e.m2θθtw, round13v e.m2θφtw, round13v e.m2φφtw⟩
 
-private lemma m2tw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
-    (hEntries p w).m2tw ⬝ᵥ P = p.rotM₂ℚ P ⬝ᵥ w := by
-  unfold Pose.rotM₂ℚ RationalApprox.rotMℚ RationalApprox.rotMℚ_mat
-  rw [Matrix.toLin'_apply]
-  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
-        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
-
-private lemma m2θtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
-    (hEntries p w).m2θtw ⬝ᵥ P = p.rotM₂θℚ P ⬝ᵥ w := by
-  unfold Pose.rotM₂θℚ RationalApprox.rotMθℚ RationalApprox.rotMθℚ_mat
-  rw [Matrix.toLin'_apply]
-  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
-        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
-
-private lemma m2φtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
-    (hEntries p w).m2φtw ⬝ᵥ P = p.rotM₂φℚ P ⬝ᵥ w := by
-  unfold Pose.rotM₂φℚ RationalApprox.rotMφℚ RationalApprox.rotMφℚ_mat
-  rw [Matrix.toLin'_apply]
-  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
-        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
-
-private lemma m2θθtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
-    (hEntries p w).m2θθtw ⬝ᵥ P = p.rotM₂θθℚ P ⬝ᵥ w := by
-  unfold Pose.rotM₂θθℚ RationalApprox.rotMθθℚ RationalApprox.rotMθθℚ_mat
-  rw [Matrix.toLin'_apply]
-  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
-        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
-
-private lemma m2θφtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
-    (hEntries p w).m2θφtw ⬝ᵥ P = p.rotM₂θφℚ P ⬝ᵥ w := by
-  unfold Pose.rotM₂θφℚ RationalApprox.rotMθφℚ RationalApprox.rotMθφℚ_mat
-  rw [Matrix.toLin'_apply]
-  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
-        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
-
-private lemma m2φφtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
-    (hEntries p w).m2φφtw ⬝ᵥ P = p.rotM₂φφℚ P ⬝ᵥ w := by
-  unfold Pose.rotM₂φφℚ RationalApprox.rotMφφℚ RationalApprox.rotMφφℚ_mat
-  rw [Matrix.toLin'_apply]
-  simp [hEntries, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
-        Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
-
 @[inline] private def fastH (entries : HEntries) (εθ εφ : ℚ) (kappaTerm : ℚ) (P : Fin 3 → ℚ) : ℚ :=
   entries.m2tw ⬝ᵥ P + εθ * |entries.m2θtw ⬝ᵥ P| + εφ * |entries.m2φtw ⬝ᵥ P|
     + 1 / 2 * (εθ^2 * |entries.m2θθtw ⬝ᵥ P| + 2 * (εθ * εφ) * |entries.m2θφtw ⬝ᵥ P|
@@ -205,87 +157,67 @@ private structure GEntries : Type where
    round13v e.m1θR'Tw, round13v e.m1φR'Tw,
    round13v e.m1θθRTw, round13v e.m1θφRTw, round13v e.m1φφRTw⟩
 
+/-- Shared proof for the fifteen `*_dot_eq` identities below: unfold the pose
+matrices and both hoisted-entry structures to scalars, then close with `ring`. -/
+local macro "dot_eq_tac" : tactic =>
+  `(tactic| (
+    simp [hEntries, gEntries, Pose.innerℚ, Pose.rotRℚ, Pose.rotR'ℚ,
+      Pose.rotM₁ℚ, Pose.rotM₁θℚ, Pose.rotM₁φℚ, Pose.rotM₁θθℚ, Pose.rotM₁θφℚ, Pose.rotM₁φφℚ,
+      Pose.rotM₂ℚ, Pose.rotM₂θℚ, Pose.rotM₂φℚ, Pose.rotM₂θθℚ, Pose.rotM₂θφℚ, Pose.rotM₂φφℚ,
+      RationalApprox.rotRℚ, RationalApprox.rotR'ℚ, RationalApprox.rotMℚ,
+      RationalApprox.rotMθℚ, RationalApprox.rotMφℚ, RationalApprox.rotMθθℚ,
+      RationalApprox.rotMθφℚ, RationalApprox.rotMφφℚ,
+      RationalApprox.rotRℚ_mat, RationalApprox.rotR'ℚ_mat, RationalApprox.rotMℚ_mat,
+      RationalApprox.rotMθℚ_mat, RationalApprox.rotMφℚ_mat, RationalApprox.rotMθθℚ_mat,
+      RationalApprox.rotMθφℚ_mat, RationalApprox.rotMφφℚ_mat,
+      Matrix.toLin'_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_three, Fin.sum_univ_two,
+      Matrix.cons_val_zero, Matrix.cons_val_one]
+    ring))
+
+private lemma m2tw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2tw ⬝ᵥ P = p.rotM₂ℚ P ⬝ᵥ w := by dot_eq_tac
+
+private lemma m2θtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2θtw ⬝ᵥ P = p.rotM₂θℚ P ⬝ᵥ w := by dot_eq_tac
+
+private lemma m2φtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2φtw ⬝ᵥ P = p.rotM₂φℚ P ⬝ᵥ w := by dot_eq_tac
+
+private lemma m2θθtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2θθtw ⬝ᵥ P = p.rotM₂θθℚ P ⬝ᵥ w := by dot_eq_tac
+
+private lemma m2θφtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2θφtw ⬝ᵥ P = p.rotM₂θφℚ P ⬝ᵥ w := by dot_eq_tac
+
+private lemma m2φφtw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (P : Fin 3 → ℚ) :
+    (hEntries p w).m2φφtw ⬝ᵥ P = p.rotM₂φφℚ P ⬝ᵥ w := by dot_eq_tac
+
 private lemma m1RTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1RTw ⬝ᵥ S = p.innerℚ S ⬝ᵥ w := by
-  show _ = (Pose.rotRℚ p (Pose.rotM₁ℚ p S)) ⬝ᵥ w
-  unfold Pose.rotRℚ Pose.rotM₁ℚ RationalApprox.rotRℚ RationalApprox.rotMℚ
-        RationalApprox.rotRℚ_mat RationalApprox.rotMℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1RTw ⬝ᵥ S = p.innerℚ S ⬝ᵥ w := by dot_eq_tac
 
 private lemma m1R'Tw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1R'Tw ⬝ᵥ S = p.rotR'ℚ (p.rotM₁ℚ S) ⬝ᵥ w := by
-  unfold Pose.rotR'ℚ Pose.rotM₁ℚ RationalApprox.rotR'ℚ RationalApprox.rotMℚ
-        RationalApprox.rotR'ℚ_mat RationalApprox.rotMℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1R'Tw ⬝ᵥ S = p.rotR'ℚ (p.rotM₁ℚ S) ⬝ᵥ w := by dot_eq_tac
 
 private lemma m1θRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1θRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁θℚ S) ⬝ᵥ w := by
-  unfold Pose.rotRℚ Pose.rotM₁θℚ RationalApprox.rotRℚ RationalApprox.rotMθℚ
-        RationalApprox.rotRℚ_mat RationalApprox.rotMθℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1θRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁θℚ S) ⬝ᵥ w := by dot_eq_tac
 
 private lemma m1φRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1φRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁φℚ S) ⬝ᵥ w := by
-  unfold Pose.rotRℚ Pose.rotM₁φℚ RationalApprox.rotRℚ RationalApprox.rotMφℚ
-        RationalApprox.rotRℚ_mat RationalApprox.rotMφℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1φRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁φℚ S) ⬝ᵥ w := by dot_eq_tac
 
 private lemma m1θR'Tw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1θR'Tw ⬝ᵥ S = p.rotR'ℚ (p.rotM₁θℚ S) ⬝ᵥ w := by
-  unfold Pose.rotR'ℚ Pose.rotM₁θℚ RationalApprox.rotR'ℚ RationalApprox.rotMθℚ
-        RationalApprox.rotR'ℚ_mat RationalApprox.rotMθℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1θR'Tw ⬝ᵥ S = p.rotR'ℚ (p.rotM₁θℚ S) ⬝ᵥ w := by dot_eq_tac
 
 private lemma m1φR'Tw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1φR'Tw ⬝ᵥ S = p.rotR'ℚ (p.rotM₁φℚ S) ⬝ᵥ w := by
-  unfold Pose.rotR'ℚ Pose.rotM₁φℚ RationalApprox.rotR'ℚ RationalApprox.rotMφℚ
-        RationalApprox.rotR'ℚ_mat RationalApprox.rotMφℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1φR'Tw ⬝ᵥ S = p.rotR'ℚ (p.rotM₁φℚ S) ⬝ᵥ w := by dot_eq_tac
 
 private lemma m1θθRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1θθRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁θθℚ S) ⬝ᵥ w := by
-  unfold Pose.rotRℚ Pose.rotM₁θθℚ RationalApprox.rotRℚ RationalApprox.rotMθθℚ
-        RationalApprox.rotRℚ_mat RationalApprox.rotMθθℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1θθRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁θθℚ S) ⬝ᵥ w := by dot_eq_tac
 
 private lemma m1θφRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1θφRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁θφℚ S) ⬝ᵥ w := by
-  unfold Pose.rotRℚ Pose.rotM₁θφℚ RationalApprox.rotRℚ RationalApprox.rotMθφℚ
-        RationalApprox.rotRℚ_mat RationalApprox.rotMθφℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1θφRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁θφℚ S) ⬝ᵥ w := by dot_eq_tac
 
 private lemma m1φφRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
-    (gEntries p w).m1φφRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁φφℚ S) ⬝ᵥ w := by
-  unfold Pose.rotRℚ Pose.rotM₁φφℚ RationalApprox.rotRℚ RationalApprox.rotMφφℚ
-        RationalApprox.rotRℚ_mat RationalApprox.rotMφφℚ_mat
-  simp [gEntries, Matrix.toLin'_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Fin.sum_univ_two,
-        Matrix.cons_val_zero, Matrix.cons_val_one]
-  ring
+    (gEntries p w).m1φφRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁φφℚ S) ⬝ᵥ w := by dot_eq_tac
 
 @[inline] private def fastG (entries : GEntries) (εα εθ εφ : ℚ) (S : Fin 3 → ℚ) : ℚ :=
   entries.m1RTw ⬝ᵥ S -
@@ -561,21 +493,24 @@ private lemma norm_sub_round13v_dot_le {x : ℝ} {v P_ : Fin 3 → ℚ} {c : ℝ
     _ ≤ c + 3 * (1 + κ) / 10 ^ 13 := add_le_add hbase hr
 
 /-- `norm_sub_round13v_dot_le` specialised to the `H`-side budget: a
-`bounds_kappa_M`-style base bound plus the rounding perturbation is ≤ `3κ`. -/
-private lemma norm_sub_round13v_dot_le₃ {x : ℝ} {v P_ : Fin 3 → ℚ}
-    (hbase : ‖x - ((v ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 2 * κ + κ ^ 2)
+`bounds_kappa_M`-style base bound (about the matrix form `d` of the hoisted
+dot product, see the `*_dot_eq` lemmas) plus the rounding perturbation is
+≤ `3κ`. -/
+private lemma norm_sub_round13v_dot_le₃ {x : ℝ} {v P_ : Fin 3 → ℚ} {d : ℚ}
+    (hdot : v ⬝ᵥ P_ = d) (hbase : ‖x - (d : ℝ)‖ ≤ 2 * κ + κ ^ 2)
     (hsum : ∑ i, |P_ i| ≤ 3 * (1 + κℚ)) :
     ‖x - ((round13v v ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ :=
-  (norm_sub_round13v_dot_le hbase hsum).trans (by unfold κ; norm_num)
+  (norm_sub_round13v_dot_le (hdot ▸ hbase) hsum).trans (by unfold κ; norm_num)
 
 /-- `norm_sub_round13v_dot_le` specialised to the `G`-side budget: a
 `bounds_kappa_RM`-style base bound plus the rounding perturbation is ≤ `4κ`. -/
-private lemma norm_sub_round13v_dot_le₄ {x : ℝ} {v P_ : Fin 3 → ℚ}
-    (hbase : ‖x - ((v ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3)
+private lemma norm_sub_round13v_dot_le₄ {x : ℝ} {v P_ : Fin 3 → ℚ} {d : ℚ}
+    (hdot : v ⬝ᵥ P_ = d) (hbase : ‖x - (d : ℝ)‖ ≤ 3 * κ + 3 * κ ^ 2 + κ ^ 3)
     (hsum : ∑ i, |P_ i| ≤ 3 * (1 + κℚ)) :
     ‖x - ((round13v v ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
-  (norm_sub_round13v_dot_le hbase hsum).trans (by unfold κ; norm_num)
+  (norm_sub_round13v_dot_le (hdot ▸ hbase) hsum).trans (by unfold κ; norm_num)
 
+open Gℚ_gt_maxHℚ in
 private lemma Gℚ_le_G {p_ : Pose ℚ} {εα εθ εφ : ℚ}
     (hεα : 0 ≤ εα) (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
     {S : ℝ³} {S_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
@@ -584,87 +519,49 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {εα εθ εφ : ℚ}
     Gℚ p_ εα εθ εφ S_ w ≤ GlobalTheorem.G p_.toReal εα εθ εφ S (toR2 w) := by
   set pbar := p_.toReal with hpbar
   have hsum := sum_abs_le_of_approx hS hS_approx
-  unfold Gℚ Gℚ_gt_maxHℚ.fastG GlobalTheorem.G
+  let α4 : Set.Icc (-4 : ℚ) 4 := ⟨p_.α, hp.αBound⟩
+  let θ4 : Set.Icc (-4 : ℚ) 4 := ⟨p_.θ₁, hp.θ₁Bound⟩
+  let φ4 : Set.Icc (-4 : ℚ) 4 := ⟨p_.φ₁, hp.φ₁Bound⟩
+  unfold Gℚ fastG GlobalTheorem.G
   rw [show pbar.inner S = pbar.rotR (pbar.rotM₁ S) by rw [Pose.inner_eq_RM]; rfl]
-  show _ ≤ ⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-        ((εα : ℝ) * |⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-         (εθ : ℝ) * |⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-         (εφ : ℝ) * |⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-         1 / 2 * ((εα : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * ((εα : ℝ) * (εθ : ℝ)) *
-                      |⟪rotR' (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * ((εα : ℝ) * (εφ : ℝ)) *
-                      |⟪rotR' (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    (εθ : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotMθθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    2 * ((εθ : ℝ) * (εφ : ℝ)) *
-                      |⟪rotR (p_.α : ℝ) (rotMθφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫| +
-                    (εφ : ℝ)^2 * |⟪rotR (p_.α : ℝ) (rotMφφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫|) +
-         ((εα : ℝ) + (εθ : ℝ) + (εφ : ℝ))^3 / 6)
-  have h_RM : ‖⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1RTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1RTw_dot_eq]
-    exact bounds_kappa_RM
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have h_R'M : ‖⟪rotR' (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1R'Tw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1R'Tw_dot_eq]
-    exact bounds_kappa_R'M
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have h_RMθ : ‖⟪rotR (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1θRTw_dot_eq]
-    exact bounds_kappa_RMθ
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have h_RMφ : ‖⟪rotR (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1φRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1φRTw_dot_eq]
-    exact bounds_kappa_RMφ
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have h_R'Mθ : ‖⟪rotR' (p_.α : ℝ) (rotMθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θR'Tw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1θR'Tw_dot_eq]
-    exact bounds_kappa_R'Mθ
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have h_R'Mφ : ‖⟪rotR' (p_.α : ℝ) (rotMφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1φR'Tw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1φR'Tw_dot_eq]
-    exact bounds_kappa_R'Mφ
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have h_RMθθ : ‖⟪rotR (p_.α : ℝ) (rotMθθ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θθRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1θθRTw_dot_eq]
-    exact bounds_kappa_RMθθ
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have h_RMθφ : ‖⟪rotR (p_.α : ℝ) (rotMθφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1θφRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1θφRTw_dot_eq]
-    exact bounds_kappa_RMθφ
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have h_RMφφ : ‖⟪rotR (p_.α : ℝ) (rotMφφ (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1φφRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ := by
-    refine norm_sub_round13v_dot_le₄ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m1φφRTw_dot_eq]
-    exact bounds_kappa_RMφφ
-      (α := ⟨p_.α, hp.αBound⟩) (θ := ⟨p_.θ₁, hp.θ₁Bound⟩) (φ := ⟨p_.φ₁, hp.φ₁Bound⟩)
-      hS hS_approx hw
-  have hi_le : (((Gℚ_gt_maxHℚ.gEntriesR p_ w).m1RTw ⬝ᵥ S_ : ℚ) : ℝ) ≤
-               ⟪rotR (p_.α : ℝ) (rotM (p_.θ₁ : ℝ) (p_.φ₁ : ℝ) S), toR2 w⟫ + 4 * κ := by
+  have h_RM : ‖⟪pbar.rotR (pbar.rotM₁ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1RTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1RTw_dot_eq p_ w S_)
+      (bounds_kappa_RM (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have h_R'M : ‖⟪pbar.rotR' (pbar.rotM₁ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1R'Tw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1R'Tw_dot_eq p_ w S_)
+      (bounds_kappa_R'M (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have h_RMθ : ‖⟪pbar.rotR (pbar.rotM₁θ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1θRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1θRTw_dot_eq p_ w S_)
+      (bounds_kappa_RMθ (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have h_RMφ : ‖⟪pbar.rotR (pbar.rotM₁φ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1φRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1φRTw_dot_eq p_ w S_)
+      (bounds_kappa_RMφ (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have h_R'Mθ : ‖⟪pbar.rotR' (pbar.rotM₁θ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1θR'Tw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1θR'Tw_dot_eq p_ w S_)
+      (bounds_kappa_R'Mθ (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have h_R'Mφ : ‖⟪pbar.rotR' (pbar.rotM₁φ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1φR'Tw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1φR'Tw_dot_eq p_ w S_)
+      (bounds_kappa_R'Mφ (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have h_RMθθ : ‖⟪pbar.rotR (pbar.rotM₁θθ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1θθRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1θθRTw_dot_eq p_ w S_)
+      (bounds_kappa_RMθθ (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have h_RMθφ : ‖⟪pbar.rotR (pbar.rotM₁θφ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1θφRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1θφRTw_dot_eq p_ w S_)
+      (bounds_kappa_RMθφ (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have h_RMφφ : ‖⟪pbar.rotR (pbar.rotM₁φφ S), toR2 w⟫ -
+      (((gEntriesR p_ w).m1φφRTw ⬝ᵥ S_ : ℚ) : ℝ)‖ ≤ 4 * κ :=
+    norm_sub_round13v_dot_le₄ (m1φφRTw_dot_eq p_ w S_)
+      (bounds_kappa_RMφφ (α := α4) (θ := θ4) (φ := φ4) hS hS_approx hw) hsum
+  have hi_le : (((gEntriesR p_ w).m1RTw ⬝ᵥ S_ : ℚ) : ℝ) ≤
+               ⟪pbar.rotR (pbar.rotM₁ S), toR2 w⟫ + 4 * κ := by
     have := (Real.norm_eq_abs _).symm ▸ h_RM; rw [abs_le] at this
     linarith [this.1]
   have hRM_abs := abs_le_abs_add_of_norm_sub_le h_RM
@@ -680,7 +577,6 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {εα εθ εφ : ℚ}
   have hεα_real : (0 : ℝ) ≤ εα := mod_cast hεα
   have hεθ_real : (0 : ℝ) ≤ εθ := mod_cast hεθ
   have hεφ_real : (0 : ℝ) ≤ εφ := mod_cast hεφ
-  show _ ≤ _
   push_cast
   rw [h_κ]
   -- Each weighted `|real dot|` is at most the same weight times
@@ -698,59 +594,43 @@ private lemma Gℚ_le_G {p_ : Pose ℚ} {εα εθ εφ : ℚ}
   have hsoφφ := mul_le_mul_of_nonneg_left hφφ_abs (mul_nonneg hεφ_real hεφ_real)
   linarith [hi_le, hfoα, hfoθ, hfoφ, hsoαα, hsoαθ, hsoαφ, hsoθθ, hsoθφ, hsoφφ]
 
-private lemma H_le_Hℚ {pbar : Pose ℚ} {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
+open Gℚ_gt_maxHℚ in
+private lemma H_le_Hℚ {p_ : Pose ℚ} {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
     {P : ℝ³} {P_ : Fin 3 → ℚ} {w : Fin 2 → ℚ}
     (hP : ‖P‖ ≤ 1) (hP_approx : ‖P - toR3 P_‖ ≤ κ) (hw : ‖toR2 w‖ = 1)
-    (hp : (fourInterval ℚ).contains pbar) :
-    GlobalTheorem.H pbar.toReal εθ εφ (toR2 w) P ≤ Hℚ pbar εθ εφ w P_ := by
+    (hp : (fourInterval ℚ).contains p_) :
+    GlobalTheorem.H p_.toReal εθ εφ (toR2 w) P ≤ Hℚ p_ εθ εφ w P_ := by
+  set pbar := p_.toReal with hpbar
   have hsum := sum_abs_le_of_approx hP hP_approx
-  unfold GlobalTheorem.H Hℚ Gℚ_gt_maxHℚ.fastH Pose.rotM₂ Pose.rotM₂θ Pose.rotM₂φ
-        Pose.rotM₂θθ Pose.rotM₂θφ Pose.rotM₂φφ
-  show ⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ +
-        (εθ : ℝ) * |⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-        (εφ : ℝ) * |⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-        1 / 2 * ((εθ : ℝ)^2 * |⟪rotMθθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-                   2 * ((εθ : ℝ) * (εφ : ℝ)) * |⟪rotMθφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫| +
-                   (εφ : ℝ)^2 * |⟪rotMφφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫|) +
-        ((εθ : ℝ) + (εφ : ℝ))^3 / 6 ≤ _
-  have h_M : ‖⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2tw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ := by
-    refine norm_sub_round13v_dot_le₃ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m2tw_dot_eq]
-    exact bounds_kappa_M
-      (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩) hP hP_approx hw
-  have h_Mθ : ‖⟪rotMθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2θtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ := by
-    refine norm_sub_round13v_dot_le₃ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m2θtw_dot_eq]
-    exact bounds_kappa_Mθ
-      (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩) hP hP_approx hw
-  have h_Mφ : ‖⟪rotMφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2φtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ := by
-    refine norm_sub_round13v_dot_le₃ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m2φtw_dot_eq]
-    exact bounds_kappa_Mφ
-      (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩) hP hP_approx hw
-  have h_Mθθ : ‖⟪rotMθθ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2θθtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ := by
-    refine norm_sub_round13v_dot_le₃ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m2θθtw_dot_eq]
-    exact bounds_kappa_Mθθ
-      (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩) hP hP_approx hw
-  have h_Mθφ : ‖⟪rotMθφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2θφtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ := by
-    refine norm_sub_round13v_dot_le₃ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m2θφtw_dot_eq]
-    exact bounds_kappa_Mθφ
-      (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩) hP hP_approx hw
-  have h_Mφφ : ‖⟪rotMφφ (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ -
-      (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2φφtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ := by
-    refine norm_sub_round13v_dot_le₃ ?_ hsum
-    rw [Gℚ_gt_maxHℚ.m2φφtw_dot_eq]
-    exact bounds_kappa_Mφφ
-      (θ := ⟨pbar.θ₂, hp.θ₂Bound⟩) (φ := ⟨pbar.φ₂, hp.φ₂Bound⟩) hP hP_approx hw
-  have hm_le : ⟪rotM (pbar.θ₂ : ℝ) (pbar.φ₂ : ℝ) P, toR2 w⟫ ≤
-               (((Gℚ_gt_maxHℚ.hEntriesR pbar w).m2tw ⬝ᵥ P_ : ℚ) : ℝ) + 3 * κ := by
+  let θ4 : Set.Icc (-4 : ℚ) 4 := ⟨p_.θ₂, hp.θ₂Bound⟩
+  let φ4 : Set.Icc (-4 : ℚ) 4 := ⟨p_.φ₂, hp.φ₂Bound⟩
+  unfold GlobalTheorem.H Hℚ fastH
+  have h_M : ‖⟪pbar.rotM₂ P, toR2 w⟫ -
+      (((hEntriesR p_ w).m2tw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ :=
+    norm_sub_round13v_dot_le₃ (m2tw_dot_eq p_ w P_)
+      (bounds_kappa_M (θ := θ4) (φ := φ4) hP hP_approx hw) hsum
+  have h_Mθ : ‖⟪pbar.rotM₂θ P, toR2 w⟫ -
+      (((hEntriesR p_ w).m2θtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ :=
+    norm_sub_round13v_dot_le₃ (m2θtw_dot_eq p_ w P_)
+      (bounds_kappa_Mθ (θ := θ4) (φ := φ4) hP hP_approx hw) hsum
+  have h_Mφ : ‖⟪pbar.rotM₂φ P, toR2 w⟫ -
+      (((hEntriesR p_ w).m2φtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ :=
+    norm_sub_round13v_dot_le₃ (m2φtw_dot_eq p_ w P_)
+      (bounds_kappa_Mφ (θ := θ4) (φ := φ4) hP hP_approx hw) hsum
+  have h_Mθθ : ‖⟪pbar.rotM₂θθ P, toR2 w⟫ -
+      (((hEntriesR p_ w).m2θθtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ :=
+    norm_sub_round13v_dot_le₃ (m2θθtw_dot_eq p_ w P_)
+      (bounds_kappa_Mθθ (θ := θ4) (φ := φ4) hP hP_approx hw) hsum
+  have h_Mθφ : ‖⟪pbar.rotM₂θφ P, toR2 w⟫ -
+      (((hEntriesR p_ w).m2θφtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ :=
+    norm_sub_round13v_dot_le₃ (m2θφtw_dot_eq p_ w P_)
+      (bounds_kappa_Mθφ (θ := θ4) (φ := φ4) hP hP_approx hw) hsum
+  have h_Mφφ : ‖⟪pbar.rotM₂φφ P, toR2 w⟫ -
+      (((hEntriesR p_ w).m2φφtw ⬝ᵥ P_ : ℚ) : ℝ)‖ ≤ 3 * κ :=
+    norm_sub_round13v_dot_le₃ (m2φφtw_dot_eq p_ w P_)
+      (bounds_kappa_Mφφ (θ := θ4) (φ := φ4) hP hP_approx hw) hsum
+  have hm_le : ⟪pbar.rotM₂ P, toR2 w⟫ ≤
+               (((hEntriesR p_ w).m2tw ⬝ᵥ P_ : ℚ) : ℝ) + 3 * κ := by
     have := (Real.norm_eq_abs _).symm ▸ h_M; rw [abs_le] at this
     linarith [this.2]
   have hθ_abs := abs_le_abs_add_of_norm_sub_le h_Mθ
@@ -784,7 +664,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
     (happrox : κApproxPoly poly.vertices poly_)
     (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p εα εθ₁ εφ₁ εθ₂ εφ₂) :
-    ¬ ∃ q, Pose.near p.toReal (εθ₁ : ℝ) (εφ₁ : ℝ) (εθ₂ : ℝ) (εφ₂ : ℝ) (εα : ℝ) q ∧
+    ¬ ∃ q, Pose.near p.toReal (εα : ℝ) (εθ₁ : ℝ) (εφ₁ : ℝ) (εθ₂ : ℝ) (εφ₂ : ℝ) q ∧
       RupertPose q poly.hull := by
   set pbar := p.toReal
   -- Step 1: Map S from poly_ to poly via the bijection
