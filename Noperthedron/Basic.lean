@@ -246,6 +246,26 @@ noncomputable
 def rotMφφ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
   (rotMφφ_mat θ φ).toEuclideanLin.toContinuousLinearMap
 
+-- Third partial derivatives of rotM.  Only the two mixed ones need new
+-- definitions: ∂³rotM/∂θ³ = -rotMθ and ∂³rotM/∂φ³ = -rotMφ.
+-- ∂³rotM/∂θ²∂φ (derivative of rotMθθ w.r.t. φ, or of rotMθφ w.r.t. θ)
+noncomputable
+def rotMθθφ_mat (θ : ℝ) (φ : ℝ) : Matrix (Fin 2) (Fin 3) ℝ :=
+  !![0, 0, 0; -cos θ * sin φ, -sin θ * sin φ, 0]
+
+noncomputable
+def rotMθθφ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  (rotMθθφ_mat θ φ).toEuclideanLin.toContinuousLinearMap
+
+-- ∂³rotM/∂θ∂φ² (derivative of rotMθφ w.r.t. φ, or of rotMφφ w.r.t. θ)
+noncomputable
+def rotMθφφ_mat (θ : ℝ) (φ : ℝ) : Matrix (Fin 2) (Fin 3) ℝ :=
+  !![0, 0, 0; -sin θ * cos φ, cos θ * cos φ, 0]
+
+noncomputable
+def rotMθφφ (θ : ℝ) (φ : ℝ) : ℝ³ →L[ℝ] ℝ² :=
+  (rotMθφφ_mat θ φ).toEuclideanLin.toContinuousLinearMap
+
 infixr:80 " ∘ᵃ " => AffineMap.comp
 
 -- This is R(α) M(θ, φ) in (5) in [SY25] § 2.2,

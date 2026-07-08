@@ -102,6 +102,16 @@ lemma fderiv_rotR_rotM_in_e1 (S : Euc(3)) (y : E 3)
     ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
       (hasDerivAt_rotM_θ (y.ofLp 1) (y.ofLp 2) S))
 
+/-- fderiv of rotR' with any M in direction e₀ gives -rotR -/
+lemma fderiv_rotR'_any_M_in_e0 (S : Euc(3)) (y : E 3) (M : ℝ → ℝ → ℝ³ →L[ℝ] ℝ²)
+    (hf_diff : DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (M (z.ofLp 1) (z.ofLp 2) S)) y) :
+    (fderiv ℝ (fun z : E 3 => rotR' (z.ofLp 0) (M (z.ofLp 1) (z.ofLp 2) S)) y)
+      (EuclideanSpace.single 0 1) =
+    -(rotR (y.ofLp 0) (M (y.ofLp 1) (y.ofLp 2) S)) := by
+  refine fderiv_single_eq hf_diff ?_
+  simp only [coord_e0_same, coord_e0_at1, coord_e0_at2]
+  exact hasDerivAt_comp_add _ _ _ (HasDerivAt_rotR' (y.ofLp 0) (M (y.ofLp 1) (y.ofLp 2) S))
+
 /-- fderiv of rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) in direction e₀ gives -rotR -/
 lemma fderiv_rotR'_rotM_in_e0 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
     (hα : y.ofLp 0 = α) (hθ : y.ofLp 1 = θ) (hφ : y.ofLp 2 = φ)
@@ -109,9 +119,8 @@ lemma fderiv_rotR'_rotM_in_e0 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
     (fderiv ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y)
       (EuclideanSpace.single 0 1) =
     -(rotR α (rotM θ φ S)) := by
-  refine fderiv_single_eq hf_diff ?_
-  simp only [coord_e0_same, coord_e0_at1, coord_e0_at2, hα, hθ, hφ]
-  exact hasDerivAt_comp_add _ _ _ (HasDerivAt_rotR' α (rotM θ φ S))
+  subst hα hθ hφ
+  exact fderiv_rotR'_any_M_in_e0 S y rotM hf_diff
 
 /-- fderiv of rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S) in direction e₁ gives rotR' α (rotMθ θ φ S) -/
 lemma fderiv_rotR'_rotM_in_e1 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)

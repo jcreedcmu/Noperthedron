@@ -122,3 +122,87 @@ lemma hasDerivAt_rotMφ_φ (θ φ : ℝ) (S : ℝ³) :
   · simpa using (Real.hasDerivAt_sin φ).const_mul (Real.cos θ)
   · simpa using (Real.hasDerivAt_sin φ).const_mul (Real.sin θ)
   · simpa using Real.hasDerivAt_cos φ
+
+/-- Derivative of rotMθθ w.r.t. θ gives -rotMθ (third θ-derivative of rotM) -/
+lemma hasDerivAt_rotMθθ_θ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun θ' => rotMθθ θ' φ S) (-(rotMθ θ φ S)) θ := by
+  have h := hasDerivAt_toEuclideanLin_apply (M := (rotMθθ_mat · φ))
+    (M' := fun t => -(rotMθ_mat t φ)) (t := θ) (fun i j => ?_) S
+  · simpa [rotMθθ, rotMθ] using h
+  fin_cases i <;> fin_cases j <;>
+    simp only [rotMθθ_mat, rotMθ_mat, Matrix.neg_apply, Fin.zero_eta, Fin.isValue,
+      Fin.mk_one, Fin.reduceFinMk]
+  · simpa using Real.hasDerivAt_sin θ
+  · exact (Real.hasDerivAt_cos θ).neg
+  · simpa using hasDerivAt_const θ (0 : ℝ)
+  · simpa [neg_mul] using (Real.hasDerivAt_cos θ).mul_const (Real.cos φ)
+  · simpa using (Real.hasDerivAt_sin θ).mul_const (Real.cos φ)
+  · simpa using hasDerivAt_const θ (0 : ℝ)
+
+/-- Derivative of rotMθθ w.r.t. φ gives rotMθθφ -/
+lemma hasDerivAt_rotMθθ_φ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun φ' => rotMθθ θ φ' S) (rotMθθφ θ φ S) φ := by
+  refine hasDerivAt_toEuclideanLin_apply (M := (rotMθθ_mat θ ·)) (M' := (rotMθθφ_mat θ ·)) (fun i j => ?_) S
+  fin_cases i <;> fin_cases j <;>
+    simp only [rotMθθ_mat, rotMθθφ_mat, Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
+  · exact hasDerivAt_const _ _
+  · exact hasDerivAt_const _ _
+  · exact hasDerivAt_const _ _
+  · simpa [neg_mul, mul_neg] using (Real.hasDerivAt_cos φ).const_mul (Real.cos θ)
+  · simpa [neg_mul, mul_neg] using (Real.hasDerivAt_cos φ).const_mul (Real.sin θ)
+  · exact hasDerivAt_const _ _
+
+/-- Derivative of rotMθφ w.r.t. θ gives rotMθθφ -/
+lemma hasDerivAt_rotMθφ_θ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun θ' => rotMθφ θ' φ S) (rotMθθφ θ φ S) θ := by
+  refine hasDerivAt_toEuclideanLin_apply (M := (rotMθφ_mat · φ)) (M' := (rotMθθφ_mat · φ)) (fun i j => ?_) S
+  fin_cases i <;> fin_cases j <;>
+    simp only [rotMθφ_mat, rotMθθφ_mat, Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
+  · exact hasDerivAt_const _ _
+  · exact hasDerivAt_const _ _
+  · exact hasDerivAt_const _ _
+  · simpa [neg_mul] using (Real.hasDerivAt_sin θ).neg.mul_const (Real.sin φ)
+  · simpa [neg_mul] using (Real.hasDerivAt_cos θ).mul_const (Real.sin φ)
+  · exact hasDerivAt_const _ _
+
+/-- Derivative of rotMθφ w.r.t. φ gives rotMθφφ -/
+lemma hasDerivAt_rotMθφ_φ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun φ' => rotMθφ θ φ' S) (rotMθφφ θ φ S) φ := by
+  refine hasDerivAt_toEuclideanLin_apply (M := (rotMθφ_mat θ ·)) (M' := (rotMθφφ_mat θ ·)) (fun i j => ?_) S
+  fin_cases i <;> fin_cases j <;>
+    simp only [rotMθφ_mat, rotMθφφ_mat, Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
+  · exact hasDerivAt_const _ _
+  · exact hasDerivAt_const _ _
+  · exact hasDerivAt_const _ _
+  · simpa [neg_mul, mul_neg] using (Real.hasDerivAt_sin φ).const_mul (-Real.sin θ)
+  · simpa using (Real.hasDerivAt_sin φ).const_mul (Real.cos θ)
+  · exact hasDerivAt_const _ _
+
+/-- Derivative of rotMφφ w.r.t. θ gives rotMθφφ -/
+lemma hasDerivAt_rotMφφ_θ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun θ' => rotMφφ θ' φ S) (rotMθφφ θ φ S) θ := by
+  refine hasDerivAt_toEuclideanLin_apply (M := (rotMφφ_mat · φ)) (M' := (rotMθφφ_mat · φ)) (fun i j => ?_) S
+  fin_cases i <;> fin_cases j <;>
+    simp only [rotMφφ_mat, rotMθφφ_mat, Fin.zero_eta, Fin.isValue, Fin.mk_one, Fin.reduceFinMk]
+  · exact hasDerivAt_const _ _
+  · exact hasDerivAt_const _ _
+  · exact hasDerivAt_const _ _
+  · simpa [neg_mul] using (Real.hasDerivAt_cos θ).mul_const (Real.cos φ)
+  · simpa using (Real.hasDerivAt_sin θ).mul_const (Real.cos φ)
+  · exact hasDerivAt_const _ _
+
+/-- Derivative of rotMφφ w.r.t. φ gives -rotMφ (third φ-derivative of rotM) -/
+lemma hasDerivAt_rotMφφ_φ (θ φ : ℝ) (S : ℝ³) :
+    HasDerivAt (fun φ' => rotMφφ θ φ' S) (-(rotMφ θ φ S)) φ := by
+  have h := hasDerivAt_toEuclideanLin_apply (M := (rotMφφ_mat θ ·))
+    (M' := fun t => -(rotMφ_mat θ t)) (t := φ) (fun i j => ?_) S
+  · simpa [rotMφφ, rotMφ] using h
+  fin_cases i <;> fin_cases j <;>
+    simp only [rotMφφ_mat, rotMφ_mat, Matrix.neg_apply, Fin.zero_eta, Fin.isValue,
+      Fin.mk_one, Fin.reduceFinMk]
+  · simpa using hasDerivAt_const φ (0 : ℝ)
+  · simpa using hasDerivAt_const φ (0 : ℝ)
+  · simpa using hasDerivAt_const φ (0 : ℝ)
+  · simpa [mul_neg] using (Real.hasDerivAt_cos φ).const_mul (Real.cos θ)
+  · simpa [mul_neg] using (Real.hasDerivAt_cos φ).const_mul (Real.sin θ)
+  · exact (Real.hasDerivAt_sin φ).neg

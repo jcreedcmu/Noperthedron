@@ -20,7 +20,38 @@ def TriangleQ.toReal (t : TriangleQ) : Triangle :=
 def TriangleQ.Aεℚσ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℕ)
     (approx : RationalApprox.Approx) : Prop :=
   ∀ i : Fin 3, (-1)^σ * X ⬝ᵥ P_ i > approx.upper_sqrt_two * ε + 3 * κℚ
-deriving Decidable
+
+namespace TriangleQ.Aεℚσ
+
+/-- Bool-valued `Aεℚσ` check that reads the components of `X` (each of which
+re-evaluates two trig partial sums per access for `X = vecXℚ θ φ`) and the
+right-hand side once, outside the `i`-loop. -/
+def check (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℕ)
+    (approx : RationalApprox.Approx) : Bool :=
+  let s : ℚ := (-1) ^ σ
+  let x0 := s * X 0
+  let x1 := s * X 1
+  let x2 := s * X 2
+  let rhs := approx.upper_sqrt_two * ε + 3 * κℚ
+  (List.finRange 3).all fun i =>
+    let Pi := P_ i
+    decide (rhs < x0 * Pi 0 + x1 * Pi 1 + x2 * Pi 2)
+
+theorem check_iff (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℕ)
+    (approx : RationalApprox.Approx) :
+    check X P_ ε σ approx = true ↔ Aεℚσ X P_ ε σ approx := by
+  unfold check Aεℚσ
+  simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
+  refine forall_congr' fun i => ?_
+  rw [show (-1 : ℚ) ^ σ * (X ⬝ᵥ P_ i) =
+      (-1) ^ σ * X 0 * P_ i 0 + (-1) ^ σ * X 1 * P_ i 1 + (-1) ^ σ * X 2 * P_ i 2 from by
+    simp only [dotProduct, Fin.sum_univ_three]; ring]
+
+instance instDecidable (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (σ : ℕ)
+    (approx : RationalApprox.Approx) : Decidable (Aεℚσ X P_ ε σ approx) :=
+  decidable_of_iff _ (check_iff X P_ ε σ approx)
+
+end TriangleQ.Aεℚσ
 
 /--
 Condition A_ε^ℚ from [SY25] Theorem 48
@@ -28,10 +59,14 @@ Condition A_ε^ℚ from [SY25] Theorem 48
 def TriangleQ.Aεℚ (X : Fin 3 → ℚ) (P_ : TriangleQ) (ε : ℚ) (approx : RationalApprox.Approx) : Prop :=
   ∃ σ : ℕ, TriangleQ.Aεℚσ X P_ ε σ approx
 
+/-- The left-hand side of the `Bεℚ` inequality. The applied vectors are the
+*rounded* `p.rotM₂Rℚ` ones (multiples of `10⁻¹³` componentwise), so the dot
+product and `UpperSqrt` norms here run on small denominators; the rounding
+error is absorbed into the `10κℚ`/`3κℚ`/`6κℚ` terms (see `bounds_kappa4`). -/
 def TriangleQ.Bεℚ.lhs (v₁ v₂ : Fin 3 → ℚ) (p : Pose ℚ) (ε : ℚ)
    (approx : RationalApprox.Approx) : ℚ :=
-   (p.rotM₂ℚ v₁ ⬝ᵥ p.rotM₂ℚ (v₁ - v₂) - 10 * κℚ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κℚ) * (approx.upper_sqrt_two + ε))
-   / ((approx.upper_sqrt.norm (p.rotM₂ℚ v₁) + approx.upper_sqrt_two * ε + 3 * κℚ) * (approx.upper_sqrt.norm (p.rotM₂ℚ (v₁ - v₂)) + 2 * approx.upper_sqrt_two * ε + 6 * κℚ))
+   (p.rotM₂Rℚ v₁ ⬝ᵥ p.rotM₂Rℚ (v₁ - v₂) - 10 * κℚ - 2 * ε * (approx.upper_sqrt.norm (v₁ - v₂) + 2 * κℚ) * (approx.upper_sqrt_two + ε))
+   / ((approx.upper_sqrt.norm (p.rotM₂Rℚ v₁) + approx.upper_sqrt_two * ε + 3 * κℚ) * (approx.upper_sqrt.norm (p.rotM₂Rℚ (v₁ - v₂)) + 2 * approx.upper_sqrt_two * ε + 6 * κℚ))
 
 /--
 Condition B_ε^ℚ from [SY25] Theorem 48. As in `Local.Bε`, the triangle it
@@ -48,7 +83,7 @@ namespace TriangleQ.Bεℚ
 
 /-- Hoisted entries of `rotMℚ_mat p.θ₂ p.φ₂` so that sin/cos partial sums
 are evaluated once per pose, not once per matrix-vector multiply. -/
-private structure MatEntries : Type where
+structure MatEntries : Type where
   m₀₀ : ℚ
   m₀₁ : ℚ
   m₀₂ : ℚ
@@ -56,7 +91,7 @@ private structure MatEntries : Type where
   m₁₁ : ℚ
   m₁₂ : ℚ
 
-@[inline] private def matEntries (p : Pose ℚ) : MatEntries :=
+@[inline] def matEntries (p : Pose ℚ) : MatEntries :=
   let st := RationalApprox.sinℚ p.θ₂
   let ct := RationalApprox.cosℚ p.θ₂
   let sp := RationalApprox.sinℚ p.φ₂
@@ -76,6 +111,17 @@ private lemma MatEntries.applyVec_eq (p : Pose ℚ) (v : Fin 3 → ℚ) :
     simp [MatEntries.applyVec, matEntries, Matrix.mulVec, dotProduct,
           Fin.sum_univ_three, Matrix.cons_val_zero, Matrix.cons_val_one]
 
+/-- Component form of `Pose.rotM₂Rℚ`, as computed by the scalarized checkers. -/
+lemma rotM₂Rℚ_c0 (p : Pose ℚ) (u : Fin 3 → ℚ) :
+    p.rotM₂Rℚ u 0 = RationalApprox.round13
+      ((matEntries p).m₀₀ * u 0 + (matEntries p).m₀₁ * u 1 + (matEntries p).m₀₂ * u 2) :=
+  congrArg RationalApprox.round13 (congrFun (MatEntries.applyVec_eq p u) 0).symm
+
+lemma rotM₂Rℚ_c1 (p : Pose ℚ) (u : Fin 3 → ℚ) :
+    p.rotM₂Rℚ u 1 = RationalApprox.round13
+      ((matEntries p).m₁₀ * u 0 + (matEntries p).m₁₁ * u 1 + (matEntries p).m₁₂ * u 2) :=
+  congrArg RationalApprox.round13 (congrFun (MatEntries.applyVec_eq p u) 1).symm
+
 /-- Bool-valued `Bεℚ` check that hoists per-pose matrix entries and
 per-`i` `M₂·Q_i` / sqrtUp norms out of the inner-`k` `decide`. The
 outer `Fin 3` loop short-circuits via `List.all`. -/
@@ -86,16 +132,27 @@ def check {ι : Type} [Fintype ι] [DecidableEq ι] (Qi : Fin 3 → ι)
   let bound := (δ + approx.upper_sqrt_five * ε) / r
   (List.finRange 3).all fun i =>
     let Qi_val := v_ (Qi i)
-    let M₂Qi := entries.applyVec Qi_val
-    let denom1 := approx.upper_sqrt.norm M₂Qi + approx.upper_sqrt_two * ε + 3 * κℚ
+    -- All intermediate values are bound as scalars: `Fin n → ℚ` values are
+    -- closures that would re-evaluate their components (vertex-coordinate
+    -- divisions, matrix-vector products, `round13` calls) on every access
+    -- in the `k`-loop below.
+    let q0 := RationalApprox.round13
+      (entries.m₀₀ * Qi_val 0 + entries.m₀₁ * Qi_val 1 + entries.m₀₂ * Qi_val 2)
+    let q1 := RationalApprox.round13
+      (entries.m₁₀ * Qi_val 0 + entries.m₁₁ * Qi_val 1 + entries.m₁₂ * Qi_val 2)
+    let denom1 := approx.upper_sqrt.f (q0 * q0 + q1 * q1) + approx.upper_sqrt_two * ε + 3 * κℚ
     decide <| ∀ k : ι, k ≠ Qi i →
       let dv := Qi_val - v_ k
-      let M₂dv := entries.applyVec dv
-      let n_dv := approx.upper_sqrt.norm dv
-      let n_M₂dv := approx.upper_sqrt.norm M₂dv
-      let numer := M₂Qi ⬝ᵥ M₂dv - 10 * κℚ
+      let dv0 := dv 0
+      let dv1 := dv 1
+      let dv2 := dv 2
+      let d0 := RationalApprox.round13 (entries.m₀₀ * dv0 + entries.m₀₁ * dv1 + entries.m₀₂ * dv2)
+      let d1 := RationalApprox.round13 (entries.m₁₀ * dv0 + entries.m₁₁ * dv1 + entries.m₁₂ * dv2)
+      let n_dv := approx.upper_sqrt.f (dv0 * dv0 + dv1 * dv1 + dv2 * dv2)
+      let numer := q0 * d0 + q1 * d1 - 10 * κℚ
                    - 2 * ε * (n_dv + 2 * κℚ) * (approx.upper_sqrt_two + ε)
-      let denom2 := n_M₂dv + 2 * approx.upper_sqrt_two * ε + 6 * κℚ
+      let denom2 := approx.upper_sqrt.f (d0 * d0 + d1 * d1)
+                    + 2 * approx.upper_sqrt_two * ε + 6 * κℚ
       bound < numer / (denom1 * denom2)
 
 theorem check_iff {ι : Type} [Fintype ι] [DecidableEq ι] (Qi : Fin 3 → ι)
@@ -104,10 +161,11 @@ theorem check_iff {ι : Type} [Fintype ι] [DecidableEq ι] (Qi : Fin 3 → ι)
   unfold check Bεℚ Bεℚ.lhs
   simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
   refine forall_congr' (fun i => ?_)
-  rw [MatEntries.applyVec_eq]
   refine forall_congr' (fun k => ?_)
   refine forall_congr' (fun _ => ?_)
-  rw [MatEntries.applyVec_eq]
+  rw [← rotM₂Rℚ_c0 p (v_ (Qi i)), ← rotM₂Rℚ_c1 p (v_ (Qi i)),
+      ← rotM₂Rℚ_c0 p (v_ (Qi i) - v_ k), ← rotM₂Rℚ_c1 p (v_ (Qi i) - v_ k)]
+  simp only [RationalApprox.UpperSqrt.norm, dotProduct, Fin.sum_univ_two, Fin.sum_univ_three]
 
 instance instDecidable {ι : Type} [Fintype ι] [DecidableEq ι]
     (Qi : Fin 3 → ι) (v_ : ι → Fin 3 → ℚ)
@@ -182,10 +240,43 @@ def BoundDeltaℚ (δ : ℚ) (p : Pose ℚ) (P_ Q_ : Local.TriangleQ) (approx : 
   ∀ i : Fin 3, δ ≥ BoundDeltaℚi p P_ Q_ approx i
 deriving Decidable
 
-/-- The condition on r -/
+/-- The condition on r. The applied vector is the *rounded* `p.rotM₂Rℚ` one
+(multiples of `10⁻¹³` componentwise), so the `LowerSqrt` norm here runs on
+small denominators; the rounding error is absorbed into the `3κℚ` term (see
+`LowerSqrt_norm_round13v_le` and the `hr₁'` bridge in `rational_local`). -/
 def BoundRℚ (r ε : ℚ) (p : Pose ℚ) (Q_ : Local.TriangleQ) (approx : Approx) : Prop :=
-  ∀ i : Fin 3, approx.lower_sqrt.norm (p.rotM₂ℚ (Q_ i)) > r + approx.upper_sqrt_two * ε + 3 * κℚ
-deriving Decidable
+  ∀ i : Fin 3, approx.lower_sqrt.norm (p.rotM₂Rℚ (Q_ i)) > r + approx.upper_sqrt_two * ε + 3 * κℚ
+
+namespace BoundRℚ
+
+/-- Bool-valued `BoundRℚ` check that hoists the per-pose matrix entries
+(trig partial sums) and the right-hand side out of the `i`-loop and binds
+the applied vector's components as scalars. -/
+def check (r ε : ℚ) (p : Pose ℚ) (Q_ : Local.TriangleQ) (approx : Approx) : Bool :=
+  let entries := Local.TriangleQ.Bεℚ.matEntries p
+  let rhs := r + approx.upper_sqrt_two * ε + 3 * κℚ
+  (List.finRange 3).all fun i =>
+    let Qi := Q_ i
+    let v0 := Qi 0
+    let v1 := Qi 1
+    let v2 := Qi 2
+    let q0 := round13 (entries.m₀₀ * v0 + entries.m₀₁ * v1 + entries.m₀₂ * v2)
+    let q1 := round13 (entries.m₁₀ * v0 + entries.m₁₁ * v1 + entries.m₁₂ * v2)
+    decide (rhs < approx.lower_sqrt.f (q0 * q0 + q1 * q1))
+
+theorem check_iff (r ε : ℚ) (p : Pose ℚ) (Q_ : Local.TriangleQ) (approx : Approx) :
+    check r ε p Q_ approx = true ↔ BoundRℚ r ε p Q_ approx := by
+  unfold check BoundRℚ
+  simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
+  refine forall_congr' fun i => ?_
+  rw [← Local.TriangleQ.Bεℚ.rotM₂Rℚ_c0 p (Q_ i), ← Local.TriangleQ.Bεℚ.rotM₂Rℚ_c1 p (Q_ i)]
+  simp only [LowerSqrt.norm, dotProduct, Fin.sum_univ_two]
+
+instance instDecidable (r ε : ℚ) (p : Pose ℚ) (Q_ : Local.TriangleQ) (approx : Approx) :
+    Decidable (BoundRℚ r ε p Q_ approx) :=
+  decidable_of_iff _ (check_iff r ε p Q_ approx)
+
+end BoundRℚ
 
 /--
 A compact way of saying "the rational pose `p_` satisfies the Rational Local
@@ -260,21 +351,19 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
   have h_upper_norm_toR2 : ∀ (v : Fin 2 → ℚ),
       (approx.upper_sqrt.norm v : ℝ) ≥ ‖toR2 v‖ := fun v =>
     UpperSqrt_norm_le approx.upper_sqrt v
-  -- Main bridge: rewrite `Bεℚ.lhs` in terms of explicit real-form expressions.
+  -- Main bridge: cast `Bεℚ.lhs` to `ℝ` (the rounded dot product stays a cast atom).
   have h_Bεℚ_lhs_bridge : ∀ (v₁ v₂ : Fin 3 → ℚ),
-      Local.TriangleQ.Bεℚ.lhs v₁ v₂ p_ℚ ε approx =
-      (⟪p_.rotM₂ℚℝ (toR3 v₁), p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)⟫ - 10 * κ -
+      (Local.TriangleQ.Bεℚ.lhs v₁ v₂ p_ℚ ε approx : ℝ) =
+      (((p_ℚ.rotM₂Rℚ v₁ ⬝ᵥ p_ℚ.rotM₂Rℚ (v₁ - v₂) : ℚ) : ℝ) - 10 * κ -
          2 * ε * ((approx.upper_sqrt.norm (v₁ - v₂) : ℝ) + 2 * κ) *
            (approx.upper_sqrt_two + ε)) /
-      (((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ v₁) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
-       ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (v₁ - v₂)) : ℝ) +
+      (((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ v₁) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
+       ((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ (v₁ - v₂)) : ℝ) +
           2 * approx.upper_sqrt_two * ε + 6 * κ)) := by
     intro v₁ v₂
     unfold Local.TriangleQ.Bεℚ.lhs
     push_cast [← cast_κℚ]
-    rw [show ((p_ℚ.rotM₂ℚ v₁ ⬝ᵥ p_ℚ.rotM₂ℚ (v₁ - v₂) : ℚ) : ℝ) =
-        ⟪p_.rotM₂ℚℝ (toR3 v₁), p_.rotM₂ℚℝ (toR3 v₁ - toR3 v₂)⟫ from by
-      rw [← toR3_sub, ← toR2_pose_rotM₂ℚ, ← toR2_pose_rotM₂ℚ, inner_toR2]]
+    ring
   have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
     mul_le_mul_of_nonneg_right approx.upper_sqrt_two_gt_sqrt_two.le hεℝ.le
   have ae₁' : P.Aε p_.vecX₁ ε :=
@@ -283,25 +372,33 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
   have ae₂' : Q.Aε p_.vecX₂ ε :=
     aε_bridge (T := hpoly.transportTri Qi) (R := Q) hp.θ₂Bound hp.φ₂Bound
       hQnorm hQapprox ae₂ hεℝ
-  -- Bridge: BoundRℚ → BoundR
+  -- Bridge: BoundRℚ → BoundR. `BoundRℚ` bounds the `LowerSqrt` norm of the
+  -- *rounded* applied vector; the `2/10¹³` rounding perturbation plus the
+  -- `2κ + κ²` approximation error fit inside the `3κ` term.
   have hr₁' : Local.BoundR r ε p_ Q := by
     intro i
     have h_toR2_eq : (rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i) =
         toR2 (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) :=
       (toR2_pose_rotM₂ℚ _ _).symm
-    have hsl : (approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) ≤
-        ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ := by
-      rw [h_toR2_eq]; exact LowerSqrt_norm_ge approx.lower_sqrt _
-    have hMQ : |(‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ - ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖)| ≤ 3 * κ :=
-      bounds_kappa3_MQ (θ := θ₂) (φ := φ₂) (hQnorm i) (hQapprox i)
+    have hsl : (approx.lower_sqrt.norm (p_ℚ.rotM₂Rℚ ((hpoly.transportTri Qi) i)) : ℝ) ≤
+        ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖ + 2 / 10 ^ 13 := by
+      rw [h_toR2_eq]; exact LowerSqrt_norm_round13v_le approx.lower_sqrt _
+    have hM₂diff : ‖rotM (↑θ₂ : ℝ) ↑φ₂ - rotMℚℝ ↑θ₂ ↑φ₂‖ ≤ κ :=
+      M_difference_norm_bounded _ _ θ₂.property φ₂.property
+    have hM₂ℚnorm : ‖rotMℚℝ (↑θ₂ : ℝ) ↑φ₂‖ ≤ 1 + κ :=
+      Mℚ_norm_bounded θ₂.property φ₂.property
+    have hMQ : |(‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ - ‖(rotMℚℝ ↑θ₂ ↑φ₂) (Q_ i)‖)| ≤ 2 * κ + κ ^ 2 :=
+      (abs_norm_sub_norm_le _ _).trans
+        (clm_approx_apply_sub hM₂diff hM₂ℚnorm (hQnorm i) (hQapprox i))
     show ‖(rotM ↑θ₂ ↑φ₂) (Q i)‖ > r + √2 * ε
-    have hr₁i : (approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℝ) >
+    have hr₁i : (approx.lower_sqrt.norm (p_ℚ.rotM₂Rℚ ((hpoly.transportTri Qi) i)) : ℝ) >
         r + √2 * ε + 3 * κ := by
-      have hcast : ((approx.lower_sqrt.norm (p_ℚ.rotM₂ℚ ((hpoly.transportTri Qi) i)) : ℚ) : ℝ) >
+      have hcast : ((approx.lower_sqrt.norm (p_ℚ.rotM₂Rℚ ((hpoly.transportTri Qi) i)) : ℚ) : ℝ) >
           ((r + approx.upper_sqrt_two * ε + 3 * κℚ : ℚ) : ℝ) := mod_cast hr₁ i
       push_cast [cast_κℚ] at hcast
       linarith [h_us2_eps]
     rw [abs_le] at hMQ
+    have hκabsorb : 2 / 10 ^ 13 + (2 * κ + κ ^ 2) ≤ 3 * κ := by unfold κ; norm_num
     linarith [hMQ.1]
   have hδ' : Local.BoundDelta δ p_ P Q := by
     intro i
@@ -412,10 +509,10 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     have h_bridge_Qv := h_Bεℚ_lhs_bridge Q_ℚ v_ℚ
     -- Bridge from approx.upper_sqrt_five to √5 (since upper_sqrt_five > √5)
     have hbe' : (↑δ + √5 * ↑ε) / ↑r <
-        (⟪p_.rotM₂ℚℝ (toR3 Q_ℚ), p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫ - 10 * κ -
+        ((((p_ℚ.rotM₂Rℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℚ) : ℝ) - 10 * κ -
            2 * ε * ((approx.upper_sqrt.norm (Q_ℚ - v_ℚ) : ℝ) + 2 * κ) * (approx.upper_sqrt_two + ε)) /
-        (((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
-         ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) + 2 * approx.upper_sqrt_two * ε + 6 * κ)) := by
+        (((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ Q_ℚ) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
+         ((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℝ) + 2 * approx.upper_sqrt_two * ε + 6 * κ)) := by
       rw [← h_bridge_Qv]
       have h_le : (↑δ + √5 * ↑ε) / ↑r ≤ (↑δ + ↑approx.upper_sqrt_five * ↑ε) / ↑r := by
         gcongr
@@ -429,25 +526,21 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     have h_toR3_sub_Qv : toR3 (Q_ℚ - v_ℚ) = toR3 Q_ℚ - toR3 v_ℚ := toR3_sub _ _
     have h_norm_Qv_rat : ‖toR3 Q_ℚ - toR3 v_ℚ‖ ≤ (approx.upper_sqrt.norm (Q_ℚ - v_ℚ) : ℝ) := by
       rw [← h_toR3_sub_Qv]; exact h_upper_norm_toR3 _
-    have h_norm_rotM₂_Q : ‖p_.rotM₂ℚℝ (toR3 Q_ℚ)‖ ≤
-        (approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) := by
-      rw [← toR2_pose_rotM₂ℚ]; exact h_upper_norm_toR2 _
-    have h_norm_rotM₂_Qv : ‖p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)‖ ≤
-        (approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) := by
-      rw [← h_toR3_sub_Qv, ← toR2_pose_rotM₂ℚ]; exact h_upper_norm_toR2 _
+    have h_snorm_Q_nn : (0 : ℝ) ≤ (approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ Q_ℚ) : ℝ) :=
+      le_trans (norm_nonneg (toR2 (p_ℚ.rotM₂Rℚ Q_ℚ))) (h_upper_norm_toR2 _)
+    have h_snorm_Qv_nn : (0 : ℝ) ≤ (approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℝ) :=
+      le_trans (norm_nonneg (toR2 (p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)))) (h_upper_norm_toR2 _)
     have h_us2_nn : (0 : ℝ) ≤ approx.upper_sqrt_two :=
       (Real.sqrt_nonneg 2).trans approx.upper_sqrt_two_gt_sqrt_two.le
     have h_us2_le : (√2 : ℝ) ≤ approx.upper_sqrt_two := approx.upper_sqrt_two_gt_sqrt_two.le
     have hsu_norm_nn : (0 : ℝ) ≤ (approx.upper_sqrt.norm (Q_ℚ - v_ℚ) : ℝ) :=
       (norm_nonneg _).trans h_norm_Qv_rat
     -- Denominator positivity
-    have hden_pos : 0 < ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
-        ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) + 2 * approx.upper_sqrt_two * ε + 6 * κ) := by
-      have h₁ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (toR3 Q_ℚ))) h_norm_rotM₂_Q
-      have h₂ := le_trans (norm_nonneg (p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ))) h_norm_rotM₂_Qv
+    have hden_pos : 0 < ((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ Q_ℚ) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
+        ((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℝ) + 2 * approx.upper_sqrt_two * ε + 6 * κ) := by
       positivity
     -- Extract positivity of Bεℚ numerator
-    have hBεℚ_num_pos : 0 < ⟪p_.rotM₂ℚℝ (toR3 Q_ℚ), p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫ - 10 * κ -
+    have hBεℚ_num_pos : 0 < (((p_ℚ.rotM₂Rℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℚ) : ℝ) - 10 * κ -
         2 * ε * ((approx.upper_sqrt.norm (Q_ℚ - v_ℚ) : ℝ) + 2 * κ) * (approx.upper_sqrt_two + ε) := by
       have hδ_pos : 0 < (δ : ℝ) := by
         -- δ ≥ s.norm/2 + 3 * κℚ in ℚ, and s.norm ≥ 0 (it bounds a real norm).
@@ -465,14 +558,10 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
         2 * ε * ((approx.upper_sqrt.norm (Q_ℚ - v_ℚ) : ℝ) + 2 * κ) * (approx.upper_sqrt_two + ε) := by
       apply mul_le_mul (mul_le_mul_of_nonneg_left (by linarith [h_norm_Qv_rat]) (by linarith))
         (by linarith) (by positivity) (by positivity)
-    have hAℚ_num_pos : 0 < ⟪p_.rotM₂ℚℝ (toR3 Q_ℚ), p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫ - 10 * κ -
+    have hAℚ_num_pos : 0 < (((p_ℚ.rotM₂Rℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℚ) : ℝ) - 10 * κ -
         2 * ε * (‖toR3 Q_ℚ - toR3 v_ℚ‖ + 2 * κ) * (√2 + ε) := by
       linarith [hBεℚ_num_pos]
-    -- Inner product 10κ-bound and the related real-norm bound for `Q i - v k`
-    have hQv_norm : ‖Q i - poly.vertices.v k‖ ≤ 2 := calc
-      ‖Q i - poly.vertices.v k‖ ≤ ‖Q i‖ + ‖poly.vertices.v k‖ := norm_sub_le _ _
-      _ ≤ 1 + 1 := add_le_add (hQnorm i) hvnorm
-      _ = 2 := by ring
+    -- Approximation bound for `Q i - v k` (used for the ε-term comparison)
     have hQv_approx : ‖(Q i - poly.vertices.v k) - (toR3 Q_ℚ - toR3 v_ℚ)‖ ≤ 2 * κ := by
       rw [show toR3 Q_ℚ - toR3 v_ℚ = Q_ i - v_ from rfl]
       calc ‖(Q i - poly.vertices.v k) - (Q_ i - v_)‖
@@ -488,11 +577,10 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
         2 * ε * ‖Q i - poly.vertices.v k‖ * (√2 + ε) := by
       have h_inner_10 : |⟪(rotM (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)) (Q i),
             (rotM (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)) (Q i - poly.vertices.v k)⟫ -
-          ⟪p_.rotM₂ℚℝ (toR3 Q_ℚ),
-            p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫| ≤ 10 * κ :=
-        inner_product_bound_10kappa (θ := θ₂) (φ := φ₂) (hQnorm i) hQv_norm h_Q_approx hQv_approx
-      have h_inner_le : ⟪p_.rotM₂ℚℝ (toR3 Q_ℚ),
-            p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫ - 10 * κ ≤
+          (((p_ℚ.rotM₂Rℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℚ) : ℝ)| ≤ 10 * κ :=
+        inner_product_bound_round_10kappa (θ := θ₂) (φ := φ₂) rfl rfl
+          (hQnorm i) hvnorm h_Q_approx h_v_approx
+      have h_inner_le : (((p_ℚ.rotM₂Rℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℚ) : ℝ) - 10 * κ ≤
           ⟪(rotM (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)) (Q i),
             (rotM (p_ℚ.θ₂ : ℝ) (p_ℚ.φ₂ : ℝ)) (Q i - poly.vertices.v k)⟫ :=
         sub_le_of_abs_sub_le_left h_inner_10
@@ -514,27 +602,19 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
         approx.upper_sqrt hA_nonneg
     -- Bridge `Bεℚ.lhs` real form ≤ `bounds_kappa4_Aℚ`
     have hBεℚ_le :
-        (⟪p_.rotM₂ℚℝ (toR3 Q_ℚ), p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫ - 10 * κ -
+        ((((p_ℚ.rotM₂Rℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℚ) : ℝ) - 10 * κ -
             2 * ε * ((approx.upper_sqrt.norm (Q_ℚ - v_ℚ) : ℝ) + 2 * κ) * (approx.upper_sqrt_two + ε)) /
-          (((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
-            ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) +
+          (((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ Q_ℚ) : ℝ) + approx.upper_sqrt_two * ε + 3 * κ) *
+            ((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℝ) +
               2 * approx.upper_sqrt_two * ε + 6 * κ)) ≤
         bounds_kappa4_Aℚ Q_ℚ v_ℚ p_ℚ ε approx.upper_sqrt := by
-      show _ ≤ ((((p_ℚ.rotM₂ℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℚ) : ℝ) - 10 * κ -
+      show _ ≤ ((((p_ℚ.rotM₂Rℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℚ) : ℝ) - 10 * κ -
             2 * ε * (‖toR3 (Q_ℚ - v_ℚ)‖ + 2 * κ) * (√2 + ε)) /
-        (((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) + √2 * ε + 3 * κ) *
-         ((approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) + 2 * √2 * ε + 6 * κ))
-      have h_inner_eq : ((p_ℚ.rotM₂ℚ Q_ℚ ⬝ᵥ p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ) : ℚ) : ℝ) =
-          ⟪p_.rotM₂ℚℝ (toR3 Q_ℚ), p_.rotM₂ℚℝ (toR3 Q_ℚ - toR3 v_ℚ)⟫ := by
-        rw [← toR2_pose_rotM₂ℚ p_ℚ Q_ℚ, ← h_toR3_sub_Qv,
-            ← toR2_pose_rotM₂ℚ p_ℚ (Q_ℚ - v_ℚ), inner_toR2]
-      have h₁ : (0 : ℝ) ≤ (approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ Q_ℚ) : ℝ) :=
-        le_trans (norm_nonneg _) h_norm_rotM₂_Q
-      have h₂ : (0 : ℝ) ≤ (approx.upper_sqrt.norm (p_ℚ.rotM₂ℚ (Q_ℚ - v_ℚ)) : ℝ) :=
-        le_trans (norm_nonneg _) h_norm_rotM₂_Qv
+        (((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ Q_ℚ) : ℝ) + √2 * ε + 3 * κ) *
+         ((approx.upper_sqrt.norm (p_ℚ.rotM₂Rℚ (Q_ℚ - v_ℚ)) : ℝ) + 2 * √2 * ε + 6 * κ))
       have h_us2_eps : (√2 : ℝ) * ε ≤ approx.upper_sqrt_two * ε :=
         mul_le_mul_of_nonneg_right h_us2_le hεℝ.le
-      rw [h_inner_eq, h_toR3_sub_Qv]
+      rw [h_toR3_sub_Qv]
       refine div_le_div₀ hAℚ_num_pos.le (by linarith [h_num_sub]) (by positivity) ?_
       gcongr
     -- Combine (final step uses defeq `bounds_kappa4_A = Bε.lhs`).

@@ -16,15 +16,15 @@ here is computable — no `noncomputable` keyword.
 namespace Noperthedron.Solution
 
 abbrev Row.G_gt_maxH (r : Row) : Prop :=
-  RationalApprox.GlobalTheorem.Gℚ r.interval.centerPose r.epsilon r.S r.w >
-    RationalApprox.GlobalTheorem.maxHℚ r.interval.centerPose pythonPolyQ r.epsilon r.w
+  RationalApprox.GlobalTheorem.Gℚ r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.S r.w >
+    RationalApprox.GlobalTheorem.maxHℚ r.interval.centerPose pythonPolyQ r.εθ₂ r.εφ₂ r.w
 
 /-- Fast Decidable instance for `Row.G_gt_maxH` that hoists per-pose work out
 of the per-vertex iteration. See `Gℚ_gt_maxHℚ_check` in `RationalGlobal.lean`. -/
 instance (r : Row) : Decidable r.G_gt_maxH :=
   decidable_of_iff _ <|
     RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_check_iff
-      r.interval.centerPose r.epsilon r.S pythonPolyQ r.w
+      r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂_nonneg r.εφ₂_nonneg r.S pythonPolyQ r.w
 
 /-! ## The main checker -/
 
@@ -35,7 +35,11 @@ structure Row.ValidGlobal (row : Row) : Prop where
   w_unit : row.wx_numerator ^ 2 + row.wy_numerator ^ 2 = (row.w_denominator : ℤ) ^ 2
   w_denominator_pos : 0 < row.w_denominator
   center_in_fourQ : row.interval.centerPose ∈ fourInterval ℚ
-  epsilon_pos : 0 < row.epsilon
+  εθ₁_pos : 0 < row.εθ₁
+  εφ₁_pos : 0 < row.εφ₁
+  εθ₂_pos : 0 < row.εθ₂
+  εφ₂_pos : 0 < row.εφ₂
+  εα_pos : 0 < row.εα
   G_gt_maxH : row.G_gt_maxH
 
 instance (row : Row) : Decidable (Row.ValidGlobal row) :=

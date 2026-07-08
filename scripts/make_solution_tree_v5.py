@@ -1,9 +1,23 @@
-"""Produce solution_tree_v4.csv from SY25's original solution_tree.csv.
+"""Produce solution_tree_v5.csv from SY25's original solution_tree.csv.
 
-Supersedes make_solution_tree_v3.py: same two passes (prune fold boxes
-bottom-up, then flip surviving local leaves to global), same Lean checker,
-same lemmas, same 1e-9 slack margin — but the witness search per box is
-(nearly) exhaustive instead of seeded-and-narrow:
+Supersedes make_solution_tree_v4.py: same two passes (prune fold boxes
+bottom-up, then flip surviving local leaves to global), same 1e-9 slack
+margin, same (nearly) exhaustive witness search — but the certificate is
+SECOND-ORDER: the crude quadratic remainders 4.5*eps^2 (G side) and
+2*eps^2 (H side) of the first-order certificate are replaced by the exact
+second-order Taylor term evaluated at the box center,
+
+  pen2 = (eps^2/2) * sum_{i,j} |d_i d_j f(center)|,
+
+plus a cubic Lagrange remainder (n^3/6)*eps^3 with n = 3 (G: alpha,
+theta1, phi1 -> 4.5*eps^3) or n = 2 (H: theta2, phi2 -> (4/3)*eps^3),
+using |third partials| <= 1.  The kappa slack grows to cover the rational
+evaluation of the extra dot products: 4*KAPPA*(1 + 3*eps + 4.5*eps^2) on
+the G side, 3*KAPPA*(1 + 2*eps + 2*eps^2) on the H side.  This mirrors the
+second-order Lean checker (branch second-order); rows emitted here do NOT
+pass the v4-era first-order Lean checker's stronger penalty.
+
+The witness search itself is v4's:
 
   For every candidate box, in addition to the cheap stage (witnesses
   inherited from children/siblings), we scan ALL 90 vertices S against a
@@ -20,23 +34,23 @@ same lemmas, same 1e-9 slack margin — but the witness search per box is
   (S, w) grid evaluates with a few (90 x A) outer products instead of a
   flat (S*A) x P sweep — a few ms per box.
 
-Sampling with a fully exhaustive scan (90 S x 1024 angles) estimated the
-remaining headroom over v3 at ~17.8% of surviving fold boxes killable
-(~2.4M rows) and ~34.6% of remaining local leaves flippable (~120k rows),
-for roughly 25-30% less Lean check time on top of v3's 1.45x.
+The 2026-07-03 profiling session estimated the quadratic remainder at a
+median 32% of the total penalty at parent scale, and projected the
+second-order certificate to land the tree near ~5M rows (vs 11.48M in v4).
+This run is the definitive measurement.
 
-Inputs (same as v3):
+Inputs (same as v3/v4):
   - the original solution_tree.csv (from SY25's solution_tree.zip,
     https://github.com/Jakob256/Rupert/blob/main/data/solution_tree.zip)
   - verts90.json: the 90 Noperthedron vertices in CSV index order, extracted
     from Noperthedron/Vertices/Python.lean (mkV integer coordinates / 10^16)
 
 Usage:
-  python make_solution_tree_v4.py \
+  python make_solution_tree_v5.py \
       --input   data/solution_tree.csv \
       --verts   regen/verts90.json \
-      --pruned-out solution_tree_v4_pruned.csv \
-      --v4-out  solution_tree_v4.csv \
+      --pruned-out solution_tree_v5_pruned.csv \
+      --v5-out  solution_tree_v5.csv \
       --workers 16
 
 Runtime: roughly an hour wall-clock on 16 cores (dominated by CSV parsing,
@@ -47,7 +61,7 @@ copy-on-write).  Requires numpy + pandas and a fork-capable OS
 
 Checkpoints/resume: pass 1 saves state after each depth level and pass 2
 every 25k scanned boxes, into --checkpoint-dir (default: alongside
---v4-out).  Rerun with --resume to continue after an interruption; use
+--v5-out).  Rerun with --resume to continue after an interruption; use
 --skip-prune to reuse an already-written --pruned-out file.
 
 Determinism: the search has no randomness and worker scheduling cannot
@@ -103,11 +117,15 @@ def load_table(path):
 
 
 def eval_cert(pose, eps, sidx, w0, w1):
-    """Exact ValidGlobal inequality Gq > maxHq, split as num > den.
+    """Exact second-order ValidGlobal inequality Gq > maxHq, split as num > den.
 
     Flat float64 arrays of length N (pose is (N,5)).  Returns (slack, mstar):
     slack = min_P (num - den), mstar = min_P num/den.  A witness is accepted
     only when slack >= SLACK_MIN.
+
+    Second-partial table (params alpha, theta1, phi1; R' = dR/da, R'' = -R):
+      (a,a) -R.M1.S    (a,t) R'.M1t.S   (a,f) R'.M1f.S
+      (t,t) R.M1tt.S   (t,f) R.M1tf.S   (f,f) R.M1ff.S   with M1ff.S = (0, -m1S_1)
     """
     t1, f1, t2, f2, a = (pose[:, k] for k in range(5))
     st1, ct1, sf1, cf1 = np.sin(t1), np.cos(t1), np.sin(f1), np.cos(f1)
@@ -120,11 +138,21 @@ def eval_cert(pose, eps, sidx, w0, w1):
     m1tS_0 = -ct1 * Sx - st1 * Sy
     m1tS_1 = st1 * cf1 * Sx - ct1 * cf1 * Sy
     m1fS_1 = ct1 * sf1 * Sx + st1 * sf1 * Sy + cf1 * Sz
+    m1ttS_0 = st1 * Sx - ct1 * Sy
+    m1ttS_1 = ct1 * cf1 * Sx + st1 * cf1 * Sy
+    m1tfS_1 = -st1 * sf1 * Sx + ct1 * sf1 * Sy
     base_G = (ca * m1S_0 - sa * m1S_1) * w0 + (sa * m1S_0 + ca * m1S_1) * w1
+    q_aa = np.abs(base_G)
+    q_at = np.abs((-sa * m1tS_0 - ca * m1tS_1) * w0 + (ca * m1tS_0 - sa * m1tS_1) * w1)
+    q_af = np.abs((-ca * m1fS_1) * w0 + (-sa * m1fS_1) * w1)
+    q_tt = np.abs((ca * m1ttS_0 - sa * m1ttS_1) * w0 + (sa * m1ttS_0 + ca * m1ttS_1) * w1)
+    q_tf = np.abs((-sa * m1tfS_1) * w0 + (ca * m1tfS_1) * w1)
+    q_ff = np.abs((sa * m1S_1) * w0 + (-ca * m1S_1) * w1)
     pen_G = eps * (np.abs((-sa * m1S_0 - ca * m1S_1) * w0 + (ca * m1S_0 - sa * m1S_1) * w1) +
                    np.abs((ca * m1tS_0 - sa * m1tS_1) * w0 + (sa * m1tS_0 + ca * m1tS_1) * w1) +
                    np.abs((-sa * m1fS_1) * w0 + (ca * m1fS_1) * w1)) \
-            + 4.5 * eps**2 + 4 * KAPPA * (1 + 3 * eps)
+            + 0.5 * eps**2 * (q_aa + 2 * q_at + 2 * q_af + q_tt + 2 * q_tf + q_ff) \
+            + 4.5 * eps**3 + 4 * KAPPA * (1 + 3 * eps + 4.5 * eps**2)
     st2_, ct2_, sf2_, cf2_ = (x[:, None] for x in (st2, ct2, sf2, cf2))
     w0_, w1_, eps_ = w0[:, None], w1[:, None], eps[:, None]
     m2P_0 = -st2_ * Px + ct2_ * Py
@@ -132,9 +160,15 @@ def eval_cert(pose, eps, sidx, w0, w1):
     m2tP_0 = -ct2_ * Px - st2_ * Py
     m2tP_1 = st2_ * cf2_ * Px - ct2_ * cf2_ * Py
     m2fP_1 = ct2_ * sf2_ * Px + st2_ * sf2_ * Py + cf2_ * Pz
+    m2ttP_1 = ct2_ * cf2_ * Px + st2_ * cf2_ * Py
+    m2tfP_1 = -st2_ * sf2_ * Px + ct2_ * sf2_ * Py
     base_H = m2P_0 * w0_ + m2P_1 * w1_
+    h_tt = np.abs(-m2P_0 * w0_ + m2ttP_1 * w1_)
+    h_tf = np.abs(m2tfP_1 * w1_)
+    h_ff = np.abs(m2P_1 * w1_)
     pen_H = eps_ * (np.abs(m2tP_0 * w0_ + m2tP_1 * w1_) + np.abs(m2fP_1 * w1_)) \
-            + 2 * eps_**2 + 3 * KAPPA * (1 + 2 * eps_)
+            + 0.5 * eps_**2 * (h_tt + 2 * h_tf + h_ff) \
+            + (4 / 3) * eps_**3 + 3 * KAPPA * (1 + 2 * eps_ + 2 * eps_**2)
     num = base_G[:, None] - base_H
     den = pen_G[:, None] + pen_H
     return (num - den).min(axis=1), (num / den).min(axis=1)
@@ -189,6 +223,9 @@ def _grid_eval(i, w3):
     m1tS_0 = -ct1 * Sx - st1 * Sy
     m1tS_1 = st1 * cf1 * Sx - ct1 * cf1 * Sy
     m1fS_1 = ct1 * sf1 * Sx + st1 * sf1 * Sy + cf1 * Sz
+    m1ttS_0 = st1 * Sx - ct1 * Sy
+    m1ttS_1 = ct1 * cf1 * Sx + st1 * cf1 * Sy
+    m1tfS_1 = -st1 * sf1 * Sx + ct1 * sf1 * Sy
     gA = ca * m1S_0 - sa * m1S_1
     gB = sa * m1S_0 + ca * m1S_1
     dA = -sa * m1S_0 - ca * m1S_1
@@ -196,20 +233,41 @@ def _grid_eval(i, w3):
     tB = sa * m1tS_0 + ca * m1tS_1
     fA = -sa * m1fS_1
     fB = ca * m1fS_1
+    # R' applied to a 2-vector x is (-sa*x0 - ca*x1, ca*x0 - sa*x1); with
+    # (xA, xB) = R.x precomputed, R'.x = (-xB, xA).  Second-partial dots:
+    ttA = ca * m1ttS_0 - sa * m1ttS_1
+    ttB = sa * m1ttS_0 + ca * m1ttS_1
+    tfA = -sa * m1tfS_1
+    tfB = ca * m1tfS_1
+    ffA = sa * m1S_1
+    ffB = -ca * m1S_1
     base_G = gA[:, None] * w0 + gB[:, None] * w1
+    q_aa = np.abs(base_G)                                        # (a,a): -R.M1.S
+    q_at = np.abs(-tB[:, None] * w0 + tA[:, None] * w1)          # (a,t): R'.M1t.S
+    q_af = np.abs(-fB[:, None] * w0 + fA[:, None] * w1)          # (a,f): R'.M1f.S
+    q_tt = np.abs(ttA[:, None] * w0 + ttB[:, None] * w1)
+    q_tf = np.abs(tfA[:, None] * w0 + tfB[:, None] * w1)
+    q_ff = np.abs(ffA[:, None] * w0 + ffB[:, None] * w1)
     pen_G = eps * (np.abs(dA[:, None] * w0 + gA[:, None] * w1) +
                    np.abs(tA[:, None] * w0 + tB[:, None] * w1) +
                    np.abs(fA[:, None] * w0 + fB[:, None] * w1)) \
-            + 4.5 * eps**2 + 4 * KAPPA * (1 + 3 * eps)
+            + 0.5 * eps**2 * (q_aa + 2 * q_at + 2 * q_af + q_tt + 2 * q_tf + q_ff) \
+            + 4.5 * eps**3 + 4 * KAPPA * (1 + 3 * eps + 4.5 * eps**2)
     m2P_0 = -st2 * Px + ct2 * Py
     m2P_1 = -ct2 * cf2 * Px - st2 * cf2 * Py + sf2 * Pz
     m2tP_0 = -ct2 * Px - st2 * Py
     m2tP_1 = st2 * cf2 * Px - ct2 * cf2 * Py
     m2fP_1 = ct2 * sf2 * Px + st2 * sf2 * Py + cf2 * Pz
+    m2ttP_1 = ct2 * cf2 * Px + st2 * cf2 * Py
+    m2tfP_1 = -st2 * sf2 * Px + ct2 * sf2 * Py
     base_H = m2P_0[:, None] * w0 + m2P_1[:, None] * w1          # (90 P, A)
+    h_tt = np.abs(-m2P_0[:, None] * w0 + m2ttP_1[:, None] * w1)
+    h_tf = np.abs(m2tfP_1[:, None] * w1)
+    h_ff = np.abs(m2P_1[:, None] * w1)
     pen_H = eps * (np.abs(m2tP_0[:, None] * w0 + m2tP_1[:, None] * w1) +
                    np.abs(m2fP_1[:, None] * w1)) \
-            + 2 * eps**2 + 3 * KAPPA * (1 + 2 * eps)
+            + 0.5 * eps**2 * (h_tt + 2 * h_tf + h_ff) \
+            + (4 / 3) * eps**3 + 3 * KAPPA * (1 + 2 * eps + 2 * eps**2)
     slack = base_G - pen_G - (base_H + pen_H).max(axis=0)[None, :]
     return slack, base_G, pen_G, base_H, pen_H
 
@@ -498,7 +556,7 @@ def prune(df, pruned_path, workers, min_mstar, ckpt_dir, resume):
     print(f"wrote {pruned_path}: {n_out:,} rows (was {n:,}; {n / n_out:.2f}x smaller)")
 
 
-# ================== PASS 2: flip local -> global (pruned -> v4) ==================
+# ================== PASS 2: flip local -> global (pruned -> v5) ==================
 
 def find_flips(df, workers, min_mstar, ckpt_dir, resume):
     global CENTERS, EPS_ALL
@@ -598,7 +656,7 @@ def find_flips(df, workers, min_mstar, ckpt_dir, resume):
     return flip
 
 
-def apply_flips(pruned_path, v4_path, flip):
+def apply_flips(pruned_path, v5_path, flip):
     bad = [k for k, (s, wx, wy, wd) in flip.items()
            if int(wx)**2 + int(wy)**2 != int(wd)**2 or int(wd) <= 0 or not (0 <= int(s) < 90)]
     assert not bad, bad[:5]
@@ -607,7 +665,7 @@ def apply_flips(pruned_path, v4_path, flip):
     flips = {str(k): v for k, v in flip.items()}
     n_flipped = 0
     counts = {}
-    with open(pruned_path) as f, open(v4_path, "w") as g:
+    with open(pruned_path) as f, open(v5_path, "w") as g:
         g.write(f.readline())      # header
         for line in f:
             rid = line[:line.index(",")]
@@ -625,7 +683,7 @@ def apply_flips(pruned_path, v4_path, flip):
                 nt = "1"
             counts[nt] = counts.get(nt, 0) + 1
     assert n_flipped == len(flips)
-    print(f"wrote {v4_path}: flipped {n_flipped:,} rows")
+    print(f"wrote {v5_path}: flipped {n_flipped:,} rows")
     total = sum(counts.values())
     print(f"final composition: total={total:,} split={counts.get('3', 0):,} "
           f"global={counts.get('1', 0):,} local={counts.get('2', 0):,}")
@@ -640,7 +698,7 @@ def main():
     ap.add_argument("--verts", required=True, help="verts90.json")
     ap.add_argument("--pruned-out", required=True,
                     help="output path for the intermediate pruned tree csv")
-    ap.add_argument("--v4-out", required=True, help="output path for solution_tree_v4.csv")
+    ap.add_argument("--v5-out", required=True, help="output path for solution_tree_v5.csv")
     ap.add_argument("--workers", type=int, default=min(16, os.cpu_count()),
                     help="parallel scan workers (default: min(16, cpus))")
     ap.add_argument("--coarse-angles", type=int, default=1024,
@@ -651,7 +709,7 @@ def main():
                     help="skip exhaustive scan for boxes whose cheap-stage m* is "
                          "below this (default 0.0 = scan everything)")
     ap.add_argument("--checkpoint-dir", default=None,
-                    help="checkpoint directory (default: alongside --v4-out)")
+                    help="checkpoint directory (default: alongside --v5-out)")
     ap.add_argument("--resume", action="store_true",
                     help="resume from checkpoints in --checkpoint-dir")
     ap.add_argument("--skip-prune", action="store_true",
@@ -662,7 +720,7 @@ def main():
     assert verts.shape == (90, 3)
     Px, Py, Pz = verts[:, 0], verts[:, 1], verts[:, 2]
     init_scan_grids(args.coarse_angles, args.refine_top)
-    ckpt_dir = args.checkpoint_dir or os.path.dirname(os.path.abspath(args.v4_out))
+    ckpt_dir = args.checkpoint_dir or os.path.dirname(os.path.abspath(args.v5_out))
     os.makedirs(ckpt_dir, exist_ok=True)
 
     if not args.skip_prune:
@@ -672,12 +730,12 @@ def main():
         print(f"{len(df):,} rows")
         prune(df, args.pruned_out, args.workers, args.min_mstar, ckpt_dir, args.resume)
 
-    print("\n=== PASS 2: flip local leaves to global (pruned -> v4) ===")
+    print("\n=== PASS 2: flip local leaves to global (pruned -> v5) ===")
     print("loading pruned tree ...", flush=True)
     df2 = load_table(args.pruned_out)
     print(f"{len(df2):,} rows")
     flip = find_flips(df2, args.workers, args.min_mstar, ckpt_dir, args.resume)
-    apply_flips(args.pruned_out, args.v4_out, flip)
+    apply_flips(args.pruned_out, args.v5_out, flip)
 
 
 if __name__ == "__main__":

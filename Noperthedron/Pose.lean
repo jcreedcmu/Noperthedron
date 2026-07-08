@@ -87,6 +87,19 @@ noncomputable
 def rotR' (p : Pose ℝ) : ℝ² →L[ℝ] ℝ² := _root_.rotR' (p.α)
 
 noncomputable
+def rotM₁θθ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := rotMθθ (p.θ₁) (p.φ₁)
+noncomputable
+def rotM₁θφ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := rotMθφ (p.θ₁) (p.φ₁)
+noncomputable
+def rotM₁φφ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := rotMφφ (p.θ₁) (p.φ₁)
+noncomputable
+def rotM₂θθ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := rotMθθ (p.θ₂) (p.φ₂)
+noncomputable
+def rotM₂θφ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := rotMθφ (p.θ₂) (p.φ₂)
+noncomputable
+def rotM₂φφ (p : Pose ℝ) : ℝ³ →L[ℝ] ℝ² := rotMφφ (p.θ₂) (p.φ₂)
+
+noncomputable
 def inner (p : Pose ℝ) : ℝ³ →ᵃ[ℝ] ℝ² := innerProj p
 noncomputable
 def outer (p : Pose ℝ) : ℝ³ →ᵃ[ℝ] ℝ² := outerProj p

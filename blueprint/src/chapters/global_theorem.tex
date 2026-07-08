@@ -33,35 +33,55 @@ as required.
 
 
 \begin{lemma} \label{lem:leq1}
-\lean{GlobalTheorem.rotation_partials_bounded}
+\lean{GlobalTheorem.rotation_third_partials_bounded}
 \leanok
-    Let $S \in \R^3$ and $w \in \R^2$ be unit vectors and set $f(x_1,x_2,x_3) = \langle R(x_3) M(x_1,x_2)S,w \rangle$. Then for all $x_1,x_2,x_3 \in \R$ and any $i,j \in \{1,2,3\}$ it holds that
+    Let $S \in \R^3$ and $w \in \R^2$ be unit vectors and set $f(x_1,x_2,x_3) = \langle R(x_3) M(x_1,x_2)S,w \rangle$. Then for all $x_1,x_2,x_3 \in \R$ and any $i,j,k \in \{1,2,3\}$ it holds that
     \[
-        \left|\frac{\dd^2 f}{\dd x_i \dd x_j}(x_1,x_2,x_3)\right|\leq 1.
+        \left|\frac{\dd^2 f}{\dd x_i \dd x_j}(x_1,x_2,x_3)\right|\leq 1
+        \qquad\text{and}\qquad
+        \left|\frac{\dd^3 f}{\dd x_i \dd x_j \dd x_k}(x_1,x_2,x_3)\right|\leq 1.
     \]
 \end{lemma}
 
 \begin{proof}\leanok
-See \cite{polyhedron.without.rupert}, Lemma 19.
+The second-partial bound is \cite{polyhedron.without.rupert}, Lemma 19.  The
+third-partial bound follows by the same argument: every third partial of $f$
+is $\langle A S, w\rangle$ for $A$ a composition of $\pm R$ or $\pm R'$ with a
+matrix from the $M$-derivative family, all of operator norm at most one.
+(Note $M^{\theta\theta\theta} = -M^\theta$ and $M^{\phi\phi\phi} = -M^\phi$,
+so only the two mixed third derivatives $M^{\theta\theta\phi}$,
+$M^{\theta\phi\phi}$ are genuinely new matrices.)
 \end{proof}
 
 \begin{lemma} \label{lem:n2}
-\lean{GlobalTheorem.bounded_partials_control_difference}
+\lean{GlobalTheorem.bounded_partials_control_difference2}
 \leanok
-    Let $f:\R^n\to \R$ be a $C^2$-function and $x_1,\dots,x_n,y_1,\dots,y_n \in \R$ such that $|x_1-y_1|,\dots,|x_n-y_n|\leq \varepsilon$.
+    Let $f:\R^n\to \R$ be a $C^3$-function, let
+    $\varepsilon_1,\dots,\varepsilon_n \geq 0$, and let
+    $x_1,\dots,x_n,y_1,\dots,y_n \in \R$ be such that
+    $|x_i-y_i|\leq \varepsilon_i$ for all $i$.
     If
     \(
-        \left|\partial_{x_i}\partial_{x_j}f(v)\right| \leq 1
+        \left|\partial_{x_i}\partial_{x_j}\partial_{x_k}f(v)\right| \leq 1
     \)
-    for all $i,j \in \{1,\dots,n\}$ and all $v \in \R^n$, then
+    for all $i,j,k \in \{1,\dots,n\}$ and all $v \in \R^n$, then
     \[
-    |f(x_1,\dots,x_n)-f(y_1,\dots,y_n)|\leq \varepsilon \sum_{i=1}^n |\partial_{x_i} f(x_1,\dots,x_n)| + \frac{n^2}{2}\varepsilon^2.
+    |f(x)-f(y)|\leq \sum_{i=1}^n \varepsilon_i |\partial_{x_i} f(x)|
+      + \frac{1}{2} \sum_{i=1}^n \sum_{j=1}^n \varepsilon_i \varepsilon_j
+          |\partial_{x_i}\partial_{x_j} f(x)|
+      + \frac{1}{6}\Big(\sum_{i=1}^n \varepsilon_i\Big)^3.
     \]
+    (At $\varepsilon_1 = \dots = \varepsilon_n = \varepsilon$ this recovers the
+    isotropic remainder $\frac{n^3}{6}\varepsilon^3$.)
 \end{lemma}
 
 \begin{proof}
 \leanok
-See \cite{polyhedron.without.rupert}, Lemma 20.
+This strengthens \cite{polyhedron.without.rupert}, Lemma 20, by one Taylor
+order and per-axis radii: expand $g(t) = f((1-t)x + ty)$ to second order with
+Lagrange remainder, bound $|g'(0)|$ by the first sum, $|g''(0)|/2$ by the
+second (the second partials are evaluated exactly at $x$, not bounded), and
+$|g'''(c)| \le (\sum_i \varepsilon_i)^3$ using the third-partial bound.
 \end{proof}
 
 \begin{lemma}
@@ -91,13 +111,33 @@ By basic properties of derivatives.
 \begin{theorem}[Global Theorem] \label{thm:global}
 \lean{GlobalTheorem.global_theorem}
 \leanok
-    Let $\PPP$ be a pointsymmetric convex polyhedron with radius $\rho =1$ and let $S \in \PPP$. Further let $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \R$ and let $w\in\R^2$ be a unit vector. Denote $\Mib \coloneqq M(\thetab_1, \phib_1)$, $ \Miib \coloneqq M(\thetab_2, \phib_2)$ as well as $\Mib^{\theta} \coloneqq M^\theta(\thetab_1, \phib_1)$, $\Mib^{\phi} \coloneqq M^\phi(\thetab_1, \phib_1)$ and analogously for $\Miib^{\theta}, \Miib^{\phi}$. Finally set
+    Let $\PPP$ be a pointsymmetric convex polyhedron with radius $\rho =1$ and let $S \in \PPP$. Further let $\thetab_1,\phib_1,\thetab_2,\phib_2,\alphab \in \R$, let
+    $\epsilon_\alpha, \epsilon_{\theta_1}, \epsilon_{\phi_1}, \epsilon_{\theta_2}, \epsilon_{\phi_2} \geq 0$
+    be per-axis radii, and let $w\in\R^2$ be a unit vector. Denote $\Mib \coloneqq M(\thetab_1, \phib_1)$, $ \Miib \coloneqq M(\thetab_2, \phib_2)$ as well as $\Mib^{\theta} \coloneqq M^\theta(\thetab_1, \phib_1)$, $\Mib^{\phi} \coloneqq M^\phi(\thetab_1, \phib_1)$ and analogously for $\Miib^{\theta}, \Miib^{\phi}$. Finally set
     \begin{align*}
-        G& \coloneqq \langle R(\alphab) \Mib S,w \rangle - \epsilon\cdot\big(|\langle R'(\alphab)  \Mib S,w \rangle|+|\langle R(\alphab) \Mib^\theta S,w \rangle|+|\langle R(\alphab) \Mib^\phi S,w \rangle|\big)- 9\epsilon^2/2,\\
-        H_P & \coloneqq \langle \Miib P,w \rangle + \epsilon\cdot\big(|\langle \Miib^\theta P,w \rangle|+|\langle  \Miib^\varphi P,w \rangle|\big) + 2\epsilon^2, \quad \text{ for } P \in \PPP.
+        G \coloneqq{}& \langle R(\alphab) \Mib S,w \rangle - \epsilon_\alpha|\langle R'(\alphab)  \Mib S,w \rangle| - \epsilon_{\theta_1}|\langle R(\alphab) \Mib^\theta S,w \rangle| - \epsilon_{\phi_1}|\langle R(\alphab) \Mib^\phi S,w \rangle|\\
+        &- \frac{1}{2}\big(\epsilon_\alpha^2|\langle R(\alphab) \Mib S,w \rangle|
+          + 2\epsilon_\alpha\epsilon_{\theta_1}|\langle R'(\alphab) \Mib^\theta S,w \rangle| + 2\epsilon_\alpha\epsilon_{\phi_1}|\langle R'(\alphab) \Mib^\phi S,w \rangle|\\
+        &\qquad\quad + \epsilon_{\theta_1}^2|\langle R(\alphab) \Mib^{\theta\theta} S,w \rangle| + 2\epsilon_{\theta_1}\epsilon_{\phi_1}|\langle R(\alphab) \Mib^{\theta\phi} S,w \rangle| + \epsilon_{\phi_1}^2|\langle R(\alphab) \Mib^{\phi\phi} S,w \rangle|\big)\\
+        &- \frac{(\epsilon_\alpha+\epsilon_{\theta_1}+\epsilon_{\phi_1})^3}{6},\\
+        H_P \coloneqq{}& \langle \Miib P,w \rangle + \epsilon_{\theta_2}|\langle \Miib^\theta P,w \rangle|+\epsilon_{\phi_2}|\langle  \Miib^\varphi P,w \rangle|\\
+        &+ \frac{1}{2}\big(\epsilon_{\theta_2}^2|\langle \Miib^{\theta\theta} P,w \rangle| + 2\epsilon_{\theta_2}\epsilon_{\phi_2}|\langle \Miib^{\theta\phi} P,w \rangle| + \epsilon_{\phi_2}^2|\langle \Miib^{\phi\phi} P,w \rangle|\big) + \frac{(\epsilon_{\theta_2}+\epsilon_{\phi_2})^3}{6}, \quad \text{ for } P \in \PPP.
     \end{align*}
     If $G>\max_{P\in \PPP} H_P$ then there does not exist a solution to Rupert's condition with
-    $$(\theta_1,\varphi_1,\theta_2,\varphi_2,\alpha) \in U \coloneqq [\thetab_1\pm\epsilon,\phib_1\pm\epsilon,\thetab_2\pm\epsilon,\phib_2\pm\epsilon,\alphab\pm\epsilon] \subseteq \R^5.$$
+    $$(\theta_1,\varphi_1,\theta_2,\varphi_2,\alpha) \in U \coloneqq [\thetab_1\pm\epsilon_{\theta_1}]\times[\phib_1\pm\epsilon_{\phi_1}]\times[\thetab_2\pm\epsilon_{\theta_2}]\times[\phib_2\pm\epsilon_{\phi_2}]\times[\alphab\pm\epsilon_\alpha] \subseteq \R^5.$$
+
+    (This is a second-order, anisotropic strengthening of
+    \cite{polyhedron.without.rupert}, Theorem 17, whose penalty is first-order
+    and isotropic with quadratic remainders $9\epsilon^2/2$ and $2\epsilon^2$:
+    here the exact second partials at the center pose are charged with
+    per-axis weights — with multiplicities from the symmetric Hessian table —
+    and only the cubic Lagrange remainders
+    $(\epsilon_\alpha+\epsilon_{\theta_1}+\epsilon_{\phi_1})^3/6$ and
+    $(\epsilon_{\theta_2}+\epsilon_{\phi_2})^3/6$ are bounded via
+    Lemma~\ref{lem:leq1}. On the diagonal
+    $\epsilon_\alpha = \epsilon_{\theta_1} = \dots = \epsilon$, these are
+    $\frac{3^3}{6}\epsilon^3 = \frac{9\epsilon^3}{2}$ and
+    $\frac{2^3}{6}\epsilon^3 = \frac{4\epsilon^3}{3}$.)
 \end{theorem}
 
 \begin{proof}

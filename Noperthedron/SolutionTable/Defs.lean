@@ -175,6 +175,26 @@ abbrev Row.α (r : Row) : ℚ := r.interval.center .α
 /-- Max half-width of the row's interval box across all 5 parameters. -/
 abbrev Row.epsilon (r : Row) : ℚ := r.interval.radius
 
+/-! Per-axis half-widths of the row's interval box (used by the anisotropic
+global check; the local check still uses the sup half-width `Row.epsilon`). -/
+
+abbrev Row.εθ₁ (r : Row) : ℚ := (r.interval.max.θ₁ - r.interval.min.θ₁) / 2
+abbrev Row.εφ₁ (r : Row) : ℚ := (r.interval.max.φ₁ - r.interval.min.φ₁) / 2
+abbrev Row.εθ₂ (r : Row) : ℚ := (r.interval.max.θ₂ - r.interval.min.θ₂) / 2
+abbrev Row.εφ₂ (r : Row) : ℚ := (r.interval.max.φ₂ - r.interval.min.φ₂) / 2
+abbrev Row.εα (r : Row) : ℚ := (r.interval.max.α - r.interval.min.α) / 2
+
+lemma Row.εθ₁_nonneg (r : Row) : 0 ≤ r.εθ₁ :=
+  div_nonneg (sub_nonneg.mpr ((Pose.le_iff _ _).mp r.interval.min_le_max).1) (by norm_num)
+lemma Row.εφ₁_nonneg (r : Row) : 0 ≤ r.εφ₁ :=
+  div_nonneg (sub_nonneg.mpr ((Pose.le_iff _ _).mp r.interval.min_le_max).2.2.1) (by norm_num)
+lemma Row.εθ₂_nonneg (r : Row) : 0 ≤ r.εθ₂ :=
+  div_nonneg (sub_nonneg.mpr ((Pose.le_iff _ _).mp r.interval.min_le_max).2.1) (by norm_num)
+lemma Row.εφ₂_nonneg (r : Row) : 0 ≤ r.εφ₂ :=
+  div_nonneg (sub_nonneg.mpr ((Pose.le_iff _ _).mp r.interval.min_le_max).2.2.2.1) (by norm_num)
+lemma Row.εα_nonneg (r : Row) : 0 ≤ r.εα :=
+  div_nonneg (sub_nonneg.mpr ((Pose.le_iff _ _).mp r.interval.min_le_max).2.2.2.2) (by norm_num)
+
 abbrev Row.S (r : Row) : Fin 3 → ℚ := pythonVertex r.S_index
 
 abbrev Row.w (r : Row) :  Fin 2 → ℚ
