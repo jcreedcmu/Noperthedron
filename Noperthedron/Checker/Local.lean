@@ -1,6 +1,7 @@
 import Mathlib.Data.Finset.Max
 
 import Noperthedron.Checker.ApproxSqrt
+import Noperthedron.Checker.SqrtDvLiterals
 import Noperthedron.Local.Congruent
 import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.RationalLocal
@@ -211,26 +212,41 @@ theorem Row.δ_eq_max'_BoundDeltaℚi (row : Row) :
 
 The `n_dv` term of `Bεℚ.check` — `sqrtApprox.upper_sqrt.norm (Q_i − v_k)` —
 is pose-independent, but costs a `sqrtℚUp` call on a denominator-`10³²`
-input for each of the 270 `(i, k)` pairs of every local row. `sqrtDvTable`
-precomputes all 90 × 90 pairs once per process, and `BεℚPy.check` is the
+input for each of the 270 `(i, k)` pairs of every local row. `sqrtDv` reads
+all 90 × 90 pairs from the source-literal table `sqrtDvCurried` (generated,
+see `Checker/SqrtDvLiterals.lean`), and `BεℚPy.check` is the
 `pythonVertexA`/`sqrtApprox` specialization of `Bεℚ.check` that reads it
-(the `Bεℚ` predicate itself is unchanged). -/
+(the `Bεℚ` predicate itself is unchanged). The curried-literal form keeps
+the table cheap for the kernel too: an access walks a few dozen `Fin.cons`
+cells, where reducing an equivalent 8100-entry `Array.ofFn` push chain made
+a single high-index access cost tens of gigabytes under `decide +kernel`. -/
 
-/-- Decode the flat index `45·ℓ + 15·i + k` (see `sqrtDv_eq`). -/
+/-- Decode the flat index `45·ℓ + 15·i + k` (see `rowDotsGet`). -/
 private def ofFlat (m : ℕ) (h : m < 90) : VertexIndex :=
   ⟨⟨m % 15, by omega⟩, ⟨m / 45, by omega⟩, ⟨m / 15 % 3, by omega⟩⟩
-
-/-- All 90 × 90 pairwise `upper_sqrt` vertex-difference norms, indexed by the
-flat pair index `flat a * 90 + flat b` with `flat ⟨k, ℓ, i⟩ = 45·ℓ + 15·i + k`. -/
-def sqrtDvTable : Array ℚ :=
-  Array.ofFn (n := 8100) fun j =>
-    sqrtApprox.upper_sqrt.norm
-      (pythonVertexA (ofFlat (j.val / 90) (by omega)) -
-        pythonVertexA (ofFlat (j.val % 90) (by omega)))
 
 /-- Table-backed pairwise vertex-difference norm: equal to
 `sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b)` by `sqrtDv_eq`. -/
 def sqrtDv (a b : VertexIndex) : ℚ :=
+  sqrtDvCurried a.ℓ a.i a.k b.ℓ b.i b.k
+
+lemma sqrtDv_eq (a b : VertexIndex) :
+    sqrtDv a b = sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b) :=
+  sqrtDvCurried_eq a b
+
+/-- Runtime lookup table for `sqrtDv`, built once per process from the
+`sqrtDvCurried` literals; indexed by the flat pair index `flat a * 90 + flat b`
+with `flat ⟨k, ℓ, i⟩ = 45·ℓ + 15·i + k`. -/
+private def sqrtDvTable : Array ℚ :=
+  Array.ofFn (n := 8100) fun j =>
+    sqrtDv (ofFlat (j.val / 90) (by omega)) (ofFlat (j.val % 90) (by omega))
+
+/-- Array-backed implementation of `sqrtDv`: a per-pair curried lookup costs
+~40 `Fin.cons` dispatches plus a `Rat` renormalization, which measurably slows
+the compiled hot loop, so `sqrtDv_eq_sqrtDvImpl` (`@[csimp]`) substitutes this
+`O(1)` array read in compiled code. The kernel keeps reducing the
+curried-literal `sqrtDv` itself. -/
+private def sqrtDvImpl (a b : VertexIndex) : ℚ :=
   sqrtDvTable[(45 * a.ℓ.val + 15 * a.i.val + a.k.val) * 90 +
       (45 * b.ℓ.val + 15 * b.i.val + b.k.val)]'(by
     have h1 := a.ℓ.isLt
@@ -242,8 +258,9 @@ def sqrtDv (a b : VertexIndex) : ℚ :=
     rw [sqrtDvTable, Array.size_ofFn]
     omega)
 
-lemma sqrtDv_eq (a b : VertexIndex) :
-    sqrtDv a b = sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b) := by
+@[csimp]
+private theorem sqrtDv_eq_sqrtDvImpl : @sqrtDv = @sqrtDvImpl := by
+  funext a b
   obtain ⟨ka, ℓa, ia⟩ := a
   obtain ⟨kb, ℓb, ib⟩ := b
   have h1 := ℓa.isLt
@@ -264,7 +281,7 @@ lemma sqrtDv_eq (a b : VertexIndex) :
   have g1 : (45 * ℓb.val + 15 * ib.val + kb.val) % 15 = kb.val := by omega
   have g2 : (45 * ℓb.val + 15 * ib.val + kb.val) / 45 = ℓb.val := by omega
   have g3 : (45 * ℓb.val + 15 * ib.val + kb.val) / 15 % 3 = ib.val := by omega
-  simp only [sqrtDv, sqrtDvTable, Array.getElem_ofFn, ofFlat, e1, e2, f1, f2, f3,
+  simp only [sqrtDvImpl, sqrtDvTable, Array.getElem_ofFn, ofFlat, e1, e2, f1, f2, f3,
     g1, g2, g3, Fin.eta]
 
 namespace BεℚPy
@@ -316,7 +333,7 @@ private lemma rowDots_snd (e : MatEntries) (a : VertexIndex) :
 /-- `Bεℚ.check` specialized to `pythonVertexA` and `sqrtApprox`, with the
 per-pose work hoisted out of the `k`-loop:
 
-* the pose-independent `n_dv` norms come from `sqrtDvTable`;
+* the pose-independent `n_dv` norms come from the `sqrtDvCurried` literals;
 * the unrounded row dots `M₂vⱼ` come from the per-pose `rowDots` table, so a
   pair's `d`-vector is one lookup and one subtraction (`M₂(v₁-v₂) = M₂v₁-M₂v₂`);
 * the scalars `F2`, `cD`, `eterm`, `tenκ`, `twoκ`, `bd` are loop-invariant.
