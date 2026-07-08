@@ -13,7 +13,8 @@ import Noperthedron.Vertices.Exact
   `precompiledModules = true`.
 
   The full check is commented out so that it doesn't bog down compilation
-  as we work on the rest of the project.
+  as we work on the rest of the project. It takes about 25 minutes on a 16-core
+  machine.
 
   To run the same check in a standalone native executable, try
   `constructValidTable.lean`, which takes about 5 minutes on a 16-core
