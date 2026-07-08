@@ -15,8 +15,6 @@
 \end{proof}
 
 \begin{theorem}
-\lean{Noperthedron.exists_solution_table}
-\leanok
 \label{thm:exists_solution_table}
 There exists a valid solution table whose zeroth row covers
 \begin{align*}
@@ -29,6 +27,11 @@ There exists a valid solution table whose zeroth row covers
 
 \begin{proof}\uses{def:nopertQ}
 By exhibiting the table and running the validity checking algorithm.
+Formalized as \texttt{Noperthedron.Verified.Native.exists\_solution\_table}
+in the build-on-demand \texttt{VerifiedNative} library (checked with
+\texttt{native\_decide}; a kernel-only \texttt{VerifiedKernel} variant is in
+progress), which is kept out of the default build targets so that CI runs
+stay fast.
 \end{proof}
 
 \begin{theorem}

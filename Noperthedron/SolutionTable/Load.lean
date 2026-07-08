@@ -178,6 +178,65 @@ elab "load_csv_rows " path:str " from " a:num " to " b:num
     logInfo m!"load_csv_rows [{lo}, {hi}): read {tRead - t0} ms, \
       parse {tParse - tRead} ms, define+check {tDefs - tParse} ms"
 
+/-- `assemble_row_dispatch d rows N chunkSize C` defines
+
+    d : Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row
+
+as a digit-curried literal dispatching chunk index `k = i / C` (base-8
+digits, big-endian) to the loaded chunk constants
+`csvRows_{k*C}_{min ((k+1)*C) N}`, which must already be in the environment;
+slots beyond `⌈N/C⌉` get `[]`. Feed it to `rowGetter d C` (see
+`SolutionTable/Assemble.lean`) to obtain the `ℕ → Row` getter: a kernel
+access walks ≤ 32 `Matrix.vecCons` cells plus at most `C` list cells. Like
+`load_csv_rows`, the definition is `noncomputable` unless the trailing
+`compiled` flag is given. -/
+elab "assemble_row_dispatch " name:ident " rows " n:num " chunkSize " c:num
+    comp:(&"compiled")? : command => do
+  let N := n.getNat
+  let C := c.getNat
+  unless 0 < C do throwError "chunkSize must be positive"
+  unless 0 < N do throwError "rows must be positive"
+  let slots := (N + C - 1) / C
+  unless slots ≤ 4096 do throwError "too many chunks: {slots} > 4096"
+  let ns ← getCurrNamespace
+  Command.liftTermElabM do
+    let rowTy := mkConst ``Row
+    let listRowTy := mkApp (mkConst ``List [Level.zero]) rowTy
+    let nilE := mkApp (mkConst ``List.nil [Level.zero]) rowTy
+    let vecConsE := mkConst ``Matrix.vecCons [Level.zero]
+    let vecEmptyE := mkConst ``Matrix.vecEmpty [Level.zero]
+    let fin8Ty := mkApp (mkConst ``Fin) (natE 8)
+    -- `![e₀, …, e₇] : Fin 8 → τ` as a `vecCons` chain
+    let vec8 : Expr → Array Expr → Expr := fun τ es => Id.run do
+      let mut acc := mkApp vecEmptyE τ
+      for idx in [0:8] do
+        acc := mkApp4 vecConsE τ (natE idx) es[7 - idx]! acc
+      return acc
+    let mut level : Array Expr := #[]
+    for k in [0:4096] do
+      if k < slots then
+        let cn := ns ++ Name.mkSimple s!"csvRows_{k * C}_{min ((k + 1) * C) N}"
+        unless (← getEnv).contains cn do
+          throwError "missing chunk constant {cn} (load it first)"
+        level := level.push (mkConst cn)
+      else
+        level := level.push nilE
+    let mut τ := listRowTy
+    for _ in [0:4] do
+      let mut next : Array Expr := #[]
+      for g in [0:level.size / 8] do
+        next := next.push (vec8 τ (level.extract (8 * g) (8 * g + 8)))
+      level := next
+      τ := mkForall `i .default fin8Ty τ
+    let dName := ns ++ name.getId
+    addDecl <| .defnDecl {
+      name := dName, levelParams := [], type := τ,
+      value := level[0]!, hints := .abbrev, safety := .safe }
+    if comp.isSome then
+      compileDecls #[dName]
+    else
+      modifyEnv (addNoncomputable · dName)
+
 end Load
 
 end Noperthedron.Solution

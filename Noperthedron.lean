@@ -11,7 +11,6 @@ import Noperthedron.Checker.Local
 import Noperthedron.Checker.RowZero
 import Noperthedron.Checker.SqrtDvLiterals
 import Noperthedron.CommonCenter
-import Noperthedron.ComputationalStep
 import Noperthedron.ConvertPose
 import Noperthedron.EuclideanSpaceNotation
 import Noperthedron.Global
@@ -42,7 +41,6 @@ import Noperthedron.Pose
 import Noperthedron.PoseClasses
 import Noperthedron.PoseInterval
 import Noperthedron.PoseParam
-import Noperthedron.ProofOfMainTheorem
 import Noperthedron.ProofOfMainTheoremWithHole
 import Noperthedron.RationalApprox
 import Noperthedron.RationalApprox.ApproximableMatrices
@@ -64,6 +62,7 @@ import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
 import Noperthedron.Rupert.Equivalences.Util
 import Noperthedron.Rupert.Set
 import Noperthedron.SolutionTable
+import Noperthedron.SolutionTable.Assemble
 import Noperthedron.SolutionTable.Basic
 import Noperthedron.SolutionTable.Check
 import Noperthedron.SolutionTable.Defs

@@ -70,7 +70,7 @@ compiles to a flat loop, so the runtime stack stays O(1). -/
 private def Table.rowsValidB (tab : Table) : Bool :=
   Fin.foldl tab.size (init := true) fun acc i => acc && decide (tab[i].ValidIx tab i)
 
-private theorem Fin.foldl_and_factor {n : ℕ} (p : Fin n → Bool) (init : Bool) :
+theorem Fin.foldl_and_factor {n : ℕ} (p : Fin n → Bool) (init : Bool) :
     (Fin.foldl n (fun acc i => acc && p i) init) =
       (init && Fin.foldl n (fun acc i => acc && p i) true) := by
   induction n generalizing init with
@@ -81,7 +81,7 @@ private theorem Fin.foldl_and_factor {n : ℕ} (p : Fin n → Bool) (init : Bool
         ih (fun i => p i.succ) (true && p 0)]
     simp [Bool.and_assoc]
 
-private theorem Fin.foldl_and_eq_true_iff {n : ℕ} (p : Fin n → Bool) :
+theorem Fin.foldl_and_eq_true_iff {n : ℕ} (p : Fin n → Bool) :
     (Fin.foldl n (fun acc i => acc && p i) true) = true ↔ ∀ i, p i = true := by
   induction n with
   | zero => simp [Fin.foldl_zero]
@@ -105,10 +105,10 @@ instance Table.RowsValid.decidable (tab : Table) : Decidable tab.RowsValid :=
 concurrently via `Task.spawn`. Since `Task.spawn fn` is *definitionally*
 `⟨fn ()⟩`, the parallelism is invisible to the logic, and correctness is proved
 exactly as for the sequential checker. This matters for
-`Noperthedron.exists_solution_table`, where `native_decide` runs this check
+`VerifiedNative/ComputationalStep.lean`, where `native_decide` runs this check
 over a table with ~18.7 million rows. -/
 
-private theorem task_get_spawn {α : Type} (fn : Unit → α) (prio : Task.Priority) :
+theorem task_get_spawn {α : Type} (fn : Unit → α) (prio : Task.Priority) :
     (Task.spawn fn prio).get = fn () := rfl
 
 /-- `Row.ValidIx` at index `i` as a `Bool`, vacuously `true` past the end of the

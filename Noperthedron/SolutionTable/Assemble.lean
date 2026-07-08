@@ -1,0 +1,327 @@
+import Noperthedron.SolutionTable.Basic
+import Noperthedron.Checker.RowZero
+
+/-!
+# Assembling a `ValidTable` from getter-based chunk checks
+
+The kernel-only route loads the 2M-row solution table as many chunk
+definitions and validates them with `decide +kernel` theorems (see
+`SolutionTable/Load.lean`). The sticking point is *random access*: split rows
+reference their children via `tab[row.IDfirstChild + n]`, and reducing a flat
+2M-entry `Array`/`List` literal index under the kernel costs O(index) per
+access. So the kernel never sees the `Array` at all:
+
+* Validity is restated against an abstract getter `get : ℕ → Row`
+  (`Row.ValidSplitParamAt`, …, `Row.ValidIxAt`), decidably. The getter is
+  realized as a digit-curried dispatch over chunk constants
+  (`rowGetter`, built by `assemble_row_dispatch` in `Load.lean`), so one
+  access walks ≤ 32 `Matrix.vecCons` cells plus one ≤ chunkSize list walk.
+* Chunk theorems prove `ChunkOk get size C k` by `decide +kernel`; the
+  `ChunkOkBelow` chain combines them linearly, and
+  `validIxAt_of_chunkOkBelow` turns full coverage into
+  `∀ i : Fin size, Row.ValidIxAt get size i`.
+* At the `Prop` level only, `tableOfGetter get size := Array.ofFn …` gives an
+  actual `Table`; `Array.getElem_ofFn` is a *rewrite* (the kernel never
+  reduces the array), and `validTableOfGetter` produces the `ValidTable` the
+  main theorem consumes.
+-/
+
+namespace Noperthedron.Solution
+
+/-! ## Validity against an abstract getter
+
+These mirror `Row.ValidSplitParam`, `Table.HasIntervals`,
+`Row.ValidSingleParamSplit`, `Row.ValidFullSplit`, `Row.ValidSplit`,
+`Row.Valid` and `Row.ValidIx` from `SolutionTable/Basic.lean`, with the table
+replaced by `get : ℕ → Row` and `size : ℕ`. -/
+
+@[mk_iff]
+structure Row.ValidSplitParamAt (get : ℕ → Row) (size : ℕ) (row : Row)
+    (param : Param) : Prop where
+  id_in_table : row.ID < row.IDfirstChild
+  children_in_table : row.IDfirstChild + row.nrChildren ≤ size
+  nonzero_children : row.nrChildren ≠ 0
+  children_intervals_good : ∀ n : Fin row.nrChildren,
+    (get (row.IDfirstChild + n)).interval =
+      row.interval.nth_part param row.nrChildren (hN := ⟨nonzero_children⟩) n
+
+instance (get : ℕ → Row) (size : ℕ) (row : Row) (param : Param) :
+    Decidable (Row.ValidSplitParamAt get size row param) :=
+  decidable_of_iff _ (Row.validSplitParamAt_iff get size row param).symm
+
+def HasIntervalsAt (get : ℕ → Row) (size : ℕ) (start : ℕ)
+    (intervals : List Interval) : Prop :=
+  ∀ i : Fin intervals.length,
+    start + i.val < size ∧ (get (start + i.val)).interval = intervals[i]
+deriving Decidable
+
+def Row.ValidSingleParamSplitAt (get : ℕ → Row) (size : ℕ) (row : Row) : Prop :=
+  ∃ p, Param.ofSplitCode? row.split = some p ∧ row.ValidSplitParamAt get size p
+
+instance (get : ℕ → Row) (size : ℕ) (row : Row) :
+    Decidable (row.ValidSingleParamSplitAt get size) := by
+  unfold Row.ValidSingleParamSplitAt
+  generalize Param.ofSplitCode? row.split = code
+  cases code with
+  | none => exact .isFalse (by simp)
+  | some p => exact decidable_of_iff (row.ValidSplitParamAt get size p) (by simp)
+
+def Row.ValidFullSplitAt (get : ℕ → Row) (size : ℕ) (row : Row) : Prop :=
+  row.nrChildren = 32 ∧ row.split = 6 ∧ row.IDfirstChild > row.ID ∧
+  HasIntervalsAt get size row.IDfirstChild
+    (cubeFold [Interval.lower_half, Interval.upper_half] row.interval Param.splitOrder)
+deriving Decidable
+
+def Row.ValidSplitAt (get : ℕ → Row) (size : ℕ) (row : Row) : Prop :=
+  (row.nodeType = (3 : ℕ)) ∧
+  (row.ValidSingleParamSplitAt get size ∨ row.ValidFullSplitAt get size)
+deriving Decidable
+
+def Row.ValidAt (get : ℕ → Row) (size : ℕ) (row : Row) : Prop :=
+  row.ValidSplitAt get size ∨ row.ValidGlobal ∨ row.ValidLocal
+deriving Decidable
+
+def Row.ValidIxAt (get : ℕ → Row) (size : ℕ) (i : ℕ) : Prop :=
+  (get i).ID = i ∧ (get i).ValidAt get size ∧ i < size
+deriving Decidable
+
+/-! ## Bridges to the `Table`-based predicates
+
+One direction suffices: getter-based validity transfers to any table that
+agrees with the getter on `[0, size)`. -/
+
+section Bridge
+
+variable {tab : Table} {get : ℕ → Row} {size : ℕ}
+  (hsize : tab.size = size)
+  (hget : ∀ i, (h : i < tab.size) → tab[i] = get i)
+
+include hsize hget
+
+theorem Row.ValidSplitParamAt.toTable {row : Row} {param : Param}
+    (h : row.ValidSplitParamAt get size param) : row.ValidSplitParam tab param := by
+  obtain ⟨h1, h2, h3, h4⟩ := h
+  refine ⟨h1, by omega, h3, fun n => ?_⟩
+  have hn : row.IDfirstChild + n < tab.size := by have := n.isLt; omega
+  rw [hget _ hn]
+  exact h4 n
+
+theorem HasIntervalsAt.toTable {start : ℕ} {ivs : List Interval}
+    (h : HasIntervalsAt get size start ivs) : tab.HasIntervals start ivs := by
+  intro i
+  obtain ⟨hlt, heq⟩ := h i
+  have hlt' : start + i.val < tab.size := by omega
+  exact ⟨hlt', by rw [hget _ hlt']; exact heq⟩
+
+theorem Row.ValidSingleParamSplitAt.toTable {row : Row}
+    (h : row.ValidSingleParamSplitAt get size) : row.ValidSingleParamSplit tab := by
+  obtain ⟨p, hp, hv⟩ := h
+  exact ⟨p, hp, hv.toTable hsize hget⟩
+
+theorem Row.ValidFullSplitAt.toTable {row : Row}
+    (h : row.ValidFullSplitAt get size) : row.ValidFullSplit tab := by
+  obtain ⟨h1, h2, h3, h4⟩ := h
+  exact ⟨h1, h2, h3, h4.toTable hsize hget⟩
+
+theorem Row.ValidSplitAt.toTable {row : Row}
+    (h : row.ValidSplitAt get size) : row.ValidSplit tab := by
+  obtain ⟨h1, h2 | h2⟩ := h
+  · exact ⟨h1, .inl (h2.toTable hsize hget)⟩
+  · exact ⟨h1, .inr (h2.toTable hsize hget)⟩
+
+theorem Row.ValidAt.toTable {row : Row}
+    (h : row.ValidAt get size) : row.Valid tab := by
+  rcases h with h | h | h
+  · exact .asSplit (h.toTable hsize hget)
+  · exact .asGlobal h
+  · exact .asLocal h
+
+/-- Getter-based validity of every index below `size` yields `Table.RowsValid`
+for any table of that size agreeing with the getter. -/
+theorem Table.rowsValid_of_validIxAt
+    (h : ∀ i : Fin size, Row.ValidIxAt get size i) : tab.RowsValid := by
+  intro i
+  obtain ⟨h1, h2, h3⟩ := h ⟨i.val, hsize ▸ i.isLt⟩
+  have hgi : tab[i] = get i.val := hget i.val i.isLt
+  refine ⟨by rw [hgi]; exact h1, ?_, by rw [hgi, h1]; exact i.isLt⟩
+  rw [hgi]
+  exact h2.toTable hsize hget
+
+end Bridge
+
+/-! ## Combining per-chunk lemmas
+
+`ChunkOk get size C k` is the statement each generated chunk file proves by
+`decide +kernel`; the `ChunkOkBelow` chain combines them one per step (also
+generated), and full coverage discharges the `∀ i : Fin size` hypothesis. -/
+
+/-- Rows `[C * k, C * (k + 1)) ∩ [0, size)` are valid (getter-based). -/
+def ChunkOk (get : ℕ → Row) (size C k : ℕ) : Prop :=
+  ∀ j : Fin C, C * k + j.val < size → Row.ValidIxAt get size (C * k + j.val)
+
+/-- All chunks with index `< m` are valid. -/
+def ChunkOkBelow (get : ℕ → Row) (size C m : ℕ) : Prop :=
+  ∀ k, k < m → ChunkOk get size C k
+
+theorem chunkOkBelow_zero (get : ℕ → Row) (size C : ℕ) :
+    ChunkOkBelow get size C 0 :=
+  fun _ hk => absurd hk (Nat.not_lt_zero _)
+
+theorem ChunkOkBelow.step {get : ℕ → Row} {size C m : ℕ}
+    (h1 : ChunkOkBelow get size C m) (h2 : ChunkOk get size C m) :
+    ChunkOkBelow get size C (m + 1) := by
+  intro k hk
+  rcases Nat.lt_or_ge k m with h | h
+  · exact h1 k h
+  · have : k = m := by omega
+    subst this
+    exact h2
+
+theorem validIxAt_of_chunkOkBelow {get : ℕ → Row} {size C m : ℕ} (hC : 0 < C)
+    (hcover : size ≤ m * C) (h : ChunkOkBelow get size C m) :
+    ∀ i : Fin size, Row.ValidIxAt get size i := by
+  intro i
+  have hdm : C * (i.val / C) + i.val % C = i.val := Nat.div_add_mod i.val C
+  have hkm : i.val / C < m :=
+    (Nat.div_lt_iff_lt_mul hC).mpr (lt_of_lt_of_le i.isLt hcover)
+  have := h (i.val / C) hkm ⟨i.val % C, Nat.mod_lt _ hC⟩ (by rw [hdm]; exact i.isLt)
+  rwa [hdm] at this
+
+/-! ## Parallel Bool checker (for the `native_decide` route)
+
+Mirror of `Table.rowsValidChunkedB` (see `SolutionTable/Basic.lean`) against
+the getter: one `native_decide` on `rowsValidIxAtParB get size nTasks`
+discharges the same `∀ i : Fin size, Row.ValidIxAt get size i` hypothesis
+that the kernel route assembles chunk-by-chunk, with the row checks split
+into `nTasks` concurrent `Task.spawn`s. -/
+
+/-- `Row.ValidIxAt` as a `Bool`, vacuously `true` past `size` (chunks may
+overhang the end). -/
+def validIxAtB (get : ℕ → Row) (size i : ℕ) : Bool :=
+  if i < size then decide (Row.ValidIxAt get size i) else true
+
+theorem validIxAtB_eq_true_iff (get : ℕ → Row) (size i : ℕ) :
+    validIxAtB get size i = true ↔ (i < size → Row.ValidIxAt get size i) := by
+  unfold validIxAtB
+  split
+  · rename_i h
+    rw [decide_eq_true_iff]
+    exact ⟨fun hv _ => hv, fun hv => hv h⟩
+  · rename_i h
+    simp only [true_iff]
+    exact fun h' => absurd h' h
+
+/-- Check `validIxAtB` on indices `[start, start + cnt)`, as a flat
+`Fin.foldl` loop (see `Table.rowsValidB` for why `Fin.foldl`). -/
+def chunkValidIxAtB (get : ℕ → Row) (size start cnt : ℕ) : Bool :=
+  Fin.foldl cnt (init := true) fun acc j => acc && validIxAtB get size (start + j.val)
+
+theorem chunkValidIxAtB_eq_true_iff (get : ℕ → Row) (size start cnt : ℕ) :
+    chunkValidIxAtB get size start cnt = true ↔
+      ∀ k, start ≤ k → k < start + cnt → validIxAtB get size k = true := by
+  unfold chunkValidIxAtB
+  rw [Fin.foldl_and_eq_true_iff (fun j => validIxAtB get size (start + j.val))]
+  constructor
+  · intro h k hk1 hk2
+    have := h ⟨k - start, by omega⟩
+    rwa [Nat.add_sub_cancel' hk1] at this
+  · intro h j
+    exact h (start + j.val) (Nat.le_add_right _ _) (by have := j.isLt; omega)
+
+/-- Check `Row.ValidIxAt` on all of `[0, size)`, split into `nTasks` chunks of
+size `chunkSize` running concurrently via `Task.spawn`. The leading `decide`
+guard ensures the chunks cover everything, so soundness holds for arbitrary
+`nTasks`/`chunkSize`. -/
+def rowsValidIxAtChunkedB (get : ℕ → Row) (size nTasks chunkSize : ℕ) : Bool :=
+  decide (size ≤ nTasks * chunkSize) &&
+    (((List.range nTasks).map fun t =>
+        Task.spawn fun _ => chunkValidIxAtB get size (t * chunkSize) chunkSize).all Task.get)
+
+theorem validIxAt_of_rowsValidIxAtChunkedB {get : ℕ → Row} {size nTasks chunkSize : ℕ}
+    (h : rowsValidIxAtChunkedB get size nTasks chunkSize = true) :
+    ∀ i : Fin size, Row.ValidIxAt get size i := by
+  unfold rowsValidIxAtChunkedB at h
+  rw [Bool.and_eq_true, decide_eq_true_iff, List.all_eq_true] at h
+  obtain ⟨hsize, hall⟩ := h
+  intro i
+  have hc0 : 0 < chunkSize := by
+    rcases Nat.eq_zero_or_pos chunkSize with hc | hc
+    · subst hc; have := i.isLt; omega
+    · exact hc
+  have ht : (i : ℕ) / chunkSize < nTasks :=
+    (Nat.div_lt_iff_lt_mul hc0).mpr (lt_of_lt_of_le i.isLt hsize)
+  have hchunk : chunkValidIxAtB get size ((i : ℕ) / chunkSize * chunkSize) chunkSize = true := by
+    have := hall _ (List.mem_map.mpr ⟨(i : ℕ) / chunkSize, List.mem_range.mpr ht, rfl⟩)
+    rwa [task_get_spawn] at this
+  rw [chunkValidIxAtB_eq_true_iff] at hchunk
+  have hk : validIxAtB get size (i : ℕ) = true := by
+    have hdm := Nat.div_add_mod (i : ℕ) chunkSize
+    have hm := Nat.mod_lt (i : ℕ) hc0
+    rw [Nat.mul_comm] at hdm
+    exact hchunk (i : ℕ) (by omega) (by omega)
+  rw [validIxAtB_eq_true_iff] at hk
+  exact hk i.isLt
+
+/-- Parallel analogue over near-equal chunks; `nTasks` should comfortably
+exceed the core count for load balancing. -/
+def rowsValidIxAtParB (get : ℕ → Row) (size nTasks : ℕ) : Bool :=
+  rowsValidIxAtChunkedB get size nTasks (size / nTasks + 1)
+
+theorem validIxAt_of_rowsValidIxAtParB {get : ℕ → Row} {size nTasks : ℕ}
+    (h : rowsValidIxAtParB get size nTasks = true) :
+    ∀ i : Fin size, Row.ValidIxAt get size i :=
+  validIxAt_of_rowsValidIxAtChunkedB h
+
+/-! ## The table, at the `Prop` level only
+
+`tableOfGetter` is never reduced by the kernel: everything the proofs need
+about it comes from `Array.size_ofFn` and `Array.getElem_ofFn` rewrites. -/
+
+noncomputable def tableOfGetter (get : ℕ → Row) (size : ℕ) : Table :=
+  Array.ofFn (n := size) fun i => get i.val
+
+@[simp] theorem tableOfGetter_size (get : ℕ → Row) (size : ℕ) :
+    (tableOfGetter get size).size = size :=
+  Array.size_ofFn
+
+theorem tableOfGetter_get (get : ℕ → Row) (size : ℕ) (i : ℕ)
+    (h : i < (tableOfGetter get size).size) :
+    (tableOfGetter get size)[i] = get i := by
+  simp [tableOfGetter]
+
+/-- Assemble a `ValidTable` from getter-based facts: positivity, row 0
+carrying `rowZero.interval`, and validity of every index. This is the final
+consumer of the chunk theorems; the kernel never evaluates the underlying
+`Array.ofFn`. -/
+noncomputable def validTableOfGetter (get : ℕ → Row) (size : ℕ)
+    (hpos : 0 < size)
+    (hfirst : (get 0).interval = rowZero.interval)
+    (hvalid : ∀ i : Fin size, Row.ValidIxAt get size i) : ValidTable where
+  table := tableOfGetter get size
+  rows_valid :=
+    Table.rowsValid_of_validIxAt (tableOfGetter_size get size)
+      (fun i h => tableOfGetter_get get size i h) hvalid
+  nonempty := by simpa using hpos
+  contains_tightInterval := by
+    rw [show (((tableOfGetter get size)[0]'(by simpa using hpos)).interval :
+          Set (Pose ℝ)) = (rowZero.interval : Set (Pose ℝ)) from by
+      rw [tableOfGetter_get get size 0 (by simpa using hpos), hfirst]]
+    exact rowZero_contains_tightInterval
+
+/-! ## The concrete getter shape
+
+`assemble_row_dispatch` (in `SolutionTable/Load.lean`) builds a digit-curried
+`Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row` dispatch over up to 4096 loaded
+chunk constants; `rowGetter` turns it into the `ℕ → Row` getter. A kernel
+access costs ≤ 32 `Matrix.vecCons` cells for the dispatch walk plus at most
+`chunkSize` `List` cells within the chunk. -/
+
+def rowGetter (dispatch : Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row)
+    (chunkSize : ℕ) (i : ℕ) : Row :=
+  let k := i / chunkSize
+  (dispatch ⟨k / 512 % 8, Nat.mod_lt _ (by norm_num)⟩
+            ⟨k / 64 % 8, Nat.mod_lt _ (by norm_num)⟩
+            ⟨k / 8 % 8, Nat.mod_lt _ (by norm_num)⟩
+            ⟨k % 8, Nat.mod_lt _ (by norm_num)⟩).getD (i % chunkSize) default
+
+end Noperthedron.Solution
