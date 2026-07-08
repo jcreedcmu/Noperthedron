@@ -59,6 +59,33 @@ lemma differentiable_rotMφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace
   rw [differentiable_piLp]; intro i
   fin_cases i <;> (simp [rotMφ, rotMφ_mat, Matrix.toLpLin_apply, dotProduct, Fin.sum_univ_three]; try fun_prop)
 
+/-- Joint differentiability of `rotMθθ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMθθ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMθθ (f x) (g x) (h x) := by
+  rw [differentiable_piLp]; intro i
+  fin_cases i <;> (simp [rotMθθ, rotMθθ_mat, Matrix.toLpLin_apply, dotProduct, Fin.sum_univ_three]; try fun_prop)
+
+/-- Joint differentiability of `rotMθφ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMθφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMθφ (f x) (g x) (h x) := by
+  rw [differentiable_piLp]; intro i
+  fin_cases i <;> (simp [rotMθφ, rotMθφ_mat, Matrix.toLpLin_apply, dotProduct, Fin.sum_univ_three]; try fun_prop)
+
+/-- Joint differentiability of `rotMφφ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMφφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMφφ (f x) (g x) (h x) := by
+  rw [differentiable_piLp]; intro i
+  fin_cases i <;> (simp [rotMφφ, rotMφφ_mat, Matrix.toLpLin_apply, dotProduct, Fin.sum_univ_three]; try fun_prop)
+
 /-- Joint differentiability of `rotR` in the angle and the vector. -/
 @[fun_prop]
 lemma differentiable_rotR_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
@@ -89,28 +116,18 @@ lemma differentiableAt_rotMφ_outer (S : ℝ³) (y : E 2) :
 
 /-- DifferentiableAt for rotMθθ (outer, E 2) -/
 lemma differentiableAt_rotMθθ_outer (S : ℝ³) (y : E 2) :
-    DifferentiableAt ℝ (fun z : E 2 => rotMθθ (z.ofLp 0) (z.ofLp 1) S) y := by
-  rw [differentiableAt_piLp]; intro i
-  simp only [rotMθθ, rotMθθ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-  fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 2 => rotMθθ (z.ofLp 0) (z.ofLp 1) S) y :=
+  (differentiable_rotMθθ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
 
 /-- DifferentiableAt for rotMθφ (outer, E 2) -/
 lemma differentiableAt_rotMθφ_outer (S : ℝ³) (y : E 2) :
-    DifferentiableAt ℝ (fun z : E 2 => rotMθφ (z.ofLp 0) (z.ofLp 1) S) y := by
-  rw [differentiableAt_piLp]; intro i
-  simp only [rotMθφ, rotMθφ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-  fin_cases i
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+    DifferentiableAt ℝ (fun z : E 2 => rotMθφ (z.ofLp 0) (z.ofLp 1) S) y :=
+  (differentiable_rotMθφ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
 
 /-- DifferentiableAt for rotMφφ (outer, E 2) -/
 lemma differentiableAt_rotMφφ_outer (S : ℝ³) (y : E 2) :
-    DifferentiableAt ℝ (fun z : E 2 => rotMφφ (z.ofLp 0) (z.ofLp 1) S) y := by
-  rw [differentiableAt_piLp]; intro i
-  simp only [rotMφφ, rotMφφ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-  fin_cases i
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+    DifferentiableAt ℝ (fun z : E 2 => rotMφφ (z.ofLp 0) (z.ofLp 1) S) y :=
+  (differentiable_rotMφφ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotM -/
 lemma differentiableAt_rotR_rotM (S : ℝ³) (y : E 3) :
@@ -150,24 +167,21 @@ lemma differentiableAt_rotR'_rotMφ (S : ℝ³) (y : E 3) :
 
 /-- DifferentiableAt for rotR ∘ rotMθθ -/
 lemma differentiableAt_rotR_rotMθθ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθθ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMθθ, rotMθθ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθθ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotMθθ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotMθφ -/
 lemma differentiableAt_rotR_rotMθφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθφ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMθφ, rotMθφ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθφ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotMθφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotMφφ -/
 lemma differentiableAt_rotR_rotMφφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφφ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMφφ, rotMφφ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφφ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotMφφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-!
 ## Inner product fderiv helper
