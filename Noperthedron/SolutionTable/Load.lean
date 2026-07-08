@@ -11,17 +11,19 @@ hopeless (~9 s per 300 bytes), and generating literals as `.lean` source files
 would push gigabytes through the parser and term elaborator.
 
 This module takes a third route: parse the CSV **during elaboration**. The
-`kernel_check_csv_rows` command reads the CSV with `IO`, parses a row range
-with the existing (untrusted) `parseRowCsv`, builds kernel-friendly `Expr`
-literals for the rows directly — no surface syntax, no term elaboration — and
-then adds, via `addDecl`:
+`load_csv_rows` command reads the CSV with `IO`, parses a row range with the
+existing (untrusted) `parseRowCsv`, builds kernel-friendly `Expr` literals for
+the rows directly — no surface syntax, no term elaboration — and adds a single
+chunk definition `csvRows_<a>_<b> : List Row` via `addDecl`.
 
-* one `def csvRow_<i> : Row := <literal>` per row,
-* a chunk list `def csvRows_<a>_<b> : List Row := [csvRow_a, …]`,
-* a theorem `csvRows_<a>_<b>_ok : csvRows_<a>_<b>.all Row.leafOk = true`
-  whose value is `Eq.refl true`, so the *kernel* performs the whole
-  evaluation when it checks the declaration — the same trust story as
-  `decide +kernel` (no `ofReduceBool`, no compiler).
+The command only *loads*. Validation is stated separately, as ordinary source
+theorems about the loaded definitions proved by `decide +kernel` (so the
+kernel performs the whole evaluation — no `ofReduceBool`, no compiler):
+
+* leaf checks, e.g. `csvRows_a_b.all Row.leafOk = true`;
+* split checks, stated against whatever table view is in scope (see
+  `scripts/test_csv_load.lean` for a mini-table demonstration);
+* eventually the bridging lemmas that assemble a `ValidTable`.
 
 Nothing here needs to be trusted: the parser and `Expr` builders can be
 arbitrarily buggy and the kernel will still only accept true statements about
@@ -41,7 +43,7 @@ def Row.leafOk (r : Row) : Bool :=
   else if r.nodeType = 2 then decide r.ValidLocal
   else true
 
-namespace KernelIngest
+namespace Load
 
 open Lean Meta Elab
 
@@ -127,11 +129,16 @@ def mkCtx : TermElabM Ctx := do
     mkLambdaFVars #[x, y] inst
   return { poseQ, leInst, dle, sigma0 := ← elabSigma 0, sigma1 := ← elabSigma 1 }
 
-/-- `kernel_check_csv_rows "path.csv" from a to b` reads rows `[a, b)` of the
-solution-tree CSV, adds them to the environment as literal `Row` definitions
-plus a chunk `List Row`, and kernel-checks `Row.leafOk` on the whole chunk
-(one `addDecl` with an `Eq.refl true` value, i.e. `decide +kernel` semantics). -/
-elab "kernel_check_csv_rows " path:str " from " a:num " to " b:num : command => do
+/-- `load_csv_rows "path.csv" from a to b` reads rows `[a, b)` of the
+solution-tree CSV and adds them to the environment as one literal definition
+`csvRows_<a>_<b> : List Row`. Loading only — validate the chunk with ordinary
+theorems (`by decide +kernel`) about it.
+
+By default the chunk gets no executable code and is marked `noncomputable`
+(the kernel route never runs it). With the trailing `compiled` flag the chunk
+is instead compiled, so validation theorems may also use `native_decide`. -/
+elab "load_csv_rows " path:str " from " a:num " to " b:num
+    c:(&"compiled")? : command => do
   let lo := a.getNat
   let hi := b.getNat
   unless lo < hi do throwError "empty row range [{lo}, {hi})"
@@ -153,34 +160,24 @@ elab "kernel_check_csv_rows " path:str " from " a:num " to " b:num : command => 
   Command.liftTermElabM do
     let ctx ← mkCtx
     let rowTy := mkConst ``Row
-    let mut consts : Array Expr := #[]
-    for r in rows do
-      let nm := ns ++ Name.mkSimple s!"csvRow_{r.ID}"
-      addDecl <| .defnDecl {
-        name := nm, levelParams := [], type := rowTy, value := rowE ctx r,
-        hints := .abbrev, safety := .safe }
-      consts := consts.push (mkConst nm)
-    let listE := consts.foldr
-      (fun c acc => mkApp3 (mkConst ``List.cons [Level.zero]) rowTy c acc)
+    let listE := rows.foldr
+      (fun r acc => mkApp3 (mkConst ``List.cons [Level.zero]) rowTy (rowE ctx r) acc)
       (mkApp (mkConst ``List.nil [Level.zero]) rowTy)
     let chunkNm := ns ++ Name.mkSimple s!"csvRows_{lo}_{hi}"
     addDecl <| .defnDecl {
       name := chunkNm, levelParams := [],
       type := mkApp (mkConst ``List [Level.zero]) rowTy, value := listE,
       hints := .abbrev, safety := .safe }
+    if c.isSome then
+      compileDecls #[chunkNm]
+    else
+      -- No executable code (the kernel route never runs the chunk), so mark
+      -- it noncomputable for clean downstream errors.
+      modifyEnv (addNoncomputable · chunkNm)
     let tDefs ← IO.monoMsNow
-    let allE := mkApp3 (mkConst ``List.all [Level.zero]) rowTy (mkConst chunkNm)
-      (mkConst ``Row.leafOk)
-    let prop := mkApp3 (mkConst ``Eq [Level.one]) (mkConst ``Bool) allE
-      (mkConst ``Bool.true)
-    addDecl <| .thmDecl {
-      name := ns ++ Name.mkSimple s!"csvRows_{lo}_{hi}_ok", levelParams := [],
-      type := prop, value := reflTrueE }
-    let tKernel ← IO.monoMsNow
-    logInfo m!"kernel_check_csv_rows [{lo}, {hi}): read {tRead - t0} ms, \
-      parse {tParse - tRead} ms, row defs {tDefs - tParse} ms, \
-      kernel check {tKernel - tDefs} ms ({(tKernel - tDefs) / (hi - lo)} ms/row)"
+    logInfo m!"load_csv_rows [{lo}, {hi}): read {tRead - t0} ms, \
+      parse {tParse - tRead} ms, define+check {tDefs - tParse} ms"
 
-end KernelIngest
+end Load
 
 end Noperthedron.Solution
