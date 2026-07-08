@@ -8,6 +8,7 @@ import Noperthedron.Checker.ApproxSqrt
 import Noperthedron.Checker.Global
 import Noperthedron.Checker.KappaApprox
 import Noperthedron.Checker.Local
+import Noperthedron.Checker.LocalNat
 import Noperthedron.Checker.RowZero
 import Noperthedron.Checker.SqrtDvLiterals
 import Noperthedron.Checker.SqrtFixed
@@ -77,6 +78,7 @@ import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.InteriorNonempty
 import Noperthedron.Vertices.Python
+import Noperthedron.Vertices.PythonInt
 import Noperthedron.Vertices.Symmetry
 import Noperthedron.Vertices.Taylor
 import Noperthedron.Vertices.Trig
