@@ -32,6 +32,12 @@ def parseInt (name : String) : String → Except String Int
   let .some v := s.toInt? | throw s!"failed to parse {name} from '{s}'"
   pure v
 
+/-- Parse a vertex-index column: a natural number `< 90`, decoded via `VertexIndex.ofFin90`. -/
+def parseVertexIndex (name s : String) : Except String VertexIndex := do
+  let n ← parseNat name s
+  if h : n < 90 then pure (VertexIndex.ofFin90 ⟨n, h⟩)
+  else throw s!"invalid index for {name}: {n}"
+
 /-
 27 columns:
 ID,nodeType,nrChildren,IDfirstChild,split,
@@ -79,20 +85,14 @@ def parseRowCsv (s : String) : Except String Row := do
                  else throw "invalid interval"
 
   let p1i_str::p2i_str::p3i_str::rest := rest | throw "not enough columns"
-  let p1i ← parseNat "p1i" p1i_str
-  let p1i : Fin 90 ← if h : p1i < 90 then pure (⟨p1i, h⟩ : Fin 90) else throw "invalid index"
-  let p2i ← parseNat "p2i" p2i_str
-  let p2i : Fin 90 ← if h : p2i < 90 then pure (⟨p2i, h⟩ : Fin 90) else throw "invalid index"
-  let p3i ← parseNat "p3i" p3i_str
-  let p3i : Fin 90 ← if h : p3i < 90 then pure (⟨p3i, h⟩ : Fin 90) else throw "invalid index"
+  let p1i ← parseVertexIndex "p1i" p1i_str
+  let p2i ← parseVertexIndex "p2i" p2i_str
+  let p3i ← parseVertexIndex "p3i" p3i_str
 
   let q1i_str::q2i_str::q3i_str::rest := rest | throw "not enough columns"
-  let q1i ← parseNat "q1i" q1i_str
-  let q1i : Fin 90 ← if h : q1i < 90 then pure (⟨q1i, h⟩ : Fin 90) else throw "invalid index"
-  let q2i ← parseNat "q2i" q2i_str
-  let q2i : Fin 90 ← if h : q2i < 90 then pure (⟨q2i, h⟩ : Fin 90) else throw "invalid index"
-  let q3i ← parseNat "q3i" q3i_str
-  let q3i : Fin 90 ← if h : q3i < 90 then pure (⟨q3i, h⟩ : Fin 90) else throw "invalid index"
+  let q1i ← parseVertexIndex "q1i" q1i_str
+  let q2i ← parseVertexIndex "q2i" q2i_str
+  let q3i ← parseVertexIndex "q3i" q3i_str
 
   let r_str :: sigmaq_str :: rest := rest | throw "not enough columns"
   let r' ← parseInt "r_str" r_str
@@ -109,9 +109,7 @@ def parseRowCsv (s : String) : Except String Row := do
   let wden ← parseNat "wden" wden_str
 
   let sindex_str :: rest := rest | throw "not enough columns"
-  let sindex ← parseNat "sindex" sindex_str
-  let sindex : Fin 90 ← if h : sindex < 90 then pure (⟨sindex, h⟩ : Fin 90)
-                        else throw "invalid sindex"
+  let sindex ← parseVertexIndex "sindex" sindex_str
 
   let [] := rest | throw "too many columns"
 
@@ -122,16 +120,16 @@ def parseRowCsv (s : String) : Except String Row := do
     IDfirstChild := id_fst_child
     split := split
     interval := interval
-    S_index := VertexIndex.ofFin90 sindex
+    S_index := sindex
     wx_numerator := wxnum
     wy_numerator := wynum
     w_denominator := wden
-    P1_index := VertexIndex.ofFin90 p1i
-    P2_index := VertexIndex.ofFin90 p2i
-    P3_index := VertexIndex.ofFin90 p3i
-    Q1_index := VertexIndex.ofFin90 q1i
-    Q2_index := VertexIndex.ofFin90 q2i
-    Q3_index := VertexIndex.ofFin90 q3i
+    P1_index := p1i
+    P2_index := p2i
+    P3_index := p3i
+    Q1_index := q1i
+    Q2_index := q2i
+    Q3_index := q3i
     r' := r'
     sigma_Q := sigmaq
   }
@@ -175,17 +173,3 @@ def parseSolutionTablePar (s : String) (nTasks : ℕ) : Except String Table := I
     | .ok rows => result := result ++ rows
     | .error e => return .error e
   return .ok result
-
-def readSolutionTable (filepath : String) : IO Table := do
-  let mut rows : Array Row := Array.empty
-  let h ← IO.FS.Handle.mk filepath IO.FS.Mode.read
-  let _ ← h.getLine -- ignore first line
-  while True do
-    let line ← h.getLine
-    let line := line.trimAscii.toString
-    if line.isEmpty then break
-    let row ← match parseRowCsv line with
-              | .ok row => pure row
-              | .error e => throw (IO.userError e)
-    rows := rows.push row
-  return rows

@@ -169,6 +169,18 @@ private lemma Cpt_eq_vec (i₀ : Fin 3) :
 private lemma Cpt_xy_sq_pos (i₀ : Fin 3) : 0 < (Cpt i₀ 0)^2 + (Cpt i₀ 1)^2 := by
   fin_cases i₀ <;> simp [Cpt, C1R, C2R, C3R, C1, C2, C3] <;> norm_num
 
+/-- A unit-|scalar| multiple of a norm-preserving linear map is norm-preserving. -/
+private lemma norm_smul_apply_of_abs_eq_one {s : ℝ} (hs : |s| = 1)
+    {L : ℝ³ →ₗ[ℝ] ℝ³} (hL : ∀ v, ‖L v‖ = ‖v‖) (v : ℝ³) : ‖(s • L) v‖ = ‖v‖ := by
+  rw [LinearMap.smul_apply, norm_smul, Real.norm_eq_abs, hs, one_mul, hL]
+
+/-- Shared closing step of the rotation/reflection congruence proofs: collect the
+`(-1)^m` witness scalar and the vertex's `(-1)^ℓ` sign into a single mod-2 power. -/
+private lemma neg_one_pow_mod_two_smul (m ℓ : ℕ) (w : ℝ³) :
+    (-1 : ℤ) ^ ((ℓ + m) % 2) • w = (-1 : ℝ) ^ m • ((-1 : ℤ) ^ ℓ • w) := by
+  rw [int_neg_one_pow_smul, int_neg_one_pow_smul, smul_smul, ← pow_add, add_comm m ℓ,
+      ← neg_one_pow_eq_pow_mod_two]
+
 /-- The rotation case: `⟨k, ℓ, i⟩ ↦ ⟨k + n, ℓ + m, i⟩` is realized by
 `v ↦ (-1)^m • Rz(2πn/15) v`, the same linear isometry for every triangle. -/
 private theorem congruent_of_rotation (Pi Qi : Fin 3 → VertexIndex)
@@ -177,12 +189,9 @@ private theorem congruent_of_rotation (Pi Qi : Fin 3 → VertexIndex)
     Local.Triangle.Congruent (exactVertex ∘ Pi) (exactVertex ∘ Qi) := by
   set s : ℝ := (-1 : ℝ)^m.val with hs_def
   set φ : ℝ := 2 * π * (n.val : ℝ) / 15 with hφ_def
-  have hs_abs : |s| = 1 := by
-    rw [hs_def, abs_pow, abs_neg, abs_one, one_pow]
-  have hnorm : ∀ v : ℝ³, ‖(s • (RzL φ).toLinearMap) v‖ = ‖v‖ := by
-    intro v
-    rw [LinearMap.smul_apply, norm_smul, Real.norm_eq_abs, hs_abs, one_mul]
-    exact Bounding.Rz_preserves_norm φ v
+  have hs_abs : |s| = 1 := abs_neg_one_pow m.val
+  have hnorm : ∀ v : ℝ³, ‖(s • (RzL φ).toLinearMap) v‖ = ‖v‖ :=
+    norm_smul_apply_of_abs_eq_one hs_abs (Bounding.Rz_preserves_norm φ)
   refine ⟨⟨s • (RzL φ).toLinearMap, hnorm⟩, ?_⟩
   intro j
   simp only [Function.comp_apply, hpq]
@@ -198,8 +207,7 @@ private theorem congruent_of_rotation (Pi Qi : Fin 3 → VertexIndex)
       RzL_nat_mod_15,
       show 2 * π * ((k.val + n.val : ℕ) : ℝ) / 15 = φ + θ by push_cast; rw [hφ_def, hθ_def]; ring,
       RzL_apply_add]
-  rw [int_neg_one_pow_smul, int_neg_one_pow_smul, hs_def, smul_smul, ← pow_add,
-      add_comm m.val ℓ.val, ← neg_one_pow_eq_pow_mod_two]
+  exact neg_one_pow_mod_two_smul m.val ℓ.val _
 
 /-- The reflection case: on a triangle whose vertices all lie in orbit `i₀`,
 `⟨k, ℓ, i₀⟩ ↦ ⟨n - k, ℓ + m, i₀⟩` is realized by the linear isometry
@@ -224,14 +232,13 @@ private theorem congruent_of_reflection (Pi Qi : Fin 3 → VertexIndex)
   have hCpt_eq : Cpt i₀ = !₂[a, b, c] := Cpt_eq_vec i₀
   set s : ℝ := (-1 : ℝ) ^ m.val with hs_def
   set φ : ℝ := 2 * π * (n.val : ℝ) / 15 with hφ_def
-  have hs_abs : |s| = 1 := by rw [hs_def, abs_pow, abs_neg, abs_one, one_pow]
+  have hs_abs : |s| = 1 := abs_neg_one_pow m.val
   have hnorm : ∀ v : ℝ³,
-      ‖(s • ((RzL φ).toLinearMap ∘ₗ (orbitReflL a b).toLinearMap)) v‖ = ‖v‖ := by
-    intro v
-    rw [LinearMap.smul_apply, norm_smul, Real.norm_eq_abs, hs_abs, one_mul,
-        LinearMap.comp_apply]
-    show ‖(RzL φ) ((orbitReflL a b) v)‖ = ‖v‖
-    rw [Bounding.Rz_preserves_norm, orbitReflL_preserves_norm _ _ hab]
+      ‖(s • ((RzL φ).toLinearMap ∘ₗ (orbitReflL a b).toLinearMap)) v‖ = ‖v‖ :=
+    norm_smul_apply_of_abs_eq_one hs_abs fun v => by
+      rw [LinearMap.comp_apply]
+      show ‖(RzL φ) ((orbitReflL a b) v)‖ = ‖v‖
+      rw [Bounding.Rz_preserves_norm, orbitReflL_preserves_norm _ _ hab]
   refine ⟨⟨s • ((RzL φ).toLinearMap ∘ₗ (orbitReflL a b).toLinearMap), hnorm⟩, ?_⟩
   intro j
   have hij : (Qi j).i = i₀ := hQi_i j
@@ -258,8 +265,7 @@ private theorem congruent_of_reflection (Pi Qi : Fin 3 → VertexIndex)
       show 2 * π * ((15 - k.val + n.val : ℕ) : ℝ) / 15 = (φ + -θ) + (1 : ℤ) * (2 * π) by
         push_cast [Nat.cast_sub hk_le]; rw [hφ_def, hθ_def]; ring,
       RzL_periodic]
-  rw [int_neg_one_pow_smul, int_neg_one_pow_smul, hs_def, smul_smul, ← pow_add,
-      add_comm m.val ℓ.val, ← neg_one_pow_eq_pow_mod_two]
+  exact neg_one_pow_mod_two_smul m.val ℓ.val _
 
 /-- Key theorem: whenever `Pi j = s.apply (Qi j)` for all `j` and the symmetry
 is applicable to `Qi`, the triangles `Pi` and `Qi` are congruent. -/

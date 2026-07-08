@@ -41,6 +41,7 @@ import Noperthedron.PointSym
 import Noperthedron.Pose
 import Noperthedron.PoseClasses
 import Noperthedron.PoseInterval
+import Noperthedron.PoseParam
 import Noperthedron.ProofOfMainTheorem
 import Noperthedron.ProofOfMainTheoremWithHole
 import Noperthedron.RationalApprox

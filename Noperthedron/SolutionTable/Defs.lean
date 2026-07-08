@@ -1,8 +1,6 @@
 import Mathlib.Data.Finset.Max
 import Mathlib.Data.Real.Basic
 import Mathlib.Order.Interval.Finset.Nat
-import Mathlib.Tactic.DeriveFintype
-
 import Noperthedron.PoseInterval
 import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.Python
@@ -13,49 +11,6 @@ namespace Noperthedron.Solution
 
 def DENOMQ : ℚ := 15360000
 
-inductive Param where | θ₁ | φ₁ | θ₂ | φ₂ | α
-deriving BEq, ReflBEq, LawfulBEq, Repr, Fintype, DecidableEq, Nonempty
-
-end Noperthedron.Solution
-
-/-! ## `Param`-indexed access on `Pose` -/
-
-namespace Pose
-variable {R : Type}
-
-/-- Read the component of a `Pose` selected by a `Solution.Param`. -/
-def getParam (p : Pose R) : Noperthedron.Solution.Param → R
-  | .θ₁ => p.θ₁
-  | .θ₂ => p.θ₂
-  | .φ₁ => p.φ₁
-  | .φ₂ => p.φ₂
-  | .α  => p.α
-
-/-- Replace the component of a `Pose` selected by a `Solution.Param`. -/
-def setParam (p : Pose R) : Noperthedron.Solution.Param → R → Pose R
-  | .θ₁, x => { p with θ₁ := x }
-  | .θ₂, x => { p with θ₂ := x }
-  | .φ₁, x => { p with φ₁ := x }
-  | .φ₂, x => { p with φ₂ := x }
-  | .α,  x => { p with α  := x }
-
-@[simp] lemma getParam_setParam_self (p : Pose R) (a : Noperthedron.Solution.Param) (x : R) :
-    (p.setParam a x).getParam a = x := by cases a <;> rfl
-
-@[simp] lemma getParam_setParam_of_ne (p : Pose R) {a b : Noperthedron.Solution.Param}
-    (h : b ≠ a) (x : R) :
-    (p.setParam a x).getParam b = p.getParam b := by
-  cases a <;> cases b <;> first | rfl | (exact absurd rfl h)
-
-lemma le_iff_forall_getParam [PartialOrder R] (p q : Pose R) :
-    p ≤ q ↔ ∀ a : Noperthedron.Solution.Param, p.getParam a ≤ q.getParam a := by
-  rw [le_iff]
-  refine ⟨fun ⟨h1, h2, h3, h4, h5⟩ a => by cases a <;> assumption,
-          fun h => ⟨h .θ₁, h .θ₂, h .φ₁, h .φ₂, h .α⟩⟩
-
-end Pose
-
-namespace Noperthedron.Solution
 
 /-- A solution-table interval is a `PoseInterval ℚ`: a `min ≤ max` pair of rational
 poses bounding a 5d box in parameter space. Stored values are the actual angle values
