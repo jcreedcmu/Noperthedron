@@ -277,14 +277,17 @@ private lemma fastHs_scalars_eq (e : HEntries) (εθ εφ kt : ℚ) (P : Fin 3 �
     fastHs e.scalars εθ εφ kt (P 0) (P 1) (P 2) = fastH e εθ εφ kt P := by
   simp only [fastHs, HEntries.scalars, fastH, dotProduct, Fin.sum_univ_three]
 
-/-! #### Two-tier `H` test
+/-! #### Three-tier `H` test
 
 For all but the few near-binding vertices `P`, the margin `g − H(P)` dwarfs
-the second-order group, so a per-pose ∞-norm bound on the three second-order
-vectors (`soBound`) lets the common case decide with the three first-order
-dot products only; the exact six-dot `fastHs` runs just for the vertices
-that fail the cheap test. Since `cheapHs ≥ fastHs` pointwise, the two-tier
-test decides exactly `g > fastHs`. -/
+everything past the zeroth-order dot product, so per-pose ∞-norm bounds on
+the first- and second-order vectors (`foBound`/`soBound`) let the common
+case decide with the single `a`-dot product plus one multiply
+(`cheapestHs`); the vertices that fail fall back to the three-dot `cheapHs`
+(second-order group still bounded by `soBound`), and only the near-binding
+ones run the exact six-dot `fastHs`. Since
+`cheapestHs ≥ cheapHs ≥ fastHs` pointwise, the tiered test decides exactly
+`g > fastHs`. -/
 
 /-- Upper bound for `fastHs` that replaces the three second-order dot
 products by the precomputed scalar `soBound * (|p0| + |p1| + |p2|)`. -/
@@ -300,6 +303,18 @@ products by the precomputed scalar `soBound * (|p0| + |p1| + |p2|)`. -/
   1 / 2 * (εθ^2 * max |e.d0| (max |e.d1| |e.d2|)
     + 2 * (εθ * εφ) * max |e.e0| (max |e.e1| |e.e2|)
     + εφ^2 * max |e.f0| (max |e.f1| |e.f2|))
+
+/-- The first-order half of the per-pose scalar for `cheapestHs`: the
+`(εθ, εφ)`-weighted ∞-norms of the two first-order vectors. -/
+@[inline] private def foBound (e : HScalars) (εθ εφ : ℚ) : ℚ :=
+  εθ * max |e.b0| (max |e.b1| |e.b2|) + εφ * max |e.c0| (max |e.c1| |e.c2|)
+
+/-- Tier-0 upper bound for `fastHs`: everything past the zeroth-order dot
+product is replaced by the two per-pose scalars
+`fsBound = foBound + soBound` and `kappaRem = (εθ+εφ)³/6 + kappaTerm`, so
+each vertex costs one dot product and one multiply. -/
+@[inline] private def cheapestHs (e : HScalars) (fsBound kappaRem p0 p1 p2 : ℚ) : ℚ :=
+  e.a0 * p0 + e.a1 * p1 + e.a2 * p2 + fsBound * (|p0| + |p1| + |p2|) + kappaRem
 
 private lemma abs_dot3_le (d0 d1 d2 p0 p1 p2 : ℚ) :
     |d0 * p0 + d1 * p1 + d2 * p2| ≤
@@ -327,21 +342,42 @@ private lemma fastHs_le_cheapHs {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ : 
     (mul_nonneg hεφ hεφ)
   linarith [hd, he, hf]
 
-/-- One vertex of the two-tier test: try `cheapHs` (three dot products),
-fall back to the exact `fastHs` (six) only if it fails. `Bool.or` is
-short-circuiting, so the fallback is not evaluated when the cheap test
-passes. -/
-@[inline] private def tieredHs_lt (e : HScalars) (εθ εφ kappaTerm soB g p0 p1 p2 : ℚ) : Bool :=
+private lemma fastHs_le_cheapestHs {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
+    (e : HScalars) (kt p0 p1 p2 : ℚ) :
+    fastHs e εθ εφ kt p0 p1 p2 ≤
+      cheapestHs e (foBound e εθ εφ + soBound e εθ εφ) ((εθ + εφ)^3 / 6 + kt) p0 p1 p2 := by
+  unfold fastHs cheapestHs foBound soBound
+  have hb := mul_le_mul_of_nonneg_left (abs_dot3_le e.b0 e.b1 e.b2 p0 p1 p2) hεθ
+  have hc := mul_le_mul_of_nonneg_left (abs_dot3_le e.c0 e.c1 e.c2 p0 p1 p2) hεφ
+  have hd := mul_le_mul_of_nonneg_left (abs_dot3_le e.d0 e.d1 e.d2 p0 p1 p2)
+    (mul_nonneg hεθ hεθ)
+  have he := mul_le_mul_of_nonneg_left (abs_dot3_le e.e0 e.e1 e.e2 p0 p1 p2)
+    (mul_nonneg hεθ hεφ)
+  have hf := mul_le_mul_of_nonneg_left (abs_dot3_le e.f0 e.f1 e.f2 p0 p1 p2)
+    (mul_nonneg hεφ hεφ)
+  linarith [hb, hc, hd, he, hf]
+
+/-- One vertex of the three-tier test: try `cheapestHs` (one dot product),
+then `cheapHs` (three), and fall back to the exact `fastHs` (six) only if
+both fail. `Bool.or` is short-circuiting, so the later tiers are not
+evaluated when an earlier test passes. -/
+@[inline] private def tieredHs_lt (e : HScalars) (εθ εφ kappaTerm soB fsB kR g p0 p1 p2 : ℚ) :
+    Bool :=
+  decide (g > cheapestHs e fsB kR p0 p1 p2) ||
   decide (g > cheapHs e εθ εφ kappaTerm soB p0 p1 p2) ||
   decide (g > fastHs e εθ εφ kappaTerm p0 p1 p2)
 
 private lemma tieredHs_lt_iff {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ : 0 ≤ εφ)
     (e : HScalars) (kt g p0 p1 p2 : ℚ) :
-    tieredHs_lt e εθ εφ kt (soBound e εθ εφ) g p0 p1 p2 = true ↔
+    tieredHs_lt e εθ εφ kt (soBound e εθ εφ) (foBound e εθ εφ + soBound e εθ εφ)
+      ((εθ + εφ)^3 / 6 + kt) g p0 p1 p2 = true ↔
       g > fastHs e εθ εφ kt p0 p1 p2 := by
   simp only [tieredHs_lt, Bool.or_eq_true, decide_eq_true_eq]
-  exact ⟨fun h => h.elim
-    (fun hc => lt_of_le_of_lt (fastHs_le_cheapHs hεθ hεφ e kt p0 p1 p2) hc) id, .inr⟩
+  refine ⟨fun h => ?_, fun h => Or.inr h⟩
+  obtain (h | h) | h := h
+  · exact lt_of_le_of_lt (fastHs_le_cheapestHs hεθ hεφ e kt p0 p1 p2) h
+  · exact lt_of_le_of_lt (fastHs_le_cheapHs hεθ hεφ e kt p0 p1 p2) h
+  · exact h
 
 end Gℚ_gt_maxHℚ
 
@@ -397,8 +433,8 @@ open Gℚ_gt_maxHℚ in
 /-- Bool-valued `Gℚ > maxHℚ` check that hoists the trig partial sums and the
 rounded `Mᵀ·w` 3-vectors to per-pose work for both `Gℚ` and `Hℚ`; the
 `∀ P ∈ poly.v` loop then only does small-denominator dot products, and the
-two-tier `tieredHs_lt` decides all but the near-binding vertices with the
-three first-order dot products alone. -/
+three-tier `tieredHs_lt` decides all but the near-binding vertices with the
+single zeroth-order dot product alone. -/
 def Gℚ_gt_maxHℚ_check {ι : Type} [Fintype ι] [DecidableEq ι]
     (p : Pose ℚ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℚ) (S : Fin 3 → ℚ)
     (poly : Polyhedron ι (Fin 3 → ℚ)) (w : Fin 2 → ℚ) : Bool :=
@@ -406,8 +442,11 @@ def Gℚ_gt_maxHℚ_check {ι : Type} [Fintype ι] [DecidableEq ι]
   let g := fastG (gEntriesR p w) εα εθ₁ εφ₁ S
   let kappaTerm := 3 * κℚ * (1 + (εθ₂ + εφ₂) + (εθ₂ + εφ₂)^2 / 2)
   let soB := soBound hscalars εθ₂ εφ₂
+  let fsB := foBound hscalars εθ₂ εφ₂ + soB
+  let kR := (εθ₂ + εφ₂)^3 / 6 + kappaTerm
   decide <| ∀ k : ι,
-    tieredHs_lt hscalars εθ₂ εφ₂ kappaTerm soB g (poly.v k 0) (poly.v k 1) (poly.v k 2) = true
+    tieredHs_lt hscalars εθ₂ εφ₂ kappaTerm soB fsB kR g
+      (poly.v k 0) (poly.v k 1) (poly.v k 2) = true
 
 theorem Gℚ_gt_maxHℚ_check_iff {ι : Type} [Fintype ι] [DecidableEq ι] [ne : Nonempty ι]
     (p : Pose ℚ) (εα εθ₁ εφ₁ : ℚ) {εθ₂ εφ₂ : ℚ} (hεθ₂ : 0 ≤ εθ₂) (hεφ₂ : 0 ≤ εφ₂)
