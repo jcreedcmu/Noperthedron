@@ -15,7 +15,7 @@ import Noperthedron.Bounding.OpNorm
 Helper lemmas for second partial derivative computations in Global.lean.
 
 These lemmas factor out repeated DifferentiableAt proofs and first partial
-computations to reduce heartbeat usage in second_partial_inner_rotM_inner.
+computations to reduce heartbeat usage in third_partial_inner_rotM_inner.
 -/
 
 open scoped RealInnerProductSpace
@@ -28,7 +28,7 @@ private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 ## DifferentiableAt lemmas for rotation compositions
 
 These lemmas eliminate the repeated `rw [differentiableAt_piLp]; intro i; fin_cases i ...`
-pattern that appears ~30+ times in second_partial_inner_rotM_inner.
+pattern that appears ~30+ times in third_partial_inner_rotM_inner.
 -/
 
 /-- DifferentiableAt for rotMθ (outer, E 2) -/

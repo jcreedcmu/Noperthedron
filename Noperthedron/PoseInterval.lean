@@ -162,16 +162,6 @@ theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
     (simp only [PoseInterval.center, Real.dist_eq, abs_sub_le_iff]; constructor <;> linarith)
 
-lemma closed_ball_imp_inner_params_near {p q : Pose ℝ} {ε : ℝ}
-    (hq : q ∈ Metric.closedBall p ε) :
-    ∀ i, |p.innerParams.ofLp i - q.innerParams.ofLp i| ≤ ε := by
-  rw [Pose.mem_closedBall_iff] at hq
-  obtain ⟨h1, -, h3, -, h5⟩ := hq
-  intro i
-  simp only [Pose.innerParams, WithLp.ofLp_toLp]
-  rw [abs_sub_comm]
-  fin_cases i <;> assumption
-
 lemma mem_closed_ball_abs_sub_α {p q : Pose ℝ} {ε : ℝ}
     (hq : p ∈ Metric.closedBall q ε) : |p.α - q.α| ≤ ε :=
   ((Pose.mem_closedBall_iff.mp hq).2.2.2.2)
@@ -184,16 +174,6 @@ lemma mem_closed_ball_abs_sub_φ₁ {p q : Pose ℝ} {ε : ℝ}
     (hq : p ∈ Metric.closedBall q ε) : |p.φ₁ - q.φ₁| ≤ ε :=
   (Pose.mem_closedBall_iff.mp hq).2.2.1
 
-lemma closed_ball_imp_outer_params_near {p q : Pose ℝ} {ε : ℝ}
-    (hq : q ∈ Metric.closedBall p ε) :
-    ∀ i, |p.outerParams.ofLp i - q.outerParams.ofLp i| ≤ ε := by
-  rw [Pose.mem_closedBall_iff] at hq
-  obtain ⟨-, h2, -, h4, -⟩ := hq
-  intro i
-  simp only [Pose.outerParams, WithLp.ofLp_toLp]
-  rw [abs_sub_comm]
-  fin_cases i <;> assumption
-
 lemma mem_closed_ball_abs_sub_θ₂ {p q : Pose ℝ} {ε : ℝ}
     (hq : p ∈ Metric.closedBall q ε) : |p.θ₂ - q.θ₂| ≤ ε :=
   (Pose.mem_closedBall_iff.mp hq).2.1
@@ -205,14 +185,8 @@ lemma mem_closed_ball_abs_sub_φ₂ {p q : Pose ℝ} {ε : ℝ}
 /--
 `p` lies in the closed box of per-axis radii `εθ₁ εφ₁ εθ₂ εφ₂ εα` around `pbar`.
 This is the anisotropic analog of `p ∈ Metric.closedBall pbar ε`; at equal radii
-the two coincide (see `Pose.near_of_mem_closedBall`).
+the two coincide.
 -/
 def Pose.near (pbar : Pose ℝ) (εθ₁ εφ₁ εθ₂ εφ₂ εα : ℝ) (p : Pose ℝ) : Prop :=
   |p.θ₁ - pbar.θ₁| ≤ εθ₁ ∧ |p.φ₁ - pbar.φ₁| ≤ εφ₁ ∧
   |p.θ₂ - pbar.θ₂| ≤ εθ₂ ∧ |p.φ₂ - pbar.φ₂| ≤ εφ₂ ∧ |p.α - pbar.α| ≤ εα
-
-lemma Pose.near_of_mem_closedBall {pbar p : Pose ℝ} {ε : ℝ}
-    (hp : p ∈ Metric.closedBall pbar ε) : Pose.near pbar ε ε ε ε ε p :=
-  ⟨mem_closed_ball_abs_sub_θ₁ hp, mem_closed_ball_abs_sub_φ₁ hp,
-   mem_closed_ball_abs_sub_θ₂ hp, mem_closed_ball_abs_sub_φ₂ hp,
-   mem_closed_ball_abs_sub_α hp⟩

@@ -61,8 +61,8 @@ theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
 -- rotation_partials_exist_outer are now imported from Noperthedron.Global.Definitions
 -- (via Noperthedron.Global.RotationPartials)
 
--- rotation_partials_bounded, rotation_partials_bounded_outer ([SY25] Lemma 19) are now
--- imported from Noperthedron.Global.RotationPartials (via SecondPartialInner/SecondPartialOuter)
+-- rotation_third_partials_bounded, rotation_third_partials_bounded_outer ([SY25] Lemma 19) are
+-- now imported from Noperthedron.Global.RotationPartials (via SecondPartialInner/SecondPartialOuter)
 
 /--
 A measure of how far an inner-shadow vertex S can "stick out".

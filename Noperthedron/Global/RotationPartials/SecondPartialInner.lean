@@ -11,8 +11,8 @@ import Noperthedron.Global.FDerivHelpers
 # Second Partial Inner Lemmas
 
 This file contains:
-- **`second_partial_inner_rotM_inner`** (9 cases)
-- **`rotation_partials_bounded`** (the main theorem from [SY25] Lemma 19)
+- **`third_partial_inner_rotM_inner`** (27 cases)
+- **`rotation_third_partials_bounded`** (the main theorem from [SY25] Lemma 19)
 
 Helper lemmas `comp_norm_le_one`, `neg_comp_norm_le_one`, `inner_bound_helper`, `fderiv_inner_const`
 are imported from SecondPartialHelpers.
@@ -112,41 +112,6 @@ theorem nth_partial_nth_partial_rotproj_inner (S : ℝ³) (w : ℝ²) (i j : Fin
     nth_partial i (nth_partial j (rotproj_inner S w)) =
       fun y => ⟪inner_second_partial_A (y.ofLp 0) (y.ofLp 1) (y.ofLp 2) i j S, w⟫ :=
   funext fun y => second_partial_rotproj_inner_eq S w y i j
-
-private lemma second_partial_rotM_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i j : Fin 3) :
-    ∃ A : ℝ³ →L[ℝ] ℝ², ‖A‖ ≤ 1 ∧
-      nth_partial i (nth_partial j (rotproj_inner S w)) x = ⟪A S, w⟫ :=
-  ⟨inner_second_partial_A (x.ofLp 0) (x.ofLp 1) (x.ofLp 2) i j,
-    inner_second_partial_A_norm_le _ _ _ i j,
-    second_partial_rotproj_inner_eq S w x i j⟩
-
-/-!
-## Main theorems
--/
-
-/- [SY25] Lemma 19 (inner part) -/
-theorem second_partial_inner_rotM_inner (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) (i j : Fin 3) (y : ℝ³) :
-    |(fderiv ℝ (fun z => (fderiv ℝ (rotproj_inner_unit S w) z) (EuclideanSpace.single i 1)) y)
-      (EuclideanSpace.single j 1)| ≤ 1 := by
-  change |nth_partial j (nth_partial i (rotproj_inner_unit S w)) y| ≤ 1
-  have hf_smooth : ContDiff ℝ 2 (rotproj_inner S w) := by
-    change ContDiff ℝ 2 (fun x : ℝ³ => ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫)
-    simp [inner, rotprojRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
-    fun_prop
-  have hg_diff : Differentiable ℝ (nth_partial i (rotproj_inner S w)) :=
-    (hf_smooth.fderiv_right (by decide : (1 : WithTop ℕ∞) + 1 ≤ 2) |>.clm_apply
-      contDiff_const).differentiable (by decide)
-  have hscale : nth_partial j (nth_partial i (rotproj_inner_unit S w)) y =
-      nth_partial j (nth_partial i (rotproj_inner S w)) y / ‖S‖ := by
-    exact nth_partial_nth_partial_div_const i j (rotproj_inner S w) ‖S‖ y
-      (Differentiable.rotproj_inner S w) hg_diff
-  obtain ⟨A, hAnorm, hAeq⟩ := second_partial_rotM_inner_eq S w y j i
-  simpa [hscale, hAeq] using inner_bound_helper A S w w_unit hAnorm
-
-/- [SY25] Lemma 19 -/
-theorem rotation_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
-    mixed_partials_bounded (rotproj_inner_unit S w) := fun x i j =>
-  second_partial_inner_rotM_inner S w_unit j i x
 
 /-!
 ## Third partials as inner products (27 cases)
@@ -318,6 +283,7 @@ theorem third_partial_rotproj_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i j k 
       simp only [inner_third_partial_A, map_neg, neg_apply,
         ContinuousLinearMap.coe_comp, Function.comp_apply, inner_neg_left]
 
+/- [SY25] Lemma 19 (inner part) -/
 theorem third_partial_inner_rotM_inner (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1)
     (i j k : Fin 3) (y : ℝ³) :
     |nth_partial i (nth_partial j (nth_partial k (rotproj_inner_unit S w))) y| ≤ 1 := by
@@ -339,6 +305,7 @@ theorem third_partial_inner_rotM_inner (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖
   rw [hscale, third_partial_rotproj_inner_eq S w y i j k]
   exact inner_bound_helper _ S w w_unit (inner_third_partial_A_norm_le _ _ _ i j k)
 
+/- [SY25] Lemma 19 -/
 theorem rotation_third_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
     third_partials_bounded (rotproj_inner_unit S w) := fun x i j k =>
   third_partial_inner_rotM_inner S w_unit i j k x

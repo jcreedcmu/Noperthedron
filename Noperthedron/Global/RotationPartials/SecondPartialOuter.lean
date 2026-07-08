@@ -12,8 +12,8 @@ import Noperthedron.Global.SecondPartialHelpers
 
 This file contains:
 - `outer_second_partial_A` definition and norm bound
-- **`second_partial_inner_rotM_outer`** (4 cases: θθ, θφ, φθ, φφ)
-- **`rotation_partials_bounded_outer`**
+- **`third_partial_inner_rotM_outer`** (8 cases)
+- **`rotation_third_partials_bounded_outer`**
 -/
 
 open scoped RealInnerProductSpace
@@ -122,41 +122,6 @@ theorem nth_partial_nth_partial_rotproj_outer (S : ℝ³) (w : ℝ²) (i j : Fin
     nth_partial i (nth_partial j (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) =
       fun y => ⟪outer_second_partial_A (y.ofLp 0) (y.ofLp 1) i j S, w⟫ :=
   funext fun y => second_partial_rotproj_outer_eq S w y i j
-
-private lemma second_partial_rotM_outer_eq (S : ℝ³) (w : ℝ²) (x : E 2) (i j : Fin 2) :
-    ∃ A : ℝ³ →L[ℝ] ℝ², ‖A‖ ≤ 1 ∧
-      nth_partial i (nth_partial j (fun y : E 2 => ⟪rotM (y.ofLp 0) (y.ofLp 1) S, w⟫)) x = ⟪A S, w⟫ :=
-  ⟨outer_second_partial_A (x.ofLp 0) (x.ofLp 1) i j,
-    outer_second_partial_A_norm_le _ _ _ _,
-    second_partial_rotproj_outer_eq S w x i j⟩
-
-/-!
-## Main theorems
--/
-
-/- [SY25] Lemma 19 (outer part) -/
-theorem second_partial_inner_rotM_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) (i j : Fin 2) (y : ℝ²) :
-    |(fderiv ℝ (fun z => (fderiv ℝ (rotproj_outer_unit S w) z) (EuclideanSpace.single i 1)) y)
-      (EuclideanSpace.single j 1)| ≤ 1 := by
-  show |nth_partial j (nth_partial i (rotproj_outer_unit S w)) y| ≤ 1
-  let f : E 2 → ℝ := fun z => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫
-  have hf_smooth : ContDiff ℝ 2 f := by
-    apply ContDiff.inner ℝ _ contDiff_const
-    rw [contDiff_piLp]; intro k
-    simp only [rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-    fin_cases k <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
-  have hscale : nth_partial j (nth_partial i (rotproj_outer_unit S w)) y =
-      nth_partial j (nth_partial i f) y / ‖S‖ := by
-    exact nth_partial_nth_partial_div_const i j f ‖S‖ y
-      (hf_smooth.differentiable (by decide))
-      ((hf_smooth.fderiv_right (by decide : (1 : WithTop ℕ∞) + 1 ≤ 2) |>.clm_apply
-        contDiff_const).differentiable (by decide))
-  obtain ⟨A, hAnorm, hAeq⟩ := second_partial_rotM_outer_eq S w y j i
-  simpa [hscale, f, hAeq] using inner_bound_helper A S w w_unit hAnorm
-
-theorem rotation_partials_bounded_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1) :
-    mixed_partials_bounded (rotproj_outer_unit S w) := fun x i j =>
-  second_partial_inner_rotM_outer S w_unit j i x
 
 /-!
 ## Third partials (outer)

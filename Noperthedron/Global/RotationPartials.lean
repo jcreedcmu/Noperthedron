@@ -15,6 +15,6 @@ import Noperthedron.Global.RotationPartials.SecondPartialInner
 This module aggregates all the rotation partial derivative lemmas:
 - `Rotproj.lean`: HasFDerivAt.rotproj_inner and supporting lemmas
 - `RotMOuter.lean`: HasFDerivAt.rotM_outer and related lemmas
-- `SecondPartialOuter.lean`: second_partial_inner_rotM_outer, rotation_partials_bounded_outer
-- `SecondPartialInner.lean`: second_partial_inner_rotM_inner, rotation_partials_bounded
+- `SecondPartialOuter.lean`: third_partial_inner_rotM_outer, rotation_third_partials_bounded_outer
+- `SecondPartialInner.lean`: third_partial_inner_rotM_inner, rotation_third_partials_bounded
 -/
