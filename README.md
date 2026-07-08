@@ -25,11 +25,16 @@ The proof of the main theorem, given existence of a valid solution table, lives 
 
 The program to construct a valid solution table is [constructValidTable.lean](constructValidTable.lean).
 
-The complete proof of the main theorem lives in
-[ProofOfMainTheorem.lean](Noperthedron/ProofOfMainTheorem.lean).
-Its most expensive step, in
-[ComputationalStep.lean](Noperthedron/ComputationalStep.lean),
-is commented out and replaced by a sorry so that every CI run does not take days to complete.
+The complete proof of the main theorem lives in the build-on-demand
+`VerifiedNative` library ([VerifiedNative/ProofOfMainTheorem.lean](VerifiedNative/ProofOfMainTheorem.lean)).
+Its expensive step —
+[VerifiedNative/ComputationalStep.lean](VerifiedNative/ComputationalStep.lean),
+which checks all ~2 million solution-table rows with `native_decide` — is kept out
+of the default build targets so that every CI run does not take hours to complete.
+Run it yourself (about 25 minutes on 16 cores, with `solution_tree_v6.csv` unzipped
+at the repo root) with `lake build VerifiedNative`. A kernel-only variant
+(`VerifiedKernel`), which removes the compiler from the trusted base, is in
+progress.
 
 ## Getting Started
 
