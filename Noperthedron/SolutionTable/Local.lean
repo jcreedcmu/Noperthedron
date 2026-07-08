@@ -59,22 +59,22 @@ theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
     δ := row.δ
     r := row.r
     hr := hrow.rpos
-    approx := RationalApprox.sqrtApprox
+    approx := RationalApprox.sqrtApprox16
     hr₁ := by have h := hrow.r_valid; rwa [pythonVertexA_eq] at h
     hδ := by
       intro i
       -- row.δ rewrites to Finset.max' over BoundDeltaℚi via Row.δ_eq_max'_BoundDeltaℚi.
       have hi_mem : RationalApprox.LocalTheorem.BoundDeltaℚi
           row.interval.centerPose (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi)
-          RationalApprox.sqrtApprox i ∈
+          RationalApprox.sqrtApprox16 i ∈
           Finset.image (RationalApprox.LocalTheorem.BoundDeltaℚi
             row.interval.centerPose (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi)
-            RationalApprox.sqrtApprox) Finset.univ :=
+            RationalApprox.sqrtApprox16) Finset.univ :=
         Finset.mem_image_of_mem _ (Finset.mem_univ i)
       have hle := Finset.le_max' _ _ hi_mem
       show row.δ ≥ RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
         (KappaApprox.exact_κApprox_python.transportTri row.Pi)
-        (KappaApprox.exact_κApprox_python.transportTri row.Qi) RationalApprox.sqrtApprox i
+        (KappaApprox.exact_κApprox_python.transportTri row.Qi) RationalApprox.sqrtApprox16 i
       rw [transportTri_python row.Pi, transportTri_python row.Qi,
           Row.δ_eq_max'_BoundDeltaℚi]
       exact hle

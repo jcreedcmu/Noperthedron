@@ -2,6 +2,7 @@ import Mathlib.Data.Finset.Max
 
 import Noperthedron.Checker.ApproxSqrt
 import Noperthedron.Checker.SqrtDvLiterals
+import Noperthedron.Checker.SqrtFixed
 import Noperthedron.Local.Congruent
 import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.RationalLocal
@@ -48,7 +49,7 @@ abbrev Row.r (row : Row) : ℚ :=
   row.r' / 1000
 
 open scoped Matrix
-open RationalApprox (sqrtApprox κℚ)
+open RationalApprox (sqrtApprox sqrtApprox16 κℚ)
 
 /-! ### Spanning condition: hoisted trig, scalarized applied vectors -/
 
@@ -152,11 +153,11 @@ private structure PoseTrigQ where
   let d0 := rm1p_0 - m2q_0
   let d1 := rm1p_1 - m2q_1
   let normSq := d0 * d0 + d1 * d1
-  sqrtApprox.upper_sqrt.f normSq / 2 + 3 * κℚ
+  sqrtApprox16.upper_sqrt.f normSq / 2 + 3 * κℚ
 
 lemma boundDelta_at_eq (p : Pose ℚ) (P Q : Fin 3 → ℚ) :
     boundDelta_at (.ofPose p) P Q =
-    sqrtApprox.upper_sqrt.norm (p.rotRℚ (p.rotM₁ℚ P) - p.rotM₂ℚ Q) / 2 + 3 * κℚ := by
+    sqrtApprox16.upper_sqrt.norm (p.rotRℚ (p.rotM₁ℚ P) - p.rotM₂ℚ Q) / 2 + 3 * κℚ := by
   unfold boundDelta_at PoseTrigQ.ofPose RationalApprox.UpperSqrt.norm
   unfold Pose.rotRℚ Pose.rotM₁ℚ Pose.rotM₂ℚ
   unfold RationalApprox.rotRℚ RationalApprox.rotMℚ
@@ -186,14 +187,14 @@ def Row.δ (row : Row) : ℚ :=
 theorem Row.δ_eq_max'_BoundDeltaℚi (row : Row) :
     row.δ = Finset.max' (Finset.image
       (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
-        (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox) Finset.univ)
+        (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox16) Finset.univ)
       (Finset.image_nonempty.mpr ⟨0, Finset.mem_univ 0⟩) := by
   show (Finset.image
         (fun i => Row.δ.boundDelta_at (Row.δ.PoseTrigQ.ofPose row.interval.centerPose)
           (pythonVertex (row.Pi i)) (pythonVertex (row.Qi i))) Finset.univ).max' _ =
       (Finset.image
         (RationalApprox.LocalTheorem.BoundDeltaℚi row.interval.centerPose
-          (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox) Finset.univ).max' _
+          (pythonVertex ∘ row.Pi) (pythonVertex ∘ row.Qi) sqrtApprox16) Finset.univ).max' _
   congr 1
   apply Finset.image_congr
   intro i _
@@ -202,12 +203,12 @@ theorem Row.δ_eq_max'_BoundDeltaℚi (row : Row) :
 
 /-! ### Precomputed pairwise vertex-difference norms for `Bεℚ`
 
-The `n_dv` term of `Bεℚ.check` — `sqrtApprox.upper_sqrt.norm (Q_i − v_k)` —
-is pose-independent, but costs a `sqrtℚUp` call on a denominator-`10³²`
+The `n_dv` term of `Bεℚ.check` — `sqrtApprox16.upper_sqrt.norm (Q_i − v_k)` —
+is pose-independent, but costs a `sqrtℚUp16` call on a denominator-`10³²`
 input for each of the 270 `(i, k)` pairs of every local row. `sqrtDv` reads
 all 90 × 90 pairs from the source-literal table `sqrtDvCurried` (generated,
 see `Checker/SqrtDvLiterals.lean`), and `BεℚPy.check` is the
-`pythonVertexA`/`sqrtApprox` specialization of `Bεℚ.check` that reads it
+`pythonVertexA`/`sqrtApprox16` specialization of `Bεℚ.check` that reads it
 (the `Bεℚ` predicate itself is unchanged). The curried-literal form keeps
 the table cheap for the kernel too: an access walks a few dozen `Fin.cons`
 cells, where reducing an equivalent 8100-entry `Array.ofFn` push chain made
@@ -218,12 +219,12 @@ private def ofFlat (m : ℕ) (h : m < 90) : VertexIndex :=
   ⟨⟨m % 15, by omega⟩, ⟨m / 45, by omega⟩, ⟨m / 15 % 3, by omega⟩⟩
 
 /-- Table-backed pairwise vertex-difference norm: equal to
-`sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b)` by `sqrtDv_eq`. -/
+`sqrtApprox16.upper_sqrt.norm (pythonVertexA a - pythonVertexA b)` by `sqrtDv_eq`. -/
 def sqrtDv (a b : VertexIndex) : ℚ :=
   sqrtDvCurried a.ℓ a.i a.k b.ℓ b.i b.k
 
 lemma sqrtDv_eq (a b : VertexIndex) :
-    sqrtDv a b = sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b) :=
+    sqrtDv a b = sqrtApprox16.upper_sqrt.norm (pythonVertexA a - pythonVertexA b) :=
   sqrtDvCurried_eq a b
 
 /-- Runtime lookup table for `sqrtDv`, built once per process from the
@@ -322,7 +323,7 @@ private lemma rowDots_snd (e : MatEntries) (a : VertexIndex) :
       = e.m₁₀ * pythonVertexA a 0 + e.m₁₁ * pythonVertexA a 1 + e.m₁₂ * pythonVertexA a 2 := by
   rw [rowDotsGet_rowDots]
 
-/-- `Bεℚ.check` specialized to `pythonVertexA` and `sqrtApprox`, with the
+/-- `Bεℚ.check` specialized to `pythonVertexA` and `sqrtApprox16`, with the
 per-pose work hoisted out of the `k`-loop:
 
 * the pose-independent `n_dv` norms come from the `sqrtDvCurried` literals;
@@ -333,20 +334,21 @@ per-pose work hoisted out of the `k`-loop:
 Each `(i, k)` pair first tries a *cheap sufficient* test (the left disjunct)
 that avoids the per-pair `upper_sqrt.f` call on the denominator-`10²⁶` input
 `d0² + d1²`: by Cauchy–Schwarz, `d0² + d1² ≤ (F·n_dv + 2·10⁻¹³)²` where `F`
-is a per-pose Frobenius-norm bound (one sqrt call per pose), so the crude
-accuracy bound `sqrtℚUp x ≤ 2·√x` caps the exact `denom2` by
-`2·(F·n_dv + 2·10⁻¹³) + 2·√⁺2·ε + 6κ` (see `cheap_sufficient`). Only pairs
+is a per-pose Frobenius-norm bound (one sqrt call per pose), so the
+fixed-point accuracy bound `sqrtℚUp16 x ≤ Y + 2·10⁻¹⁶` caps the exact
+`denom2` by `F·n_dv + 2·10⁻¹³ + 2·10⁻¹⁶ + 2·√⁺2·ε + 6κ`
+(see `cheap_sufficient`). Only pairs
 that fail the cheap test — binding or near-binding `k` — fall back to the
 exact test in the right disjunct; the `Or`/`And` `Decidable` instances are
 `macro_inline`, so evaluation short-circuits. -/
 def check (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) : Bool :=
   let entries := matEntries p
-  let bound := (δ + sqrtApprox.upper_sqrt_five * ε) / r
-  let F2 := 2 * sqrtApprox.upper_sqrt.f
+  let bound := (δ + sqrtApprox16.upper_sqrt_five * ε) / r
+  let F2 := sqrtApprox16.upper_sqrt.f
     (entries.m₀₀ * entries.m₀₀ + entries.m₀₁ * entries.m₀₁ + entries.m₀₂ * entries.m₀₂
       + entries.m₁₀ * entries.m₁₀ + entries.m₁₁ * entries.m₁₁ + entries.m₁₂ * entries.m₁₂)
-  let cD := 4 / 10 ^ 13 + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ
-  let eterm := 2 * ε * (sqrtApprox.upper_sqrt_two + ε)
+  let cD := 2 / 10 ^ 13 + 2 / 10 ^ 16 + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ
+  let eterm := 2 * ε * (sqrtApprox16.upper_sqrt_two + ε)
   let tenκ := 10 * κℚ
   let twoκ := 2 * κℚ
   let dots := rowDots entries
@@ -357,8 +359,8 @@ def check (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) : Bool :=
     let mq1 := mq.2
     let q0 := RationalApprox.round13 mq0
     let q1 := RationalApprox.round13 mq1
-    let denom1 := sqrtApprox.upper_sqrt.f (q0 * q0 + q1 * q1)
-                  + sqrtApprox.upper_sqrt_two * ε + 3 * κℚ
+    let denom1 := sqrtApprox16.upper_sqrt.f (q0 * q0 + q1 * q1)
+                  + sqrtApprox16.upper_sqrt_two * ε + 3 * κℚ
     let bd := bound * denom1
     decide <| ∀ k : VertexIndex, k ≠ Qi_idx →
       let dk := rowDotsGet dots k
@@ -367,21 +369,21 @@ def check (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) : Bool :=
       let n_dv := sqrtDv Qi_idx k
       let numer := q0 * d0 + q1 * d1 - tenκ - eterm * (n_dv + twoκ)
       (0 ≤ numer ∧ 0 ≤ ε ∧ bd * (F2 * n_dv + cD) < numer) ∨
-        bound < numer / (denom1 * (sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1)
-          + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ))
+        bound < numer / (denom1 * (sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1)
+          + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ))
 
 /-- 3-D Cauchy–Schwarz for the two matrix rows, in pure ℚ: the squared
 2-vector `(u0, u1) = M·w` is bounded by the (squared) product of the
-`sqrtℚUp` Frobenius-norm bound of `M` and the `sqrtℚUp` norm bound of `w`. -/
+`sqrtℚUp16` Frobenius-norm bound of `M` and the `sqrtℚUp16` norm bound of `w`. -/
 private lemma dots_sq_le (m00 m01 m02 m10 m11 m12 w0 w1 w2 : ℚ) :
     (m00 * w0 + m01 * w1 + m02 * w2) * (m00 * w0 + m01 * w1 + m02 * w2)
       + (m10 * w0 + m11 * w1 + m12 * w2) * (m10 * w0 + m11 * w1 + m12 * w2)
-    ≤ (RationalApprox.sqrtℚUp (m00 * m00 + m01 * m01 + m02 * m02
+    ≤ (RationalApprox.sqrtℚUp16 (m00 * m00 + m01 * m01 + m02 * m02
           + m10 * m10 + m11 * m11 + m12 * m12)
-        * RationalApprox.sqrtℚUp (w0 * w0 + w1 * w1 + w2 * w2))
-      * (RationalApprox.sqrtℚUp (m00 * m00 + m01 * m01 + m02 * m02
+        * RationalApprox.sqrtℚUp16 (w0 * w0 + w1 * w1 + w2 * w2))
+      * (RationalApprox.sqrtℚUp16 (m00 * m00 + m01 * m01 + m02 * m02
           + m10 * m10 + m11 * m11 + m12 * m12)
-        * RationalApprox.sqrtℚUp (w0 * w0 + w1 * w1 + w2 * w2)) := by
+        * RationalApprox.sqrtℚUp16 (w0 * w0 + w1 * w1 + w2 * w2)) := by
   have hfro_nn : (0:ℚ) ≤ m00 * m00 + m01 * m01 + m02 * m02
       + m10 * m10 + m11 * m11 + m12 * m12 := by
     have h0 := mul_self_nonneg m00
@@ -396,8 +398,8 @@ private lemma dots_sq_le (m00 m01 m02 m10 m11 m12 w0 w1 w2 : ℚ) :
     have h1 := mul_self_nonneg w1
     have h2 := mul_self_nonneg w2
     linarith
-  have hfro := RationalApprox.le_mul_self_sqrtℚUp hfro_nn
-  have hS2 := RationalApprox.le_mul_self_sqrtℚUp hS2_nn
+  have hfro := RationalApprox.le_mul_self_sqrtℚUp16 hfro_nn
+  have hS2 := RationalApprox.le_mul_self_sqrtℚUp16 hS2_nn
   -- Lagrange identities for the two rows.
   have l0 : (m00 * m00 + m01 * m01 + m02 * m02) * (w0 * w0 + w1 * w1 + w2 * w2)
       - (m00 * w0 + m01 * w1 + m02 * w2) * (m00 * w0 + m01 * w1 + m02 * w2)
@@ -427,25 +429,26 @@ private lemma dots_sq_le (m00 m01 m02 m10 m11 m12 w0 w1 w2 : ℚ) :
       + (m10 * w0 + m11 * w1 + m12 * w2) * (m10 * w0 + m11 * w1 + m12 * w2)
       ≤ (m00 * m00 + m01 * m01 + m02 * m02 + m10 * m10 + m11 * m11 + m12 * m12)
         * (w0 * w0 + w1 * w1 + w2 * w2) := hCS
-    _ ≤ (RationalApprox.sqrtℚUp (m00 * m00 + m01 * m01 + m02 * m02
+    _ ≤ (RationalApprox.sqrtℚUp16 (m00 * m00 + m01 * m01 + m02 * m02
           + m10 * m10 + m11 * m11 + m12 * m12)
-        * RationalApprox.sqrtℚUp (m00 * m00 + m01 * m01 + m02 * m02
+        * RationalApprox.sqrtℚUp16 (m00 * m00 + m01 * m01 + m02 * m02
           + m10 * m10 + m11 * m11 + m12 * m12))
         * (w0 * w0 + w1 * w1 + w2 * w2) := mul_le_mul_of_nonneg_right hfro hS2_nn
-    _ ≤ (RationalApprox.sqrtℚUp (m00 * m00 + m01 * m01 + m02 * m02
+    _ ≤ (RationalApprox.sqrtℚUp16 (m00 * m00 + m01 * m01 + m02 * m02
           + m10 * m10 + m11 * m11 + m12 * m12)
-        * RationalApprox.sqrtℚUp (m00 * m00 + m01 * m01 + m02 * m02
+        * RationalApprox.sqrtℚUp16 (m00 * m00 + m01 * m01 + m02 * m02
           + m10 * m10 + m11 * m11 + m12 * m12))
-        * (RationalApprox.sqrtℚUp (w0 * w0 + w1 * w1 + w2 * w2)
-          * RationalApprox.sqrtℚUp (w0 * w0 + w1 * w1 + w2 * w2)) := by
+        * (RationalApprox.sqrtℚUp16 (w0 * w0 + w1 * w1 + w2 * w2)
+          * RationalApprox.sqrtℚUp16 (w0 * w0 + w1 * w1 + w2 * w2)) := by
       refine mul_le_mul_of_nonneg_left hS2 ?_
-      exact mul_nonneg (RationalApprox.sqrtℚUp_nonneg _) (RationalApprox.sqrtℚUp_nonneg _)
+      exact mul_nonneg (RationalApprox.sqrtℚUp16_nonneg _) (RationalApprox.sqrtℚUp16_nonneg _)
     _ = _ := by ring
 
 /-- Sufficiency of the cheap per-`(i, k)` test: if `(u0, u1)` is the unrounded
 2-vector with `u0² + u1² ≤ (F·n_dv)²` (Cauchy–Schwarz, `dots_sq_le`) and
 `(d0, d1)` its `round13` rounding, then `d0² + d1² ≤ (F·n_dv + 2·10⁻¹³)²`, so
-the crude accuracy bound `sqrtℚUp x ≤ 2√x` caps the exact `denom2` by the
+the fixed-point accuracy bound `sqrtℚUp16 x ≤ Y + 2·10⁻¹⁶`
+(`sqrtℚUp16_le_add_of_le_mul_self`) caps the exact `denom2` by the
 cheap one, and a cheap pass forces an exact pass. -/
 private lemma cheap_sufficient {bound denom1 F n_dv d0 d1 u0 u1 ε numer : ℚ}
     (hdenom1 : 0 < denom1)
@@ -453,19 +456,20 @@ private lemma cheap_sufficient {bound denom1 F n_dv d0 d1 u0 u1 ε numer : ℚ}
     (hu : u0 * u0 + u1 * u1 ≤ (F * n_dv) * (F * n_dv))
     (hW : 0 ≤ F * n_dv)
     (hε : 0 ≤ ε) (hnum : 0 ≤ numer)
-    (hcheap : bound * denom1 * (2 * F * n_dv + (4 / 10 ^ 13
-        + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ)) < numer) :
-    bound < numer / (denom1 * (sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1)
-        + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ)) := by
+    (hcheap : bound * denom1 * (F * n_dv + (2 / 10 ^ 13 + 2 / 10 ^ 16
+        + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ)) < numer) :
+    bound < numer / (denom1 * (sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1)
+        + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ)) := by
   -- Re-associate the hoisted cheap comparison.
-  have hcheap' : bound * (denom1 * (2 * (F * n_dv + 2 / 10 ^ 13)
-      + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ)) < numer := by
-    calc bound * (denom1 * (2 * (F * n_dv + 2 / 10 ^ 13)
-          + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ))
-        = bound * denom1 * (2 * F * n_dv + (4 / 10 ^ 13
-          + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ)) := by ring
+  have hcheap' : bound * (denom1 * (((F * n_dv + 2 / 10 ^ 13) + 2 / 10 ^ 16)
+      + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ)) < numer := by
+    calc bound * (denom1 * (((F * n_dv + 2 / 10 ^ 13) + 2 / 10 ^ 16)
+          + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ))
+        = bound * denom1 * (F * n_dv + (2 / 10 ^ 13 + 2 / 10 ^ 16
+          + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ)) := by ring
       _ < numer := hcheap
-  have hst : (0:ℚ) ≤ sqrtApprox.upper_sqrt_two := by norm_num [sqrtApprox]
+  have hst : (0:ℚ) ≤ sqrtApprox16.upper_sqrt_two := by
+    norm_num [RationalApprox.sqrtApprox16, sqrtApprox]
   have hκ : (0:ℚ) < κℚ := by norm_num [κℚ]
   -- |u0| ≤ F·n_dv and |u1| ≤ F·n_dv.
   have habs0 : |u0| ≤ F * n_dv := by
@@ -513,35 +517,36 @@ private lemma cheap_sufficient {bound denom1 F n_dv d0 d1 u0 u1 ε numer : ℚ}
     linarith
   -- Cap the exact denominator by the cheap one.
   have hY : (0:ℚ) ≤ F * n_dv + 2 / 10 ^ 13 := by linarith [hW]
-  have hf : sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1)
-      ≤ 2 * (F * n_dv + 2 / 10 ^ 13) :=
-    RationalApprox.sqrtℚUp_le_two_mul_of_le_mul_self hY hx2
-  have hf_nn : (0:ℚ) ≤ sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1) :=
-    RationalApprox.sqrtℚUp_nonneg _
-  have hεst : (0:ℚ) ≤ 2 * sqrtApprox.upper_sqrt_two * ε := by positivity
-  have hd2_pos : 0 < sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1)
-      + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ := by linarith
-  have hd2_le : sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1)
-      + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ
-      ≤ 2 * (F * n_dv + 2 / 10 ^ 13) + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ := by
+  have hf : sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1)
+      ≤ (F * n_dv + 2 / 10 ^ 13) + 2 / 10 ^ 16 :=
+    RationalApprox.sqrtℚUp16_le_add_of_le_mul_self hY hx2
+  have hf_nn : (0:ℚ) ≤ sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1) :=
+    RationalApprox.sqrtℚUp16_nonneg _
+  have hεst : (0:ℚ) ≤ 2 * sqrtApprox16.upper_sqrt_two * ε := by positivity
+  have hd2_pos : 0 < sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1)
+      + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ := by linarith
+  have hd2_le : sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1)
+      + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ
+      ≤ ((F * n_dv + 2 / 10 ^ 13) + 2 / 10 ^ 16)
+        + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ := by
     linarith
   rw [lt_div_iff₀ (mul_pos hdenom1 hd2_pos)]
   rcases le_or_gt 0 bound with hb | hb
-  · calc bound * (denom1 * (sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1)
-        + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ))
-        ≤ bound * (denom1 * (2 * (F * n_dv + 2 / 10 ^ 13)
-          + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ)) :=
+  · calc bound * (denom1 * (sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1)
+        + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ))
+        ≤ bound * (denom1 * (((F * n_dv + 2 / 10 ^ 13) + 2 / 10 ^ 16)
+          + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ)) :=
           mul_le_mul_of_nonneg_left
             (mul_le_mul_of_nonneg_left hd2_le (le_of_lt hdenom1)) hb
       _ < numer := hcheap'
-  · have hneg : bound * (denom1 * (sqrtApprox.upper_sqrt.f (d0 * d0 + d1 * d1)
-        + 2 * sqrtApprox.upper_sqrt_two * ε + 6 * κℚ)) < 0 :=
+  · have hneg : bound * (denom1 * (sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1)
+        + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ)) < 0 :=
       mul_neg_of_neg_of_pos hb (mul_pos hdenom1 hd2_pos)
     linarith
 
 theorem check_iff (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) :
     check Qi p ε δ r = true ↔
-      Local.TriangleQ.Bεℚ Qi pythonVertexA p ε δ r sqrtApprox := by
+      Local.TriangleQ.Bεℚ Qi pythonVertexA p ε δ r sqrtApprox16 := by
   unfold check Local.TriangleQ.Bεℚ Local.TriangleQ.Bεℚ.lhs
   simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
   refine forall_congr' (fun i => ?_)
@@ -572,7 +577,7 @@ theorem check_iff (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) :
       ← rotM₂Rℚ_c1 p (pythonVertexA (Qi i) - pythonVertexA k)]
   simp only [RationalApprox.UpperSqrt.norm, dotProduct, Fin.sum_univ_two, Fin.sum_univ_three]
   -- Undo the hoisted `eterm` factor order in `numer`.
-  rw [mul_right_comm (2 * ε) (sqrtApprox.upper_sqrt_two + ε)]
+  rw [mul_right_comm (2 * ε) (sqrtApprox16.upper_sqrt_two + ε)]
   refine or_iff_right_of_imp (fun hcheap => ?_)
   obtain ⟨hnum, hε, hlt⟩ := hcheap
   set w := pythonVertexA (Qi i) - pythonVertexA k with hw
@@ -581,13 +586,14 @@ theorem check_iff (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) :
     (u1 := (matEntries p).m₁₀ * w 0 + (matEntries p).m₁₁ * w 1 + (matEntries p).m₁₂ * w 2)
     ?_ ?_ ?_ ?_ ?_ hε hnum hlt
   · -- 0 < denom1
-    have h1 : (0:ℚ) ≤ sqrtApprox.upper_sqrt.f
+    have h1 : (0:ℚ) ≤ sqrtApprox16.upper_sqrt.f
         (p.rotM₂Rℚ (pythonVertexA (Qi i)) 0 * p.rotM₂Rℚ (pythonVertexA (Qi i)) 0
           + p.rotM₂Rℚ (pythonVertexA (Qi i)) 1 * p.rotM₂Rℚ (pythonVertexA (Qi i)) 1) :=
-      RationalApprox.sqrtℚUp_nonneg _
-    have hst : (0:ℚ) ≤ sqrtApprox.upper_sqrt_two := by norm_num [sqrtApprox]
+      RationalApprox.sqrtℚUp16_nonneg _
+    have hst : (0:ℚ) ≤ sqrtApprox16.upper_sqrt_two := by
+      norm_num [RationalApprox.sqrtApprox16, sqrtApprox]
     have hκ : (0:ℚ) < κℚ := by norm_num [κℚ]
-    have hεst : (0:ℚ) ≤ sqrtApprox.upper_sqrt_two * ε := mul_nonneg hst hε
+    have hεst : (0:ℚ) ≤ sqrtApprox16.upper_sqrt_two * ε := mul_nonneg hst hε
     linarith
   · -- |d0 - u0| ≤ 10⁻¹³
     rw [rotM₂Rℚ_c0]
@@ -598,14 +604,14 @@ theorem check_iff (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) :
   · -- Cauchy–Schwarz
     exact dots_sq_le _ _ _ _ _ _ _ _ _
   · -- 0 ≤ F·n_dv
-    exact mul_nonneg (RationalApprox.sqrtℚUp_nonneg _) (RationalApprox.sqrtℚUp_nonneg _)
+    exact mul_nonneg (RationalApprox.sqrtℚUp16_nonneg _) (RationalApprox.sqrtℚUp16_nonneg _)
 
 /-- Specialized decision procedure for the `Bεℚ` conjunct of `Row.ValidLocal`;
 the priority bump makes `Row.ValidLocal`'s `Decidable` instance pick it over
 the generic `Bεℚ.instDecidable`. -/
 instance (priority := high) instDecidablePy (Qi : Fin 3 → VertexIndex)
     (p : Pose ℚ) (ε δ r : ℚ) :
-    Decidable (Local.TriangleQ.Bεℚ Qi pythonVertexA p ε δ r sqrtApprox) :=
+    Decidable (Local.TriangleQ.Bεℚ Qi pythonVertexA p ε δ r sqrtApprox16) :=
   decidable_of_iff _ (check_iff Qi p ε δ r)
 
 end BεℚPy
@@ -623,17 +629,17 @@ structure Row.ValidLocal (row : Row) : Prop where
   exists_symmetry : ∃ s : TriangleSymmetry,
     s.applicable row.Qi ∧ ∀ i, row.Pi i = s.apply (row.Qi i)
   X₁_inner_gt : Local.TriangleQ.Aεℚσ
-                  row.X₁ (pythonVertexA ∘ row.Pi) row.epsilon 0 sqrtApprox
+                  row.X₁ (pythonVertexA ∘ row.Pi) row.epsilon 0 sqrtApprox16
   X₂_inner_gt : Local.TriangleQ.Aεℚσ
-                  row.X₂ (pythonVertexA ∘ row.Qi) row.epsilon row.sigma_Q.val sqrtApprox
+                  row.X₂ (pythonVertexA ∘ row.Qi) row.epsilon row.sigma_Q.val sqrtApprox16
   P_spanning : Spanningℚ row.θ₁ row.φ₁ row.epsilon (pythonVertexA ∘ row.Pi)
   Q_spanning : Spanningℚ row.θ₂ row.φ₂ row.epsilon (pythonVertexA ∘ row.Qi)
   rpos : 0 < row.r
   r_valid : RationalApprox.LocalTheorem.BoundRℚ
-              row.r row.epsilon row.interval.centerPose (pythonVertexA ∘ row.Qi) sqrtApprox
+              row.r row.epsilon row.interval.centerPose (pythonVertexA ∘ row.Qi) sqrtApprox16
   Bεℚ : Local.TriangleQ.Bεℚ
     row.Qi pythonVertexA row.interval.centerPose
-    row.epsilon row.δ row.r sqrtApprox
+    row.epsilon row.δ row.r sqrtApprox16
 
 instance (row : Row) : Decidable (Row.ValidLocal row) :=
   decidable_of_iff _ (Row.validLocal_iff row).symm

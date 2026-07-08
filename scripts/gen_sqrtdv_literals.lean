@@ -1,11 +1,12 @@
 import Noperthedron.Checker.ApproxSqrt
+import Noperthedron.Checker.SqrtFixed
 import Noperthedron.Vertices.Python
 
 /-!
 Generator for `Noperthedron/Checker/SqrtDvLiterals.lean`: the 90 × 90 pairwise
 `upper_sqrt` vertex-difference norms as source-literal rationals, in curried
 `![…]` form (kernel-friendly), together with `decide +kernel` lemmas proving
-each entry equal to `sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b)`.
+each entry equal to `sqrtApprox16.upper_sqrt.norm (pythonVertexA a - pythonVertexA b)`.
 
 Regenerate with:
 
@@ -16,7 +17,7 @@ open Noperthedron RationalApprox
 
 private def entry (ℓa : Fin 2) (ia : Fin 3) (ka : Fin 15)
     (ℓb : Fin 2) (ib : Fin 3) (kb : Fin 15) : ℚ :=
-  sqrtApprox.upper_sqrt.norm (pythonVertexA ⟨ka, ℓa, ia⟩ - pythonVertexA ⟨kb, ℓb, ib⟩)
+  sqrtApprox16.upper_sqrt.norm (pythonVertexA ⟨ka, ℓa, ia⟩ - pythonVertexA ⟨kb, ℓb, ib⟩)
 
 private def fmtQ (q : ℚ) : String :=
   if q.den == 1 then toString q.num else s!"{q.num}/{q.den}"
@@ -47,7 +48,7 @@ private def table : String :=
 private def chunkLemma (ℓ : Fin 2) (i : Fin 3) : String :=
   s!"private lemma sqrtDvCurried_eq_{ℓ}_{i} : ∀ (k : Fin 15) (b : VertexIndex),
     sqrtDvCurried {ℓ} {i} k b.ℓ b.i b.k
-      = RationalApprox.sqrtApprox.upper_sqrt.norm
+      = RationalApprox.sqrtApprox16.upper_sqrt.norm
           (pythonVertexA ⟨k, {ℓ}, {i}⟩ - pythonVertexA b) := by
   decide +kernel
 "
@@ -62,12 +63,13 @@ Regenerate with:
 import Mathlib.Tactic.FinCases
 
 import Noperthedron.Checker.ApproxSqrt
+import Noperthedron.Checker.SqrtFixed
 import Noperthedron.Vertices.Python
 
 /-!
 # Pairwise vertex-difference norms, as source literals
 
-All 90 × 90 values `sqrtApprox.upper_sqrt.norm (pythonVertexA a - pythonVertexA b)`,
+All 90 × 90 values `sqrtApprox16.upper_sqrt.norm (pythonVertexA a - pythonVertexA b)`,
 stored as literal rationals in curried `![…]` (`Fin.cons`) form, indexed by the
 `VertexIndex` components of `a` and `b` as `(a.ℓ, a.i, a.k, b.ℓ, b.i, b.k)`.
 
@@ -91,7 +93,7 @@ private def combined : String :=
 corresponding vertex difference. -/
 lemma sqrtDvCurried_eq (a b : VertexIndex) :
     sqrtDvCurried a.ℓ a.i a.k b.ℓ b.i b.k
-      = RationalApprox.sqrtApprox.upper_sqrt.norm
+      = RationalApprox.sqrtApprox16.upper_sqrt.norm
           (pythonVertexA a - pythonVertexA b) := by
   obtain ⟨k, ℓ, i⟩ := a
   fin_cases ℓ <;> fin_cases i

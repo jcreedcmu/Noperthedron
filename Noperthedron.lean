@@ -10,6 +10,7 @@ import Noperthedron.Checker.KappaApprox
 import Noperthedron.Checker.Local
 import Noperthedron.Checker.RowZero
 import Noperthedron.Checker.SqrtDvLiterals
+import Noperthedron.Checker.SqrtFixed
 import Noperthedron.CommonCenter
 import Noperthedron.ConvertPose
 import Noperthedron.EuclideanSpaceNotation
