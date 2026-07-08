@@ -313,12 +313,12 @@ private lemma rowDotsGet_rowDots (e : MatEntries) (a : VertexIndex) :
   rw [getElem!_pos (rowDots e) _ hlt]
   simp only [rowDots, Array.getElem_ofFn, ofFlat, f1, f2, f3, Fin.eta]
 
-private lemma rowDots_fst (e : MatEntries) (a : VertexIndex) :
+lemma rowDots_fst (e : MatEntries) (a : VertexIndex) :
     (rowDotsGet (rowDots e) a).1
       = e.m₀₀ * pythonVertexA a 0 + e.m₀₁ * pythonVertexA a 1 + e.m₀₂ * pythonVertexA a 2 := by
   rw [rowDotsGet_rowDots]
 
-private lemma rowDots_snd (e : MatEntries) (a : VertexIndex) :
+lemma rowDots_snd (e : MatEntries) (a : VertexIndex) :
     (rowDotsGet (rowDots e) a).2
       = e.m₁₀ * pythonVertexA a 0 + e.m₁₁ * pythonVertexA a 1 + e.m₁₂ * pythonVertexA a 2 := by
   rw [rowDotsGet_rowDots]

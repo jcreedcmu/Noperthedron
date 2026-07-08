@@ -107,12 +107,18 @@ def checkN (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) : Bool :=
         bdN * (F2N * ndv * Dd1 + cDN * 10 ^ 32) * Dn < numerN * cheapM) ∨
         (let s2 := sqrtNum26 (d0 * d0 + d1 * d1)
          let denom2N := 100 * εd * s2 + 284 * εn * 10 ^ 16 + 600 * εd * 10 ^ 6
-         boundN * (Dn * (denom1N * denom2N)) < numerN * (Dd1 ^ 2 * Db))
+         boundN * (Dn * (denom1N * denom2N)) < numerN * Dd1 ^ 2 * Db)
 
 
 /-! ## Soundness: value bridges between the ℚ and ℤ pipelines -/
 
 section Bridges
+
+private lemma sqrtNum26_nonneg (S : ℤ) : 0 ≤ sqrtNum26 S := by
+  unfold sqrtNum26
+  split
+  · exact le_refl 0
+  · exact_mod_cast Int.natCast_nonneg _
 
 /-- Cross-multiplication for integer-cast fractions with positive
 denominators. -/
@@ -179,4 +185,285 @@ private lemma sqrtℚUp16_intCast_div52 (S : ℤ) :
 
 end Bridges
 
+/-! ## The per-pair equivalence -/
+
+section PairIff
+
+open RationalApprox (round13 sqrtApprox16 κℚ)
+
+/-- One `(i, k)` pair of `checkN` decides exactly the corresponding pair of
+`check`, given the atom correspondences (matrix entries at scale `10²⁶`,
+vertex coordinates at `10¹⁶`, the pair norm at `10¹⁶`) and `0 < ε`, `0 < r`.
+Both sides are stated as `let`-towers mirroring the zeta-reduced bodies of
+`checkN` and `check`. -/
+private lemma pair_test_iff
+    (E00 E01 E10 E11 E12 w0 w1 w2 v0 v1 v2 ndv : ℤ)
+    {m00 m01 m02 m10 m11 m12 wq0 wq1 wq2 vq0 vq1 vq2 ndq ε δ r : ℚ}
+    (hm00 : m00 = (E00 : ℚ) / 10 ^ 26) (hm01 : m01 = (E01 : ℚ) / 10 ^ 26)
+    (hm02 : m02 = 0)
+    (hm10 : m10 = (E10 : ℚ) / 10 ^ 26) (hm11 : m11 = (E11 : ℚ) / 10 ^ 26)
+    (hm12 : m12 = (E12 : ℚ) / 10 ^ 26)
+    (hw0 : wq0 = (w0 : ℚ) / 10 ^ 16) (hw1 : wq1 = (w1 : ℚ) / 10 ^ 16)
+    (hw2 : wq2 = (w2 : ℚ) / 10 ^ 16)
+    (hv0 : vq0 = (v0 : ℚ) / 10 ^ 16) (hv1 : vq1 = (v1 : ℚ) / 10 ^ 16)
+    (hv2 : vq2 = (v2 : ℚ) / 10 ^ 16)
+    (hnd : ndq = (ndv : ℚ) / 10 ^ 16)
+    (hε : 0 < ε) (hr : 0 < r) :
+    (let εn : ℤ := ε.num
+      let εd : ℤ := ε.den
+      let δn : ℤ := δ.num
+      let δd : ℤ := δ.den
+      let rn : ℤ := r.num
+      let rd : ℤ := r.den
+      let froN := E00 * E00 + E01 * E01 + E10 * E10 + E11 * E11 + E12 * E12
+      let F2N := sqrtNum52 froN
+      let Dd1 := 100 * εd * 10 ^ 16
+      let Dn := 50 * εd ^ 2 * 10 ^ 26
+      let Db := 100 * δd * εd * rn
+      let boundN := (100 * δn * εd + 224 * εn * δd) * rd
+      let cDN := 200 * εd * 10 ^ 3 + 200 * εd + 284 * εn * 10 ^ 16 + 600 * εd * 10 ^ 6
+      let etermC := εn * (142 * εd + 100 * εn)
+      let cheapM := Db * Dd1 ^ 2 * 10 ^ 32
+      let mq0 := E00 * w0 + E01 * w1
+      let mq1 := E10 * w0 + E11 * w1 + E12 * w2
+      let q0 := mq0 / 10 ^ 29
+      let q1 := mq1 / 10 ^ 29
+      let s1 := sqrtNum26 (q0 * q0 + q1 * q1)
+      let denom1N := 100 * εd * s1 + 142 * εn * 10 ^ 16 + 300 * εd * 10 ^ 6
+      let bdN := boundN * denom1N
+      let d0 := (mq0 - (E00 * v0 + E01 * v1)) / 10 ^ 29
+      let d1 := (mq1 - (E10 * v0 + E11 * v1 + E12 * v2)) / 10 ^ 29
+      let A := q0 * d0 + q1 * d1 - 10 ^ 17
+      let B := ndv + 2 * 10 ^ 6
+      let numerN := 50 * εd ^ 2 * A - etermC * B * 10 ^ 10
+      (0 ≤ numerN ∧ 0 ≤ εn ∧
+        bdN * (F2N * ndv * Dd1 + cDN * 10 ^ 32) * Dn < numerN * cheapM) ∨
+        (let s2 := sqrtNum26 (d0 * d0 + d1 * d1)
+         let denom2N := 100 * εd * s2 + 284 * εn * 10 ^ 16 + 600 * εd * 10 ^ 6
+         boundN * (Dn * (denom1N * denom2N)) < numerN * Dd1 ^ 2 * Db)) ↔
+     (let bound := (δ + sqrtApprox16.upper_sqrt_five * ε) / r
+      let F2 := sqrtApprox16.upper_sqrt.f
+        (m00 * m00 + m01 * m01 + m02 * m02 + m10 * m10 + m11 * m11 + m12 * m12)
+      let cD := 2 / 10 ^ 13 + 2 / 10 ^ 16 + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ
+      let eterm := 2 * ε * (sqrtApprox16.upper_sqrt_two + ε)
+      let mq0 := m00 * wq0 + m01 * wq1 + m02 * wq2
+      let mq1 := m10 * wq0 + m11 * wq1 + m12 * wq2
+      let q0 := round13 mq0
+      let q1 := round13 mq1
+      let denom1 := sqrtApprox16.upper_sqrt.f (q0 * q0 + q1 * q1)
+                    + sqrtApprox16.upper_sqrt_two * ε + 3 * κℚ
+      let bd := bound * denom1
+      let d0 := round13 (mq0 - (m00 * vq0 + m01 * vq1 + m02 * vq2))
+      let d1 := round13 (mq1 - (m10 * vq0 + m11 * vq1 + m12 * vq2))
+      let numer := q0 * d0 + q1 * d1 - 10 * κℚ - eterm * (ndq + 2 * κℚ)
+      (0 ≤ numer ∧ 0 ≤ ε ∧ bd * (F2 * ndq + cD) < numer) ∨
+        bound < numer / (denom1 * (sqrtApprox16.upper_sqrt.f (d0 * d0 + d1 * d1)
+          + 2 * sqrtApprox16.upper_sqrt_two * ε + 6 * κℚ))) := by
+  simp only []
+  -- constants and atoms
+  have hf : sqrtApprox16.upper_sqrt.f = RationalApprox.sqrtℚUp16 := rfl
+  have h2c : sqrtApprox16.upper_sqrt_two = 71 / 50 := by
+    norm_num [RationalApprox.sqrtApprox16, RationalApprox.sqrtApprox]
+  have h5c : sqrtApprox16.upper_sqrt_five = 56 / 25 := by
+    norm_num [RationalApprox.sqrtApprox16, RationalApprox.sqrtApprox]
+  have hκc : κℚ = 1 / 10 ^ 10 := rfl
+  set en := ε.num with hen
+  set ed : ℤ := (ε.den : ℤ) with hed
+  set dn := δ.num with hdn
+  set dd : ℤ := (δ.den : ℤ) with hdd
+  set rn := r.num with hrn
+  set rd : ℤ := (r.den : ℤ) with hrd
+  have hen_pos : 0 < en := Rat.num_pos.mpr hε
+  have hed_pos : (0:ℤ) < ed := by rw [hed]; exact_mod_cast ε.pos
+  have hdd_pos : (0:ℤ) < dd := by rw [hdd]; exact_mod_cast δ.pos
+  have hrn_pos : 0 < rn := Rat.num_pos.mpr hr
+  have hrd_pos : (0:ℤ) < rd := by rw [hrd]; exact_mod_cast r.pos
+  have hedQ : (0:ℚ) < (ed : ℚ) := by exact_mod_cast hed_pos
+  have hddQ : (0:ℚ) < (dd : ℚ) := by exact_mod_cast hdd_pos
+  have hrnQ : (0:ℚ) < (rn : ℚ) := by exact_mod_cast hrn_pos
+  have hrdQ : (0:ℚ) < (rd : ℚ) := by exact_mod_cast hrd_pos
+  have hεq : ε = (en : ℚ) / (ed : ℚ) := by
+    rw [hen, hed]; push_cast; exact (Rat.num_div_den ε).symm
+  have hδq : δ = (dn : ℚ) / (dd : ℚ) := by
+    rw [hdn, hdd]; push_cast; exact (Rat.num_div_den δ).symm
+  have hrq : r = (rn : ℚ) / (rd : ℚ) := by
+    rw [hrn, hrd]; push_cast; exact (Rat.num_div_den r).symm
+  rw [hm00, hm01, hm02, hm10, hm11, hm12, hw0, hw1, hw2, hv0, hv1, hv2, hnd]
+  -- canonicalize the row-dot arguments to single integer fractions
+  rw [show (E00 : ℚ) / 10 ^ 26 * ((w0 : ℚ) / 10 ^ 16) + (E01 : ℚ) / 10 ^ 26 * ((w1 : ℚ) / 10 ^ 16)
+        + 0 * ((w2 : ℚ) / 10 ^ 16) = ((E00 * w0 + E01 * w1 : ℤ) : ℚ) / 10 ^ 42 from by
+      push_cast; ring]
+  rw [show (E10 : ℚ) / 10 ^ 26 * ((w0 : ℚ) / 10 ^ 16) + (E11 : ℚ) / 10 ^ 26 * ((w1 : ℚ) / 10 ^ 16)
+        + (E12 : ℚ) / 10 ^ 26 * ((w2 : ℚ) / 10 ^ 16)
+        = ((E10 * w0 + E11 * w1 + E12 * w2 : ℤ) : ℚ) / 10 ^ 42 from by
+      push_cast; ring]
+  rw [show ((E00 * w0 + E01 * w1 : ℤ) : ℚ) / 10 ^ 42 -
+        ((E00 : ℚ) / 10 ^ 26 * ((v0 : ℚ) / 10 ^ 16) + (E01 : ℚ) / 10 ^ 26 * ((v1 : ℚ) / 10 ^ 16)
+          + 0 * ((v2 : ℚ) / 10 ^ 16))
+        = ((E00 * w0 + E01 * w1 - (E00 * v0 + E01 * v1) : ℤ) : ℚ) / 10 ^ 42 from by
+      push_cast; ring]
+  rw [show ((E10 * w0 + E11 * w1 + E12 * w2 : ℤ) : ℚ) / 10 ^ 42 -
+        ((E10 : ℚ) / 10 ^ 26 * ((v0 : ℚ) / 10 ^ 16) + (E11 : ℚ) / 10 ^ 26 * ((v1 : ℚ) / 10 ^ 16)
+          + (E12 : ℚ) / 10 ^ 26 * ((v2 : ℚ) / 10 ^ 16))
+        = ((E10 * w0 + E11 * w1 + E12 * w2 - (E10 * v0 + E11 * v1 + E12 * v2) : ℤ) : ℚ) / 10 ^ 42 from by
+      push_cast; ring]
+  simp only [round13_intCast_div42]
+  -- canonicalize the sqrt arguments
+  rw [show ((((E00 * w0 + E01 * w1) / 10 ^ 29 : ℤ) : ℚ) / 10 ^ 13) *
+        ((((E00 * w0 + E01 * w1) / 10 ^ 29 : ℤ) : ℚ) / 10 ^ 13) +
+        ((((E10 * w0 + E11 * w1 + E12 * w2) / 10 ^ 29 : ℤ) : ℚ) / 10 ^ 13) *
+        ((((E10 * w0 + E11 * w1 + E12 * w2) / 10 ^ 29 : ℤ) : ℚ) / 10 ^ 13)
+        = (((E00 * w0 + E01 * w1) / 10 ^ 29 * ((E00 * w0 + E01 * w1) / 10 ^ 29) +
+            (E10 * w0 + E11 * w1 + E12 * w2) / 10 ^ 29 * ((E10 * w0 + E11 * w1 + E12 * w2) / 10 ^ 29) : ℤ) : ℚ)
+          / 10 ^ 26 from by push_cast; ring]
+  rw [show ((((E00 * w0 + E01 * w1 - (E00 * v0 + E01 * v1)) / 10 ^ 29 : ℤ) : ℚ) / 10 ^ 13) *
+        ((((E00 * w0 + E01 * w1 - (E00 * v0 + E01 * v1)) / 10 ^ 29 : ℤ) : ℚ) / 10 ^ 13) +
+        ((((E10 * w0 + E11 * w1 + E12 * w2 - (E10 * v0 + E11 * v1 + E12 * v2)) / 10 ^ 29 : ℤ) : ℚ) / 10 ^ 13) *
+        ((((E10 * w0 + E11 * w1 + E12 * w2 - (E10 * v0 + E11 * v1 + E12 * v2)) / 10 ^ 29 : ℤ) : ℚ) / 10 ^ 13)
+        = (((E00 * w0 + E01 * w1 - (E00 * v0 + E01 * v1)) / 10 ^ 29 *
+              ((E00 * w0 + E01 * w1 - (E00 * v0 + E01 * v1)) / 10 ^ 29) +
+            (E10 * w0 + E11 * w1 + E12 * w2 - (E10 * v0 + E11 * v1 + E12 * v2)) / 10 ^ 29 *
+              ((E10 * w0 + E11 * w1 + E12 * w2 - (E10 * v0 + E11 * v1 + E12 * v2)) / 10 ^ 29) : ℤ) : ℚ)
+          / 10 ^ 26 from by push_cast; ring]
+  rw [show (E00 : ℚ) / 10 ^ 26 * ((E00 : ℚ) / 10 ^ 26) + (E01 : ℚ) / 10 ^ 26 * ((E01 : ℚ) / 10 ^ 26)
+        + 0 * 0 + (E10 : ℚ) / 10 ^ 26 * ((E10 : ℚ) / 10 ^ 26)
+        + (E11 : ℚ) / 10 ^ 26 * ((E11 : ℚ) / 10 ^ 26) + (E12 : ℚ) / 10 ^ 26 * ((E12 : ℚ) / 10 ^ 26)
+        = ((E00 * E00 + E01 * E01 + E10 * E10 + E11 * E11 + E12 * E12 : ℤ) : ℚ) / 10 ^ 52 from by
+      push_cast; ring]
+  rw [hf]
+  simp only [sqrtℚUp16_intCast_div26, sqrtℚUp16_intCast_div52]
+  rw [h2c, h5c, hκc, hεq, hδq, hrq]
+  -- positivity of the two per-pair denominators (for the exact test)
+  set S1 := sqrtNum26 ((E00 * w0 + E01 * w1) / 10 ^ 29 * ((E00 * w0 + E01 * w1) / 10 ^ 29) +
+      (E10 * w0 + E11 * w1 + E12 * w2) / 10 ^ 29 * ((E10 * w0 + E11 * w1 + E12 * w2) / 10 ^ 29))
+    with hS1def
+  set S2 := sqrtNum26 ((E00 * w0 + E01 * w1 - (E00 * v0 + E01 * v1)) / 10 ^ 29 *
+        ((E00 * w0 + E01 * w1 - (E00 * v0 + E01 * v1)) / 10 ^ 29) +
+      (E10 * w0 + E11 * w1 + E12 * w2 - (E10 * v0 + E11 * v1 + E12 * v2)) / 10 ^ 29 *
+        ((E10 * w0 + E11 * w1 + E12 * w2 - (E10 * v0 + E11 * v1 + E12 * v2)) / 10 ^ 29))
+    with hS2def
+  have hS1 : (0:ℤ) ≤ S1 := hS1def ▸ sqrtNum26_nonneg _
+  have hS2 : (0:ℤ) ≤ S2 := hS2def ▸ sqrtNum26_nonneg _
+  have henQ : (0:ℚ) < (en : ℚ) := by exact_mod_cast hen_pos
+  have hd1pos : (0:ℚ) < (S1 : ℚ) / 10 ^ 16 + 71 / 50 * ((en : ℚ) / (ed : ℚ)) + 3 * (1 / 10 ^ 10) := by
+    have e1 : (0:ℚ) ≤ (S1 : ℚ) / 10 ^ 16 :=
+      div_nonneg (by exact_mod_cast hS1) (by norm_num)
+    have e2 : (0:ℚ) < 71 / 50 * ((en : ℚ) / (ed : ℚ)) :=
+      mul_pos (by norm_num) (div_pos henQ hedQ)
+    linarith
+  have hd2pos : (0:ℚ) < (S2 : ℚ) / 10 ^ 16 + 2 * (71 / 50) * ((en : ℚ) / (ed : ℚ)) + 6 * (1 / 10 ^ 10) := by
+    have e1 : (0:ℚ) ≤ (S2 : ℚ) / 10 ^ 16 :=
+      div_nonneg (by exact_mod_cast hS2) (by norm_num)
+    have e2 : (0:ℚ) < 2 * (71 / 50) * ((en : ℚ) / (ed : ℚ)) :=
+      mul_pos (by norm_num) (div_pos henQ hedQ)
+    linarith
+  have hd1ne : (S1 : ℚ) / 10 ^ 16 + 71 / 50 * ((en : ℚ) / (ed : ℚ)) + 3 * (1 / 10 ^ 10) ≠ 0 :=
+    ne_of_gt hd1pos
+  have hd2ne : (S2 : ℚ) / 10 ^ 16 + 2 * (71 / 50) * ((en : ℚ) / (ed : ℚ)) + 6 * (1 / 10 ^ 10) ≠ 0 :=
+    ne_of_gt hd2pos
+  -- three comparisons and the ε-sign conjunct
+  refine or_congr (and_congr ?_ (and_congr ?_ ?_)) ?_
+  · constructor <;> intro h <;> qify at h ⊢ <;> field_simp at h ⊢ <;> linarith
+  · exact (intCast_div_nonneg_iff hed_pos).symm
+  · constructor <;> intro h <;> qify at h ⊢ <;> field_simp at h ⊢ <;> linarith
+  · constructor <;> intro h <;> qify at h ⊢ <;> field_simp at h ⊢ <;> linarith
+
+end PairIff
+
+/-! ## The equality theorem and the rerouted instances -/
+
+open Local.TriangleQ.Bεℚ (matEntries)
+
+/-- The integer core computes exactly the ℚ check (in the positive-radius
+regime, which is the only one `Row.ValidLocal` evaluates it in). -/
+theorem checkN_eq_check (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) {ε δ r : ℚ}
+    (hε : 0 < ε) (hr : 0 < r) :
+    checkN Qi p ε δ r = check Qi p ε δ r := by
+  have hm00 : (matEntries p).m₀₀
+      = ((-⌊RationalApprox.sin_psum 13 p.θ₂ * 10 ^ 13⌋ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
+    show -RationalApprox.sinℚ p.θ₂ = _
+    rw [show RationalApprox.sinℚ p.θ₂
+        = ((⌊RationalApprox.sin_psum 13 p.θ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    push_cast
+    ring
+  have hm01 : (matEntries p).m₀₁
+      = ((⌊RationalApprox.cos_psum 13 p.θ₂ * 10 ^ 13⌋ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
+    show RationalApprox.cosℚ p.θ₂ = _
+    rw [show RationalApprox.cosℚ p.θ₂
+        = ((⌊RationalApprox.cos_psum 13 p.θ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    push_cast
+    ring
+  have hm02 : (matEntries p).m₀₂ = 0 := rfl
+  have hm10 : (matEntries p).m₁₀
+      = ((-(⌊RationalApprox.cos_psum 13 p.θ₂ * 10 ^ 13⌋ *
+            ⌊RationalApprox.cos_psum 13 p.φ₂ * 10 ^ 13⌋) : ℤ) : ℚ) / 10 ^ 26 := by
+    show -RationalApprox.cosℚ p.θ₂ * RationalApprox.cosℚ p.φ₂ = _
+    rw [show RationalApprox.cosℚ p.θ₂
+        = ((⌊RationalApprox.cos_psum 13 p.θ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl,
+      show RationalApprox.cosℚ p.φ₂
+        = ((⌊RationalApprox.cos_psum 13 p.φ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    push_cast
+    ring
+  have hm11 : (matEntries p).m₁₁
+      = ((-(⌊RationalApprox.sin_psum 13 p.θ₂ * 10 ^ 13⌋ *
+            ⌊RationalApprox.cos_psum 13 p.φ₂ * 10 ^ 13⌋) : ℤ) : ℚ) / 10 ^ 26 := by
+    show -RationalApprox.sinℚ p.θ₂ * RationalApprox.cosℚ p.φ₂ = _
+    rw [show RationalApprox.sinℚ p.θ₂
+        = ((⌊RationalApprox.sin_psum 13 p.θ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl,
+      show RationalApprox.cosℚ p.φ₂
+        = ((⌊RationalApprox.cos_psum 13 p.φ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    push_cast
+    ring
+  have hm12 : (matEntries p).m₁₂
+      = ((⌊RationalApprox.sin_psum 13 p.φ₂ * 10 ^ 13⌋ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
+    show RationalApprox.sinℚ p.φ₂ = _
+    rw [show RationalApprox.sinℚ p.φ₂
+        = ((⌊RationalApprox.sin_psum 13 p.φ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    push_cast
+    ring
+  have hv : ∀ (a : VertexIndex) (c : Fin 3),
+      pythonVertexA a c = (pythonVertexNumCurried a.ℓ a.i a.k c : ℚ) / 10 ^ 16 := by
+    intro a c
+    rw [pythonVertexA_eq]
+    exact pythonVertexNumCurried_eq a.ℓ a.i a.k c
+  rw [Bool.eq_iff_iff]
+  unfold checkN check
+  simp only [List.all_eq_true, List.mem_finRange, forall_const, decide_eq_true_eq]
+  refine forall_congr' fun i => ?_
+  refine forall_congr' fun k => ?_
+  refine imp_congr_right fun _ => ?_
+  rw [rowDots_fst (matEntries p) (Qi i), rowDots_snd (matEntries p) (Qi i),
+      rowDots_fst (matEntries p) k, rowDots_snd (matEntries p) k]
+  exact pair_test_iff _ _ _ _ _ _ _ _ _ _ _
+    (sqrtDvCurriedN (Qi i).ℓ (Qi i).i (Qi i).k k.ℓ k.i k.k)
+    hm00 hm01 hm02 hm10 hm11 hm12
+    (hv (Qi i) 0) (hv (Qi i) 1) (hv (Qi i) 2)
+    (hv k 0) (hv k 1) (hv k 2)
+    rfl hε hr
+
+/-- `Bεℚ` for `pythonVertexA`/`sqrtApprox16`, decided through the integer core
+`checkN` when `0 < ε` and `0 < r` (the only regime `Row.ValidLocal` evaluates
+it in), falling back to the ℚ checker otherwise. Out-prioritizes
+`instDecidablePy`. -/
+instance (priority := 10500) instDecidableNPy (Qi : Fin 3 → VertexIndex)
+    (p : Pose ℚ) (ε δ r : ℚ) :
+    Decidable (Local.TriangleQ.Bεℚ Qi pythonVertexA p ε δ r
+      RationalApprox.sqrtApprox16) :=
+  if h : 0 < ε ∧ 0 < r then
+    decidable_of_iff (checkN Qi p ε δ r = true)
+      (by rw [checkN_eq_check Qi p h.1 h.2]; exact check_iff Qi p ε δ r)
+  else
+    decidable_of_iff _ (check_iff Qi p ε δ r)
+
 end Noperthedron.Solution.BεℚPy
+
+namespace Noperthedron.Solution
+
+/-- Re-derived `Row.ValidLocal` decision procedure: identical statement to the
+instance in `Checker/Local.lean`, but elaborated with
+`BεℚPy.instDecidableNPy` in scope, so the `Bεℚ` conjunct evaluates through
+the integer core `checkN`. -/
+instance (priority := 10500) (row : Row) : Decidable (Row.ValidLocal row) :=
+  decidable_of_iff _ (Row.validLocal_iff row).symm
+
+end Noperthedron.Solution

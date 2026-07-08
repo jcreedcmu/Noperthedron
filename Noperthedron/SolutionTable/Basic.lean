@@ -1,7 +1,7 @@
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.PoseInterval
 import Noperthedron.Checker.Global
-import Noperthedron.Checker.Local
+import Noperthedron.Checker.LocalNat
 
 namespace Noperthedron.Solution
 
