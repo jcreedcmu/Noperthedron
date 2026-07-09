@@ -775,6 +775,9 @@ private lemma abs_intCast_div16 (n : ℤ) :
   ring_nf
 
 set_option maxHeartbeats 1600000 in
+-- `push_cast` in the shared closer is a no-op on one of the six branch
+-- directions; the linter flags exactly that instance.
+set_option linter.unusedTactic false in
 /-- Every row-rational weight of `tieredHs_lt` enters through its `num`/`den`
 pair (exact, `Rat.num_div_den`; `Rat` denominators are positive), and each
 tier comparison is cross-multiplied into an integer polynomial inequality;

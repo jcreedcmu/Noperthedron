@@ -304,7 +304,7 @@ theorem RangeOk.append {get : ℕ → Row} {size a b c : ℕ} (hab : a ≤ b)
 theorem validIxAt_of_rangeOk {get : ℕ → Row} {size : ℕ}
     (h : RangeOk get size 0 size) : ∀ i : Fin size, Row.ValidIxAt get size i := by
   intro i
-  simpa using h ⟨i.val, by simpa using i.isLt⟩ (by simpa using i.isLt)
+  simpa using h ⟨i.val, by omega⟩ (by omega)
 
 /-! ## The table, at the `Prop` level only
 
