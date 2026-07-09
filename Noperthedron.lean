@@ -57,6 +57,7 @@ import Noperthedron.RationalApprox.Lemma42
 import Noperthedron.RationalApprox.MatrixBounds
 import Noperthedron.RationalApprox.RationalGlobal
 import Noperthedron.RationalApprox.RationalLocal
+import Noperthedron.RationalApprox.TrigInt
 import Noperthedron.RationalApprox.TrigLemmas
 import Noperthedron.RealMod
 import Noperthedron.Rupert.Basic

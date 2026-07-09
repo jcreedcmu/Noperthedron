@@ -1,4 +1,5 @@
 import Noperthedron.Checker.Local
+import Noperthedron.RationalApprox.TrigInt
 import Noperthedron.Vertices.PythonInt
 
 /-!
@@ -137,11 +138,12 @@ private theorem sqrtDvCurriedN_eq_impl : @sqrtDvCurriedN = @sqrtDvCurriedNImpl :
 /-- Integer rendering of `BεℚPy.check` (see the module docstring). All the
 `let`-bound quantities are integer numerators; comments give the scales. -/
 def checkN (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) : Bool :=
-  -- trig numerators (scale 10¹³) — the `round13` numerators of `sinℚ`/`cosℚ`
-  let stN : ℤ := ⌊sin_psum 13 p.θ₂ * 10 ^ 13⌋
-  let ctN : ℤ := ⌊cos_psum 13 p.θ₂ * 10 ^ 13⌋
-  let spN : ℤ := ⌊sin_psum 13 p.φ₂ * 10 ^ 13⌋
-  let cpN : ℤ := ⌊cos_psum 13 p.φ₂ * 10 ^ 13⌋
+  -- trig numerators (scale 10¹³) — the `round13` numerators of `sinℚ`/`cosℚ`,
+  -- via the integer Horner cores (RationalApprox/TrigInt.lean)
+  let stN : ℤ := sinNum13 p.θ₂
+  let ctN : ℤ := cosNum13 p.θ₂
+  let spN : ℤ := sinNum13 p.φ₂
+  let cpN : ℤ := cosNum13 p.φ₂
   -- matrix entries (scale 10²⁶); m₀₂ = 0 is dropped
   let E00 := -stN * 10 ^ 13
   let E01 := ctN * 10 ^ 13
@@ -466,45 +468,34 @@ theorem checkN_eq_check (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) {ε δ r : �
     (hε : 0 < ε) (hr : 0 < r) :
     checkN Qi p ε δ r = check Qi p ε δ r := by
   have hm00 : (matEntries p).m₀₀
-      = ((-⌊RationalApprox.sin_psum 13 p.θ₂ * 10 ^ 13⌋ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
+      = ((-RationalApprox.sinNum13 p.θ₂ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
     show -RationalApprox.sinℚ p.θ₂ = _
-    rw [show RationalApprox.sinℚ p.θ₂
-        = ((⌊RationalApprox.sin_psum 13 p.θ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    rw [← RationalApprox.sinNum13_div_eq p.θ₂]
     push_cast
     ring
   have hm01 : (matEntries p).m₀₁
-      = ((⌊RationalApprox.cos_psum 13 p.θ₂ * 10 ^ 13⌋ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
+      = ((RationalApprox.cosNum13 p.θ₂ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
     show RationalApprox.cosℚ p.θ₂ = _
-    rw [show RationalApprox.cosℚ p.θ₂
-        = ((⌊RationalApprox.cos_psum 13 p.θ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    rw [← RationalApprox.cosNum13_div_eq p.θ₂]
     push_cast
     ring
   have hm02 : (matEntries p).m₀₂ = 0 := rfl
   have hm10 : (matEntries p).m₁₀
-      = ((-(⌊RationalApprox.cos_psum 13 p.θ₂ * 10 ^ 13⌋ *
-            ⌊RationalApprox.cos_psum 13 p.φ₂ * 10 ^ 13⌋) : ℤ) : ℚ) / 10 ^ 26 := by
+      = ((-(RationalApprox.cosNum13 p.θ₂ * RationalApprox.cosNum13 p.φ₂) : ℤ) : ℚ) / 10 ^ 26 := by
     show -RationalApprox.cosℚ p.θ₂ * RationalApprox.cosℚ p.φ₂ = _
-    rw [show RationalApprox.cosℚ p.θ₂
-        = ((⌊RationalApprox.cos_psum 13 p.θ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl,
-      show RationalApprox.cosℚ p.φ₂
-        = ((⌊RationalApprox.cos_psum 13 p.φ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    rw [← RationalApprox.cosNum13_div_eq p.θ₂, ← RationalApprox.cosNum13_div_eq p.φ₂]
     push_cast
     ring
   have hm11 : (matEntries p).m₁₁
-      = ((-(⌊RationalApprox.sin_psum 13 p.θ₂ * 10 ^ 13⌋ *
-            ⌊RationalApprox.cos_psum 13 p.φ₂ * 10 ^ 13⌋) : ℤ) : ℚ) / 10 ^ 26 := by
+      = ((-(RationalApprox.sinNum13 p.θ₂ * RationalApprox.cosNum13 p.φ₂) : ℤ) : ℚ) / 10 ^ 26 := by
     show -RationalApprox.sinℚ p.θ₂ * RationalApprox.cosℚ p.φ₂ = _
-    rw [show RationalApprox.sinℚ p.θ₂
-        = ((⌊RationalApprox.sin_psum 13 p.θ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl,
-      show RationalApprox.cosℚ p.φ₂
-        = ((⌊RationalApprox.cos_psum 13 p.φ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    rw [← RationalApprox.sinNum13_div_eq p.θ₂, ← RationalApprox.cosNum13_div_eq p.φ₂]
     push_cast
     ring
   have hm12 : (matEntries p).m₁₂
-      = ((⌊RationalApprox.sin_psum 13 p.φ₂ * 10 ^ 13⌋ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
+      = ((RationalApprox.sinNum13 p.φ₂ * 10 ^ 13 : ℤ) : ℚ) / 10 ^ 26 := by
     show RationalApprox.sinℚ p.φ₂ = _
-    rw [show RationalApprox.sinℚ p.φ₂
-        = ((⌊RationalApprox.sin_psum 13 p.φ₂ * 10 ^ 13⌋ : ℤ) : ℚ) / 10 ^ 13 from rfl]
+    rw [← RationalApprox.sinNum13_div_eq p.φ₂]
     push_cast
     ring
   have hv : ∀ (a : VertexIndex) (c : Fin 3),

@@ -4,6 +4,7 @@ import Noperthedron.Global
 import Noperthedron.PointSym
 import Noperthedron.PoseInterval
 import Noperthedron.RationalApprox.Basic
+import Noperthedron.RationalApprox.TrigInt
 import Noperthedron.RationalApprox.BoundsKappa
 
 open scoped RealInnerProductSpace
@@ -36,10 +37,10 @@ private structure HEntries : Type where
   m2φφtw : Fin 3 → ℚ
 
 @[inline] private def hEntries (p : Pose ℚ) (w : Fin 2 → ℚ) : HEntries :=
-  let st := RationalApprox.sinℚ p.θ₂
-  let ct := RationalApprox.cosℚ p.θ₂
-  let sp := RationalApprox.sinℚ p.φ₂
-  let cp := RationalApprox.cosℚ p.φ₂
+  let st := (RationalApprox.sinNum13 p.θ₂ : ℚ) / 10 ^ 13
+  let ct := (RationalApprox.cosNum13 p.θ₂ : ℚ) / 10 ^ 13
+  let sp := (RationalApprox.sinNum13 p.φ₂ : ℚ) / 10 ^ 13
+  let cp := (RationalApprox.cosNum13 p.φ₂ : ℚ) / 10 ^ 13
   let w0 := w 0
   let w1 := w 1
   -- M₂   = [[-st,      ct,       0    ],
@@ -92,12 +93,12 @@ private structure GEntries : Type where
   m1φφRTw  : Fin 3 → ℚ  -- (R · M₁φφ)ᵀ · w for `p.rotRℚ (p.rotM₁φφℚ S) ⬝ᵥ w`
 
 @[inline] private def gEntries (p : Pose ℚ) (w : Fin 2 → ℚ) : GEntries :=
-  let st1 := RationalApprox.sinℚ p.θ₁
-  let ct1 := RationalApprox.cosℚ p.θ₁
-  let sp1 := RationalApprox.sinℚ p.φ₁
-  let cp1 := RationalApprox.cosℚ p.φ₁
-  let sa  := RationalApprox.sinℚ p.α
-  let ca  := RationalApprox.cosℚ p.α
+  let st1 := (RationalApprox.sinNum13 p.θ₁ : ℚ) / 10 ^ 13
+  let ct1 := (RationalApprox.cosNum13 p.θ₁ : ℚ) / 10 ^ 13
+  let sp1 := (RationalApprox.sinNum13 p.φ₁ : ℚ) / 10 ^ 13
+  let cp1 := (RationalApprox.cosNum13 p.φ₁ : ℚ) / 10 ^ 13
+  let sa  := (RationalApprox.sinNum13 p.α : ℚ) / 10 ^ 13
+  let ca  := (RationalApprox.cosNum13 p.α : ℚ) / 10 ^ 13
   let w0 := w 0
   let w1 := w 1
   -- Rᵀ · w = (ca·w0 + sa·w1, -sa·w0 + ca·w1)
@@ -161,7 +162,8 @@ private structure GEntries : Type where
 matrices and both hoisted-entry structures to scalars, then close with `ring`. -/
 local macro "dot_eq_tac" : tactic =>
   `(tactic| (
-    simp [hEntries, gEntries, Pose.innerℚ, Pose.rotRℚ, Pose.rotR'ℚ,
+    simp [RationalApprox.sinNum13_div_eq, RationalApprox.cosNum13_div_eq,
+      hEntries, gEntries, Pose.innerℚ, Pose.rotRℚ, Pose.rotR'ℚ,
       Pose.rotM₁ℚ, Pose.rotM₁θℚ, Pose.rotM₁φℚ, Pose.rotM₁θθℚ, Pose.rotM₁θφℚ, Pose.rotM₁φφℚ,
       Pose.rotM₂ℚ, Pose.rotM₂θℚ, Pose.rotM₂φℚ, Pose.rotM₂θθℚ, Pose.rotM₂θφℚ, Pose.rotM₂φφℚ,
       RationalApprox.rotRℚ, RationalApprox.rotR'ℚ, RationalApprox.rotMℚ,

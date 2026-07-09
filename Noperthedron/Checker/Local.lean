@@ -3,6 +3,7 @@ import Mathlib.Data.Finset.Max
 import Noperthedron.Checker.ApproxSqrt
 import Noperthedron.Checker.SqrtDvLiterals
 import Noperthedron.Checker.SqrtFixed
+import Noperthedron.RationalApprox.TrigInt
 import Noperthedron.Local.Congruent
 import Noperthedron.RationalApprox.Basic
 import Noperthedron.RationalApprox.RationalLocal
@@ -127,16 +128,16 @@ private structure PoseTrigQ where
   (st1 ct1 sp1 cp1 sa ca st2 ct2 sp2 cp2 : ℚ)
 
 @[inline] private def PoseTrigQ.ofPose (p : Pose ℚ) : PoseTrigQ where
-  st1 := sinℚ p.θ₁
-  ct1 := cosℚ p.θ₁
-  sp1 := sinℚ p.φ₁
-  cp1 := cosℚ p.φ₁
-  sa := sinℚ p.α
-  ca := cosℚ p.α
-  st2 := sinℚ p.θ₂
-  ct2 := cosℚ p.θ₂
-  sp2 := sinℚ p.φ₂
-  cp2 := cosℚ p.φ₂
+  st1 := (RationalApprox.sinNum13 p.θ₁ : ℚ) / 10 ^ 13
+  ct1 := (RationalApprox.cosNum13 p.θ₁ : ℚ) / 10 ^ 13
+  sp1 := (RationalApprox.sinNum13 p.φ₁ : ℚ) / 10 ^ 13
+  cp1 := (RationalApprox.cosNum13 p.φ₁ : ℚ) / 10 ^ 13
+  sa := (RationalApprox.sinNum13 p.α : ℚ) / 10 ^ 13
+  ca := (RationalApprox.cosNum13 p.α : ℚ) / 10 ^ 13
+  st2 := (RationalApprox.sinNum13 p.θ₂ : ℚ) / 10 ^ 13
+  ct2 := (RationalApprox.cosNum13 p.θ₂ : ℚ) / 10 ^ 13
+  sp2 := (RationalApprox.sinNum13 p.φ₂ : ℚ) / 10 ^ 13
+  cp2 := (RationalApprox.cosNum13 p.φ₂ : ℚ) / 10 ^ 13
 
 /-- `BoundDeltaℚi` for a single `i`, with the 10 trig values used by
 `M₁`, `R`, `M₂` passed in already evaluated. -/
@@ -168,7 +169,8 @@ lemma boundDelta_at_eq (p : Pose ℚ) (P Q : Fin 3 → ℚ) :
        = fun (j : Fin 2) =>
          (Matrix.toLin' _ ((Matrix.toLin' _ : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ)) P)) j -
          ((Matrix.toLin' _ : (Fin 3 → ℚ) →ₗ[ℚ] (Fin 2 → ℚ)) Q) j from rfl]
-  simp [Matrix.toLin'_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+  simp [RationalApprox.sinNum13_div_eq, RationalApprox.cosNum13_div_eq,
+        Matrix.toLin'_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
         Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
 
 end Row.δ
