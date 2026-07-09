@@ -28,14 +28,14 @@ name = "Noperthedron"
 # Build-on-demand verification of the expensive computational step; not in
 # defaultTargets so CI never pays for it. See Noperthedron/ComputationalStep.lean.
 [[lean_lib]]
-name = "VerifiedNative"
+name = "NativeCaseAnalysis"
 
 [[lean_lib]]
-name = "VerifiedKernel"
+name = "KernelCaseAnalysis"
 
 # Patched copy of the `checkdecls` dependency's executable (see CheckDecls.lean):
 # checks blueprint declarations against the defaultTargets libraries only, so
-# the build-on-demand VerifiedNative/VerifiedKernel libs don't break CI.
+# the build-on-demand NativeCaseAnalysis/KernelCaseAnalysis libs don't break CI.
 # Defined in the root package so `lake exe checkdecls` resolves to it.
 [[lean_exe]]
 name = "checkdecls"

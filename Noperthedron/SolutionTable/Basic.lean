@@ -105,7 +105,7 @@ instance Table.RowsValid.decidable (tab : Table) : Decidable tab.RowsValid :=
 concurrently via `Task.spawn`. Since `Task.spawn fn` is *definitionally*
 `⟨fn ()⟩`, the parallelism is invisible to the logic, and correctness is proved
 exactly as for the sequential checker. This matters for
-`VerifiedNative/ComputationalStep.lean`, where `native_decide` runs this check
+`NativeCaseAnalysis/ComputationalStep.lean`, where `native_decide` runs this check
 over a table with ~18.7 million rows. -/
 
 theorem task_get_spawn {α : Type} (fn : Unit → α) (prio : Task.Priority) :

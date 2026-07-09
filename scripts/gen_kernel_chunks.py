@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Generate the VerifiedKernel chunk tree: load modules (literal row chunks),
+"""Generate the KernelCaseAnalysis chunk tree: load modules (literal row chunks),
 the dispatch/getter module, validation modules (ChunkOk theorems), the
 ChunkOkBelow combine chain, and the final capstone. Run from the repo root.
 
 Phases (pass as argv[1]):
-  load      - VerifiedKernel/Gen/LoadNNN.lean (8192 rows each, 512-row chunks)
-  dispatch  - VerifiedKernel/Gen/Dispatch.lean
-  validate  - VerifiedKernel/Gen/ValidateNNN.lean (8 ChunkOk theorems each)
-  combine   - VerifiedKernel/Gen/CombineNN.lean + Final.lean
+  load      - KernelCaseAnalysis/Gen/LoadNNN.lean (8192 rows each, 512-row chunks)
+  dispatch  - KernelCaseAnalysis/Gen/Dispatch.lean
+  validate  - KernelCaseAnalysis/Gen/ValidateNNN.lean (8 ChunkOk theorems each)
+  combine   - KernelCaseAnalysis/Gen/CombineNN.lean + Final.lean
 """
 import sys, os
 
@@ -19,7 +19,7 @@ NLOAD = (N + ROWS_PER_LOAD - 1) // ROWS_PER_LOAD  # 251
 CHUNKS_PER_VALIDATE = 8
 NVAL = (NCHUNKS + CHUNKS_PER_VALIDATE - 1) // CHUNKS_PER_VALIDATE  # 501
 
-os.makedirs('VerifiedKernel/Gen', exist_ok=True)
+os.makedirs('KernelCaseAnalysis/Gen', exist_ok=True)
 
 def gen_load(only=None):
     for i in range(NLOAD):
@@ -27,7 +27,7 @@ def gen_load(only=None):
             continue
         a = i * ROWS_PER_LOAD
         b = min((i + 1) * ROWS_PER_LOAD, N)
-        with open(f'VerifiedKernel/Gen/Load{i:03}.lean', 'w') as f:
+        with open(f'KernelCaseAnalysis/Gen/Load{i:03}.lean', 'w') as f:
             f.write(f"""import Noperthedron.SolutionTable.Load
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): rows [{a}, {b}) of the solution
@@ -42,8 +42,8 @@ end Noperthedron.Solution
 """)
 
 def gen_dispatch():
-    imports = "\n".join(f"import VerifiedKernel.Gen.Load{i:03}" for i in range(NLOAD))
-    with open('VerifiedKernel/Gen/Dispatch.lean', 'w') as f:
+    imports = "\n".join(f"import KernelCaseAnalysis.Gen.Load{i:03}" for i in range(NLOAD))
+    with open('KernelCaseAnalysis/Gen/Dispatch.lean', 'w') as f:
         f.write(f"""import Noperthedron.SolutionTable.Assemble
 {imports}
 
@@ -138,8 +138,8 @@ def gen_validate(only=None):
             fold.append(f"private theorem s_{b} : RangeOk getRow {N} {a0} {b} :=\n"
                         f"  {prev}.append (by norm_num) r_{a}")
         body = "\n\n".join(thms) + "\n\n" + "\n".join(fold)
-        with open(f'VerifiedKernel/Gen/Validate{v:04}.lean', 'w') as f:
-            f.write(f"""import VerifiedKernel.Gen.Dispatch
+        with open(f'KernelCaseAnalysis/Gen/Validate{v:04}.lean', 'w') as f:
+            f.write(f"""import KernelCaseAnalysis.Gen.Dispatch
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): kernel validation of rows
 [{a0}, {bend}). -/
@@ -168,8 +168,8 @@ def gen_combine():
         v0 = m * PER
         a0 = 0 if m == 0 else spans[0][0]
         start = spans[m*PER][0]
-        imports = "\n".join(f"import VerifiedKernel.Gen.Validate{v0+i:04}" for i in range(len(batch)))
-        prev = (f"import VerifiedKernel.Gen.Combine{m-1:02}\n" if m > 0 else "")
+        imports = "\n".join(f"import KernelCaseAnalysis.Gen.Validate{v0+i:04}" for i in range(len(batch)))
+        prev = (f"import KernelCaseAnalysis.Gen.Combine{m-1:02}\n" if m > 0 else "")
         steps = []
         if m == 0:
             steps.append(f"private theorem c_{batch[0][1]} : RangeOk getRow {N} 0 {batch[0][1]} := rangeOk_{batch[0][0]}_{batch[0][1]}")
@@ -183,7 +183,7 @@ def gen_combine():
             steps.append(f"private theorem c_{b} : RangeOk getRow {N} 0 {b} :=\n"
                          f"  c_{prev_end}.append (by norm_num) rangeOk_{a}_{b}")
         endb = batch[-1][1]
-        with open(f'VerifiedKernel/Gen/Combine{m:02}.lean', 'w') as f:
+        with open(f'KernelCaseAnalysis/Gen/Combine{m:02}.lean', 'w') as f:
             f.write(f"""{prev}{imports}
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): fold rows [0, {endb}). -/
@@ -197,8 +197,8 @@ theorem combined_{endb} : RangeOk getRow {N} 0 {endb} := c_{endb}
 
 end Noperthedron.Solution
 """)
-    with open('VerifiedKernel/Gen/Final.lean', 'w') as f:
-        f.write(f"""import VerifiedKernel.Gen.Combine{ncomb-1:02}
+    with open('KernelCaseAnalysis/Gen/Final.lean', 'w') as f:
+        f.write(f"""import KernelCaseAnalysis.Gen.Combine{ncomb-1:02}
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): every index of the full table
 satisfies `Row.ValidIxAt`, and row 0 carries `rowZero.interval`. -/

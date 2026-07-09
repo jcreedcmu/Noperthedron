@@ -7,7 +7,7 @@ import Noperthedron.SolutionTable.Check
   Accepts as input a path to a csv file contains the solution data.
 
   This runs the same kind of parallel parse-and-check that `native_decide`
-  evaluates in VerifiedNative/ComputationalStep.lean, but compiled to native
+  evaluates in NativeCaseAnalysis/ComputationalStep.lean, but compiled to native
   code, so it is considerably faster.
 
   Running on the solution tree from solution_tree_v6.zip takes about 5 minutes on
