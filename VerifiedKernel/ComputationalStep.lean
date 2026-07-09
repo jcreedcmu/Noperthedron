@@ -1,18 +1,32 @@
 import Noperthedron.SolutionTable.Assemble
-import Noperthedron.SolutionTable.Load
+import VerifiedKernel.Gen.Final
 
 /-!
-# The expensive computational step, verified kernel-only (placeholder)
+# The expensive computational step, verified kernel-only
 
-This library will hold the kernel-only verification of the solution table:
-generated modules that `load_csv_rows` the 2,051,521 rows as literal-encoded
-chunks, a digit-curried row getter (`assemble_row_dispatch` / `rowGetter`),
-per-chunk `ChunkOk … := by decide +kernel` theorems, and the `ChunkOkBelow`
-combine chain, culminating in an `exists_solution_table` with axioms
-`propext`, `Classical.choice`, `Quot.sound` only — the same statements
-`VerifiedNative` proves with `native_decide`, but with the compiler removed
-from the trusted base.
+Builds the `ValidTable` from the generated chunk tree: the 2,051,521 rows
+are loaded as literal 512-row chunks (`Gen/LoadNNN.lean`), served through
+the digit-curried getter (`Gen/Dispatch.lean`), validated range-by-range
+with `decide +kernel` (`Gen/ValidateNNNN.lean` — the expensive part), and
+folded by the `RangeOk` combine chain (`Gen/CombineNN.lean`, `Gen/Final.lean`).
 
-The generator and the ~400-core-hour build are still to come; see
-`kernel-decide-note.md` and `Noperthedron/SolutionTable/Assemble.lean`.
+Everything here is checked by the Lean kernel alone: axioms are `propext`,
+`Classical.choice`, and `Quot.sound` — no `sorry`, no `ofReduceBool`.
+
+This library is deliberately **not** in `defaultTargets`: building it is the
+full kernel verification run (~150 core-hours; RAM-bound to about 5-way
+parallelism — expect ~30 hours wall on a 10-core/32 GB machine):
+
+    lake build VerifiedKernel
 -/
+
+namespace Noperthedron.Verified.Kernel
+
+open Noperthedron Noperthedron.Solution
+
+theorem exists_solution_table : ∃ (_ : Solution.ValidTable), True :=
+  ⟨Solution.validTableOfGetter getRow 2051521 (by norm_num)
+      row0_interval allRows_validIxAt,
+    trivial⟩
+
+end Noperthedron.Verified.Kernel

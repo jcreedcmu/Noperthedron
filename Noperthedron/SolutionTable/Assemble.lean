@@ -158,6 +158,7 @@ generated), and full coverage discharges the `∀ i : Fin size` hypothesis. -/
 /-- Rows `[C * k, C * (k + 1)) ∩ [0, size)` are valid (getter-based). -/
 def ChunkOk (get : ℕ → Row) (size C k : ℕ) : Prop :=
   ∀ j : Fin C, C * k + j.val < size → Row.ValidIxAt get size (C * k + j.val)
+deriving Decidable
 
 /-- All chunks with index `< m` are valid. -/
 def ChunkOkBelow (get : ℕ → Row) (size C m : ℕ) : Prop :=
@@ -271,6 +272,39 @@ theorem validIxAt_of_rowsValidIxAtParB {get : ℕ → Row} {size nTasks : ℕ}
     (h : rowsValidIxAtParB get size nTasks = true) :
     ∀ i : Fin size, Row.ValidIxAt get size i :=
   validIxAt_of_rowsValidIxAtChunkedB h
+
+/-! ### Adaptive ranges
+
+`ChunkOk` requires a uniform chunk size, but kernel memory per row varies
+~10× between row types (locals build far larger term caches than globals),
+so the generated validation files size their per-declaration ranges
+adaptively. `RangeOk` is the arbitrary-span analogue, with an append
+combinator and the same end-point conversion. -/
+
+/-- Rows `[a, b) ∩ [0, size)` are valid (getter-based). -/
+def RangeOk (get : ℕ → Row) (size a b : ℕ) : Prop :=
+  ∀ j : Fin (b - a), a + j.val < size → Row.ValidIxAt get size (a + j.val)
+deriving Decidable
+
+theorem rangeOk_refl (get : ℕ → Row) (size a : ℕ) : RangeOk get size a a :=
+  fun j => absurd j.isLt (by omega)
+
+theorem RangeOk.append {get : ℕ → Row} {size a b c : ℕ} (hab : a ≤ b)
+    (h1 : RangeOk get size a b) (h2 : RangeOk get size b c) :
+    RangeOk get size a c := by
+  intro j hj
+  rcases Nat.lt_or_ge (a + j.val) b with h | h
+  · exact h1 ⟨j.val, by omega⟩ hj
+  · have hji := j.isLt
+    have hlt : a + j.val - b < c - b := by omega
+    have hsz : b + (a + j.val - b) < size := by omega
+    have := h2 ⟨a + j.val - b, hlt⟩ hsz
+    simpa [Nat.add_sub_cancel' h] using this
+
+theorem validIxAt_of_rangeOk {get : ℕ → Row} {size : ℕ}
+    (h : RangeOk get size 0 size) : ∀ i : Fin size, Row.ValidIxAt get size i := by
+  intro i
+  simpa using h ⟨i.val, by simpa using i.isLt⟩ (by simpa using i.isLt)
 
 /-! ## The table, at the `Prop` level only
 

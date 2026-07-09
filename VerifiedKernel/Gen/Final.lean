@@ -1,0 +1,14 @@
+import VerifiedKernel.Gen.Combine18
+
+/-! GENERATED (scripts/gen_kernel_chunks.py): every index of the full table
+satisfies `Row.ValidIxAt`, and row 0 carries `rowZero.interval`. -/
+
+namespace Noperthedron.Solution
+
+theorem allRows_validIxAt : ∀ i : Fin 2051521, Row.ValidIxAt getRow 2051521 i :=
+  validIxAt_of_rangeOk combined_2051521
+
+theorem row0_interval : (getRow 0).interval = rowZero.interval := by
+  decide +kernel
+
+end Noperthedron.Solution

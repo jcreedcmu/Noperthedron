@@ -2,10 +2,21 @@ import Noperthedron.ProofOfMainTheoremWithHole
 import VerifiedKernel.ComputationalStep
 
 /-!
-Proof of the main theorem, kernel-only (placeholder).
-
-Once `VerifiedKernel/ComputationalStep.lean` produces its
-`exists_solution_table`, this module will conclude, via
-`valid_table_imples_exists_not_rupert`, with an `exists_not_rupert` whose
-axioms are `propext`, `Classical.choice`, and `Quot.sound` only.
+Proof of the main theorem, with the solution table verified by the Lean
+kernel alone (see `VerifiedKernel/ComputationalStep.lean`).
 -/
+
+namespace Noperthedron.Verified.Kernel
+
+open Noperthedron
+
+/--
+  There exists a convex polyhedron that does not have the Rupert property.
+-/
+theorem exists_not_rupert : ExistsNonRupertPolyhedron :=
+  valid_table_imples_exists_not_rupert exists_solution_table.choose
+
+/- Expected: `propext`, `Classical.choice`, `Quot.sound` — nothing else. -/
+#print axioms exists_not_rupert
+
+end Noperthedron.Verified.Kernel
