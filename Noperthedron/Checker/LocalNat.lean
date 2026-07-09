@@ -48,6 +48,92 @@ def sqrtNum26 (S : ℤ) : ℤ :=
 def sqrtNum52 (S : ℤ) : ℤ :=
   if S ≤ 0 then 0 else (Nat.sqrt (-(-S / 10 ^ 20)).toNat + 1 : ℕ)
 
+/-! ### Compiled-path table reads
+
+A curried-literal lookup costs the compiled code ~30 µs (`Fin.cons`
+dispatch), which is why `Checker/Local.lean` backs `sqrtDv` with an
+`@[csimp]` array. `checkN` reads the *integer* tables
+(`pythonVertexNumCurried`, `sqrtDvCurriedN`) directly, so those get the same
+treatment: `Array`s built once per process from the literals, `O(1)` reads in
+compiled code, kernel-checked equality (the kernel keeps reducing the honest
+curried definitions). -/
+
+/-- All 810 vertex numerators, flattened as `(45·ℓ + 15·i + k)·3 + c`
+(as in `pythonVertexTable`). -/
+private def pythonVertexNumTable : Array ℤ :=
+  Array.ofFn (n := 270) fun j =>
+    pythonVertexNumCurried ⟨j.val / 135, by omega⟩ ⟨j.val / 45 % 3, by omega⟩
+      ⟨j.val / 3 % 15, by omega⟩ ⟨j.val % 3, by omega⟩
+
+private def pythonVertexNumImpl (ℓ : Fin 2) (i : Fin 3) (k : Fin 15) (c : Fin 3) : ℤ :=
+  pythonVertexNumTable[(45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val]'(by
+    have h1 := ℓ.isLt
+    have h2 := i.isLt
+    have h3 := k.isLt
+    have h4 := c.isLt
+    rw [pythonVertexNumTable, Array.size_ofFn]
+    omega)
+
+@[csimp]
+private theorem pythonVertexNumCurried_eq_impl :
+    @pythonVertexNumCurried = @pythonVertexNumImpl := by
+  funext ℓ i k c
+  have h1 := ℓ.isLt
+  have h2 := i.isLt
+  have h3 := k.isLt
+  have h4 := c.isLt
+  have e1 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) / 135 = ℓ.val := by omega
+  have e2 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) / 45 % 3 = i.val := by omega
+  have e3 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) / 3 % 15 = k.val := by omega
+  have e4 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) % 3 = c.val := by omega
+  simp only [pythonVertexNumImpl, pythonVertexNumTable, Array.getElem_ofFn,
+    e1, e2, e3, e4, Fin.eta]
+
+/-- All 8100 pair-norm numerators, flattened as `flat a · 90 + flat b` with
+`flat ⟨k, ℓ, i⟩ = 45·ℓ + 15·i + k` (as in `sqrtDvTable`). -/
+private def sqrtDvCurriedNTable : Array ℤ :=
+  Array.ofFn (n := 8100) fun j =>
+    sqrtDvCurriedN ⟨j.val / 90 / 45, by omega⟩ ⟨j.val / 90 / 15 % 3, by omega⟩
+      ⟨j.val / 90 % 15, by omega⟩
+      ⟨j.val % 90 / 45, by omega⟩ ⟨j.val % 90 / 15 % 3, by omega⟩ ⟨j.val % 90 % 15, by omega⟩
+
+private def sqrtDvCurriedNImpl (ℓa : Fin 2) (ia : Fin 3) (ka : Fin 15)
+    (ℓb : Fin 2) (ib : Fin 3) (kb : Fin 15) : ℤ :=
+  sqrtDvCurriedNTable[(45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)]'(by
+    have h1 := ℓa.isLt
+    have h2 := ia.isLt
+    have h3 := ka.isLt
+    have h4 := ℓb.isLt
+    have h5 := ib.isLt
+    have h6 := kb.isLt
+    rw [sqrtDvCurriedNTable, Array.size_ofFn]
+    omega)
+
+@[csimp]
+private theorem sqrtDvCurriedN_eq_impl : @sqrtDvCurriedN = @sqrtDvCurriedNImpl := by
+  funext ℓa ia ka ℓb ib kb
+  have h1 := ℓa.isLt
+  have h2 := ia.isLt
+  have h3 := ka.isLt
+  have h4 := ℓb.isLt
+  have h5 := ib.isLt
+  have h6 := kb.isLt
+  have e1 : ((45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)) / 90 / 45 = ℓa.val := by omega
+  have e2 : ((45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)) / 90 / 15 % 3 = ia.val := by omega
+  have e3 : ((45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)) / 90 % 15 = ka.val := by omega
+  have e4 : ((45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)) % 90 / 45 = ℓb.val := by omega
+  have e5 : ((45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)) % 90 / 15 % 3 = ib.val := by omega
+  have e6 : ((45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
+      (45 * ℓb.val + 15 * ib.val + kb.val)) % 90 % 15 = kb.val := by omega
+  simp only [sqrtDvCurriedNImpl, sqrtDvCurriedNTable, Array.getElem_ofFn,
+    e1, e2, e3, e4, e5, e6, Fin.eta]
+
 /-- Integer rendering of `BεℚPy.check` (see the module docstring). All the
 `let`-bound quantities are integer numerators; comments give the scales. -/
 def checkN (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) : Bool :=
