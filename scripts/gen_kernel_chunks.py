@@ -78,9 +78,12 @@ def read_node_types():
 
 # per-row kernel memory (MB) and time (s) model, calibrated on probes
 # 2026-07-08 (Validate0000 tree-top full splits; chunk 7877 binary splits;
-# 24-row local range at row 1867264)
-COST_MB = {1: 25, 2: 380, 3: 21, 4: 130}
-COST_S  = {1: 0.30, 2: 1.50, 3: 0.08, 4: 0.35}
+# 24-row local range at row 1867264). Local recalibrated 2026-07-09 after
+# the pythonVertexA kernel-walk fix (6501604): pure-local RangeOk probes at
+# rows 1205362/1205370/1867263 measure 0.67-0.80 s and 138-155 MB per row;
+# coefficients carry ~15% margin.
+COST_MB = {1: 25, 2: 175, 3: 21, 4: 130}
+COST_S  = {1: 0.30, 2: 0.85, 3: 0.08, 4: 0.35}
 MB_BUDGET = 1600      # per-declaration term-cache budget
 S_PER_FILE = 500      # target kernel seconds per file
 MAX_RANGE = 1000

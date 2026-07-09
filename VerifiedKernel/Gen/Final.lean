@@ -1,4 +1,4 @@
-import VerifiedKernel.Gen.Combine18
+import VerifiedKernel.Gen.Combine15
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): every index of the full table
 satisfies `Row.ValidIxAt`, and row 0 carries `rowZero.interval`. -/

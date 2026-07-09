@@ -1,408 +1,338 @@
 import VerifiedKernel.Gen.Dispatch
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): kernel validation of rows
-[1796522, 1796949). -/
+[1835213, 1835923). -/
 
 namespace Noperthedron.Solution
 
 set_option Elab.async false
 
-private theorem r_1796522 : RangeOk getRow 2051521 1796522 1796526 := by
+private theorem r_1835213 : RangeOk getRow 2051521 1835213 1835224 := by
   decide +kernel
 
-private theorem r_1796526 : RangeOk getRow 2051521 1796526 1796530 := by
+private theorem r_1835224 : RangeOk getRow 2051521 1835224 1835236 := by
   decide +kernel
 
-private theorem r_1796530 : RangeOk getRow 2051521 1796530 1796535 := by
+private theorem r_1835236 : RangeOk getRow 2051521 1835236 1835246 := by
   decide +kernel
 
-private theorem r_1796535 : RangeOk getRow 2051521 1796535 1796539 := by
+private theorem r_1835246 : RangeOk getRow 2051521 1835246 1835256 := by
   decide +kernel
 
-private theorem r_1796539 : RangeOk getRow 2051521 1796539 1796543 := by
+private theorem r_1835256 : RangeOk getRow 2051521 1835256 1835266 := by
   decide +kernel
 
-private theorem r_1796543 : RangeOk getRow 2051521 1796543 1796547 := by
+private theorem r_1835266 : RangeOk getRow 2051521 1835266 1835277 := by
   decide +kernel
 
-private theorem r_1796547 : RangeOk getRow 2051521 1796547 1796552 := by
+private theorem r_1835277 : RangeOk getRow 2051521 1835277 1835287 := by
   decide +kernel
 
-private theorem r_1796552 : RangeOk getRow 2051521 1796552 1796556 := by
+private theorem r_1835287 : RangeOk getRow 2051521 1835287 1835299 := by
   decide +kernel
 
-private theorem r_1796556 : RangeOk getRow 2051521 1796556 1796560 := by
+private theorem r_1835299 : RangeOk getRow 2051521 1835299 1835311 := by
   decide +kernel
 
-private theorem r_1796560 : RangeOk getRow 2051521 1796560 1796564 := by
+private theorem r_1835311 : RangeOk getRow 2051521 1835311 1835321 := by
   decide +kernel
 
-private theorem r_1796564 : RangeOk getRow 2051521 1796564 1796570 := by
+private theorem r_1835321 : RangeOk getRow 2051521 1835321 1835333 := by
   decide +kernel
 
-private theorem r_1796570 : RangeOk getRow 2051521 1796570 1796574 := by
+private theorem r_1835333 : RangeOk getRow 2051521 1835333 1835343 := by
   decide +kernel
 
-private theorem r_1796574 : RangeOk getRow 2051521 1796574 1796579 := by
+private theorem r_1835343 : RangeOk getRow 2051521 1835343 1835354 := by
   decide +kernel
 
-private theorem r_1796579 : RangeOk getRow 2051521 1796579 1796584 := by
+private theorem r_1835354 : RangeOk getRow 2051521 1835354 1835366 := by
   decide +kernel
 
-private theorem r_1796584 : RangeOk getRow 2051521 1796584 1796591 := by
+private theorem r_1835366 : RangeOk getRow 2051521 1835366 1835376 := by
   decide +kernel
 
-private theorem r_1796591 : RangeOk getRow 2051521 1796591 1796596 := by
+private theorem r_1835376 : RangeOk getRow 2051521 1835376 1835386 := by
   decide +kernel
 
-private theorem r_1796596 : RangeOk getRow 2051521 1796596 1796600 := by
+private theorem r_1835386 : RangeOk getRow 2051521 1835386 1835398 := by
   decide +kernel
 
-private theorem r_1796600 : RangeOk getRow 2051521 1796600 1796612 := by
+private theorem r_1835398 : RangeOk getRow 2051521 1835398 1835408 := by
   decide +kernel
 
-private theorem r_1796612 : RangeOk getRow 2051521 1796612 1796618 := by
+private theorem r_1835408 : RangeOk getRow 2051521 1835408 1835418 := by
   decide +kernel
 
-private theorem r_1796618 : RangeOk getRow 2051521 1796618 1796622 := by
+private theorem r_1835418 : RangeOk getRow 2051521 1835418 1835430 := by
   decide +kernel
 
-private theorem r_1796622 : RangeOk getRow 2051521 1796622 1796631 := by
+private theorem r_1835430 : RangeOk getRow 2051521 1835430 1835440 := by
   decide +kernel
 
-private theorem r_1796631 : RangeOk getRow 2051521 1796631 1796638 := by
+private theorem r_1835440 : RangeOk getRow 2051521 1835440 1835451 := by
   decide +kernel
 
-private theorem r_1796638 : RangeOk getRow 2051521 1796638 1796670 := by
+private theorem r_1835451 : RangeOk getRow 2051521 1835451 1835463 := by
   decide +kernel
 
-private theorem r_1796670 : RangeOk getRow 2051521 1796670 1796675 := by
+private theorem r_1835463 : RangeOk getRow 2051521 1835463 1835473 := by
   decide +kernel
 
-private theorem r_1796675 : RangeOk getRow 2051521 1796675 1796682 := by
+private theorem r_1835473 : RangeOk getRow 2051521 1835473 1835483 := by
   decide +kernel
 
-private theorem r_1796682 : RangeOk getRow 2051521 1796682 1796687 := by
+private theorem r_1835483 : RangeOk getRow 2051521 1835483 1835495 := by
   decide +kernel
 
-private theorem r_1796687 : RangeOk getRow 2051521 1796687 1796692 := by
+private theorem r_1835495 : RangeOk getRow 2051521 1835495 1835505 := by
   decide +kernel
 
-private theorem r_1796692 : RangeOk getRow 2051521 1796692 1796698 := by
+private theorem r_1835505 : RangeOk getRow 2051521 1835505 1835516 := by
   decide +kernel
 
-private theorem r_1796698 : RangeOk getRow 2051521 1796698 1796705 := by
+private theorem r_1835516 : RangeOk getRow 2051521 1835516 1835527 := by
   decide +kernel
 
-private theorem r_1796705 : RangeOk getRow 2051521 1796705 1796712 := by
+private theorem r_1835527 : RangeOk getRow 2051521 1835527 1835537 := by
   decide +kernel
 
-private theorem r_1796712 : RangeOk getRow 2051521 1796712 1796718 := by
+private theorem r_1835537 : RangeOk getRow 2051521 1835537 1835548 := by
   decide +kernel
 
-private theorem r_1796718 : RangeOk getRow 2051521 1796718 1796725 := by
+private theorem r_1835548 : RangeOk getRow 2051521 1835548 1835561 := by
   decide +kernel
 
-private theorem r_1796725 : RangeOk getRow 2051521 1796725 1796731 := by
+private theorem r_1835561 : RangeOk getRow 2051521 1835561 1835571 := by
   decide +kernel
 
-private theorem r_1796731 : RangeOk getRow 2051521 1796731 1796737 := by
+private theorem r_1835571 : RangeOk getRow 2051521 1835571 1835583 := by
   decide +kernel
 
-private theorem r_1796737 : RangeOk getRow 2051521 1796737 1796741 := by
+private theorem r_1835583 : RangeOk getRow 2051521 1835583 1835594 := by
   decide +kernel
 
-private theorem r_1796741 : RangeOk getRow 2051521 1796741 1796745 := by
+private theorem r_1835594 : RangeOk getRow 2051521 1835594 1835605 := by
   decide +kernel
 
-private theorem r_1796745 : RangeOk getRow 2051521 1796745 1796750 := by
+private theorem r_1835605 : RangeOk getRow 2051521 1835605 1835615 := by
   decide +kernel
 
-private theorem r_1796750 : RangeOk getRow 2051521 1796750 1796754 := by
+private theorem r_1835615 : RangeOk getRow 2051521 1835615 1835626 := by
   decide +kernel
 
-private theorem r_1796754 : RangeOk getRow 2051521 1796754 1796758 := by
+private theorem r_1835626 : RangeOk getRow 2051521 1835626 1835636 := by
   decide +kernel
 
-private theorem r_1796758 : RangeOk getRow 2051521 1796758 1796762 := by
+private theorem r_1835636 : RangeOk getRow 2051521 1835636 1835648 := by
   decide +kernel
 
-private theorem r_1796762 : RangeOk getRow 2051521 1796762 1796766 := by
+private theorem r_1835648 : RangeOk getRow 2051521 1835648 1835658 := by
   decide +kernel
 
-private theorem r_1796766 : RangeOk getRow 2051521 1796766 1796772 := by
+private theorem r_1835658 : RangeOk getRow 2051521 1835658 1835669 := by
   decide +kernel
 
-private theorem r_1796772 : RangeOk getRow 2051521 1796772 1796776 := by
+private theorem r_1835669 : RangeOk getRow 2051521 1835669 1835679 := by
   decide +kernel
 
-private theorem r_1796776 : RangeOk getRow 2051521 1796776 1796781 := by
+private theorem r_1835679 : RangeOk getRow 2051521 1835679 1835689 := by
   decide +kernel
 
-private theorem r_1796781 : RangeOk getRow 2051521 1796781 1796785 := by
+private theorem r_1835689 : RangeOk getRow 2051521 1835689 1835699 := by
   decide +kernel
 
-private theorem r_1796785 : RangeOk getRow 2051521 1796785 1796789 := by
+private theorem r_1835699 : RangeOk getRow 2051521 1835699 1835712 := by
   decide +kernel
 
-private theorem r_1796789 : RangeOk getRow 2051521 1796789 1796793 := by
+private theorem r_1835712 : RangeOk getRow 2051521 1835712 1835722 := by
   decide +kernel
 
-private theorem r_1796793 : RangeOk getRow 2051521 1796793 1796798 := by
+private theorem r_1835722 : RangeOk getRow 2051521 1835722 1835733 := by
   decide +kernel
 
-private theorem r_1796798 : RangeOk getRow 2051521 1796798 1796804 := by
+private theorem r_1835733 : RangeOk getRow 2051521 1835733 1835743 := by
   decide +kernel
 
-private theorem r_1796804 : RangeOk getRow 2051521 1796804 1796811 := by
+private theorem r_1835743 : RangeOk getRow 2051521 1835743 1835753 := by
   decide +kernel
 
-private theorem r_1796811 : RangeOk getRow 2051521 1796811 1796816 := by
+private theorem r_1835753 : RangeOk getRow 2051521 1835753 1835763 := by
   decide +kernel
 
-private theorem r_1796816 : RangeOk getRow 2051521 1796816 1796821 := by
+private theorem r_1835763 : RangeOk getRow 2051521 1835763 1835774 := by
   decide +kernel
 
-private theorem r_1796821 : RangeOk getRow 2051521 1796821 1796825 := by
+private theorem r_1835774 : RangeOk getRow 2051521 1835774 1835786 := by
   decide +kernel
 
-private theorem r_1796825 : RangeOk getRow 2051521 1796825 1796829 := by
+private theorem r_1835786 : RangeOk getRow 2051521 1835786 1835796 := by
   decide +kernel
 
-private theorem r_1796829 : RangeOk getRow 2051521 1796829 1796833 := by
+private theorem r_1835796 : RangeOk getRow 2051521 1835796 1835806 := by
   decide +kernel
 
-private theorem r_1796833 : RangeOk getRow 2051521 1796833 1796840 := by
+private theorem r_1835806 : RangeOk getRow 2051521 1835806 1835821 := by
   decide +kernel
 
-private theorem r_1796840 : RangeOk getRow 2051521 1796840 1796847 := by
+private theorem r_1835821 : RangeOk getRow 2051521 1835821 1835831 := by
   decide +kernel
 
-private theorem r_1796847 : RangeOk getRow 2051521 1796847 1796852 := by
+private theorem r_1835831 : RangeOk getRow 2051521 1835831 1835846 := by
   decide +kernel
 
-private theorem r_1796852 : RangeOk getRow 2051521 1796852 1796857 := by
+private theorem r_1835846 : RangeOk getRow 2051521 1835846 1835858 := by
   decide +kernel
 
-private theorem r_1796857 : RangeOk getRow 2051521 1796857 1796861 := by
+private theorem r_1835858 : RangeOk getRow 2051521 1835858 1835871 := by
   decide +kernel
 
-private theorem r_1796861 : RangeOk getRow 2051521 1796861 1796865 := by
+private theorem r_1835871 : RangeOk getRow 2051521 1835871 1835881 := by
   decide +kernel
 
-private theorem r_1796865 : RangeOk getRow 2051521 1796865 1796871 := by
+private theorem r_1835881 : RangeOk getRow 2051521 1835881 1835891 := by
   decide +kernel
 
-private theorem r_1796871 : RangeOk getRow 2051521 1796871 1796878 := by
+private theorem r_1835891 : RangeOk getRow 2051521 1835891 1835901 := by
   decide +kernel
 
-private theorem r_1796878 : RangeOk getRow 2051521 1796878 1796884 := by
+private theorem r_1835901 : RangeOk getRow 2051521 1835901 1835913 := by
   decide +kernel
 
-private theorem r_1796884 : RangeOk getRow 2051521 1796884 1796888 := by
+private theorem r_1835913 : RangeOk getRow 2051521 1835913 1835923 := by
   decide +kernel
 
-private theorem r_1796888 : RangeOk getRow 2051521 1796888 1796893 := by
-  decide +kernel
-
-private theorem r_1796893 : RangeOk getRow 2051521 1796893 1796898 := by
-  decide +kernel
-
-private theorem r_1796898 : RangeOk getRow 2051521 1796898 1796903 := by
-  decide +kernel
-
-private theorem r_1796903 : RangeOk getRow 2051521 1796903 1796908 := by
-  decide +kernel
-
-private theorem r_1796908 : RangeOk getRow 2051521 1796908 1796912 := by
-  decide +kernel
-
-private theorem r_1796912 : RangeOk getRow 2051521 1796912 1796916 := by
-  decide +kernel
-
-private theorem r_1796916 : RangeOk getRow 2051521 1796916 1796920 := by
-  decide +kernel
-
-private theorem r_1796920 : RangeOk getRow 2051521 1796920 1796924 := by
-  decide +kernel
-
-private theorem r_1796924 : RangeOk getRow 2051521 1796924 1796928 := by
-  decide +kernel
-
-private theorem r_1796928 : RangeOk getRow 2051521 1796928 1796933 := by
-  decide +kernel
-
-private theorem r_1796933 : RangeOk getRow 2051521 1796933 1796937 := by
-  decide +kernel
-
-private theorem r_1796937 : RangeOk getRow 2051521 1796937 1796941 := by
-  decide +kernel
-
-private theorem r_1796941 : RangeOk getRow 2051521 1796941 1796945 := by
-  decide +kernel
-
-private theorem r_1796945 : RangeOk getRow 2051521 1796945 1796949 := by
-  decide +kernel
-
-private theorem s_1796526 : RangeOk getRow 2051521 1796522 1796526 := r_1796522
-private theorem s_1796530 : RangeOk getRow 2051521 1796522 1796530 :=
-  s_1796526.append (by norm_num) r_1796526
-private theorem s_1796535 : RangeOk getRow 2051521 1796522 1796535 :=
-  s_1796530.append (by norm_num) r_1796530
-private theorem s_1796539 : RangeOk getRow 2051521 1796522 1796539 :=
-  s_1796535.append (by norm_num) r_1796535
-private theorem s_1796543 : RangeOk getRow 2051521 1796522 1796543 :=
-  s_1796539.append (by norm_num) r_1796539
-private theorem s_1796547 : RangeOk getRow 2051521 1796522 1796547 :=
-  s_1796543.append (by norm_num) r_1796543
-private theorem s_1796552 : RangeOk getRow 2051521 1796522 1796552 :=
-  s_1796547.append (by norm_num) r_1796547
-private theorem s_1796556 : RangeOk getRow 2051521 1796522 1796556 :=
-  s_1796552.append (by norm_num) r_1796552
-private theorem s_1796560 : RangeOk getRow 2051521 1796522 1796560 :=
-  s_1796556.append (by norm_num) r_1796556
-private theorem s_1796564 : RangeOk getRow 2051521 1796522 1796564 :=
-  s_1796560.append (by norm_num) r_1796560
-private theorem s_1796570 : RangeOk getRow 2051521 1796522 1796570 :=
-  s_1796564.append (by norm_num) r_1796564
-private theorem s_1796574 : RangeOk getRow 2051521 1796522 1796574 :=
-  s_1796570.append (by norm_num) r_1796570
-private theorem s_1796579 : RangeOk getRow 2051521 1796522 1796579 :=
-  s_1796574.append (by norm_num) r_1796574
-private theorem s_1796584 : RangeOk getRow 2051521 1796522 1796584 :=
-  s_1796579.append (by norm_num) r_1796579
-private theorem s_1796591 : RangeOk getRow 2051521 1796522 1796591 :=
-  s_1796584.append (by norm_num) r_1796584
-private theorem s_1796596 : RangeOk getRow 2051521 1796522 1796596 :=
-  s_1796591.append (by norm_num) r_1796591
-private theorem s_1796600 : RangeOk getRow 2051521 1796522 1796600 :=
-  s_1796596.append (by norm_num) r_1796596
-private theorem s_1796612 : RangeOk getRow 2051521 1796522 1796612 :=
-  s_1796600.append (by norm_num) r_1796600
-private theorem s_1796618 : RangeOk getRow 2051521 1796522 1796618 :=
-  s_1796612.append (by norm_num) r_1796612
-private theorem s_1796622 : RangeOk getRow 2051521 1796522 1796622 :=
-  s_1796618.append (by norm_num) r_1796618
-private theorem s_1796631 : RangeOk getRow 2051521 1796522 1796631 :=
-  s_1796622.append (by norm_num) r_1796622
-private theorem s_1796638 : RangeOk getRow 2051521 1796522 1796638 :=
-  s_1796631.append (by norm_num) r_1796631
-private theorem s_1796670 : RangeOk getRow 2051521 1796522 1796670 :=
-  s_1796638.append (by norm_num) r_1796638
-private theorem s_1796675 : RangeOk getRow 2051521 1796522 1796675 :=
-  s_1796670.append (by norm_num) r_1796670
-private theorem s_1796682 : RangeOk getRow 2051521 1796522 1796682 :=
-  s_1796675.append (by norm_num) r_1796675
-private theorem s_1796687 : RangeOk getRow 2051521 1796522 1796687 :=
-  s_1796682.append (by norm_num) r_1796682
-private theorem s_1796692 : RangeOk getRow 2051521 1796522 1796692 :=
-  s_1796687.append (by norm_num) r_1796687
-private theorem s_1796698 : RangeOk getRow 2051521 1796522 1796698 :=
-  s_1796692.append (by norm_num) r_1796692
-private theorem s_1796705 : RangeOk getRow 2051521 1796522 1796705 :=
-  s_1796698.append (by norm_num) r_1796698
-private theorem s_1796712 : RangeOk getRow 2051521 1796522 1796712 :=
-  s_1796705.append (by norm_num) r_1796705
-private theorem s_1796718 : RangeOk getRow 2051521 1796522 1796718 :=
-  s_1796712.append (by norm_num) r_1796712
-private theorem s_1796725 : RangeOk getRow 2051521 1796522 1796725 :=
-  s_1796718.append (by norm_num) r_1796718
-private theorem s_1796731 : RangeOk getRow 2051521 1796522 1796731 :=
-  s_1796725.append (by norm_num) r_1796725
-private theorem s_1796737 : RangeOk getRow 2051521 1796522 1796737 :=
-  s_1796731.append (by norm_num) r_1796731
-private theorem s_1796741 : RangeOk getRow 2051521 1796522 1796741 :=
-  s_1796737.append (by norm_num) r_1796737
-private theorem s_1796745 : RangeOk getRow 2051521 1796522 1796745 :=
-  s_1796741.append (by norm_num) r_1796741
-private theorem s_1796750 : RangeOk getRow 2051521 1796522 1796750 :=
-  s_1796745.append (by norm_num) r_1796745
-private theorem s_1796754 : RangeOk getRow 2051521 1796522 1796754 :=
-  s_1796750.append (by norm_num) r_1796750
-private theorem s_1796758 : RangeOk getRow 2051521 1796522 1796758 :=
-  s_1796754.append (by norm_num) r_1796754
-private theorem s_1796762 : RangeOk getRow 2051521 1796522 1796762 :=
-  s_1796758.append (by norm_num) r_1796758
-private theorem s_1796766 : RangeOk getRow 2051521 1796522 1796766 :=
-  s_1796762.append (by norm_num) r_1796762
-private theorem s_1796772 : RangeOk getRow 2051521 1796522 1796772 :=
-  s_1796766.append (by norm_num) r_1796766
-private theorem s_1796776 : RangeOk getRow 2051521 1796522 1796776 :=
-  s_1796772.append (by norm_num) r_1796772
-private theorem s_1796781 : RangeOk getRow 2051521 1796522 1796781 :=
-  s_1796776.append (by norm_num) r_1796776
-private theorem s_1796785 : RangeOk getRow 2051521 1796522 1796785 :=
-  s_1796781.append (by norm_num) r_1796781
-private theorem s_1796789 : RangeOk getRow 2051521 1796522 1796789 :=
-  s_1796785.append (by norm_num) r_1796785
-private theorem s_1796793 : RangeOk getRow 2051521 1796522 1796793 :=
-  s_1796789.append (by norm_num) r_1796789
-private theorem s_1796798 : RangeOk getRow 2051521 1796522 1796798 :=
-  s_1796793.append (by norm_num) r_1796793
-private theorem s_1796804 : RangeOk getRow 2051521 1796522 1796804 :=
-  s_1796798.append (by norm_num) r_1796798
-private theorem s_1796811 : RangeOk getRow 2051521 1796522 1796811 :=
-  s_1796804.append (by norm_num) r_1796804
-private theorem s_1796816 : RangeOk getRow 2051521 1796522 1796816 :=
-  s_1796811.append (by norm_num) r_1796811
-private theorem s_1796821 : RangeOk getRow 2051521 1796522 1796821 :=
-  s_1796816.append (by norm_num) r_1796816
-private theorem s_1796825 : RangeOk getRow 2051521 1796522 1796825 :=
-  s_1796821.append (by norm_num) r_1796821
-private theorem s_1796829 : RangeOk getRow 2051521 1796522 1796829 :=
-  s_1796825.append (by norm_num) r_1796825
-private theorem s_1796833 : RangeOk getRow 2051521 1796522 1796833 :=
-  s_1796829.append (by norm_num) r_1796829
-private theorem s_1796840 : RangeOk getRow 2051521 1796522 1796840 :=
-  s_1796833.append (by norm_num) r_1796833
-private theorem s_1796847 : RangeOk getRow 2051521 1796522 1796847 :=
-  s_1796840.append (by norm_num) r_1796840
-private theorem s_1796852 : RangeOk getRow 2051521 1796522 1796852 :=
-  s_1796847.append (by norm_num) r_1796847
-private theorem s_1796857 : RangeOk getRow 2051521 1796522 1796857 :=
-  s_1796852.append (by norm_num) r_1796852
-private theorem s_1796861 : RangeOk getRow 2051521 1796522 1796861 :=
-  s_1796857.append (by norm_num) r_1796857
-private theorem s_1796865 : RangeOk getRow 2051521 1796522 1796865 :=
-  s_1796861.append (by norm_num) r_1796861
-private theorem s_1796871 : RangeOk getRow 2051521 1796522 1796871 :=
-  s_1796865.append (by norm_num) r_1796865
-private theorem s_1796878 : RangeOk getRow 2051521 1796522 1796878 :=
-  s_1796871.append (by norm_num) r_1796871
-private theorem s_1796884 : RangeOk getRow 2051521 1796522 1796884 :=
-  s_1796878.append (by norm_num) r_1796878
-private theorem s_1796888 : RangeOk getRow 2051521 1796522 1796888 :=
-  s_1796884.append (by norm_num) r_1796884
-private theorem s_1796893 : RangeOk getRow 2051521 1796522 1796893 :=
-  s_1796888.append (by norm_num) r_1796888
-private theorem s_1796898 : RangeOk getRow 2051521 1796522 1796898 :=
-  s_1796893.append (by norm_num) r_1796893
-private theorem s_1796903 : RangeOk getRow 2051521 1796522 1796903 :=
-  s_1796898.append (by norm_num) r_1796898
-private theorem s_1796908 : RangeOk getRow 2051521 1796522 1796908 :=
-  s_1796903.append (by norm_num) r_1796903
-private theorem s_1796912 : RangeOk getRow 2051521 1796522 1796912 :=
-  s_1796908.append (by norm_num) r_1796908
-private theorem s_1796916 : RangeOk getRow 2051521 1796522 1796916 :=
-  s_1796912.append (by norm_num) r_1796912
-private theorem s_1796920 : RangeOk getRow 2051521 1796522 1796920 :=
-  s_1796916.append (by norm_num) r_1796916
-private theorem s_1796924 : RangeOk getRow 2051521 1796522 1796924 :=
-  s_1796920.append (by norm_num) r_1796920
-private theorem s_1796928 : RangeOk getRow 2051521 1796522 1796928 :=
-  s_1796924.append (by norm_num) r_1796924
-private theorem s_1796933 : RangeOk getRow 2051521 1796522 1796933 :=
-  s_1796928.append (by norm_num) r_1796928
-private theorem s_1796937 : RangeOk getRow 2051521 1796522 1796937 :=
-  s_1796933.append (by norm_num) r_1796933
-private theorem s_1796941 : RangeOk getRow 2051521 1796522 1796941 :=
-  s_1796937.append (by norm_num) r_1796937
-private theorem s_1796945 : RangeOk getRow 2051521 1796522 1796945 :=
-  s_1796941.append (by norm_num) r_1796941
-private theorem s_1796949 : RangeOk getRow 2051521 1796522 1796949 :=
-  s_1796945.append (by norm_num) r_1796945
+private theorem s_1835224 : RangeOk getRow 2051521 1835213 1835224 := r_1835213
+private theorem s_1835236 : RangeOk getRow 2051521 1835213 1835236 :=
+  s_1835224.append (by norm_num) r_1835224
+private theorem s_1835246 : RangeOk getRow 2051521 1835213 1835246 :=
+  s_1835236.append (by norm_num) r_1835236
+private theorem s_1835256 : RangeOk getRow 2051521 1835213 1835256 :=
+  s_1835246.append (by norm_num) r_1835246
+private theorem s_1835266 : RangeOk getRow 2051521 1835213 1835266 :=
+  s_1835256.append (by norm_num) r_1835256
+private theorem s_1835277 : RangeOk getRow 2051521 1835213 1835277 :=
+  s_1835266.append (by norm_num) r_1835266
+private theorem s_1835287 : RangeOk getRow 2051521 1835213 1835287 :=
+  s_1835277.append (by norm_num) r_1835277
+private theorem s_1835299 : RangeOk getRow 2051521 1835213 1835299 :=
+  s_1835287.append (by norm_num) r_1835287
+private theorem s_1835311 : RangeOk getRow 2051521 1835213 1835311 :=
+  s_1835299.append (by norm_num) r_1835299
+private theorem s_1835321 : RangeOk getRow 2051521 1835213 1835321 :=
+  s_1835311.append (by norm_num) r_1835311
+private theorem s_1835333 : RangeOk getRow 2051521 1835213 1835333 :=
+  s_1835321.append (by norm_num) r_1835321
+private theorem s_1835343 : RangeOk getRow 2051521 1835213 1835343 :=
+  s_1835333.append (by norm_num) r_1835333
+private theorem s_1835354 : RangeOk getRow 2051521 1835213 1835354 :=
+  s_1835343.append (by norm_num) r_1835343
+private theorem s_1835366 : RangeOk getRow 2051521 1835213 1835366 :=
+  s_1835354.append (by norm_num) r_1835354
+private theorem s_1835376 : RangeOk getRow 2051521 1835213 1835376 :=
+  s_1835366.append (by norm_num) r_1835366
+private theorem s_1835386 : RangeOk getRow 2051521 1835213 1835386 :=
+  s_1835376.append (by norm_num) r_1835376
+private theorem s_1835398 : RangeOk getRow 2051521 1835213 1835398 :=
+  s_1835386.append (by norm_num) r_1835386
+private theorem s_1835408 : RangeOk getRow 2051521 1835213 1835408 :=
+  s_1835398.append (by norm_num) r_1835398
+private theorem s_1835418 : RangeOk getRow 2051521 1835213 1835418 :=
+  s_1835408.append (by norm_num) r_1835408
+private theorem s_1835430 : RangeOk getRow 2051521 1835213 1835430 :=
+  s_1835418.append (by norm_num) r_1835418
+private theorem s_1835440 : RangeOk getRow 2051521 1835213 1835440 :=
+  s_1835430.append (by norm_num) r_1835430
+private theorem s_1835451 : RangeOk getRow 2051521 1835213 1835451 :=
+  s_1835440.append (by norm_num) r_1835440
+private theorem s_1835463 : RangeOk getRow 2051521 1835213 1835463 :=
+  s_1835451.append (by norm_num) r_1835451
+private theorem s_1835473 : RangeOk getRow 2051521 1835213 1835473 :=
+  s_1835463.append (by norm_num) r_1835463
+private theorem s_1835483 : RangeOk getRow 2051521 1835213 1835483 :=
+  s_1835473.append (by norm_num) r_1835473
+private theorem s_1835495 : RangeOk getRow 2051521 1835213 1835495 :=
+  s_1835483.append (by norm_num) r_1835483
+private theorem s_1835505 : RangeOk getRow 2051521 1835213 1835505 :=
+  s_1835495.append (by norm_num) r_1835495
+private theorem s_1835516 : RangeOk getRow 2051521 1835213 1835516 :=
+  s_1835505.append (by norm_num) r_1835505
+private theorem s_1835527 : RangeOk getRow 2051521 1835213 1835527 :=
+  s_1835516.append (by norm_num) r_1835516
+private theorem s_1835537 : RangeOk getRow 2051521 1835213 1835537 :=
+  s_1835527.append (by norm_num) r_1835527
+private theorem s_1835548 : RangeOk getRow 2051521 1835213 1835548 :=
+  s_1835537.append (by norm_num) r_1835537
+private theorem s_1835561 : RangeOk getRow 2051521 1835213 1835561 :=
+  s_1835548.append (by norm_num) r_1835548
+private theorem s_1835571 : RangeOk getRow 2051521 1835213 1835571 :=
+  s_1835561.append (by norm_num) r_1835561
+private theorem s_1835583 : RangeOk getRow 2051521 1835213 1835583 :=
+  s_1835571.append (by norm_num) r_1835571
+private theorem s_1835594 : RangeOk getRow 2051521 1835213 1835594 :=
+  s_1835583.append (by norm_num) r_1835583
+private theorem s_1835605 : RangeOk getRow 2051521 1835213 1835605 :=
+  s_1835594.append (by norm_num) r_1835594
+private theorem s_1835615 : RangeOk getRow 2051521 1835213 1835615 :=
+  s_1835605.append (by norm_num) r_1835605
+private theorem s_1835626 : RangeOk getRow 2051521 1835213 1835626 :=
+  s_1835615.append (by norm_num) r_1835615
+private theorem s_1835636 : RangeOk getRow 2051521 1835213 1835636 :=
+  s_1835626.append (by norm_num) r_1835626
+private theorem s_1835648 : RangeOk getRow 2051521 1835213 1835648 :=
+  s_1835636.append (by norm_num) r_1835636
+private theorem s_1835658 : RangeOk getRow 2051521 1835213 1835658 :=
+  s_1835648.append (by norm_num) r_1835648
+private theorem s_1835669 : RangeOk getRow 2051521 1835213 1835669 :=
+  s_1835658.append (by norm_num) r_1835658
+private theorem s_1835679 : RangeOk getRow 2051521 1835213 1835679 :=
+  s_1835669.append (by norm_num) r_1835669
+private theorem s_1835689 : RangeOk getRow 2051521 1835213 1835689 :=
+  s_1835679.append (by norm_num) r_1835679
+private theorem s_1835699 : RangeOk getRow 2051521 1835213 1835699 :=
+  s_1835689.append (by norm_num) r_1835689
+private theorem s_1835712 : RangeOk getRow 2051521 1835213 1835712 :=
+  s_1835699.append (by norm_num) r_1835699
+private theorem s_1835722 : RangeOk getRow 2051521 1835213 1835722 :=
+  s_1835712.append (by norm_num) r_1835712
+private theorem s_1835733 : RangeOk getRow 2051521 1835213 1835733 :=
+  s_1835722.append (by norm_num) r_1835722
+private theorem s_1835743 : RangeOk getRow 2051521 1835213 1835743 :=
+  s_1835733.append (by norm_num) r_1835733
+private theorem s_1835753 : RangeOk getRow 2051521 1835213 1835753 :=
+  s_1835743.append (by norm_num) r_1835743
+private theorem s_1835763 : RangeOk getRow 2051521 1835213 1835763 :=
+  s_1835753.append (by norm_num) r_1835753
+private theorem s_1835774 : RangeOk getRow 2051521 1835213 1835774 :=
+  s_1835763.append (by norm_num) r_1835763
+private theorem s_1835786 : RangeOk getRow 2051521 1835213 1835786 :=
+  s_1835774.append (by norm_num) r_1835774
+private theorem s_1835796 : RangeOk getRow 2051521 1835213 1835796 :=
+  s_1835786.append (by norm_num) r_1835786
+private theorem s_1835806 : RangeOk getRow 2051521 1835213 1835806 :=
+  s_1835796.append (by norm_num) r_1835796
+private theorem s_1835821 : RangeOk getRow 2051521 1835213 1835821 :=
+  s_1835806.append (by norm_num) r_1835806
+private theorem s_1835831 : RangeOk getRow 2051521 1835213 1835831 :=
+  s_1835821.append (by norm_num) r_1835821
+private theorem s_1835846 : RangeOk getRow 2051521 1835213 1835846 :=
+  s_1835831.append (by norm_num) r_1835831
+private theorem s_1835858 : RangeOk getRow 2051521 1835213 1835858 :=
+  s_1835846.append (by norm_num) r_1835846
+private theorem s_1835871 : RangeOk getRow 2051521 1835213 1835871 :=
+  s_1835858.append (by norm_num) r_1835858
+private theorem s_1835881 : RangeOk getRow 2051521 1835213 1835881 :=
+  s_1835871.append (by norm_num) r_1835871
+private theorem s_1835891 : RangeOk getRow 2051521 1835213 1835891 :=
+  s_1835881.append (by norm_num) r_1835881
+private theorem s_1835901 : RangeOk getRow 2051521 1835213 1835901 :=
+  s_1835891.append (by norm_num) r_1835891
+private theorem s_1835913 : RangeOk getRow 2051521 1835213 1835913 :=
+  s_1835901.append (by norm_num) r_1835901
+private theorem s_1835923 : RangeOk getRow 2051521 1835213 1835923 :=
+  s_1835913.append (by norm_num) r_1835913
 
-/-- Rows `[1796522, 1796949)` are valid. -/
-theorem rangeOk_1796522_1796949 : RangeOk getRow 2051521 1796522 1796949 := s_1796949
+/-- Rows `[1835213, 1835923)` are valid. -/
+theorem rangeOk_1835213_1835923 : RangeOk getRow 2051521 1835213 1835923 := s_1835923
 
 end Noperthedron.Solution
