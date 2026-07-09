@@ -618,6 +618,34 @@ instance (priority := high) instDecidablePy (Qi : Fin 3 → VertexIndex)
 
 end BεℚPy
 
+/-! ### Kernel-path vertex reads for the remaining `Row.ValidLocal` conjuncts
+
+The `Aεℚσ`/`Spanningℚ`/`BoundRℚ` conjuncts read vertices through
+`pythonVertexA`; under `decide +kernel` its backing `Array.ofFn` push chain
+re-reduces as a quadratic `List.concat` walk (~150k list-step unfoldings per
+local row — the dominant cost, per kernel diagnostics). These instances
+transport each conjunct to the curried `pythonVertex`, whose lookups cost the
+kernel a few dozen `Fin.cons` steps; compiled code still gets `O(1)` array
+reads via `pythonVertex`'s `@[csimp]`. -/
+
+instance (priority := high) Aεℚσ.instDecidablePyV (X : Fin 3 → ℚ)
+    (idx : Fin 3 → VertexIndex) (ε : ℚ) (σ : ℕ) (approx : RationalApprox.Approx) :
+    Decidable (Local.TriangleQ.Aεℚσ X (pythonVertexA ∘ idx) ε σ approx) :=
+  decidable_of_iff (Local.TriangleQ.Aεℚσ X (pythonVertex ∘ idx) ε σ approx)
+    (by rw [pythonVertexA_eq])
+
+instance (priority := high) Spanningℚ.instDecidablePyV (θ φ ε : ℚ)
+    (idx : Fin 3 → VertexIndex) :
+    Decidable (Spanningℚ θ φ ε (pythonVertexA ∘ idx)) :=
+  decidable_of_iff (Spanningℚ θ φ ε (pythonVertex ∘ idx))
+    (by rw [pythonVertexA_eq])
+
+instance (priority := high) BoundRℚ.instDecidablePyV (r ε : ℚ) (p : Pose ℚ)
+    (idx : Fin 3 → VertexIndex) (approx : RationalApprox.Approx) :
+    Decidable (RationalApprox.LocalTheorem.BoundRℚ r ε p (pythonVertexA ∘ idx) approx) :=
+  decidable_of_iff (RationalApprox.LocalTheorem.BoundRℚ r ε p (pythonVertex ∘ idx) approx)
+    (by rw [pythonVertexA_eq])
+
 /-- Assertion that a row constitutes a valid application of the rational global theorem.
 
 The vertex functions are the table-backed `pythonVertexA` (equal to
