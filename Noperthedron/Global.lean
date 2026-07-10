@@ -536,7 +536,7 @@ lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
     · exact hθ₁
     · exact hφ₁
   have hz := bounded_partials_control_difference2
-    pc.fu (rotation_partials_exist S_norm_pos)
+    pc.fu rotation_partials_exist
     pbar.innerParams p.innerParams ![εα, εθ₁, εφ₁] hεv hdiffv
     (rotation_third_partials_bounded pc.S pc.w_unit)
   rw [show ∑ i, ![εα, εθ₁, εφ₁] i = εα + εθ₁ + εφ₁ by simp [Fin.sum_univ_three]] at hz
@@ -603,7 +603,7 @@ lemma global_theorem_inequality_iv {ι : Type} [Fintype ι] [Nonempty ι]
     · exact hθ₂
     · exact hφ₂
   have hz := bounded_partials_control_difference2
-    (pc.fu_outer P) (rotation_partials_exist_outer P_norm_pos)
+    (pc.fu_outer P) rotation_partials_exist_outer
     pbar.outerParams p.outerParams ![εθ₂, εφ₂] hεv hdiffv
     (rotation_third_partials_bounded_outer P pc.w_unit)
   rw [show ∑ i, ![εθ₂, εφ₂] i = εθ₂ + εφ₂ by simp [Fin.sum_univ_two]] at hz
