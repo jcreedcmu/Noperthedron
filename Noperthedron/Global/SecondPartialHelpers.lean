@@ -95,6 +95,26 @@ lemma differentiable_rotMφφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpa
   intro i j
   fin_cases i <;> fin_cases j <;> simp [rotMφφ_mat] <;> fun_prop
 
+/-- Joint differentiability of `rotMθθφ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMθθφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMθθφ (f x) (g x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotMθθφ_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotMθθφ_mat] <;> fun_prop
+
+/-- Joint differentiability of `rotMθφφ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMθφφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMθφφ (f x) (g x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotMθφφ_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotMθφφ_mat] <;> fun_prop
+
 /-- Joint differentiability of `rotR` in the angle and the vector. -/
 @[fun_prop]
 lemma differentiable_rotR_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
