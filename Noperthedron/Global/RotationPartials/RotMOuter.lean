@@ -23,17 +23,6 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
-private lemma outerParams_0 (pbar : Pose ℝ) : pbar.outerParams.ofLp 0 = pbar.θ₂ := by simp [Pose.outerParams]
-private lemma outerParams_1 (pbar : Pose ℝ) : pbar.outerParams.ofLp 1 = pbar.φ₂ := by simp [Pose.outerParams]
-
-/-- Coordinate extraction in `E 2`: direction `e_i`, same coordinate (moves). -/
-private lemma coord2_same (i : Fin 2) (y : E 2) (t : ℝ) :
-    (y + t • (EuclideanSpace.single i 1 : E 2)).ofLp i = y.ofLp i + t := by simp
-
-/-- Coordinate extraction in `E 2`: direction `e_i`, different coordinate (fixed). -/
-private lemma coord2_other {i j : Fin 2} (hij : j ≠ i) (y : E 2) (t : ℝ) :
-    (y + t • (EuclideanSpace.single i 1 : E 2)).ofLp j = y.ofLp j := by simp [hij]
-
 /-- The fderiv of rotM applied to a fixed vector P, as a function of (θ, φ).
 Columns: [rotMθ, rotMφ]. -/
 noncomputable
