@@ -39,17 +39,17 @@ To check the solution table, first make sure that you have `git-lfs`. Then unzip
 unzip solution_tree_v6.zip
 ```
 
-To run the expensive kernel check:
+To run the expensive kernel check (> 200 core hours):
 ```
 lake build KernelCaseAnalysis
 ```
 
-To run the less expensive `native_decide` check:
+To run the less expensive `native_decide` check (~ 8 core hours):
 ```
 lake build NativeCaseAnalysis
 ```
 
-To run the even less expensive native executable check:
+To run the even less expensive native executable check (< 1 core hour) :
 
 ```
 lake exe constructValidTable solution_tree_v6.csv
