@@ -24,7 +24,9 @@ import Noperthedron.Global.RotationPartials.Rotproj
 import Noperthedron.Global.RotationPartials.SecondPartialInner
 import Noperthedron.Global.RotationPartials.SecondPartialOuter
 import Noperthedron.Global.SecondPartialHelpers
+import Noperthedron.Global.SymbolicRotationCore
 import Noperthedron.Global.SymbolicRotationDerivs
+import Noperthedron.Global.SymbolicRotationOuter
 import Noperthedron.Global.SymbolicRotationSemantics
 import Noperthedron.Local
 import Noperthedron.Local.Congruent
