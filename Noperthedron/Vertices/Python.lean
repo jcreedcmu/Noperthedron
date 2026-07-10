@@ -153,6 +153,12 @@ lemma pythonVertexA_eq : pythonVertexA = pythonVertex := by
   simp only [pythonVertexA, pythonVertexTable, Array.getElem_ofFn, pythonVertex,
     e1, e2, e3, e4, Fin.eta]
 
+/-- Compiled reads of `pythonVertex` go through the array table (one `O(1)`
+read, no division); the kernel keeps reducing the honest curried definition. -/
+@[csimp]
+theorem pythonVertex_eq_pythonVertexA : @pythonVertex = @pythonVertexA :=
+  pythonVertexA_eq.symm
+
 def pythonPolyQ : Polyhedron VertexIndex (Fin 3 → ℚ) := ⟨pythonVertex⟩
 
 noncomputable

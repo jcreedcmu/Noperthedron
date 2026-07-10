@@ -2,6 +2,7 @@ import Mathlib.Data.Finset.Max
 
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Python
+import Noperthedron.Vertices.PythonInt
 import Noperthedron.Vertices.Trig
 import Noperthedron.RationalApprox.RationalGlobal
 
@@ -19,12 +20,15 @@ abbrev Row.G_gt_maxH (r : Row) : Prop :=
   RationalApprox.GlobalTheorem.Gℚ r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.S r.w >
     RationalApprox.GlobalTheorem.maxHℚ r.interval.centerPose pythonPolyQ r.εθ₂ r.εφ₂ r.w
 
-/-- Fast Decidable instance for `Row.G_gt_maxH` that hoists per-pose work out
-of the per-vertex iteration. See `Gℚ_gt_maxHℚ_check` in `RationalGlobal.lean`. -/
+/-- Fast Decidable instance for `Row.G_gt_maxH`: per-pose work is hoisted out
+of the per-vertex iteration, and the per-vertex tier tests run on integers
+(`Gℚ_gt_maxHℚ_checkN` in `RationalGlobal.lean`), reading vertex coordinates
+from the integer literal table `pythonVertexNum`. -/
 instance (r : Row) : Decidable r.G_gt_maxH :=
   decidable_of_iff _ <|
-    RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_check_iff
-      r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂_nonneg r.εφ₂_nonneg r.S pythonPolyQ r.w
+    RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_checkN_iff
+      r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂_nonneg r.εφ₂_nonneg r.S pythonPolyQ
+      pythonVertexNum (fun k c => pythonVertexNumCurried_eq k.ℓ k.i k.k c) r.w
 
 /-! ## The main checker -/
 

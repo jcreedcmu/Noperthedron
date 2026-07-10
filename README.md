@@ -26,14 +26,14 @@ The proof of the main theorem, given existence of a valid solution table, lives 
 The program to construct a valid solution table is [constructValidTable.lean](constructValidTable.lean).
 
 The complete proof of the main theorem lives in the build-on-demand
-`VerifiedNative` library ([VerifiedNative/ProofOfMainTheorem.lean](VerifiedNative/ProofOfMainTheorem.lean)).
+`NativeCaseAnalysis` library ([NativeCaseAnalysis/ProofOfMainTheorem.lean](NativeCaseAnalysis/ProofOfMainTheorem.lean)).
 Its expensive step —
-[VerifiedNative/ComputationalStep.lean](VerifiedNative/ComputationalStep.lean),
+[NativeCaseAnalysis/ComputationalStep.lean](NativeCaseAnalysis/ComputationalStep.lean),
 which checks all ~2 million solution-table rows with `native_decide` — is kept out
 of the default build targets so that every CI run does not take hours to complete.
 Run it yourself (about 25 minutes on 16 cores, with `solution_tree_v6.csv` unzipped
-at the repo root) with `lake build VerifiedNative`. A kernel-only variant
-(`VerifiedKernel`), which removes the compiler from the trusted base, is in
+at the repo root) with `lake build NativeCaseAnalysis`. A kernel-only variant
+(`KernelCaseAnalysis`), which removes the compiler from the trusted base, is in
 progress.
 
 ## Getting Started

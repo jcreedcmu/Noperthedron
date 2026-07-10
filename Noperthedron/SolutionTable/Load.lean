@@ -129,6 +129,42 @@ def mkCtx : TermElabM Ctx := do
     mkLambdaFVars #[x, y] inst
   return { poseQ, leInst, dle, sigma0 := ← elabSigma 0, sigma1 := ← elabSigma 1 }
 
+/-- Read and parse rows `[lo, hi)` of the CSV. -/
+private def readRows (path : String) (lo hi : ℕ) : Command.CommandElabM (Array Row) := do
+  unless lo < hi do throwError "empty row range [{lo}, {hi})"
+  let csv ← IO.FS.readFile path
+  let lines := (csv.splitOn "\n").toArray
+  let mut rows : Array Row := #[]
+  for i in [lo:hi] do
+    unless i + 1 < lines.size do
+      throwError "row {i} out of range (file has {lines.size - 2} rows)"
+    match parseRowCsv lines[i + 1]! with
+    | .ok r =>
+      unless r.ID = i do throwError "row ID mismatch at {i}: parsed ID {r.ID}"
+      rows := rows.push r
+    | .error e => throwError "parse error at row {i}: {e}"
+  return rows
+
+/-- Add `csvRows_<lo>_<hi> : List Row` for the given rows (literal `Expr`s,
+compiled or `noncomputable` per `comp`). -/
+private def addChunk (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
+    (comp : Bool) : TermElabM Unit := do
+  let rowTy := mkConst ``Row
+  let listE := rows.foldr
+    (fun r acc => mkApp3 (mkConst ``List.cons [Level.zero]) rowTy (rowE ctx r) acc)
+    (mkApp (mkConst ``List.nil [Level.zero]) rowTy)
+  let chunkNm := ns ++ Name.mkSimple s!"csvRows_{lo}_{hi}"
+  addDecl <| .defnDecl {
+    name := chunkNm, levelParams := [],
+    type := mkApp (mkConst ``List [Level.zero]) rowTy, value := listE,
+    hints := .abbrev, safety := .safe }
+  if comp then
+    compileDecls #[chunkNm]
+  else
+    -- No executable code (the kernel route never runs the chunk), so mark
+    -- it noncomputable for clean downstream errors.
+    modifyEnv (addNoncomputable · chunkNm)
+
 /-- `load_csv_rows "path.csv" from a to b` reads rows `[a, b)` of the
 solution-tree CSV and adds them to the environment as one literal definition
 `csvRows_<a>_<b> : List Row`. Loading only — validate the chunk with ordinary
@@ -141,42 +177,41 @@ elab "load_csv_rows " path:str " from " a:num " to " b:num
     c:(&"compiled")? : command => do
   let lo := a.getNat
   let hi := b.getNat
-  unless lo < hi do throwError "empty row range [{lo}, {hi})"
   let t0 ← IO.monoMsNow
-  let csv ← IO.FS.readFile path.getString
-  let lines := (csv.splitOn "\n").toArray
-  let tRead ← IO.monoMsNow
-  let mut rows : Array Row := #[]
-  for i in [lo:hi] do
-    unless i + 1 < lines.size do
-      throwError "row {i} out of range (file has {lines.size - 2} rows)"
-    match parseRowCsv lines[i + 1]! with
-    | .ok r =>
-      unless r.ID = i do throwError "row ID mismatch at {i}: parsed ID {r.ID}"
-      rows := rows.push r
-    | .error e => throwError "parse error at row {i}: {e}"
+  let rows ← readRows path.getString lo hi
   let tParse ← IO.monoMsNow
   let ns ← getCurrNamespace
   Command.liftTermElabM do
     let ctx ← mkCtx
-    let rowTy := mkConst ``Row
-    let listE := rows.foldr
-      (fun r acc => mkApp3 (mkConst ``List.cons [Level.zero]) rowTy (rowE ctx r) acc)
-      (mkApp (mkConst ``List.nil [Level.zero]) rowTy)
-    let chunkNm := ns ++ Name.mkSimple s!"csvRows_{lo}_{hi}"
-    addDecl <| .defnDecl {
-      name := chunkNm, levelParams := [],
-      type := mkApp (mkConst ``List [Level.zero]) rowTy, value := listE,
-      hints := .abbrev, safety := .safe }
-    if c.isSome then
-      compileDecls #[chunkNm]
-    else
-      -- No executable code (the kernel route never runs the chunk), so mark
-      -- it noncomputable for clean downstream errors.
-      modifyEnv (addNoncomputable · chunkNm)
+    addChunk ctx ns lo hi rows c.isSome
     let tDefs ← IO.monoMsNow
-    logInfo m!"load_csv_rows [{lo}, {hi}): read {tRead - t0} ms, \
-      parse {tParse - tRead} ms, define+check {tDefs - tParse} ms"
+    logInfo m!"load_csv_rows [{lo}, {hi}): read+parse {tParse - t0} ms, \
+      define+check {tDefs - tParse} ms"
+
+/-- `load_csv_chunks "path.csv" from a to b chunkSize c` reads rows `[a, b)`
+in one pass and adds one `csvRows_<x>_<min (x+c) b> : List Row` definition per
+`c`-aligned sub-range (`a` should be a multiple of `c` so the names line up
+with the global chunk grid of `assemble_row_dispatch`). -/
+elab "load_csv_chunks " path:str " from " a:num " to " b:num
+    " chunkSize " c:num comp:(&"compiled")? : command => do
+  let lo := a.getNat
+  let hi := b.getNat
+  let cs := c.getNat
+  unless 0 < cs do throwError "chunkSize must be positive"
+  let t0 ← IO.monoMsNow
+  let rows ← readRows path.getString lo hi
+  let tParse ← IO.monoMsNow
+  let ns ← getCurrNamespace
+  Command.liftTermElabM do
+    let ctx ← mkCtx
+    let mut x := lo
+    while x < hi do
+      let y := min (x + cs) hi
+      addChunk ctx ns x y (rows.extract (x - lo) (y - lo)) comp.isSome
+      x := y
+    let tDefs ← IO.monoMsNow
+    logInfo m!"load_csv_chunks [{lo}, {hi}) by {cs}: read+parse {tParse - t0} ms, \
+      define+check {tDefs - tParse} ms"
 
 /-- `assemble_row_dispatch d rows N chunkSize C` defines
 

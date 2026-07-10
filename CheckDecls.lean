@@ -4,8 +4,8 @@ import Lake.CLI.Main
 Vendored, patched copy of https://github.com/PatrickMassot/checkdecls.
 
 The upstream version imports the roots of *every* `lean_lib` in the root
-package, which fails when the build-on-demand libraries (`VerifiedNative`,
-`VerifiedKernel` — deliberately kept out of `defaultTargets` so CI never pays
+package, which fails when the build-on-demand libraries (`NativeCaseAnalysis`,
+`KernelCaseAnalysis` — deliberately kept out of `defaultTargets` so CI never pays
 for them) have not been built. This copy imports only the libraries listed in
 `defaultTargets` — i.e. it checks the blueprint's declarations against what
 CI actually builds — and falls back to upstream behavior when
