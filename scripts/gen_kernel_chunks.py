@@ -36,7 +36,7 @@ root. -/
 
 namespace Noperthedron.Solution
 
-load_csv_chunks "solution_tree_v6.csv" from {a} to {b} chunkSize {C}
+load_csv_chunks_curried "solution_tree_v6.csv" from {a} to {b} chunkSize {C}
 
 end Noperthedron.Solution
 """)
@@ -52,11 +52,11 @@ all {NCHUNKS} loaded chunks and the row getter for the kernel run. -/
 
 namespace Noperthedron.Solution
 
-assemble_row_dispatch tableDispatch rows {N} chunkSize {C}
+assemble_row_dispatch_curried tableDispatch rows {N} chunkSize {C}
 
-/-- The full-table row getter: dispatch walk ≤ 32 cells plus ≤ {C} list
-cells per access. -/
-noncomputable def getRow : ℕ → Row := rowGetter tableDispatch {C}
+/-- The full-table row getter: seven `Fin 8` digit levels per access
+(`O(log)`), no `List` walk. -/
+noncomputable def getRow : ℕ → Row := rowGetterC tableDispatch
 
 end Noperthedron.Solution
 """)
@@ -76,14 +76,17 @@ def read_node_types():
     assert len(types) == N, len(types)
     return types
 
-# per-row kernel memory (MB) and time (s) model, calibrated on probes
-# 2026-07-08 (Validate0000 tree-top full splits; chunk 7877 binary splits;
-# 24-row local range at row 1867264). Local recalibrated 2026-07-09 after
-# the pythonVertexA kernel-walk fix (6501604): pure-local RangeOk probes at
-# rows 1205362/1205370/1867263 measure 0.67-0.80 s and 138-155 MB per row;
-# coefficients carry ~15% margin.
+# per-row kernel memory (MB) and time (s) model, recalibrated 2026-07-10
+# after the all-Nat fast checkers (Checker/GlobalNat, Checker/LocalFastNat),
+# the packed vertex/pair-norm tables, and the curried O(log) getter
+# (rowGetterC):
+# globals ~32 ms (1-row RangeOk probes at 8018..8025), locals ~139 ms
+# (2-row leafOk probe at 1008268 + getter), small splits ~15 ms and
+# 30-child splits ~88 ms (RangeOk probes rows 25..65 / 1..5 through an
+# imported mini dispatch). Times carry ~20% margin; memory kept at the
+# conservative pre-fast-path values (the fast paths build smaller caches).
 COST_MB = {1: 25, 2: 175, 3: 21, 4: 130}
-COST_S  = {1: 0.30, 2: 0.85, 3: 0.08, 4: 0.35}
+COST_S  = {1: 0.038, 2: 0.17, 3: 0.018, 4: 0.10}
 MB_BUDGET = 1600      # per-declaration term-cache budget
 S_PER_FILE = 500      # target kernel seconds per file
 MAX_RANGE = 1000

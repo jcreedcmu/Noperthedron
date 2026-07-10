@@ -350,6 +350,22 @@ chunk constants; `rowGetter` turns it into the `ℕ → Row` getter. A kernel
 access costs ≤ 32 `Matrix.vecCons` cells for the dispatch walk plus at most
 `chunkSize` `List` cells within the chunk. -/
 
+/-- The `O(log)` getter over a curried dispatch
+(`assemble_row_dispatch_curried`): seven `Fin 8` digit steps, no `List`
+walk. -/
+def rowGetterC
+    (dispatch : Fin 8 → Fin 8 → Fin 8 → Fin 8 → (Fin 8 → Fin 8 → Fin 8 → Row))
+    (i : ℕ) : Row :=
+  let k := i / 512
+  let j := i % 512
+  dispatch ⟨k / 512 % 8, Nat.mod_lt _ (by norm_num)⟩
+           ⟨k / 64 % 8, Nat.mod_lt _ (by norm_num)⟩
+           ⟨k / 8 % 8, Nat.mod_lt _ (by norm_num)⟩
+           ⟨k % 8, Nat.mod_lt _ (by norm_num)⟩
+           ⟨j / 64 % 8, Nat.mod_lt _ (by norm_num)⟩
+           ⟨j / 8 % 8, Nat.mod_lt _ (by norm_num)⟩
+           ⟨j % 8, Nat.mod_lt _ (by norm_num)⟩
+
 def rowGetter (dispatch : Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row)
     (chunkSize : ℕ) (i : ℕ) : Row :=
   let k := i / chunkSize

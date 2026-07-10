@@ -165,6 +165,45 @@ private def addChunk (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
     -- it noncomputable for clean downstream errors.
     modifyEnv (addNoncomputable · chunkNm)
 
+/-- Add `csvRowsC_<lo>_<hi> : Fin 8 → Fin 8 → Fin 8 → Row` for the given
+rows (`hi - lo ≤ 512 = 8³`; slots past the end repeat the last row — they
+are never evaluated, since every checked index is guarded by `< size`).
+Under the kernel an in-chunk access walks at most `3 × 7` `Fin.cons` cells
+instead of an `O(offset)` `List` walk. -/
+private def addChunkCurried (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
+    (comp : Bool) : TermElabM Unit := do
+  let rowTy := mkConst ``Row
+  unless rows.size ≤ 512 ∧ 0 < rows.size do
+    throwError "addChunkCurried: chunk size {rows.size} not in (0, 512]"
+  let fin8Ty := mkApp (mkConst ``Fin) (natE 8)
+  let vecConsE := mkConst ``Matrix.vecCons [Level.zero]
+  let vecEmptyE := mkConst ``Matrix.vecEmpty [Level.zero]
+  let vec8 : Expr → Array Expr → Expr := fun τ es => Id.run do
+    let mut acc := mkApp vecEmptyE τ
+    for idx in [0:8] do
+      acc := mkApp4 vecConsE τ (natE idx) es[7 - idx]! acc
+    return acc
+  let pad := rowE ctx rows[rows.size - 1]!
+  let mut level : Array Expr := #[]
+  for j in [0:512] do
+    level := level.push (if h : j < rows.size then rowE ctx rows[j] else pad)
+  let mut τ := rowTy
+  for _ in [0:3] do
+    let mut next : Array Expr := #[]
+    for g in [0:level.size / 8] do
+      next := next.push (vec8 τ (level.extract (8 * g) (8 * g + 8)))
+    level := next
+    τ := mkForall `i .default fin8Ty τ
+  let chunkNm := ns ++ Name.mkSimple s!"csvRowsC_{lo}_{hi}"
+  addDecl <| .defnDecl {
+    name := chunkNm, levelParams := [],
+    type := τ, value := level[0]!,
+    hints := .abbrev, safety := .safe }
+  if comp then
+    compileDecls #[chunkNm]
+  else
+    modifyEnv (addNoncomputable · chunkNm)
+
 /-- `load_csv_rows "path.csv" from a to b` reads rows `[a, b)` of the
 solution-tree CSV and adds them to the environment as one literal definition
 `csvRows_<a>_<b> : List Row`. Loading only — validate the chunk with ordinary
@@ -213,6 +252,31 @@ elab "load_csv_chunks " path:str " from " a:num " to " b:num
     logInfo m!"load_csv_chunks [{lo}, {hi}) by {cs}: read+parse {tParse - t0} ms, \
       define+check {tDefs - tParse} ms"
 
+/-- `load_csv_chunks_curried "path.csv" from a to b chunkSize 512`: like
+`load_csv_chunks`, but each chunk is a curried `Fin 8 → Fin 8 → Fin 8 → Row`
+literal (`csvRowsC_<x>_<y>`), for the `O(log)` getter
+(`assemble_row_dispatch_curried` / `rowGetterC`). `chunkSize` must be 512. -/
+elab "load_csv_chunks_curried " path:str " from " a:num " to " b:num
+    " chunkSize " c:num comp:(&"compiled")? : command => do
+  let lo := a.getNat
+  let hi := b.getNat
+  let cs := c.getNat
+  unless cs = 512 do throwError "chunkSize must be 512 (= 8³)"
+  let t0 ← IO.monoMsNow
+  let rows ← readRows path.getString lo hi
+  let tParse ← IO.monoMsNow
+  let ns ← getCurrNamespace
+  Command.liftTermElabM do
+    let ctx ← mkCtx
+    let mut x := lo
+    while x < hi do
+      let y := min (x + cs) hi
+      addChunkCurried ctx ns x y (rows.extract (x - lo) (y - lo)) comp.isSome
+      x := y
+    let tDefs ← IO.monoMsNow
+    logInfo m!"load_csv_chunks_curried [{lo}, {hi}) by {cs}: read+parse \
+      {tParse - t0} ms, define+check {tDefs - tParse} ms"
+
 /-- `assemble_row_dispatch d rows N chunkSize C` defines
 
     d : Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row
@@ -257,6 +321,64 @@ elab "assemble_row_dispatch " name:ident " rows " n:num " chunkSize " c:num
       else
         level := level.push nilE
     let mut τ := listRowTy
+    for _ in [0:4] do
+      let mut next : Array Expr := #[]
+      for g in [0:level.size / 8] do
+        next := next.push (vec8 τ (level.extract (8 * g) (8 * g + 8)))
+      level := next
+      τ := mkForall `i .default fin8Ty τ
+    let dName := ns ++ name.getId
+    addDecl <| .defnDecl {
+      name := dName, levelParams := [], type := τ,
+      value := level[0]!, hints := .abbrev, safety := .safe }
+    if comp.isSome then
+      compileDecls #[dName]
+    else
+      modifyEnv (addNoncomputable · dName)
+
+/-- `assemble_row_dispatch_curried d rows N chunkSize 512`: like
+`assemble_row_dispatch`, but over the curried chunk constants
+`csvRowsC_{k*512}_{min ((k+1)*512) N}`, producing
+
+    d : Fin 8 → Fin 8 → Fin 8 → Fin 8 → (Fin 8 → Fin 8 → Fin 8 → Row)
+
+Feed it to `rowGetterC d` (see `SolutionTable/Assemble.lean`): a kernel
+access walks ≤ 7 `Fin`-digit levels — `O(log)` instead of the `List`
+walk's `O(offset)`. Slots beyond `⌈N/512⌉` repeat the last chunk (never
+evaluated: every checked index is guarded by `< size`). -/
+elab "assemble_row_dispatch_curried " name:ident " rows " n:num
+    " chunkSize " c:num comp:(&"compiled")? : command => do
+  let N := n.getNat
+  let C := c.getNat
+  unless C = 512 do throwError "chunkSize must be 512 (= 8³)"
+  unless 0 < N do throwError "rows must be positive"
+  let slots := (N + C - 1) / C
+  unless slots ≤ 4096 do throwError "too many chunks: {slots} > 4096"
+  let ns ← getCurrNamespace
+  Command.liftTermElabM do
+    let rowTy := mkConst ``Row
+    let fin8Ty := mkApp (mkConst ``Fin) (natE 8)
+    let chunkTy := mkForall `i .default fin8Ty (mkForall `i .default fin8Ty
+      (mkForall `i .default fin8Ty rowTy))
+    let vecConsE := mkConst ``Matrix.vecCons [Level.zero]
+    let vecEmptyE := mkConst ``Matrix.vecEmpty [Level.zero]
+    let vec8 : Expr → Array Expr → Expr := fun τ es => Id.run do
+      let mut acc := mkApp vecEmptyE τ
+      for idx in [0:8] do
+        acc := mkApp4 vecConsE τ (natE idx) es[7 - idx]! acc
+      return acc
+    let lastNm := ns ++ Name.mkSimple
+      s!"csvRowsC_{(slots - 1) * C}_{min (slots * C) N}"
+    let mut level : Array Expr := #[]
+    for k in [0:4096] do
+      if k < slots then
+        let cn := ns ++ Name.mkSimple s!"csvRowsC_{k * C}_{min ((k + 1) * C) N}"
+        unless (← getEnv).contains cn do
+          throwError "missing chunk constant {cn} (load it first)"
+        level := level.push (mkConst cn)
+      else
+        level := level.push (mkConst lastNm)
+    let mut τ := chunkTy
     for _ in [0:4] do
       let mut next : Array Expr := #[]
       for g in [0:level.size / 8] do

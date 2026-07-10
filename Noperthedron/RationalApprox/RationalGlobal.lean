@@ -28,7 +28,7 @@ namespace Gℚ_gt_maxHℚ
 
 /-- Pre-transposed `Mᵀ·w` 3-vectors so that each per-`P` `Hℚ` evaluation is
 six small dot products instead of six matrix-vector multiplies. -/
-private structure HEntries : Type where
+structure HEntries : Type where
   m2tw   : Fin 3 → ℚ
   m2θtw  : Fin 3 → ℚ
   m2φtw  : Fin 3 → ℚ
@@ -36,7 +36,7 @@ private structure HEntries : Type where
   m2θφtw : Fin 3 → ℚ
   m2φφtw : Fin 3 → ℚ
 
-@[inline] private def hEntries (p : Pose ℚ) (w : Fin 2 → ℚ) : HEntries :=
+@[inline] def hEntries (p : Pose ℚ) (w : Fin 2 → ℚ) : HEntries :=
   let st := (RationalApprox.sinNum13 p.θ₂ : ℚ) / 10 ^ 13
   let ct := (RationalApprox.cosNum13 p.θ₂ : ℚ) / 10 ^ 13
   let sp := (RationalApprox.sinNum13 p.φ₂ : ℚ) / 10 ^ 13
@@ -66,7 +66,7 @@ private structure HEntries : Type where
 /-- `hEntries` with each hoisted vector rounded down to multiples of `10⁻¹³`,
 so the per-`P` dot products run on small denominators. (The checker reads
 these through `HEntries.scalars`, which forces each component once.) -/
-@[inline] private def hEntriesR (p : Pose ℚ) (w : Fin 2 → ℚ) : HEntries :=
+@[inline] def hEntriesR (p : Pose ℚ) (w : Fin 2 → ℚ) : HEntries :=
   let e := hEntries p w
   ⟨round13v e.m2tw, round13v e.m2θtw, round13v e.m2φtw,
    round13v e.m2θθtw, round13v e.m2θφtw, round13v e.m2φφtw⟩
@@ -81,7 +81,7 @@ these through `HEntries.scalars`, which forces each component once.) -/
 `Gℚ` (`R·M₁`, `R'·M₁`, `R·M₁θ`, `R·M₁φ`, `R'·M₁θ`, `R'·M₁φ`, `R·M₁θθ`,
 `R·M₁θφ`, `R·M₁φφ`). With these, each chain in `Gℚ` collapses to a single
 3-element dot product against `S`. -/
-private structure GEntries : Type where
+structure GEntries : Type where
   m1RTw    : Fin 3 → ℚ  -- (R · M₁)ᵀ · w   for `p.innerℚ S ⬝ᵥ w`
   m1R'Tw   : Fin 3 → ℚ  -- (R' · M₁)ᵀ · w  for `p.rotR'ℚ (p.rotM₁ℚ S) ⬝ᵥ w`
   m1θRTw   : Fin 3 → ℚ  -- (R · M₁θ)ᵀ · w  for `p.rotRℚ (p.rotM₁θℚ S) ⬝ᵥ w`
@@ -92,7 +92,7 @@ private structure GEntries : Type where
   m1θφRTw  : Fin 3 → ℚ  -- (R · M₁θφ)ᵀ · w for `p.rotRℚ (p.rotM₁θφℚ S) ⬝ᵥ w`
   m1φφRTw  : Fin 3 → ℚ  -- (R · M₁φφ)ᵀ · w for `p.rotRℚ (p.rotM₁φφℚ S) ⬝ᵥ w`
 
-@[inline] private def gEntries (p : Pose ℚ) (w : Fin 2 → ℚ) : GEntries :=
+@[inline] def gEntries (p : Pose ℚ) (w : Fin 2 → ℚ) : GEntries :=
   let st1 := (RationalApprox.sinNum13 p.θ₁ : ℚ) / 10 ^ 13
   let ct1 := (RationalApprox.cosNum13 p.θ₁ : ℚ) / 10 ^ 13
   let sp1 := (RationalApprox.sinNum13 p.φ₁ : ℚ) / 10 ^ 13
@@ -152,7 +152,7 @@ private structure GEntries : Type where
 
 /-- `gEntries` with each hoisted vector rounded down to multiples of `10⁻¹³`.
 (Each component is read at most twice per row by `fastG`.) -/
-@[inline] private def gEntriesR (p : Pose ℚ) (w : Fin 2 → ℚ) : GEntries :=
+@[inline] def gEntriesR (p : Pose ℚ) (w : Fin 2 → ℚ) : GEntries :=
   let e := gEntries p w
   ⟨round13v e.m1RTw, round13v e.m1R'Tw, round13v e.m1θRTw, round13v e.m1φRTw,
    round13v e.m1θR'Tw, round13v e.m1φR'Tw,
@@ -221,7 +221,7 @@ private lemma m1θφRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 →
 private lemma m1φφRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 → ℚ) :
     (gEntries p w).m1φφRTw ⬝ᵥ S = p.rotRℚ (p.rotM₁φφℚ S) ⬝ᵥ w := by dot_eq_tac
 
-@[inline] private def fastG (entries : GEntries) (εα εθ εφ : ℚ) (S : Fin 3 → ℚ) : ℚ :=
+@[inline] def fastG (entries : GEntries) (εα εθ εφ : ℚ) (S : Fin 3 → ℚ) : ℚ :=
   entries.m1RTw ⬝ᵥ S -
    (εα * |entries.m1R'Tw ⬝ᵥ S| + εθ * |entries.m1θRTw ⬝ᵥ S| + εφ * |entries.m1φRTw ⬝ᵥ S|
      + 1 / 2 * (εα^2 * |entries.m1RTw ⬝ᵥ S|
@@ -236,7 +236,7 @@ private lemma m1φφRTw_dot_eq (p : Pose ℚ) (w : Fin 2 → ℚ) (S : Fin 3 →
 calls) are re-evaluated on every access; structure-constructor arguments are
 evaluated once, at construction, so the checker's per-`P` loop reads
 precomputed scalars. -/
-private structure HScalars : Type where
+structure HScalars : Type where
   a0 : ℚ
   a1 : ℚ
   a2 : ℚ
@@ -256,7 +256,7 @@ private structure HScalars : Type where
   f1 : ℚ
   f2 : ℚ
 
-@[inline] private def HEntries.scalars (e : HEntries) : HScalars :=
+@[inline] def HEntries.scalars (e : HEntries) : HScalars :=
   ⟨e.m2tw 0, e.m2tw 1, e.m2tw 2,
    e.m2θtw 0, e.m2θtw 1, e.m2θtw 2,
    e.m2φtw 0, e.m2φtw 1, e.m2φtw 2,
@@ -267,7 +267,7 @@ private structure HScalars : Type where
 /-- `fastH` on precomputed scalars, with the dot products written out. Takes
 the vertex coordinates as scalars so each is read (a `ℚ` division for the
 table's vertex functions) only once per vertex. -/
-@[inline] private def fastHs (e : HScalars) (εθ εφ : ℚ) (kappaTerm : ℚ) (p0 p1 p2 : ℚ) : ℚ :=
+@[inline] def fastHs (e : HScalars) (εθ εφ : ℚ) (kappaTerm : ℚ) (p0 p1 p2 : ℚ) : ℚ :=
   e.a0 * p0 + e.a1 * p1 + e.a2 * p2
     + εθ * |e.b0 * p0 + e.b1 * p1 + e.b2 * p2| + εφ * |e.c0 * p0 + e.c1 * p1 + e.c2 * p2|
     + 1 / 2 * (εθ^2 * |e.d0 * p0 + e.d1 * p1 + e.d2 * p2|
@@ -293,7 +293,7 @@ ones run the exact six-dot `fastHs`. Since
 
 /-- Upper bound for `fastHs` that replaces the three second-order dot
 products by the precomputed scalar `soBound * (|p0| + |p1| + |p2|)`. -/
-@[inline] private def cheapHs (e : HScalars) (εθ εφ kappaTerm soBound p0 p1 p2 : ℚ) : ℚ :=
+@[inline] def cheapHs (e : HScalars) (εθ εφ kappaTerm soBound p0 p1 p2 : ℚ) : ℚ :=
   e.a0 * p0 + e.a1 * p1 + e.a2 * p2
     + εθ * |e.b0 * p0 + e.b1 * p1 + e.b2 * p2| + εφ * |e.c0 * p0 + e.c1 * p1 + e.c2 * p2|
     + soBound * (|p0| + |p1| + |p2|)
@@ -301,21 +301,21 @@ products by the precomputed scalar `soBound * (|p0| + |p1| + |p2|)`. -/
 
 /-- The per-pose scalar for `cheapHs`: the `(εθ², 2εθεφ, εφ²)/2`-weighted
 ∞-norms of the three second-order vectors. -/
-@[inline] private def soBound (e : HScalars) (εθ εφ : ℚ) : ℚ :=
+@[inline] def soBound (e : HScalars) (εθ εφ : ℚ) : ℚ :=
   1 / 2 * (εθ^2 * max |e.d0| (max |e.d1| |e.d2|)
     + 2 * (εθ * εφ) * max |e.e0| (max |e.e1| |e.e2|)
     + εφ^2 * max |e.f0| (max |e.f1| |e.f2|))
 
 /-- The first-order half of the per-pose scalar for `cheapestHs`: the
 `(εθ, εφ)`-weighted ∞-norms of the two first-order vectors. -/
-@[inline] private def foBound (e : HScalars) (εθ εφ : ℚ) : ℚ :=
+@[inline] def foBound (e : HScalars) (εθ εφ : ℚ) : ℚ :=
   εθ * max |e.b0| (max |e.b1| |e.b2|) + εφ * max |e.c0| (max |e.c1| |e.c2|)
 
 /-- Tier-0 upper bound for `fastHs`: everything past the zeroth-order dot
 product is replaced by the two per-pose scalars
 `fsBound = foBound + soBound` and `kappaRem = (εθ+εφ)³/6 + kappaTerm`, so
 each vertex costs one dot product and one multiply. -/
-@[inline] private def cheapestHs (e : HScalars) (fsBound kappaRem p0 p1 p2 : ℚ) : ℚ :=
+@[inline] def cheapestHs (e : HScalars) (fsBound kappaRem p0 p1 p2 : ℚ) : ℚ :=
   e.a0 * p0 + e.a1 * p1 + e.a2 * p2 + fsBound * (|p0| + |p1| + |p2|) + kappaRem
 
 private lemma abs_dot3_le (d0 d1 d2 p0 p1 p2 : ℚ) :
@@ -363,7 +363,7 @@ private lemma fastHs_le_cheapestHs {εθ εφ : ℚ} (hεθ : 0 ≤ εθ) (hεφ
 then `cheapHs` (three), and fall back to the exact `fastHs` (six) only if
 both fail. `Bool.or` is short-circuiting, so the later tiers are not
 evaluated when an earlier test passes. -/
-@[inline] private def tieredHs_lt (e : HScalars) (εθ εφ kappaTerm soB fsB kR g p0 p1 p2 : ℚ) :
+@[inline] def tieredHs_lt (e : HScalars) (εθ εφ kappaTerm soB fsB kR g p0 p1 p2 : ℚ) :
     Bool :=
   decide (g > cheapestHs e fsB kR p0 p1 p2) ||
   decide (g > cheapHs e εθ εφ kappaTerm soB p0 p1 p2) ||
@@ -768,7 +768,7 @@ private lemma abs_intCast_div (n D : ℤ) (hD : (0:ℤ) < D) :
   push_cast
   ring_nf
 
-private lemma abs_intCast_div16 (n : ℤ) :
+lemma abs_intCast_div16 (n : ℤ) :
     |(n : ℚ) / 10 ^ 16| = ((|n| : ℤ) : ℚ) / 10 ^ 16 := by
   rw [abs_div, abs_of_pos (by positivity : (0:ℚ) < (10:ℚ) ^ 16)]
   push_cast

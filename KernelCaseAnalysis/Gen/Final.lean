@@ -1,4 +1,4 @@
-import KernelCaseAnalysis.Gen.Combine15
+import KernelCaseAnalysis.Gen.Combine02
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): every index of the full table
 satisfies `Row.ValidIxAt`, and row 0 carries `rowZero.interval`. -/

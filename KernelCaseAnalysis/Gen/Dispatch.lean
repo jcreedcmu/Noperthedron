@@ -256,10 +256,10 @@ all 4007 loaded chunks and the row getter for the kernel run. -/
 
 namespace Noperthedron.Solution
 
-assemble_row_dispatch tableDispatch rows 2051521 chunkSize 512
+assemble_row_dispatch_curried tableDispatch rows 2051521 chunkSize 512
 
-/-- The full-table row getter: dispatch walk ≤ 32 cells plus ≤ 512 list
-cells per access. -/
-noncomputable def getRow : ℕ → Row := rowGetter tableDispatch 512
+/-- The full-table row getter: seven `Fin 8` digit levels per access
+(`O(log)`), no `List` walk. -/
+noncomputable def getRow : ℕ → Row := rowGetterC tableDispatch
 
 end Noperthedron.Solution
