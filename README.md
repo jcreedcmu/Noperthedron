@@ -10,31 +10,19 @@ We prove, using the Lean 4 theorem prover, that the Noperthedron does not "[fit 
 <img src="./home_page/assets/noperthedron.png" width="200" alt="noperthedron">
 </p>
 
-See the [dependency graph](https://jcreedcmu.github.io/Noperthedron/blueprint/dep_graph_document.html) for an overview of the project's structure.
-
-The proof involves constructing a large tree object and verifying that it has certain properties.
-The original authors performed [their version of this computation](https://github.com/Jakob256/Rupert) using Sagemath.
-We perform the computation in a natively-compiled Lean program that emits a value of a carefully crafted type called `ValidTable`.
-
-## Project Structure
-
-The definition of the main theorem proposition lives in [MainTheorem.lean](Noperthedron/MainTheorem.lean).
+The definition of the main theorem's *proposition* lives in [MainTheorem.lean](Noperthedron/MainTheorem.lean).
 
 The proof of the main theorem, given existence of a valid solution table, lives in
 [ProofOfMainTheoremWithHole.lean](Noperthedron/ProofOfMainTheoremWithHole.lean).
 
-The program to construct a valid solution table is [constructValidTable.lean](constructValidTable.lean).
+Construction of a valid solution table requires a large case analysis. We provide
+three different versions:
 
-The complete proof of the main theorem lives in the build-on-demand
-`NativeCaseAnalysis` library ([NativeCaseAnalysis/ProofOfMainTheorem.lean](NativeCaseAnalysis/ProofOfMainTheorem.lean)).
-Its expensive step —
-[NativeCaseAnalysis/ComputationalStep.lean](NativeCaseAnalysis/ComputationalStep.lean),
-which checks all ~2 million solution-table rows with `native_decide` — is kept out
-of the default build targets so that every CI run does not take hours to complete.
-Run it yourself (about 25 minutes on 16 cores, with `solution_tree_v6.csv` unzipped
-at the repo root) with `lake build NativeCaseAnalysis`. A kernel-only variant
-(`KernelCaseAnalysis`), which removes the compiler from the trusted base, is in
-progress.
+1. A kernel-only proof [KernelCaseAnalysis/ProofOfMainTheorem.lean](KernelCaseAnalysis/ProofOfMainTheorem.lean) that depends only on the standard 3 axioms `[propext, Classical.choice, Quot.sound]`. This proof takes 16 hours to check on a 16-core machine.
+
+2. A `native_decide` proof [NativeCaseAnalysis/ProofOfMainTheorem.lean](NativeCaseAnalysis/ProofOfMainTheorem.lean) that takes 33 minutes on a 16-core machine.
+
+3. A native executable [`constructValidTable`](constructValidTable.lean) that takes 3 minutes to run on a 16-core machine.
 
 ## Getting Started
 
