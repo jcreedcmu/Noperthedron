@@ -8,10 +8,11 @@ import Noperthedron.Checker.ApproxSqrt
 import Noperthedron.Checker.Global
 import Noperthedron.Checker.KappaApprox
 import Noperthedron.Checker.Local
-import Noperthedron.Checker.LocalNat
 import Noperthedron.Checker.LocalFastNat
+import Noperthedron.Checker.LocalNat
 import Noperthedron.Checker.RowZero
 import Noperthedron.Checker.SqrtDvLiterals
+import Noperthedron.Checker.SqrtDvNat
 import Noperthedron.Checker.SqrtFixed
 import Noperthedron.CommonCenter
 import Noperthedron.ConvertPose
@@ -53,9 +54,11 @@ import Noperthedron.RationalApprox.BoundsKappa3
 import Noperthedron.RationalApprox.BoundsKappa4
 import Noperthedron.RationalApprox.Cast
 import Noperthedron.RationalApprox.EpsKapSpanning
+import Noperthedron.RationalApprox.GlobalNat
 import Noperthedron.RationalApprox.Lemma39
 import Noperthedron.RationalApprox.Lemma42
 import Noperthedron.RationalApprox.MatrixBounds
+import Noperthedron.RationalApprox.NewtonSqrt
 import Noperthedron.RationalApprox.RationalGlobal
 import Noperthedron.RationalApprox.RationalLocal
 import Noperthedron.RationalApprox.TrigInt
@@ -81,6 +84,7 @@ import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.InteriorNonempty
 import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.PythonInt
+import Noperthedron.Vertices.PythonNat
 import Noperthedron.Vertices.Symmetry
 import Noperthedron.Vertices.Taylor
 import Noperthedron.Vertices.Trig
