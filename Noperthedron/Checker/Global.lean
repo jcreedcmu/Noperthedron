@@ -6,6 +6,7 @@ import Noperthedron.Vertices.PythonInt
 import Noperthedron.Vertices.PythonNat
 import Noperthedron.Vertices.Trig
 import Noperthedron.RationalApprox.RationalGlobal
+import Noperthedron.RationalApprox.GlobalNat
 
 /-!
 # Global Validity Checker
