@@ -16,10 +16,9 @@ access. So the kernel never sees the `Array` at all:
   realized as a digit-curried dispatch over chunk constants
   (`rowGetter`, built by `assemble_row_dispatch` in `Load.lean`), so one
   access walks ≤ 32 `Matrix.vecCons` cells plus one ≤ chunkSize list walk.
-* Chunk theorems prove `ChunkOk get size C k` by `decide +kernel`; the
-  `ChunkOkBelow` chain combines them linearly, and
-  `validIxAt_of_chunkOkBelow` turns full coverage into
-  `∀ i : Fin size, Row.ValidIxAt get size i`.
+* Range theorems prove `RangeOk get size a b` by `decide +kernel`;
+  `RangeOk.append` folds them, and `validIxAt_of_rangeOk` turns full
+  coverage into `∀ i : Fin size, Row.ValidIxAt get size i`.
 * At the `Prop` level only, `tableOfGetter get size := Array.ofFn …` gives an
   actual `Table`; `Array.getElem_ofFn` is a *rewrite* (the kernel never
   reduces the array), and `validTableOfGetter` produces the `ValidTable` the
@@ -149,45 +148,6 @@ theorem Table.rowsValid_of_validIxAt
 
 end Bridge
 
-/-! ## Combining per-chunk lemmas
-
-`ChunkOk get size C k` is the statement each generated chunk file proves by
-`decide +kernel`; the `ChunkOkBelow` chain combines them one per step (also
-generated), and full coverage discharges the `∀ i : Fin size` hypothesis. -/
-
-/-- Rows `[C * k, C * (k + 1)) ∩ [0, size)` are valid (getter-based). -/
-def ChunkOk (get : ℕ → Row) (size C k : ℕ) : Prop :=
-  ∀ j : Fin C, C * k + j.val < size → Row.ValidIxAt get size (C * k + j.val)
-deriving Decidable
-
-/-- All chunks with index `< m` are valid. -/
-def ChunkOkBelow (get : ℕ → Row) (size C m : ℕ) : Prop :=
-  ∀ k, k < m → ChunkOk get size C k
-
-theorem chunkOkBelow_zero (get : ℕ → Row) (size C : ℕ) :
-    ChunkOkBelow get size C 0 :=
-  fun _ hk => absurd hk (Nat.not_lt_zero _)
-
-theorem ChunkOkBelow.step {get : ℕ → Row} {size C m : ℕ}
-    (h1 : ChunkOkBelow get size C m) (h2 : ChunkOk get size C m) :
-    ChunkOkBelow get size C (m + 1) := by
-  intro k hk
-  rcases Nat.lt_or_ge k m with h | h
-  · exact h1 k h
-  · have : k = m := by omega
-    subst this
-    exact h2
-
-theorem validIxAt_of_chunkOkBelow {get : ℕ → Row} {size C m : ℕ} (hC : 0 < C)
-    (hcover : size ≤ m * C) (h : ChunkOkBelow get size C m) :
-    ∀ i : Fin size, Row.ValidIxAt get size i := by
-  intro i
-  have hdm : C * (i.val / C) + i.val % C = i.val := Nat.div_add_mod i.val C
-  have hkm : i.val / C < m :=
-    (Nat.div_lt_iff_lt_mul hC).mpr (lt_of_lt_of_le i.isLt hcover)
-  have := h (i.val / C) hkm ⟨i.val % C, Nat.mod_lt _ hC⟩ (by rw [hdm]; exact i.isLt)
-  rwa [hdm] at this
-
 /-! ## Parallel Bool checker (for the `native_decide` route)
 
 One `native_decide` on `rowsValidIxAtParB get size nTasks` discharges the
@@ -300,13 +260,14 @@ theorem validIxAt_of_rowsValidIxAtParB {get : ℕ → Row} {size nTasks : ℕ}
     ∀ i : Fin size, Row.ValidIxAt get size i :=
   validIxAt_of_rowsValidIxAtChunkedB h
 
-/-! ### Adaptive ranges
+/-! ## Combining per-range lemmas (for the kernel route)
 
-`ChunkOk` requires a uniform chunk size, but kernel memory per row varies
-~10× between row types (locals build far larger term caches than globals),
-so the generated validation files size their per-declaration ranges
-adaptively. `RangeOk` is the arbitrary-span analogue, with an append
-combinator and the same end-point conversion. -/
+`RangeOk get size a b` is the statement the generated validation files prove
+by `decide +kernel`, one range per declaration. The spans are sized
+adaptively because kernel memory per row varies ~10× between row types
+(locals build far larger term caches than globals). The generated combine
+files fold the ranges with `RangeOk.append`, and full coverage discharges
+the `∀ i : Fin size` hypothesis via `validIxAt_of_rangeOk`. -/
 
 /-- Rows `[a, b) ∩ [0, size)` are valid (getter-based). -/
 def RangeOk (get : ℕ → Row) (size a b : ℕ) : Prop :=

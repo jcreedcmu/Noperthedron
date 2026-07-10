@@ -14,7 +14,7 @@ runs `decide +kernel` checks today (about half a minute; requires
 * leaf checks (`Row.leafOk`): three global leaves and one local leaf;
 * split checks through the digit-curried row getter
   (`assemble_row_dispatch` / `rowGetter`) — `Row.ValidIxAt`, the exact
-  statement shape the full run will use chunk-by-chunk via `ChunkOk`;
+  statement shape the full run will use range-by-range via `RangeOk`;
 * `#guard_msgs` pins every theorem to the three standard axioms — the build
   fails if `sorryAx` or `ofReduceBool` ever sneaks in.
 -/
