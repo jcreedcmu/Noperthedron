@@ -49,14 +49,14 @@ def checkSolution (csv : String) (n nTasks : ℕ) : Bool :=
 theorem solution_checked : checkSolution solution_csv solutionRows 512 = true := by
   native_decide
 
-theorem exists_solution_table : ∃ (_ : Solution.ValidTable), True := by
+/-- The valid solution table, extracted from the checked parse of the CSV. -/
+noncomputable def solutionTable : Solution.ValidTable := by
   have h := solution_checked
   unfold checkSolution at h
   split at h
   · exact absurd h (by simp)
   · rw [Bool.and_eq_true, decide_eq_true_iff] at h
-    exact ⟨Solution.validTableOfGetter _ solutionRows (by norm_num [solutionRows])
-        h.1 (Solution.validIxAt_of_rowsValidIxAtParB h.2),
-      trivial⟩
+    exact Solution.validTableOfGetter _ solutionRows (by norm_num [solutionRows])
+        h.1 (Solution.validIxAt_of_rowsValidIxAtParB h.2)
 
 end Noperthedron.NativeCaseAnalysis

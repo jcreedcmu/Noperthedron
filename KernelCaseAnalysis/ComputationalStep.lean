@@ -24,9 +24,9 @@ namespace Noperthedron.KernelCaseAnalysis
 
 open Noperthedron Noperthedron.Solution
 
-theorem exists_solution_table : ∃ (_ : Solution.ValidTable), True :=
-  ⟨Solution.validTableOfGetter getRow 2051521 (by norm_num)
-      row0_interval allRows_validIxAt,
-    trivial⟩
+/-- The valid solution table, assembled from the generated chunk tree. -/
+noncomputable def solutionTable : Solution.ValidTable :=
+  Solution.validTableOfGetter getRow 2051521 (by norm_num)
+    row0_interval allRows_validIxAt
 
 end Noperthedron.KernelCaseAnalysis
