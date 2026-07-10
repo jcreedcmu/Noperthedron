@@ -3,6 +3,7 @@ import Mathlib.Data.Finset.Max
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.Vertices.Python
 import Noperthedron.Vertices.PythonInt
+import Noperthedron.Vertices.PythonNat
 import Noperthedron.Vertices.Trig
 import Noperthedron.RationalApprox.RationalGlobal
 
@@ -20,15 +21,104 @@ abbrev Row.G_gt_maxH (r : Row) : Prop :=
   RationalApprox.GlobalTheorem.Gℚ r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.S r.w >
     RationalApprox.GlobalTheorem.maxHℚ r.interval.centerPose pythonPolyQ r.εθ₂ r.εφ₂ r.w
 
-/-- Fast Decidable instance for `Row.G_gt_maxH`: per-pose work is hoisted out
-of the per-vertex iteration, and the per-vertex tier tests run on integers
-(`Gℚ_gt_maxHℚ_checkN` in `RationalGlobal.lean`), reading vertex coordinates
-from the integer literal table `pythonVertexNum`. -/
+/-- The all-`Nat` fast global check for a row: `Gℚ_gt_maxHℚ_fastNat` on the
+packed vertex table. Under `decide +kernel` every per-vertex operation is a
+single accelerated `Nat` primitive. -/
+def Row.fastNatGlobal (r : Row) : Bool :=
+  RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_fastNat pythonVertexBig 90
+    (45 * r.S_index.ℓ.val + 15 * r.S_index.i.val + r.S_index.k.val)
+    r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂ r.εφ₂
+    r.wx_numerator r.wy_numerator r.w_denominator
+
+/-- Every vertex index is `ofFin90` of its flat index (below 90). -/
+private lemma ofFin90_flat : ∀ k : VertexIndex,
+    VertexIndex.ofFin90 ⟨(45 * k.ℓ.val + 15 * k.i.val + k.k.val) % 90,
+      Nat.mod_lt _ (by norm_num)⟩ = k := by
+  decide
+
+theorem Row.fastNatGlobal_sound {r : Row} (h : r.fastNatGlobal = true) :
+    r.G_gt_maxH := by
+  have hsflat : 45 * r.S_index.ℓ.val + 15 * r.S_index.i.val + r.S_index.k.val < 90 := by
+    have h1 := r.S_index.ℓ.isLt
+    have h2 := r.S_index.i.isLt
+    have h3 := r.S_index.k.isLt
+    omega
+  have hvq : ∀ (idx : VertexIndex) (c : Fin 3),
+      pythonVertex idx c = ((pythonVertexNum idx c : ℤ) : ℚ) / 10 ^ 16 :=
+    fun idx c => pythonVertexNumCurried_eq idx.ℓ idx.i idx.k c
+  have hSix : VertexIndex.ofFin90
+      ⟨45 * r.S_index.ℓ.val + 15 * r.S_index.i.val + r.S_index.k.val, hsflat⟩
+      = r.S_index := by
+    have h90 := ofFin90_flat r.S_index
+    simpa only [Nat.mod_eq_of_lt hsflat] using h90
+  have hSspec := pythonVertexBig_spec
+    ⟨45 * r.S_index.ℓ.val + 15 * r.S_index.i.val + r.S_index.k.val, hsflat⟩
+  rw [hSix] at hSspec
+  dsimp only at hSspec
+  obtain ⟨hS0z, hS1z, hS2z⟩ := hSspec
+  refine (RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_check_iff r.interval.centerPose
+    r.εα r.εθ₁ r.εφ₁ r.εθ₂_nonneg r.εφ₂_nonneg r.S pythonPolyQ r.w).mp ?_
+  refine RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_fastNat_sound pythonVertexBig 90
+    (45 * r.S_index.ℓ.val + 15 * r.S_index.i.val + r.S_index.k.val)
+    r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂ r.εφ₂
+    r.wx_numerator r.wy_numerator r.w_denominator r.S pythonPolyQ r.w rfl rfl
+    (fun j => VertexIndex.ofFin90 ⟨j % 90, Nat.mod_lt _ (by norm_num)⟩)
+    ?_ ?_ ?_ ?_ ?_ h
+  · -- coverage
+    intro k
+    have h1 := k.ℓ.isLt
+    have h2 := k.i.isLt
+    have h3 := k.k.isLt
+    exact ⟨45 * k.ℓ.val + 15 * k.i.val + k.k.val, by omega, ofFin90_flat k⟩
+  · -- packed-table field equations
+    intro j hj
+    have hspec := pythonVertexBig_spec ⟨j, hj⟩
+    obtain ⟨hz0, hz1, hz2⟩ := hspec
+    simp only [Nat.mod_eq_of_lt hj]
+    refine ⟨?_, ?_, ?_⟩
+    · rw [show pythonPolyQ.v (VertexIndex.ofFin90 ⟨j, hj⟩) 0
+          = ((pythonVertexNum (VertexIndex.ofFin90 ⟨j, hj⟩) 0 : ℤ) : ℚ) / 10 ^ 16 from
+        hvq _ 0, div_mul_cancel₀ _ (by norm_num : ((10:ℚ) ^ 16) ≠ 0)]
+      exact_mod_cast hz0
+    · rw [show pythonPolyQ.v (VertexIndex.ofFin90 ⟨j, hj⟩) 1
+          = ((pythonVertexNum (VertexIndex.ofFin90 ⟨j, hj⟩) 1 : ℤ) : ℚ) / 10 ^ 16 from
+        hvq _ 1, div_mul_cancel₀ _ (by norm_num : ((10:ℚ) ^ 16) ≠ 0)]
+      exact_mod_cast hz1
+    · rw [show pythonPolyQ.v (VertexIndex.ofFin90 ⟨j, hj⟩) 2
+          = ((pythonVertexNum (VertexIndex.ofFin90 ⟨j, hj⟩) 2 : ℤ) : ℚ) / 10 ^ 16 from
+        hvq _ 2, div_mul_cancel₀ _ (by norm_num : ((10:ℚ) ^ 16) ≠ 0)]
+      exact_mod_cast hz2
+  · -- S 0
+    rw [show r.S 0 = ((pythonVertexNum r.S_index 0 : ℤ) : ℚ) / 10 ^ 16 from hvq _ 0]
+    congr 1
+    rw [hS0z]
+    push_cast
+    ring
+  · -- S 1
+    rw [show r.S 1 = ((pythonVertexNum r.S_index 1 : ℤ) : ℚ) / 10 ^ 16 from hvq _ 1]
+    congr 1
+    rw [hS1z]
+    push_cast
+    ring
+  · -- S 2
+    rw [show r.S 2 = ((pythonVertexNum r.S_index 2 : ℤ) : ℚ) / 10 ^ 16 from hvq _ 2]
+    congr 1
+    rw [hS2z]
+    push_cast
+    ring
+
+/-- Decidable instance for `Row.G_gt_maxH`: try the all-`Nat` fast path
+(`Row.fastNatGlobal`, sound by `fastNatGlobal_sound`); rows it rejects fall
+back to the exact integer checker `Gℚ_gt_maxHℚ_checkN`. On table rows the
+fast path always accepts, so the kernel never evaluates the fallback. -/
 instance (r : Row) : Decidable r.G_gt_maxH :=
-  decidable_of_iff _ <|
-    RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_checkN_iff
-      r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂_nonneg r.εφ₂_nonneg r.S pythonPolyQ
-      pythonVertexNum (fun k c => pythonVertexNumCurried_eq k.ℓ k.i k.k c) r.w
+  dite (r.fastNatGlobal = true)
+    (fun h => .isTrue (Row.fastNatGlobal_sound h))
+    (fun _ =>
+      decidable_of_iff _ <|
+        RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_checkN_iff
+          r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂_nonneg r.εφ₂_nonneg r.S pythonPolyQ
+          pythonVertexNum (fun k c => pythonVertexNumCurried_eq k.ℓ k.i k.k c) r.w)
 
 /-! ## The main checker -/
 
