@@ -551,10 +551,7 @@ private lemma sqrt_le_two_aux (xR : ℝ) (a : ℤ) (numN denN m : ℕ)
     simp
   rw [hsplit]
   have h10a_pos : (0 : ℝ) < (10 : ℝ) ^ (-a) := zpow_pos (by norm_num) _
-  calc Real.sqrt (xR * (100 : ℝ) ^ a) * (10 : ℝ) ^ (-a)
-      ≤ 2 * (b : ℝ) * (10 : ℝ) ^ (-a) :=
-        mul_le_mul_of_nonneg_right hsqY (le_of_lt h10a_pos)
-    _ = 2 * (Nat.sqrt m : ℝ) * (10 : ℝ) ^ (-a) := by rw [hb_def]
+  exact (mul_le_mul_iff_of_pos_right h10a_pos).mpr hsqY
 
 /-- Crude lower accuracy of the implementation: `√(p/q) ≤ 2 · sqrtℚLowImpl`,
 provided the fuel suffices (as in `sqrtℚLowImpl_pos`). -/

@@ -204,9 +204,7 @@ section Bridges
 
 private lemma sqrtNum26_nonneg (S : ℤ) : 0 ≤ sqrtNum26 S := by
   unfold sqrtNum26
-  split
-  · exact le_refl 0
-  · exact_mod_cast Int.natCast_nonneg _
+  positivity
 
 /-- Cross-multiplication for integer-cast fractions with positive
 denominators. -/
@@ -434,17 +432,9 @@ private lemma pair_test_iff
   have hS2 : (0:ℤ) ≤ S2 := hS2def ▸ sqrtNum26_nonneg _
   have henQ : (0:ℚ) < (en : ℚ) := by exact_mod_cast hen_pos
   have hd1pos : (0:ℚ) < (S1 : ℚ) / 10 ^ 16 + 71 / 50 * ((en : ℚ) / (ed : ℚ)) + 3 * (1 / 10 ^ 10) := by
-    have e1 : (0:ℚ) ≤ (S1 : ℚ) / 10 ^ 16 :=
-      div_nonneg (by exact_mod_cast hS1) (by norm_num)
-    have e2 : (0:ℚ) < 71 / 50 * ((en : ℚ) / (ed : ℚ)) :=
-      mul_pos (by norm_num) (div_pos henQ hedQ)
-    linarith
+    positivity
   have hd2pos : (0:ℚ) < (S2 : ℚ) / 10 ^ 16 + 2 * (71 / 50) * ((en : ℚ) / (ed : ℚ)) + 6 * (1 / 10 ^ 10) := by
-    have e1 : (0:ℚ) ≤ (S2 : ℚ) / 10 ^ 16 :=
-      div_nonneg (by exact_mod_cast hS2) (by norm_num)
-    have e2 : (0:ℚ) < 2 * (71 / 50) * ((en : ℚ) / (ed : ℚ)) :=
-      mul_pos (by norm_num) (div_pos henQ hedQ)
-    linarith
+    positivity
   have hd1ne : (S1 : ℚ) / 10 ^ 16 + 71 / 50 * ((en : ℚ) / (ed : ℚ)) + 3 * (1 / 10 ^ 10) ≠ 0 :=
     ne_of_gt hd1pos
   have hd2ne : (S2 : ℚ) / 10 ^ 16 + 2 * (71 / 50) * ((en : ℚ) / (ed : ℚ)) + 6 * (1 / 10 ^ 10) ≠ 0 :=

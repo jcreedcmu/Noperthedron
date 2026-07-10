@@ -252,7 +252,6 @@ private lemma cosNum13_eq_old (x : ℚ) :
 
 lemma sinNum13_eq_floor (x : ℚ) : sinNum13 x = ⌊sin_psum 13 x * 10 ^ 13⌋ := by
   have hD : (0:ℤ) < 15511210043330985984000000 * (x.den : ℤ) ^ 25 := by
-    have : (0:ℤ) < (x.den : ℤ) := by exact_mod_cast x.pos
     positivity
   rw [sin_psum_13_eq, sinNum13_eq_old]
   rw [show ((sinPsumNum x.num (x.den : ℤ) : ℤ) : ℚ)
@@ -262,9 +261,7 @@ lemma sinNum13_eq_floor (x : ℚ) : sinNum13 x = ⌊sin_psum 13 x * 10 ^ 13⌋ :
   rw [floor_intCast_div_intCast _ _ hD]
 
 lemma cosNum13_eq_floor (x : ℚ) : cosNum13 x = ⌊cos_psum 13 x * 10 ^ 13⌋ := by
-  have hD : (0:ℤ) < 620448401733239439360000 * (x.den : ℤ) ^ 24 := by
-    have : (0:ℤ) < (x.den : ℤ) := by exact_mod_cast x.pos
-    positivity
+  have hD : (0:ℤ) < 620448401733239439360000 * (x.den : ℤ) ^ 24 := by positivity
   rw [cos_psum_13_eq, cosNum13_eq_old]
   rw [show ((cosPsumNum x.num (x.den : ℤ) : ℤ) : ℚ)
         / ((620448401733239439360000 * (x.den : ℤ) ^ 24 : ℤ) : ℚ) * 10 ^ 13

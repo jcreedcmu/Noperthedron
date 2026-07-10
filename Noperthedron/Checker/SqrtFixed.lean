@@ -32,9 +32,7 @@ def sqrtℚUp16 (x : ℚ) : ℚ :=
 
 theorem sqrtℚUp16_nonneg (x : ℚ) : 0 ≤ sqrtℚUp16 x := by
   unfold sqrtℚUp16
-  split_ifs
-  · exact le_refl 0
-  · positivity
+  positivity
 
 /-- The upper-bound property: `√x ≤ sqrtℚUp16 x` for `0 ≤ x`. -/
 theorem sqrt_le_sqrtℚUp16 (x : ℚ) (hx : 0 ≤ x) :
@@ -58,15 +56,6 @@ theorem sqrt_le_sqrtℚUp16 (x : ℚ) (hx : 0 ≤ x) :
       calc ((x : ℚ) : ℝ) * 10 ^ 32 = ((x * 10 ^ 32 : ℚ) : ℝ) := by push_cast; ring
         _ ≤ ((N : ℚ) : ℝ) := by exact_mod_cast h1
         _ = (N : ℝ) := by push_cast; ring
-    -- √N < Nat.sqrt N + 1
-    have hsqrtN : Real.sqrt (N : ℝ) < (Nat.sqrt N : ℝ) + 1 := by
-      have h : N < (Nat.sqrt N + 1) * (Nat.sqrt N + 1) := Nat.lt_succ_sqrt N
-      have hR : (N : ℝ) < ((Nat.sqrt N : ℝ) + 1) ^ 2 := by
-        have := (by exact_mod_cast h :
-          (N : ℝ) < ((Nat.sqrt N + 1 : ℕ) : ℝ) * ((Nat.sqrt N + 1 : ℕ) : ℝ))
-        calc (N : ℝ) < ((Nat.sqrt N + 1 : ℕ) : ℝ) * ((Nat.sqrt N + 1 : ℕ) : ℝ) := this
-          _ = ((Nat.sqrt N : ℝ) + 1) ^ 2 := by push_cast; ring
-      exact (Real.sqrt_lt' (by positivity)).mpr hR
     -- assemble: √x = √(x·10³²)/10¹⁶ ≤ √N/10¹⁶ < (Nat.sqrt N + 1)/10¹⁶
     have hxR : (0 : ℝ) ≤ ((x : ℚ) : ℝ) := by exact_mod_cast hx
     have hsplit : Real.sqrt ((x : ℚ) : ℝ) * 10 ^ 16 = Real.sqrt (((x : ℚ) : ℝ) * 10 ^ 32) := by
@@ -76,7 +65,7 @@ theorem sqrt_le_sqrtℚUp16 (x : ℚ) (hx : 0 ≤ x) :
       Real.sqrt_le_sqrt hxN
     have hgoal : Real.sqrt ((x : ℚ) : ℝ) * 10 ^ 16 < (Nat.sqrt N : ℝ) + 1 := by
       rw [hsplit]
-      exact lt_of_le_of_lt hmono hsqrtN
+      exact lt_of_le_of_lt hmono Real.real_sqrt_lt_nat_sqrt_succ
     have hcast : (((Nat.sqrt N + 1 : ℚ) / 10 ^ 16 : ℚ) : ℝ)
         = ((Nat.sqrt N : ℝ) + 1) / 10 ^ 16 := by push_cast; ring
     rw [show ((Nat.sqrt ⌈x * 10 ^ 32⌉.toNat + 1 : ℚ) : ℚ) = (Nat.sqrt N + 1 : ℚ) from by

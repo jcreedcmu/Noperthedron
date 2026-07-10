@@ -315,11 +315,9 @@ lemma bounds_kappa4 (P Q : ℝ³) (P_ Q_ : Fin 3 → ℚ) (p : Pose ℚ)
       calc ‖P - Q‖
         _ ≤ ‖toR3 P_ - toR3 Q_‖ + ‖(P - Q) - (toR3 P_ - toR3 Q_)‖ := norm_le_insert' _ _
         _ ≤ ‖toR3 P_ - toR3 Q_‖ + 2 * κ := by grw [hPQ_approx]
-    have h_eps_term : 2 * ε * ‖P - Q‖ * (√2 + ε) ≤
-        2 * ε * (‖toR3 (P_ - Q_)‖ + 2 * κ) * (√2 + ε) :=
-      mul_le_mul_of_nonneg_right
+    refine tsub_le_tsub h_inner ?_
+    exact mul_le_mul_of_nonneg_right
         (mul_le_mul_of_nonneg_left h_norm_PQ (by linarith)) (by positivity)
-    linarith [h_inner, h_eps_term]
   -- Step 2: denA ≤ denAℚ
   have h_denA_le : denA ≤ denAℚ := by
     have hMdiff : ‖rotM (θ : ℝ) (φ : ℝ) - rotMℚℝ (θ : ℝ) (φ : ℝ)‖ ≤ κ :=

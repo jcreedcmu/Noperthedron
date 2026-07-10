@@ -595,8 +595,7 @@ theorem check_iff (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) (ε δ r : ℚ) :
     have hst : (0:ℚ) ≤ sqrtApprox16.upper_sqrt_two := by
       norm_num [RationalApprox.sqrtApprox16, sqrtApprox]
     have hκ : (0:ℚ) < κℚ := by norm_num [κℚ]
-    have hεst : (0:ℚ) ≤ sqrtApprox16.upper_sqrt_two * ε := mul_nonneg hst hε
-    linarith
+    positivity
   · -- |d0 - u0| ≤ 10⁻¹³
     rw [rotM₂Rℚ_c0]
     exact RationalApprox.abs_round13_sub_le _
