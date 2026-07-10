@@ -17,7 +17,6 @@ import Noperthedron.Global
 import Noperthedron.Global.Basic
 import Noperthedron.Global.BoundedPartialsControlDifference
 import Noperthedron.Global.Definitions
-import Noperthedron.Global.FDerivHelpers
 import Noperthedron.Global.RotationDerivs
 import Noperthedron.Global.RotationPartials
 import Noperthedron.Global.RotationPartials.RotMOuter

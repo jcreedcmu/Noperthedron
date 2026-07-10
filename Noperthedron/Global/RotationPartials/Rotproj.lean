@@ -88,7 +88,9 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
       (rotR' pbar.α (rotM pbar.θ₁ pbar.φ₁ S))
       (rotR pbar.α (rotMθ pbar.θ₁ pbar.φ₁ S))
       (rotR pbar.α (rotMφ pbar.θ₁ pbar.φ₁ S))
-      (differentiableAt_rotR_rotM S pbar.innerParams)
+      (by
+        simpa [_root_.rotprojRM] using
+          (Differentiable.rotprojRM S).differentiableAt)
       (by simpa [Pose.innerParams] using HasDerivAt_rotR pbar.α (rotM pbar.θ₁ pbar.φ₁ S))
       (by
         simpa [Pose.innerParams, Function.comp_def] using

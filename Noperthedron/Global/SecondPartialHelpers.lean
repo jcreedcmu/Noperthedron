@@ -26,13 +26,14 @@ namespace GlobalTheorem
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
 /-!
-## DifferentiableAt lemmas for rotation compositions
+## Differentiability cores for rotation compositions
 
 Each rotation map is a matrix path applied to a vector, so joint differentiability
-in the angles and the vector follows from `differentiable_toEuclideanLin_apply`
-plus entrywise trigonometric facts. The compositional `@[fun_prop]` cores below
-prove this once per map; the `differentiableAt_*` family (used ~30+ times in
-`third_partial_inner_rotM_inner`) then consists of one-line applications.
+(and smoothness) in the angles and the vector follows from
+`differentiable_toEuclideanLin_apply` / `contDiff_toEuclideanLin_apply` plus entrywise
+trigonometric facts. The compositional `@[fun_prop]` cores below prove this once per
+map; the remaining `differentiableAt_*` lemmas are one-line applications at the
+specific coordinate arrangements used by the `HasFDerivAt` developments.
 -/
 
 /-- Joint differentiability of `rotM` in the two angles and the vector. -/
@@ -179,60 +180,6 @@ lemma differentiableAt_rotMθφ_outer (S : ℝ³) (y : E 2) :
 lemma differentiableAt_rotMφφ_outer (S : ℝ³) (y : E 2) :
     DifferentiableAt ℝ (fun z : E 2 => rotMφφ (z.ofLp 0) (z.ofLp 1) S) y :=
   (differentiable_rotMφφ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
-
-/-- DifferentiableAt for rotR ∘ rotM -/
-lemma differentiableAt_rotR_rotM (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR_comp (by fun_prop)
-    (differentiable_rotM_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
-
-/-- DifferentiableAt for rotR ∘ rotMθ -/
-lemma differentiableAt_rotR_rotMθ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR_comp (by fun_prop)
-    (differentiable_rotMθ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
-
-/-- DifferentiableAt for rotR ∘ rotMφ -/
-lemma differentiableAt_rotR_rotMφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR_comp (by fun_prop)
-    (differentiable_rotMφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
-
-/-- DifferentiableAt for rotR ∘ rotMθθ -/
-lemma differentiableAt_rotR_rotMθθ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθθ (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR_comp (by fun_prop)
-    (differentiable_rotMθθ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
-
-/-- DifferentiableAt for rotR ∘ rotMθφ -/
-lemma differentiableAt_rotR_rotMθφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθφ (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR_comp (by fun_prop)
-    (differentiable_rotMθφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
-
-/-- DifferentiableAt for rotR ∘ rotMφφ -/
-lemma differentiableAt_rotR_rotMφφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφφ (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR_comp (by fun_prop)
-    (differentiable_rotMφφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
-
-/-- DifferentiableAt for rotR' ∘ rotM -/
-lemma differentiableAt_rotR'_rotM (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR'_comp (by fun_prop)
-    (differentiable_rotM_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
-
-/-- DifferentiableAt for rotR' ∘ rotMθ -/
-lemma differentiableAt_rotR'_rotMθ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR'_comp (by fun_prop)
-    (differentiable_rotMθ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
-
-/-- DifferentiableAt for rotR' ∘ rotMφ -/
-lemma differentiableAt_rotR'_rotMφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y :=
-  (differentiable_rotR'_comp (by fun_prop)
-    (differentiable_rotMφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-!
 ## Inner product fderiv helper
@@ -401,77 +348,6 @@ lemma hasFDerivAt_three_params (F : ℝ → ℝ → ℝ → ℝ²) (y : E 3) (F�
   · simpa using hasDerivAt_comp_add _ _ _ h₀
   · simpa using hasDerivAt_comp_add _ _ _ h₁
   · simpa using hasDerivAt_comp_add _ _ _ h₂
-
-/-- fderiv of a composition `z ↦ X (z 0) (N (z 1) (z 2) S)` in direction e₁,
-given the derivative of the matrix family `N` in its first (θ) argument.
-The head `X` is arbitrary since e₁ does not move the `z 0` coordinate. -/
-lemma fderiv_head_family_in_e1 (S : ℝ³) (y : E 3) (X : ℝ → ℝ² →L[ℝ] ℝ²)
-    (N : ℝ → ℝ → ℝ³ →L[ℝ] ℝ²) (N' : ℝ²)
-    (hdiff : DifferentiableAt ℝ (fun z : E 3 => X (z.ofLp 0) (N (z.ofLp 1) (z.ofLp 2) S)) y)
-    (hN : HasDerivAt (fun t => N t (y.ofLp 2) S) N' (y.ofLp 1)) :
-    (fderiv ℝ (fun z : E 3 => X (z.ofLp 0) (N (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 1 1) = X (y.ofLp 0) N' := by
-  refine fderiv_single_eq hdiff ?_
-  simp only [coord_e1_at0, coord_e1_same, coord_e1_at2]
-  exact hasDerivAt_comp_add _ _ _
-    ((ContinuousLinearMap.hasFDerivAt (X (y.ofLp 0))).comp_hasDerivAt _ hN)
-
-/-- fderiv of a composition `z ↦ X (z 0) (N (z 1) (z 2) S)` in direction e₂,
-given the derivative of the matrix family `N` in its second (φ) argument. -/
-lemma fderiv_head_family_in_e2 (S : ℝ³) (y : E 3) (X : ℝ → ℝ² →L[ℝ] ℝ²)
-    (N : ℝ → ℝ → ℝ³ →L[ℝ] ℝ²) (N' : ℝ²)
-    (hdiff : DifferentiableAt ℝ (fun z : E 3 => X (z.ofLp 0) (N (z.ofLp 1) (z.ofLp 2) S)) y)
-    (hN : HasDerivAt (fun t => N (y.ofLp 1) t S) N' (y.ofLp 2)) :
-    (fderiv ℝ (fun z : E 3 => X (z.ofLp 0) (N (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 2 1) = X (y.ofLp 0) N' := by
-  refine fderiv_single_eq hdiff ?_
-  simp only [coord_e2_at0, coord_e2_at1, coord_e2_same]
-  exact hasDerivAt_comp_add _ _ _
-    ((ContinuousLinearMap.hasFDerivAt (X (y.ofLp 0))).comp_hasDerivAt _ hN)
-
-/-- fderiv of rotR ∘ rotMθ in direction e1 gives rotR ∘ rotMθθ -/
-lemma fderiv_rotR_rotMθ_in_e1 (S : ℝ³) (y : E 3) :
-    (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 1 1) =
-    rotR (y.ofLp 0) (rotMθθ (y.ofLp 1) (y.ofLp 2) S) := by
-  refine fderiv_single_eq (differentiableAt_rotR_rotMθ S y) ?_
-  simp only [coord_e1_at0, coord_e1_same, coord_e1_at2]
-  exact hasDerivAt_comp_add _ _ _
-    ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
-      (hasDerivAt_rotMθ_θ (y.ofLp 1) (y.ofLp 2) S))
-
-/-- fderiv of rotR ∘ rotMθ in direction e2 gives rotR ∘ rotMθφ -/
-lemma fderiv_rotR_rotMθ_in_e2 (S : ℝ³) (y : E 3) :
-    (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 2 1) =
-    rotR (y.ofLp 0) (rotMθφ (y.ofLp 1) (y.ofLp 2) S) := by
-  refine fderiv_single_eq (differentiableAt_rotR_rotMθ S y) ?_
-  simp only [coord_e2_at0, coord_e2_at1, coord_e2_same]
-  exact hasDerivAt_comp_add _ _ _
-    ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
-      (hasDerivAt_rotMθ_φ (y.ofLp 1) (y.ofLp 2) S))
-
-/-- fderiv of rotR ∘ rotMφ in direction e1 gives rotR ∘ rotMθφ -/
-lemma fderiv_rotR_rotMφ_in_e1 (S : ℝ³) (y : E 3) :
-    (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 1 1) =
-    rotR (y.ofLp 0) (rotMθφ (y.ofLp 1) (y.ofLp 2) S) := by
-  refine fderiv_single_eq (differentiableAt_rotR_rotMφ S y) ?_
-  simp only [coord_e1_at0, coord_e1_same, coord_e1_at2]
-  exact hasDerivAt_comp_add _ _ _
-    ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
-      (hasDerivAt_rotMφ_θ (y.ofLp 1) (y.ofLp 2) S))
-
-/-- fderiv of rotR ∘ rotMφ in direction e2 gives rotR ∘ rotMφφ -/
-lemma fderiv_rotR_rotMφ_in_e2 (S : ℝ³) (y : E 3) :
-    (fderiv ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y)
-      (EuclideanSpace.single 2 1) =
-    rotR (y.ofLp 0) (rotMφφ (y.ofLp 1) (y.ofLp 2) S) := by
-  refine fderiv_single_eq (differentiableAt_rotR_rotMφ S y) ?_
-  simp only [coord_e2_at0, coord_e2_at1, coord_e2_same]
-  exact hasDerivAt_comp_add _ _ _
-    ((ContinuousLinearMap.hasFDerivAt (rotR (y.ofLp 0))).comp_hasDerivAt _
-      (hasDerivAt_rotMφ_φ (y.ofLp 1) (y.ofLp 2) S))
 
 /-!
 ## A[i,j] Table for Second Partials
