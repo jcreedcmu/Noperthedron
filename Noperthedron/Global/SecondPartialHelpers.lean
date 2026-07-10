@@ -334,6 +334,33 @@ lemma hasFDerivAt_of_partials {n : ℕ} {f : E n → ℝ²} {y : E n} (cols : Fi
     exact fderiv_single_eq hdiff (h i)
   exact hfd ▸ hdiff.hasFDerivAt
 
+/-- `HasFDerivAt` constructor for a two-parameter family: the Fréchet derivative
+is the column map of the two partial derivatives. -/
+lemma hasFDerivAt_two_params (F : ℝ → ℝ → ℝ²) (y : E 2) (Fθ Fφ : ℝ²)
+    (hdiff : DifferentiableAt ℝ (fun x : E 2 => F (x.ofLp 0) (x.ofLp 1)) y)
+    (hθ : HasDerivAt (fun t => F t (y.ofLp 1)) Fθ (y.ofLp 0))
+    (hφ : HasDerivAt (fun t => F (y.ofLp 0) t) Fφ (y.ofLp 1)) :
+    HasFDerivAt (fun x : E 2 => F (x.ofLp 0) (x.ofLp 1)) (columnsCLM ![Fθ, Fφ]) y := by
+  refine hasFDerivAt_of_partials _ hdiff fun i => ?_
+  fin_cases i
+  · simpa using hasDerivAt_comp_add _ _ _ hθ
+  · simpa using hasDerivAt_comp_add _ _ _ hφ
+
+/-- `HasFDerivAt` constructor for a three-parameter family: the Fréchet derivative
+is the column map of the three partial derivatives. -/
+lemma hasFDerivAt_three_params (F : ℝ → ℝ → ℝ → ℝ²) (y : E 3) (F₀ F₁ F₂ : ℝ²)
+    (hdiff : DifferentiableAt ℝ (fun x : E 3 => F (x.ofLp 0) (x.ofLp 1) (x.ofLp 2)) y)
+    (h₀ : HasDerivAt (fun t => F t (y.ofLp 1) (y.ofLp 2)) F₀ (y.ofLp 0))
+    (h₁ : HasDerivAt (fun t => F (y.ofLp 0) t (y.ofLp 2)) F₁ (y.ofLp 1))
+    (h₂ : HasDerivAt (fun t => F (y.ofLp 0) (y.ofLp 1) t) F₂ (y.ofLp 2)) :
+    HasFDerivAt (fun x : E 3 => F (x.ofLp 0) (x.ofLp 1) (x.ofLp 2))
+      (columnsCLM ![F₀, F₁, F₂]) y := by
+  refine hasFDerivAt_of_partials _ hdiff fun i => ?_
+  fin_cases i
+  · simpa using hasDerivAt_comp_add _ _ _ h₀
+  · simpa using hasDerivAt_comp_add _ _ _ h₁
+  · simpa using hasDerivAt_comp_add _ _ _ h₂
+
 /-- fderiv of a composition `z ↦ X (z 0) (N (z 1) (z 2) S)` in direction e₁,
 given the derivative of the matrix family `N` in its first (θ) argument.
 The head `X` is arbitrary since e₁ does not move the `z 0` coordinate. -/
