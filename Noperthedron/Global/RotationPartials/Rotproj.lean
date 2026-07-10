@@ -6,7 +6,7 @@ Authors: Cameron Freer
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
-import Noperthedron.Global.FDerivHelpers
+import Noperthedron.Global.SymbolicRotationSemantics
 import Noperthedron.Global.RotationDerivs
 import Noperthedron.PoseInterval
 import Noperthedron.Global.Definitions
@@ -16,6 +16,7 @@ import Noperthedron.Global.Definitions
 
 - `rotproj_inner'`, `rotprojRM'` definitions
 - **`HasFDerivAt.rotproj_inner`** (main theorem)
+- `nth_partial_rotproj_inner_e0/e1/e2`, instances of the symbolic bridge
 -/
 
 open scoped RealInnerProductSpace
@@ -108,5 +109,41 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
 
   rw [step]
   exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.innerParams)
+
+/-!
+## First partials of `rotproj_inner`, via the symbolic bridge
+
+`rotproj_inner S w` is the evaluation of the base symbolic term, so its coordinate
+partials are instances of `SymbolicRotation.iterPartial_eval_eq`; the symbolic side of
+each instance is discharged by `decide`.
+-/
+
+/-- `rotproj_inner` is the evaluation of the base symbolic term. -/
+lemma rotproj_inner_eq_baseTerm (S : ℝ³) (w : ℝ²) :
+    rotproj_inner S w =
+      fun y : E 3 =>
+        ⟪(SymbolicRotation.baseTerm.eval (y.ofLp 0) (y.ofLp 1) (y.ofLp 2)) S, w⟫ :=
+  rfl
+
+lemma nth_partial_rotproj_inner_e0 (S : ℝ³) (w : ℝ²) :
+    nth_partial 0 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  rw [rotproj_inner_eq_baseTerm]
+  exact SymbolicRotation.iterPartial_eval_eq [0]
+    (t' := ⟨.pos, .r', .m⟩) (by decide) S w
+
+lemma nth_partial_rotproj_inner_e1 (S : ℝ³) (w : ℝ²) :
+    nth_partial 1 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  rw [rotproj_inner_eq_baseTerm]
+  exact SymbolicRotation.iterPartial_eval_eq [1]
+    (t' := ⟨.pos, .r, .mθ⟩) (by decide) S w
+
+lemma nth_partial_rotproj_inner_e2 (S : ℝ³) (w : ℝ²) :
+    nth_partial 2 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  rw [rotproj_inner_eq_baseTerm]
+  exact SymbolicRotation.iterPartial_eval_eq [2]
+    (t' := ⟨.pos, .r, .mφ⟩) (by decide) S w
 
 end GlobalTheorem

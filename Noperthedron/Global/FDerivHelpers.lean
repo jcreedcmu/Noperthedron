@@ -116,41 +116,4 @@ lemma fderiv_rotR'_rotM_in_e2 (S : Euc(3)) (y : E 3) (α θ φ : ℝ)
   exact hasDerivAt_comp_add _ _ _
     ((ContinuousLinearMap.hasFDerivAt (rotR' α)).comp_hasDerivAt _ (hasDerivAt_rotM_φ θ φ S))
 
-/-!
-## nth_partial of rotproj_inner in coordinate directions
-
-These combine `fderiv_inner_const` with `fderiv_rotR_rotM_in_e*` to give
-function-level formulas for the partial derivatives of `rotproj_inner`,
-eliminating the `funext`/`congrArg` boilerplate at each use site.
--/
-
-/-- Function-level form of `rotproj_inner_eq`. -/
-private lemma rotproj_inner_funext (S : ℝ³) (w : ℝ²) :
-    rotproj_inner S w = fun z : E 3 => ⟪rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S), w⟫ :=
-  funext fun z => rotproj_inner_eq S w z
-
-lemma nth_partial_rotproj_inner_e0 (S : ℝ³) (w : ℝ²) :
-    nth_partial 0 (rotproj_inner S w) =
-      fun (y : ℝ³) => ⟪rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
-  funext y
-  have hd := differentiableAt_rotR_rotM S y
-  show (fderiv ℝ (rotproj_inner S w) y) (EuclideanSpace.single 0 1) = _
-  rw [rotproj_inner_funext, fderiv_inner_const _ w y _ hd, fderiv_rotR_rotM_in_e0 S y hd]
-
-lemma nth_partial_rotproj_inner_e1 (S : ℝ³) (w : ℝ²) :
-    nth_partial 1 (rotproj_inner S w) =
-      fun (y : ℝ³) => ⟪rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
-  funext y
-  have hd := differentiableAt_rotR_rotM S y
-  show (fderiv ℝ (rotproj_inner S w) y) (EuclideanSpace.single 1 1) = _
-  rw [rotproj_inner_funext, fderiv_inner_const _ w y _ hd, fderiv_rotR_rotM_in_e1 S y hd]
-
-lemma nth_partial_rotproj_inner_e2 (S : ℝ³) (w : ℝ²) :
-    nth_partial 2 (rotproj_inner S w) =
-      fun (y : ℝ³) => ⟪rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
-  funext y
-  have hd := differentiableAt_rotR_rotM S y
-  show (fderiv ℝ (rotproj_inner S w) y) (EuclideanSpace.single 2 1) = _
-  rw [rotproj_inner_funext, fderiv_inner_const _ w y _ hd, fderiv_rotR_rotM_in_e2 S y hd]
-
 end GlobalTheorem
