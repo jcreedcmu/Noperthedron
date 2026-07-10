@@ -7,6 +7,7 @@ import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import Noperthedron.Global.RotationDerivs
+import Noperthedron.Global.SymbolicRotationDerivs
 import Noperthedron.Bounding.OpNorm
 
 /-!
@@ -464,31 +465,22 @@ noncomputable def inner_second_partial_A (α θ φ : ℝ) (i j : Fin 3) : ℝ³ 
   | 2, 1 => rotR α ∘L rotMθφ θ φ   -- = A[1,2] by mixed partial symmetry
   | 2, 2 => rotR α ∘L rotMφφ θ φ
 
-/-- Composition norm bound: ‖A ∘L B‖ ≤ 1 when ‖A‖ ≤ 1 and ‖B‖ ≤ 1 -/
-lemma comp_norm_le_one {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
-    ‖A ∘L B‖ ≤ 1 :=
-  calc ‖A ∘L B‖ ≤ ‖A‖ * ‖B‖ := ContinuousLinearMap.opNorm_comp_le A B
-    _ ≤ 1 * 1 := mul_le_mul hA hB (norm_nonneg _) zero_le_one
-    _ = 1 := one_mul 1
-
-/-- Negated composition norm bound: ‖-(A ∘L B)‖ ≤ 1 when ‖A‖ ≤ 1 and ‖B‖ ≤ 1 -/
-lemma neg_comp_norm_le_one {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
-    ‖-(A ∘L B)‖ ≤ 1 := by
-  rw [norm_neg]; exact comp_norm_le_one hA hB
+/-- The hand-written second-partial table agrees with the symbolically generated one. -/
+lemma inner_second_partial_A_eq_symbolic (α θ φ : ℝ) (i j : Fin 3) :
+    inner_second_partial_A α θ φ i j = (SymbolicRotation.secondTerm i j).eval α θ φ := by
+  fin_cases i <;> fin_cases j <;> rfl
 
 /-- All A[i,j] have operator norm ≤ 1. -/
 lemma inner_second_partial_A_norm_le (α θ φ : ℝ) (i j : Fin 3) :
     ‖inner_second_partial_A α θ φ i j‖ ≤ 1 := by
-  fin_cases i <;> fin_cases j
-  · exact neg_comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (le_of_eq (Bounding.rotM_norm_one _ _))
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθθ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMφφ_norm_le_one _ _)
+  rw [inner_second_partial_A_eq_symbolic]
+  exact (SymbolicRotation.secondTerm i j).norm_le_one α θ φ
+
+/-- Mixed second partials commute at the operator level. -/
+lemma inner_second_partial_A_symm (α θ φ : ℝ) (i j : Fin 3) :
+    inner_second_partial_A α θ φ i j = inner_second_partial_A α θ φ j i := by
+  rw [inner_second_partial_A_eq_symbolic, inner_second_partial_A_eq_symbolic,
+    SymbolicRotation.second_comm]
 
 /-!
 ## A[i,j,k] Table for Third Partials
@@ -540,38 +532,27 @@ noncomputable def inner_third_partial_A (α θ φ : ℝ) (i j k : Fin 3) : ℝ³
   | 1, 2, 2 => rotR α ∘L rotMθφφ θ φ
   | 2, 2, 2 => -(rotR α ∘L rotMφ θ φ)
 
+/-- The hand-written third-partial table agrees with the symbolically generated one. -/
+lemma inner_third_partial_A_eq_symbolic (α θ φ : ℝ) (i j k : Fin 3) :
+    inner_third_partial_A α θ φ i j k = (SymbolicRotation.thirdTerm i j k).eval α θ φ := by
+  fin_cases i <;> fin_cases j <;> fin_cases k <;> rfl
+
 /-- All A₃[i,j,k] have operator norm ≤ 1. -/
 lemma inner_third_partial_A_norm_le (α θ φ : ℝ) (i j k : Fin 3) :
     ‖inner_third_partial_A α θ φ i j k‖ ≤ 1 := by
-  have hR := le_of_eq (Bounding.rotR_norm_one α)
-  have hR' := le_of_eq (Bounding.rotR'_norm_one α)
-  fin_cases i <;> fin_cases j <;> fin_cases k
-  · exact neg_comp_norm_le_one hR' (le_of_eq (Bounding.rotM_norm_one _ _))
-  · exact neg_comp_norm_le_one hR (Bounding.rotMθ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMφφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθθ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθφφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMφφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθφφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMφφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθφφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
+  rw [inner_third_partial_A_eq_symbolic]
+  exact (SymbolicRotation.thirdTerm i j k).norm_le_one α θ φ
+
+/-- The first two indices of the third-partial table commute at the operator level. -/
+lemma inner_third_partial_A_swap_first (α θ φ : ℝ) (i j k : Fin 3) :
+    inner_third_partial_A α θ φ i j k = inner_third_partial_A α θ φ j i k := by
+  rw [inner_third_partial_A_eq_symbolic, inner_third_partial_A_eq_symbolic,
+    SymbolicRotation.third_swap_first]
+
+/-- The last two indices of the third-partial table commute at the operator level. -/
+lemma inner_third_partial_A_swap_last (α θ φ : ℝ) (i j k : Fin 3) :
+    inner_third_partial_A α θ φ i j k = inner_third_partial_A α θ φ i k j := by
+  rw [inner_third_partial_A_eq_symbolic, inner_third_partial_A_eq_symbolic,
+    SymbolicRotation.third_swap_last]
 
 end GlobalTheorem
