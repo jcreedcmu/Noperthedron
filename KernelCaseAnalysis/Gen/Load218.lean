@@ -6,6 +6,6 @@ root. -/
 
 namespace Noperthedron.Solution
 
-load_csv_chunks "solution_tree_v6.csv" from 1785856 to 1794048 chunkSize 512
+load_csv_chunks_curried "solution_tree_v6.csv" from 1785856 to 1794048 chunkSize 512
 
 end Noperthedron.Solution
