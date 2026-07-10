@@ -55,15 +55,15 @@ lemma rotproj_outer_eq (S : ℝ³) (w : ℝ²) (x : ℝ²) :
 lemma rotproj_outer_unit_eq (S : ℝ³) (w : ℝ²) (x : ℝ²) :
     rotproj_outer_unit S w x = rotproj_outer S w x / ‖S‖ := rfl
 
-lemma rotation_partials_exist {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} :
+lemma rotation_partials_exist {S : ℝ³} {w : ℝ²} :
     ContDiff ℝ 3 (rotproj_inner_unit S w) := by
-  refine ContDiff.div ?_ contDiff_const (fun x ↦ (ne_of_lt S_nonzero).symm)
+  refine ContDiff.div_const ?_ ‖S‖
   simp [inner, rotprojRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
   fun_prop
 
-lemma rotation_partials_exist_outer {S : ℝ³} (S_nonzero : ‖S‖ > 0) {w : ℝ²} :
+lemma rotation_partials_exist_outer {S : ℝ³} {w : ℝ²} :
     ContDiff ℝ 3 (rotproj_outer_unit S w) := by
-  refine ContDiff.div ?_ contDiff_const (fun x ↦ (ne_of_lt S_nonzero).symm)
+  refine ContDiff.div_const ?_ ‖S‖
   simp [inner, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
   fun_prop
 
