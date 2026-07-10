@@ -33,6 +33,29 @@ lake exe cache get
 lake build
 ```
 
+To check the solution table, first make sure that you have `git-lfs`. Then unzip the table:
+
+```
+unzip solution_tree_v6.zip
+```
+
+To run the expensive kernel check:
+```
+lake build KernelCaseAnalysis
+```
+
+To run the less expensive `native_decide` check:
+```
+lake build NativeCaseAnalysis
+```
+
+To run the even less expensive native executable check:
+
+```
+lake exe constructValidTable solution_tree_v6.csv
+```
+
+
 To build the blueprint, install [leanblueprint](https://github.com/PatrickMassot/leanblueprint) with something like
 ```
 pip install leanblueprint
