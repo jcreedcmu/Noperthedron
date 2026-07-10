@@ -24,15 +24,24 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
-lemma Differentiable.rotprojRM (S : ℝ³) :
-    Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
+lemma ContDiff.rotprojRM {k : WithTop ℕ∞} (S : ℝ³) :
+    ContDiff ℝ k fun (x : ℝ³) ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
   unfold _root_.rotprojRM
-  exact differentiable_rotR_comp (by fun_prop)
-    (differentiable_rotM_comp (by fun_prop) (by fun_prop) (differentiable_const S))
+  exact contDiff_rotR_comp (by fun_prop)
+    (contDiff_rotM_comp (by fun_prop) (by fun_prop) contDiff_const)
+
+@[fun_prop]
+lemma ContDiff.rotproj_inner {k : WithTop ℕ∞} (S : ℝ³) (w : ℝ²) :
+    ContDiff ℝ k (rotproj_inner S w) :=
+  ContDiff.inner ℝ (ContDiff.rotprojRM S) contDiff_const
+
+lemma Differentiable.rotprojRM (S : ℝ³) :
+    Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S :=
+  (ContDiff.rotprojRM (k := 1) S).differentiable one_ne_zero
 
 @[fun_prop]
 lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_inner S w) :=
-  Differentiable.inner ℝ (Differentiable.rotprojRM S) (by fun_prop)
+  (ContDiff.rotproj_inner (k := 1) S w).differentiable one_ne_zero
 
 /--
 The Fréchet derivative of `fun x => rotprojRM (x 1) (x 2) (x 0) S` at `pbar.innerParams`.

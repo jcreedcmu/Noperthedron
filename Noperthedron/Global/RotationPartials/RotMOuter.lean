@@ -29,9 +29,13 @@ noncomputable
 def rotM' (pbar : Pose ℝ) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
   columnsCLM ![rotMθ pbar.θ₂ pbar.φ₂ P, rotMφ pbar.θ₂ pbar.φ₂ P]
 
+lemma ContDiff.rotM_outer {k : WithTop ℕ∞} (P : ℝ³) :
+    ContDiff ℝ k fun (x : ℝ²) => (rotM (x 0) (x 1)) P :=
+  contDiff_rotM_comp (by fun_prop) (by fun_prop) contDiff_const
+
 lemma Differentiable.rotM_outer (P : ℝ³) :
     Differentiable ℝ fun (x : ℝ²) => (rotM (x 0) (x 1)) P :=
-  differentiable_rotM_comp (by fun_prop) (by fun_prop) (differentiable_const P)
+  (ContDiff.rotM_outer (k := 1) P).differentiable one_ne_zero
 
 @[simp]
 lemma rotM'_single_0 (pbar : Pose ℝ) (P : ℝ³) :
