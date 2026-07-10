@@ -190,11 +190,38 @@ theorem validIxAt_of_chunkOkBelow {get : ℕ → Row} {size C m : ℕ} (hC : 0 <
 
 /-! ## Parallel Bool checker (for the `native_decide` route)
 
-Mirror of `Table.rowsValidChunkedB` (see `SolutionTable/Basic.lean`) against
-the getter: one `native_decide` on `rowsValidIxAtParB get size nTasks`
-discharges the same `∀ i : Fin size, Row.ValidIxAt get size i` hypothesis
-that the kernel route assembles chunk-by-chunk, with the row checks split
-into `nTasks` concurrent `Task.spawn`s. -/
+One `native_decide` on `rowsValidIxAtParB get size nTasks` discharges the
+same `∀ i : Fin size, Row.ValidIxAt get size i` hypothesis that the kernel
+route assembles chunk-by-chunk, with the row checks split into `nTasks`
+concurrent `Task.spawn`s. Since `Task.spawn fn` is *definitionally*
+`⟨fn ()⟩`, the parallelism is invisible to the logic, and correctness is
+proved exactly as for a sequential checker. The loops are `Fin.foldl`, which
+compiles flat (the auto-derived `Nat.decidableBallLT` instances are
+structurally recursive and overflow the runtime stack on tables with
+millions of rows). -/
+
+theorem Fin.foldl_and_factor {n : ℕ} (p : Fin n → Bool) (init : Bool) :
+    (Fin.foldl n (fun acc i => acc && p i) init) =
+      (init && Fin.foldl n (fun acc i => acc && p i) true) := by
+  induction n generalizing init with
+  | zero => simp [Fin.foldl_zero]
+  | succ n ih =>
+    rw [Fin.foldl_succ, Fin.foldl_succ,
+        ih (fun i => p i.succ) (init && p 0),
+        ih (fun i => p i.succ) (true && p 0)]
+    simp [Bool.and_assoc]
+
+theorem Fin.foldl_and_eq_true_iff {n : ℕ} (p : Fin n → Bool) :
+    (Fin.foldl n (fun acc i => acc && p i) true) = true ↔ ∀ i, p i = true := by
+  induction n with
+  | zero => simp [Fin.foldl_zero]
+  | succ n ih =>
+    rw [Fin.foldl_succ, Fin.foldl_and_factor]
+    simp only [Bool.true_and, Bool.and_eq_true]
+    rw [ih (fun i => p i.succ), Fin.forall_fin_succ]
+
+theorem task_get_spawn {α : Type} (fn : Unit → α) (prio : Task.Priority) :
+    (Task.spawn fn prio).get = fn () := rfl
 
 /-- `Row.ValidIxAt` as a `Bool`, vacuously `true` past `size` (chunks may
 overhang the end). -/
@@ -213,7 +240,7 @@ theorem validIxAtB_eq_true_iff (get : ℕ → Row) (size i : ℕ) :
     exact fun h' => absurd h' h
 
 /-- Check `validIxAtB` on indices `[start, start + cnt)`, as a flat
-`Fin.foldl` loop (see `Table.rowsValidB` for why `Fin.foldl`). -/
+`Fin.foldl` loop. -/
 def chunkValidIxAtB (get : ℕ → Row) (size start cnt : ℕ) : Bool :=
   Fin.foldl cnt (init := true) fun acc j => acc && validIxAtB get size (start + j.val)
 
@@ -342,6 +369,27 @@ noncomputable def validTableOfGetter (get : ℕ → Row) (size : ℕ)
       rw [tableOfGetter_get get size 0 (by simpa using hpos), hfirst]]
     exact rowZero_contains_tightInterval
 
+/-- Runtime analogue of `validTableOfGetter` for a concrete parsed table:
+the checks are stated against the getter `fun j => tab[j]!`, and the table
+itself is the carrier, so (unlike `validTableOfGetter`) the definition is
+computable and the `constructValidTable` executable can construct the value.
+Together with `validIxAt_of_rowsValidIxAtParB`, this makes that executable a
+native dry run of exactly the checks that `NativeCaseAnalysis` puts under
+`native_decide`. -/
+def validTableOfParsedChecks (tab : Table)
+    (hpos : 0 < tab.size)
+    (hfirst : tab[0].interval = rowZero.interval)
+    (hvalid : ∀ i : Fin tab.size, Row.ValidIxAt (fun j => tab[j]!) tab.size i) :
+    ValidTable where
+  table := tab
+  rows_valid := Table.rowsValid_of_validIxAt rfl
+    (fun i h => (getElem!_pos tab i h).symm) hvalid
+  nonempty := hpos
+  contains_tightInterval := by
+    rw [show (tab[0].interval : Set (Pose ℝ)) = (rowZero.interval : Set (Pose ℝ))
+        from by rw [hfirst]]
+    exact rowZero_contains_tightInterval
+
 /-! ## The concrete getter shape
 
 `assemble_row_dispatch` (in `SolutionTable/Load.lean`) builds a digit-curried
@@ -373,5 +421,26 @@ def rowGetter (dispatch : Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row)
             ⟨k / 64 % 8, Nat.mod_lt _ (by norm_num)⟩
             ⟨k / 8 % 8, Nat.mod_lt _ (by norm_num)⟩
             ⟨k % 8, Nat.mod_lt _ (by norm_num)⟩).getD (i % chunkSize) default
+
+/-! ## Smoke tests -/
+
+/-- A 1-row table consisting of a known-valid global leaf. -/
+private def testTinyTable : Table := #[{ testGlobalRow with ID := 0 }]
+
+-- The parallel checker accepts a valid table (with the 512 chunks vastly
+-- overhanging the 1-row table) and agrees with the sequential decision
+-- procedure for `Row.ValidIxAt`.
+/-- info: (true, true) -/
+#guard_msgs in
+#eval (rowsValidIxAtParB (fun j => testTinyTable[j]!) testTinyTable.size 512,
+       decide (∀ i : Fin testTinyTable.size,
+         Row.ValidIxAt (fun j => testTinyTable[j]!) testTinyTable.size i))
+
+-- Degenerate parameters: zero tasks must fail the coverage guard for a
+-- positive size, and must accept size zero.
+/-- info: (false, true) -/
+#guard_msgs in
+#eval (rowsValidIxAtParB (fun j => testTinyTable[j]!) testTinyTable.size 0,
+       rowsValidIxAtParB (fun j => testTinyTable[j]!) 0 0)
 
 end Noperthedron.Solution

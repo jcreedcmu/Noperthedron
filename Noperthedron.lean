@@ -71,7 +71,6 @@ import Noperthedron.Rupert.Set
 import Noperthedron.SolutionTable
 import Noperthedron.SolutionTable.Assemble
 import Noperthedron.SolutionTable.Basic
-import Noperthedron.SolutionTable.Check
 import Noperthedron.SolutionTable.Defs
 import Noperthedron.SolutionTable.Global
 import Noperthedron.SolutionTable.Load

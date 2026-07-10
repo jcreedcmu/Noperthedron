@@ -157,7 +157,7 @@ private def parseChunk (lns : Array String.Slice) (start stop : ℕ) :
 into `nTasks` contiguous chunks, parse each chunk in its own `Task`, and
 concatenate the results in order. No correctness lemmas are needed: every
 property of the resulting table that the proofs rely on is checked downstream
-(by `Table.rowsValidParB` etc.), so the parser need not be trusted. -/
+(by `rowsValidIxAtParB` etc.), so the parser need not be trusted. -/
 def parseSolutionTablePar (s : String) (nTasks : ℕ) : Except String Table := Id.run do
   let mut lns : Array String.Slice := #[]
   for ln in s.lines do

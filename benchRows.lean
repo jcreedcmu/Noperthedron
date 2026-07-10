@@ -1,4 +1,5 @@
-import Noperthedron.SolutionTable.Check
+import Noperthedron.SolutionTable.Basic
+import Noperthedron.SolutionTable.Parse
 
 /-! Timing harness: per-row cost of the global vs local leaf checks,
 with rough attribution (trig evaluation, `Row.δ`). Run:
