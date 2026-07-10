@@ -715,11 +715,40 @@ private lemma hentry_f2 (hwd : 0 < wd)
   rw [hstep]
   exact round13_intCast_div26 _ _
 
-/-- The identically-zero third components round to `0`. -/
-private lemma hentry_zero2 (v : Fin 3 → ℚ) (hv : v 2 = 0) :
-    RationalApprox.round13 (v 2) = ((0 : ℤ) : ℚ) / 10 ^ 13 := by
-  rw [hv]
+/-- The identically-zero component `b2` rounds to `0`. -/
+private lemma hentry_b2 : (hEntriesR p w).scalars.b2 = ((0 : ℤ) : ℚ) / 10 ^ 13 := by
+  show RationalApprox.round13 ((hEntries p w).m2θtw 2) = _
+  rw [show (hEntries p w).m2θtw 2 = 0 from by
+    simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
   unfold RationalApprox.round13
+  norm_num
+
+private lemma hentry_b2' : (hEntriesR p w).scalars.b2 = 0 := by
+  rw [hentry_b2 (p := p) (w := w)]
+  norm_num
+
+/-- The identically-zero component `d2` rounds to `0`. -/
+private lemma hentry_d2 : (hEntriesR p w).scalars.d2 = ((0 : ℤ) : ℚ) / 10 ^ 13 := by
+  show RationalApprox.round13 ((hEntries p w).m2θθtw 2) = _
+  rw [show (hEntries p w).m2θθtw 2 = 0 from by
+    simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
+  unfold RationalApprox.round13
+  norm_num
+
+private lemma hentry_d2' : (hEntriesR p w).scalars.d2 = 0 := by
+  rw [hentry_d2 (p := p) (w := w)]
+  norm_num
+
+/-- The identically-zero component `e2` rounds to `0`. -/
+private lemma hentry_e2 : (hEntriesR p w).scalars.e2 = ((0 : ℤ) : ℚ) / 10 ^ 13 := by
+  show RationalApprox.round13 ((hEntries p w).m2θφtw 2) = _
+  rw [show (hEntries p w).m2θφtw 2 = 0 from by
+    simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
+  unfold RationalApprox.round13
+  norm_num
+
+private lemma hentry_e2' : (hEntriesR p w).scalars.e2 = 0 := by
+  rw [hentry_e2 (p := p) (w := w)]
   norm_num
 
 end HEntryBridge
@@ -815,7 +844,7 @@ private lemma gdot_R' (hwd : 0 < wd)
   push_cast
   ring
 
-private lemma gdot_thR (hwd : 0 < wd)
+private lemma gdot_θR (hwd : 0 < wd)
     (hw0 : w 0 = (wxn : ℚ) / (wd : ℚ)) (hw1 : w 1 = (wyn : ℚ) / (wd : ℚ))
     (hS0 : S 0 = (s0 : ℚ) / 10 ^ 16) (hS1 : S 1 = (s1 : ℚ) / 10 ^ 16)
     (hS2 : S 2 = (s2 : ℚ) / 10 ^ 16) :
@@ -853,7 +882,7 @@ private lemma gdot_thR (hwd : 0 < wd)
   push_cast
   ring
 
-private lemma gdot_phR (hwd : 0 < wd)
+private lemma gdot_φR (hwd : 0 < wd)
     (hw0 : w 0 = (wxn : ℚ) / (wd : ℚ)) (hw1 : w 1 = (wyn : ℚ) / (wd : ℚ))
     (hS0 : S 0 = (s0 : ℚ) / 10 ^ 16) (hS1 : S 1 = (s1 : ℚ) / 10 ^ 16)
     (hS2 : S 2 = (s2 : ℚ) / 10 ^ 16) :
@@ -893,7 +922,7 @@ private lemma gdot_phR (hwd : 0 < wd)
   push_cast
   ring
 
-private lemma gdot_thR' (hwd : 0 < wd)
+private lemma gdot_θR' (hwd : 0 < wd)
     (hw0 : w 0 = (wxn : ℚ) / (wd : ℚ)) (hw1 : w 1 = (wyn : ℚ) / (wd : ℚ))
     (hS0 : S 0 = (s0 : ℚ) / 10 ^ 16) (hS1 : S 1 = (s1 : ℚ) / 10 ^ 16)
     (hS2 : S 2 = (s2 : ℚ) / 10 ^ 16) :
@@ -931,7 +960,7 @@ private lemma gdot_thR' (hwd : 0 < wd)
   push_cast
   ring
 
-private lemma gdot_phR' (hwd : 0 < wd)
+private lemma gdot_φR' (hwd : 0 < wd)
     (hw0 : w 0 = (wxn : ℚ) / (wd : ℚ)) (hw1 : w 1 = (wyn : ℚ) / (wd : ℚ))
     (hS0 : S 0 = (s0 : ℚ) / 10 ^ 16) (hS1 : S 1 = (s1 : ℚ) / 10 ^ 16)
     (hS2 : S 2 = (s2 : ℚ) / 10 ^ 16) :
@@ -973,7 +1002,7 @@ private lemma gdot_phR' (hwd : 0 < wd)
   push_cast
   ring
 
-private lemma gdot_ththR (hwd : 0 < wd)
+private lemma gdot_θθR (hwd : 0 < wd)
     (hw0 : w 0 = (wxn : ℚ) / (wd : ℚ)) (hw1 : w 1 = (wyn : ℚ) / (wd : ℚ))
     (hS0 : S 0 = (s0 : ℚ) / 10 ^ 16) (hS1 : S 1 = (s1 : ℚ) / 10 ^ 16)
     (hS2 : S 2 = (s2 : ℚ) / 10 ^ 16) :
@@ -1011,7 +1040,7 @@ private lemma gdot_ththR (hwd : 0 < wd)
   push_cast
   ring
 
-private lemma gdot_thphR (hwd : 0 < wd)
+private lemma gdot_θφR (hwd : 0 < wd)
     (hw0 : w 0 = (wxn : ℚ) / (wd : ℚ)) (hw1 : w 1 = (wyn : ℚ) / (wd : ℚ))
     (hS0 : S 0 = (s0 : ℚ) / 10 ^ 16) (hS1 : S 1 = (s1 : ℚ) / 10 ^ 16)
     (hS2 : S 2 = (s2 : ℚ) / 10 ^ 16) :
@@ -1047,7 +1076,7 @@ private lemma gdot_thphR (hwd : 0 < wd)
   push_cast
   ring
 
-private lemma gdot_phphR (hwd : 0 < wd)
+private lemma gdot_φφR (hwd : 0 < wd)
     (hw0 : w 0 = (wxn : ℚ) / (wd : ℚ)) (hw1 : w 1 = (wyn : ℚ) / (wd : ℚ))
     (hS0 : S 0 = (s0 : ℚ) / 10 ^ 16) (hS1 : S 1 = (s1 : ℚ) / 10 ^ 16)
     (hS2 : S 2 = (s2 : ℚ) / 10 ^ 16) :
@@ -1215,13 +1244,13 @@ private lemma glo_bound (hwd : 0 < wd)
       ≤ fastG (gEntriesR p w) εα εθ₁ εφ₁ S := by
   have hd1 := gdot_R (p := p) hwd hw0 hw1 hS0 hS1 hS2
   have hd2 := gdot_R' (p := p) hwd hw0 hw1 hS0 hS1 hS2
-  have hd3 := gdot_thR (p := p) hwd hw0 hw1 hS0 hS1 hS2
-  have hd4 := gdot_phR (p := p) hwd hw0 hw1 hS0 hS1 hS2
-  have hd5 := gdot_thR' (p := p) hwd hw0 hw1 hS0 hS1 hS2
-  have hd6 := gdot_phR' (p := p) hwd hw0 hw1 hS0 hS1 hS2
-  have hd7 := gdot_ththR (p := p) hwd hw0 hw1 hS0 hS1 hS2
-  have hd8 := gdot_thphR (p := p) hwd hw0 hw1 hS0 hS1 hS2
-  have hd9 := gdot_phphR (p := p) hwd hw0 hw1 hS0 hS1 hS2
+  have hd3 := gdot_θR (p := p) hwd hw0 hw1 hS0 hS1 hS2
+  have hd4 := gdot_φR (p := p) hwd hw0 hw1 hS0 hS1 hS2
+  have hd5 := gdot_θR' (p := p) hwd hw0 hw1 hS0 hS1 hS2
+  have hd6 := gdot_φR' (p := p) hwd hw0 hw1 hS0 hS1 hS2
+  have hd7 := gdot_θθR (p := p) hwd hw0 hw1 hS0 hS1 hS2
+  have hd8 := gdot_θφR (p := p) hwd hw0 hw1 hS0 hS1 hS2
+  have hd9 := gdot_φφR (p := p) hwd hw0 hw1 hS0 hS1 hS2
   have hsplit : (((((-(sinNum13 p.θ₁ * (cosNum13 p.α * wxn + sinNum13 p.α * wyn)) * 10 ^ 13 - cosNum13 p.θ₁ * cosNum13 p.φ₁ * (-(sinNum13 p.α * wxn) + cosNum13 p.α * wyn)) / (10 ^ 26 * (wd : ℤ)) * s0 + (cosNum13 p.θ₁ * (cosNum13 p.α * wxn + sinNum13 p.α * wyn) * 10 ^ 13 - sinNum13 p.θ₁ * cosNum13 p.φ₁ * (-(sinNum13 p.α * wxn) + cosNum13 p.α * wyn)) / (10 ^ 26 * (wd : ℤ)) * s1 + (sinNum13 p.φ₁ * (-(sinNum13 p.α * wxn) + cosNum13 p.α * wyn) * 10 ^ 13) / (10 ^ 26 * (wd : ℤ)) * s2) / 10 ^ 16
       - (cdiv (εα.num * (((-(sinNum13 p.θ₁ * (-(sinNum13 p.α * wxn) + cosNum13 p.α * wyn)) * 10 ^ 13 + cosNum13 p.θ₁ * cosNum13 p.φ₁ * (cosNum13 p.α * wxn + sinNum13 p.α * wyn)) / (10 ^ 26 * (wd : ℤ)) * s0 + (cosNum13 p.θ₁ * (-(sinNum13 p.α * wxn) + cosNum13 p.α * wyn) * 10 ^ 13 + sinNum13 p.θ₁ * cosNum13 p.φ₁ * (cosNum13 p.α * wxn + sinNum13 p.α * wyn)) / (10 ^ 26 * (wd : ℤ)) * s1 + (-(sinNum13 p.φ₁ * (cosNum13 p.α * wxn + sinNum13 p.α * wyn)) * 10 ^ 13) / (10 ^ 26 * (wd : ℤ)) * s2).natAbs : ℤ)) ((εα.den : ℤ) * 10 ^ 16)
         + cdiv (εθ₁.num * (((-(cosNum13 p.θ₁ * (cosNum13 p.α * wxn + sinNum13 p.α * wyn)) * 10 ^ 13 + sinNum13 p.θ₁ * cosNum13 p.φ₁ * (-(sinNum13 p.α * wxn) + cosNum13 p.α * wyn)) / (10 ^ 26 * (wd : ℤ)) * s0 + (-(sinNum13 p.θ₁ * (cosNum13 p.α * wxn + sinNum13 p.α * wyn)) * 10 ^ 13 - cosNum13 p.θ₁ * cosNum13 p.φ₁ * (-(sinNum13 p.α * wxn) + cosNum13 p.α * wyn)) / (10 ^ 26 * (wd : ℤ)) * s1).natAbs : ℤ)) ((εθ₁.den : ℤ) * 10 ^ 16)
@@ -1697,16 +1726,29 @@ theorem Gℚ_gt_maxHℚ_fastNat_sound {ι : Type} [Fintype ι] [DecidableEq ι]
     cdiv_nonneg (mul_nonneg hεθ₂n (by norm_num)) (by exact_mod_cast εθ₂.pos)
   have heφhi0 : (0:ℤ) ≤ cdiv (εφ₂.num * 10 ^ 13) (εφ₂.den : ℤ) :=
     cdiv_nonneg (mul_nonneg hεφ₂n (by norm_num)) (by exact_mod_cast εφ₂.pos)
+  have ha0 := hentry_a0 (p := p) hwd hw0 hw1
+  have ha1 := hentry_a1 (p := p) hwd hw0 hw1
+  have ha2 := hentry_a2 (p := p) hwd hw0 hw1
+  have hb0 := hentry_b0 (p := p) hwd hw0 hw1
+  have hb1 := hentry_b1 (p := p) hwd hw0 hw1
+  have hb2 := hentry_b2 (p := p) (w := w)
+  have hc0 := hentry_c0 (p := p) hwd hw0 hw1
+  have hc1 := hentry_c1 (p := p) hwd hw0 hw1
+  have hc2 := hentry_c2 (p := p) hwd hw0 hw1
+  have hd0 := hentry_d0 (p := p) hwd hw0 hw1
+  have hd1 := hentry_d1 (p := p) hwd hw0 hw1
+  have hd2 := hentry_d2 (p := p) (w := w)
+  have he0 := hentry_e0 (p := p) hwd hw0 hw1
+  have he1 := hentry_e1 (p := p) hwd hw0 hw1
+  have he2 := hentry_e2 (p := p) (w := w)
+  have hf0 := hentry_f0 (p := p) hwd hw0 hw1
+  have hf1 := hentry_f1 (p := p) hwd hw0 hw1
+  have hf2 := hentry_f2 (p := p) hwd hw0 hw1
+  have hb2' := hentry_b2' (p := p) (w := w)
+  have hd2' := hentry_d2' (p := p) (w := w)
+  have he2' := hentry_e2' (p := p) (w := w)
   refine natTierBody_sound (b2N := 0) (d2N := 0) (e2N := 0)
-    (hentry_a0 (p := p) hwd hw0 hw1) (hentry_a1 (p := p) hwd hw0 hw1)
-    (hentry_a2 (p := p) hwd hw0 hw1)
-    (hentry_b0 (p := p) hwd hw0 hw1) (hentry_b1 (p := p) hwd hw0 hw1) ?hb2
-    (hentry_c0 (p := p) hwd hw0 hw1) (hentry_c1 (p := p) hwd hw0 hw1)
-    (hentry_c2 (p := p) hwd hw0 hw1)
-    (hentry_d0 (p := p) hwd hw0 hw1) (hentry_d1 (p := p) hwd hw0 hw1) ?hd2
-    (hentry_e0 (p := p) hwd hw0 hw1) (hentry_e1 (p := p) hwd hw0 hw1) ?he2
-    (hentry_f0 (p := p) hwd hw0 hw1) (hentry_f1 (p := p) hwd hw0 hw1)
-    (hentry_f2 (p := p) hwd hw0 hw1)
+    ha0 ha1 ha2 hb0 hb1 hb2 hc0 hc1 hc2 hd0 hd1 hd2 he0 he1 he2 hf0 hf1 hf2
     (by ring) (by ring) (by ring)
     hp0 hp1 hp2
     (Int.toNat_of_nonneg hoa0) (Int.toNat_of_nonneg hoa1) (Int.toNat_of_nonneg hoa2)
@@ -1716,11 +1758,7 @@ theorem Gℚ_gt_maxHℚ_fastNat_sound {ι : Type} [Fintype ι] [DecidableEq ι]
     (Int.toNat_of_nonneg hoe0) (Int.toNat_of_nonneg hoe1) ?hE2
     (Int.toNat_of_nonneg hof0) (Int.toNat_of_nonneg hof1) (Int.toNat_of_nonneg hof2)
     (glo_bound hwd hw0 hw1 hS0 hS1 hS2) rfl (kR_bound (εθ₂ := εθ₂) (εφ₂ := εφ₂)) ?hfs
-    (so_bound (εθ₂ := εθ₂) (εφ₂ := εφ₂)
-      (hentry_d0 (p := p) hwd hw0 hw1) (hentry_d1 (p := p) hwd hw0 hw1) ?hd2'
-      (hentry_e0 (p := p) hwd hw0 hw1) (hentry_e1 (p := p) hwd hw0 hw1) ?he2'
-      (hentry_f0 (p := p) hwd hw0 hw1) (hentry_f1 (p := p) hwd hw0 hw1)
-      (hentry_f2 (p := p) hwd hw0 hw1))
+    (so_bound (εθ₂ := εθ₂) (εφ₂ := εφ₂) hd0 hd1 hd2' he0 he1 he2' hf0 hf1 hf2)
     (eps13_bound εθ₂) (eps13_bound εφ₂) hεθ₂' hεφ₂'
     rfl rfl rfl rfl rfl rfl
     ?hg16 ?hg29 ?hg42
@@ -1729,67 +1767,12 @@ theorem Gℚ_gt_maxHℚ_fastNat_sound {ι : Type} [Fintype ι] [DecidableEq ι]
     (Int.toNat_of_nonneg heθhi0) (Int.toNat_of_nonneg heφhi0)
     ?hq1 ?hq2 ?hq3
     hbody
-  case hb2 =>
-    show RationalApprox.round13 ((hEntries p w).m2θtw 2) = _
-    rw [show (hEntries p w).m2θtw 2 = 0 from by
-      simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
-    unfold RationalApprox.round13
-    norm_num
-  case hd2 =>
-    show RationalApprox.round13 ((hEntries p w).m2θθtw 2) = _
-    rw [show (hEntries p w).m2θθtw 2 = 0 from by
-      simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
-    unfold RationalApprox.round13
-    norm_num
-  case he2 =>
-    show RationalApprox.round13 ((hEntries p w).m2θφtw 2) = _
-    rw [show (hEntries p w).m2θφtw 2 = 0 from by
-      simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
-    unfold RationalApprox.round13
-    norm_num
-  case hd2' =>
-    show RationalApprox.round13 ((hEntries p w).m2θθtw 2) = _
-    rw [show (hEntries p w).m2θθtw 2 = 0 from by
-      simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
-    unfold RationalApprox.round13
-    norm_num
-  case he2' =>
-    show RationalApprox.round13 ((hEntries p w).m2θφtw 2) = _
-    rw [show (hEntries p w).m2θφtw 2 = 0 from by
-      simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
-    unfold RationalApprox.round13
-    norm_num
   case hB2 => norm_num
   case hD2 => norm_num
   case hE2 => norm_num
   case hfs =>
-    have h1 := fo_bound (εθ₂ := εθ₂) (εφ₂ := εφ₂)
-      (hentry_b0 (p := p) hwd hw0 hw1) (hentry_b1 (p := p) hwd hw0 hw1)
-      (by
-        show RationalApprox.round13 ((hEntries p w).m2θtw 2) = _
-        rw [show (hEntries p w).m2θtw 2 = 0 from by
-          simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
-        unfold RationalApprox.round13
-        norm_num)
-      (hentry_c0 (p := p) hwd hw0 hw1) (hentry_c1 (p := p) hwd hw0 hw1)
-      (hentry_c2 (p := p) hwd hw0 hw1)
-    have h2 := so_bound (εθ₂ := εθ₂) (εφ₂ := εφ₂)
-      (hentry_d0 (p := p) hwd hw0 hw1) (hentry_d1 (p := p) hwd hw0 hw1)
-      (by
-        show RationalApprox.round13 ((hEntries p w).m2θθtw 2) = _
-        rw [show (hEntries p w).m2θθtw 2 = 0 from by
-          simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
-        unfold RationalApprox.round13
-        norm_num)
-      (hentry_e0 (p := p) hwd hw0 hw1) (hentry_e1 (p := p) hwd hw0 hw1)
-      (by
-        show RationalApprox.round13 ((hEntries p w).m2θφtw 2) = _
-        rw [show (hEntries p w).m2θφtw 2 = 0 from by
-          simp [hEntries, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]]
-        unfold RationalApprox.round13
-        norm_num)
-      (hentry_f0 (p := p) hwd hw0 hw1) (hentry_f1 (p := p) hwd hw0 hw1)
-      (hentry_f2 (p := p) hwd hw0 hw1)
+    have h1 := fo_bound (εθ₂ := εθ₂) (εφ₂ := εφ₂) hb0 hb1 hb2' hc0 hc1 hc2
+    have h2 := so_bound (εθ₂ := εθ₂) (εφ₂ := εφ₂) hd0 hd1 hd2' he0 he1 he2' hf0 hf1 hf2
     push_cast
     push_cast at h1 h2
     linarith
