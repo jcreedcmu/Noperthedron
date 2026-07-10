@@ -3,12 +3,13 @@ import Noperthedron.RationalApprox.RationalGlobal
 /-!
 # All-`Nat` fast path for the global check
 
-`Gℚ_gt_maxHℚ_fastNat` decides the same tiered test as `Gℚ_gt_maxHℚ_checkN`,
+`Gℚ_gt_maxHℚ_fastNat` decides the same tiered test as `Gℚ_gt_maxHℚ_check`,
 but one-sidedly (`Gℚ_gt_maxHℚ_fastNat_sound`: `true` implies the ℚ check;
 `false` means "fall back to the exact checker") and with every hot-loop
 operation a single kernel-accelerated `Nat` primitive, which makes it the
 row check of choice for the kernel-only route (`decide +kernel` verifies a
-global row ~18× faster than through `Gℚ_gt_maxHℚ_checkN`). The wiring into
+global row ~18× faster than through the exact integer arithmetic it
+replaced). The wiring into
 `Row.G_gt_maxH` — including the concrete packed vertex table — lives in
 `Checker/Global.lean`; this file is generic over the table.
 -/
@@ -17,7 +18,7 @@ namespace RationalApprox.GlobalTheorem
 
 /-! ## The checker
 
-`Gℚ_gt_maxHℚ_fastNat` decides the same tiered test as `Gℚ_gt_maxHℚ_checkN`,
+`Gℚ_gt_maxHℚ_fastNat` decides the same tiered test as `Gℚ_gt_maxHℚ_check`,
 but one-sidedly (`true` implies the ℚ check; `false` means "fall back")
 and with every per-vertex operation a single kernel-accelerated `Nat`
 primitive:
