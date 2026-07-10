@@ -115,6 +115,26 @@ lemma differentiable_rotR'_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace 
   intro i j
   fin_cases i <;> fin_cases j <;> simp [rotR'_mat] <;> fun_prop
 
+/-- Joint smoothness of `rotM` in the two angles and the vector. -/
+@[fun_prop]
+lemma contDiff_rotM_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {k : WithTop ℕ∞} {f g : X → ℝ} {h : X → ℝ³}
+    (hf : ContDiff ℝ k f) (hg : ContDiff ℝ k g) (hh : ContDiff ℝ k h) :
+    ContDiff ℝ k fun x => rotM (f x) (g x) (h x) := by
+  apply contDiff_toEuclideanLin_apply (M := fun x => rotM_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotM_mat] <;> fun_prop
+
+/-- Joint smoothness of `rotR` in the angle and the vector. -/
+@[fun_prop]
+lemma contDiff_rotR_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {k : WithTop ℕ∞} {f : X → ℝ} {h : X → ℝ²}
+    (hf : ContDiff ℝ k f) (hh : ContDiff ℝ k h) :
+    ContDiff ℝ k fun x => rotR (f x) (h x) := by
+  apply contDiff_toEuclideanLin_apply (M := fun x => rotR_mat (f x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotR_mat] <;> fun_prop
+
 /-- DifferentiableAt for rotMθ (outer, E 2) -/
 lemma differentiableAt_rotMθ_outer (S : ℝ³) (y : E 2) :
     DifferentiableAt ℝ (fun z : E 2 => rotMθ (z.ofLp 0) (z.ofLp 1) S) y :=

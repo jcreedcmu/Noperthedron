@@ -52,7 +52,7 @@ lemma differentiable_toEuclideanLin_apply
 /-- Transport `ContDiff` through application of a matrix path to a varying vector,
 analogously to `differentiable_toEuclideanLin_apply`. -/
 lemma contDiff_toEuclideanLin_apply
-    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] {m n k : ℕ}
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] {m n : ℕ} {k : WithTop ℕ∞}
     {M : X → Matrix (Fin m) (Fin n) ℝ} {v : X → EuclideanSpace ℝ (Fin n)}
     (hM : ∀ i j, ContDiff ℝ k fun x => M x i j) (hv : ContDiff ℝ k v) :
     ContDiff ℝ k fun x => (M x).toEuclideanLin.toContinuousLinearMap (v x) := by

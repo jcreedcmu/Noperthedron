@@ -251,10 +251,7 @@ theorem third_partial_rotproj_inner_eq (S : ℝ³) (w : ℝ²) (x : E 3) (i j k 
 theorem third_partial_inner_rotM_inner (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1)
     (i j k : Fin 3) (y : ℝ³) :
     |nth_partial i (nth_partial j (nth_partial k (rotproj_inner_unit S w))) y| ≤ 1 := by
-  have hf_smooth : ContDiff ℝ 3 (rotproj_inner S w) := by
-    change ContDiff ℝ 3 (fun x : ℝ³ => ⟪rotprojRM (x 1) (x 2) (x 0) S, w⟫)
-    simp [inner, rotprojRM, rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail]
-    fun_prop
+  have hf_smooth : ContDiff ℝ 3 (rotproj_inner S w) := ContDiff.rotproj_inner S w
   have hg_c2 : ContDiff ℝ 2 (nth_partial k (rotproj_inner S w)) :=
     hf_smooth.fderiv_right (by decide : (2 : WithTop ℕ∞) + 1 ≤ 3) |>.clm_apply contDiff_const
   have hg_diff : Differentiable ℝ (nth_partial k (rotproj_inner S w)) :=
