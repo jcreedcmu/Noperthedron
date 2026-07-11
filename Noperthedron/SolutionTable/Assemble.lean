@@ -13,13 +13,12 @@ access. So the kernel never sees the `Array` at all:
 
 * Validity is restated against an abstract getter `get : ℕ → Row`
   (`Row.ValidSplitParamAt`, …, `Row.ValidIxAt`), decidably. The getter is
-  realized as a digit-curried dispatch over chunk constants
-  (`rowGetter`, built by `assemble_row_dispatch` in `Load.lean`), so one
-  access walks ≤ 32 `Matrix.vecCons` cells plus one ≤ chunkSize list walk.
-* Chunk theorems prove `ChunkOk get size C k` by `decide +kernel`; the
-  `ChunkOkBelow` chain combines them linearly, and
-  `validIxAt_of_chunkOkBelow` turns full coverage into
-  `∀ i : Fin size, Row.ValidIxAt get size i`.
+  realized as a digit-curried dispatch over curried chunk constants
+  (`rowGetterC`, built by `assemble_row_dispatch_curried` in `Load.lean`),
+  so one access walks ≤ 7 `Fin 8` digit levels — `O(log)`.
+* Range theorems prove `RangeOk get size a b` by `decide +kernel`;
+  `RangeOk.append` folds them, and `validIxAt_of_rangeOk` turns full
+  coverage into `∀ i : Fin size, Row.ValidIxAt get size i`.
 * At the `Prop` level only, `tableOfGetter get size := Array.ofFn …` gives an
   actual `Table`; `Array.getElem_ofFn` is a *rewrite* (the kernel never
   reduces the array), and `validTableOfGetter` produces the `ValidTable` the
@@ -149,52 +148,40 @@ theorem Table.rowsValid_of_validIxAt
 
 end Bridge
 
-/-! ## Combining per-chunk lemmas
-
-`ChunkOk get size C k` is the statement each generated chunk file proves by
-`decide +kernel`; the `ChunkOkBelow` chain combines them one per step (also
-generated), and full coverage discharges the `∀ i : Fin size` hypothesis. -/
-
-/-- Rows `[C * k, C * (k + 1)) ∩ [0, size)` are valid (getter-based). -/
-def ChunkOk (get : ℕ → Row) (size C k : ℕ) : Prop :=
-  ∀ j : Fin C, C * k + j.val < size → Row.ValidIxAt get size (C * k + j.val)
-deriving Decidable
-
-/-- All chunks with index `< m` are valid. -/
-def ChunkOkBelow (get : ℕ → Row) (size C m : ℕ) : Prop :=
-  ∀ k, k < m → ChunkOk get size C k
-
-theorem chunkOkBelow_zero (get : ℕ → Row) (size C : ℕ) :
-    ChunkOkBelow get size C 0 :=
-  fun _ hk => absurd hk (Nat.not_lt_zero _)
-
-theorem ChunkOkBelow.step {get : ℕ → Row} {size C m : ℕ}
-    (h1 : ChunkOkBelow get size C m) (h2 : ChunkOk get size C m) :
-    ChunkOkBelow get size C (m + 1) := by
-  intro k hk
-  rcases Nat.lt_or_ge k m with h | h
-  · exact h1 k h
-  · have : k = m := by omega
-    subst this
-    exact h2
-
-theorem validIxAt_of_chunkOkBelow {get : ℕ → Row} {size C m : ℕ} (hC : 0 < C)
-    (hcover : size ≤ m * C) (h : ChunkOkBelow get size C m) :
-    ∀ i : Fin size, Row.ValidIxAt get size i := by
-  intro i
-  have hdm : C * (i.val / C) + i.val % C = i.val := Nat.div_add_mod i.val C
-  have hkm : i.val / C < m :=
-    (Nat.div_lt_iff_lt_mul hC).mpr (lt_of_lt_of_le i.isLt hcover)
-  have := h (i.val / C) hkm ⟨i.val % C, Nat.mod_lt _ hC⟩ (by rw [hdm]; exact i.isLt)
-  rwa [hdm] at this
-
 /-! ## Parallel Bool checker (for the `native_decide` route)
 
-Mirror of `Table.rowsValidChunkedB` (see `SolutionTable/Basic.lean`) against
-the getter: one `native_decide` on `rowsValidIxAtParB get size nTasks`
-discharges the same `∀ i : Fin size, Row.ValidIxAt get size i` hypothesis
-that the kernel route assembles chunk-by-chunk, with the row checks split
-into `nTasks` concurrent `Task.spawn`s. -/
+One `native_decide` on `rowsValidIxAtParB get size nTasks` discharges the
+same `∀ i : Fin size, Row.ValidIxAt get size i` hypothesis that the kernel
+route assembles chunk-by-chunk, with the row checks split into `nTasks`
+concurrent `Task.spawn`s. Since `Task.spawn fn` is *definitionally*
+`⟨fn ()⟩`, the parallelism is invisible to the logic, and correctness is
+proved exactly as for a sequential checker. The loops are `Fin.foldl`, which
+compiles flat (the auto-derived `Nat.decidableBallLT` instances are
+structurally recursive and overflow the runtime stack on tables with
+millions of rows). -/
+
+theorem Fin.foldl_and_factor {n : ℕ} (p : Fin n → Bool) (init : Bool) :
+    (Fin.foldl n (fun acc i => acc && p i) init) =
+      (init && Fin.foldl n (fun acc i => acc && p i) true) := by
+  induction n generalizing init with
+  | zero => simp [Fin.foldl_zero]
+  | succ n ih =>
+    rw [Fin.foldl_succ, Fin.foldl_succ,
+        ih (fun i => p i.succ) (init && p 0),
+        ih (fun i => p i.succ) (true && p 0)]
+    simp [Bool.and_assoc]
+
+theorem Fin.foldl_and_eq_true_iff {n : ℕ} (p : Fin n → Bool) :
+    (Fin.foldl n (fun acc i => acc && p i) true) = true ↔ ∀ i, p i = true := by
+  induction n with
+  | zero => simp [Fin.foldl_zero]
+  | succ n ih =>
+    rw [Fin.foldl_succ, Fin.foldl_and_factor]
+    simp only [Bool.true_and, Bool.and_eq_true]
+    rw [ih (fun i => p i.succ), Fin.forall_fin_succ]
+
+theorem task_get_spawn {α : Type} (fn : Unit → α) (prio : Task.Priority) :
+    (Task.spawn fn prio).get = fn () := rfl
 
 /-- `Row.ValidIxAt` as a `Bool`, vacuously `true` past `size` (chunks may
 overhang the end). -/
@@ -213,7 +200,7 @@ theorem validIxAtB_eq_true_iff (get : ℕ → Row) (size i : ℕ) :
     exact fun h' => absurd h' h
 
 /-- Check `validIxAtB` on indices `[start, start + cnt)`, as a flat
-`Fin.foldl` loop (see `Table.rowsValidB` for why `Fin.foldl`). -/
+`Fin.foldl` loop. -/
 def chunkValidIxAtB (get : ℕ → Row) (size start cnt : ℕ) : Bool :=
   Fin.foldl cnt (init := true) fun acc j => acc && validIxAtB get size (start + j.val)
 
@@ -273,13 +260,14 @@ theorem validIxAt_of_rowsValidIxAtParB {get : ℕ → Row} {size nTasks : ℕ}
     ∀ i : Fin size, Row.ValidIxAt get size i :=
   validIxAt_of_rowsValidIxAtChunkedB h
 
-/-! ### Adaptive ranges
+/-! ## Combining per-range lemmas (for the kernel route)
 
-`ChunkOk` requires a uniform chunk size, but kernel memory per row varies
-~10× between row types (locals build far larger term caches than globals),
-so the generated validation files size their per-declaration ranges
-adaptively. `RangeOk` is the arbitrary-span analogue, with an append
-combinator and the same end-point conversion. -/
+`RangeOk get size a b` is the statement the generated validation files prove
+by `decide +kernel`, one range per declaration. The spans are sized
+adaptively because kernel memory per row varies ~10× between row types
+(locals build far larger term caches than globals). The generated combine
+files fold the ranges with `RangeOk.append`, and full coverage discharges
+the `∀ i : Fin size` hypothesis via `validIxAt_of_rangeOk`. -/
 
 /-- Rows `[a, b) ∩ [0, size)` are valid (getter-based). -/
 def RangeOk (get : ℕ → Row) (size a b : ℕ) : Prop :=
@@ -342,13 +330,33 @@ noncomputable def validTableOfGetter (get : ℕ → Row) (size : ℕ)
       rw [tableOfGetter_get get size 0 (by simpa using hpos), hfirst]]
     exact rowZero_contains_tightInterval
 
+/-- Runtime analogue of `validTableOfGetter` for a concrete parsed table:
+the checks are stated against the getter `fun j => tab[j]!`, and the table
+itself is the carrier, so (unlike `validTableOfGetter`) the definition is
+computable and the `constructValidTable` executable can construct the value.
+Together with `validIxAt_of_rowsValidIxAtParB`, this makes that executable a
+native dry run of exactly the checks that `NativeCaseAnalysis` puts under
+`native_decide`. -/
+def validTableOfParsedChecks (tab : Table)
+    (hpos : 0 < tab.size)
+    (hfirst : tab[0].interval = rowZero.interval)
+    (hvalid : ∀ i : Fin tab.size, Row.ValidIxAt (fun j => tab[j]!) tab.size i) :
+    ValidTable where
+  table := tab
+  rows_valid := Table.rowsValid_of_validIxAt rfl
+    (fun i h => (getElem!_pos tab i h).symm) hvalid
+  nonempty := hpos
+  contains_tightInterval := by
+    rw [show (tab[0].interval : Set (Pose ℝ)) = (rowZero.interval : Set (Pose ℝ))
+        from by rw [hfirst]]
+    exact rowZero_contains_tightInterval
+
 /-! ## The concrete getter shape
 
-`assemble_row_dispatch` (in `SolutionTable/Load.lean`) builds a digit-curried
-`Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row` dispatch over up to 4096 loaded
-chunk constants; `rowGetter` turns it into the `ℕ → Row` getter. A kernel
-access costs ≤ 32 `Matrix.vecCons` cells for the dispatch walk plus at most
-`chunkSize` `List` cells within the chunk. -/
+`assemble_row_dispatch_curried` (in `SolutionTable/Load.lean`) builds a
+digit-curried dispatch over up to 4096 loaded curried chunk constants
+(`load_csv_chunks_curried`); `rowGetterC` turns it into the `ℕ → Row`
+getter. -/
 
 /-- The `O(log)` getter over a curried dispatch
 (`assemble_row_dispatch_curried`): seven `Fin 8` digit steps, no `List`
@@ -366,12 +374,25 @@ def rowGetterC
            ⟨j / 8 % 8, Nat.mod_lt _ (by norm_num)⟩
            ⟨j % 8, Nat.mod_lt _ (by norm_num)⟩
 
-def rowGetter (dispatch : Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row)
-    (chunkSize : ℕ) (i : ℕ) : Row :=
-  let k := i / chunkSize
-  (dispatch ⟨k / 512 % 8, Nat.mod_lt _ (by norm_num)⟩
-            ⟨k / 64 % 8, Nat.mod_lt _ (by norm_num)⟩
-            ⟨k / 8 % 8, Nat.mod_lt _ (by norm_num)⟩
-            ⟨k % 8, Nat.mod_lt _ (by norm_num)⟩).getD (i % chunkSize) default
+/-! ## Smoke tests -/
+
+/-- A 1-row table consisting of a known-valid global leaf. -/
+private def testTinyTable : Table := #[{ testGlobalRow with ID := 0 }]
+
+-- The parallel checker accepts a valid table (with the 512 chunks vastly
+-- overhanging the 1-row table) and agrees with the sequential decision
+-- procedure for `Row.ValidIxAt`.
+/-- info: (true, true) -/
+#guard_msgs in
+#eval (rowsValidIxAtParB (fun j => testTinyTable[j]!) testTinyTable.size 512,
+       decide (∀ i : Fin testTinyTable.size,
+         Row.ValidIxAt (fun j => testTinyTable[j]!) testTinyTable.size i))
+
+-- Degenerate parameters: zero tasks must fail the coverage guard for a
+-- positive size, and must accept size zero.
+/-- info: (false, true) -/
+#guard_msgs in
+#eval (rowsValidIxAtParB (fun j => testTinyTable[j]!) testTinyTable.size 0,
+       rowsValidIxAtParB (fun j => testTinyTable[j]!) 0 0)
 
 end Noperthedron.Solution

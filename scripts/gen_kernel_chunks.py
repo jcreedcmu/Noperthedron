@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Generate the KernelCaseAnalysis chunk tree: load modules (literal row chunks),
-the dispatch/getter module, validation modules (ChunkOk theorems), the
-ChunkOkBelow combine chain, and the final capstone. Run from the repo root.
+the dispatch/getter module, validation modules (RangeOk theorems over
+adaptively sized spans), the RangeOk.append combine chain, and the final
+capstone. Run from the repo root.
 
 Phases (pass as argv[1]):
   load      - KernelCaseAnalysis/Gen/LoadNNN.lean (8192 rows each, 512-row chunks)
   dispatch  - KernelCaseAnalysis/Gen/Dispatch.lean
-  validate  - KernelCaseAnalysis/Gen/ValidateNNN.lean (8 ChunkOk theorems each)
+  validate  - KernelCaseAnalysis/Gen/ValidateNNNN.lean (~S_PER_FILE kernel-seconds each)
   combine   - KernelCaseAnalysis/Gen/CombineNN.lean + Final.lean
 """
 import sys, os
@@ -16,8 +17,6 @@ C = 512
 ROWS_PER_LOAD = 8192
 NCHUNKS = (N + C - 1) // C          # 4007
 NLOAD = (N + ROWS_PER_LOAD - 1) // ROWS_PER_LOAD  # 251
-CHUNKS_PER_VALIDATE = 8
-NVAL = (NCHUNKS + CHUNKS_PER_VALIDATE - 1) // CHUNKS_PER_VALIDATE  # 501
 
 os.makedirs('KernelCaseAnalysis/Gen', exist_ok=True)
 

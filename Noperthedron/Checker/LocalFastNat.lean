@@ -1005,7 +1005,7 @@ theorem fastNat_imp_checkN {Qi : Fin 3 → VertexIndex} {p : Pose ℚ} {ε δ r 
 /-- `Bεℚ` decided through the all-`Nat` fast path when `0 < ε` and `0 < r`
 (the only regime `Row.ValidLocal` evaluates it in), falling back to the
 integer core `checkN` and then the ℚ checker. Out-prioritizes
-`instDecidableNPy`. -/
+`instDecidablePy` (`Checker/Local.lean`). -/
 instance (priority := 10600) instDecidableFastPy (Qi : Fin 3 → VertexIndex)
     (p : Pose ℚ) (ε δ r : ℚ) :
     Decidable (Local.TriangleQ.Bεℚ Qi pythonVertexA p ε δ r
@@ -1026,9 +1026,9 @@ end Noperthedron.Solution.BεℚPy
 namespace Noperthedron.Solution
 
 /-- Re-derived `Row.ValidLocal` decision procedure: identical statement to
-the instances in `Checker/Local.lean` and `Checker/LocalNat.lean`, but
-elaborated with `BεℚPy.instDecidableFastPy` in scope, so the `Bεℚ` conjunct
-evaluates through the all-`Nat` fast path. -/
+the instance in `Checker/Local.lean`, but elaborated with
+`BεℚPy.instDecidableFastPy` in scope, so the `Bεℚ` conjunct evaluates
+through the all-`Nat` fast path. -/
 instance (priority := 10600) (row : Row) : Decidable (Row.ValidLocal row) :=
   decidable_of_iff _ (Row.validLocal_iff row).symm
 

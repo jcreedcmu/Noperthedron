@@ -1,4 +1,5 @@
-import Noperthedron.SolutionTable.Check
+import Noperthedron.SolutionTable.Assemble
+import Noperthedron.SolutionTable.Parse
 
 /-!
   Program that constructs a `ValidTable` value -- exactly what fits into the "hole" in
@@ -6,11 +7,11 @@ import Noperthedron.SolutionTable.Check
 
   Accepts as input a path to a csv file contains the solution data.
 
-  This runs the same kind of parallel parse-and-check that `native_decide`
+  This runs the same parallel parse-and-check that `native_decide`
   evaluates in NativeCaseAnalysis/ComputationalStep.lean, but compiled to native
   code, so it is considerably faster.
 
-  Running on the solution tree from solution_tree_v6.zip takes about 5 minutes on
+  Running on the solution tree from solution_tree_v6.zip takes about a minute on
   a 16-core machine.
 
   To get the solution tree, make sure you have git-lfs installed and you've fetched
@@ -34,8 +35,9 @@ def main (args : List String) : IO Unit := do
 
   if h_nonempty : 0 < table.size then
     if h_first : table[0].interval = rowZero.interval then
-      if h_valid_b : table.rowsValidParB 512 then
-        let validTable : ValidTable := Table.validTableOfChecks h_nonempty h_first h_valid_b
+      if h_valid_b : rowsValidIxAtParB (fun j => table[j]!) table.size 512 then
+        let validTable : ValidTable := validTableOfParsedChecks table h_nonempty h_first
+          (validIxAt_of_rowsValidIxAtParB h_valid_b)
         IO.println s!"ValidTable constructed with {validTable.table.size} rows."
       else
         throw (IO.userError "table rows are not valid")

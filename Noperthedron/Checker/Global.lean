@@ -110,16 +110,15 @@ theorem Row.fastNatGlobal_sound {r : Row} (h : r.fastNatGlobal = true) :
 
 /-- Decidable instance for `Row.G_gt_maxH`: try the all-`Nat` fast path
 (`Row.fastNatGlobal`, sound by `fastNatGlobal_sound`); rows it rejects fall
-back to the exact integer checker `Gℚ_gt_maxHℚ_checkN`. On table rows the
+back to the exact ℚ checker `Gℚ_gt_maxHℚ_check`. On table rows the
 fast path always accepts, so the kernel never evaluates the fallback. -/
 instance (r : Row) : Decidable r.G_gt_maxH :=
   dite (r.fastNatGlobal = true)
     (fun h => .isTrue (Row.fastNatGlobal_sound h))
     (fun _ =>
       decidable_of_iff _ <|
-        RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_checkN_iff
-          r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂_nonneg r.εφ₂_nonneg r.S pythonPolyQ
-          pythonVertexNum (fun k c => pythonVertexNumCurried_eq k.ℓ k.i k.k c) r.w)
+        RationalApprox.GlobalTheorem.Gℚ_gt_maxHℚ_check_iff
+          r.interval.centerPose r.εα r.εθ₁ r.εφ₁ r.εθ₂_nonneg r.εφ₂_nonneg r.S pythonPolyQ r.w)
 
 /-! ## The main checker -/
 
