@@ -14,7 +14,7 @@ open Noperthedron
   There exists a convex polyhedron that does not have the Rupert property.
 -/
 theorem exists_not_rupert : ExistsNonRupertPolyhedron :=
-  valid_table_imples_exists_not_rupert solutionTable
+  valid_table_implies_exists_not_rupert solutionTable
 
 /- Expected: `propext`, `Classical.choice`, `Quot.sound`, and the two
 `native_decide` axiom instances — no `sorryAx`. -/
