@@ -1,5 +1,5 @@
 name = "Noperthedron"
-defaultTargets = ["Noperthedron", "constructValidTable"]
+defaultTargets = ["Noperthedron"]
 
 [leanOptions]
 pp.unicode.fun = true
