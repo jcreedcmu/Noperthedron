@@ -13,9 +13,9 @@ access. So the kernel never sees the `Array` at all:
 
 * Validity is restated against an abstract getter `get : ℕ → Row`
   (`Row.ValidSplitParamAt`, …, `Row.ValidIxAt`), decidably. The getter is
-  realized as a digit-curried dispatch over chunk constants
-  (`rowGetter`, built by `assemble_row_dispatch` in `Load.lean`), so one
-  access walks ≤ 32 `Matrix.vecCons` cells plus one ≤ chunkSize list walk.
+  realized as a digit-curried dispatch over curried chunk constants
+  (`rowGetterC`, built by `assemble_row_dispatch_curried` in `Load.lean`),
+  so one access walks ≤ 7 `Fin 8` digit levels — `O(log)`.
 * Range theorems prove `RangeOk get size a b` by `decide +kernel`;
   `RangeOk.append` folds them, and `validIxAt_of_rangeOk` turns full
   coverage into `∀ i : Fin size, Row.ValidIxAt get size i`.
@@ -353,11 +353,10 @@ def validTableOfParsedChecks (tab : Table)
 
 /-! ## The concrete getter shape
 
-`assemble_row_dispatch` (in `SolutionTable/Load.lean`) builds a digit-curried
-`Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row` dispatch over up to 4096 loaded
-chunk constants; `rowGetter` turns it into the `ℕ → Row` getter. A kernel
-access costs ≤ 32 `Matrix.vecCons` cells for the dispatch walk plus at most
-`chunkSize` `List` cells within the chunk. -/
+`assemble_row_dispatch_curried` (in `SolutionTable/Load.lean`) builds a
+digit-curried dispatch over up to 4096 loaded curried chunk constants
+(`load_csv_chunks_curried`); `rowGetterC` turns it into the `ℕ → Row`
+getter. -/
 
 /-- The `O(log)` getter over a curried dispatch
 (`assemble_row_dispatch_curried`): seven `Fin 8` digit steps, no `List`
@@ -374,14 +373,6 @@ def rowGetterC
            ⟨j / 64 % 8, Nat.mod_lt _ (by norm_num)⟩
            ⟨j / 8 % 8, Nat.mod_lt _ (by norm_num)⟩
            ⟨j % 8, Nat.mod_lt _ (by norm_num)⟩
-
-def rowGetter (dispatch : Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row)
-    (chunkSize : ℕ) (i : ℕ) : Row :=
-  let k := i / chunkSize
-  (dispatch ⟨k / 512 % 8, Nat.mod_lt _ (by norm_num)⟩
-            ⟨k / 64 % 8, Nat.mod_lt _ (by norm_num)⟩
-            ⟨k / 8 % 8, Nat.mod_lt _ (by norm_num)⟩
-            ⟨k % 8, Nat.mod_lt _ (by norm_num)⟩).getD (i % chunkSize) default
 
 /-! ## Smoke tests -/
 

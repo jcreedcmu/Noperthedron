@@ -5,7 +5,7 @@ import Noperthedron.SolutionTable.Parse
 /-!
 # Elaboration-time CSV ingestion for kernel-only checking
 
-The kernel-only verification route (see `kernel-decide-note.md`) needs the
+The kernel-only verification route (`KernelCaseAnalysis`) needs the
 solution-table rows as Lean *term literals*: in-kernel `String` parsing is
 hopeless (~9 s per 300 bytes), and generating literals as `.lean` source files
 would push gigabytes through the parser and term elaborator.
@@ -22,8 +22,9 @@ kernel performs the whole evaluation — no `ofReduceBool`, no compiler):
 
 * leaf checks, e.g. `csvRows_a_b.all Row.leafOk = true`;
 * split checks, stated against whatever table view is in scope (see
-  `scripts/test_csv_load.lean` for a mini-table demonstration);
-* eventually the bridging lemmas that assemble a `ValidTable`.
+  `KernelCaseAnalysis/Smoke.lean` for a small end-to-end demonstration);
+* the bridging lemmas that assemble a `ValidTable`
+  (`SolutionTable/Assemble.lean`).
 
 Nothing here needs to be trusted: the parser and `Expr` builders can be
 arbitrarily buggy and the kernel will still only accept true statements about
@@ -227,35 +228,12 @@ elab "load_csv_rows " path:str " from " a:num " to " b:num
     logInfo m!"load_csv_rows [{lo}, {hi}): read+parse {tParse - t0} ms, \
       define+check {tDefs - tParse} ms"
 
-/-- `load_csv_chunks "path.csv" from a to b chunkSize c` reads rows `[a, b)`
-in one pass and adds one `csvRows_<x>_<min (x+c) b> : List Row` definition per
-`c`-aligned sub-range (`a` should be a multiple of `c` so the names line up
-with the global chunk grid of `assemble_row_dispatch`). -/
-elab "load_csv_chunks " path:str " from " a:num " to " b:num
-    " chunkSize " c:num comp:(&"compiled")? : command => do
-  let lo := a.getNat
-  let hi := b.getNat
-  let cs := c.getNat
-  unless 0 < cs do throwError "chunkSize must be positive"
-  let t0 ← IO.monoMsNow
-  let rows ← readRows path.getString lo hi
-  let tParse ← IO.monoMsNow
-  let ns ← getCurrNamespace
-  Command.liftTermElabM do
-    let ctx ← mkCtx
-    let mut x := lo
-    while x < hi do
-      let y := min (x + cs) hi
-      addChunk ctx ns x y (rows.extract (x - lo) (y - lo)) comp.isSome
-      x := y
-    let tDefs ← IO.monoMsNow
-    logInfo m!"load_csv_chunks [{lo}, {hi}) by {cs}: read+parse {tParse - t0} ms, \
-      define+check {tDefs - tParse} ms"
-
-/-- `load_csv_chunks_curried "path.csv" from a to b chunkSize 512`: like
-`load_csv_chunks`, but each chunk is a curried `Fin 8 → Fin 8 → Fin 8 → Row`
-literal (`csvRowsC_<x>_<y>`), for the `O(log)` getter
-(`assemble_row_dispatch_curried` / `rowGetterC`). `chunkSize` must be 512. -/
+/-- `load_csv_chunks_curried "path.csv" from a to b chunkSize 512` reads rows
+`[a, b)` in one pass and adds one curried `Fin 8 → Fin 8 → Fin 8 → Row`
+literal `csvRowsC_<x>_<min (x+512) b>` per 512-aligned sub-range (`a` should
+be a multiple of 512 so the names line up with the global chunk grid of
+`assemble_row_dispatch_curried`), for the `O(log)` getter (`rowGetterC`).
+`chunkSize` must be 512. -/
 elab "load_csv_chunks_curried " path:str " from " a:num " to " b:num
     " chunkSize " c:num comp:(&"compiled")? : command => do
   let lo := a.getNat
@@ -277,75 +255,18 @@ elab "load_csv_chunks_curried " path:str " from " a:num " to " b:num
     logInfo m!"load_csv_chunks_curried [{lo}, {hi}) by {cs}: read+parse \
       {tParse - t0} ms, define+check {tDefs - tParse} ms"
 
-/-- `assemble_row_dispatch d rows N chunkSize C` defines
-
-    d : Fin 8 → Fin 8 → Fin 8 → Fin 8 → List Row
-
-as a digit-curried literal dispatching chunk index `k = i / C` (base-8
-digits, big-endian) to the loaded chunk constants
-`csvRows_{k*C}_{min ((k+1)*C) N}`, which must already be in the environment;
-slots beyond `⌈N/C⌉` get `[]`. Feed it to `rowGetter d C` (see
-`SolutionTable/Assemble.lean`) to obtain the `ℕ → Row` getter: a kernel
-access walks ≤ 32 `Matrix.vecCons` cells plus at most `C` list cells. Like
-`load_csv_rows`, the definition is `noncomputable` unless the trailing
-`compiled` flag is given. -/
-elab "assemble_row_dispatch " name:ident " rows " n:num " chunkSize " c:num
-    comp:(&"compiled")? : command => do
-  let N := n.getNat
-  let C := c.getNat
-  unless 0 < C do throwError "chunkSize must be positive"
-  unless 0 < N do throwError "rows must be positive"
-  let slots := (N + C - 1) / C
-  unless slots ≤ 4096 do throwError "too many chunks: {slots} > 4096"
-  let ns ← getCurrNamespace
-  Command.liftTermElabM do
-    let rowTy := mkConst ``Row
-    let listRowTy := mkApp (mkConst ``List [Level.zero]) rowTy
-    let nilE := mkApp (mkConst ``List.nil [Level.zero]) rowTy
-    let vecConsE := mkConst ``Matrix.vecCons [Level.zero]
-    let vecEmptyE := mkConst ``Matrix.vecEmpty [Level.zero]
-    let fin8Ty := mkApp (mkConst ``Fin) (natE 8)
-    -- `![e₀, …, e₇] : Fin 8 → τ` as a `vecCons` chain
-    let vec8 : Expr → Array Expr → Expr := fun τ es => Id.run do
-      let mut acc := mkApp vecEmptyE τ
-      for idx in [0:8] do
-        acc := mkApp4 vecConsE τ (natE idx) es[7 - idx]! acc
-      return acc
-    let mut level : Array Expr := #[]
-    for k in [0:4096] do
-      if k < slots then
-        let cn := ns ++ Name.mkSimple s!"csvRows_{k * C}_{min ((k + 1) * C) N}"
-        unless (← getEnv).contains cn do
-          throwError "missing chunk constant {cn} (load it first)"
-        level := level.push (mkConst cn)
-      else
-        level := level.push nilE
-    let mut τ := listRowTy
-    for _ in [0:4] do
-      let mut next : Array Expr := #[]
-      for g in [0:level.size / 8] do
-        next := next.push (vec8 τ (level.extract (8 * g) (8 * g + 8)))
-      level := next
-      τ := mkForall `i .default fin8Ty τ
-    let dName := ns ++ name.getId
-    addDecl <| .defnDecl {
-      name := dName, levelParams := [], type := τ,
-      value := level[0]!, hints := .abbrev, safety := .safe }
-    if comp.isSome then
-      compileDecls #[dName]
-    else
-      modifyEnv (addNoncomputable · dName)
-
-/-- `assemble_row_dispatch_curried d rows N chunkSize 512`: like
-`assemble_row_dispatch`, but over the curried chunk constants
-`csvRowsC_{k*512}_{min ((k+1)*512) N}`, producing
+/-- `assemble_row_dispatch_curried d rows N chunkSize 512` defines
 
     d : Fin 8 → Fin 8 → Fin 8 → Fin 8 → (Fin 8 → Fin 8 → Fin 8 → Row)
 
-Feed it to `rowGetterC d` (see `SolutionTable/Assemble.lean`): a kernel
-access walks ≤ 7 `Fin`-digit levels — `O(log)` instead of the `List`
-walk's `O(offset)`. Slots beyond `⌈N/512⌉` repeat the last chunk (never
-evaluated: every checked index is guarded by `< size`). -/
+as a digit-curried literal dispatching chunk index `k = i / 512` (base-8
+digits, big-endian) to the loaded curried chunk constants
+`csvRowsC_{k*512}_{min ((k+1)*512) N}`, which must already be in the
+environment. Feed it to `rowGetterC d` (see `SolutionTable/Assemble.lean`):
+a kernel access walks ≤ 7 `Fin`-digit levels — `O(log)`. Slots beyond
+`⌈N/512⌉` repeat the last chunk (never evaluated: every checked index is
+guarded by `< size`). Like `load_csv_rows`, the definition is
+`noncomputable` unless the trailing `compiled` flag is given. -/
 elab "assemble_row_dispatch_curried " name:ident " rows " n:num
     " chunkSize " c:num comp:(&"compiled")? : command => do
   let N := n.getNat
