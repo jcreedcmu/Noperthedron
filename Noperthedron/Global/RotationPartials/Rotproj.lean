@@ -6,7 +6,7 @@ Authors: Cameron Freer
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
-import Noperthedron.Global.FDerivHelpers
+import Noperthedron.Global.SymbolicRotationSemantics
 import Noperthedron.Global.RotationDerivs
 import Noperthedron.PoseInterval
 import Noperthedron.Global.Definitions
@@ -16,6 +16,7 @@ import Noperthedron.Global.Definitions
 
 - `rotproj_inner'`, `rotprojRM'` definitions
 - **`HasFDerivAt.rotproj_inner`** (main theorem)
+- `nth_partial_rotproj_inner_e0/e1/e2`, instances of the symbolic bridge
 -/
 
 open scoped RealInnerProductSpace
@@ -24,16 +25,24 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
-lemma Differentiable.rotprojRM (S : ℝ³) :
-    Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
+lemma ContDiff.rotprojRM {k : WithTop ℕ∞} (S : ℝ³) :
+    ContDiff ℝ k fun (x : ℝ³) ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
   unfold _root_.rotprojRM
-  rw [differentiable_piLp]
-  intro i
-  fin_cases i <;> simp [rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
+  exact contDiff_rotR_comp (by fun_prop)
+    (contDiff_rotM_comp (by fun_prop) (by fun_prop) contDiff_const)
+
+@[fun_prop]
+lemma ContDiff.rotproj_inner {k : WithTop ℕ∞} (S : ℝ³) (w : ℝ²) :
+    ContDiff ℝ k (rotproj_inner S w) :=
+  ContDiff.inner ℝ (ContDiff.rotprojRM S) contDiff_const
+
+lemma Differentiable.rotprojRM (S : ℝ³) :
+    Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S :=
+  (ContDiff.rotprojRM (k := 1) S).differentiable one_ne_zero
 
 @[fun_prop]
 lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_inner S w) :=
-  Differentiable.inner ℝ (Differentiable.rotprojRM S) (by fun_prop)
+  (ContDiff.rotproj_inner (k := 1) S w).differentiable one_ne_zero
 
 /--
 The Fréchet derivative of `fun x => rotprojRM (x 1) (x 2) (x 0) S` at `pbar.innerParams`.
@@ -71,27 +80,28 @@ lemma rotprojRM'_single_2 (pbar : Pose ℝ) (S : ℝ³) :
 
 lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
     HasFDerivAt (rotproj_inner S w) (rotproj_inner' pbar S w) pbar.innerParams := by
-  have hdiff : DifferentiableAt ℝ
-      (fun x : ℝ³ => rotR (x.ofLp 0) (rotM (x.ofLp 1) (x.ofLp 2) S)) pbar.innerParams :=
-    differentiableAt_rotR_rotM S pbar.innerParams
-  -- The derivative is a linear map determined by its values on the standard basis,
-  -- and those values were already computed in `FDerivHelpers`.
+  -- The derivative is the column map of the three partial derivatives.
   have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S)
       (rotprojRM' pbar S) pbar.innerParams := by
-    have h0 : pbar.innerParams.ofLp 0 = pbar.α := by simp [Pose.innerParams]
-    have h1 : pbar.innerParams.ofLp 1 = pbar.θ₁ := by simp [Pose.innerParams]
-    have h2 : pbar.innerParams.ofLp 2 = pbar.φ₁ := by simp [Pose.innerParams]
-    have hfd : fderiv ℝ (fun x : ℝ³ => rotR (x.ofLp 0) (rotM (x.ofLp 1) (x.ofLp 2) S))
-        pbar.innerParams = rotprojRM' pbar S := by
-      refine ContinuousLinearMap.coe_injective
-        ((EuclideanSpace.basisFun (Fin 3) ℝ).toBasis.ext fun i => ?_)
-      fin_cases i <;>
-        simp only [OrthonormalBasis.coe_toBasis, EuclideanSpace.basisFun_apply,
-          ContinuousLinearMap.coe_coe, Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk]
-      · rw [fderiv_rotR_rotM_in_e0 S _ hdiff, rotprojRM'_single_0, h0, h1, h2]; rfl
-      · rw [fderiv_rotR_rotM_in_e1 S _ hdiff, rotprojRM'_single_1, h0, h1, h2]; rfl
-      · rw [fderiv_rotR_rotM_in_e2 S _ hdiff, rotprojRM'_single_2, h0, h1, h2]; rfl
-    exact hfd ▸ hdiff.hasFDerivAt
+    have zplain := hasFDerivAt_three_params
+      (fun α θ φ => rotR α (rotM θ φ S)) pbar.innerParams
+      (rotR' pbar.α (rotM pbar.θ₁ pbar.φ₁ S))
+      (rotR pbar.α (rotMθ pbar.θ₁ pbar.φ₁ S))
+      (rotR pbar.α (rotMφ pbar.θ₁ pbar.φ₁ S))
+      (by
+        simpa [_root_.rotprojRM] using
+          (Differentiable.rotprojRM S).differentiableAt)
+      (by simpa [Pose.innerParams] using HasDerivAt_rotR pbar.α (rotM pbar.θ₁ pbar.φ₁ S))
+      (by
+        simpa [Pose.innerParams, Function.comp_def] using
+          (ContinuousLinearMap.hasFDerivAt (rotR pbar.α)).comp_hasDerivAt pbar.θ₁
+            (hasDerivAt_rotM_θ pbar.θ₁ pbar.φ₁ S))
+      (by
+        simpa [Pose.innerParams, Function.comp_def] using
+          (ContinuousLinearMap.hasFDerivAt (rotR pbar.α)).comp_hasDerivAt pbar.φ₁
+            (hasDerivAt_rotM_φ pbar.θ₁ pbar.φ₁ S))
+    simpa [rotprojRM, rotprojRM', Pose.innerParams, Pose.rotR, Pose.rotR',
+      Pose.rotM₁, Pose.rotM₁θ, Pose.rotM₁φ] using zplain
 
   have step : (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
       ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
@@ -101,5 +111,41 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
 
   rw [step]
   exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.innerParams)
+
+/-!
+## First partials of `rotproj_inner`, via the symbolic bridge
+
+`rotproj_inner S w` is the evaluation of the base symbolic term, so its coordinate
+partials are instances of `SymbolicRotation.iterPartial_eval_eq`; the symbolic side of
+each instance is discharged by `decide`.
+-/
+
+/-- `rotproj_inner` is the evaluation of the base symbolic term. -/
+lemma rotproj_inner_eq_baseTerm (S : ℝ³) (w : ℝ²) :
+    rotproj_inner S w =
+      fun y : E 3 =>
+        ⟪(SymbolicRotation.baseTerm.eval (y.ofLp 0) (y.ofLp 1) (y.ofLp 2)) S, w⟫ :=
+  rfl
+
+lemma nth_partial_rotproj_inner_e0 (S : ℝ³) (w : ℝ²) :
+    nth_partial 0 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR' (y.ofLp 0) (rotM (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  rw [rotproj_inner_eq_baseTerm]
+  exact SymbolicRotation.iterPartial_eval_eq [0]
+    (t' := ⟨.pos, .r', .m⟩) (by decide) S w
+
+lemma nth_partial_rotproj_inner_e1 (S : ℝ³) (w : ℝ²) :
+    nth_partial 1 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR (y.ofLp 0) (rotMθ (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  rw [rotproj_inner_eq_baseTerm]
+  exact SymbolicRotation.iterPartial_eval_eq [1]
+    (t' := ⟨.pos, .r, .mθ⟩) (by decide) S w
+
+lemma nth_partial_rotproj_inner_e2 (S : ℝ³) (w : ℝ²) :
+    nth_partial 2 (rotproj_inner S w) =
+      fun (y : ℝ³) => ⟪rotR (y.ofLp 0) (rotMφ (y.ofLp 1) (y.ofLp 2) S), w⟫ := by
+  rw [rotproj_inner_eq_baseTerm]
+  exact SymbolicRotation.iterPartial_eval_eq [2]
+    (t' := ⟨.pos, .r, .mφ⟩) (by decide) S w
 
 end GlobalTheorem

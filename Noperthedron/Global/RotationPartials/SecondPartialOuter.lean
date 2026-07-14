@@ -249,11 +249,8 @@ theorem third_partial_rotproj_outer_eq (S : ℝ³) (w : ℝ²) (x : E 2) (i j k 
 theorem third_partial_inner_rotM_outer (S : ℝ³) {w : ℝ²} (w_unit : ‖w‖ = 1)
     (i j k : Fin 2) (y : ℝ²) :
     |nth_partial i (nth_partial j (nth_partial k (rotproj_outer_unit S w))) y| ≤ 1 := by
-  have hf_smooth : ContDiff ℝ 3 (fun z : E 2 => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) := by
-    apply ContDiff.inner ℝ _ contDiff_const
-    rw [contDiff_piLp]; intro m
-    simp only [rotM, rotM_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-    fin_cases m <;> simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> fun_prop
+  have hf_smooth : ContDiff ℝ 3 (fun z : E 2 => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫) :=
+    ContDiff.inner ℝ (ContDiff.rotM_outer S) contDiff_const
   have hg_c2 : ContDiff ℝ 2
       (nth_partial k (fun z : E 2 => ⟪rotM (z.ofLp 0) (z.ofLp 1) S, w⟫)) :=
     hf_smooth.fderiv_right (by decide : (2 : WithTop ℕ∞) + 1 ≤ 3) |>.clm_apply contDiff_const
