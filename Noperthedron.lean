@@ -21,7 +21,6 @@ import Noperthedron.Global
 import Noperthedron.Global.Basic
 import Noperthedron.Global.BoundedPartialsControlDifference
 import Noperthedron.Global.Definitions
-import Noperthedron.Global.FDerivHelpers
 import Noperthedron.Global.RotationDerivs
 import Noperthedron.Global.RotationPartials
 import Noperthedron.Global.RotationPartials.RotMOuter
@@ -29,6 +28,10 @@ import Noperthedron.Global.RotationPartials.Rotproj
 import Noperthedron.Global.RotationPartials.SecondPartialInner
 import Noperthedron.Global.RotationPartials.SecondPartialOuter
 import Noperthedron.Global.SecondPartialHelpers
+import Noperthedron.Global.SymbolicRotationCore
+import Noperthedron.Global.SymbolicRotationDerivs
+import Noperthedron.Global.SymbolicRotationOuter
+import Noperthedron.Global.SymbolicRotationSemantics
 import Noperthedron.Local
 import Noperthedron.Local.Congruent
 import Noperthedron.Local.Coss

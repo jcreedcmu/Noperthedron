@@ -23,28 +23,19 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
-private lemma outerParams_0 (pbar : Pose ℝ) : pbar.outerParams.ofLp 0 = pbar.θ₂ := by simp [Pose.outerParams]
-private lemma outerParams_1 (pbar : Pose ℝ) : pbar.outerParams.ofLp 1 = pbar.φ₂ := by simp [Pose.outerParams]
-
-/-- Coordinate extraction in `E 2`: direction `e_i`, same coordinate (moves). -/
-private lemma coord2_same (i : Fin 2) (y : E 2) (t : ℝ) :
-    (y + t • (EuclideanSpace.single i 1 : E 2)).ofLp i = y.ofLp i + t := by simp
-
-/-- Coordinate extraction in `E 2`: direction `e_i`, different coordinate (fixed). -/
-private lemma coord2_other {i j : Fin 2} (hij : j ≠ i) (y : E 2) (t : ℝ) :
-    (y + t • (EuclideanSpace.single i 1 : E 2)).ofLp j = y.ofLp j := by simp [hij]
-
 /-- The fderiv of rotM applied to a fixed vector P, as a function of (θ, φ).
 Columns: [rotMθ, rotMφ]. -/
 noncomputable
 def rotM' (pbar : Pose ℝ) (P : ℝ³) : ℝ² →L[ℝ] ℝ² :=
   columnsCLM ![rotMθ pbar.θ₂ pbar.φ₂ P, rotMφ pbar.θ₂ pbar.φ₂ P]
 
+lemma ContDiff.rotM_outer {k : WithTop ℕ∞} (P : ℝ³) :
+    ContDiff ℝ k fun (x : ℝ²) => (rotM (x 0) (x 1)) P :=
+  contDiff_rotM_comp (by fun_prop) (by fun_prop) contDiff_const
+
 lemma Differentiable.rotM_outer (P : ℝ³) :
-    Differentiable ℝ fun (x : ℝ²) => (rotM (x 0) (x 1)) P := by
-  rw [differentiable_piLp]
-  intro i
-  fin_cases i <;> simp [rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
+    Differentiable ℝ fun (x : ℝ²) => (rotM (x 0) (x 1)) P :=
+  (ContDiff.rotM_outer (k := 1) P).differentiable one_ne_zero
 
 @[simp]
 lemma rotM'_single_0 (pbar : Pose ℝ) (P : ℝ³) :
@@ -58,14 +49,12 @@ lemma rotM'_single_1 (pbar : Pose ℝ) (P : ℝ³) :
 
 lemma HasFDerivAt.rotM_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotM (x.ofLp 0) (x.ofLp 1)) P) (rotM' pbar P) pbar.outerParams := by
-  refine hasFDerivAt_of_partials _ (Differentiable.rotM_outer P pbar.outerParams) fun i => ?_
-  fin_cases i
-  · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, coord2_same,
-      coord2_other (by decide : (1 : Fin 2) ≠ 0), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotM_θ pbar.θ₂ pbar.φ₂ P)
-  · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-      coord2_same, coord2_other (by decide : (0 : Fin 2) ≠ 1), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotM_φ pbar.θ₂ pbar.φ₂ P)
+  simpa [rotM', Pose.outerParams] using
+    hasFDerivAt_two_params (fun θ φ => rotM θ φ P) pbar.outerParams
+      (rotMθ pbar.θ₂ pbar.φ₂ P) (rotMφ pbar.θ₂ pbar.φ₂ P)
+      (Differentiable.rotM_outer P pbar.outerParams)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotM_θ pbar.θ₂ pbar.φ₂ P)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotM_φ pbar.θ₂ pbar.φ₂ P)
 
 /-- Fréchet derivative of rotMθ: columns are [rotMθθ, rotMθφ]. -/
 noncomputable def rotMθ' (pbar : Pose ℝ) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
@@ -83,14 +72,12 @@ lemma rotMθ'_single_1 (pbar : Pose ℝ) (P : ℝ³) :
 
 lemma HasFDerivAt.rotMθ_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMθ (x.ofLp 0) (x.ofLp 1)) P) (rotMθ' pbar P) pbar.outerParams := by
-  refine hasFDerivAt_of_partials _ (differentiableAt_rotMθ_outer P pbar.outerParams) fun i => ?_
-  fin_cases i
-  · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, coord2_same,
-      coord2_other (by decide : (1 : Fin 2) ≠ 0), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMθ_θ pbar.θ₂ pbar.φ₂ P)
-  · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-      coord2_same, coord2_other (by decide : (0 : Fin 2) ≠ 1), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMθ_φ pbar.θ₂ pbar.φ₂ P)
+  simpa [rotMθ', Pose.outerParams] using
+    hasFDerivAt_two_params (fun θ φ => rotMθ θ φ P) pbar.outerParams
+      (rotMθθ pbar.θ₂ pbar.φ₂ P) (rotMθφ pbar.θ₂ pbar.φ₂ P)
+      (differentiableAt_rotMθ_outer P pbar.outerParams)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMθ_θ pbar.θ₂ pbar.φ₂ P)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMθ_φ pbar.θ₂ pbar.φ₂ P)
 
 /-- Fréchet derivative of rotMφ: columns are [rotMθφ, rotMφφ]. -/
 noncomputable def rotMφ' (pbar : Pose ℝ) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
@@ -108,14 +95,12 @@ lemma rotMφ'_single_1 (pbar : Pose ℝ) (P : ℝ³) :
 
 lemma HasFDerivAt.rotMφ_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMφ (x.ofLp 0) (x.ofLp 1)) P) (rotMφ' pbar P) pbar.outerParams := by
-  refine hasFDerivAt_of_partials _ (differentiableAt_rotMφ_outer P pbar.outerParams) fun i => ?_
-  fin_cases i
-  · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, coord2_same,
-      coord2_other (by decide : (1 : Fin 2) ≠ 0), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMφ_θ pbar.θ₂ pbar.φ₂ P)
-  · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-      coord2_same, coord2_other (by decide : (0 : Fin 2) ≠ 1), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMφ_φ pbar.θ₂ pbar.φ₂ P)
+  simpa [rotMφ', Pose.outerParams] using
+    hasFDerivAt_two_params (fun θ φ => rotMφ θ φ P) pbar.outerParams
+      (rotMθφ pbar.θ₂ pbar.φ₂ P) (rotMφφ pbar.θ₂ pbar.φ₂ P)
+      (differentiableAt_rotMφ_outer P pbar.outerParams)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMφ_θ pbar.θ₂ pbar.φ₂ P)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMφ_φ pbar.θ₂ pbar.φ₂ P)
 
 /-- Fréchet derivative of rotMθθ: columns are [-rotMθ, rotMθθφ] (Mθθθ = -Mθ). -/
 noncomputable def rotMθθ' (pbar : Pose ℝ) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
@@ -133,14 +118,12 @@ lemma rotMθθ'_single_1 (pbar : Pose ℝ) (P : ℝ³) :
 
 lemma HasFDerivAt.rotMθθ_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMθθ (x.ofLp 0) (x.ofLp 1)) P) (rotMθθ' pbar P) pbar.outerParams := by
-  refine hasFDerivAt_of_partials _ (differentiableAt_rotMθθ_outer P pbar.outerParams) fun i => ?_
-  fin_cases i
-  · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, coord2_same,
-      coord2_other (by decide : (1 : Fin 2) ≠ 0), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMθθ_θ pbar.θ₂ pbar.φ₂ P)
-  · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-      coord2_same, coord2_other (by decide : (0 : Fin 2) ≠ 1), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMθθ_φ pbar.θ₂ pbar.φ₂ P)
+  simpa [rotMθθ', Pose.outerParams] using
+    hasFDerivAt_two_params (fun θ φ => rotMθθ θ φ P) pbar.outerParams
+      (-(rotMθ pbar.θ₂ pbar.φ₂ P)) (rotMθθφ pbar.θ₂ pbar.φ₂ P)
+      (differentiableAt_rotMθθ_outer P pbar.outerParams)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMθθ_θ pbar.θ₂ pbar.φ₂ P)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMθθ_φ pbar.θ₂ pbar.φ₂ P)
 
 /-- Fréchet derivative of rotMθφ: columns are [rotMθθφ, rotMθφφ]. -/
 noncomputable def rotMθφ' (pbar : Pose ℝ) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
@@ -158,14 +141,12 @@ lemma rotMθφ'_single_1 (pbar : Pose ℝ) (P : ℝ³) :
 
 lemma HasFDerivAt.rotMθφ_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMθφ (x.ofLp 0) (x.ofLp 1)) P) (rotMθφ' pbar P) pbar.outerParams := by
-  refine hasFDerivAt_of_partials _ (differentiableAt_rotMθφ_outer P pbar.outerParams) fun i => ?_
-  fin_cases i
-  · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, coord2_same,
-      coord2_other (by decide : (1 : Fin 2) ≠ 0), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMθφ_θ pbar.θ₂ pbar.φ₂ P)
-  · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-      coord2_same, coord2_other (by decide : (0 : Fin 2) ≠ 1), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMθφ_φ pbar.θ₂ pbar.φ₂ P)
+  simpa [rotMθφ', Pose.outerParams] using
+    hasFDerivAt_two_params (fun θ φ => rotMθφ θ φ P) pbar.outerParams
+      (rotMθθφ pbar.θ₂ pbar.φ₂ P) (rotMθφφ pbar.θ₂ pbar.φ₂ P)
+      (differentiableAt_rotMθφ_outer P pbar.outerParams)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMθφ_θ pbar.θ₂ pbar.φ₂ P)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMθφ_φ pbar.θ₂ pbar.φ₂ P)
 
 /-- Fréchet derivative of rotMφφ: columns are [rotMθφφ, -rotMφ] (Mφφφ = -Mφ). -/
 noncomputable def rotMφφ' (pbar : Pose ℝ) (P : ℝ³) : E 2 →L[ℝ] ℝ² :=
@@ -183,13 +164,11 @@ lemma rotMφφ'_single_1 (pbar : Pose ℝ) (P : ℝ³) :
 
 lemma HasFDerivAt.rotMφφ_outer (pbar : Pose ℝ) (P : ℝ³) :
     HasFDerivAt (fun x => (rotMφφ (x.ofLp 0) (x.ofLp 1)) P) (rotMφφ' pbar P) pbar.outerParams := by
-  refine hasFDerivAt_of_partials _ (differentiableAt_rotMφφ_outer P pbar.outerParams) fun i => ?_
-  fin_cases i
-  · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, coord2_same,
-      coord2_other (by decide : (1 : Fin 2) ≠ 0), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMφφ_θ pbar.θ₂ pbar.φ₂ P)
-  · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-      coord2_same, coord2_other (by decide : (0 : Fin 2) ≠ 1), outerParams_0, outerParams_1]
-    exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMφφ_φ pbar.θ₂ pbar.φ₂ P)
+  simpa [rotMφφ', Pose.outerParams] using
+    hasFDerivAt_two_params (fun θ φ => rotMφφ θ φ P) pbar.outerParams
+      (rotMθφφ pbar.θ₂ pbar.φ₂ P) (-(rotMφ pbar.θ₂ pbar.φ₂ P))
+      (differentiableAt_rotMφφ_outer P pbar.outerParams)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMφφ_θ pbar.θ₂ pbar.φ₂ P)
+      (by simpa [Pose.outerParams] using hasDerivAt_rotMφφ_φ pbar.θ₂ pbar.φ₂ P)
 
 end GlobalTheorem
