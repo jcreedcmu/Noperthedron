@@ -1,5 +1,7 @@
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.Calculus.Deriv.Prod
+import Mathlib.Analysis.Calculus.FDeriv.WithLp
+import Mathlib.Analysis.Calculus.ContDiff.WithLp
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Noperthedron.Basic
 
@@ -32,6 +34,33 @@ lemma hasDerivAt_toEuclideanLin_apply {m n : ℕ} {M M' : ℝ → Matrix (Fin m)
     (WithLp.linearEquiv 2 ℝ (Fin m → ℝ)).symm.toContinuousLinearMap
   simpa [lpmap, Matrix.toLpLin_apply, LinearMap.coe_toContinuousLinearMap'] using
     HasDerivAt.clm_apply (hasDerivAt_const t lpmap) hpi
+
+/-- Transport `Differentiable` through application of a matrix path to a varying vector:
+if every entry of `M` is differentiable in the parameter, so is
+`fun x => (M x).toEuclideanLin.toContinuousLinearMap (v x)` for differentiable `v`. -/
+lemma differentiable_toEuclideanLin_apply
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] {m n : ℕ}
+    {M : X → Matrix (Fin m) (Fin n) ℝ} {v : X → EuclideanSpace ℝ (Fin n)}
+    (hM : ∀ i j, Differentiable ℝ fun x => M x i j) (hv : Differentiable ℝ v) :
+    Differentiable ℝ fun x => (M x).toEuclideanLin.toContinuousLinearMap (v x) := by
+  rw [differentiable_piLp]
+  intro i
+  simp only [Matrix.toLpLin_apply, LinearMap.coe_toContinuousLinearMap', Matrix.mulVec,
+    dotProduct]
+  fun_prop
+
+/-- Transport `ContDiff` through application of a matrix path to a varying vector,
+analogously to `differentiable_toEuclideanLin_apply`. -/
+lemma contDiff_toEuclideanLin_apply
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] {m n : ℕ} {k : WithTop ℕ∞}
+    {M : X → Matrix (Fin m) (Fin n) ℝ} {v : X → EuclideanSpace ℝ (Fin n)}
+    (hM : ∀ i j, ContDiff ℝ k fun x => M x i j) (hv : ContDiff ℝ k v) :
+    ContDiff ℝ k fun x => (M x).toEuclideanLin.toContinuousLinearMap (v x) := by
+  rw [contDiff_piLp]
+  intro i
+  simp only [Matrix.toLpLin_apply, LinearMap.coe_toContinuousLinearMap', Matrix.mulVec,
+    dotProduct]
+  fun_prop
 
 theorem HasDerivAt_rotR (α : ℝ) (v : ℝ²) :
     HasDerivAt (rotR · v) (rotR' α v) α := by
