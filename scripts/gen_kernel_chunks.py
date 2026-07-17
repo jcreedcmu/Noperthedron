@@ -14,7 +14,7 @@ import sys, os
 
 N = 2051521
 C = 512
-ROWS_PER_LOAD = 32768
+ROWS_PER_LOAD = 16384
 NCHUNKS = (N + C - 1) // C          # 4007
 NLOAD = (N + ROWS_PER_LOAD - 1) // ROWS_PER_LOAD  # 251
 
@@ -105,6 +105,10 @@ COST_S  = {1: 0.038, 2: 0.17, 3: 0.018, 4: 0.10}
 # the conservative per-row MB model predicts, so the per-declaration budget
 # and range cap are 4x'd for ~4x fewer range theorems (fewer lines), and the
 # per-file budget raised 1.5x to shave per-process startup overhead.
+# ROWS_PER_LOAD is chosen so a Load process peaks at ~3.4 GB — the same
+# envelope as a Validate process (~3.5 GB) — so one thread count
+# (16-way on 64 GB) works for the whole build. Measured: 8192 rows -> 3.0 GB,
+# 16384 -> ~3.4 GB, 32768 -> 4.3 GB.
 MB_BUDGET = 6400      # per-declaration term-cache budget
 S_PER_FILE = 750      # target kernel seconds per file
 MAX_RANGE = 4000
