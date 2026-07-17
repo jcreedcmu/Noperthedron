@@ -21,8 +21,10 @@ open Noperthedron
 theorem exists_not_rupert : ExistsNonRupertPolyhedron :=
   valid_table_implies_exists_not_rupert solutionTable
 
-/- Expected: `propext`, `Classical.choice`, `Quot.sound`, and the two
-`native_decide` axiom instances — no `sorryAx`. -/
+/- Expected: `propext`, `Classical.choice`, `Quot.sound`, and the
+`native_decide` axiom instance for `solution_checked` (a `_private.…ax_1_1`
+name — auxiliary declarations are private under the module system) —
+no `sorryAx`. -/
 #print axioms exists_not_rupert
 
 end Noperthedron.NativeCaseAnalysis
