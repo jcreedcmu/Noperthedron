@@ -1,9 +1,8 @@
 module
 
-public import KernelCaseAnalysis.Gen.Combine02
+public import KernelCaseAnalysis.Gen.Combine01
 
 @[expose] public section
-
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): every index of the full table
 satisfies `Row.ValidIxAt`, and row 0 carries `rowZero.interval`. -/
