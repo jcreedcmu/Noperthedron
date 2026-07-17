@@ -1,11 +1,16 @@
-import Mathlib.Analysis.InnerProductSpace.Dual
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import Noperthedron.PoseInterval
-import Noperthedron.Global.Basic
-import Noperthedron.Global.BoundedPartialsControlDifference
-import Noperthedron.Global.RotationPartials
-import Noperthedron.Vertices.Exact
+module
+
+public import Mathlib.Analysis.InnerProductSpace.Dual
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Noperthedron.PoseInterval
+public import Noperthedron.Global.Basic
+public import Noperthedron.Global.BoundedPartialsControlDifference
+public import Noperthedron.Global.RotationPartials
+public import Noperthedron.Vertices.Exact
+
+@[expose] public section
+
 
 open scoped RealInnerProductSpace
 
@@ -672,3 +677,5 @@ theorem global_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
 
 end GlobalTheorem
+
+end

@@ -1,6 +1,11 @@
-import Noperthedron.Checker.Local
-import Noperthedron.RationalApprox.TrigInt
-import Noperthedron.Vertices.PythonInt
+module
+
+public import Noperthedron.Checker.Local
+public import Noperthedron.RationalApprox.TrigInt
+public import Noperthedron.Vertices.PythonInt
+
+@[expose] public section
+
 
 /-!
 # Integer core of the local `Bεℚ` check
@@ -62,12 +67,12 @@ curried definitions). -/
 
 /-- All 810 vertex numerators, flattened as `(45·ℓ + 15·i + k)·3 + c`
 (as in `pythonVertexTable`). -/
-private def pythonVertexNumTable : Array ℤ :=
+def pythonVertexNumTable : Array ℤ :=
   Array.ofFn (n := 270) fun j =>
     pythonVertexNumCurried ⟨j.val / 135, by omega⟩ ⟨j.val / 45 % 3, by omega⟩
       ⟨j.val / 3 % 15, by omega⟩ ⟨j.val % 3, by omega⟩
 
-private def pythonVertexNumImpl (ℓ : Fin 2) (i : Fin 3) (k : Fin 15) (c : Fin 3) : ℤ :=
+def pythonVertexNumImpl (ℓ : Fin 2) (i : Fin 3) (k : Fin 15) (c : Fin 3) : ℤ :=
   pythonVertexNumTable[(45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val]'(by
     have h1 := ℓ.isLt
     have h2 := i.isLt
@@ -77,7 +82,7 @@ private def pythonVertexNumImpl (ℓ : Fin 2) (i : Fin 3) (k : Fin 15) (c : Fin 
     omega)
 
 @[csimp]
-private theorem pythonVertexNumCurried_eq_impl :
+theorem pythonVertexNumCurried_eq_impl :
     @pythonVertexNumCurried = @pythonVertexNumImpl := by
   funext ℓ i k c
   have h1 := ℓ.isLt
@@ -93,13 +98,13 @@ private theorem pythonVertexNumCurried_eq_impl :
 
 /-- All 8100 pair-norm numerators, flattened as `flat a · 90 + flat b` with
 `flat ⟨k, ℓ, i⟩ = 45·ℓ + 15·i + k` (as in `sqrtDvTable`). -/
-private def sqrtDvCurriedNTable : Array ℤ :=
+def sqrtDvCurriedNTable : Array ℤ :=
   Array.ofFn (n := 8100) fun j =>
     sqrtDvCurriedN ⟨j.val / 90 / 45, by omega⟩ ⟨j.val / 90 / 15 % 3, by omega⟩
       ⟨j.val / 90 % 15, by omega⟩
       ⟨j.val % 90 / 45, by omega⟩ ⟨j.val % 90 / 15 % 3, by omega⟩ ⟨j.val % 90 % 15, by omega⟩
 
-private def sqrtDvCurriedNImpl (ℓa : Fin 2) (ia : Fin 3) (ka : Fin 15)
+def sqrtDvCurriedNImpl (ℓa : Fin 2) (ia : Fin 3) (ka : Fin 15)
     (ℓb : Fin 2) (ib : Fin 3) (kb : Fin 15) : ℤ :=
   sqrtDvCurriedNTable[(45 * ℓa.val + 15 * ia.val + ka.val) * 90 +
       (45 * ℓb.val + 15 * ib.val + kb.val)]'(by
@@ -113,7 +118,7 @@ private def sqrtDvCurriedNImpl (ℓa : Fin 2) (ia : Fin 3) (ka : Fin 15)
     omega)
 
 @[csimp]
-private theorem sqrtDvCurriedN_eq_impl : @sqrtDvCurriedN = @sqrtDvCurriedNImpl := by
+theorem sqrtDvCurriedN_eq_impl : @sqrtDvCurriedN = @sqrtDvCurriedNImpl := by
   funext ℓa ia ka ℓb ib kb
   have h1 := ℓa.isLt
   have h2 := ia.isLt
@@ -510,3 +515,5 @@ theorem checkN_eq_check (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) {ε δ r : �
     rfl hε hr
 
 end Noperthedron.Solution.BεℚPy
+
+end

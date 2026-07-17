@@ -4,11 +4,16 @@ GENERATED FILE — do not edit by hand.
 Regenerate with:
   lake env lean --run scripts/gen_sqrtdv_literals.lean > Noperthedron/Checker/SqrtDvLiterals.lean
 -/
-import Mathlib.Tactic.FinCases
+module
 
-import Noperthedron.Checker.ApproxSqrt
-import Noperthedron.Checker.SqrtFixed
-import Noperthedron.Vertices.Python
+public import Mathlib.Tactic.FinCases
+
+public import Noperthedron.Checker.ApproxSqrt
+public import Noperthedron.Checker.SqrtFixed
+public import Noperthedron.Vertices.Python
+
+@[expose] public section
+
 
 /-!
 # Pairwise vertex-difference norms, as source literals
@@ -726,3 +731,5 @@ lemma sqrtDvCurried_eq (a b : VertexIndex) :
   · exact sqrtDvCurried_eq_1_2 k b
 
 end Noperthedron.Solution
+
+end

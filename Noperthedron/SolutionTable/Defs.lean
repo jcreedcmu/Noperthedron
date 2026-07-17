@@ -1,9 +1,17 @@
-import Mathlib.Data.Finset.Max
-import Mathlib.Data.Real.Basic
-import Mathlib.Order.Interval.Finset.Nat
-import Noperthedron.PoseInterval
-import Noperthedron.Vertices.Index
-import Noperthedron.Vertices.Python
+module
+
+public import Mathlib.Data.Finset.Max
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Order.Interval.Finset.Nat
+public import Noperthedron.PoseInterval
+public import Noperthedron.Vertices.Index
+public import Noperthedron.Vertices.Python
+-- The test-only `#eval`/`#guard_msgs` block below evaluates `Param` constructors at
+-- elaboration time; `Param` is only transitively imported, so it needs a meta import.
+public meta import Noperthedron.PoseParam
+
+@[expose] public section
+
 
 namespace Noperthedron.Solution
 
@@ -194,3 +202,6 @@ info: [({ θ₁ := 100, θ₂ := 200, φ₁ := 300, φ₂ := 400, α := 16 }, { 
       (·.toProd)
 
 end Test
+
+end Noperthedron.Solution
+end

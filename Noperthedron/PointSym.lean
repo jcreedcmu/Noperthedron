@@ -1,4 +1,9 @@
-import Noperthedron.Basic
+module
+
+public import Noperthedron.Basic
+
+@[expose] public section
+
 
 def PointSym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
  ∀ x ∈ A, -x ∈ A
@@ -82,3 +87,5 @@ lemma hull_preserves_pointsym {S : Set (EuclideanSpace ℝ (Fin 3))} (s_psym : P
   apply pointsym_of_neg_image_eq
   rw [Set.image_neg_eq_neg, ← convexHull_neg, ← Set.image_neg_eq_neg,
     neg_image_eq_if_pointsym S s_psym]
+
+end

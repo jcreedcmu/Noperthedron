@@ -1,10 +1,15 @@
-import Noperthedron.Rupert.Basic
-import Noperthedron.PoseClasses
-import Noperthedron.Basic
-import Noperthedron.PoseInterval
-import Noperthedron.PointSym
-import Noperthedron.RealMod
-import Noperthedron.Vertices.Exact
+module
+
+public import Noperthedron.Rupert.Basic
+public import Noperthedron.PoseClasses
+public import Noperthedron.Basic
+public import Noperthedron.PoseInterval
+public import Noperthedron.PointSym
+public import Noperthedron.RealMod
+public import Noperthedron.Vertices.Exact
+
+@[expose] public section
+
 
 open Real
 namespace Noperthedron.Tightening
@@ -375,3 +380,6 @@ theorem rupert_tightening (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull)
   exact rupert_post_tightening _ r4 hφ₁' hqφ₂
 
 end Tightening
+end Noperthedron
+
+end

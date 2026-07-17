@@ -1,4 +1,9 @@
-import Noperthedron.RationalApprox.Basic
+module
+
+public import Noperthedron.RationalApprox.Basic
+
+@[expose] public section
+
 
 /-!
 # Integer Horner forms of the trig partial sums
@@ -280,3 +285,5 @@ lemma cosNum13_div_eq (x : ℚ) : ((cosNum13 x : ℤ) : ℚ) / 10 ^ 13 = cosℚ 
   rfl
 
 end RationalApprox
+
+end

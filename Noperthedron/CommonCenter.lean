@@ -1,9 +1,14 @@
-import Noperthedron.Rupert.Basic
-import Noperthedron.Rupert.Set
-import Noperthedron.Util
-import Noperthedron.MatrixPose
-import Noperthedron.PoseClasses
-import Noperthedron.PointSym
+module
+
+public import Noperthedron.Rupert.Basic
+public import Noperthedron.Rupert.Set
+public import Noperthedron.Util
+public import Noperthedron.MatrixPose
+public import Noperthedron.PoseClasses
+public import Noperthedron.PointSym
+
+public section
+
 
 /-
 This file more or less captures Proposition 2 from
@@ -88,3 +93,5 @@ theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex
   · change p.shift '' _ ⊆ _
     rw [shadows_eq]
     exact r
+
+end

@@ -3,9 +3,14 @@ Copyright (c) 2026 Cameron Freer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cameron Freer
 -/
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import Noperthedron.PoseInterval
-import Noperthedron.Vertices.Exact
+module
+
+public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Noperthedron.PoseInterval
+public import Noperthedron.Vertices.Exact
+
+@[expose] public section
+
 
 /-!
 # Global Theorem Definitions
@@ -68,3 +73,5 @@ lemma rotation_partials_exist_outer {S : ℝ³} {w : ℝ²} :
   fun_prop
 
 end GlobalTheorem
+
+end

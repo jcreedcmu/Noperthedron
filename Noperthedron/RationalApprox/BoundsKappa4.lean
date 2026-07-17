@@ -1,9 +1,14 @@
-import Mathlib.Algebra.Lie.OfAssociative
-import Noperthedron.PointSym
-import Noperthedron.PoseInterval
-import Noperthedron.RationalApprox.Basic
-import Noperthedron.RationalApprox.BoundsKappa3
-import Noperthedron.RationalApprox.Cast
+module
+
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Noperthedron.PointSym
+public import Noperthedron.PoseInterval
+public import Noperthedron.RationalApprox.Basic
+public import Noperthedron.RationalApprox.BoundsKappa3
+public import Noperthedron.RationalApprox.Cast
+
+@[expose] public section
+
 
 open scoped RealInnerProductSpace
 
@@ -342,3 +347,6 @@ lemma bounds_kappa4 (P Q : ℝ³) (P_ Q_ : Fin 3 → ℚ) (p : Pose ℚ)
       linarith [h_norm_bridge_PQ]
     exact mul_le_mul h_f1 h_f2 (by positivity) (le_trans (by positivity) h_f1)
   exact div_le_div₀ hA_nonneg h_numAℚ_le (by positivity) h_denA_le
+
+end RationalApprox
+end

@@ -1,8 +1,13 @@
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
 
-import Noperthedron.Basic
-import Noperthedron.Local.Prelims
+public import Mathlib.Algebra.Order.Archimedean.Real.Hom
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+public import Noperthedron.Basic
+public import Noperthedron.Local.Prelims
+
+@[expose] public section
+
 
 namespace Local
 
@@ -100,3 +105,6 @@ theorem inner_ge_implies_LMD {P : Finset Euc(2)} {Q : Euc(2)} {δ r : ℝ}
     simp only [inner_sub_right, real_inner_self_eq_norm_sq] at h_expand
     linarith
   exact lt_of_pow_lt_pow_left₀ 2 (norm_nonneg Q) h_sq
+
+end Local
+end

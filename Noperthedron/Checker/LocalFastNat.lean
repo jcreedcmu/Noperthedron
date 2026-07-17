@@ -1,7 +1,12 @@
-import Noperthedron.Checker.LocalNat
-import Noperthedron.Checker.SqrtDvNat
-import Noperthedron.Vertices.PythonNat
-import Noperthedron.RationalApprox.NewtonSqrt
+module
+
+public import Noperthedron.Checker.LocalNat
+public import Noperthedron.Checker.SqrtDvNat
+public import Noperthedron.Vertices.PythonNat
+public import Noperthedron.RationalApprox.NewtonSqrt
+
+@[expose] public section
+
 
 /-!
 # All-`Nat` fast path for the local `Bεℚ` check
@@ -48,7 +53,7 @@ dots `mq` padded by `2⁴⁷·10²⁹`; `rowT` the pre-shifted 5,130-bit
 pair-norm row of `Qi i`; `c1 = 50·εd²`, `c2p − c2n = c1·(2⁴⁷·(q0+q1) + 10¹⁷)` the `A`-offset correction, `etermC10 = εn·(142εd+100εn)·10¹⁰`;
 `L1/L2/cheapM` the cheap-tier comparison constants and `L3/R2` the exact
 tier's, with `ed100/en284/ed600` the `denom2` pieces. -/
-private def pairBody
+def pairBody
     (qskip qp0 qn0 qp1 qn1 e00 e01 e10 e11 e12 ce0 ce1 m0pad m1pad rowT
      c1 c2p c2n etermC10 L1 L2 cheapM L3 R2 ed100 en284 ed600 : ℕ)
     (j : ℕ) : Bool :=
@@ -86,7 +91,7 @@ private def pairBody
           Nat.blt (Nat.mul L3 denom2) (Nat.mul numer R2))))))
 
 /-- Countdown pair loop. -/
-private def pairLoop
+def pairLoop
     (qskip qp0 qn0 qp1 qn1 e00 e01 e10 e11 e12 ce0 ce1 m0pad m1pad rowT
      c1 c2p c2n etermC10 L1 L2 cheapM L3 R2 ed100 en284 ed600 : ℕ) : ℕ → Bool
   | 0 => true
@@ -1033,3 +1038,5 @@ instance (priority := 10600) (row : Row) : Decidable (Row.ValidLocal row) :=
   decidable_of_iff _ (Row.validLocal_iff row).symm
 
 end Noperthedron.Solution
+
+end

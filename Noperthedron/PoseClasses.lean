@@ -1,5 +1,10 @@
-import Noperthedron.Rupert.Basic
-import Noperthedron.Basic
+module
+
+public import Noperthedron.Rupert.Basic
+public import Noperthedron.Basic
+
+@[expose] public section
+
 
 open scoped Matrix
 
@@ -32,3 +37,5 @@ def innerProj {P : Type} [PoseLike P] (pose : P) : ℝ³ →ᵃ[ℝ] ℝ² :=
 noncomputable
 def outerProj {P : Type} [PoseLike P] (pose : P) : ℝ³ →ᵃ[ℝ] ℝ² :=
   proj_xyL.toAffineMap ∘ᵃ PoseLike.outer pose
+
+end

@@ -1,8 +1,13 @@
-import Mathlib.Data.Fin.VecNotation
-import Mathlib.Data.Rat.Defs
+module
 
-import Noperthedron.Basic
-import Noperthedron.Vertices.Index
+public import Mathlib.Data.Fin.VecNotation
+public import Mathlib.Data.Rat.Defs
+
+public import Noperthedron.Basic
+public import Noperthedron.Vertices.Index
+
+@[expose] public section
+
 
 namespace Noperthedron
 
@@ -14,9 +19,10 @@ equal to the truncation `⌊exact·10¹⁶⌋/10¹⁶`. Indexing convention:
 `index = k + 15·i + 45·ℓ` where k ∈ [0,15), i ∈ {0,1,2}, ℓ ∈ {0,1}.
 -/
 
-private def d : ℚ := 10^16
+-- (module system) referenced by the exposed `pythonVertexCurried`, so cannot be `private`.
+def d : ℚ := 10^16
 
-private def mkV (a b c : ℤ) : Fin 3 → ℚ :=
+def mkV (a b c : ℤ) : Fin 3 → ℚ :=
   fun | 0 => ↑a / d | 1 => ↑b / d | 2 => ↑c / d
 
 def pythonVertexCurried : Fin 2 → Fin 3 → Fin 15 → Fin 3 → ℚ := ![
@@ -121,13 +127,20 @@ inside `mkV`. The checkers' hot loops instead read through `pythonVertexA`,
 which looks the (already normalized) values up in the flat table below —
 a top-level constant, so it is computed once per process. -/
 
-/-- All 270 vertex coordinates, flattened as `(45·ℓ + 15·i + k)·3 + c`. -/
-def pythonVertexTable : Array ℚ :=
-  Array.ofFn (n := 270) fun j =>
+/-- All 270 vertex coordinates, flattened as `(45·ℓ + 15·i + k)·3 + c`.
+
+A `List` rather than an `Array`: under the module system the kernel may only
+unfold *exposed* bodies, and core's `Array` machinery (`Array.ofFn`/`size`/
+`toList`) is unexposed — while `List.ofFn` and `List` indexing reduce fine.
+In the kernel an `Array` access walked its list anyway, so kernel cost is
+unchanged; at runtime the walk of ≤ 270 cells is negligible next to the `ℚ`
+arithmetic per access. -/
+def pythonVertexTable : List ℚ :=
+  List.ofFn (n := 270) fun j =>
     pythonVertexCurried ⟨j.val / 135, by omega⟩ ⟨j.val / 45 % 3, by omega⟩
       ⟨j.val / 3 % 15, by omega⟩ ⟨j.val % 3, by omega⟩
 
-/-- Table-backed `pythonVertex`: one array read per coordinate, no division.
+/-- Table-backed `pythonVertex`: one table read per coordinate, no division.
 Provably equal to `pythonVertex` (`pythonVertexA_eq`); used by the hot loops
 of the local checker. -/
 def pythonVertexA (idx : VertexIndex) : Fin 3 → ℚ := fun c =>
@@ -136,7 +149,7 @@ def pythonVertexA (idx : VertexIndex) : Fin 3 → ℚ := fun c =>
     have h2 := idx.i.isLt
     have h3 := idx.k.isLt
     have h4 := c.isLt
-    rw [pythonVertexTable, Array.size_ofFn]
+    rw [pythonVertexTable, List.length_ofFn]
     omega)
 
 lemma pythonVertexA_eq : pythonVertexA = pythonVertex := by
@@ -150,7 +163,7 @@ lemma pythonVertexA_eq : pythonVertexA = pythonVertex := by
   have e2 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) / 45 % 3 = i.val := by omega
   have e3 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) / 3 % 15 = k.val := by omega
   have e4 : ((45 * ℓ.val + 15 * i.val + k.val) * 3 + c.val) % 3 = c.val := by omega
-  simp only [pythonVertexA, pythonVertexTable, Array.getElem_ofFn, pythonVertex,
+  simp only [pythonVertexA, pythonVertexTable, List.getElem_ofFn, pythonVertex,
     e1, e2, e3, e4, Fin.eta]
 
 /-- Compiled reads of `pythonVertex` go through the array table (one `O(1)`
@@ -163,3 +176,6 @@ def pythonPolyQ : Polyhedron VertexIndex (Fin 3 → ℚ) := ⟨pythonVertex⟩
 
 noncomputable
 def pythonPoly : Polyhedron VertexIndex ℝ³ := pythonPolyQ.toReal
+
+end Noperthedron
+end

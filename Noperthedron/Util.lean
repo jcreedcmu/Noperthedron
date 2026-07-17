@@ -1,4 +1,9 @@
-import Noperthedron.Basic
+module
+
+public import Noperthedron.Basic
+
+@[expose] public section
+
 
 open scoped Matrix
 
@@ -28,3 +33,5 @@ theorem proj_offset_commute (t : ℝ²) (v : ℝ³) : (proj_xy v) + t = proj_xy 
 theorem proj_xyL_offset_commute (t : ℝ²) (v : ℝ³) :
     proj_xyL v + t = proj_xyL (v + inject_xy t) := by
   simpa [proj_xy_eq_proj_xyL] using proj_offset_commute t v
+
+end

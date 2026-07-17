@@ -1,7 +1,12 @@
-import Noperthedron.Checker.KappaApprox
-import Noperthedron.RationalApprox.RationalGlobal
-import Noperthedron.SolutionTable.Basic
-import Noperthedron.Vertices.Exact
+module
+
+public import Noperthedron.Checker.KappaApprox
+public import Noperthedron.RationalApprox.RationalGlobal
+public import Noperthedron.SolutionTable.Basic
+public import Noperthedron.Vertices.Exact
+
+public section
+
 
 namespace Noperthedron.Solution
 
@@ -92,3 +97,6 @@ theorem valid_global_imp_no_rupert (row : Row)
     exactPoly pythonPolyQ KappaApprox.exact_κApprox_python pc
   rintro ⟨q, hqi, hqr⟩
   exact h ⟨q, near_center_of_mem_toReal row hqi, hqr⟩
+
+end Noperthedron.Solution
+end

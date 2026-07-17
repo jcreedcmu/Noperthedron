@@ -1,5 +1,7 @@
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Zify
+module
+
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Zify
 
 /-!
 # Fuel-based Newton upper bound for `Nat.sqrt`
@@ -20,6 +22,11 @@ the start value: every iterate dominates `Nat.sqrt n`
 -/
 
 namespace Noperthedron.NewtonSqrt
+
+-- `step`/`iter`/`newtonSqrtUp` are reduced by the fast checkers' `decide +kernel`,
+-- so their bodies must be exposed across the module boundary. `private` lemmas
+-- below stay module-local (the `private` modifier wins inside a public section).
+@[expose] public section
 
 /-- One guarded Newton step. -/
 def step (n g : ℕ) : ℕ := (g + n / g) / 2 + 1
@@ -68,5 +75,7 @@ private lemma le_iter {n s : ℕ} (hs : s * s ≤ n) :
 theorem newtonSqrtUp_ge_sqrt {n fuel start : ℕ} (hstart : 0 < start)
     (h : Nat.sqrt n ≤ start) : Nat.sqrt n ≤ newtonSqrtUp n fuel start :=
   le_iter (by simpa [Nat.pow_two] using Nat.sqrt_le' n) fuel hstart h
+
+end
 
 end Noperthedron.NewtonSqrt

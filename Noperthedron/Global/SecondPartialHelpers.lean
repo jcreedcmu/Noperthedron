@@ -3,11 +3,16 @@ Copyright (c) 2026 Cameron Freer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cameron Freer
 -/
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import Mathlib.Analysis.Calculus.FDeriv.WithLp
-import Mathlib.Analysis.Calculus.LineDeriv.Basic
-import Noperthedron.Global.RotationDerivs
-import Noperthedron.Bounding.OpNorm
+module
+
+public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Mathlib.Analysis.Calculus.FDeriv.WithLp
+public import Mathlib.Analysis.Calculus.LineDeriv.Basic
+public import Noperthedron.Global.RotationDerivs
+public import Noperthedron.Bounding.OpNorm
+
+@[expose] public section
+
 
 /-!
 # Second Partial Helper Lemmas
@@ -485,3 +490,5 @@ lemma inner_third_partial_A_norm_le (α θ φ : ℝ) (i j k : Fin 3) :
   · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
 
 end GlobalTheorem
+
+end

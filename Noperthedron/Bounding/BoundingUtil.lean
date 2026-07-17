@@ -1,6 +1,11 @@
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
-import Noperthedron.Basic
-import Noperthedron.Bounding.OpNorm
+module
+
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
+public import Noperthedron.Basic
+public import Noperthedron.Bounding.OpNorm
+
+@[expose] public section
+
 
 /-!
 
@@ -153,3 +158,5 @@ theorem norm_RzL_sub_RzL_eq {α α_ : ℝ} : ‖RzL α - RzL α_‖ = ‖rotR α
   dist_rot3_eq_dist_rotR (d := 2)
 
 end Bounding
+
+end

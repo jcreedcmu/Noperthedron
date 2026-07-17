@@ -1,7 +1,12 @@
-import Noperthedron.Basic
-import Noperthedron.Bounding.OpNorm
-import Noperthedron.Bounding.BoundingUtil
-import Noperthedron.RealMod
+module
+
+public import Noperthedron.Basic
+public import Noperthedron.Bounding.OpNorm
+public import Noperthedron.Bounding.BoundingUtil
+public import Noperthedron.RealMod
+
+public section
+
 
 /-!
 
@@ -273,3 +278,6 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
       = (rot3_mat d α * rot3_mat d' β).toEuclideanLin.toContinuousLinearMap := by
     rw [toCLM_mul]; fin_cases d <;> fin_cases d' <;> rfl
   rw [lhs_eq, h, toCLM_mul, toCLM_mul, hU_clm, hUinv_clm, RzL, ContinuousLinearMap.comp_assoc]
+
+end Bounding
+end

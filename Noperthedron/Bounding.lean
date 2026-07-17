@@ -1,6 +1,11 @@
-import Noperthedron.Basic
-import Noperthedron.Bounding.SmallConsecutiveRotations
-import Noperthedron.Bounding.OpNorm
+module
+
+public import Noperthedron.Basic
+public import Noperthedron.Bounding.SmallConsecutiveRotations
+public import Noperthedron.Bounding.OpNorm
+
+public section
+
 
 open scoped RealInnerProductSpace Real
 
@@ -261,3 +266,6 @@ theorem norm_RM_sub_RM_le {ε θ θ_ φ φ_ α α_}
   grw [hθ, hφ, hα]
   rw [show (ε + ε) ^ 2 + ε ^ 2 = 5 * ε ^ 2 by ring]
   simp [Real.sqrt_sq hε.le]
+
+end Bounding
+end

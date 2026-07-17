@@ -1,4 +1,6 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
+
+public import Mathlib.Analysis.InnerProductSpace.PiL2
 
 /-!
 This file states our main theorem using only Mathlib imports, following the conventions
@@ -8,6 +10,8 @@ https://leanprover.zulipchat.com/#narrow/channel/219941-Machine-Learning-for-The
 See also the Formal Conjectures version of the theorem statement:
 https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/Paper/Rupert.lean
 -/
+
+@[expose] public section
 
 /-- Projects a vector from 3-space to 2-space by dropping the third coordinate. -/
 def proj_xy {k : Type} (v : EuclideanSpace k (Fin 3)) : EuclideanSpace k (Fin 2) :=
@@ -31,3 +35,5 @@ def ExistsNonRupertPolyhedron : Prop :=
   ∃ vs : Finset (EuclideanSpace ℝ (Fin 3)),
     (interior (convexHull ℝ vs : Set (EuclideanSpace ℝ (Fin 3)))).Nonempty ∧
     ¬IsRupert vs
+
+end

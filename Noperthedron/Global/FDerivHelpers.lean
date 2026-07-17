@@ -3,11 +3,16 @@ Copyright (c) 2026 Cameron Freer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cameron Freer
 -/
-import Mathlib.Analysis.Calculus.FDeriv.WithLp
-import Noperthedron.Global.RotationDerivs
-import Noperthedron.Global.SecondPartialHelpers
-import Noperthedron.Global.Definitions
-import Noperthedron.Global.Basic
+module
+
+public import Mathlib.Analysis.Calculus.FDeriv.WithLp
+public import Noperthedron.Global.RotationDerivs
+public import Noperthedron.Global.SecondPartialHelpers
+public import Noperthedron.Global.Definitions
+public import Noperthedron.Global.Basic
+
+@[expose] public section
+
 
 /-!
 # FDeriv Helper Lemmas for Global Theorem
@@ -184,3 +189,5 @@ lemma nth_partial_rotproj_inner_e2 (S : ℝ³) (w : ℝ²) :
   rw [rotproj_inner_funext, fderiv_inner_const _ w y _ hd, fderiv_rotR_rotM_in_e2 S y hd]
 
 end GlobalTheorem
+
+end

@@ -1,8 +1,13 @@
-import Noperthedron.SolutionTable.Defs
-import Noperthedron.PoseInterval
-import Noperthedron.Checker.Global
-import Noperthedron.Checker.LocalNat
-import Noperthedron.Checker.LocalFastNat
+module
+
+public import Noperthedron.SolutionTable.Defs
+public import Noperthedron.PoseInterval
+public import Noperthedron.Checker.Global
+public import Noperthedron.Checker.LocalNat
+public import Noperthedron.Checker.LocalFastNat
+
+@[expose] public section
+
 
 namespace Noperthedron.Solution
 
@@ -69,7 +74,7 @@ def Interval.minPose (iv : Interval) : Pose ℝ := iv.min.toReal
 /-- The maximum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
 def Interval.maxPose (iv : Interval) : Pose ℝ := iv.max.toReal
 
-private lemma Interval.minPose_le_maxPose (iv : Interval) :
+lemma Interval.minPose_le_maxPose (iv : Interval) :
     iv.minPose ≤ iv.maxPose := by
   obtain ⟨h1, h2, h3, h4, h5⟩ := (Pose.le_iff iv.min iv.max).mp iv.fst_le_snd
   rw [Pose.le_iff]
@@ -77,7 +82,7 @@ private lemma Interval.minPose_le_maxPose (iv : Interval) :
   norm_cast
 
 def Interval.toReal (iv : Interval) : PoseInterval ℝ :=
-  PoseInterval.mk iv.minPose iv.maxPose iv.minPose_le_maxPose
+  PoseInterval.mk iv.minPose iv.maxPose (Interval.minPose_le_maxPose iv)
 
 def Row.toRealInterval (row : Row) : PoseInterval ℝ :=
   row.interval.toReal
@@ -171,3 +176,6 @@ lemma has_intervals_concat (tab : Table) (start : ℕ) (ivs1 ivs2 : List Interva
       have : (i : ℕ) - ivs1.length < ivs2.length := by grind
       specialize h2 ⟨(i : ℕ) - ivs1.length, this⟩
       simp_all
+
+end Noperthedron.Solution
+end

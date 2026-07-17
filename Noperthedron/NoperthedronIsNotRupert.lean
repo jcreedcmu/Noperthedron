@@ -1,11 +1,16 @@
-import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
-import Noperthedron.Basic
-import Noperthedron.PoseInterval
-import Noperthedron.Tightening
-import Noperthedron.ConvertPose
-import Noperthedron.CommonCenter
-import Noperthedron.SolutionTable
-import Noperthedron.Vertices.Exact
+module
+
+public import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
+public import Noperthedron.Basic
+public import Noperthedron.PoseInterval
+public import Noperthedron.Tightening
+public import Noperthedron.ConvertPose
+public import Noperthedron.CommonCenter
+public import Noperthedron.SolutionTable
+public import Noperthedron.Vertices.Exact
+
+public section
+
 
 open scoped Matrix
 
@@ -78,3 +83,6 @@ theorem nopert_not_rupert (vtab : Solution.ValidTable) : ¬ IsRupert exactVerts 
   refine nopert_not_rupert_set vtab ?_
   rw [rupert_iff_rupert_set exactVerts] at r
   simpa [exactVerts, exactPolyhedron, Polyhedron.hull, Set.range] using r
+
+end Noperthedron
+end

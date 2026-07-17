@@ -1,10 +1,15 @@
-import Noperthedron.Checker.KappaApprox
-import Noperthedron.SolutionTable.Basic
-import Noperthedron.SolutionTable.Global
-import Noperthedron.Local.Congruent
-import Noperthedron.RationalApprox.RationalLocal
-import Noperthedron.Vertices.Exact
-import Noperthedron.Vertices.Symmetry
+module
+
+public import Noperthedron.Checker.KappaApprox
+public import Noperthedron.SolutionTable.Basic
+public import Noperthedron.SolutionTable.Global
+public import Noperthedron.Local.Congruent
+public import Noperthedron.RationalApprox.RationalLocal
+public import Noperthedron.Vertices.Exact
+public import Noperthedron.Vertices.Symmetry
+
+public section
+
 
 namespace Noperthedron.Solution
 
@@ -89,3 +94,6 @@ theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
   exact no_rupert_in_interval_of_ball row
     (RationalApprox.LocalTheorem.rational_local exactPoly pythonPolyQ
       KappaApprox.exact_κApprox_python row.interval.centerPose ε pc)
+
+end Noperthedron.Solution
+end

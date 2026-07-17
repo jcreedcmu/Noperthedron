@@ -1,17 +1,37 @@
-import Mathlib.Data.Finset.Max
+module
 
-import Noperthedron.Checker.ApproxSqrt
-import Noperthedron.Checker.SqrtDvLiterals
-import Noperthedron.Checker.SqrtFixed
-import Noperthedron.RationalApprox.TrigInt
-import Noperthedron.Local.Congruent
-import Noperthedron.RationalApprox.Basic
-import Noperthedron.RationalApprox.RationalLocal
-import Noperthedron.SolutionTable.Defs
-import Noperthedron.Vertices.Exact
-import Noperthedron.Vertices.Python
-import Noperthedron.Vertices.Symmetry
-import Noperthedron.Vertices.Trig
+public import Mathlib.Data.Finset.Max
+
+public import Noperthedron.Checker.ApproxSqrt
+public import Noperthedron.Checker.SqrtDvLiterals
+public import Noperthedron.Checker.SqrtFixed
+public import Noperthedron.RationalApprox.TrigInt
+public import Noperthedron.Local.Congruent
+public import Noperthedron.RationalApprox.Basic
+public import Noperthedron.RationalApprox.RationalLocal
+public import Noperthedron.SolutionTable.Defs
+public import Noperthedron.Vertices.Exact
+public import Noperthedron.Vertices.Python
+public import Noperthedron.Vertices.Symmetry
+public import Noperthedron.Vertices.Trig
+-- Mirror the imports at the meta phase so the test `#eval`s below can
+-- interpret cross-module code under the module system.
+public meta import Mathlib.Data.Finset.Max
+public meta import Noperthedron.Checker.ApproxSqrt
+public meta import Noperthedron.Checker.SqrtDvLiterals
+public meta import Noperthedron.Checker.SqrtFixed
+public meta import Noperthedron.RationalApprox.TrigInt
+public meta import Noperthedron.Local.Congruent
+public meta import Noperthedron.RationalApprox.Basic
+public meta import Noperthedron.RationalApprox.RationalLocal
+public meta import Noperthedron.SolutionTable.Defs
+public meta import Noperthedron.Vertices.Exact
+public meta import Noperthedron.Vertices.Python
+public meta import Noperthedron.Vertices.Symmetry
+public meta import Noperthedron.Vertices.Trig
+
+@[expose] public section
+
 
 /-!
 # Local Validity Checker
@@ -124,10 +144,10 @@ namespace Row.δ
 open RationalApprox (sinℚ cosℚ)
 
 /-- The ten sin/cos values (of `θ₁ φ₁ α θ₂ φ₂`) of a rational pose, evaluated once per pose. -/
-private structure PoseTrigQ where
+structure PoseTrigQ where
   (st1 ct1 sp1 cp1 sa ca st2 ct2 sp2 cp2 : ℚ)
 
-@[inline] private def PoseTrigQ.ofPose (p : Pose ℚ) : PoseTrigQ where
+@[inline] def PoseTrigQ.ofPose (p : Pose ℚ) : PoseTrigQ where
   st1 := (RationalApprox.sinNum13 p.θ₁ : ℚ) / 10 ^ 13
   ct1 := (RationalApprox.cosNum13 p.θ₁ : ℚ) / 10 ^ 13
   sp1 := (RationalApprox.sinNum13 p.φ₁ : ℚ) / 10 ^ 13
@@ -141,7 +161,7 @@ private structure PoseTrigQ where
 
 /-- `BoundDeltaℚi` for a single `i`, with the 10 trig values used by
 `M₁`, `R`, `M₂` passed in already evaluated. -/
-@[inline] private def boundDelta_at (t : PoseTrigQ) (P Q : Fin 3 → ℚ) : ℚ :=
+@[inline] def boundDelta_at (t : PoseTrigQ) (P Q : Fin 3 → ℚ) : ℚ :=
   -- M₁ * P
   let m1p_0 := -t.st1 * P 0 + t.ct1 * P 1
   let m1p_1 := (-t.ct1 * t.cp1) * P 0 + (-t.st1 * t.cp1) * P 1 + t.sp1 * P 2
@@ -217,7 +237,7 @@ cells, where reducing an equivalent 8100-entry `Array.ofFn` push chain made
 a single high-index access cost tens of gigabytes under `decide +kernel`. -/
 
 /-- Decode the flat index `45·ℓ + 15·i + k` (see `rowDotsGet`). -/
-private def ofFlat (m : ℕ) (h : m < 90) : VertexIndex :=
+def ofFlat (m : ℕ) (h : m < 90) : VertexIndex :=
   ⟨⟨m % 15, by omega⟩, ⟨m / 45, by omega⟩, ⟨m / 15 % 3, by omega⟩⟩
 
 /-- Table-backed pairwise vertex-difference norm: equal to
@@ -232,7 +252,7 @@ lemma sqrtDv_eq (a b : VertexIndex) :
 /-- Runtime lookup table for `sqrtDv`, built once per process from the
 `sqrtDvCurried` literals; indexed by the flat pair index `flat a * 90 + flat b`
 with `flat ⟨k, ℓ, i⟩ = 45·ℓ + 15·i + k`. -/
-private def sqrtDvTable : Array ℚ :=
+def sqrtDvTable : Array ℚ :=
   Array.ofFn (n := 8100) fun j =>
     sqrtDv (ofFlat (j.val / 90) (by omega)) (ofFlat (j.val % 90) (by omega))
 
@@ -241,7 +261,7 @@ private def sqrtDvTable : Array ℚ :=
 the compiled hot loop, so `sqrtDv_eq_sqrtDvImpl` (`@[csimp]`) substitutes this
 `O(1)` array read in compiled code. The kernel keeps reducing the
 curried-literal `sqrtDv` itself. -/
-private def sqrtDvImpl (a b : VertexIndex) : ℚ :=
+def sqrtDvImpl (a b : VertexIndex) : ℚ :=
   sqrtDvTable[(45 * a.ℓ.val + 15 * a.i.val + a.k.val) * 90 +
       (45 * b.ℓ.val + 15 * b.i.val + b.k.val)]'(by
     have h1 := a.ℓ.isLt
@@ -254,7 +274,7 @@ private def sqrtDvImpl (a b : VertexIndex) : ℚ :=
     omega)
 
 @[csimp]
-private theorem sqrtDv_eq_sqrtDvImpl : @sqrtDv = @sqrtDvImpl := by
+theorem sqrtDv_eq_sqrtDvImpl : @sqrtDv = @sqrtDvImpl := by
   funext a b
   obtain ⟨ka, ℓa, ia⟩ := a
   obtain ⟨kb, ℓb, ib⟩ := b
@@ -288,14 +308,14 @@ for all 90 vertices, indexed by `flat ⟨k, ℓ, i⟩ = 45·ℓ + 15·i + k`. `c
 computes it once per pose; by linearity `M₂(v₁ - v₂) = M₂v₁ - M₂v₂`, each
 `(i, k)` dot then costs one lookup and one subtraction instead of three
 products. -/
-def rowDots (e : MatEntries) : Array (ℚ × ℚ) :=
-  Array.ofFn (n := 90) fun j =>
+def rowDots (e : MatEntries) : List (ℚ × ℚ) :=
+  List.ofFn (n := 90) fun j =>
     let v := pythonVertexA (ofFlat j.val j.isLt)
     (e.m₀₀ * v 0 + e.m₀₁ * v 1 + e.m₀₂ * v 2,
      e.m₁₀ * v 0 + e.m₁₁ * v 1 + e.m₁₂ * v 2)
 
 /-- Read a `rowDots` table at a vertex index. -/
-def rowDotsGet (dots : Array (ℚ × ℚ)) (a : VertexIndex) : ℚ × ℚ :=
+def rowDotsGet (dots : List (ℚ × ℚ)) (a : VertexIndex) : ℚ × ℚ :=
   dots[45 * a.ℓ.val + 15 * a.i.val + a.k.val]!
 
 private lemma rowDotsGet_rowDots (e : MatEntries) (a : VertexIndex) :
@@ -306,14 +326,14 @@ private lemma rowDotsGet_rowDots (e : MatEntries) (a : VertexIndex) :
   have h1 := ℓa.isLt
   have h2 := ia.isLt
   have h3 := ka.isLt
-  have hlt : 45 * ℓa.val + 15 * ia.val + ka.val < (rowDots e).size := by
-    rw [rowDots, Array.size_ofFn]; omega
+  have hlt : 45 * ℓa.val + 15 * ia.val + ka.val < (rowDots e).length := by
+    rw [rowDots, List.length_ofFn]; omega
   have f1 : (45 * ℓa.val + 15 * ia.val + ka.val) % 15 = ka.val := by omega
   have f2 : (45 * ℓa.val + 15 * ia.val + ka.val) / 45 = ℓa.val := by omega
   have f3 : (45 * ℓa.val + 15 * ia.val + ka.val) / 15 % 3 = ia.val := by omega
   show (rowDots e)[45 * ℓa.val + 15 * ia.val + ka.val]! = _
   rw [getElem!_pos (rowDots e) _ hlt]
-  simp only [rowDots, Array.getElem_ofFn, ofFlat, f1, f2, f3, Fin.eta]
+  simp only [rowDots, List.getElem_ofFn, ofFlat, f1, f2, f3, Fin.eta]
 
 lemma rowDots_fst (e : MatEntries) (a : VertexIndex) :
     (rowDotsGet (rowDots e) a).1
@@ -738,3 +758,6 @@ def testLocalRowReflection : Row := {
 /-- info: true -/
 #guard_msgs in
 #eval testLocalRowReflection.ValidLocal
+
+end Noperthedron.Solution
+end

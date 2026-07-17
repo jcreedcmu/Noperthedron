@@ -1,7 +1,12 @@
-import Noperthedron.SolutionTable.Basic
-import Noperthedron.SolutionTable.Local
-import Noperthedron.SolutionTable.Global
-import Noperthedron.Vertices.Exact
+module
+
+public import Noperthedron.SolutionTable.Basic
+public import Noperthedron.SolutionTable.Local
+public import Noperthedron.SolutionTable.Global
+public import Noperthedron.Vertices.Exact
+
+public section
+
 
 namespace Noperthedron.Solution
 
@@ -164,3 +169,7 @@ theorem Row.valid_imp_not_rupert
    (hz : 0 < tab.size) :
     ¬ ∃ q ∈ tab[0].interval.toReal, RupertPose q exactPolyhedron.hull :=
   Row.valid_imp_not_rupert_ix tab 0 tab_valid tab[0] (tab_valid.valid_at hz)
+
+end Noperthedron.Solution
+
+end

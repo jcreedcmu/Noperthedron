@@ -1,4 +1,9 @@
-import Noperthedron.RationalApprox.RationalGlobal
+module
+
+public import Noperthedron.RationalApprox.RationalGlobal
+
+@[expose] public section
+
 
 /-!
 # All-`Nat` fast path for the global check
@@ -60,7 +65,7 @@ vertices — is written directly in the kernel's accelerated `Nat` primitives
 (`Nat.mul`/`Nat.add`/`Nat.ble`/`Nat.blt`/`Nat.sub`/`cond`), bypassing the
 `HMul`/`Decidable` instance wrappers, which measurably halve kernel
 throughput; the rare tier-2/3 fallbacks stay in ordinary notation. -/
-private def natTierBody (A0 A1 A2 fsA B0 B1 B2 fsB C0 C1 C2 fsC
+def natTierBody (A0 A1 A2 fsA B0 B1 B2 fsB C0 C1 C2 fsC
     D0 D1 D2 fsD E0 E1 E2 fsE F0 F1 F2 fsF
     g16 g29 g42 fsBh soB13 kR16 kR29 kR42 eθ eφ q1 q2 q3 P0 P1 P2 : ℕ) : Bool :=
   let sp := Nat.add (Nat.add P0 P1) P2
@@ -87,7 +92,7 @@ private def natTierBody (A0 A1 A2 fsA B0 B1 B2 fsB C0 C1 C2 fsC
 /-- The all-`Nat` per-vertex loop: extract the three 57-bit offset fields of
 flat vertex `j` from the packed table (one accelerated shift + mask each)
 and run `natTierBody`; `j` counts down over flat vertex indices. -/
-private def natTierLoop (bigT A0 A1 A2 fsA B0 B1 B2 fsB C0 C1 C2 fsC
+def natTierLoop (bigT A0 A1 A2 fsA B0 B1 B2 fsB C0 C1 C2 fsC
     D0 D1 D2 fsD E0 E1 E2 fsE F0 F1 F2 fsF
     g16 g29 g42 fsBh soB13 kR16 kR29 kR42 eθ eφ q1 q2 q3 : ℕ) : ℕ → Bool
   | 0 => true
@@ -1844,3 +1849,5 @@ theorem Gℚ_gt_maxHℚ_fastNat_sound {ι : Type} [Fintype ι] [DecidableEq ι]
   case hq3 =>
     rw [Nat.cast_pow, Int.toNat_of_nonneg heφhi0]
 end RationalApprox.GlobalTheorem
+
+end

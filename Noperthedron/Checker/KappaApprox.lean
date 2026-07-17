@@ -1,9 +1,14 @@
-import Noperthedron.Checker.Global
-import Noperthedron.RationalApprox.Basic
-import Noperthedron.RationalApprox.TrigLemmas
-import Noperthedron.Vertices.Exact
-import Noperthedron.Vertices.Taylor
-import Mathlib.Analysis.Real.Pi.Bounds
+module
+
+public import Noperthedron.Checker.Global
+public import Noperthedron.RationalApprox.Basic
+public import Noperthedron.RationalApprox.TrigLemmas
+public import Noperthedron.Vertices.Exact
+public import Noperthedron.Vertices.Taylor
+public import Mathlib.Analysis.Real.Pi.Bounds
+
+@[expose] public section
+
 
 /-!
 # κ-Approximation of Noperthedron Vertices
@@ -360,3 +365,6 @@ def exact_κApprox_python : κApproxPoly ⟨exactVertex⟩ ⟨pythonVertex⟩ :=
 }
 
 end KappaApprox
+end Noperthedron
+
+end

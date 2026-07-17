@@ -3,8 +3,13 @@ Copyright (c) 2026 Cameron Freer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cameron Freer
 -/
-import Noperthedron.Global.Definitions
-import Noperthedron.Global.SecondPartialHelpers
+module
+
+public import Noperthedron.Global.Definitions
+public import Noperthedron.Global.SecondPartialHelpers
+
+@[expose] public section
+
 
 /-!
 # RotM Outer HasFDerivAt Lemmas
@@ -193,3 +198,5 @@ lemma HasFDerivAt.rotMφφ_outer (pbar : Pose ℝ) (P : ℝ³) :
     exact hasDerivAt_comp_add _ _ _ (hasDerivAt_rotMφφ_φ pbar.θ₂ pbar.φ₂ P)
 
 end GlobalTheorem
+
+end

@@ -1,4 +1,9 @@
-import Noperthedron.Basic
+module
+
+public import Noperthedron.Basic
+
+@[expose] public section
+
 
 namespace Bounding
 
@@ -303,3 +308,5 @@ theorem reduceL_norm : ‖reduceL‖ = 1 := by
   simpa [rotM, reduceL, rotM_mat] using Bounding.rotM_norm_one 0 0
 
 end Bounding
+
+end

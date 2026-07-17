@@ -1,8 +1,13 @@
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
 
-import Noperthedron.Bounding
-import Noperthedron.Local.Prelims
+public import Mathlib.Algebra.Order.Archimedean.Real.Hom
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+public import Noperthedron.Bounding
+public import Noperthedron.Local.Prelims
+
+public section
+
 
 namespace Local
 
@@ -64,3 +69,6 @@ theorem coss {ε θ θ_ φ φ_ : ℝ} {P Q : Euc(3)}
         rw [sub_apply]
         linarith only [norm_le_norm_add_norm_sub' (M (P - Q)) (M_ (P - Q))]
       linarith only [h₁, h₂]
+
+end Local
+end

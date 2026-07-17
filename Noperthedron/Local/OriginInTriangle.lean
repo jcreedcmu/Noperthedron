@@ -1,9 +1,14 @@
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
 
-import Noperthedron.Basic
-import Noperthedron.PoseInterval
-import Noperthedron.Local.Prelims
+public import Mathlib.Algebra.Order.Archimedean.Real.Hom
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+public import Noperthedron.Basic
+public import Noperthedron.PoseInterval
+public import Noperthedron.Local.Prelims
+
+public section
+
 
 namespace Local
 
@@ -19,3 +24,6 @@ theorem origin_in_triangle {A B C : Euc(2)}
     simp [rotR, rotR_mat, EuclideanSpace.inner_eq_star_dotProduct, Matrix.vecHead,
       Matrix.vecTail] <;>
     ring_nf
+
+end Local
+end

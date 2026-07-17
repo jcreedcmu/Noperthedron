@@ -1,7 +1,12 @@
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Analysis.Calculus.Deriv.Prod
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
-import Noperthedron.Basic
+module
+
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Analysis.Calculus.Deriv.Prod
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+public import Noperthedron.Basic
+
+public section
+
 
 open scoped Matrix
 
@@ -206,3 +211,5 @@ lemma hasDerivAt_rotMφφ_φ (θ φ : ℝ) (S : ℝ³) :
   · simpa [mul_neg] using (Real.hasDerivAt_cos φ).const_mul (Real.cos θ)
   · simpa [mul_neg] using (Real.hasDerivAt_cos φ).const_mul (Real.sin θ)
   · exact (Real.hasDerivAt_sin φ).neg
+
+end

@@ -1,4 +1,8 @@
-import Mathlib.Analysis.RCLike.Basic
+module
+
+public import Mathlib.Analysis.RCLike.Basic
+
+@[expose] public section
 
 noncomputable
 def Real.emod (a b : ℝ) : ℝ := Int.fract (a / b) * b
@@ -15,3 +19,5 @@ theorem Real.emod_exists_multiple (a b : ℝ) (hb : 0 < b) : ∃ k : ℤ, Real.e
   push_cast
   field_simp
   ring_nf
+
+end

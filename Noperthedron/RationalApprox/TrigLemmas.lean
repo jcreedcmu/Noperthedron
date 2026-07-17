@@ -1,8 +1,13 @@
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Analysis.Calculus.Taylor
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
-import Mathlib.Data.Int.Star
-import Noperthedron.RationalApprox.Basic
+module
+
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Analysis.Calculus.Taylor
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+public import Mathlib.Data.Int.Star
+public import Noperthedron.RationalApprox.Basic
+
+public section
+
 
 namespace RationalApprox
 
@@ -162,3 +167,6 @@ theorem cosℚ_approx' (x : ℝ) (hx : x ∈ Set.Icc (-4) 4) : |Real.cos x - cos
     norm_num [κ]
   grw [← this]
   exact z
+
+end RationalApprox
+end

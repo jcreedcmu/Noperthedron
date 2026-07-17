@@ -1,6 +1,11 @@
-import Noperthedron.MatrixPose
-import Noperthedron.Pose
-import Noperthedron.Bounding.OrthEquivRotz
+module
+
+public import Noperthedron.MatrixPose
+public import Noperthedron.Pose
+public import Noperthedron.Bounding.OrthEquivRotz
+
+@[expose] public section
+
 
 open Bounding Real
 open scoped Matrix
@@ -98,3 +103,5 @@ theorem pose_of_matrix_pose (p : MatrixPose) :
     ⟨θ, φ, by simp only [MatrixPose.rotateBy, MatrixPose.zeroOffset]; exact h_form⟩
   simpa [MatrixPose.zeroOffset, MatrixPose.rotateBy] using
     pose_of_matrix_pose_with_outer_form (p.zeroOffset.rotateBy δ) h_outer
+
+end

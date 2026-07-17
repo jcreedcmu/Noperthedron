@@ -1,9 +1,14 @@
-import Mathlib.Algebra.Lie.OfAssociative
-import Noperthedron.PointSym
-import Noperthedron.PoseInterval
-import Noperthedron.RationalApprox.Basic
-import Noperthedron.RationalApprox.Cast
-import Noperthedron.RationalApprox.MatrixBounds
+module
+
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Noperthedron.PointSym
+public import Noperthedron.PoseInterval
+public import Noperthedron.RationalApprox.Basic
+public import Noperthedron.RationalApprox.Cast
+public import Noperthedron.RationalApprox.MatrixBounds
+
+public section
+
 
 open scoped RealInnerProductSpace
 
@@ -310,3 +315,6 @@ lemma bounds_kappa_Mφφ
     hP approx hw
 
 end rational
+
+end RationalApprox
+end

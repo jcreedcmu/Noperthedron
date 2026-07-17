@@ -1,8 +1,13 @@
-import Mathlib.Data.Fin.VecNotation
-import Mathlib.Data.Rat.Defs
+module
 
-import Noperthedron.Vertices.Index
-import Noperthedron.Vertices.Python
+public import Mathlib.Data.Fin.VecNotation
+public import Mathlib.Data.Rat.Defs
+
+public import Noperthedron.Vertices.Index
+public import Noperthedron.Vertices.Python
+
+@[expose] public section
+
 
 namespace Noperthedron
 
@@ -21,7 +26,7 @@ Regenerate with:
   python3 scripts/gen_python_int.py
 -/
 
-private def mkI (a b c : ℤ) : Fin 3 → ℤ :=
+def mkI (a b c : ℤ) : Fin 3 → ℤ :=
   fun | 0 => a | 1 => b | 2 => c
 
 def pythonVertexNumCurried : Fin 2 → Fin 3 → Fin 15 → Fin 3 → ℤ := ![
@@ -128,3 +133,5 @@ lemma pythonVertexNumCurried_eq :
   decide +kernel
 
 end Noperthedron
+
+end

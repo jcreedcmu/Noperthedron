@@ -1,6 +1,11 @@
-import Noperthedron.Basic
-import Noperthedron.Pose
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
+
+public import Noperthedron.Basic
+public import Noperthedron.Pose
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+@[expose] public section
+
 
 namespace RationalApprox
 
@@ -311,3 +316,7 @@ structure Approx where
   upper_sqrt_two_gt_sqrt_two : upper_sqrt_two > √2
   upper_sqrt_five : ℚ
   upper_sqrt_five_gt_sqrt_five : upper_sqrt_five > √5
+
+end RationalApprox
+
+end

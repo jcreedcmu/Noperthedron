@@ -1,12 +1,27 @@
-import Mathlib.Data.Finset.Max
+module
 
-import Noperthedron.SolutionTable.Defs
-import Noperthedron.Vertices.Python
-import Noperthedron.Vertices.PythonInt
-import Noperthedron.Vertices.PythonNat
-import Noperthedron.Vertices.Trig
-import Noperthedron.RationalApprox.RationalGlobal
-import Noperthedron.RationalApprox.GlobalNat
+public import Mathlib.Data.Finset.Max
+
+public import Noperthedron.SolutionTable.Defs
+public import Noperthedron.Vertices.Python
+public import Noperthedron.Vertices.PythonInt
+public import Noperthedron.Vertices.PythonNat
+public import Noperthedron.Vertices.Trig
+public import Noperthedron.RationalApprox.RationalGlobal
+public import Noperthedron.RationalApprox.GlobalNat
+-- Mirror the imports at the meta phase so the test `#eval`s below can
+-- interpret cross-module code under the module system.
+public meta import Mathlib.Data.Finset.Max
+public meta import Noperthedron.SolutionTable.Defs
+public meta import Noperthedron.Vertices.Python
+public meta import Noperthedron.Vertices.PythonInt
+public meta import Noperthedron.Vertices.PythonNat
+public meta import Noperthedron.Vertices.Trig
+public meta import Noperthedron.RationalApprox.RationalGlobal
+public meta import Noperthedron.RationalApprox.GlobalNat
+
+@[expose] public section
+
 
 /-!
 # Global Validity Checker
@@ -160,3 +175,5 @@ def testGlobalRow : Row := {
 #guard_msgs in
 #eval testGlobalRow.ValidGlobal
 
+end Noperthedron.Solution
+end

@@ -1,7 +1,12 @@
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Algebra.Order.Star.Real
-import Noperthedron.RationalApprox.Lemma39
-import Noperthedron.RationalApprox.TrigLemmas
+module
+
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Algebra.Order.Star.Real
+public import Noperthedron.RationalApprox.Lemma39
+public import Noperthedron.RationalApprox.TrigLemmas
+
+@[expose] public section
+
 
 namespace RationalApprox
 
@@ -169,3 +174,6 @@ theorem norm_matrix_actual_approx_le_kappa {m n : Finset.Icc 1 3}
   · simp_all [clinActual, clinApprox]
   · refine le_trans ( mul_le_mul_of_nonneg_left h_sqrt_bound <| by positivity ) ?_
     linarith [kappa_bound_aux]
+
+end RationalApprox
+end

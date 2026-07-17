@@ -3,9 +3,14 @@ Copyright (c) 2026 Cameron Freer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cameron Freer
 -/
-import Noperthedron.Global.RotationPartials.SecondPartialOuter
-import Noperthedron.Global.RotationPartials.Rotproj
-import Noperthedron.Global.FDerivHelpers
+module
+
+public import Noperthedron.Global.RotationPartials.SecondPartialOuter
+public import Noperthedron.Global.RotationPartials.Rotproj
+public import Noperthedron.Global.FDerivHelpers
+
+@[expose] public section
+
 
 /-!
 # Second Partial Inner Lemmas
@@ -275,3 +280,5 @@ theorem rotation_third_partials_bounded (S : ℝ³) {w : ℝ²} (w_unit : ‖w�
   third_partial_inner_rotM_inner S w_unit i j k x
 
 end GlobalTheorem
+
+end

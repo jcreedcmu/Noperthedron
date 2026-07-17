@@ -3,13 +3,18 @@ Copyright (c) 2026 Cameron Freer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cameron Freer
 -/
-import Mathlib.Analysis.InnerProductSpace.Dual
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import Mathlib.Analysis.Calculus.FDeriv.WithLp
-import Noperthedron.Global.FDerivHelpers
-import Noperthedron.Global.RotationDerivs
-import Noperthedron.PoseInterval
-import Noperthedron.Global.Definitions
+module
+
+public import Mathlib.Analysis.InnerProductSpace.Dual
+public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Mathlib.Analysis.Calculus.FDeriv.WithLp
+public import Noperthedron.Global.FDerivHelpers
+public import Noperthedron.Global.RotationDerivs
+public import Noperthedron.PoseInterval
+public import Noperthedron.Global.Definitions
+
+@[expose] public section
+
 
 /-!
 # Rotproj Inner Lemmas
@@ -103,3 +108,5 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
   exact HasFDerivAt.inner ℝ z1 (hasFDerivAt_const w pbar.innerParams)
 
 end GlobalTheorem
+
+end

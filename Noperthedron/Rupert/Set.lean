@@ -1,4 +1,9 @@
-import Noperthedron.Rupert.Basic
+module
+
+public import Noperthedron.Rupert.Basic
+
+@[expose] public section
+
 
 open scoped Matrix
 
@@ -18,3 +23,5 @@ def IsRupertPair (inner outer : Set ℝ³) : Prop :=
     are rotations and translations such that one 2-dimensional "shadow" of S can
     be made to fit entirely inside the interior of another such "shadow". -/
 def IsRupertSet (S : Set ℝ³) : Prop := IsRupertPair S S
+
+end

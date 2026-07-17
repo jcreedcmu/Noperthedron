@@ -1,6 +1,11 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
 
-import Noperthedron.EuclideanSpaceNotation
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+public import Noperthedron.EuclideanSpaceNotation
+
+@[expose] public section
+
 
 namespace RationalApprox
 
@@ -177,7 +182,7 @@ end RationalApprox
 
 syntax "⟦" term,* "⟧" : term
 
-def buildMatVec (ps : List (List (Lean.Syntax))) : Lean.MacroM (Lean.Syntax) :=
+meta def buildMatVec (ps : List (List (Lean.Syntax))) : Lean.MacroM (Lean.Syntax) :=
     match ps with
     | [] => ``(RationalApprox.MatVec.nil)
     | [a, b] :: rest => do
@@ -188,3 +193,5 @@ def buildMatVec (ps : List (List (Lean.Syntax))) : Lean.MacroM (Lean.Syntax) :=
 macro_rules
   | `(⟦$rest,*⟧) =>
     buildMatVec (rest.getElems.toList.reverse.toChunks 2)
+
+end

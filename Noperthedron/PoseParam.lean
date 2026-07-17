@@ -1,5 +1,10 @@
-import Mathlib.Tactic.DeriveFintype
-import Noperthedron.Pose
+module
+
+public import Mathlib.Tactic.DeriveFintype
+public import Noperthedron.Pose
+
+@[expose] public section
+
 
 /-!
 # `Param`: names for the five pose parameters
@@ -77,3 +82,5 @@ lemma mem_closedBall_iff_forall_getParam [MetricSpace R] {p q : Pose R} {ε : �
           fun h => ⟨h .θ₁, h .θ₂, h .φ₁, h .φ₂, h .α⟩⟩
 
 end Pose
+
+end

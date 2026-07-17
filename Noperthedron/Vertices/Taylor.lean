@@ -1,7 +1,12 @@
-import Mathlib.Data.Rat.Defs
-import Noperthedron.Vertices.Exact
-import Noperthedron.Vertices.Index
-import Noperthedron.Vertices.Trig
+module
+
+public import Mathlib.Data.Rat.Defs
+public import Noperthedron.Vertices.Exact
+public import Noperthedron.Vertices.Index
+public import Noperthedron.Vertices.Trig
+
+@[expose] public section
+
 
 /-!
 Taylor series approximations of the Noperthedron vertices. These are provably near to both
@@ -61,3 +66,6 @@ lemma taylorVertex_eq_vec (k : Fin 15) (ℓ : Fin 2) (i : Fin 3) :
   · simp only [Fin.isValue, Fin.mk_one, Matrix.cons_val_one, Matrix.cons_val_zero, θ]
     ring
   · rfl
+
+end Noperthedron
+end

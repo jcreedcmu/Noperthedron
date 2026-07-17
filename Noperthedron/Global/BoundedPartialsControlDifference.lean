@@ -1,8 +1,13 @@
-import Mathlib.Analysis.Calculus.Taylor
-import Mathlib.Analysis.InnerProductSpace.Dual
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import Noperthedron.PoseInterval
-import Noperthedron.Global.Basic
+module
+
+public import Mathlib.Analysis.Calculus.Taylor
+public import Mathlib.Analysis.InnerProductSpace.Dual
+public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Noperthedron.PoseInterval
+public import Noperthedron.Global.Basic
+
+@[expose] public section
+
 
 /- [SY25] Lemma 20 -/
 
@@ -26,11 +31,11 @@ lemma nth_partial_def {n : ℕ} (f : E n → ℝ) (v w : E n) :
   congr
   exact vector_rep v
 
-private noncomputable
+noncomputable
 def interpolator {n : ℕ} (x y : E n) (t : ℝ) : E n :=
   (1 - t) • x + t • y
 
-private noncomputable
+noncomputable
 def interpolator' {n : ℕ} (x y : E n) : ℝ →L[ℝ] E n :=
   ContinuousLinearMap.toSpanSingleton ℝ (y - x)
 
@@ -46,15 +51,15 @@ theorem interpolator_has_deriv {n : ℕ} (x y : E n) (t : ℝ) :
   convert! ((hasDerivAt_id t).const_sub 1).smul_const x |>.add ((hasDerivAt_id t).smul_const y) using 1
   module
 
-private noncomputable
+noncomputable
 def interpolated {n : ℕ} (x y : E n) (f : E n → ℝ) : ℝ → ℝ  :=
   f ∘ interpolator x y
 
-private noncomputable
+noncomputable
 def interpolated_deriv {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) : ℝ :=
   ∑ i, (y i - x i) * nth_partial i f ((1 - t) • x + t • y)
 
-private noncomputable
+noncomputable
 def interpolated_deriv2 {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) : ℝ :=
   ∑ i, ∑ j, (y i - x i) * (y j - x j) * (nth_partial i <| nth_partial j f) ((1 - t) • x + t • y)
 
@@ -130,7 +135,7 @@ lemma c3_imp_partials2_differentiable {n : ℕ} {f : E n → ℝ} {i j : Fin n}
     (fc : ContDiff ℝ 3 f) : Differentiable ℝ (nth_partial i (nth_partial j f)) :=
   c2_imp_partials_differentiable (c3_imp_partials_c2 fc)
 
-private noncomputable
+noncomputable
 def interpolated_deriv3 {n : ℕ} (x y : E n) (f : E n → ℝ) (t : ℝ) : ℝ :=
   ∑ i, ∑ j, ∑ k, (y i - x i) * (y j - x j) * (y k - x k) *
     (nth_partial i <| nth_partial j <| nth_partial k f) ((1 - t) • x + t • y)
@@ -322,3 +327,6 @@ theorem bounded_partials_control_difference2 {n : ℕ} (f : E n → ℝ)
   _ = ∑ i, ε i * |nth_partial i f x|
       + (1/2) * ∑ i, ∑ j, ε i * ε j * |nth_partial i (nth_partial j f) x|
       + (∑ i, ε i)^3 / 6 := by ring
+
+end GlobalTheorem
+end

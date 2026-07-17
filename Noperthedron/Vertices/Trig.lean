@@ -1,6 +1,10 @@
-import Mathlib.Data.Rat.Defs
+module
+
+public import Mathlib.Data.Rat.Defs
 
 namespace Noperthedron
+
+@[expose] public section
 
 /-! ## Computable sine and cosine (Taylor polynomials in Horner form)
 
@@ -29,3 +33,5 @@ def cosQ (x : ℚ) : ℚ :=
      (1 - x2 / (13*14) * (1 - x2 / (15*16) * (1 - x2 / (17*18) *
      (1 - x2 / (19*20) * (1 - x2 / (21*22) * (1 - x2 / (23*24)
      )))))))))))
+
+end
