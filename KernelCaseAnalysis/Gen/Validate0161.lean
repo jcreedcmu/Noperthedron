@@ -1,4 +1,9 @@
-import KernelCaseAnalysis.Gen.Dispatch
+module
+
+public import KernelCaseAnalysis.Gen.Dispatch
+
+@[expose] public section
+
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): kernel validation of rows
 [2037352, 2045999). -/
@@ -1586,3 +1591,5 @@ private theorem s_2045999 : RangeOk getRow 2051521 2037352 2045999 :=
 theorem rangeOk_2037352_2045999 : RangeOk getRow 2051521 2037352 2045999 := s_2045999
 
 end Noperthedron.Solution
+
+end

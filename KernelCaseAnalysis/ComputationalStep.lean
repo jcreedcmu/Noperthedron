@@ -1,5 +1,10 @@
-import Noperthedron.SolutionTable.Assemble
-import KernelCaseAnalysis.Gen.Final
+module
+
+public import Noperthedron.SolutionTable.Assemble
+public import KernelCaseAnalysis.Gen.Final
+
+@[expose] public section
+
 
 /-!
 # The expensive computational step, verified kernel-only
@@ -30,3 +35,5 @@ noncomputable def solutionTable : Solution.ValidTable :=
     row0_interval allRows_validIxAt
 
 end Noperthedron.KernelCaseAnalysis
+
+end

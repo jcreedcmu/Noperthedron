@@ -1,39 +1,44 @@
-import KernelCaseAnalysis.Gen.Combine01
-import KernelCaseAnalysis.Gen.Validate0128
-import KernelCaseAnalysis.Gen.Validate0129
-import KernelCaseAnalysis.Gen.Validate0130
-import KernelCaseAnalysis.Gen.Validate0131
-import KernelCaseAnalysis.Gen.Validate0132
-import KernelCaseAnalysis.Gen.Validate0133
-import KernelCaseAnalysis.Gen.Validate0134
-import KernelCaseAnalysis.Gen.Validate0135
-import KernelCaseAnalysis.Gen.Validate0136
-import KernelCaseAnalysis.Gen.Validate0137
-import KernelCaseAnalysis.Gen.Validate0138
-import KernelCaseAnalysis.Gen.Validate0139
-import KernelCaseAnalysis.Gen.Validate0140
-import KernelCaseAnalysis.Gen.Validate0141
-import KernelCaseAnalysis.Gen.Validate0142
-import KernelCaseAnalysis.Gen.Validate0143
-import KernelCaseAnalysis.Gen.Validate0144
-import KernelCaseAnalysis.Gen.Validate0145
-import KernelCaseAnalysis.Gen.Validate0146
-import KernelCaseAnalysis.Gen.Validate0147
-import KernelCaseAnalysis.Gen.Validate0148
-import KernelCaseAnalysis.Gen.Validate0149
-import KernelCaseAnalysis.Gen.Validate0150
-import KernelCaseAnalysis.Gen.Validate0151
-import KernelCaseAnalysis.Gen.Validate0152
-import KernelCaseAnalysis.Gen.Validate0153
-import KernelCaseAnalysis.Gen.Validate0154
-import KernelCaseAnalysis.Gen.Validate0155
-import KernelCaseAnalysis.Gen.Validate0156
-import KernelCaseAnalysis.Gen.Validate0157
-import KernelCaseAnalysis.Gen.Validate0158
-import KernelCaseAnalysis.Gen.Validate0159
-import KernelCaseAnalysis.Gen.Validate0160
-import KernelCaseAnalysis.Gen.Validate0161
-import KernelCaseAnalysis.Gen.Validate0162
+module
+
+public import KernelCaseAnalysis.Gen.Combine01
+public import KernelCaseAnalysis.Gen.Validate0128
+public import KernelCaseAnalysis.Gen.Validate0129
+public import KernelCaseAnalysis.Gen.Validate0130
+public import KernelCaseAnalysis.Gen.Validate0131
+public import KernelCaseAnalysis.Gen.Validate0132
+public import KernelCaseAnalysis.Gen.Validate0133
+public import KernelCaseAnalysis.Gen.Validate0134
+public import KernelCaseAnalysis.Gen.Validate0135
+public import KernelCaseAnalysis.Gen.Validate0136
+public import KernelCaseAnalysis.Gen.Validate0137
+public import KernelCaseAnalysis.Gen.Validate0138
+public import KernelCaseAnalysis.Gen.Validate0139
+public import KernelCaseAnalysis.Gen.Validate0140
+public import KernelCaseAnalysis.Gen.Validate0141
+public import KernelCaseAnalysis.Gen.Validate0142
+public import KernelCaseAnalysis.Gen.Validate0143
+public import KernelCaseAnalysis.Gen.Validate0144
+public import KernelCaseAnalysis.Gen.Validate0145
+public import KernelCaseAnalysis.Gen.Validate0146
+public import KernelCaseAnalysis.Gen.Validate0147
+public import KernelCaseAnalysis.Gen.Validate0148
+public import KernelCaseAnalysis.Gen.Validate0149
+public import KernelCaseAnalysis.Gen.Validate0150
+public import KernelCaseAnalysis.Gen.Validate0151
+public import KernelCaseAnalysis.Gen.Validate0152
+public import KernelCaseAnalysis.Gen.Validate0153
+public import KernelCaseAnalysis.Gen.Validate0154
+public import KernelCaseAnalysis.Gen.Validate0155
+public import KernelCaseAnalysis.Gen.Validate0156
+public import KernelCaseAnalysis.Gen.Validate0157
+public import KernelCaseAnalysis.Gen.Validate0158
+public import KernelCaseAnalysis.Gen.Validate0159
+public import KernelCaseAnalysis.Gen.Validate0160
+public import KernelCaseAnalysis.Gen.Validate0161
+public import KernelCaseAnalysis.Gen.Validate0162
+
+@[expose] public section
+
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): fold rows [0, 2051521). -/
 
@@ -114,3 +119,5 @@ private theorem c_2051521 : RangeOk getRow 2051521 0 2051521 :=
 theorem combined_2051521 : RangeOk getRow 2051521 0 2051521 := c_2051521
 
 end Noperthedron.Solution
+
+end

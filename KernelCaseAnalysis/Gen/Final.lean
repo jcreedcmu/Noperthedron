@@ -1,4 +1,9 @@
-import KernelCaseAnalysis.Gen.Combine02
+module
+
+public import KernelCaseAnalysis.Gen.Combine02
+
+@[expose] public section
+
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): every index of the full table
 satisfies `Row.ValidIxAt`, and row 0 carries `rowZero.interval`. -/
@@ -12,3 +17,5 @@ theorem row0_interval : (getRow 0).interval = rowZero.interval := by
   decide +kernel
 
 end Noperthedron.Solution
+
+end

@@ -169,7 +169,9 @@ def addChunk (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
     (fun r acc => mkApp3 (mkConst ``List.cons [Level.zero]) rowTy (rowE ctx r) acc)
     (mkApp (mkConst ``List.nil [Level.zero]) rowTy)
   let chunkNm := ns ++ Name.mkSimple s!"csvRows_{lo}_{hi}"
-  addDecl <| .defnDecl {
+  -- Exposed so that importing modules' `decide +kernel` can unfold the chunk
+  -- (under the module system only exposed bodies reach an importer's kernel).
+  withExporting <| addDecl <| .defnDecl {
     name := chunkNm, levelParams := [],
     type := mkApp (mkConst ``List [Level.zero]) rowTy, value := listE,
     hints := .abbrev, safety := .safe }
@@ -210,7 +212,9 @@ def addChunkCurried (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
     level := next
     τ := mkForall `i .default fin8Ty τ
   let chunkNm := ns ++ Name.mkSimple s!"csvRowsC_{lo}_{hi}"
-  addDecl <| .defnDecl {
+  -- Exposed so that importing modules' `decide +kernel` can unfold the chunk
+  -- (under the module system only exposed bodies reach an importer's kernel).
+  withExporting <| addDecl <| .defnDecl {
     name := chunkNm, levelParams := [],
     type := τ, value := level[0]!,
     hints := .abbrev, safety := .safe }
@@ -321,7 +325,9 @@ elab "assemble_row_dispatch_curried " name:ident " rows " n:num
       level := next
       τ := mkForall `i .default fin8Ty τ
     let dName := ns ++ name.getId
-    addDecl <| .defnDecl {
+    -- Exposed so that importing modules' `decide +kernel` can unfold it
+    -- (under the module system only exposed bodies reach an importer's kernel).
+    withExporting <| addDecl <| .defnDecl {
       name := dName, levelParams := [], type := τ,
       value := level[0]!, hints := .abbrev, safety := .safe }
     if comp.isSome then
