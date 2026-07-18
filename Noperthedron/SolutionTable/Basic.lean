@@ -11,62 +11,75 @@ public import Noperthedron.Checker.LocalFastNat
 
 namespace Noperthedron.Solution
 
-@[mk_iff]
-structure Row.ValidSplitParam (tab : Table) (row : Row) (param : Param) : Prop where
-  id_in_table : row.ID < row.IDfirstChild
-  children_in_table : row.IDfirstChild + row.nrChildren ≤ Array.size tab
-  nonzero_children : row.nrChildren ≠ 0
-  children_intervals_good : ∀ (n : Fin row.nrChildren), tab[row.IDfirstChild + n].interval =
-    row.interval.nth_part param row.nrChildren (hN := ⟨nonzero_children⟩) n
+/-!
+## Validity over a row source
 
-instance (tab : Table) (row : Row) (param : Param) : Decidable (Row.ValidSplitParam tab row param) :=
-  decidable_of_iff _ (Row.validSplitParam_iff tab row param).symm
+The proof-producing kernel checker cannot use a flat `Array`: child lookup in a
+two-million-row literal would be linear in the child index.  Runtime checking,
+on the other hand, naturally gets rows from an array.  Both routes use the same
+validity predicates below, parameterized only by a total row getter and its
+logical size.  The bounds in the predicates ensure that out-of-range values of
+the total getter are irrelevant.
+-/
+
+@[mk_iff]
+structure Row.ValidSplitParamAt (get : ℕ → Row) (size : ℕ) (row : Row)
+    (param : Param) : Prop where
+  id_in_table : row.ID < row.IDfirstChild
+  children_in_table : row.IDfirstChild + row.nrChildren ≤ size
+  nonzero_children : row.nrChildren ≠ 0
+  children_intervals_good : ∀ n : Fin row.nrChildren,
+    (get (row.IDfirstChild + n)).interval =
+      row.interval.nth_part param row.nrChildren (hN := ⟨nonzero_children⟩) n
+
+instance (get : ℕ → Row) (size : ℕ) (row : Row) (param : Param) :
+    Decidable (Row.ValidSplitParamAt get size row param) :=
+  decidable_of_iff _ (Row.validSplitParamAt_iff get size row param).symm
 
 /-- The row's `split` code selects a single parameter (via `Param.ofSplitCode?`),
 and the row is a valid split of its interval along that parameter. -/
-def Row.ValidSingleParamSplit (tab : Table) (row : Row) : Prop :=
-  ∃ p, Param.ofSplitCode? row.split = some p ∧ row.ValidSplitParam tab p
+def Row.ValidSingleParamSplitAt (get : ℕ → Row) (size : ℕ) (row : Row) : Prop :=
+  ∃ p, Param.ofSplitCode? row.split = some p ∧ row.ValidSplitParamAt get size p
 
-instance (tab : Table) (row : Row) : Decidable (row.ValidSingleParamSplit tab) := by
-  unfold Row.ValidSingleParamSplit
+instance (get : ℕ → Row) (size : ℕ) (row : Row) :
+    Decidable (row.ValidSingleParamSplitAt get size) := by
+  unfold Row.ValidSingleParamSplitAt
   generalize Param.ofSplitCode? row.split = code
   cases code with
   | none => exact .isFalse (by simp)
-  | some p => exact decidable_of_iff (row.ValidSplitParam tab p) (by simp)
+  | some p => exact decidable_of_iff (row.ValidSplitParamAt get size p) (by simp)
 
-def Table.HasIntervals (tab : Table) (start : ℕ) (intervals : List Interval) : Prop :=
+def HasIntervalsAt (get : ℕ → Row) (size start : ℕ) (intervals : List Interval) : Prop :=
   ∀ i : Fin intervals.length,
-    ∃ (h : start + i.val < tab.size), tab[start + i.val].interval = intervals[i]
+    start + i.val < size ∧ (get (start + i.val)).interval = intervals[i]
 deriving Decidable
 
-def Row.ValidFullSplit (tab : Table) (row : Row) : Prop :=
+def Row.ValidFullSplitAt (get : ℕ → Row) (size : ℕ) (row : Row) : Prop :=
   row.nrChildren = 32 ∧ row.split = 6 ∧ row.IDfirstChild > row.ID ∧
-  tab.HasIntervals row.IDfirstChild
+  HasIntervalsAt get size row.IDfirstChild
     (cubeFold [Interval.lower_half, Interval.upper_half] row.interval Param.splitOrder)
 deriving Decidable
 
-def Row.ValidSplit (tab : Table) (row : Row) : Prop :=
-  (row.nodeType = (3 : ℕ)) ∧ (row.ValidSingleParamSplit tab ∨ row.ValidFullSplit tab)
+def Row.ValidSplitAt (get : ℕ → Row) (size : ℕ) (row : Row) : Prop :=
+  (row.nodeType = (3 : ℕ)) ∧
+    (row.ValidSingleParamSplitAt get size ∨ row.ValidFullSplitAt get size)
 deriving Decidable
 
 @[mk_iff]
-inductive Row.Valid (tab : Table) (row : Row) : Prop where
-  | asSplit : row.ValidSplit tab → Row.Valid tab row
-  | asGlobal : row.ValidGlobal → Row.Valid tab row
-  | asLocal : row.ValidLocal → Row.Valid tab row
+inductive Row.ValidAt (get : ℕ → Row) (size : ℕ) (row : Row) : Prop where
+  | asSplit : row.ValidSplitAt get size → Row.ValidAt get size row
+  | asGlobal : row.ValidGlobal → Row.ValidAt get size row
+  | asLocal : row.ValidLocal → Row.ValidAt get size row
 
-instance (tab : Table) (row : Row) : Decidable (Row.Valid tab row) :=
-  decidable_of_iff _ (Row.valid_iff tab row).symm
+instance (get : ℕ → Row) (size : ℕ) (row : Row) : Decidable (Row.ValidAt get size row) :=
+  decidable_of_iff _ (Row.validAt_iff get size row).symm
 
-def Row.ValidIx (tab : Table) (i : ℕ) (row : Row) : Prop :=
-  row.ID = i ∧ row.Valid tab ∧ row.ID < tab.size
+def Row.ValidIxAt (get : ℕ → Row) (size i : ℕ) : Prop :=
+  (get i).ID = i ∧ (get i).ValidAt get size ∧ i < size
 deriving Decidable
 
-def Table.RowsValid (tab : Table) : Prop :=
-  ∀ i : Fin (tab.size), tab[i].ValidIx tab i
-
-lemma Table.RowsValid.valid_at {tab : Table} (htab : tab.RowsValid) {i : ℕ} (hi : i < tab.size) :
-    tab[i].ValidIx tab i := htab ⟨i, hi⟩
+def RowsValidAt (get : ℕ → Row) (size : ℕ) : Prop :=
+  ∀ i : Fin size, Row.ValidIxAt get size i
 
 /-- The minimum endpoint of an `Interval`, viewed as a `Pose ℝ` via `Rat.cast`. -/
 def Interval.minPose (iv : Interval) : Pose ℝ := iv.min.toReal
@@ -113,10 +126,12 @@ instance : Coe Interval (Set (Pose ℝ)) where
   coe iv := Set.Icc iv.minPose iv.maxPose
 
 structure ValidTable : Type where
-  table : Table
-  rows_valid : table.RowsValid
-  nonempty : 0 < table.size
-  contains_tightInterval : (tightInterval : Set (Pose ℝ)) ⊆ (table[0].interval : Set (Pose ℝ))
+  get : ℕ → Row
+  size : ℕ
+  rows_valid : RowsValidAt get size
+  nonempty : 0 < size
+  contains_tightInterval :
+    (tightInterval : Set (Pose ℝ)) ⊆ ((get 0).interval : Set (Pose ℝ))
 
 lemma cube_fold_nonempty_aux {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :
    0 < (cubeFold fs b as).length := by
@@ -144,29 +159,30 @@ lemma cube_fold_halves (h : Param) (tl : List Param) (iv : Interval)
       cubeFold [lower, upper] (upper h iv) tl := by
   simp [cubeFold]
 
-lemma has_intervals_start_in_table (tab : Table) (n : ℕ) (ivs : List Interval) (hivs : 1 ≤ ivs.length)
-    (hi : tab.HasIntervals n ivs) : n < tab.size := by
-  unfold Table.HasIntervals at hi
+lemma has_intervals_start_in_table (get : ℕ → Row) (size n : ℕ) (ivs : List Interval)
+    (hivs : 1 ≤ ivs.length) (hi : HasIntervalsAt get size n ivs) : n < size := by
+  unfold HasIntervalsAt at hi
   simpa using (hi ⟨0, Nat.zero_lt_of_lt hivs⟩).1
 
-lemma has_intervals_concat (tab : Table) (start : ℕ) (ivs1 ivs2 : List Interval) :
-    tab.HasIntervals start (ivs1 ++ ivs2) ↔
-    tab.HasIntervals start ivs1 ∧ tab.HasIntervals (start + ivs1.length) ivs2 := by
+lemma has_intervals_concat (get : ℕ → Row) (size start : ℕ) (ivs1 ivs2 : List Interval) :
+    HasIntervalsAt get size start (ivs1 ++ ivs2) ↔
+    HasIntervalsAt get size start ivs1 ∧
+      HasIntervalsAt get size (start + ivs1.length) ivs2 := by
   constructor
   · intro hi
     constructor
-    · unfold Table.HasIntervals at hi ⊢
+    · unfold HasIntervalsAt at hi ⊢
       intro i; simpa using hi (Fin.castLE (by simp) i)
-    · unfold Table.HasIntervals at hi ⊢
+    · unfold HasIntervalsAt at hi ⊢
       intro i
       specialize hi ⟨ivs1.length + i, by simp⟩
       simp at hi
       obtain ⟨h, p⟩ := hi
-      replace h : start + ivs1.length + (↑i : ℕ) < Array.size tab :=
+      replace h : start + ivs1.length + (↑i : ℕ) < size :=
         by ring_nf at h ⊢; exact h
-      use h; ring_nf at p ⊢; exact p
+      exact ⟨h, by ring_nf at p ⊢; exact p⟩
   · rintro ⟨h1, h2⟩
-    unfold Table.HasIntervals at h1 h2 ⊢
+    unfold HasIntervalsAt at h1 h2 ⊢
     intro i
     if h : i < ivs1.length then
       specialize h1 ⟨i, h⟩

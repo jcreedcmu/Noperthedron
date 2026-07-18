@@ -38,7 +38,7 @@ def main (args : List String) : IO Unit := do
       if h_valid_b : rowsValidIxAtParB (fun j => table[j]!) table.size 512 then
         let validTable : ValidTable := validTableOfParsedChecks table h_nonempty h_first
           (validIxAt_of_rowsValidIxAtParB h_valid_b)
-        IO.println s!"ValidTable constructed with {validTable.table.size} rows."
+        IO.println s!"ValidTable constructed with {validTable.size} rows."
       else
         throw (IO.userError "table rows are not valid")
     else

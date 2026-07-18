@@ -33,7 +33,7 @@ kernel performs the whole evaluation — no `ofReduceBool`, no compiler):
 * leaf checks, e.g. `csvRows_a_b.all Row.leafOk = true`;
 * split checks, stated against whatever table view is in scope (see
   `KernelCaseAnalysis/Smoke.lean` for a small end-to-end demonstration);
-* the bridging lemmas that assemble a `ValidTable`
+* the range combinators and `ValidTable` constructor
   (`SolutionTable/Assemble.lean`).
 
 Nothing here needs to be trusted: the parser and `Expr` builders can be
