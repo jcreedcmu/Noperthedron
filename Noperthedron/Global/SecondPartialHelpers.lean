@@ -7,6 +7,7 @@ import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.FDeriv.WithLp
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import Noperthedron.Global.RotationDerivs
+import Noperthedron.Global.SymbolicRotationDerivs
 import Noperthedron.Bounding.OpNorm
 
 /-!
@@ -27,113 +28,171 @@ private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 /-!
 ## DifferentiableAt lemmas for rotation compositions
 
-These lemmas eliminate the repeated `rw [differentiableAt_piLp]; intro i; fin_cases i ...`
-pattern that appears ~30+ times in third_partial_inner_rotM_inner.
+Each rotation map is a matrix path applied to a vector, so joint differentiability
+in the angles and the vector follows from `differentiable_toEuclideanLin_apply`
+plus entrywise trigonometric facts. The compositional `@[fun_prop]` cores below
+prove this once per map; the `differentiableAt_*` family (used ~30+ times in
+`third_partial_inner_rotM_inner`) then consists of one-line applications.
 -/
+
+/-- Joint differentiability of `rotM` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotM_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotM (f x) (g x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotM_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotM_mat] <;> fun_prop
+
+/-- Joint differentiability of `rotMθ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMθ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMθ (f x) (g x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotMθ_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotMθ_mat] <;> fun_prop
+
+/-- Joint differentiability of `rotMφ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMφ (f x) (g x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotMφ_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotMφ_mat] <;> fun_prop
+
+/-- Joint differentiability of `rotMθθ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMθθ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMθθ (f x) (g x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotMθθ_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotMθθ_mat] <;> fun_prop
+
+/-- Joint differentiability of `rotMθφ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMθφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMθφ (f x) (g x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotMθφ_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotMθφ_mat] <;> fun_prop
+
+/-- Joint differentiability of `rotMφφ` in the two angles and the vector. -/
+@[fun_prop]
+lemma differentiable_rotMφφ_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f g : X → ℝ} {h : X → ℝ³}
+    (hf : Differentiable ℝ f) (hg : Differentiable ℝ g) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotMφφ (f x) (g x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotMφφ_mat (f x) (g x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotMφφ_mat] <;> fun_prop
+
+/-- Joint differentiability of `rotR` in the angle and the vector. -/
+@[fun_prop]
+lemma differentiable_rotR_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f : X → ℝ} {h : X → ℝ²}
+    (hf : Differentiable ℝ f) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotR (f x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotR_mat (f x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotR_mat] <;> fun_prop
+
+/-- Joint differentiability of `rotR'` in the angle and the vector. -/
+@[fun_prop]
+lemma differentiable_rotR'_comp {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    {f : X → ℝ} {h : X → ℝ²}
+    (hf : Differentiable ℝ f) (hh : Differentiable ℝ h) :
+    Differentiable ℝ fun x => rotR' (f x) (h x) := by
+  apply differentiable_toEuclideanLin_apply (M := fun x => rotR'_mat (f x)) (v := h) ?_ hh
+  intro i j
+  fin_cases i <;> fin_cases j <;> simp [rotR'_mat] <;> fun_prop
 
 /-- DifferentiableAt for rotMθ (outer, E 2) -/
 lemma differentiableAt_rotMθ_outer (S : ℝ³) (y : E 2) :
-    DifferentiableAt ℝ (fun z : E 2 => rotMθ (z.ofLp 0) (z.ofLp 1) S) y := by
-  rw [differentiableAt_piLp]; intro i
-  simp only [rotMθ, rotMθ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-  fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 2 => rotMθ (z.ofLp 0) (z.ofLp 1) S) y :=
+  (differentiable_rotMθ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
 
 /-- DifferentiableAt for rotMφ (outer, E 2) -/
 lemma differentiableAt_rotMφ_outer (S : ℝ³) (y : E 2) :
-    DifferentiableAt ℝ (fun z : E 2 => rotMφ (z.ofLp 0) (z.ofLp 1) S) y := by
-  rw [differentiableAt_piLp]; intro i
-  simp only [rotMφ, rotMφ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-  fin_cases i
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+    DifferentiableAt ℝ (fun z : E 2 => rotMφ (z.ofLp 0) (z.ofLp 1) S) y :=
+  (differentiable_rotMφ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
 
 /-- DifferentiableAt for rotMθθ (outer, E 2) -/
 lemma differentiableAt_rotMθθ_outer (S : ℝ³) (y : E 2) :
-    DifferentiableAt ℝ (fun z : E 2 => rotMθθ (z.ofLp 0) (z.ofLp 1) S) y := by
-  rw [differentiableAt_piLp]; intro i
-  simp only [rotMθθ, rotMθθ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-  fin_cases i <;> (simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 2 => rotMθθ (z.ofLp 0) (z.ofLp 1) S) y :=
+  (differentiable_rotMθθ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
 
 /-- DifferentiableAt for rotMθφ (outer, E 2) -/
 lemma differentiableAt_rotMθφ_outer (S : ℝ³) (y : E 2) :
-    DifferentiableAt ℝ (fun z : E 2 => rotMθφ (z.ofLp 0) (z.ofLp 1) S) y := by
-  rw [differentiableAt_piLp]; intro i
-  simp only [rotMθφ, rotMθφ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-  fin_cases i
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+    DifferentiableAt ℝ (fun z : E 2 => rotMθφ (z.ofLp 0) (z.ofLp 1) S) y :=
+  (differentiable_rotMθφ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
 
 /-- DifferentiableAt for rotMφφ (outer, E 2) -/
 lemma differentiableAt_rotMφφ_outer (S : ℝ³) (y : E 2) :
-    DifferentiableAt ℝ (fun z : E 2 => rotMφφ (z.ofLp 0) (z.ofLp 1) S) y := by
-  rw [differentiableAt_piLp]; intro i
-  simp only [rotMφφ, rotMφφ_mat, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply]
-  fin_cases i
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-  · simp [Matrix.mulVec, dotProduct, Fin.sum_univ_three]; fun_prop
+    DifferentiableAt ℝ (fun z : E 2 => rotMφφ (z.ofLp 0) (z.ofLp 1) S) y :=
+  (differentiable_rotMφφ_comp (by fun_prop) (by fun_prop) (differentiable_const S)).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotM -/
 lemma differentiableAt_rotR_rotM (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotM, rotM_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
-
-/-- DifferentiableAt for rotR' ∘ rotM -/
-lemma differentiableAt_rotR'_rotM (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR', rotR'_mat, rotM, rotM_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotM_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotMθ -/
 lemma differentiableAt_rotR_rotMθ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMθ, rotMθ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotMθ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotMφ -/
 lemma differentiableAt_rotR_rotMφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMφ, rotMφ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
-
-/-- DifferentiableAt for rotR' ∘ rotMθ -/
-lemma differentiableAt_rotR'_rotMθ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR', rotR'_mat, rotMθ, rotMθ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
-
-/-- DifferentiableAt for rotR' ∘ rotMφ -/
-lemma differentiableAt_rotR'_rotMφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR', rotR'_mat, rotMφ, rotMφ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotMφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotMθθ -/
 lemma differentiableAt_rotR_rotMθθ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθθ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMθθ, rotMθθ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθθ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotMθθ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotMθφ -/
 lemma differentiableAt_rotR_rotMθφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθφ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMθφ, rotMθφ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMθφ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotMθφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-- DifferentiableAt for rotR ∘ rotMφφ -/
 lemma differentiableAt_rotR_rotMφφ (S : ℝ³) (y : E 3) :
-    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφφ (z.ofLp 1) (z.ofLp 2) S)) y := by
-  rw [differentiableAt_piLp]; intro i
-  fin_cases i <;> (simp [rotR, rotR_mat, rotMφφ, rotMφφ_mat, Matrix.toLpLin_apply,
-    Matrix.vecHead, Matrix.vecTail, dotProduct, Fin.sum_univ_three]; fun_prop)
+    DifferentiableAt ℝ (fun z : E 3 => rotR (z.ofLp 0) (rotMφφ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR_comp (by fun_prop)
+    (differentiable_rotMφφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
+
+/-- DifferentiableAt for rotR' ∘ rotM -/
+lemma differentiableAt_rotR'_rotM (S : ℝ³) (y : E 3) :
+    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR'_comp (by fun_prop)
+    (differentiable_rotM_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
+
+/-- DifferentiableAt for rotR' ∘ rotMθ -/
+lemma differentiableAt_rotR'_rotMθ (S : ℝ³) (y : E 3) :
+    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMθ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR'_comp (by fun_prop)
+    (differentiable_rotMθ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
+
+/-- DifferentiableAt for rotR' ∘ rotMφ -/
+lemma differentiableAt_rotR'_rotMφ (S : ℝ³) (y : E 3) :
+    DifferentiableAt ℝ (fun z : E 3 => rotR' (z.ofLp 0) (rotMφ (z.ofLp 1) (z.ofLp 2) S)) y :=
+  (differentiable_rotR'_comp (by fun_prop)
+    (differentiable_rotMφ_comp (by fun_prop) (by fun_prop) (differentiable_const S))).differentiableAt
 
 /-!
 ## Inner product fderiv helper
@@ -271,6 +330,33 @@ lemma hasFDerivAt_of_partials {n : ℕ} {f : E n → ℝ²} {y : E n} (cols : Fi
     exact fderiv_single_eq hdiff (h i)
   exact hfd ▸ hdiff.hasFDerivAt
 
+/-- `HasFDerivAt` constructor for a two-parameter family: the Fréchet derivative
+is the column map of the two partial derivatives. -/
+lemma hasFDerivAt_two_params (F : ℝ → ℝ → ℝ²) (y : E 2) (Fθ Fφ : ℝ²)
+    (hdiff : DifferentiableAt ℝ (fun x : E 2 => F (x.ofLp 0) (x.ofLp 1)) y)
+    (hθ : HasDerivAt (fun t => F t (y.ofLp 1)) Fθ (y.ofLp 0))
+    (hφ : HasDerivAt (fun t => F (y.ofLp 0) t) Fφ (y.ofLp 1)) :
+    HasFDerivAt (fun x : E 2 => F (x.ofLp 0) (x.ofLp 1)) (columnsCLM ![Fθ, Fφ]) y := by
+  refine hasFDerivAt_of_partials _ hdiff fun i => ?_
+  fin_cases i
+  · simpa using hasDerivAt_comp_add _ _ _ hθ
+  · simpa using hasDerivAt_comp_add _ _ _ hφ
+
+/-- `HasFDerivAt` constructor for a three-parameter family: the Fréchet derivative
+is the column map of the three partial derivatives. -/
+lemma hasFDerivAt_three_params (F : ℝ → ℝ → ℝ → ℝ²) (y : E 3) (F₀ F₁ F₂ : ℝ²)
+    (hdiff : DifferentiableAt ℝ (fun x : E 3 => F (x.ofLp 0) (x.ofLp 1) (x.ofLp 2)) y)
+    (h₀ : HasDerivAt (fun t => F t (y.ofLp 1) (y.ofLp 2)) F₀ (y.ofLp 0))
+    (h₁ : HasDerivAt (fun t => F (y.ofLp 0) t (y.ofLp 2)) F₁ (y.ofLp 1))
+    (h₂ : HasDerivAt (fun t => F (y.ofLp 0) (y.ofLp 1) t) F₂ (y.ofLp 2)) :
+    HasFDerivAt (fun x : E 3 => F (x.ofLp 0) (x.ofLp 1) (x.ofLp 2))
+      (columnsCLM ![F₀, F₁, F₂]) y := by
+  refine hasFDerivAt_of_partials _ hdiff fun i => ?_
+  fin_cases i
+  · simpa using hasDerivAt_comp_add _ _ _ h₀
+  · simpa using hasDerivAt_comp_add _ _ _ h₁
+  · simpa using hasDerivAt_comp_add _ _ _ h₂
+
 /-- fderiv of a composition `z ↦ X (z 0) (N (z 1) (z 2) S)` in direction e₁,
 given the derivative of the matrix family `N` in its first (θ) argument.
 The head `X` is arbitrary since e₁ does not move the `z 0` coordinate. -/
@@ -374,31 +460,22 @@ noncomputable def inner_second_partial_A (α θ φ : ℝ) (i j : Fin 3) : ℝ³ 
   | 2, 1 => rotR α ∘L rotMθφ θ φ   -- = A[1,2] by mixed partial symmetry
   | 2, 2 => rotR α ∘L rotMφφ θ φ
 
-/-- Composition norm bound: ‖A ∘L B‖ ≤ 1 when ‖A‖ ≤ 1 and ‖B‖ ≤ 1 -/
-lemma comp_norm_le_one {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
-    ‖A ∘L B‖ ≤ 1 :=
-  calc ‖A ∘L B‖ ≤ ‖A‖ * ‖B‖ := ContinuousLinearMap.opNorm_comp_le A B
-    _ ≤ 1 * 1 := mul_le_mul hA hB (norm_nonneg _) zero_le_one
-    _ = 1 := one_mul 1
-
-/-- Negated composition norm bound: ‖-(A ∘L B)‖ ≤ 1 when ‖A‖ ≤ 1 and ‖B‖ ≤ 1 -/
-lemma neg_comp_norm_le_one {A : ℝ² →L[ℝ] ℝ²} {B : ℝ³ →L[ℝ] ℝ²} (hA : ‖A‖ ≤ 1) (hB : ‖B‖ ≤ 1) :
-    ‖-(A ∘L B)‖ ≤ 1 := by
-  rw [norm_neg]; exact comp_norm_le_one hA hB
+/-- The hand-written second-partial table agrees with the symbolically generated one. -/
+lemma inner_second_partial_A_eq_symbolic (α θ φ : ℝ) (i j : Fin 3) :
+    inner_second_partial_A α θ φ i j = (SymbolicRotation.secondTerm i j).eval α θ φ := by
+  fin_cases i <;> fin_cases j <;> rfl
 
 /-- All A[i,j] have operator norm ≤ 1. -/
 lemma inner_second_partial_A_norm_le (α θ φ : ℝ) (i j : Fin 3) :
     ‖inner_second_partial_A α θ φ i j‖ ≤ 1 := by
-  fin_cases i <;> fin_cases j
-  · exact neg_comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (le_of_eq (Bounding.rotM_norm_one _ _))
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθθ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR'_norm_one _)) (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one (le_of_eq (Bounding.rotR_norm_one _)) (Bounding.rotMφφ_norm_le_one _ _)
+  rw [inner_second_partial_A_eq_symbolic]
+  exact (SymbolicRotation.secondTerm i j).norm_le_one α θ φ
+
+/-- Mixed second partials commute at the operator level. -/
+lemma inner_second_partial_A_symm (α θ φ : ℝ) (i j : Fin 3) :
+    inner_second_partial_A α θ φ i j = inner_second_partial_A α θ φ j i := by
+  rw [inner_second_partial_A_eq_symbolic, inner_second_partial_A_eq_symbolic,
+    SymbolicRotation.second_comm]
 
 /-!
 ## A[i,j,k] Table for Third Partials
@@ -450,38 +527,27 @@ noncomputable def inner_third_partial_A (α θ φ : ℝ) (i j k : Fin 3) : ℝ³
   | 1, 2, 2 => rotR α ∘L rotMθφφ θ φ
   | 2, 2, 2 => -(rotR α ∘L rotMφ θ φ)
 
+/-- The hand-written third-partial table agrees with the symbolically generated one. -/
+lemma inner_third_partial_A_eq_symbolic (α θ φ : ℝ) (i j k : Fin 3) :
+    inner_third_partial_A α θ φ i j k = (SymbolicRotation.thirdTerm i j k).eval α θ φ := by
+  fin_cases i <;> fin_cases j <;> fin_cases k <;> rfl
+
 /-- All A₃[i,j,k] have operator norm ≤ 1. -/
 lemma inner_third_partial_A_norm_le (α θ φ : ℝ) (i j k : Fin 3) :
     ‖inner_third_partial_A α θ φ i j k‖ ≤ 1 := by
-  have hR := le_of_eq (Bounding.rotR_norm_one α)
-  have hR' := le_of_eq (Bounding.rotR'_norm_one α)
-  fin_cases i <;> fin_cases j <;> fin_cases k
-  · exact neg_comp_norm_le_one hR' (le_of_eq (Bounding.rotM_norm_one _ _))
-  · exact neg_comp_norm_le_one hR (Bounding.rotMθ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMφφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθθ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMθ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθφφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMφφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθθφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθφφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR' (Bounding.rotMφφ_norm_le_one _ _)
-  · exact comp_norm_le_one hR (Bounding.rotMθφφ_norm_le_one _ _)
-  · exact neg_comp_norm_le_one hR (Bounding.rotMφ_norm_le_one _ _)
+  rw [inner_third_partial_A_eq_symbolic]
+  exact (SymbolicRotation.thirdTerm i j k).norm_le_one α θ φ
+
+/-- The first two indices of the third-partial table commute at the operator level. -/
+lemma inner_third_partial_A_swap_first (α θ φ : ℝ) (i j k : Fin 3) :
+    inner_third_partial_A α θ φ i j k = inner_third_partial_A α θ φ j i k := by
+  rw [inner_third_partial_A_eq_symbolic, inner_third_partial_A_eq_symbolic,
+    SymbolicRotation.third_swap_first]
+
+/-- The last two indices of the third-partial table commute at the operator level. -/
+lemma inner_third_partial_A_swap_last (α θ φ : ℝ) (i j k : Fin 3) :
+    inner_third_partial_A α θ φ i j k = inner_third_partial_A α θ φ i k j := by
+  rw [inner_third_partial_A_eq_symbolic, inner_third_partial_A_eq_symbolic,
+    SymbolicRotation.third_swap_last]
 
 end GlobalTheorem

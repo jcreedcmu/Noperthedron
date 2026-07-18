@@ -1,5 +1,7 @@
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.Calculus.Deriv.Prod
+import Mathlib.Analysis.Calculus.FDeriv.WithLp
+import Mathlib.Analysis.Calculus.ContDiff.WithLp
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Noperthedron.Basic
 
@@ -33,6 +35,33 @@ lemma hasDerivAt_toEuclideanLin_apply {m n : ℕ} {M M' : ℝ → Matrix (Fin m)
   simpa [lpmap, Matrix.toLpLin_apply, LinearMap.coe_toContinuousLinearMap'] using
     HasDerivAt.clm_apply (hasDerivAt_const t lpmap) hpi
 
+/-- Transport `Differentiable` through application of a matrix path to a varying vector:
+if every entry of `M` is differentiable in the parameter, so is
+`fun x => (M x).toEuclideanLin.toContinuousLinearMap (v x)` for differentiable `v`. -/
+lemma differentiable_toEuclideanLin_apply
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] {m n : ℕ}
+    {M : X → Matrix (Fin m) (Fin n) ℝ} {v : X → EuclideanSpace ℝ (Fin n)}
+    (hM : ∀ i j, Differentiable ℝ fun x => M x i j) (hv : Differentiable ℝ v) :
+    Differentiable ℝ fun x => (M x).toEuclideanLin.toContinuousLinearMap (v x) := by
+  rw [differentiable_piLp]
+  intro i
+  simp only [Matrix.toLpLin_apply, LinearMap.coe_toContinuousLinearMap', Matrix.mulVec,
+    dotProduct]
+  fun_prop
+
+/-- Transport `ContDiff` through application of a matrix path to a varying vector,
+analogously to `differentiable_toEuclideanLin_apply`. -/
+lemma contDiff_toEuclideanLin_apply
+    {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] {m n k : ℕ}
+    {M : X → Matrix (Fin m) (Fin n) ℝ} {v : X → EuclideanSpace ℝ (Fin n)}
+    (hM : ∀ i j, ContDiff ℝ k fun x => M x i j) (hv : ContDiff ℝ k v) :
+    ContDiff ℝ k fun x => (M x).toEuclideanLin.toContinuousLinearMap (v x) := by
+  rw [contDiff_piLp]
+  intro i
+  simp only [Matrix.toLpLin_apply, LinearMap.coe_toContinuousLinearMap', Matrix.mulVec,
+    dotProduct]
+  fun_prop
+
 theorem HasDerivAt_rotR (α : ℝ) (v : ℝ²) :
     HasDerivAt (rotR · v) (rotR' α v) α := by
   refine hasDerivAt_toEuclideanLin_apply (M := rotR_mat) (M' := rotR'_mat) (fun i j => ?_) v
@@ -42,6 +71,40 @@ theorem HasDerivAt_rotR (α : ℝ) (v : ℝ²) :
   · exact (Real.hasDerivAt_sin α).neg
   · exact Real.hasDerivAt_sin α
   · exact Real.hasDerivAt_cos α
+
+namespace GlobalTheorem
+
+-- Derivative of rotR' with respect to α: d/dα(rotR' α v) = -rotR α v
+-- This is needed for the second derivative ∂²/∂α² of rotproj_inner
+lemma HasDerivAt_rotR' (α : ℝ) (v : ℝ²) :
+    HasDerivAt (rotR' · v) (-(rotR α v)) α := by
+  have h := hasDerivAt_toEuclideanLin_apply (M := rotR'_mat) (M' := (-rotR_mat ·)) (t := α)
+    (fun i j => ?_) v
+  · have e : ((-rotR_mat α).toEuclideanLin).toContinuousLinearMap v = -(rotR α v) := by
+      ext i
+      fin_cases i <;>
+        simp only [rotR, rotR_mat, AddChar.coe_mk, Matrix.neg_of, Matrix.neg_cons, neg_neg,
+          Matrix.neg_empty, LinearMap.coe_toContinuousLinearMap', Matrix.toLpLin_apply,
+          Matrix.cons_mulVec, Matrix.cons_dotProduct, Matrix.vecHead, Matrix.vecTail,
+          Fin.isValue, neg_mul, Nat.succ_eq_add_one, Nat.reduceAdd, Function.comp_apply,
+          Fin.succ_zero_eq_one, Matrix.dotProduct_of_isEmpty, add_zero, Matrix.empty_mulVec,
+          Fin.zero_eta, Fin.mk_one, Matrix.cons_val_zero, Matrix.cons_val_one,
+          Matrix.cons_val_fin_one, PiLp.neg_apply, neg_add_rev] <;>
+        ring
+    rw [e] at h
+    exact h
+  · fin_cases i <;> fin_cases j <;>
+      simp only [rotR'_mat, rotR_mat, Matrix.neg_apply, Matrix.of_apply, Matrix.cons_val',
+        Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one, Matrix.empty_val',
+        Fin.zero_eta, Fin.isValue, Fin.mk_one, neg_neg]
+    · exact (Real.hasDerivAt_sin α).neg
+    · have h := (Real.hasDerivAt_cos α).neg
+      rw [neg_neg] at h
+      exact h
+    · exact Real.hasDerivAt_cos α
+    · exact (Real.hasDerivAt_sin α).neg
+
+end GlobalTheorem
 
 /-- Derivative of rotM w.r.t. θ gives rotMθ -/
 lemma hasDerivAt_rotM_θ (θ φ : ℝ) (S : ℝ³) :
