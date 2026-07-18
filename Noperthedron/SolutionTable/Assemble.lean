@@ -1,5 +1,13 @@
-import Noperthedron.SolutionTable.Basic
-import Noperthedron.Checker.RowZero
+module
+
+public import Noperthedron.SolutionTable.Basic
+public import Noperthedron.Checker.RowZero
+-- The test `#eval`s at the bottom interpret Row values at elaboration time.
+public meta import Noperthedron.SolutionTable.Defs
+public meta import Noperthedron.SolutionTable.Basic
+
+@[expose] public section
+
 
 /-!
 # Assembling a `ValidTable` from getter-based chunk checks
@@ -377,7 +385,7 @@ def rowGetterC
 /-! ## Smoke tests -/
 
 /-- A 1-row table consisting of a known-valid global leaf. -/
-private def testTinyTable : Table := #[{ testGlobalRow with ID := 0 }]
+def testTinyTable : Table := #[{ testGlobalRow with ID := 0 }]
 
 -- The parallel checker accepts a valid table (with the 512 chunks vastly
 -- overhanging the 1-row table) and agrees with the sequential decision
@@ -396,3 +404,5 @@ private def testTinyTable : Table := #[{ testGlobalRow with ID := 0 }]
        rowsValidIxAtParB (fun j => testTinyTable[j]!) 0 0)
 
 end Noperthedron.Solution
+
+end

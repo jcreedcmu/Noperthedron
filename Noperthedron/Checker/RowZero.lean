@@ -1,5 +1,10 @@
-import Mathlib.Analysis.Real.Pi.Bounds
-import Noperthedron.SolutionTable.Basic
+module
+
+public import Mathlib.Analysis.Real.Pi.Bounds
+public import Noperthedron.SolutionTable.Basic
+
+@[expose] public section
+
 
 namespace Noperthedron.Solution
 
@@ -48,3 +53,6 @@ theorem rowZero_contains_tightInterval :
     refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> push_cast <;> linarith
   · simp only [Pose.toReal, DENOMQ]
     refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> push_cast <;> linarith
+
+end Noperthedron.Solution
+end

@@ -1,6 +1,11 @@
-import Noperthedron.MainTheorem
-import Noperthedron.NoperthedronIsNotRupert
-import Noperthedron.Vertices.InteriorNonempty
+module
+
+public import Noperthedron.MainTheorem
+public import Noperthedron.NoperthedronIsNotRupert
+public import Noperthedron.Vertices.InteriorNonempty
+
+public section
+
 
 namespace Noperthedron
 
@@ -16,3 +21,6 @@ info: 'Noperthedron.valid_table_implies_exists_not_rupert' depends on axioms: [p
 -/
 #guard_msgs in
 #print axioms valid_table_implies_exists_not_rupert
+
+end Noperthedron
+end

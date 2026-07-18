@@ -1,7 +1,12 @@
-import Noperthedron.Basic
-import Noperthedron.Bounding
-import Noperthedron.PointSym
-import Noperthedron.Vertices.Index
+module
+
+public import Noperthedron.Basic
+public import Noperthedron.Bounding
+public import Noperthedron.PointSym
+public import Noperthedron.Vertices.Index
+
+@[expose] public section
+
 
 /-!
 This file covers [SY25] §2.1, defining the Noperthedron vertices.
@@ -179,3 +184,6 @@ The noperthedron is pointsymmetric.
 -/
 theorem exactPoly_point_symmetric : PointSym exactPoly.hull := by
   simpa [exactPoly, GoodPoly.hull] using exactPolyhedron_point_symmetric
+
+end Noperthedron
+end

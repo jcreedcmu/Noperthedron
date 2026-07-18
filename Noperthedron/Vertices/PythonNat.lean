@@ -1,4 +1,9 @@
-import Noperthedron.Vertices.PythonInt
+module
+
+public import Noperthedron.Vertices.PythonInt
+
+@[expose] public section
+
 
 /-! # Packed integer vertex table (GENERATED)
 
@@ -30,3 +35,5 @@ theorem pythonVertexBig_spec :
   decide +kernel
 
 end Noperthedron
+
+end

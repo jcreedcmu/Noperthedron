@@ -27,7 +27,12 @@ def gen_load(only=None):
         a = i * ROWS_PER_LOAD
         b = min((i + 1) * ROWS_PER_LOAD, N)
         with open(f'KernelCaseAnalysis/Gen/Load{i:03}.lean', 'w') as f:
-            f.write(f"""import Noperthedron.SolutionTable.Load
+            f.write(f"""module
+
+public import Noperthedron.SolutionTable.Load
+public meta import Noperthedron.SolutionTable.Load
+
+@[expose] public section
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): rows [{a}, {b}) of the solution
 tree as literal 512-row chunks. Requires `solution_tree_v6.csv` at the repo
@@ -38,16 +43,23 @@ namespace Noperthedron.Solution
 load_csv_chunks_curried "solution_tree_v6.csv" from {a} to {b} chunkSize {C}
 
 end Noperthedron.Solution
+
+end
 """)
 
 def gen_dispatch():
-    imports = "\n".join(f"import KernelCaseAnalysis.Gen.Load{i:03}" for i in range(NLOAD))
+    imports = "\n".join(f"public import KernelCaseAnalysis.Gen.Load{i:03}" for i in range(NLOAD))
     with open('KernelCaseAnalysis/Gen/Dispatch.lean', 'w') as f:
-        f.write(f"""import Noperthedron.SolutionTable.Assemble
+        f.write(f"""module
+
+public import Noperthedron.SolutionTable.Assemble
+public meta import Noperthedron.SolutionTable.Load
 {imports}
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): the digit-curried dispatch over
 all {NCHUNKS} loaded chunks and the row getter for the kernel run. -/
+
+@[expose] public section
 
 namespace Noperthedron.Solution
 
@@ -58,6 +70,8 @@ assemble_row_dispatch_curried tableDispatch rows {N} chunkSize {C}
 noncomputable def getRow : ℕ → Row := rowGetterC tableDispatch
 
 end Noperthedron.Solution
+
+end
 """)
 
 def read_node_types():
@@ -86,9 +100,21 @@ def read_node_types():
 # conservative pre-fast-path values (the fast paths build smaller caches).
 COST_MB = {1: 25, 2: 175, 3: 21, 4: 130}
 COST_S  = {1: 0.038, 2: 0.17, 3: 0.018, 4: 0.10}
+# MB_BUDGET sets per-decide range length (range rows ~= MB_BUDGET/COST_MB),
+# and kernel time per row RISES with range length: the whnf cache accumulated
+# across a decide grows the live heap and hurts locality. Measured 2026-07-17
+# (same 2175 global rows, single process, startup subtracted):
+# 17-row ranges 18.1 ms/row (RSS 2.4 GB), 34 -> 19.0 (2.5 GB),
+# 68 -> 20.8 (2.8 GB), 136 -> 22.9 (3.3 GB), 272 -> 24.7 (4.2 GB),
+# 1088 -> 30.2 (9.6 GB). MB_BUDGET=1600 (~68-row global ranges) is the
+# knee: going lower buys ~7% more speed but doubles the generated line
+# count. COST_S was calibrated at this budget, so S_PER_FILE targeting is
+# accurate here. ROWS_PER_LOAD is chosen so a Load process (~3.0 GB at
+# 8192 rows; ~54 KB/row above a ~2.6 GB floor) matches the Validate
+# envelope (~2.8 GB) — one thread count (16-way -> ~48 GB) fits both phases.
 MB_BUDGET = 1600      # per-declaration term-cache budget
-S_PER_FILE = 500      # target kernel seconds per file
-MAX_RANGE = 1000
+S_PER_FILE = 750      # target kernel seconds per file
+MAX_RANGE = 1000      # never binds at MB_BUDGET=1600 (max range ~76 rows)
 
 def make_ranges(types):
     ranges = []
@@ -132,16 +158,20 @@ def gen_validate(only=None):
             continue
         thms = []
         for (a, b) in rs:
-            thms.append(f"private theorem r_{a} : RangeOk getRow {N} {a} {b} := by\n  decide +kernel")
+            thms.append(f"private theorem r_{a} : RangeOk getRow {N} {a} {b} := by decide +kernel")
         fold = [f"private theorem s_{rs[0][1]} : RangeOk getRow {N} {a0} {rs[0][1]} := r_{a0}"]
         for (a, b) in rs[1:]:
             prev = fold[-1].split()[2]
             pend = prev.split('_')[1]
-            fold.append(f"private theorem s_{b} : RangeOk getRow {N} {a0} {b} :=\n"
-                        f"  {prev}.append (by norm_num) r_{a}")
-        body = "\n\n".join(thms) + "\n\n" + "\n".join(fold)
+            fold.append(f"private theorem s_{b} : RangeOk getRow {N} {a0} {b} := "
+                        f"{prev}.append (by norm_num) r_{a}")
+        body = "\n".join(thms) + "\n\n" + "\n".join(fold)
         with open(f'KernelCaseAnalysis/Gen/Validate{v:04}.lean', 'w') as f:
-            f.write(f"""import KernelCaseAnalysis.Gen.Dispatch
+            f.write(f"""module
+
+public import KernelCaseAnalysis.Gen.Dispatch
+
+@[expose] public section
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): kernel validation of rows
 [{a0}, {bend}). -/
@@ -156,6 +186,8 @@ set_option Elab.async false
 theorem rangeOk_{a0}_{bend} : RangeOk getRow {N} {a0} {bend} := s_{bend}
 
 end Noperthedron.Solution
+
+end
 """)
     return spans
 
@@ -170,8 +202,8 @@ def gen_combine():
         v0 = m * PER
         a0 = 0 if m == 0 else spans[0][0]
         start = spans[m*PER][0]
-        imports = "\n".join(f"import KernelCaseAnalysis.Gen.Validate{v0+i:04}" for i in range(len(batch)))
-        prev = (f"import KernelCaseAnalysis.Gen.Combine{m-1:02}\n" if m > 0 else "")
+        imports = "\n".join(f"public import KernelCaseAnalysis.Gen.Validate{v0+i:04}" for i in range(len(batch)))
+        prev = (f"public import KernelCaseAnalysis.Gen.Combine{m-1:02}\n" if m > 0 else "")
         steps = []
         if m == 0:
             steps.append(f"private theorem c_{batch[0][1]} : RangeOk getRow {N} 0 {batch[0][1]} := rangeOk_{batch[0][0]}_{batch[0][1]}")
@@ -186,7 +218,11 @@ def gen_combine():
                          f"  c_{prev_end}.append (by norm_num) rangeOk_{a}_{b}")
         endb = batch[-1][1]
         with open(f'KernelCaseAnalysis/Gen/Combine{m:02}.lean', 'w') as f:
-            f.write(f"""{prev}{imports}
+            f.write(f"""module
+
+{prev}{imports}
+
+@[expose] public section
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): fold rows [0, {endb}). -/
 
@@ -198,9 +234,15 @@ namespace Noperthedron.Solution
 theorem combined_{endb} : RangeOk getRow {N} 0 {endb} := c_{endb}
 
 end Noperthedron.Solution
+
+end
 """)
     with open('KernelCaseAnalysis/Gen/Final.lean', 'w') as f:
-        f.write(f"""import KernelCaseAnalysis.Gen.Combine{ncomb-1:02}
+        f.write(f"""module
+
+public import KernelCaseAnalysis.Gen.Combine{ncomb-1:02}
+
+@[expose] public section
 
 /-! GENERATED (scripts/gen_kernel_chunks.py): every index of the full table
 satisfies `Row.ValidIxAt`, and row 0 carries `rowZero.interval`. -/
@@ -214,7 +256,23 @@ theorem row0_interval : (getRow 0).interval = rowZero.interval := by
   decide +kernel
 
 end Noperthedron.Solution
+
+end
 """)
+
+def gen_root():
+    types = read_node_types()
+    nval = len(make_files(types, make_ranges(types)))
+    ncomb = (nval + 63) // 64
+    mods = (["KernelCaseAnalysis.ComputationalStep"]
+            + [f"KernelCaseAnalysis.Gen.Combine{m:02}" for m in range(ncomb)]
+            + ["KernelCaseAnalysis.Gen.Dispatch", "KernelCaseAnalysis.Gen.Final"]
+            + [f"KernelCaseAnalysis.Gen.Load{i:03}" for i in range(NLOAD)]
+            + [f"KernelCaseAnalysis.Gen.Validate{v:04}" for v in range(nval)]
+            + ["KernelCaseAnalysis.ProofOfMainTheorem", "KernelCaseAnalysis.Smoke"])
+    with open('KernelCaseAnalysis.lean', 'w') as f:
+        f.write("module\n\n")
+        f.write("\n".join(f"public import {m}" for m in mods) + "\n")
 
 phase = sys.argv[1] if len(sys.argv) > 1 else 'all'
 only = int(sys.argv[2]) if len(sys.argv) > 2 else None
@@ -222,4 +280,5 @@ if phase in ('load', 'all'): gen_load(only)
 if phase in ('dispatch', 'all'): gen_dispatch()
 if phase in ('validate', 'all'): gen_validate(only)
 if phase in ('combine', 'all'): gen_combine()
+if phase in ('root', 'all'): gen_root()
 print("generated phase:", phase, "only:", only)

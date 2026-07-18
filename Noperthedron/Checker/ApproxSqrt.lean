@@ -1,6 +1,15 @@
-import Mathlib.Analysis.Real.Sqrt
+module
 
-import Noperthedron.RationalApprox.Basic
+public import Mathlib.Analysis.Real.Sqrt
+
+public import Noperthedron.RationalApprox.Basic
+-- Mirror the imports at the meta phase so the test `#eval`s below can
+-- interpret cross-module code under the module system.
+public meta import Mathlib.Analysis.Real.Sqrt
+public meta import Noperthedron.RationalApprox.Basic
+
+@[expose] public section
+
 
 /-!
 # Rational square-root approximations (§7.2.2 of [SY25])
@@ -39,12 +48,12 @@ open scoped BigOperators
 
 /-! ## Constants and search loops -/
 
-private def lo : ℕ := 10 ^ 20
-private def hi : ℕ := 10 ^ 22
+def lo : ℕ := 10 ^ 20
+def hi : ℕ := 10 ^ 22
 
 /-- **Up-search**: starting from `num`, multiply by 100 each step (incrementing
 `k`) until either `num ≥ threshold` or fuel is exhausted. Returns `(k, num)`. -/
-private def shiftUpAux (threshold : ℕ) : ℕ → ℕ → ℕ → ℕ × ℕ
+def shiftUpAux (threshold : ℕ) : ℕ → ℕ → ℕ → ℕ × ℕ
   | num, k, 0          => (k, num)
   | num, k, fuel + 1   =>
       if num ≥ threshold then (k, num)
@@ -54,7 +63,7 @@ private def shiftUpAux (threshold : ℕ) : ℕ → ℕ → ℕ → ℕ × ℕ
 `k`) until either `numDivHi < den` or fuel is exhausted. Returns `(k, den)`.
 The condition `numDivHi < den` is equivalent to `num < hi · den` when
 `numDivHi = num / hi` (integer division). -/
-private def shiftDownAux (numDivHi : ℕ) : ℕ → ℕ → ℕ → ℕ × ℕ
+def shiftDownAux (numDivHi : ℕ) : ℕ → ℕ → ℕ → ℕ × ℕ
   | den, k, 0          => (k, den)
   | den, k, fuel + 1   =>
       if numDivHi < den then (k, den)
@@ -65,7 +74,7 @@ private def shiftDownAux (numDivHi : ℕ) : ℕ → ℕ → ℕ → ℕ × ℕ
 /-- Implementation of the lower rational square-root for `x = p/q > 0`,
 parametrised by `fuel`. Returns the rational `(b : ℚ) · 10^(-a)` where
 `a` is the chosen scale exponent and `b = ⌊√⌊p · 100^a / q⌋⌋`. -/
-private def sqrtℚLowImpl (p q fuel : ℕ) : ℚ :=
+def sqrtℚLowImpl (p q fuel : ℕ) : ℚ :=
   if p < lo * q then
     let res := shiftUpAux (lo * q) p 0 fuel
     ((Nat.sqrt (res.2 / q) : ℚ)) * (10 : ℚ) ^ (-(res.1 : ℤ))
@@ -769,3 +778,5 @@ open RationalApprox
 #eval sqrtℚUp  100
 
 end Examples
+
+end

@@ -1,4 +1,9 @@
-import Noperthedron.Rupert.Basic
+module
+
+public import Noperthedron.Rupert.Basic
+
+@[expose] public section
+
 
 open scoped Matrix
 
@@ -364,3 +369,5 @@ structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] where
 
 def GoodPoly.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) : Set ℝ³ :=
   poly.vertices.hull
+
+end

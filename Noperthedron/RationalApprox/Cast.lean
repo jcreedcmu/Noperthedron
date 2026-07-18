@@ -1,5 +1,10 @@
-import Noperthedron.PoseInterval
-import Noperthedron.RationalApprox.Basic
+module
+
+public import Noperthedron.PoseInterval
+public import Noperthedron.RationalApprox.Basic
+
+public section
+
 
 /-!
 # ℚ → ℝ cast bridges
@@ -167,3 +172,5 @@ lemma inner_two_bridge
   exact inner_toLp _ _
 
 end RationalApprox
+
+end

@@ -1,10 +1,15 @@
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Analysis.InnerProductSpace.Adjoint
-import Noperthedron.Local.EpsSpanning
-import Noperthedron.RationalApprox.Basic
-import Noperthedron.RationalApprox.Cast
-import Noperthedron.RationalApprox.Lemma42
-import Noperthedron.RationalApprox.MatrixBounds
+module
+
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Analysis.InnerProductSpace.Adjoint
+public import Noperthedron.Local.EpsSpanning
+public import Noperthedron.RationalApprox.Basic
+public import Noperthedron.RationalApprox.Cast
+public import Noperthedron.RationalApprox.Lemma42
+public import Noperthedron.RationalApprox.MatrixBounds
+
+@[expose] public section
+
 
 namespace RationalApprox
 
@@ -214,3 +219,6 @@ lemma rot90_rotMℚ_inner_eq_real_inner (θ φ : ℚ) (v w : Fin 3 → ℚ) :
       simp [rotR_mat, hpi.1, hpi.2, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
     · show ((rotR_mat (π / 2)).mulVec (fun i => (u i : ℝ))) 1 = ((!![(0:ℚ),-1;1,0] *ᵥ u) 1 : ℝ)
       simp [rotR_mat, hpi.1, hpi.2, Matrix.mulVec, dotProduct, Fin.sum_univ_two]
+
+end RationalApprox
+end

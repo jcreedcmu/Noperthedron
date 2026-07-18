@@ -1,6 +1,11 @@
-import Mathlib.Analysis.InnerProductSpace.Dual
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import Noperthedron.PoseInterval
+module
+
+public import Mathlib.Analysis.InnerProductSpace.Dual
+public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Noperthedron.PoseInterval
+
+@[expose] public section
+
 
 open scoped RealInnerProductSpace
 
@@ -43,3 +48,5 @@ def third_partials_bounded {n : ℕ} (f : E n → ℝ) : Prop :=
   ∀ (x : E n) (i j k : Fin n), |nth_partial i (nth_partial j (nth_partial k f)) x| ≤ 1
 
 end GlobalTheorem
+
+end

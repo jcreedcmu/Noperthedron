@@ -1,9 +1,14 @@
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
 
-import Noperthedron.Basic
-import Noperthedron.Bounding.OpNorm
-import Noperthedron.PoseInterval
+public import Mathlib.Algebra.Order.Archimedean.Real.Hom
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+public import Noperthedron.Basic
+public import Noperthedron.Bounding.OpNorm
+public import Noperthedron.PoseInterval
+
+public section
+
 
 namespace Local
 
@@ -79,3 +84,6 @@ theorem abs_sub_inner_le {m n : ℕ} (A B : Euc(m) →L[ℝ] Euc(n)) (P₁ P₂ 
       ‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (2 * ‖A‖ + ‖A - B‖) =
       2 * (‖P₁‖ * ‖P₂‖ * ‖A - B‖ * (‖A‖ + ‖B‖ + ‖A - B‖)) := by ring
   linarith
+
+end Local
+end

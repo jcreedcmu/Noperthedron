@@ -1,5 +1,10 @@
-import Noperthedron.PoseClasses
-import Noperthedron.Basic
+module
+
+public import Noperthedron.PoseClasses
+public import Noperthedron.Basic
+
+@[expose] public section
+
 
 structure Pose (R : Type) : Type where
   θ₁ : R
@@ -258,3 +263,5 @@ lemma matrix_neg_imp_pose_equiv {p q : Pose ℝ} (re : p.rotR = -q.rotR)
   exact matrix_rm_eq_neg_imp_pose_equiv (by rw [re, rm1]; ext v; rfl) rm2
 
 end Pose
+
+end

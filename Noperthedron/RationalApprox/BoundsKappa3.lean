@@ -1,9 +1,14 @@
-import Mathlib.Algebra.Lie.OfAssociative
-import Noperthedron.PointSym
-import Noperthedron.PoseInterval
-import Noperthedron.RationalApprox.Basic
-import Noperthedron.RationalApprox.MatrixBounds
-import Noperthedron.Local.Prelims
+module
+
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Noperthedron.PointSym
+public import Noperthedron.PoseInterval
+public import Noperthedron.RationalApprox.Basic
+public import Noperthedron.RationalApprox.MatrixBounds
+public import Noperthedron.Local.Prelims
+
+public section
+
 
 open scoped RealInnerProductSpace
 
@@ -114,3 +119,6 @@ lemma bounds_kappa3_MQ (hQ : ‖Q‖ ≤ 1) (Qapprox : ‖Q - Q_‖ ≤ κ) :
     _ ≤ ‖rotM θ φ Q - rotMℚℝ θ φ Q_‖ := abs_norm_sub_norm_le _ _
     _ ≤ 2 * κ + κ ^ 2 := clm_approx_apply_sub hMdiff hMℚnorm hQ Qapprox
     _ ≤ 3 * κ := by unfold κ; norm_num
+
+end RationalApprox
+end

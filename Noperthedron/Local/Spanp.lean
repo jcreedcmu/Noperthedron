@@ -1,7 +1,12 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
+module
 
-import Noperthedron.EuclideanSpaceNotation
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Algebra.Order.Archimedean.Real.Hom
+
+public import Noperthedron.EuclideanSpaceNotation
+
+@[expose] public section
+
 
 namespace Local
 
@@ -43,3 +48,6 @@ theorem langles {Y Z : Euc(3)} {V : Fin 3 → Euc(3)} (hYZ : ‖Y‖ = ‖Z‖)
       _ = ‖Y‖ ^ 2 := real_inner_self_eq_norm_sq Y
   rw [hYZ] at key
   exact lt_irrefl _ key
+
+end Local
+end

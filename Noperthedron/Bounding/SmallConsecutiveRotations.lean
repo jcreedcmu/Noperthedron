@@ -1,8 +1,13 @@
-import Mathlib.LinearAlgebra.Trace
-import Noperthedron.Basic
-import Noperthedron.Bounding.OpNorm
-import Noperthedron.Bounding.BoundingUtil
-import Noperthedron.Bounding.OrthEquivRotz
+module
+
+public import Mathlib.LinearAlgebra.Trace
+public import Noperthedron.Basic
+public import Noperthedron.Bounding.OpNorm
+public import Noperthedron.Bounding.BoundingUtil
+public import Noperthedron.Bounding.OrthEquivRotz
+
+@[expose] public section
+
 
 /-!
 
@@ -104,3 +109,5 @@ theorem lemma12_equality_iff {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
     exact sub_self (ContinuousLinearMap.comp 1 1)
 
 end Bounding
+
+end

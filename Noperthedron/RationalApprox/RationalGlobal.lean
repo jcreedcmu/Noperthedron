@@ -1,11 +1,16 @@
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Data.Set.Operations
-import Noperthedron.Global
-import Noperthedron.PointSym
-import Noperthedron.PoseInterval
-import Noperthedron.RationalApprox.Basic
-import Noperthedron.RationalApprox.TrigInt
-import Noperthedron.RationalApprox.BoundsKappa
+module
+
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Data.Set.Operations
+public import Noperthedron.Global
+public import Noperthedron.PointSym
+public import Noperthedron.PoseInterval
+public import Noperthedron.RationalApprox.Basic
+public import Noperthedron.RationalApprox.TrigInt
+public import Noperthedron.RationalApprox.BoundsKappa
+
+@[expose] public section
+
 
 open scoped RealInnerProductSpace
 
@@ -71,7 +76,7 @@ these through `HEntries.scalars`, which forces each component once.) -/
   ⟨round13v e.m2tw, round13v e.m2θtw, round13v e.m2φtw,
    round13v e.m2θθtw, round13v e.m2θφtw, round13v e.m2φφtw⟩
 
-@[inline] private def fastH (entries : HEntries) (εθ εφ : ℚ) (kappaTerm : ℚ) (P : Fin 3 → ℚ) : ℚ :=
+@[inline] def fastH (entries : HEntries) (εθ εφ : ℚ) (kappaTerm : ℚ) (P : Fin 3 → ℚ) : ℚ :=
   entries.m2tw ⬝ᵥ P + εθ * |entries.m2θtw ⬝ᵥ P| + εφ * |entries.m2φtw ⬝ᵥ P|
     + 1 / 2 * (εθ^2 * |entries.m2θθtw ⬝ᵥ P| + 2 * (εθ * εφ) * |entries.m2θφtw ⬝ᵥ P|
         + εφ^2 * |entries.m2φφtw ⬝ᵥ P|)
@@ -769,3 +774,6 @@ lemma abs_intCast_div16 (n : ℤ) :
   ring_nf
 
 end Gℚ_gt_maxHℚ
+
+end RationalApprox.GlobalTheorem
+end

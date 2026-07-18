@@ -1,8 +1,13 @@
-import Mathlib.Algebra.Group.TypeTags.Basic
-import Mathlib.Data.ZMod.Basic
+module
 
-import Noperthedron.Vertices.Exact
-import Noperthedron.Local.Congruent
+public import Mathlib.Algebra.Group.TypeTags.Basic
+public import Mathlib.Data.ZMod.Basic
+
+public import Noperthedron.Vertices.Exact
+public import Noperthedron.Local.Congruent
+
+@[expose] public section
+
 
 namespace Noperthedron
 
@@ -101,12 +106,12 @@ private lemma int_neg_one_pow_smul (j : ℕ) (w : ℝ³) :
 For `(a, b) ≠ (0, 0)`, the reflection of ℝ³ across the vertical plane
 containing the z-axis and the point `(a, b, 0)`, as a 3×3 orthogonal matrix. -/
 
-private noncomputable def orbitReflMat (a b : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
+noncomputable def orbitReflMat (a b : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
   !![(a^2 - b^2) / (a^2 + b^2), 2 * a * b / (a^2 + b^2), 0;
      2 * a * b / (a^2 + b^2), (b^2 - a^2) / (a^2 + b^2), 0;
      0, 0, 1]
 
-private noncomputable def orbitReflL (a b : ℝ) : ℝ³ →L[ℝ] ℝ³ :=
+noncomputable def orbitReflL (a b : ℝ) : ℝ³ →L[ℝ] ℝ³ :=
   (orbitReflMat a b).toEuclideanLin.toContinuousLinearMap
 
 private lemma orbitReflL_apply_coord (a b : ℝ) (w : ℝ³) :
@@ -279,3 +284,5 @@ theorem congruent_of_apply (s : TriangleSymmetry) (Pi Qi : Fin 3 → VertexIndex
 end TriangleSymmetry
 
 end Noperthedron
+
+end

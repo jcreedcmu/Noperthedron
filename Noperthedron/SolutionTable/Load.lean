@@ -1,6 +1,16 @@
-import Lean
-import Noperthedron.SolutionTable.Basic
-import Noperthedron.SolutionTable.Parse
+module
+
+public import Lean
+public import Noperthedron.SolutionTable.Basic
+public import Noperthedron.SolutionTable.Parse
+-- The `Load` namespace runs at the meta phase (Expr builders + `elab`
+-- commands) and consumes these modules' types/functions there.
+public meta import Lean
+public meta import Noperthedron.SolutionTable.Basic
+public meta import Noperthedron.SolutionTable.Parse
+
+@[expose] public section
+
 
 /-!
 # Elaboration-time CSV ingestion for kernel-only checking
@@ -47,6 +57,10 @@ def Row.leafOk (r : Row) : Bool :=
 namespace Load
 
 open Lean Meta Elab
+
+-- Everything in `Load` is elaboration-time machinery (Expr builders + `elab`
+-- commands), so it must live at the meta phase under the module system.
+meta section
 
 /-- Cached `Expr`s that are shared by every row literal (types, instances, and
 the two possible `sigma_Q` values), so per-row construction does no instance
@@ -114,7 +128,7 @@ def rowE (ctx : Ctx) (r : Row) : Expr :=
     intE r.r',
     if r.sigma_Q.val = 0 then ctx.sigma0 else ctx.sigma1]
 
-private def elabSigma (n : ℕ) : TermElabM Expr := do
+def elabSigma (n : ℕ) : TermElabM Expr := do
   let stx ← if n = 0 then `((⟨0, by decide⟩ : Finset.Icc (0:ℕ) 1))
             else `((⟨1, by decide⟩ : Finset.Icc (0:ℕ) 1))
   let e ← Term.elabTerm stx none
@@ -131,7 +145,7 @@ def mkCtx : TermElabM Ctx := do
   return { poseQ, leInst, dle, sigma0 := ← elabSigma 0, sigma1 := ← elabSigma 1 }
 
 /-- Read and parse rows `[lo, hi)` of the CSV. -/
-private def readRows (path : String) (lo hi : ℕ) : Command.CommandElabM (Array Row) := do
+def readRows (path : String) (lo hi : ℕ) : Command.CommandElabM (Array Row) := do
   unless lo < hi do throwError "empty row range [{lo}, {hi})"
   let csv ← IO.FS.readFile path
   let lines := (csv.splitOn "\n").toArray
@@ -148,14 +162,16 @@ private def readRows (path : String) (lo hi : ℕ) : Command.CommandElabM (Array
 
 /-- Add `csvRows_<lo>_<hi> : List Row` for the given rows (literal `Expr`s,
 compiled or `noncomputable` per `comp`). -/
-private def addChunk (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
+def addChunk (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
     (comp : Bool) : TermElabM Unit := do
   let rowTy := mkConst ``Row
   let listE := rows.foldr
     (fun r acc => mkApp3 (mkConst ``List.cons [Level.zero]) rowTy (rowE ctx r) acc)
     (mkApp (mkConst ``List.nil [Level.zero]) rowTy)
   let chunkNm := ns ++ Name.mkSimple s!"csvRows_{lo}_{hi}"
-  addDecl <| .defnDecl {
+  -- Exposed so that importing modules' `decide +kernel` can unfold the chunk
+  -- (under the module system only exposed bodies reach an importer's kernel).
+  withExporting <| addDecl <| .defnDecl {
     name := chunkNm, levelParams := [],
     type := mkApp (mkConst ``List [Level.zero]) rowTy, value := listE,
     hints := .abbrev, safety := .safe }
@@ -171,7 +187,7 @@ rows (`hi - lo ≤ 512 = 8³`; slots past the end repeat the last row — they
 are never evaluated, since every checked index is guarded by `< size`).
 Under the kernel an in-chunk access walks at most `3 × 7` `Fin.cons` cells
 instead of an `O(offset)` `List` walk. -/
-private def addChunkCurried (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
+def addChunkCurried (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array Row)
     (comp : Bool) : TermElabM Unit := do
   let rowTy := mkConst ``Row
   unless rows.size ≤ 512 ∧ 0 < rows.size do
@@ -196,7 +212,9 @@ private def addChunkCurried (ctx : Ctx) (ns : Name) (lo hi : ℕ) (rows : Array 
     level := next
     τ := mkForall `i .default fin8Ty τ
   let chunkNm := ns ++ Name.mkSimple s!"csvRowsC_{lo}_{hi}"
-  addDecl <| .defnDecl {
+  -- Exposed so that importing modules' `decide +kernel` can unfold the chunk
+  -- (under the module system only exposed bodies reach an importer's kernel).
+  withExporting <| addDecl <| .defnDecl {
     name := chunkNm, levelParams := [],
     type := τ, value := level[0]!,
     hints := .abbrev, safety := .safe }
@@ -307,7 +325,9 @@ elab "assemble_row_dispatch_curried " name:ident " rows " n:num
       level := next
       τ := mkForall `i .default fin8Ty τ
     let dName := ns ++ name.getId
-    addDecl <| .defnDecl {
+    -- Exposed so that importing modules' `decide +kernel` can unfold it
+    -- (under the module system only exposed bodies reach an importer's kernel).
+    withExporting <| addDecl <| .defnDecl {
       name := dName, levelParams := [], type := τ,
       value := level[0]!, hints := .abbrev, safety := .safe }
     if comp.isSome then
@@ -315,6 +335,9 @@ elab "assemble_row_dispatch_curried " name:ident " rows " n:num
     else
       modifyEnv (addNoncomputable · dName)
 
+end -- meta section
 end Load
 
 end Noperthedron.Solution
+
+end

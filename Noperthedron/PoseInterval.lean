@@ -1,9 +1,14 @@
-import Mathlib.Order.Interval.Basic
-import Noperthedron.Rupert.Basic
-import Noperthedron.PoseClasses
-import Noperthedron.Basic
-import Noperthedron.Pose
-import Noperthedron.PoseParam
+module
+
+public import Mathlib.Order.Interval.Basic
+public import Noperthedron.Rupert.Basic
+public import Noperthedron.PoseClasses
+public import Noperthedron.Basic
+public import Noperthedron.Pose
+public import Noperthedron.PoseParam
+
+@[expose] public section
+
 
 open scoped Matrix
 open scoped Real
@@ -189,3 +194,5 @@ the two coincide.
 def Pose.near (pbar : Pose ℝ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℝ) (p : Pose ℝ) : Prop :=
   |p.θ₁ - pbar.θ₁| ≤ εθ₁ ∧ |p.φ₁ - pbar.φ₁| ≤ εφ₁ ∧
   |p.θ₂ - pbar.θ₂| ≤ εθ₂ ∧ |p.φ₂ - pbar.φ₂| ≤ εφ₂ ∧ |p.α - pbar.α| ≤ εα
+
+end

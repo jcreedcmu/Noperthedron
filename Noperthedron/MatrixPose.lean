@@ -1,8 +1,13 @@
-import Noperthedron.Basic
-import Noperthedron.Rupert.Basic
-import Noperthedron.PoseClasses
-import Noperthedron.Util
-import Noperthedron.Bounding.OrthEquivRotz
+module
+
+public import Noperthedron.Basic
+public import Noperthedron.Rupert.Basic
+public import Noperthedron.PoseClasses
+public import Noperthedron.Util
+public import Noperthedron.Bounding.OrthEquivRotz
+
+@[expose] public section
+
 
 open scoped Matrix
 
@@ -169,3 +174,5 @@ theorem RupertPose_rotateBy_iff (p : MatrixPose) (δ : ℝ) (S : Set ℝ³) :
   exact Set.image_subset_image_iff (rotR_homeomorph δ).injective
 
 end MatrixPose
+
+end

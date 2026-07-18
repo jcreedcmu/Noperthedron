@@ -1,5 +1,10 @@
-import Noperthedron.Bounding.OpNorm
-import Noperthedron.RationalApprox.ApproximableMatrices
+module
+
+public import Noperthedron.Bounding.OpNorm
+public import Noperthedron.RationalApprox.ApproximableMatrices
+
+@[expose] public section
+
 
 namespace RationalApprox
 
@@ -301,3 +306,6 @@ lemma approx_image_norm_le {E F : Type*}
     ‖Aℚ P_‖ ≤ (1 + κ) * (1 + κ) :=
   (ContinuousLinearMap.le_opNorm _ _).trans
     (mul_le_mul hAℚnorm (by linarith [norm_le_insert P P_]) (norm_nonneg _) (by norm_num [κ]))
+
+end RationalApprox
+end

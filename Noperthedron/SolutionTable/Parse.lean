@@ -1,6 +1,11 @@
-import Lean.Data.Json.Parser
-import Mathlib.Data.String.Defs
-import Noperthedron.SolutionTable.Defs
+module
+
+public import Lean.Data.Json.Parser
+public import Mathlib.Data.String.Defs
+public import Noperthedron.SolutionTable.Defs
+
+@[expose] public section
+
 
 namespace Noperthedron.Solution
 
@@ -138,13 +143,15 @@ def parseRowCsv (s : String) : Except String Row := do
 
 def parseSolutionTable (s : String) : Except String Table := do
   let mut result : Array Row := #[]
-  for line in s.lines.drop 1 do
+  -- (module system) the iterator `String.lines` returns has no re-exported `.drop`;
+  -- materialize to a list first. Same `String.lines` semantics as before.
+  for line in s.lines.toList.drop 1 do
     let row ← parseRowCsv line.toString
     result := result.push row
   return result
 
 /-- Parse a contiguous range of lines into rows. -/
-private def parseChunk (lns : Array String.Slice) (start stop : ℕ) :
+def parseChunk (lns : Array String.Slice) (start stop : ℕ) :
     Except String (Array Row) := Id.run do
   let mut out : Array Row := Array.mkEmpty (stop - start)
   for ln in lns.extract start stop do
@@ -173,3 +180,6 @@ def parseSolutionTablePar (s : String) (nTasks : ℕ) : Except String Table := I
     | .ok rows => result := result ++ rows
     | .error e => return .error e
   return .ok result
+
+end Noperthedron.Solution
+end

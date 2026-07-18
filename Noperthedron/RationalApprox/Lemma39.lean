@@ -1,7 +1,13 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Tactic.Positivity
+module
+
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Tactic.Positivity
 
 namespace RationalApprox
+
+-- Pure-theorem file: `public section` exports the statements; no `@[expose]`
+-- since there are no definition bodies to unfold downstream.
+public section
 
 theorem sum_mul_sq_le_sum_mul_abs_sq {n : ℕ} (v w : Fin n → ℝ)
     (δ : ℝ) (hδ : 0 < δ) (hle : ∀ j, |w j| ≤ δ) :
@@ -49,3 +55,5 @@ theorem norm_le_delta_sqrt_dims {m n : ℕ} {δ : ℝ} (A : Matrix (Fin m) (Fin 
     _ ≤ m * δ^2 * (∑ j, |v j| ^ 2) * n := by grw [sum_abs_sq_le_sum_abs_sq_mul v]; ring_nf; simp only [le_refl]
     _ = m * δ^2 * (∑ j, (v j) ^ 2) * n := by simp
     _ = δ ^ 2 * m * n * ‖v‖^2 := by simp [PiLp.norm_sq_eq_of_L2]; ring_nf
+
+end

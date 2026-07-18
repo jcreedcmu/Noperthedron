@@ -1,4 +1,9 @@
-import Noperthedron.Rupert.Equivalences.Util
+module
+
+public import Noperthedron.Rupert.Equivalences.Util
+
+public section
+
 open Matrix
 
 theorem rupert_imp_rupert_set (v : Finset ℝ³) :
@@ -32,3 +37,5 @@ theorem rupert_set_imp_rupert (v : Finset ℝ³) :
 
 theorem rupert_iff_rupert_set (v : Finset ℝ³) : IsRupert v ↔ IsRupertSet (convexHull ℝ v) :=
   ⟨rupert_imp_rupert_set v, rupert_set_imp_rupert v⟩
+
+end

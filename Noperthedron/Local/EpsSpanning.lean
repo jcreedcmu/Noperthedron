@@ -1,12 +1,17 @@
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
 
-import Noperthedron.Basic
-import Noperthedron.PoseInterval
-import Noperthedron.Bounding
-import Noperthedron.Local.Prelims
-import Noperthedron.Local.OriginInTriangle
-import Noperthedron.Local.Spanp
+public import Mathlib.Algebra.Order.Archimedean.Real.Hom
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+public import Noperthedron.Basic
+public import Noperthedron.PoseInterval
+public import Noperthedron.Bounding
+public import Noperthedron.Local.Prelims
+public import Noperthedron.Local.OriginInTriangle
+public import Noperthedron.Local.Spanp
+
+@[expose] public section
+
 
 namespace Local
 
@@ -135,3 +140,6 @@ theorem vecX_spanning {ε θ θ_ φ φ_ : ℝ} (P : Triangle)
   · intro i
     fin_cases i <;> simp <;> positivity
   · simp [Fin.sum_univ_three, h₅, S, smul_smul]
+
+end Local
+end

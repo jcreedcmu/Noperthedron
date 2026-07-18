@@ -1,9 +1,14 @@
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.Invertible
+module
 
-import Noperthedron.Basic
-import Noperthedron.Local.EpsSpanning
+public import Mathlib.Algebra.Order.Archimedean.Real.Hom
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.LinearAlgebra.Matrix.Invertible
+
+public import Noperthedron.Basic
+public import Noperthedron.Local.EpsSpanning
+
+@[expose] public section
+
 
 namespace Local
 
@@ -77,3 +82,6 @@ lemma congruent_iff_sym_matrix_eq (P Q : Triangle) (hQ : Invertible (Q.toMatrix)
     have happ : (L (Q i)).ofLp = (P i).ofLp :=
       (Bounding.OrthogonalGroup.toLinearIsometryEquiv_apply ⟨A, hA'⟩ (Q i)).trans h_mulVec'
     exact (congrFun happ j).symm
+
+end Local
+end

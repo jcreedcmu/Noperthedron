@@ -1,5 +1,10 @@
-import Noperthedron.Basic
-import Noperthedron.Rupert.Set
+module
+
+public import Noperthedron.Basic
+public import Noperthedron.Rupert.Set
+
+@[expose] public section
+
 open Pointwise
 open Matrix
 
@@ -18,3 +23,5 @@ def proj_xy_rotation_is_affine (rot : SO3) : ℝ³ →ᵃ[ℝ] ℝ² :=
 noncomputable
 def full_transform_affine (off : E 2) (rot : SO3) : ℝ³ →ᵃ[ℝ] ℝ² :=
   AffineMap.comp (AffineEquiv.constVAdd ℝ (E 2) off) (proj_xy_rotation_is_affine rot)
+
+end

@@ -1,9 +1,14 @@
-import Noperthedron.Local
-import Noperthedron.RationalApprox.Basic
-import Noperthedron.RationalApprox.Cast
-import Noperthedron.RationalApprox.EpsKapSpanning
-import Noperthedron.RationalApprox.BoundsKappa3
-import Noperthedron.RationalApprox.BoundsKappa4
+module
+
+public import Noperthedron.Local
+public import Noperthedron.RationalApprox.Basic
+public import Noperthedron.RationalApprox.Cast
+public import Noperthedron.RationalApprox.EpsKapSpanning
+public import Noperthedron.RationalApprox.BoundsKappa3
+public import Noperthedron.RationalApprox.BoundsKappa4
+
+@[expose] public section
+
 
 open Local (Triangle)
 open scoped RealInnerProductSpace Real
@@ -98,7 +103,7 @@ structure MatEntries : Type where
   let cp := RationalApprox.cosℚ p.φ₂
   ⟨-st, ct, 0, -ct * cp, -st * cp, sp⟩
 
-@[inline] private def MatEntries.applyVec (e : MatEntries) (v : Fin 3 → ℚ) : Fin 2 → ℚ
+@[inline] def MatEntries.applyVec (e : MatEntries) (v : Fin 3 → ℚ) : Fin 2 → ℚ
   | 0 => e.m₀₀ * v 0 + e.m₀₁ * v 1 + e.m₀₂ * v 2
   | 1 => e.m₁₀ * v 0 + e.m₁₁ * v 1 + e.m₁₂ * v 2
 
@@ -687,3 +692,7 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
       hr := Rat.cast_pos.mpr hr,
       hr₁ := hr₁', hδ := hδ', ae₁ := ae₁', ae₂ := ae₂',
       span₁ := span₁', span₂ := span₂', be := be' }
+
+end LocalTheorem
+end RationalApprox
+end

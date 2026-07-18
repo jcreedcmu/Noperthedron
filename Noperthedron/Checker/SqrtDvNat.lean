@@ -1,4 +1,9 @@
-import Noperthedron.Checker.SqrtDvLiterals
+module
+
+public import Noperthedron.Checker.SqrtDvLiterals
+
+@[expose] public section
+
 
 /-! # Packed pair-norm table (GENERATED)
 
@@ -31,3 +36,5 @@ theorem sqrtDvBig_spec :
   decide +kernel
 
 end Noperthedron.Solution
+
+end

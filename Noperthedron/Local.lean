@@ -1,15 +1,20 @@
-import Mathlib.Algebra.Order.Archimedean.Real.Hom
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
 
-import Noperthedron.Basic
-import Noperthedron.Bounding.OpNorm
-import Noperthedron.PoseInterval
-import Noperthedron.Local.Coss
-import Noperthedron.Local.EpsSpanning
-import Noperthedron.Local.LocallyMaximallyDistant
-import Noperthedron.Local.Prelims
-import Noperthedron.Local.OriginInTriangle
-import Noperthedron.Local.Spanp
+public import Mathlib.Algebra.Order.Archimedean.Real.Hom
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+public import Noperthedron.Basic
+public import Noperthedron.Bounding.OpNorm
+public import Noperthedron.PoseInterval
+public import Noperthedron.Local.Coss
+public import Noperthedron.Local.EpsSpanning
+public import Noperthedron.Local.LocallyMaximallyDistant
+public import Noperthedron.Local.Prelims
+public import Noperthedron.Local.OriginInTriangle
+public import Noperthedron.Local.Spanp
+
+@[expose] public section
+
 
 namespace Local
 
@@ -290,3 +295,6 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   rw [h_ZP, h_YP]
   -- The right-hand side is positive, so compare via absolute values
   exact neg_one_pow_mul_lt_of_sq_lt_sq σQ σP h_inner_sq (h_YP ▸ hYP_pos)
+
+end Local
+end

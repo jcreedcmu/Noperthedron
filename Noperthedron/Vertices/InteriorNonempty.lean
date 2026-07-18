@@ -1,6 +1,11 @@
-import Mathlib.AlgebraicTopology.SimplexCategory.Basic
-import Mathlib.Analysis.Normed.Affine.AddTorsorBases
-import Noperthedron.Vertices.Exact
+module
+
+public import Mathlib.AlgebraicTopology.SimplexCategory.Basic
+public import Mathlib.Analysis.Normed.Affine.AddTorsorBases
+public import Noperthedron.Vertices.Exact
+
+@[expose] public section
+
 
 /-!
 This file proves the interior of the Noperthedron is nonempty.
@@ -120,3 +125,6 @@ theorem interior_exactVerts_hull_nonempty :
 by
   exact interior_convexHull_nonempty_iff_affineSpan_eq_top.mpr
     exactVerts_affineSpan_eq_top
+
+end Noperthedron
+end

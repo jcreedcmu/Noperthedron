@@ -1,4 +1,9 @@
-import Noperthedron.Checker.ApproxSqrt
+module
+
+public import Noperthedron.Checker.ApproxSqrt
+
+@[expose] public section
+
 
 /-!
 # Fixed-point upper square root
@@ -152,3 +157,5 @@ def sqrtApprox16 : Approx where
 #eval sqrtℚUp16 100
 
 end RationalApprox
+
+end

@@ -1,5 +1,10 @@
-import Noperthedron.ProofOfMainTheoremWithHole
-import KernelCaseAnalysis.ComputationalStep
+module
+
+public import Noperthedron.ProofOfMainTheoremWithHole
+public import KernelCaseAnalysis.ComputationalStep
+
+@[expose] public section
+
 
 /-!
 Proof of the main theorem, with the solution table verified by the Lean
@@ -20,3 +25,5 @@ theorem exists_not_rupert : ExistsNonRupertPolyhedron :=
 #print axioms exists_not_rupert
 
 end Noperthedron.KernelCaseAnalysis
+
+end

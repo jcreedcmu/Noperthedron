@@ -1,5 +1,12 @@
-import Noperthedron.SolutionTable.Assemble
-import Noperthedron.SolutionTable.Load
+module
+
+public import Noperthedron.SolutionTable.Assemble
+public import Noperthedron.SolutionTable.Load
+-- The `load_csv_*`/`assemble_*` commands run at elaboration time.
+public meta import Noperthedron.SolutionTable.Load
+
+@[expose] public section
+
 
 /-!
 # Kernel-pipeline smoke test
@@ -84,3 +91,5 @@ theorem prefix_first_splits_validIx :
 #print axioms prefix_first_splits_validIx
 
 end Noperthedron.KernelCaseAnalysis.Smoke
+
+end

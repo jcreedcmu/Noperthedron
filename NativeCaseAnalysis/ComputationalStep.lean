@@ -1,5 +1,14 @@
-import Noperthedron.SolutionTable.Assemble
-import Noperthedron.SolutionTable.Parse
+module
+
+public import Noperthedron.SolutionTable.Assemble
+public import Noperthedron.SolutionTable.Parse
+-- `native_decide` interprets the checker at elaboration time, so the imported
+-- modules' code must also be available at the meta phase.
+public meta import Noperthedron.SolutionTable.Assemble
+public meta import Noperthedron.SolutionTable.Parse
+
+@[expose] public section
+
 
 /-!
 # The expensive computational step, verified with `native_decide`
@@ -60,3 +69,5 @@ noncomputable def solutionTable : Solution.ValidTable := by
         h.1 (Solution.validIxAt_of_rowsValidIxAtParB h.2)
 
 end Noperthedron.NativeCaseAnalysis
+
+end
