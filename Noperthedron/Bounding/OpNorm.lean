@@ -121,7 +121,7 @@ private lemma mul_sin_sq_add_cos_sq (k θ : ℝ) : k * (Real.sin θ ^ 2 + Real.c
 theorem rotMθ_norm_le_one (θ φ : ℝ) : ‖rotMθ θ φ‖ ≤ 1 :=
   opNorm_le_one_of_orthogonal_rows
     (by ring)
-    (by linarith [Real.sin_sq_add_cos_sq θ])
+    (by simp)
     (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.cos_sq_le_one φ])
 
 theorem rotMφ_norm_le_one (θ φ : ℝ) : ‖rotMφ θ φ‖ ≤ 1 :=
@@ -134,32 +134,32 @@ theorem rotMφ_norm_le_one (θ φ : ℝ) : ‖rotMφ θ φ‖ ≤ 1 :=
 theorem rotMθθ_norm_le_one (θ φ : ℝ) : ‖rotMθθ θ φ‖ ≤ 1 :=
   opNorm_le_one_of_orthogonal_rows
     (by ring)
-    (by linarith [Real.sin_sq_add_cos_sq θ])
+    (by simp)
     (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.cos_sq_le_one φ])
 
 theorem rotMθφ_norm_le_one (θ φ : ℝ) : ‖rotMθφ θ φ‖ ≤ 1 :=
   opNorm_le_one_of_orthogonal_rows
     (by ring)
-    (by linarith [zero_le_one (α := ℝ)])
+    (by simp)
     (by linarith [mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ, Real.sin_sq_le_one φ])
 
 theorem rotMφφ_norm_le_one (θ φ : ℝ) : ‖rotMφφ θ φ‖ ≤ 1 :=
   opNorm_le_one_of_orthogonal_rows
     (by ring)
-    (by linarith [zero_le_one (α := ℝ)])
+    (by simp)
     (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.sin_sq_add_cos_sq φ])
 
 -- Operator norm bounds for the mixed third derivative matrices
 theorem rotMθθφ_norm_le_one (θ φ : ℝ) : ‖rotMθθφ θ φ‖ ≤ 1 :=
   opNorm_le_one_of_orthogonal_rows
     (by ring)
-    (by linarith [zero_le_one (α := ℝ)])
+    (by simp)
     (by linarith [mul_sin_sq_add_cos_sq (Real.sin φ ^ 2) θ, Real.sin_sq_le_one φ])
 
 theorem rotMθφφ_norm_le_one (θ φ : ℝ) : ‖rotMθφφ θ φ‖ ≤ 1 :=
   opNorm_le_one_of_orthogonal_rows
     (by ring)
-    (by linarith [zero_le_one (α := ℝ)])
+    (by simp)
     (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.cos_sq_le_one φ])
 
 /- Rotations as linear isometries -/
@@ -293,7 +293,7 @@ theorem rotM_norm_one (θ φ : ℝ) : ‖rotM θ φ‖ = 1 := by
   refine le_antisymm ?_ ?_
   · exact opNorm_le_one_of_orthogonal_rows
       (by ring)
-      (by linarith [Real.sin_sq_add_cos_sq θ])
+      (by simp)
       (by linarith [mul_sin_sq_add_cos_sq (Real.cos φ ^ 2) θ, Real.sin_sq_add_cos_sq φ])
   · rw [ContinuousLinearMap.norm_def]
     refine le_csInf ?_ ?_

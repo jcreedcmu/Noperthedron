@@ -112,9 +112,7 @@ lemma toLp_cast_mulVec {m n : ℕ} {Mℚ : Matrix (Fin m) (Fin n) ℚ}
     (WithLp.toLp 2 (fun i => ((Mℚ.mulVec v) i : ℝ)) : EuclideanSpace ℝ (Fin m)) =
       M.toEuclideanLin.toContinuousLinearMap (WithLp.toLp 2 (fun i => (v i : ℝ))) := by
   rw [castℝ_mulVec, ← hM]
-  show WithLp.toLp 2 (M.mulVec _) =
-    M.toEuclideanLin (WithLp.toLp 2 (fun i : Fin n => (v i : ℝ)))
-  rw [Matrix.toLpLin_apply]
+  simp
 
 lemma toR2_rotMℚ_mat_mulVec (θ φ : ℚ) (v : Fin 3 → ℚ) :
     toR2 (rotMℚ_mat θ φ *ᵥ v) = rotMℚℝ (θ : ℝ) (φ : ℝ) (toR3 v) :=

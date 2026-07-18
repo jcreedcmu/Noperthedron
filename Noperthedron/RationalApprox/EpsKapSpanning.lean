@@ -206,10 +206,7 @@ lemma rot90_rotMℚ_inner_eq_real_inner (θ φ : ℚ) (v w : Fin 3 → ℚ) :
     -- Compute LHS as a matrix mulVec
     have hLHS : (rotR_mat (π / 2)).toEuclideanLin.toContinuousLinearMap
         (WithLp.toLp 2 (fun i : Fin 2 => (u i : ℝ))) =
-        WithLp.toLp 2 ((rotR_mat (π / 2)).mulVec (fun i => (u i : ℝ))) := by
-      show (rotR_mat (π / 2)).toEuclideanLin
-            (WithLp.toLp 2 (fun i : Fin 2 => (u i : ℝ))) = _
-      rw [Matrix.toLpLin_apply]
+        WithLp.toLp 2 ((rotR_mat (π / 2)).mulVec (fun i => (u i : ℝ))) := by simp
     rw [hLHS]
     ext i
     have hpi : Real.cos (π / 2) = 0 ∧ Real.sin (π / 2) = 1 :=

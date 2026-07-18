@@ -226,12 +226,10 @@ theorem tighten_φ₁_π (p : Pose ℝ) (hφ₁ : p.φ₁ ∈ Set.Icc 0 (2 * π)
     refine ⟨⟨ hφ₁.1, le_of_lt h⟩, ?_⟩
     exact Pose.matrix_eq_imp_pose_equiv rfl rfl rfl
   · use p.θ₁ + π, p.α + π, 2 * π - p.φ₁
-    refine ⟨by grind, ?_⟩
-    refine Pose.matrix_rm_eq_imp_pose_equiv ?_ ?_
+    refine ⟨by grind, Pose.matrix_rm_eq_imp_pose_equiv ?_ ?_⟩
     · simp only [Pose.rotR, Pose.rotM₁, rotR_add_pi_eq_neg_rotR, rotM_mod_eq_neg_rotM]
       funext v
-      change rotR p.α (rotM p.θ₁ p.φ₁ v) = (-rotR p.α) ((-rotM p.θ₁ p.φ₁) v)
-      rw [neg_apply, neg_apply, map_neg, neg_neg]
+      simp
     · simp only [Pose.rotM₂]
 
 theorem tighten_φ₂_π (p : Pose ℝ) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (2 * π)) :
