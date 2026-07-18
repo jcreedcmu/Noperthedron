@@ -234,10 +234,7 @@ private lemma sqrt_seed_le (a b : ℕ) :
       _ = ((a + b) * 10 ^ 3) * ((a + b) * 10 ^ 3) := by ring
   calc Nat.sqrt ((a * a + b * b) * 10 ^ 6)
       ≤ Nat.sqrt (((a + b) * 10 ^ 3) * ((a + b) * 10 ^ 3)) := Nat.sqrt_le_sqrt h1
-    _ = (a + b) * 10 ^ 3 := by
-        rw [show (a + b) * 10 ^ 3 * ((a + b) * 10 ^ 3) = ((a + b) * 10 ^ 3) ^ 2 from
-          (sq ((a + b) * 10 ^ 3)).symm]
-        exact Nat.sqrt_eq' _
+    _ = (a + b) * 10 ^ 3 := Nat.sqrt_eq _
     _ ≤ (a + b) * 10 ^ 3 + 1 := Nat.le_succ _
 
 /-- Unroll a true `pairLoop` into per-pair `pairBody` facts. -/
@@ -866,17 +863,7 @@ private lemma perIFast_sound
   case hc2 =>
     omega
   case hd1nn =>
-    have := sqrtNum26_nonneg' ((E00 * pythonVertexNumCurried qi.ℓ qi.i qi.k 0
-      + E01 * pythonVertexNumCurried qi.ℓ qi.i qi.k 1) / 10 ^ 29
-      * ((E00 * pythonVertexNumCurried qi.ℓ qi.i qi.k 0
-        + E01 * pythonVertexNumCurried qi.ℓ qi.i qi.k 1) / 10 ^ 29)
-      + (E10 * pythonVertexNumCurried qi.ℓ qi.i qi.k 0
-        + E11 * pythonVertexNumCurried qi.ℓ qi.i qi.k 1
-        + E12 * pythonVertexNumCurried qi.ℓ qi.i qi.k 2) / 10 ^ 29
-      * ((E10 * pythonVertexNumCurried qi.ℓ qi.i qi.k 0
-        + E11 * pythonVertexNumCurried qi.ℓ qi.i qi.k 1
-        + E12 * pythonVertexNumCurried qi.ℓ qi.i qi.k 2) / 10 ^ 29))
-    positivity
+    exact hd1fnn
   case hF2nn =>
     exact sqrtNum52_nonneg' _
   case hL1 =>
