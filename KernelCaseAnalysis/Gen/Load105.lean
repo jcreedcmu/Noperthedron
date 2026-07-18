@@ -5,13 +5,13 @@ public meta import Noperthedron.SolutionTable.Load
 
 @[expose] public section
 
-/-! GENERATED (scripts/gen_kernel_chunks.py): rows [1720320, 1736704) of the solution
+/-! GENERATED (scripts/gen_kernel_chunks.py): rows [860160, 868352) of the solution
 tree as literal 512-row chunks. Requires `solution_tree_v6.csv` at the repo
 root. -/
 
 namespace Noperthedron.Solution
 
-load_csv_chunks_curried "solution_tree_v6.csv" from 1720320 to 1736704 chunkSize 512
+load_csv_chunks_curried "solution_tree_v6.csv" from 860160 to 868352 chunkSize 512
 
 end Noperthedron.Solution
 

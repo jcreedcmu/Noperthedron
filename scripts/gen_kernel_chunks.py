@@ -14,7 +14,7 @@ import sys, os
 
 N = 2051521
 C = 512
-ROWS_PER_LOAD = 16384
+ROWS_PER_LOAD = 8192
 NCHUNKS = (N + C - 1) // C          # 4007
 NLOAD = (N + ROWS_PER_LOAD - 1) // ROWS_PER_LOAD  # 251
 
@@ -100,18 +100,21 @@ def read_node_types():
 # conservative pre-fast-path values (the fast paths build smaller caches).
 COST_MB = {1: 25, 2: 175, 3: 21, 4: 130}
 COST_S  = {1: 0.038, 2: 0.17, 3: 0.018, 4: 0.10}
-# 2026-07-17 module-system recalibration: measured whole-process RSS during a
-# kernel validate file was ~2.2 GB (mostly the imported env), far below what
-# the conservative per-row MB model predicts, so the per-declaration budget
-# and range cap are 4x'd for ~4x fewer range theorems (fewer lines), and the
-# per-file budget raised 1.5x to shave per-process startup overhead.
-# ROWS_PER_LOAD is chosen so a Load process peaks at ~3.4 GB — the same
-# envelope as a Validate process (~3.5 GB) — so one thread count
-# (16-way on 64 GB) works for the whole build. Measured: 8192 rows -> 3.0 GB,
-# 16384 -> ~3.4 GB, 32768 -> 4.3 GB.
-MB_BUDGET = 6400      # per-declaration term-cache budget
+# MB_BUDGET sets per-decide range length (range rows ~= MB_BUDGET/COST_MB),
+# and kernel time per row RISES with range length: the whnf cache accumulated
+# across a decide grows the live heap and hurts locality. Measured 2026-07-17
+# (same 2175 global rows, single process, startup subtracted):
+# 17-row ranges 18.1 ms/row (RSS 2.4 GB), 34 -> 19.0 (2.5 GB),
+# 68 -> 20.8 (2.8 GB), 136 -> 22.9 (3.3 GB), 272 -> 24.7 (4.2 GB),
+# 1088 -> 30.2 (9.6 GB). MB_BUDGET=1600 (~68-row global ranges) is the
+# knee: going lower buys ~7% more speed but doubles the generated line
+# count. COST_S was calibrated at this budget, so S_PER_FILE targeting is
+# accurate here. ROWS_PER_LOAD is chosen so a Load process (~3.0 GB at
+# 8192 rows; ~54 KB/row above a ~2.6 GB floor) matches the Validate
+# envelope (~2.8 GB) — one thread count (16-way -> ~48 GB) fits both phases.
+MB_BUDGET = 1600      # per-declaration term-cache budget
 S_PER_FILE = 750      # target kernel seconds per file
-MAX_RANGE = 4000
+MAX_RANGE = 1000      # never binds at MB_BUDGET=1600 (max range ~76 rows)
 
 def make_ranges(types):
     ranges = []
@@ -155,14 +158,14 @@ def gen_validate(only=None):
             continue
         thms = []
         for (a, b) in rs:
-            thms.append(f"private theorem r_{a} : RangeOk getRow {N} {a} {b} := by\n  decide +kernel")
+            thms.append(f"private theorem r_{a} : RangeOk getRow {N} {a} {b} := by decide +kernel")
         fold = [f"private theorem s_{rs[0][1]} : RangeOk getRow {N} {a0} {rs[0][1]} := r_{a0}"]
         for (a, b) in rs[1:]:
             prev = fold[-1].split()[2]
             pend = prev.split('_')[1]
-            fold.append(f"private theorem s_{b} : RangeOk getRow {N} {a0} {b} :=\n"
-                        f"  {prev}.append (by norm_num) r_{a}")
-        body = "\n\n".join(thms) + "\n\n" + "\n".join(fold)
+            fold.append(f"private theorem s_{b} : RangeOk getRow {N} {a0} {b} := "
+                        f"{prev}.append (by norm_num) r_{a}")
+        body = "\n".join(thms) + "\n\n" + "\n".join(fold)
         with open(f'KernelCaseAnalysis/Gen/Validate{v:04}.lean', 'w') as f:
             f.write(f"""module
 
