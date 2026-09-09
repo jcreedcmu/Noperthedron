@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Certificate search for Tom 7's Nopert #228.
+"""Certificate search for Tom 7's Nopert #229.
 
 Thin wrapper over ``nopert214_certificate_search``: the search, atlas, and
 exact-checker machinery there reads the vertex tables through module
@@ -25,9 +25,9 @@ if os.environ.get("NOPERT_GMPY2"):
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import nopert214_certificate_search as base
 import snub_certificate_search as exact_certificate
-from nopert228_vertices import SEEDS_Q, VERTICES_Q
+from nopert229_vertices import SEEDS_Q, VERTICES_Q
 
-# Install the #228 tables into the shared machinery.
+# Install the #229 tables into the shared machinery.
 base.SEEDS_Q = SEEDS_Q
 base.VERTICES_Q = VERTICES_Q
 base.VERTICES = [tuple(map(float, vertex)) for vertex in VERTICES_Q]

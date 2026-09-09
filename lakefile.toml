@@ -77,18 +77,7 @@ name = "constructNopert214"
 root = "constructNopert214"
 buildType = "release"
 
-# Full native proof constructor for Nopert #76 (same pattern as #214).
-[[lean_exe]]
-name = "constructNopert76"
-root = "constructNopert76"
-buildType = "release"
-
-[[lean_exe]]
-name = "checkNopert76Local"
-root = "checkNopert76Local"
-buildType = "release"
-
-# Full native proof constructor for Nopert #228 (same pattern as #76).
+# Full native proof constructor for Nopert #228 (same pattern as #214).
 [[lean_exe]]
 name = "constructNopert228"
 root = "constructNopert228"
@@ -97,4 +86,15 @@ buildType = "release"
 [[lean_exe]]
 name = "checkNopert228Local"
 root = "checkNopert228Local"
+buildType = "release"
+
+# Full native proof constructor for Nopert #229 (same pattern as #228).
+[[lean_exe]]
+name = "constructNopert229"
+root = "constructNopert229"
+buildType = "release"
+
+[[lean_exe]]
+name = "checkNopert229Local"
+root = "checkNopert229Local"
 buildType = "release"
