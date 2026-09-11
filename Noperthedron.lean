@@ -75,7 +75,6 @@ import Noperthedron.RationalApprox.TrigInt
 import Noperthedron.RationalApprox.TrigLemmas
 import Noperthedron.Rupert.Basic
 import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
-import Noperthedron.Rupert.Equivalences.Util
 import Noperthedron.Rupert.Set
 import Noperthedron.SolutionTable
 import Noperthedron.SolutionTable.Assemble
@@ -87,7 +86,6 @@ import Noperthedron.SolutionTable.Load
 import Noperthedron.SolutionTable.Local
 import Noperthedron.SolutionTable.Parse
 import Noperthedron.Tightening
-import Noperthedron.Util
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.InteriorNonempty

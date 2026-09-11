@@ -15,13 +15,6 @@ theorem continuousLinearMap_preserves_point_sym {m n : ℕ} (f : Euc(n) →L[ℝ
   rw [f.map_neg]
 
 /--
-Projection preserves the property of being pointsymmetric.
--/
-theorem proj_preserves_point_sym {S : Set ℝ³} (s_sym : PointSym S) : PointSym (proj_xy '' S) := by
-  rw [proj_xy_eq_proj_xyL]
-  exact continuousLinearMap_preserves_point_sym proj_xyL s_sym
-
-/--
 Pointsymmetric flip as a homeomorphism
 -/
 def pointSymHomeo {n : ℕ} : Homeomorph (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin n)) :=
