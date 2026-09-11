@@ -36,10 +36,13 @@ def rowZero : Row := {
 }
 
 theorem rowZero_contains_tightInterval :
-    (tightInterval : Set (Pose ℝ)) ⊆ (rowZero.interval : Set (Pose ℝ)) := by
+    (tightInterval : Set (Pose ℝ)) ⊆ (rowZero.interval.toReal : Set (Pose ℝ)) := by
   intro p hp
   simp only [tightInterval, SetLike.mem_coe, NonemptyInterval.mem_mk] at hp
-  simp [Set.mem_Icc, rowZero, Interval.ofIntPose, Interval.minPose, Interval.maxPose]
+  rw [SetLike.mem_coe, NonemptyInterval.mem_def]
+  simp only [Interval.toReal, rowZero, Interval.ofIntPose, Interval.minPose, Interval.maxPose,
+    PoseInterval.mk, PoseInterval.min, PoseInterval.max, Int.cast_neg, Int.cast_ofNat,
+    Int.cast_zero, zero_div]
   show ({ θ₁ := 0, θ₂ := 0, φ₁ := 0, φ₂ := 0, α := -24268800 / DENOMQ } : Pose ℚ).toReal ≤ p ∧
     p ≤ ({ θ₁ := 6451200 / DENOMQ, θ₂ := 6451200 / DENOMQ, φ₁ := 48384000 / DENOMQ,
            φ₂ := 24268800 / DENOMQ, α := 24268800 / DENOMQ } : Pose ℚ).toReal

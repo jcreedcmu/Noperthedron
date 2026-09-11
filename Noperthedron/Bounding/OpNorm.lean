@@ -229,29 +229,14 @@ theorem rot3_comp_right_preserves_op_norm (d : Fin 3) (α : ℝ) (A : Euc(3) →
   rw [rot3_eq_rot3Isometry]
   exact ContinuousLinearMap.opNorm_comp_linearIsometryEquiv A (rot3Isometry d α)
 
-theorem Rx_preserves_norm (α : ℝ) : ∀ (v : E 3), ‖(RxL α) v‖ = ‖v‖ :=
-  rot3_preserves_norm 0 α
-
 theorem Rx_norm_one (α : ℝ) : ‖RxL α‖ = 1 :=
   lemma9 (d := 0) α
-
-theorem Rx_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
-    ‖(RxL α).comp A‖ = ‖A‖ :=
-  rot3_preserves_op_norm 0 α A
 
 theorem Ry_preserves_norm (α : ℝ) : ∀ (v : E 3), ‖(RyL α) v‖ = ‖v‖ :=
   rot3_preserves_norm 1 α
 
 theorem Ry_norm_one (α : ℝ) : ‖RyL α‖ = 1 :=
   lemma9 (d := 1) α
-
-theorem Ry_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
-    ‖(RyL α).comp A‖ = ‖A‖ :=
-  rot3_preserves_op_norm 1 α A
-
-theorem Ry_comp_right_preserves_op_norm (α : ℝ) (A : Euc(3) →L[ℝ] Euc(3)):
-    ‖A ∘L (RyL α)‖ = ‖A‖ :=
-  rot3_comp_right_preserves_op_norm 1 α A
 
 theorem Rz_preserves_norm (α : ℝ) : ∀ (v : E 3), ‖(RzL α) v‖ = ‖v‖ :=
   rot3_preserves_norm 2 α

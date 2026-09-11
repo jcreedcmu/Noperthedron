@@ -141,15 +141,6 @@ def parseRowCsv (s : String) : Except String Row := do
 
 --#eval parseRowCsv "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,1,24,25,26,27"
 
-def parseSolutionTable (s : String) : Except String Table := do
-  let mut result : Array Row := #[]
-  -- (module system) the iterator `String.lines` returns has no re-exported `.drop`;
-  -- materialize to a list first. Same `String.lines` semantics as before.
-  for line in s.lines.toList.drop 1 do
-    let row ← parseRowCsv line.toString
-    result := result.push row
-  return result
-
 /-- Parse a contiguous range of lines into rows. -/
 def parseChunk (lns : Array String.Slice) (start stop : ℕ) :
     Except String (Array Row) := Id.run do
@@ -160,7 +151,7 @@ def parseChunk (lns : Array String.Slice) (start stop : ℕ) :
     | .error e => return .error e
   return .ok out
 
-/-- Parallel version of `parseSolutionTable`: split the lines after the header
+/-- Parse a solution table: split the lines after the header
 into `nTasks` contiguous chunks, parse each chunk in its own `Task`, and
 concatenate the results in order. No correctness lemmas are needed: every
 property of the resulting table that the proofs rely on is checked downstream

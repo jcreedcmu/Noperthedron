@@ -99,19 +99,13 @@ lemma Interval.minPose_le_maxPose (iv : Interval) :
 def Interval.toReal (iv : Interval) : PoseInterval ℝ :=
   PoseInterval.mk iv.minPose iv.maxPose (Interval.minPose_le_maxPose iv)
 
-/-- The set of poses lying in the rational interval, defined as `Set.Icc` of the
-    min/max endpoints; agrees definitionally with `iv.toReal`. -/
-noncomputable
-instance : Coe Interval (Set (Pose ℝ)) where
-  coe iv := Set.Icc iv.minPose iv.maxPose
-
 structure ValidTable : Type where
   get : ℕ → Row
   size : ℕ
   rows_valid : RowsValidAt get size
   nonempty : 0 < size
   contains_tightInterval :
-    (tightInterval : Set (Pose ℝ)) ⊆ ((get 0).interval : Set (Pose ℝ))
+    (tightInterval : Set (Pose ℝ)) ⊆ ((get 0).interval.toReal : Set (Pose ℝ))
 
 lemma cube_fold_halves (h : Param) (tl : List Param) (iv : Interval)
     (lower : Param → Interval → Interval)

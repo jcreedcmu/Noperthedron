@@ -14,18 +14,6 @@ theorem continuousLinearMap_preserves_point_sym {m n : ℕ} (f : Euc(n) →L[ℝ
   refine ⟨-y, s_sym y hy, ?_⟩
   rw [f.map_neg]
 
-/--
-Pointsymmetric flip as a homeomorphism
--/
-def pointSymHomeo {n : ℕ} : Homeomorph (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin n)) :=
-{ toFun := fun x ↦ -x,
-  invFun := fun x ↦ -x,
-  left_inv := leftInverse_neg _
-  right_inv := rightInverse_neg _
-  continuous_toFun := continuous_neg
-  continuous_invFun := continuous_neg
-}
-
 lemma neg_image_eq_if_pointsym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) (hA : PointSym A) :
     (-·) '' A = A := by
   ext x
@@ -50,7 +38,7 @@ theorem closure_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin 
   apply pointsym_of_neg_image_eq
   calc
     (fun x => -x) '' closure S = closure ((fun x => -x) '' S) :=
-      Homeomorph.image_closure pointSymHomeo S
+      Homeomorph.image_closure (Homeomorph.neg _) S
     _ = closure S := by rw [neg_image_eq_if_pointsym S s_sym]
 
 /--
@@ -61,7 +49,7 @@ theorem interior_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin
   apply pointsym_of_neg_image_eq
   calc
     (fun x => -x) '' interior S = interior ((fun x => -x) '' S) :=
-      Homeomorph.image_interior pointSymHomeo S
+      Homeomorph.image_interior (Homeomorph.neg _) S
     _ = interior S := by rw [neg_image_eq_if_pointsym S s_sym]
 
 /--

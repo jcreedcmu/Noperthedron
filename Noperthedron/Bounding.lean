@@ -33,8 +33,7 @@ lemma norm_rot3_comp_sub_lt {d d' : Fin 3} {α β α_ β_ εα εβ : ℝ}
   · simp only [hzero.1, hzero.2, AddChar.map_zero_eq_one,
       ContinuousLinearMap.one_def, ContinuousLinearMap.id_comp, sub_self, norm_zero]
     positivity
-  · have hstrict := lt_of_le_of_ne (lemma12 hdd) ((lemma12_equality_iff hdd).not.mpr hzero)
-    refine hstrict.trans_le ?_
+  · refine (lemma12_lt_of_ne hdd hzero).trans_le ?_
     apply Real.sqrt_le_sqrt
     rw [← sq_abs (α - α_), ← sq_abs (β - β_)]
     gcongr

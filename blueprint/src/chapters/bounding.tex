@@ -24,13 +24,13 @@ See \cite{polyhedron.without.rupert}, Lemma 10.
 
 
 \begin{lemma} \label{lem:RxRy}
-\lean{Bounding.lemma12, Bounding.lemma12_equality_iff}
+\lean{Bounding.lemma12, Bounding.lemma12_lt_of_ne}
 \leanok
 For any $\alpha,\beta\in \mathbb{R}$ one has
 \[
     \|R_x(\alpha)R_y(\beta)-\id\| \leq  \sqrt{\alpha^2+\beta^2}
 \]
-with equality only for $\alpha = \beta = 0$.
+with strict inequality unless $\alpha = \beta = 0$.
 \end{lemma}
 
 \begin{proof}

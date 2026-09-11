@@ -119,22 +119,6 @@ lemma exactVerts_nonempty : exactVerts.Nonempty := by
   use exactVertex 0
   simp [exactVerts]
 
-theorem exactVerts_nontriv : ∀ v ∈ exactVerts, 0 < ‖v‖ := by
-  intro v hv
-  simp only [exactVerts, Finset.mem_image, Finset.mem_univ, true_and] at hv ⊢
-  obtain ⟨j, hj⟩ := hv
-  rw [← hj]
-  simp only [exactVertex, Int.reduceNeg]
-  rw [norm_smul, norm_pow, norm_neg, norm_one, one_pow, one_mul]
-  rw [Bounding.Rz_preserves_norm]
-  generalize h : j.i = s
-  fin_cases s
-  · simp [Cpt, c1_norm_one]
-  · simp only [Cpt]
-    grind [c2_norm_bound]
-  · simp only [Cpt]
-    grind [c3_norm_bound]
-
 theorem exactVerts_pointsym : PointSym (exactVerts : Set ℝ³) := by
   intro x hx
   simp only [exactVerts, Finset.coe_image, exactVertex, Int.reduceNeg,
@@ -172,10 +156,6 @@ lemma exactPolyhedron_hull : exactPolyhedron.hull = exactHull := by
 noncomputable
 def exactPoly : GoodPoly VertexIndex := {
   vertices := exactPolyhedron,
-  nontriv := by
-    rintro j
-    refine exactVerts_nontriv _ ?_
-    simp [exactVerts, exactPolyhedron]
   vertex_radius_le_one := exactVertex_norm_le_one
 }
 

@@ -193,7 +193,6 @@ lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
 
 /-- Rz(0) = 1. -/
 @[simp]
-lemma Rz_mat_zero : Rz_mat 0 = 1 := by simp [Rz_mat, Matrix.one_fin_three]
 
 lemma specialOrthogonalGroup_mem_inv {n : ℕ} {U : Matrix (Fin n) (Fin n) ℝ}
     (U_SO3 : U ∈ Matrix.specialOrthogonalGroup (Fin n) ℝ) :

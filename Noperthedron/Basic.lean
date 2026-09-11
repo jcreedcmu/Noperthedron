@@ -134,10 +134,6 @@ lemma RzC_coe : RzC = RzL := rfl
 theorem Rz_mat_add_int_mul_two_pi (z : ℤ) (x : ℝ) : Rz_mat (x + z * (2 * π)) = Rz_mat x := by
   ext i j; fin_cases i <;> fin_cases j <;> simp
 
-theorem RzC_two_pi (z : ℤ) : RzC (2 * π * z) = RzC 0 := by
-  simp only [show 2 * π * z = 0 + z * (2 * π) by ring_nf, RzC, RzL, AddChar.coe_mk]
-  simp only [Rz_mat_add_int_mul_two_pi]
-
 noncomputable
 def rot3_mat : Fin 3 → ℝ → Matrix (Fin 3) (Fin 3) ℝ
   | 0 => Rx_mat
@@ -378,7 +374,6 @@ def Polyhedron.hull {ι : Type} [Fintype ι] (poly : Polyhedron ι ℝ³) : Set 
 
 structure GoodPoly (ι : Type) [Fintype ι] [Nonempty ι] where
   vertices : Polyhedron ι ℝ³
-  nontriv : ∀ i, 0 < ‖vertices.v i‖
   vertex_radius_le_one : ∀ i, ‖vertices.v i‖ ≤ 1
 
 def GoodPoly.hull {ι : Type} [Fintype ι] [Nonempty ι] (poly : GoodPoly ι) : Set ℝ³ :=
