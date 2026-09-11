@@ -570,7 +570,7 @@ theorem rational_local {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
     (hpoly : κApproxPoly poly.vertices poly_)
     (p_ : Pose ℚ) (ε : ℚ)
     (pc : RationalLocalTheoremPrecondition poly poly_ hpoly p_ ε)
-    : ¬∃ p ∈ Metric.closedBall p_.toReal ε, RupertPose p poly.hull := by
+    : ¬∃ p, p_.toReal.near ε ε ε ε ε p ∧ RupertPose p poly.hull := by
   obtain ⟨Pi, Qi, cong_tri, hp, δ, r, hr, approx,
           hr₁, hδ, ae₁, ae₂, span₁, span₂, be⟩ := pc
   have hεℝ : 0 < (ε : ℝ) := span₁.pos

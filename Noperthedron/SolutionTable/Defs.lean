@@ -158,6 +158,17 @@ lemma Row.εφ₂_nonneg (r : Row) : 0 ≤ r.εφ₂ :=
 lemma Row.εα_nonneg (r : Row) : 0 ≤ r.εα :=
   div_nonneg (sub_nonneg.mpr ((Pose.le_iff _ _).mp r.interval.min_le_max).2.2.2.2) (by norm_num)
 
+lemma Row.εθ₁_le_epsilon (r : Row) : r.εθ₁ ≤ r.epsilon :=
+  div_le_div_of_nonneg_right (by simp [le_sup_iff]) (by norm_num)
+lemma Row.εφ₁_le_epsilon (r : Row) : r.εφ₁ ≤ r.epsilon :=
+  div_le_div_of_nonneg_right (by simp [le_sup_iff]) (by norm_num)
+lemma Row.εθ₂_le_epsilon (r : Row) : r.εθ₂ ≤ r.epsilon :=
+  div_le_div_of_nonneg_right (by simp [le_sup_iff]) (by norm_num)
+lemma Row.εφ₂_le_epsilon (r : Row) : r.εφ₂ ≤ r.epsilon :=
+  div_le_div_of_nonneg_right (by simp [le_sup_iff]) (by norm_num)
+lemma Row.εα_le_epsilon (r : Row) : r.εα ≤ r.epsilon :=
+  div_le_div_of_nonneg_right (by simp) (by norm_num)
+
 abbrev Row.S (r : Row) : Fin 3 → ℚ := pythonVertex r.S_index
 
 abbrev Row.w (r : Row) :  Fin 2 → ℚ

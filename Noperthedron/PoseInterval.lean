@@ -125,25 +125,12 @@ theorem contains.φ₂Bound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose
 theorem contains.αBound {R} [PartialOrder R] {iv : PoseInterval R} {p : Pose R} (c : contains iv p) :
     p.α ∈ Set.Icc iv.min.α iv.max.α := c.getParamBound .α
 
-noncomputable def center {R} [Field R] [PartialOrder R] (iv : PoseInterval R) : Pose R where
-  θ₁ := (iv.min.θ₁ + iv.max.θ₁) / 2
-  θ₂ := (iv.min.θ₂ + iv.max.θ₂) / 2
-  φ₁ := (iv.min.φ₁ + iv.max.φ₁) / 2
-  φ₂ := (iv.min.φ₂ + iv.max.φ₂) / 2
-  α := (iv.min.α + iv.max.α) / 2
-
 def radius {R} [Field R] [LinearOrder R] (iv : PoseInterval R) : R :=
   ((iv.max.θ₁ - iv.min.θ₁) ⊔
    (iv.max.φ₁ - iv.min.φ₁) ⊔
    (iv.max.θ₂ - iv.min.θ₂) ⊔
    (iv.max.φ₂ - iv.min.φ₂) ⊔
    (iv.max.α - iv.min.α)) / 2
-
-theorem radius_nonneg {R} [Field R] [LinearOrder R] [IsStrictOrderedRing R]
-    (iv : PoseInterval R) : 0 ≤ iv.radius := by
-  obtain ⟨h1, _, _, _, _⟩ := (Pose.le_iff iv.min iv.max).mp iv.min_le_max
-  unfold PoseInterval.radius
-  positivity
 
 end PoseInterval
 
@@ -163,36 +150,18 @@ theorem fourInterval_contains_toReal {p : Pose ℚ}
          ⟨mod_cast hlow.2.2.2.1,   mod_cast hhigh.2.2.2.1⟩,
          ⟨mod_cast hlow.2.2.2.2,   mod_cast hhigh.2.2.2.2⟩⟩
 
-theorem mem_closed_ball_center_of_mem (iv : PoseInterval ℝ) (p : Pose ℝ) (hp : p ∈ iv) :
-    p ∈ Metric.closedBall iv.center iv.radius := by
-  obtain ⟨⟨h1l, h1h⟩, ⟨h2l, h2h⟩, ⟨h3l, h3h⟩, ⟨h4l, h4h⟩, ⟨h5l, h5h⟩⟩ :=
-    PoseInterval.contains_iff_components.mp hp
-  simp only [PoseInterval.radius]
-  set s := (iv.max.θ₁ - iv.min.θ₁) ⊔ (iv.max.φ₁ - iv.min.φ₁) ⊔
-    (iv.max.θ₂ - iv.min.θ₂) ⊔ (iv.max.φ₂ - iv.min.φ₂) ⊔ (iv.max.α - iv.min.α) with hs
-  have ha : iv.max.θ₁ - iv.min.θ₁ ≤ s := by simp [hs, le_sup_iff]
-  have hb : iv.max.φ₁ - iv.min.φ₁ ≤ s := by simp [hs, le_sup_iff]
-  have hc : iv.max.θ₂ - iv.min.θ₂ ≤ s := by simp [hs, le_sup_iff]
-  have hd : iv.max.φ₂ - iv.min.φ₂ ≤ s := by simp [hs, le_sup_iff]
-  have he : iv.max.α - iv.min.α ≤ s := by simp [hs]
-  rw [Pose.mem_closedBall_iff]
-  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
-    (simp only [PoseInterval.center, Real.dist_eq, abs_sub_le_iff]; constructor <;> linarith)
-
-/-- Each parameter of a pose in a closed ball is within `ε` of the center's. -/
-lemma mem_closedBall_abs_sub_getParam {p q : Pose ℝ} {ε : ℝ}
-    (hq : p ∈ Metric.closedBall q ε) (a : Noperthedron.Solution.Param) :
-    |p.getParam a - q.getParam a| ≤ ε := by
-  rw [← Real.dist_eq]
-  exact Pose.mem_closedBall_iff_forall_getParam.mp hq a
-
 /--
 `p` lies in the closed box of per-axis radii `εθ₁ εφ₁ εθ₂ εφ₂ εα` around `pbar`.
-This is the anisotropic analog of `p ∈ Metric.closedBall pbar ε`; at equal radii
-the two coincide.
+With all five radii equal to `ε` this is the sup-norm ball of radius `ε`.
 -/
 def Pose.near (pbar : Pose ℝ) (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℝ) (p : Pose ℝ) : Prop :=
   |p.θ₁ - pbar.θ₁| ≤ εθ₁ ∧ |p.φ₁ - pbar.φ₁| ≤ εφ₁ ∧
   |p.θ₂ - pbar.θ₂| ≤ εθ₂ ∧ |p.φ₂ - pbar.φ₂| ≤ εφ₂ ∧ |p.α - pbar.α| ≤ εα
+
+lemma Pose.near.mono {pbar p : Pose ℝ} {εα εθ₁ εφ₁ εθ₂ εφ₂ εα' εθ₁' εφ₁' εθ₂' εφ₂' : ℝ}
+    (h : pbar.near εα εθ₁ εφ₁ εθ₂ εφ₂ p) (hα : εα ≤ εα') (hθ₁ : εθ₁ ≤ εθ₁')
+    (hφ₁ : εφ₁ ≤ εφ₁') (hθ₂ : εθ₂ ≤ εθ₂') (hφ₂ : εφ₂ ≤ εφ₂') :
+    pbar.near εα' εθ₁' εφ₁' εθ₂' εφ₂' p :=
+  ⟨h.1.trans hθ₁, h.2.1.trans hφ₁, h.2.2.1.trans hθ₂, h.2.2.2.1.trans hφ₂, h.2.2.2.2.trans hα⟩
 
 end

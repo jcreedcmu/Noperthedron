@@ -19,17 +19,13 @@ instance {R : Type} [ToString R] : ToString (Pose R) where
 
 namespace Pose
 
-/-- Bijection between `Pose` and `Fin 5 → ℝ`, used to transfer
-the (sup-norm) `MetricSpace` instance from the Pi type. -/
+/-- Bijection between `Pose R` and `Fin 5 → R`, used to transfer the
+componentwise `PartialOrder` from the Pi type. -/
 def equivPi {R : Type} : Pose R ≃ (Fin 5 → R) where
   toFun p := ![p.θ₁, p.θ₂, p.φ₁, p.φ₂, p.α]
   invFun f := ⟨f 0, f 1, f 2, f 3, f 4⟩
   left_inv p := by cases p; rfl
   right_inv f := by ext i; fin_cases i <;> rfl
-
-/-- Sup-norm transferred from `Fin 5 → R`. -/
-instance {R} [MetricSpace R] : MetricSpace (Pose R) :=
-  MetricSpace.induced equivPi equivPi.injective inferInstance
 
 instance {R} [PartialOrder R] : PartialOrder (Pose R) := PartialOrder.lift equivPi equivPi.injective
 
@@ -43,18 +39,6 @@ lemma le_iff {R} [PartialOrder R] (p q : Pose R) :
 
 instance {R} [PartialOrder R] [DecidableLE R] : DecidableLE (Pose R) :=
   fun p q => decidable_of_iff _ (le_iff p q).symm
-
-lemma mem_closedBall_iff {R} [MetricSpace R] {p q : Pose R} {ε : ℝ} :
-    p ∈ Metric.closedBall q ε ↔
-      dist p.θ₁ q.θ₁ ≤ ε ∧ dist p.θ₂ q.θ₂ ≤ ε ∧
-      dist p.φ₁ q.φ₁ ≤ ε ∧ dist p.φ₂ q.φ₂ ≤ ε ∧ dist p.α q.α ≤ ε := by
-  rw [Metric.mem_closedBall,
-      show dist p q = dist (equivPi p) (equivPi q) from rfl,
-      dist_pi_le_iff']
-  refine ⟨fun h => ?_, ?_⟩
-  · exact ⟨h 0, h 1, h 2, h 3, h 4⟩
-  · rintro ⟨h1, h2, h3, h4, h5⟩ i
-    fin_cases i <;> assumption
 
 end Pose
 

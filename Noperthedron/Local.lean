@@ -198,12 +198,12 @@ private lemma neg_one_pow_mul_lt_of_sq_lt_sq {x y : ℝ} (σQ σP : ℕ)
 theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) (p_ : Pose ℝ) (ε : ℝ)
     (pc : LocalTheoremPrecondition poly p_ ε)
-    : ¬∃ p ∈ Metric.closedBall p_ ε, RupertPose p poly.hull := by
+    : ¬∃ p, p_.near ε ε ε ε ε p ∧ RupertPose p poly.hull := by
   obtain ⟨Pi, Qi, cong_tri, δ, r, hr, hr₁, hδ, ae₁, ae₂, span₁, span₂, be⟩ := pc
   have hε : 0 < ε := span₁.pos
   set P : Triangle := poly.vertices.v ∘ Pi
   set Q : Triangle := poly.vertices.v ∘ Qi
-  rintro ⟨p, hΨ₁, hΨ₂⟩
+  rintro ⟨p, ⟨hθ₁, hφ₁, hθ₂, hφ₂, hα⟩, hΨ₂⟩
   obtain ⟨L, hL⟩ := cong_tri
   obtain ⟨σP, hσP₂⟩ := ae₁
   obtain ⟨σQ, hσQ₂⟩ := ae₂
@@ -213,11 +213,6 @@ theorem local_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   have hδnn : 0 ≤ δ := le_trans (by positivity) (hδ 0)
   have hY : ‖Y‖ = 1 := by simp [Y, Bounding.vecX_norm_one]
   have hZ : ‖Z‖ = 1 := by simp [Z, K, norm_smul, Bounding.vecX_norm_one]
-  have hα : |p.α - p_.α| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .α
-  have hθ₁ : |p.θ₁ - p_.θ₁| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .θ₁
-  have hφ₁ : |p.φ₁ - p_.φ₁| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .φ₁
-  have hθ₂ : |p.θ₂ - p_.θ₂| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .θ₂
-  have hφ₂ : |p.φ₂ - p_.φ₂| ≤ ε := mem_closedBall_abs_sub_getParam hΨ₁ .φ₂
   let P_ : Triangle := fun i ↦ (-1: ℝ) ^ σP • (P i)
   let Q_ : Triangle := fun i ↦ (-1: ℝ) ^ σQ • (Q i)
   have hP_ (i) : ‖P_ i‖ ≤ 1 := by

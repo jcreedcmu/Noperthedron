@@ -91,9 +91,12 @@ theorem valid_local_imp_no_rupert (row : Row) (hrow : row.ValidLocal) :
       row.interval.centerPose.θ₂ row.interval.centerPose.φ₂ ε hε hrow.Q_spanning
     be := by have h := hrow.Bεℚ; rwa [pythonVertexA_eq] at h
   }
-  exact no_rupert_in_interval_of_ball row
-    (RationalApprox.LocalTheorem.rational_local exactPoly pythonPolyQ
-      KappaApprox.exact_κApprox_python row.interval.centerPose ε pc)
+  rintro ⟨q, hqi, hqr⟩
+  refine RationalApprox.LocalTheorem.rational_local exactPoly pythonPolyQ
+    KappaApprox.exact_κApprox_python row.interval.centerPose ε pc ⟨q, ?_, hqr⟩
+  exact (near_center_of_mem_toReal row hqi).mono (mod_cast row.εα_le_epsilon)
+    (mod_cast row.εθ₁_le_epsilon) (mod_cast row.εφ₁_le_epsilon)
+    (mod_cast row.εθ₂_le_epsilon) (mod_cast row.εφ₂_le_epsilon)
 
 theorem valid_local₂_imp_no_rupert (row : Row) (hrow : row.ValidLocal₂) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by

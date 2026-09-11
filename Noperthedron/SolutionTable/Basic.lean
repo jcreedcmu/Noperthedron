@@ -99,28 +99,6 @@ lemma Interval.minPose_le_maxPose (iv : Interval) :
 def Interval.toReal (iv : Interval) : PoseInterval ℝ :=
   PoseInterval.mk iv.minPose iv.maxPose (Interval.minPose_le_maxPose iv)
 
-def Row.toRealInterval (row : Row) : PoseInterval ℝ :=
-  row.interval.toReal
-
-/-- Each component of `iv.toReal.center` (real) is the `Rat.cast` of the corresponding
-`iv.center` (rational). -/
-lemma Interval.toReal_center_getParam (iv : Interval) (p : Param) :
-    iv.toReal.center.getParam p = ((iv.center p : ℚ) : ℝ) := by
-  cases p <;>
-    simp [Interval.toReal, Interval.minPose, Interval.maxPose, Interval.center,
-          PoseInterval.center, PoseInterval.min, PoseInterval.max, Pose.getParam]
-
-@[simp] lemma Interval.toReal_center_θ₁ (iv : Interval) :
-    iv.toReal.center.θ₁ = ((iv.center .θ₁ : ℚ) : ℝ) := iv.toReal_center_getParam .θ₁
-@[simp] lemma Interval.toReal_center_θ₂ (iv : Interval) :
-    iv.toReal.center.θ₂ = ((iv.center .θ₂ : ℚ) : ℝ) := iv.toReal_center_getParam .θ₂
-@[simp] lemma Interval.toReal_center_φ₁ (iv : Interval) :
-    iv.toReal.center.φ₁ = ((iv.center .φ₁ : ℚ) : ℝ) := iv.toReal_center_getParam .φ₁
-@[simp] lemma Interval.toReal_center_φ₂ (iv : Interval) :
-    iv.toReal.center.φ₂ = ((iv.center .φ₂ : ℚ) : ℝ) := iv.toReal_center_getParam .φ₂
-@[simp] lemma Interval.toReal_center_α (iv : Interval) :
-    iv.toReal.center.α = ((iv.center .α : ℚ) : ℝ) := iv.toReal_center_getParam .α
-
 /-- The set of poses lying in the rational interval, defined as `Set.Icc` of the
     min/max endpoints; agrees definitionally with `iv.toReal`. -/
 noncomputable

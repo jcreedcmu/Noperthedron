@@ -10,41 +10,6 @@ public section
 
 namespace Noperthedron.Solution
 
-/-- The rational `row.epsilon` (cast to `ℝ`) equals `PoseInterval.radius`
-    of the corresponding `PoseInterval`. -/
-theorem row_epsilon_cast_eq_radius (row : Row) :
-    ((row.epsilon : ℚ) : ℝ) = row.toRealInterval.radius := by
-  show ((row.interval.radius : ℚ) : ℝ) = row.interval.toReal.radius
-  unfold Interval.toReal PoseInterval.radius
-  simp only [PoseInterval.min, PoseInterval.max, Interval.minPose, Interval.maxPose]
-  push_cast
-  rfl
-
-/-- Shared tail of the global and local bridge theorems: a "no Rupert pose
-in the closed ball around the center pose at radius `row.epsilon`" conclusion
-(as produced by `rational_global` / `rational_local`) yields "no Rupert pose
-in the row's interval". -/
-theorem no_rupert_in_interval_of_ball (row : Row)
-    (h : ¬ ∃ q ∈ Metric.closedBall row.interval.centerPose.toReal
-        ((row.epsilon : ℚ) : ℝ), RupertPose q exactPoly.hull) :
-    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  rintro ⟨q, hqi, hqr⟩
-  let iv := row.toRealInterval
-  have hpbar_eq : row.interval.centerPose.toReal = iv.center := by
-    show row.interval.centerPose.toReal = row.interval.toReal.center
-    have hc (p : Param) : ((row.interval.center p : ℚ) : ℝ) =
-        row.interval.toReal.center.getParam p :=
-      (Interval.toReal_center_getParam row.interval p).symm
-    refine Pose.mk.injEq .. |>.mpr ⟨hc .θ₁, hc .θ₂, hc .φ₁, hc .φ₂, hc .α⟩
-  rw [hpbar_eq] at h
-  push Not at h
-  refine h q ?_ hqr
-  have hqi' : q ∈ iv := hqi
-  have hmem : q ∈ Metric.closedBall iv.center iv.radius :=
-    mem_closed_ball_center_of_mem iv q hqi'
-  rw [(row_epsilon_cast_eq_radius row).symm] at hmem
-  exact hmem
-
 /-- Membership in the row's real interval box gives per-axis nearness to the
 center pose at the row's per-axis half-widths. -/
 theorem near_center_of_mem_toReal (row : Row) {q : Pose ℝ}

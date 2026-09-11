@@ -77,13 +77,6 @@ lemma le_iff_forall_getParam [PartialOrder R] (p q : Pose R) :
   refine ⟨fun ⟨h1, h2, h3, h4, h5⟩ a => by cases a <;> assumption,
           fun h => ⟨h .θ₁, h .θ₂, h .φ₁, h .φ₂, h .α⟩⟩
 
-lemma mem_closedBall_iff_forall_getParam [MetricSpace R] {p q : Pose R} {ε : ℝ} :
-    p ∈ Metric.closedBall q ε ↔
-      ∀ a : Noperthedron.Solution.Param, dist (p.getParam a) (q.getParam a) ≤ ε := by
-  rw [mem_closedBall_iff]
-  refine ⟨fun ⟨h1, h2, h3, h4, h5⟩ a => by cases a <;> assumption,
-          fun h => ⟨h .θ₁, h .θ₂, h .φ₁, h .φ₂, h .α⟩⟩
-
 end Pose
 
 end
