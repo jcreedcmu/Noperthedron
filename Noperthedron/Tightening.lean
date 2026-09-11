@@ -5,7 +5,7 @@ public import Noperthedron.PoseClasses
 public import Noperthedron.Basic
 public import Noperthedron.PoseInterval
 public import Noperthedron.PointSym
-public import Noperthedron.RealMod
+public import Mathlib.Algebra.Order.ToIntervalMod
 public import Noperthedron.Vertices.Exact
 
 @[expose] public section
@@ -13,14 +13,6 @@ public import Noperthedron.Vertices.Exact
 
 open Real
 namespace Noperthedron.Tightening
-
-lemma rotR_add_pi_eq_if_pointsym {α : ℝ} (X : Set ℝ²) (hX : PointSym X) :
-    rotR (α + π) '' X = rotR α '' X := by
-  rw [rotR_add_pi_eq_neg_rotR]
-  change ((-·) ∘ rotR α) '' X = rotR α '' X
-  rw [Set.image_comp]
-  exact neg_image_eq_if_pointsym (rotR α '' X)
-    (continuousLinearMap_preserves_point_sym (rotR α) hX)
 
 lemma rotation_preserves_nopert_vertices (x : ℝ³) (hx : x ∈ exactVerts) (k : ℤ) :
     RzC (2 * π * k / 15) x ∈ exactVerts := by
@@ -71,48 +63,39 @@ lemma exact_hull_image_eq_of_vertices_image_eq {f g : ℝ³ →L[ℝ] ℝ²}
   rw [LinearMap.image_convexHull, LinearMap.image_convexHull]
   simpa using congrArg (convexHull ℝ) h
 
-/- [SY25] Lemma 7 -/
+/-- Since the Noperthedron is point-symmetric, negating a projection does not change
+the shadow it casts. -/
+lemma neg_image_hull (f : ℝ³ →L[ℝ] ℝ²) :
+    (-f) '' exactPolyhedron.hull = f '' exactPolyhedron.hull := by
+  rw [show ⇑(-f) = (fun x => -x) ∘ ⇑f from funext fun _ => by simp, Set.image_comp]
+  exact neg_image_eq_if_pointsym _
+    (continuousLinearMap_preserves_point_sym f exactPolyhedron_point_symmetric)
 
-theorem lemma7_1 (θ φ : ℝ) :
-    (rotM (θ + 2/15*π) φ) '' exactPolyhedron.hull = rotM θ φ '' exactPolyhedron.hull := by
-  apply exact_hull_image_eq_of_vertices_image_eq
-  suffices h : (RzL (-(θ + 2/15*π))) '' exactVerts = (RzL (-θ)) '' exactVerts by
-    repeat rw [rotM_identity]
-    push_cast
-    repeat rw [Set.image_comp]
-    rw [h]
-  change (RzC (-(θ + 2 / 15 * π))) '' exactVerts = (RzC (-θ)) '' exactVerts
-  ring_nf
-  conv => enter [1, 1, a]; simp only [AddChar.map_add_eq_mul]
-  rw [ContinuousLinearMap.mul_def, ContinuousLinearMap.coe_comp, Set.image_comp,
-    show π * (-2 / 15) = 2 * π * (-1:ℤ) / 15 by ring_nf,
-    nopert_vertices_rotation_invariant]
+/- [SY25] Lemma 7 -/
 
 theorem lemma7_1_iterated {θ φ : ℝ} (k : ℤ) :
     (rotM (θ + k * (2 * π / 15)) φ) '' exactPolyhedron.hull =
       rotM θ φ '' exactPolyhedron.hull := by
-  induction k using Int.induction_on with
-  | zero => simp
-  | succ n hn =>
-    rw [← hn]; push_cast
-    have := lemma7_1 (θ + n * (2 * π / 15)) φ
-    ring_nf at this ⊢
-    rw [← this]
-  | pred n hn =>
-    rw [← hn]; push_cast
-    have := lemma7_1 (θ + (-1 - n) * (2 * π / 15)) φ
-    ring_nf at this ⊢
-    rw [← this]
+  apply exact_hull_image_eq_of_vertices_image_eq
+  suffices h : (RzL (-(θ + k * (2 * π / 15)))) '' exactVerts = (RzL (-θ)) '' exactVerts by
+    repeat rw [rotM_identity]
+    push_cast
+    repeat rw [Set.image_comp]
+    rw [h]
+  change (RzC (-(θ + k * (2 * π / 15)))) '' exactVerts = (RzC (-θ)) '' exactVerts
+  rw [show -(θ + k * (2 * π / 15)) = -θ + 2 * π * ((-k : ℤ) : ℝ) / 15 by push_cast; ring,
+    AddChar.map_add_eq_mul, ContinuousLinearMap.mul_def, ContinuousLinearMap.coe_comp,
+    Set.image_comp, nopert_vertices_rotation_invariant]
+
+theorem lemma7_1 (θ φ : ℝ) :
+    (rotM (θ + 2/15*π) φ) '' exactPolyhedron.hull = rotM θ φ '' exactPolyhedron.hull := by
+  rw [show θ + 2/15*π = θ + ((1 : ℤ) : ℝ) * (2 * π / 15) by push_cast; ring]
+  exact lemma7_1_iterated 1
 
 theorem lemma7_2 (θ φ α : ℝ) :
     (rotR (α + π) ∘ rotM θ φ) '' exactPolyhedron.hull = (rotR α ∘ rotM θ φ) '' exactPolyhedron.hull := by
-  change (rotR (α + π) ∘L rotM θ φ) '' exactPolyhedron.hull =
-    (rotR α ∘L rotM θ φ) '' exactPolyhedron.hull
-  apply exact_hull_image_eq_of_vertices_image_eq
-  push_cast
-  repeat rw [Set.image_comp]
-  refine rotR_add_pi_eq_if_pointsym (rotM θ φ '' exactVerts)
-    (continuousLinearMap_preserves_point_sym (rotM θ φ) exactVerts_pointsym)
+  rw [rotR_add_pi_eq_neg_rotR]
+  exact neg_image_hull (rotR α ∘L rotM θ φ)
 
 theorem lemma7_2_iterated {θ φ α : ℝ} (k : ℤ) :
     (rotR (α + k * π) ∘L rotM θ φ) '' exactPolyhedron.hull =
@@ -219,34 +202,39 @@ theorem rupert_imp_flip_phi2_rupert2 {p : Pose ℝ} (r : RupertPose p exactPolyh
     _ = interior ((flip_y ∘L rotM p.θ₂ p.φ₂) '' exactPolyhedron.hull) := by rw [← Set.image_comp]; rfl
     _ = interior ((rotM (p.θ₂ + π / 15) (π - p.φ₂)) '' exactPolyhedron.hull) := by rw [lemma7_3]
 
-theorem tighten_φ₁_π (p : Pose ℝ) (hφ₁ : p.φ₁ ∈ Set.Icc 0 (2 * π)) :
-    ∃ θ₁ α, ∃ φ₁ ∈ Set.Icc 0 π, Pose.equiv p {p with θ₁, φ₁, α} := by
-  by_cases h : p.φ₁ < π
-  · use p.θ₁, p.α, p.φ₁
-    refine ⟨⟨ hφ₁.1, le_of_lt h⟩, ?_⟩
-    exact Pose.matrix_eq_imp_pose_equiv rfl rfl rfl
-  · use p.θ₁ + π, p.α + π, 2 * π - p.φ₁
-    refine ⟨by grind, Pose.matrix_rm_eq_imp_pose_equiv ?_ ?_⟩
-    · simp only [Pose.rotR, Pose.rotM₁, rotR_add_pi_eq_neg_rotR, rotM_mod_eq_neg_rotM]
-      funext v
-      simp
-    · simp only [Pose.rotM₂]
+/-- Any real number is, up to an integer multiple of `b`, in `[a, a + b)`. -/
+lemma toIcoMod_eq_add_int_mul {b : ℝ} (hb : 0 < b) (a x : ℝ) :
+    toIcoMod hb a x = x + ((-toIcoDiv hb a x : ℤ) : ℝ) * b := by
+  have := self_sub_toIcoMod_eq_mul hb a x
+  push_cast
+  linarith
 
-theorem tighten_φ₂_π (p : Pose ℝ) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (2 * π)) :
-    ∃ θ₂ α, ∃ φ₂ ∈ Set.Icc 0 π, Pose.equiv p {p with θ₂, φ₂, α} := by
-  by_cases h : p.φ₂ < π
-  · use p.θ₂, p.α, p.φ₂
-    refine ⟨⟨hφ₂.1, le_of_lt h⟩, ?_⟩
-    exact Pose.matrix_eq_imp_pose_equiv rfl rfl rfl
-  · use p.θ₂ + π, p.α + π, 2 * π - p.φ₂
-    refine ⟨by grind, ?_⟩
-    refine Pose.matrix_rm_eq_neg_imp_pose_equiv ?_ ?_
-    · simp only [Pose.rotR, Pose.rotM₁, rotR_add_pi_eq_neg_rotR]
-      funext v
-      change rotR p.α (rotM p.θ₁ p.φ₁ v) = (-(-rotR p.α)) (rotM p.θ₁ p.φ₁ v)
-      rw [neg_neg]
-    · simp only [Pose.rotM₂, rotM_mod_eq_neg_rotM]
-      rw [neg_neg]
+/-- A pose casting the same inner and outer shadows of the Noperthedron as a Rupert
+pose is itself a Rupert pose. Every tightening step below is an instance of this. -/
+lemma rupert_of_shadows_eq {p q : Pose ℝ} (r : RupertPose p exactPolyhedron.hull)
+    (hinner : (q.rotR ∘L q.rotM₁) '' exactPolyhedron.hull =
+      (p.rotR ∘L p.rotM₁) '' exactPolyhedron.hull)
+    (houter : q.rotM₂ '' exactPolyhedron.hull = p.rotM₂ '' exactPolyhedron.hull) :
+    RupertPose q exactPolyhedron.hull := by
+  change closure ((q.rotR ∘L q.rotM₁) '' _) ⊆ interior (q.rotM₂ '' _)
+  rw [hinner, houter]
+  exact r
+
+theorem tighten_φ₂ (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull) :
+    ∃ φ₂ ∈ Set.Ico 0 (2 * π), RupertPose {p with φ₂} exactPolyhedron.hull := by
+  refine ⟨toIcoMod two_pi_pos 0 p.φ₂, toIcoMod_mem_Ico' _ _, rupert_of_shadows_eq r rfl ?_⟩
+  change rotM p.θ₂ (toIcoMod two_pi_pos 0 p.φ₂) '' _ = rotM p.θ₂ p.φ₂ '' _
+  rw [toIcoMod_eq_add_int_mul, rotM_periodic_φ]
+
+theorem tighten_φ₂_π (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull)
+    (hφ₂ : p.φ₂ ∈ Set.Icc 0 (2 * π)) :
+    ∃ θ₂ φ₂, φ₂ ∈ Set.Icc 0 π ∧ RupertPose {p with θ₂, φ₂} exactPolyhedron.hull := by
+  by_cases h : p.φ₂ ≤ π
+  · exact ⟨p.θ₂, p.φ₂, ⟨hφ₂.1, h⟩, by cases p; exact r⟩
+  · refine ⟨p.θ₂ + π, 2 * π - p.φ₂, ⟨by linarith [hφ₂.2], by linarith⟩,
+      rupert_of_shadows_eq r rfl ?_⟩
+    change rotM (p.θ₂ + π) (2 * π - p.φ₂) '' _ = rotM p.θ₂ p.φ₂ '' _
+    rw [rotM_mod_eq_neg_rotM, neg_image_hull]
 
 theorem tighten_φ₂_π2 (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull)
     (hφ₂ : p.φ₂ ∈ Set.Icc 0 π) :
@@ -258,124 +246,60 @@ theorem tighten_φ₂_π2 (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull)
     · simp only [flip_phi2, Set.mem_Icc, sub_nonneg, tsub_le_iff_right]; grind
     · exact rupert_imp_flip_phi2_rupert2 r
 
-theorem tighten_φ₁ (p : Pose ℝ) :
-    ∃ φ₁ ∈ Set.Ico 0 (2 * π), Pose.equiv p {p with φ₁} := by
-  use Real.emod p.φ₁ (2 * π)
-  use Real.emod_in_interval two_pi_pos
-  obtain ⟨k, hk⟩ := Real.emod_exists_multiple p.φ₁ (2 * π) two_pi_pos
-  rw [hk]
-  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
-  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_φ]
+theorem tighten_φ₁ (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull) :
+    ∃ φ₁ ∈ Set.Ico 0 (2 * π), RupertPose {p with φ₁} exactPolyhedron.hull := by
+  refine ⟨toIcoMod two_pi_pos 0 p.φ₁, toIcoMod_mem_Ico' _ _, rupert_of_shadows_eq r ?_ rfl⟩
+  change (rotR p.α ∘L rotM p.θ₁ (toIcoMod two_pi_pos 0 p.φ₁)) '' _ =
+    (rotR p.α ∘L rotM p.θ₁ p.φ₁) '' _
+  rw [toIcoMod_eq_add_int_mul, rotM_periodic_φ]
 
-theorem tighten_φ₂ (p : Pose ℝ) :
-    ∃ φ₂ ∈ Set.Ico 0 (2 * π), Pose.equiv p {p with φ₂} := by
-  use Real.emod p.φ₂ (2 * π)
-  use Real.emod_in_interval two_pi_pos
-  obtain ⟨k, hk⟩ := Real.emod_exists_multiple p.φ₂ (2 * π) two_pi_pos
-  rw [hk]
-  refine Pose.matrix_eq_imp_pose_equiv ?_ ?_ ?_ <;>
-  · simp [Pose.rotR, Pose.rotM₁, Pose.rotM₂, rotM_periodic_φ]
+theorem tighten_φ₁_π (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull)
+    (hφ₁ : p.φ₁ ∈ Set.Icc 0 (2 * π)) :
+    ∃ θ₁ φ₁, φ₁ ∈ Set.Icc 0 π ∧ RupertPose {p with θ₁, φ₁} exactPolyhedron.hull := by
+  by_cases h : p.φ₁ ≤ π
+  · exact ⟨p.θ₁, p.φ₁, ⟨hφ₁.1, h⟩, by cases p; exact r⟩
+  · refine ⟨p.θ₁ + π, 2 * π - p.φ₁, ⟨by linarith [hφ₁.2], by linarith⟩,
+      rupert_of_shadows_eq r ?_ rfl⟩
+    change (rotR p.α ∘L rotM (p.θ₁ + π) (2 * π - p.φ₁)) '' _ =
+      (rotR p.α ∘L rotM p.θ₁ p.φ₁) '' _
+    rw [rotM_mod_eq_neg_rotM, ContinuousLinearMap.comp_neg, neg_image_hull]
 
-def NopertEquiv (p q : Pose ℝ) : Prop :=
-  RupertPose p exactPolyhedron.hull ↔ RupertPose q exactPolyhedron.hull
+theorem tighten_θ (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull) :
+    ∃ θ₁ ∈ Set.Ico 0 (2 * π / 15), ∃ θ₂ ∈ Set.Ico 0 (2 * π / 15),
+      RupertPose {p with θ₁, θ₂} exactPolyhedron.hull := by
+  have h15 : (0 : ℝ) < 2 * π / 15 := by positivity
+  refine ⟨toIcoMod h15 0 p.θ₁, toIcoMod_mem_Ico' _ _, toIcoMod h15 0 p.θ₂, toIcoMod_mem_Ico' _ _,
+    rupert_of_shadows_eq r ?_ ?_⟩
+  · change (rotR p.α ∘L rotM (toIcoMod h15 0 p.θ₁) p.φ₁) '' _ =
+      (rotR p.α ∘L rotM p.θ₁ p.φ₁) '' _
+    rw [ContinuousLinearMap.coe_comp, ContinuousLinearMap.coe_comp, Set.image_comp,
+      Set.image_comp, toIcoMod_eq_add_int_mul, lemma7_1_iterated]
+  · change rotM (toIcoMod h15 0 p.θ₂) p.φ₂ '' _ = rotM p.θ₂ p.φ₂ '' _
+    rw [toIcoMod_eq_add_int_mul, lemma7_1_iterated]
 
-theorem inner_outer_imp_nopert_equiv {p q : Pose ℝ}
-    (hinner : p.inner '' exactPolyhedron.hull = q.inner '' exactPolyhedron.hull)
-    (houter : p.outer '' exactPolyhedron.hull = q.outer '' exactPolyhedron.hull) :
-    NopertEquiv p q := by
-  constructor <;>
-  · simp only [RupertPose]
-    repeat rw [Pose.inner_shadow_eq_img_inner, Pose.outer_shadow_eq_img_outer]
-    rw [hinner, houter]
-    tauto
-
-theorem tighten_θ (p : Pose ℝ) :
-    ∃ θ₁ ∈ Set.Ico 0 (2 * π / 15),
-    ∃ θ₂ ∈ Set.Ico 0 (2 * π / 15),
-    NopertEquiv p {p with θ₁, θ₂} := by
-
-  have two_pi_15_pos : 2 * π / 15 > 0 :=
-    div_pos (two_pi_pos) (by norm_num)
-
-  let θ₁ := Real.emod p.θ₁ (2 * π / 15)
-  let θ₂ := Real.emod p.θ₂ (2 * π / 15)
-  use θ₁, Real.emod_in_interval two_pi_15_pos,
-      θ₂, Real.emod_in_interval two_pi_15_pos
-  obtain ⟨k₁, hk₁⟩ := Real.emod_exists_multiple p.θ₁ (2 * π / 15) two_pi_15_pos
-  obtain ⟨k₂, hk₂⟩ := Real.emod_exists_multiple p.θ₂ (2 * π / 15) two_pi_15_pos
-  simp only [θ₁, θ₂]
-  rw [hk₁, hk₂]
-  let p1 := {p  with θ₁ := p.θ₁ + k₁ * (2 * π / 15) }
-  let p2 := {p1 with θ₂ := p.θ₂ + k₂ * (2 * π / 15) }
-  refine inner_outer_imp_nopert_equiv ?_ ?_
-  · calc p.inner '' exactPolyhedron.hull
-    _ = (p.rotR ∘ p.rotM₁) '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
-    _ = p.rotR '' (p.rotM₁ '' exactPolyhedron.hull) := by rw [Set.image_comp]
-    _ = p.rotR '' (rotM p.θ₁ p.φ₁ '' exactPolyhedron.hull) := rfl
-    _ = p.rotR '' (rotM (p.θ₁ + k₁ * (2 * π / 15)) p.φ₁ '' exactPolyhedron.hull) := by
-        rw [← lemma7_1_iterated k₁]
-    _ = p.rotR '' (p2.rotM₁ '' exactPolyhedron.hull) := rfl
-    _ = (p.rotR ∘ p2.rotM₁) '' exactPolyhedron.hull := by rw [Set.image_comp]
-    _ = (p2.rotR ∘ p2.rotM₁) '' exactPolyhedron.hull := rfl
-    _ = p2.inner '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
-  · calc p.outer '' exactPolyhedron.hull
-    _ = p.rotM₂ '' exactPolyhedron.hull := by rw [Pose.outer_eq_M]
-    _ = rotM p.θ₂ p.φ₂ '' exactPolyhedron.hull := rfl
-    _ = rotM (p.θ₂ + k₂ * (2 * π / 15)) p.φ₂ '' exactPolyhedron.hull := by
-        rw [← lemma7_1_iterated k₂]
-    _ = p2.rotM₂ '' exactPolyhedron.hull := rfl
-    _ = p2.outer '' exactPolyhedron.hull := by rw [Pose.outer_eq_M]
-
-theorem tighten_α (p : Pose ℝ) :
-    ∃ α ∈ Set.Icc (-(π/2)) (π/2),
-    NopertEquiv p {p with α} := by
-  use Real.emod (p.α + π/2) π - π/2
-  have hα1 : (p.α + π/2).emod π ∈ Set.Ico 0 π :=
-    Real.emod_in_interval pi_pos
-  have hα2 : (p.α + π / 2).emod π - π / 2 ∈ Set.Icc (-(π / 2)) (π / 2) := by
-    grind
-  use hα2
-  obtain ⟨k, hk⟩ := Real.emod_exists_multiple (p.α + π/2) π pi_pos
-  rw [hk]
-  let p1 : Pose ℝ := {p with α := p.α + k * π}
-  refine inner_outer_imp_nopert_equiv ?_ rfl
-  convert_to _ = ({ p with α := p.α + k * π} : Pose ℝ).inner '' exactPolyhedron.hull
-  · ring_nf
-  calc p.inner '' exactPolyhedron.hull
-  _ = (p.rotR ∘ p.rotM₁) '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
-  _ = (rotR (p.α) ∘L rotM p.θ₁ p.φ₁) '' exactPolyhedron.hull := rfl
-  _ = (rotR (p.α + k * π) ∘L rotM p.θ₁ p.φ₁) '' exactPolyhedron.hull := by rw [lemma7_2_iterated k]
-  _ = (p1.rotR ∘ p1.rotM₁) '' exactPolyhedron.hull := rfl
-  _ = p1.inner '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
-
-theorem rupert_post_tightening (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull)
-     (hφ₁ : p.φ₁ ∈ Set.Icc 0 π) (hφ₂ : p.φ₂ ∈ Set.Icc 0 (π/2)) :
-    ∃ p' : Pose ℝ, tightInterval.contains p' ∧ RupertPose p' exactPolyhedron.hull := by
-  obtain ⟨θ₁, hθ₁, θ₂, hθ₂, eq⟩ := tighten_θ p
-  let p2 := {p with θ₁, θ₂}
-  obtain ⟨α, hα, eq2⟩ := tighten_α p2
-  use {p2 with α}
-  use PoseInterval.contains_iff_components.mpr
-        ⟨Set.Ico_subset_Icc_self hθ₁, Set.Ico_subset_Icc_self hθ₂,
-         hφ₁, hφ₂, hα⟩
-  exact eq2.mp (eq.mp r)
+theorem tighten_α (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull) :
+    ∃ α ∈ Set.Icc (-(π/2)) (π/2), RupertPose {p with α} exactPolyhedron.hull := by
+  have hmem := toIcoMod_mem_Ico pi_pos (-(π / 2)) p.α
+  refine ⟨toIcoMod pi_pos (-(π / 2)) p.α, ⟨hmem.1, by linarith [hmem.2]⟩,
+    rupert_of_shadows_eq r ?_ rfl⟩
+  change (rotR (toIcoMod pi_pos (-(π / 2)) p.α) ∘L rotM p.θ₁ p.φ₁) '' _ =
+    (rotR p.α ∘L rotM p.θ₁ p.φ₁) '' _
+  rw [toIcoMod_eq_add_int_mul, lemma7_2_iterated]
 
 -- [SY25] Corollary 8 (§2.2)
 -- This is a piece that relies on symmetry of the Noperthedron
 theorem rupert_tightening (p : Pose ℝ) (r : RupertPose p exactPolyhedron.hull) :
     ∃ p' : Pose ℝ, tightInterval.contains p' ∧ RupertPose p' exactPolyhedron.hull := by
-  obtain ⟨φ₂, hφ₂_2π, eq⟩ := tighten_φ₂ p
-  have r1 : RupertPose {p with φ₂} exactPolyhedron.hull := Pose.equiv_rupert_imp_rupert eq r
-  obtain ⟨θ₂, α, φ₂', φ₂'_π, eq'⟩ := tighten_φ₂_π {p with φ₂} (Set.Ico_subset_Icc_self hφ₂_2π)
-  have r2 : RupertPose _ exactPolyhedron.hull := Pose.equiv_rupert_imp_rupert eq' r1
-  obtain ⟨q, hqφ₂, r2a⟩ := tighten_φ₂_π2 _ r2 φ₂'_π
-  obtain ⟨φ₁, hφ₁, eq2⟩ := tighten_φ₁ q
-  have r3 := Pose.equiv_rupert_imp_rupert eq2 r2a
-  obtain ⟨θ₁, α, φ₁', hφ₁', eq3⟩ := tighten_φ₁_π {q with φ₁} (Set.Ico_subset_Icc_self hφ₁)
-  have r4 := Pose.equiv_rupert_imp_rupert eq3 r3
-  simp only at r4
-  clear eq eq'
-  exact rupert_post_tightening _ r4 hφ₁' hqφ₂
+  obtain ⟨φ₂, hφ₂, r⟩ := tighten_φ₂ p r
+  obtain ⟨θ₂, φ₂', hφ₂', r⟩ := tighten_φ₂_π _ r (Set.Ico_subset_Icc_self hφ₂)
+  obtain ⟨q, hqφ₂, r⟩ := tighten_φ₂_π2 _ r hφ₂'
+  obtain ⟨φ₁, hφ₁, r⟩ := tighten_φ₁ q r
+  obtain ⟨θ₁, φ₁', hφ₁', r⟩ := tighten_φ₁_π _ r (Set.Ico_subset_Icc_self hφ₁)
+  obtain ⟨θ₁', hθ₁, θ₂', hθ₂, r⟩ := tighten_θ _ r
+  obtain ⟨α, hα, r⟩ := tighten_α _ r
+  refine ⟨_, ?_, r⟩
+  exact PoseInterval.contains_iff_components.mpr
+    ⟨Set.Ico_subset_Icc_self hθ₁, Set.Ico_subset_Icc_self hθ₂, hφ₁', hqφ₂, hα⟩
 
 end Tightening
 end Noperthedron

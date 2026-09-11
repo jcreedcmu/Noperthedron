@@ -2,7 +2,6 @@ module
 
 public import Noperthedron.Rupert.Basic
 public import Noperthedron.Rupert.Set
-public import Noperthedron.Util
 public import Noperthedron.MatrixPose
 public import Noperthedron.PoseClasses
 public import Noperthedron.PointSym
@@ -41,44 +40,17 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
   exact segment_sub_b (mem_segment_add_sub a v)
 
 theorem shadow_outer_pres_convex {S : Set ℝ³} (s_conv : Convex ℝ S) (p : MatrixPose) :
-  Convex ℝ (outerShadow p S) := by
-  change Convex ℝ ((proj_xyL ∘ PoseLike.outer p) '' S)
-  rw [Set.image_comp]
-  exact Convex.linear_image (rotation_preserves_convex s_conv p.outerRot)
-    (proj_xyL : ℝ³ →L[ℝ] ℝ²).toLinearMap
+    Convex ℝ (outerShadow p S) :=
+  s_conv.affine_image (PoseLike.outer p)
 
 theorem shadow_outer_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
-  PointSym (outerShadow p S) := by
-  change PointSym ((proj_xyL ∘ PoseLike.outer p) '' S)
-  rw [Set.image_comp]
-  exact continuousLinearMap_preserves_point_sym proj_xyL
-    (rotation_preserves_point_sym s_psym p.outerRot)
+    PointSym (outerShadow p S) :=
+  continuousLinearMap_preserves_point_sym (MatrixPose.projRot p.outerRot) s_psym
 
 theorem shadow_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
-  PointSym (innerShadow p.zeroOffset S) := by
-  change PointSym ((proj_xyL ∘ PoseLike.inner p.zeroOffset) '' S)
-  rw [Set.image_comp]
-  simp only [MatrixPose.zero_offset_elim]
-  exact continuousLinearMap_preserves_point_sym proj_xyL
-    (rotation_preserves_point_sym s_psym p.innerRot)
-
-/--
-We can pull out the shift baked into innerShadow all the way outside
--/
-lemma shadows_eq {S : Set ℝ³} (p : MatrixPose) :
-    p.shift '' closure (innerShadow p.zeroOffset S) =
-      closure (innerShadow p S) := by
-  rw [Homeomorph.image_closure p.shift]
-  refine congrArg closure ?_
-  change p.shift '' ((proj_xyL ∘ PoseLike.inner p.zeroOffset) '' S) = _
-  simp only [MatrixPose.zero_offset_elim]
-  rw [← Set.image_comp]
-  change ((p.shift ∘ proj_xyL) ∘ p.innerRotPart) '' S =
-     ((proj_xyL ∘ p.innerOffsetPart) ∘ p.innerRotPart) '' S
-  have : p.shift ∘ proj_xyL = proj_xyL ∘ p.innerOffsetPart := funext fun v ↦ by
-    simpa [MatrixPose.shift, MatrixPose.innerOffsetPart] using
-      proj_xyL_offset_commute p.innerOffset v
-  rw [this]
+    PointSym (innerShadow p.zeroOffset S) := by
+  rw [innerShadow, MatrixPose.zero_offset_elim]
+  exact continuousLinearMap_preserves_point_sym (MatrixPose.projRot p.innerRot) s_psym
 
 /--
 If a set is point symmetric and convex, then it being rupert implies
@@ -91,7 +63,7 @@ theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex
   · exact interior_preserves_point_sym (shadow_outer_pres_psym s_sym p)
   · exact Convex.interior (shadow_outer_pres_convex s_convex p)
   · change p.shift '' _ ⊆ _
-    rw [shadows_eq]
+    rw [Homeomorph.image_closure, ← MatrixPose.innerShadow_eq_shift]
     exact r
 
 end

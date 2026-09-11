@@ -3,7 +3,6 @@ module
 public import Noperthedron.Basic
 public import Noperthedron.Bounding.OpNorm
 public import Noperthedron.Bounding.BoundingUtil
-public import Noperthedron.RealMod
 
 public section
 
@@ -232,28 +231,13 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
   simp only [← γb, B, ← mul_assoc, Matrix.mul_nonsing_inv U U_det_unit, one_mul]
   exact (U.mul_nonsing_inv_cancel_right A U_det_unit).symm
 
-lemma Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_mat γ' := by
-  use π - Real.emod (π - γ) (2 * π)
-  refine ⟨?_, ?_⟩
-  · have := Real.emod_in_interval (a := π - γ) (b := 2 * π) two_pi_pos
-    grind
-  · obtain ⟨k, hk⟩ := Real.emod_exists_multiple (π - γ) (2 * π) two_pi_pos
-    simp [hk]
-
-lemma SO3_is_conj_Rz_within_pi (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
-    ∃ (U : Matrix (Fin 3) (Fin 3) ℝ) (_ : U ∈ Matrix.orthogonalGroup (Fin 3) ℝ) (γ : ℝ),
-      γ ∈ Set.Ioc (-π) π ∧ A = U * Rz_mat γ * U⁻¹ := by
-  obtain ⟨U, U_SO, γ, hγ⟩ := SO3_is_conj_Rz A hA
-  obtain ⟨γ', γ'_in, hγ'⟩ := Rz_mod_two_pi γ
-  use U, U_SO, γ', γ'_in, hγ'▸hγ
-
 lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
-    ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ), γ ∈ Set.Ioc (-π) π ∧
+    ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ),
     rot3 d α ∘L rot3 d' β =
       u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
   have dd'_so3 : rot3_mat d α * rot3_mat d' β ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
     Submonoid.mul_mem _ (rot3_mat_mem_SO3 d α) (rot3_mat_mem_SO3 d' β)
-  obtain ⟨U, hU, γ, hγ, h⟩ := SO3_is_conj_Rz_within_pi (rot3_mat d α * rot3_mat d' β) dd'_so3
+  obtain ⟨U, hU, γ, h⟩ := SO3_is_conj_Rz (rot3_mat d α * rot3_mat d' β) dd'_so3
   let u : Euc(3) ≃ₗᵢ[ℝ] Euc(3) := OrthogonalGroup.toLinearIsometryEquiv ⟨U, hU⟩
   have hu : ∀ x : Euc(3), (u x).ofLp = U *ᵥ x.ofLp :=
     OrthogonalGroup.toLinearIsometryEquiv_apply ⟨U, hU⟩
@@ -273,7 +257,7 @@ lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
   have hUinv_clm :
       u.symm.toLinearIsometry.toContinuousLinearMap = U⁻¹.toEuclideanLin.toContinuousLinearMap := by
     ext x; simp [hu_symm]
-  refine ⟨u, γ, hγ, ?_⟩
+  refine ⟨u, γ, ?_⟩
   have lhs_eq : rot3 d α ∘L rot3 d' β
       = (rot3_mat d α * rot3_mat d' β).toEuclideanLin.toContinuousLinearMap := by
     rw [toCLM_mul]; fin_cases d <;> fin_cases d' <;> rfl

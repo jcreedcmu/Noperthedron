@@ -352,11 +352,6 @@ lemma rotM_mod_eq_neg_rotM {θ φ : ℝ} :
   ext v i; fin_cases i <;>
   · simp [Matrix.vecHead, Matrix.vecTail, rotM, rotM_mat]; ring_nf
 
-lemma rotRM_mod_eq_rotRM {α θ φ : ℝ} :
-    rotR (α + π) ∘ rotM (θ + π) (2 * π - φ) = rotR α ∘ rotM θ φ := by
-  simp only [rotR_add_pi_eq_neg_rotR, rotM_mod_eq_neg_rotM]
-  ext; simp
-
 lemma rotM_periodic_φ {θ φ : ℝ} {k : ℤ} :
     rotM θ (φ + k * (2 * π)) = rotM θ φ := by
   ext v i; fin_cases i <;>

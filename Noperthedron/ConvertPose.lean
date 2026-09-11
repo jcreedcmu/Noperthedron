@@ -49,24 +49,38 @@ lemma exists_Rz_to_rotRM_form (M : SO3) :
     ring_nf
   · rw [neg_neg]
 
-/-- inject_xy 0 = 0. -/
-@[simp]
-lemma inject_xy_zero : inject_xy (0 : ℝ²) = (0 : ℝ³) := by
-  ext i; fin_cases i <;> simp [inject_xy]
-
 /-- Convert a Pose to a MatrixPose. -/
 noncomputable def Pose.matrixPoseOfPose (p : Pose ℝ) : MatrixPose where
   innerRot := ⟨rotRM_mat p.θ₁ p.φ₁ p.α, rotRM_mat_mem_SO3 _ _ _⟩
   outerRot := ⟨rotRM_mat p.θ₂ p.φ₂ 0, rotRM_mat_mem_SO3 _ _ _⟩
   innerOffset := 0
 
+lemma projRot_rotRM_mat (θ φ α : ℝ) :
+    MatrixPose.projRot ⟨rotRM_mat θ φ α, rotRM_mat_mem_SO3 θ φ α⟩ = rotR α ∘L rotM θ φ := by
+  rw [MatrixPose.projRot, ← rotRM_eq_rotRM_mat]
+  ext1 v
+  exact congrFun (projxy_rotRM_eq_rotprojRM θ φ α) v
+
+lemma matrixPoseOfPose_inner (v : Pose ℝ) :
+    ⇑(PoseLike.inner v.matrixPoseOfPose) = ⇑(PoseLike.inner v) := by
+  funext x
+  change MatrixPose.projRot ⟨rotRM_mat v.θ₁ v.φ₁ v.α, _⟩ x + 0 = (rotR v.α ∘L rotM v.θ₁ v.φ₁) x
+  rw [add_zero, projRot_rotRM_mat]
+
+lemma matrixPoseOfPose_outer (v : Pose ℝ) :
+    ⇑(PoseLike.outer v.matrixPoseOfPose) = ⇑(PoseLike.outer v) := by
+  funext x
+  change MatrixPose.projRot ⟨rotRM_mat v.θ₂ v.φ₂ 0, _⟩ x = rotM v.θ₂ v.φ₂ x
+  rw [projRot_rotRM_mat, AddChar.map_zero_eq_one]
+  rfl
+
 theorem converted_pose_inner_shadow_eq (v : Pose ℝ) (S : Set ℝ³) :
     innerShadow v S = innerShadow (v.matrixPoseOfPose) S := by
-  simp [innerShadow, PoseLike.inner, Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
+  simp only [innerShadow, matrixPoseOfPose_inner]
 
 theorem converted_pose_outer_shadow_eq (v : Pose ℝ) (S : Set ℝ³) :
     outerShadow v S = outerShadow (v.matrixPoseOfPose) S := by
-  simp [outerShadow, PoseLike.outer, Pose.matrixPoseOfPose, rotRM_eq_rotRM_mat]
+  simp only [outerShadow, matrixPoseOfPose_outer]
 
 theorem converted_pose_rupert_iff (v : Pose ℝ) (S : Set ℝ³) :
     RupertPose v S ↔ RupertPose (v.matrixPoseOfPose) S := by

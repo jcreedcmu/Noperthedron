@@ -197,11 +197,7 @@ theorem global_theorem_le_reasoning {ι : Type} [Fintype ι] [ne : Nonempty ι] 
   exact p.is_rupert_imp_inner_in_outer verts h_rupert' v hv
 
 lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose ℝ) : rotproj_inner S w p.innerParams = ⟪p.inner S, w⟫ := by
-  simp only [rotproj_inner, Pose.inner, innerProj, PoseLike.inner, Pose.innerParams,
-             Matrix.cons_val_zero, Matrix.cons_val, AffineMap.coe_comp,
-             LinearMap.coe_toAffineMap, ContinuousLinearMap.coe_coe, Function.comp_apply]
-  change _ = ⟪(proj_xyL ∘L rotRM p.θ₁ p.φ₁ p.α) S, w⟫
-  rw [← projxy_rotRM_eq_rotprojRM]
+  simp only [rotproj_inner, Pose.innerParams, Matrix.cons_val_zero, Matrix.cons_val]
   rfl
 
 -- Differentiable.rotprojRM, Differentiable.rotproj_inner, rotproj_inner', rotprojRM',

@@ -63,10 +63,11 @@ lemma rupert_set_implies_pose_rupert {S : Set ℝ³} (r : IsRupertSet S) :
     ∃ p : MatrixPose, RupertPose p S := by
   obtain ⟨inner, inner_so3, offset, outer, outer_so3, sub⟩ := r
   let p : MatrixPose := MatrixPose.mk ⟨inner, inner_so3⟩ ⟨outer, outer_so3⟩ offset
-  use p
+  refine ⟨p, ?_⟩
   change closure (innerShadow p S) ⊆ interior (outerShadow p S)
-  rw [p.inner_shadow_lemma, outerShadow]
-  repeat rw [← proj_xy_eq_proj_xyL]
+  simp only [innerShadow, outerShadow, Set.image, MatrixPose.inner_apply,
+    MatrixPose.outer_apply, MatrixPose.projRot, ContinuousLinearMap.comp_apply,
+    LinearMap.coe_toContinuousLinearMap', ← proj_xy_eq_proj_xyL, add_comm]
   exact sub
 
 /--

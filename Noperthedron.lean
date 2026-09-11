@@ -73,7 +73,6 @@ import Noperthedron.RationalApprox.RationalLocal2
 import Noperthedron.RationalApprox.SecondOrderXBounds
 import Noperthedron.RationalApprox.TrigInt
 import Noperthedron.RationalApprox.TrigLemmas
-import Noperthedron.RealMod
 import Noperthedron.Rupert.Basic
 import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
 import Noperthedron.Rupert.Equivalences.Util

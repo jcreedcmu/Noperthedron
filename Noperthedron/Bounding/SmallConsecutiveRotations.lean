@@ -47,7 +47,7 @@ The squared norm of the difference between the composition of two rotations and 
 -/
 theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
     ‖rot3 d α ∘L rot3 d' β - 1‖^2 = 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) := by
-  obtain ⟨u, γ, _, h_comp⟩ := rot3_rot3_orth_equiv_rotz (α := α) (β := β) (d := d) (d' := d')
+  obtain ⟨u, γ, h_comp⟩ := rot3_rot3_orth_equiv_rotz (α := α) (β := β) (d := d) (d' := d')
   have h_norm : ‖rot3 d α ∘L rot3 d' β - 1‖ = 2 * |Real.sin (γ / 2)| := by
     have h_conj : rot3 d α ∘L rot3 d' β - 1 = u.toLinearIsometry.toContinuousLinearMap ∘L
         (RzL γ - 1) ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
