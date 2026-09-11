@@ -488,8 +488,7 @@ the direction we're projecting ℝ² → ℝ to find that S "sticks out too far"
 other outer-shadow vertices P (which the calculation of H iterates over) in the polygon that lies in ℝ².
 -/
 structure RationalGlobalTheoremPrecondition {ι : Type} [Fintype ι] [Nonempty ι]
-    (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
-    (happrox : κApproxPoly poly.vertices poly_) (p : Pose ℚ)
+    (poly_ : Polyhedron ι (Fin 3 → ℚ)) (p : Pose ℚ)
     (εα εθ₁ εφ₁ εθ₂ εφ₂ : ℚ) : Type where
   j : ι
   p_in_4 : p ∈ fourInterval ℚ
@@ -709,7 +708,7 @@ theorem rational_global {ι : Type} [Fintype ι] [Nonempty ι]
     (hεα : 0 ≤ εα) (hεθ₁ : 0 ≤ εθ₁) (hεφ₁ : 0 ≤ εφ₁) (hεθ₂ : 0 ≤ εθ₂) (hεφ₂ : 0 ≤ εφ₂)
     (poly : GoodPoly ι) (poly_ : Polyhedron ι (Fin 3 → ℚ))
     (happrox : κApproxPoly poly.vertices poly_)
-    (pc : RationalGlobalTheoremPrecondition poly poly_ happrox p εα εθ₁ εφ₁ εθ₂ εφ₂) :
+    (pc : RationalGlobalTheoremPrecondition poly_ p εα εθ₁ εφ₁ εθ₂ εφ₂) :
     ¬ ∃ q, Pose.near p.toReal (εα : ℝ) (εθ₁ : ℝ) (εφ₁ : ℝ) (εθ₂ : ℝ) (εφ₂ : ℝ) q ∧
       RupertPose q poly.hull := by
   set pbar := p.toReal

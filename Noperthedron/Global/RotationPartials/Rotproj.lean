@@ -29,16 +29,15 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
-lemma Differentiable.rotprojRM (S : ℝ³) :
-    Differentiable ℝ fun (x : ℝ³)  ↦ (_root_.rotprojRM (x 1) (x 2) (x 0)) S := by
-  unfold _root_.rotprojRM
+lemma Differentiable.rotR_rotM (S : ℝ³) :
+    Differentiable ℝ fun (x : ℝ³) ↦ rotR (x 0) (rotM (x 1) (x 2) S) := by
   rw [differentiable_piLp]
   intro i
   fin_cases i <;> simp [rotR, rotM, rotM_mat, Matrix.vecHead, Matrix.vecTail] <;> fun_prop
 
 @[fun_prop]
 lemma Differentiable.rotproj_inner (S : ℝ³) (w : ℝ²) : Differentiable ℝ (rotproj_inner S w) :=
-  Differentiable.inner ℝ (Differentiable.rotprojRM S) (by fun_prop)
+  Differentiable.inner ℝ (Differentiable.rotR_rotM S) (by fun_prop)
 
 /--
 The Fréchet derivative of `fun x => rotprojRM (x 1) (x 2) (x 0) S` at `pbar.innerParams`.
@@ -81,7 +80,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
     differentiableAt_rotR_rotM S pbar.innerParams
   -- The derivative is a linear map determined by its values on the standard basis,
   -- and those values were already computed in `FDerivHelpers`.
-  have z1 : HasFDerivAt (fun x => (rotprojRM (x.ofLp 1) (x.ofLp 2) (x.ofLp 0)) S)
+  have z1 : HasFDerivAt (fun x : ℝ³ => rotR (x.ofLp 0) (rotM (x.ofLp 1) (x.ofLp 2) S))
       (rotprojRM' pbar S) pbar.innerParams := by
     have h0 : pbar.innerParams.ofLp 0 = pbar.α := by simp [Pose.innerParams]
     have h1 : pbar.innerParams.ofLp 1 = pbar.θ₁ := by simp [Pose.innerParams]
@@ -99,7 +98,7 @@ lemma HasFDerivAt.rotproj_inner (pbar : Pose ℝ) (S : ℝ³) (w : ℝ²) :
     exact hfd ▸ hdiff.hasFDerivAt
 
   have step : (rotproj_inner' pbar S w) = ((fderivInnerCLM ℝ
-      ((rotprojRM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) (pbar.innerParams.ofLp 0)) S, w)).comp
+      (rotR (pbar.innerParams.ofLp 0) (rotM (pbar.innerParams.ofLp 1) (pbar.innerParams.ofLp 2) S), w)).comp
       ((rotprojRM' pbar S).prod 0)) := by
     simp only [rotproj_inner', Pose.innerParams, Matrix.cons_val_zero, Matrix.cons_val_one]
     rfl

@@ -139,10 +139,10 @@ function-level formulas for the partial derivatives of `rotproj_inner`,
 eliminating the `funext`/`congrArg` boilerplate at each use site.
 -/
 
-/-- Function-level form of `rotproj_inner_eq`. -/
+/-- `rotproj_inner` as a lambda over `E 3`. -/
 private lemma rotproj_inner_funext (S : ℝ³) (w : ℝ²) :
     rotproj_inner S w = fun z : E 3 => ⟪rotR (z.ofLp 0) (rotM (z.ofLp 1) (z.ofLp 2) S), w⟫ :=
-  funext fun z => rotproj_inner_eq S w z
+  rfl
 
 lemma nth_partial_rotproj_inner_e0 (S : ℝ³) (w : ℝ²) :
     nth_partial 0 (rotproj_inner S w) =

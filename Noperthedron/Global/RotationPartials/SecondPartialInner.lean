@@ -249,7 +249,7 @@ lemma isRotDerivFam_rotproj_inner (S : ℝ³) (w : ℝ²) :
     IsRotDerivFam S w (rotproj_inner S w) := by
   rw [show rotproj_inner S w = fun y : E 3 =>
       ⟪(cond false rotR' rotR) (y.ofLp 0) (rotMFam 0 0 (y.ofLp 1) (y.ofLp 2) S), w⟫ from
-    funext fun y => rotproj_inner_eq S w y]
+    rfl]
   exact .base false 0 0
 
 /-- Every family member is pointwise bounded by `‖S‖` (for unit `w`). -/

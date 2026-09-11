@@ -18,37 +18,14 @@ namespace GlobalTheorem
 
 private abbrev E (n : ℕ) := EuclideanSpace ℝ (Fin n)
 
-private lemma f_le_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty) (w : E n → ℝ) (hw1 : ∀ y ∈ V, 0 ≤ w y)
-      (f : E n →ₗ[ℝ] ℝ) :
-  ↑(∑ x ∈ V, w x * f x) ≤ ∑ x ∈ V, ↑(w x) * (Finset.image (⇑f) V).max' (by simp [Finset.image_nonempty]; exact Vne) := by
-  have fx_le_fvmax (x : V) : f x ≤ (Finset.image f V).max' (by simp [Finset.image_nonempty]; exact Vne) := by
-    refine Finset.le_max' _ _ ?_
-    simp only [Finset.mem_image]
-    exact ⟨x, Finset.coe_mem x, rfl⟩
-  refine Finset.sum_le_sum ?_
-  intro x hx
-  grw [fx_le_fvmax ⟨x, hx⟩]
-  exact hw1 x hx
-
-theorem finset_hull_linear_max {n : ℕ} {V : Finset (E n)} (Vne : V.Nonempty)
-    (S : E n) (hs : S ∈ convexHull ℝ V) (f : E n →ₗ[ℝ] ℝ) :
-    f S ≤ (V.image f).max' (Finset.image_nonempty.mpr Vne) := by
-  have Vine : (V.image f).Nonempty := by simp [Finset.image_nonempty]; exact Vne
-  have hs_orig := hs
-  rw [Finset.convexHull_eq] at hs
-  obtain ⟨w, hw1, hw2, hw3⟩ := hs
-  calc
-    (f S) = (f (∑ i ∈ V, w i • id i)) := by rw [← hw3, Finset.centerMass_eq_of_sum_1 V id hw2]
-    _       = ∑ x ∈ V, w x * f x := by simp
-    _       ≤ ∑ x ∈ V, w x * ((Finset.image f V).max' Vine) := f_le_max Vne w hw1 f
-    _       = (∑ x ∈ V, w x) * ((Finset.image f V).max' Vine) := by rw [← Finset.sum_mul]
-    _       = (Finset.image f V).max' _ := by rw [hw2]; simp
-
 /- [SY25] Lemma 18 -/
 theorem hull_scalar_prod {n : ℕ} (V : Finset (E n)) (Vne : V.Nonempty)
     (S : E n) (hs : S ∈ convexHull ℝ V) (w : E n) :
     ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) (Finset.image_nonempty.mpr Vne) := by
-  exact finset_hull_linear_max Vne S hs (InnerProductSpace.toDual ℝ (E n) w |>.toLinearMap)
+  obtain ⟨v, hv, hle⟩ :=
+    ((innerSL ℝ w).toLinearMap.convexOn convex_univ).exists_ge_of_mem_convexHull
+      (Set.subset_univ _) hs
+  exact hle.trans (Finset.le_max' _ _ (Finset.mem_image_of_mem _ hv))
 
 -- rotproj_inner, rotproj_outer, rotation_partials_exist, rotation_partials_exist_outer
 -- are now imported from Noperthedron.Global.Definitions
@@ -123,28 +100,11 @@ def GlobalTheoremPrecondition.S
     (hp : GlobalTheoremPrecondition poly p εα εθ₁ εφ₁ εθ₂ εφ₂) : ℝ³ :=
   poly.vertices.v hp.Si
 
-noncomputable
-def GlobalTheoremPrecondition.Sval
-    {ι : Type} [Fintype ι] [Nonempty ι]
-    {poly : GoodPoly ι} {p : Pose ℝ} {εα εθ₁ εφ₁ εθ₂ εφ₂ : ℝ}
-    (hp : GlobalTheoremPrecondition poly p εα εθ₁ εφ₁ εθ₂ εφ₂) (q : Pose ℝ) : ℝ :=
-    ⟪hp.w, q.inner hp.S⟫
-
 theorem GlobalTheoremPrecondition.norm_S_le_one
     {ι : Type} [Fintype ι] [Nonempty ι]
     {poly : GoodPoly ι} {p : Pose ℝ} {εα εθ₁ εφ₁ εθ₂ εφ₂ : ℝ}
     (hp : GlobalTheoremPrecondition poly p εα εθ₁ εφ₁ εθ₂ εφ₂) : ‖hp.S‖ ≤ 1 :=
   poly.vertex_radius_le_one hp.Si
-
-noncomputable
-def imgInner (p : Pose ℝ) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
-  V.image fun P => ⟪w, p.inner P⟫
-
-noncomputable
-def maxInner {ι : Type} [Fintype ι] [ne : Nonempty ι]
-    (p : Pose ℝ) (poly : GoodPoly ι) (w : ℝ²) : ℝ :=
-  (imgInner p (Finset.image poly.vertices.v Finset.univ) w).max' (by
-    simp only [imgInner, Finset.image_nonempty, Finset.univ_nonempty_iff]; exact ne)
 
 noncomputable
 def imgOuter (p : Pose ℝ) (V : Finset ℝ³) (w : ℝ²) : Finset ℝ :=
@@ -156,45 +116,35 @@ def maxOuter {ι : Type} [Fintype ι] [ne : Nonempty ι]
   (imgOuter p (Finset.image poly.vertices.v Finset.univ) w).max' (by
     simp only [imgOuter, Finset.image_nonempty, Finset.univ_nonempty_iff]; exact ne)
 
-/--
-This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is:
-
-"As noted before, Rupert’s condition and Lemma 18 imply in particular that
-max_{P} ⟪ R(α) M(θ₁, φ₁), P, w ⟫ < max_{P} ⟪ M(θ₂, φ₂), P, w ⟫"
--/
 private lemma hull_eq_convexHull_finset {ι : Type} [Fintype ι] [Nonempty ι]
     (poly : GoodPoly ι) :
     poly.hull = convexHull ℝ ↑(Finset.image poly.vertices.v Finset.univ) := by
   simp only [GoodPoly.hull, Polyhedron.hull, Finset.coe_image, Finset.coe_univ, Set.image_univ]
   congr 1
 
+/--
+This is where we use hull_scalar_prod. The text in [SY25] this corresponds to is:
+
+"As noted before, Rupert’s condition and Lemma 18 imply in particular that
+max_{P} ⟪ R(α) M(θ₁, φ₁), P, w ⟫ < max_{P} ⟪ M(θ₂, φ₂), P, w ⟫"
+
+At a Rupert pose, every inner-projected vertex is dominated by the outer maximum.
+-/
 theorem global_theorem_le_reasoning {ι : Type} [Fintype ι] [ne : Nonempty ι] (p : Pose ℝ)
     (poly : GoodPoly ι)
-    (h_rupert : RupertPose p poly.hull) (w : ℝ²) :
-    maxInner p poly w ≤ maxOuter p poly w
-    := by
+    (h_rupert : RupertPose p poly.hull) (w : ℝ²) (i : ι) :
+    ⟪w, p.inner (poly.vertices.v i)⟫ ≤ maxOuter p poly w := by
   let verts := Finset.image poly.vertices.v Finset.univ
   have verts_ne : verts.Nonempty := by
     simp only [verts, Finset.image_nonempty, Finset.univ_nonempty_iff]; exact ne
   have h_rupert' : RupertPose p (convexHull ℝ ↑verts) := by
     rwa [← hull_eq_convexHull_finset]
-  simp only [maxInner]
-  refine Finset.max'_le _ _ _ ?_
-  intro y hy
-  simp only [maxOuter, imgOuter]
-  simp only [imgInner] at hy
-  obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hy
-  change ⟪w, p.inner v⟫ ≤ (verts.image (⟪w, p.outer ·⟫)).max' _
-  convert_to ⟪w, p.inner v⟫ ≤ ((verts.image p.outer).image (⟪w, ·⟫)).max' (by
-      simp only [Finset.image_nonempty]; exact verts_ne)
-  · simp [Finset.image_image]; rfl
-  let S := p.inner v
-  let V := verts.image p.outer
-  have Vne : V.Nonempty := by simp only [V, Finset.image_nonempty]; exact verts_ne
-  change ⟪w, S⟫ ≤ Finset.max' (V.image (⟪w, ·⟫)) _
-  refine hull_scalar_prod V Vne S ?_ w
-  simp only [Finset.coe_image, V, S]
-  exact p.is_rupert_imp_inner_in_outer verts h_rupert' v hv
+  have hmem := p.is_rupert_imp_inner_in_outer verts h_rupert' _
+    (Finset.mem_image_of_mem _ (Finset.mem_univ i))
+  rw [← Finset.coe_image] at hmem
+  refine (hull_scalar_prod _ (Finset.image_nonempty.mpr verts_ne) _ hmem w).trans_eq ?_
+  simp only [maxOuter, imgOuter, verts, Finset.image_image]
+  rfl
 
 lemma rotproj_inner_pose_eq {S : ℝ³} {w : ℝ²} (p : Pose ℝ) : rotproj_inner S w p.innerParams = ⟪p.inner S, w⟫ := by
   simp only [rotproj_inner, Pose.innerParams, Matrix.cons_val_zero, Matrix.cons_val]
@@ -330,7 +280,7 @@ lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
     (p_near_pbar : Pose.near pbar εα εθ₁ εφ₁ εθ₂ εφ₂ p)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar εα εθ₁ εφ₁ εθ₂ εφ₂) :
-    G pbar εα εθ₁ εφ₁ pc.S pc.w ≤ pc.Sval p := by
+    G pbar εα εθ₁ εφ₁ pc.S pc.w ≤ ⟪pc.w, p.inner pc.S⟫ := by
   have S_norm_le_one : ‖pc.S‖ ≤ 1 := pc.norm_S_le_one
   have hεv : ∀ i, 0 ≤ ![εα, εθ₁, εφ₁] i := by
     intro i
@@ -356,7 +306,7 @@ lemma global_theorem_inequality_ii {ι : Type} [Fintype ι] [Nonempty ι]
     rotproj_inner_pose_eq pbar, rotproj_inner_pose_eq p] at hz
   simp only [G]
   refine sub_le_of_abs_sub_le_right ?_
-  rw [show pc.Sval p = ⟪p.inner pc.S, pc.w⟫ from real_inner_comm _ _,
+  rw [real_inner_comm (p.inner pc.S) pc.w,
     partials_helper pbar pc.S pc.w εα εθ₁ εφ₁, second_partials_helper pbar pc.S pc.w εα εθ₁ εφ₁]
   have hcube : ‖pc.S‖ * (εα + εθ₁ + εφ₁) ^ 3 / 6 ≤ (εα + εθ₁ + εφ₁) ^ 3 / 6 := by
     nth_rewrite 2 [← one_mul ((εα + εθ₁ + εφ₁) ^ 3)]
@@ -431,14 +381,9 @@ theorem global_theorem_gt_reasoning {ι : Type} [Fintype ι] [Nonempty ι]
     (p_near_pbar : Pose.near pbar εα εθ₁ εφ₁ εθ₂ εφ₂ p)
     (poly : GoodPoly ι)
     (pc : GlobalTheoremPrecondition poly pbar εα εθ₁ εφ₁ εθ₂ εφ₂) :
-    maxInner p poly pc.w > maxOuter p poly pc.w := by
-  have sval_in_img_inner : pc.Sval p ∈ imgInner p (Finset.image poly.vertices.v Finset.univ) pc.w := by
-    simp only [Finset.mem_image, imgInner, GlobalTheoremPrecondition.Sval, Finset.mem_univ,
-      true_and]
-    exact ⟨pc.S, ⟨pc.Si, rfl⟩, rfl⟩
+    ⟪pc.w, p.inner pc.S⟫ > maxOuter p poly pc.w := by
   calc
-    maxInner p poly pc.w
-    _ ≥ pc.Sval p := Finset.le_max' (H2 := sval_in_img_inner)
+    ⟪pc.w, p.inner pc.S⟫
     _ ≥ G pbar εα εθ₁ εφ₁ pc.S pc.w :=
         global_theorem_inequality_ii pbar p εα εθ₁ εφ₁ εθ₂ εφ₂ hεα hεθ₁ hεφ₁ p_near_pbar poly pc
     _ > maxH pbar poly εθ₂ εφ₂ pc.w := pc.exceeds
@@ -458,7 +403,7 @@ theorem global_theorem {ι : Type} [Fintype ι] [Nonempty ι]
   rintro ⟨p, p_near_pbar, p_is_rupert⟩
   have hgt := global_theorem_gt_reasoning pbar p εα εθ₁ εφ₁ εθ₂ εφ₂
     hεα hεθ₁ hεφ₁ hεθ₂ hεφ₂ p_near_pbar poly pc
-  have hle := global_theorem_le_reasoning p poly p_is_rupert pc.w
+  have hle := global_theorem_le_reasoning p poly p_is_rupert pc.w pc.Si
   exact lt_irrefl _ (lt_of_lt_of_le hgt hle)
 
 end GlobalTheorem

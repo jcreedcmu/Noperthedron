@@ -36,8 +36,7 @@ theorem valid_global_imp_no_rupert (row : Row)
     (hrow : row.ValidGlobal) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
   let pℚ := row.interval.centerPose
-  have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition
-             exactPoly pythonPolyQ KappaApprox.exact_κApprox_python pℚ
+  have pc : RationalApprox.GlobalTheorem.RationalGlobalTheoremPrecondition pythonPolyQ pℚ
              row.εα row.εθ₁ row.εφ₁ row.εθ₂ row.εφ₂ := {
     j := row.S_index
     p_in_4 := hrow.center_in_fourQ
