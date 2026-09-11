@@ -135,24 +135,6 @@ structure ValidTable : Type where
   contains_tightInterval :
     (tightInterval : Set (Pose ℝ)) ⊆ ((get 0).interval : Set (Pose ℝ))
 
-lemma cube_fold_nonempty_aux {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :
-   0 < (cubeFold fs b as).length := by
-  match as with
-  | [] => simp [cubeFold]
-  | h :: tl =>
-    simp only [cubeFold, List.length_flatMap]
-    have (f : α → β → β) : 0 < (cubeFold fs (f h b) tl).length := by
-      exact cube_fold_nonempty_aux hfs (f h b) tl
-    refine List.sum_pos _ ?_ (by simpa using hfs)
-    intro x hx
-    simp only [List.mem_map] at hx
-    obtain ⟨f, hf1, hf2⟩ := hx
-    rw [← hf2]
-    exact this f
-
-lemma cube_fold_nonempty {α β : Type} {fs : List (α → β → β)} (hfs : fs ≠ []) (b : β) (as : List α) :
-   1 ≤ (cubeFold fs b as).length := cube_fold_nonempty_aux hfs b as
-
 lemma cube_fold_halves (h : Param) (tl : List Param) (iv : Interval)
     (lower : Param → Interval → Interval)
     (upper : Param → Interval → Interval) :
@@ -160,11 +142,6 @@ lemma cube_fold_halves (h : Param) (tl : List Param) (iv : Interval)
       cubeFold [lower, upper] (lower h iv) tl ++
       cubeFold [lower, upper] (upper h iv) tl := by
   simp [cubeFold]
-
-lemma has_intervals_start_in_table (get : ℕ → Row) (size n : ℕ) (ivs : List Interval)
-    (hivs : 1 ≤ ivs.length) (hi : HasIntervalsAt get size n ivs) : n < size := by
-  unfold HasIntervalsAt at hi
-  simpa using (hi ⟨0, Nat.zero_lt_of_lt hivs⟩).1
 
 lemma has_intervals_concat (get : ℕ → Row) (size start : ℕ) (ivs1 ivs2 : List Interval) :
     HasIntervalsAt get size start (ivs1 ++ ivs2) ↔

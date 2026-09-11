@@ -73,103 +73,93 @@ lemma non_rupert_halves_imp_non_rupert {p : Param} {iv : Interval}
   · exact q1
   · exact q2
 
-/-
-This is a decently big mutual induction over several predicates establishing the validity of our interval checking.
--/
-mutual
+/-!
+## From row validity to "no Rupert pose in the row's box"
 
-theorem has_intervals_imp_no_rupert (get : ℕ → Row) (size : ℕ)
-    (rowsValid : RowsValidAt get size) (n : ℕ) (interval : Interval) (params : List Param)
+Validity constrains each row to refer only to rows with larger IDs (its
+children), so the argument is a strong induction on the number of rows after
+the row in question.  Each helper theorem below takes the induction hypothesis
+`ih` — "no Rupert pose in any row strictly after this one" — as an explicit
+argument; `Row.valid_imp_not_rupert_ix` ties the knot.
+-/
+
+/-- If the `2^|params|` leaves of the cube of halvings of `interval` sit in the
+table at consecutive rows starting at `n`, and none of those rows admits a
+Rupert pose, then neither does `interval`.  Structural induction on `params`. -/
+theorem has_intervals_imp_no_rupert (get : ℕ → Row) (size n : ℕ) (interval : Interval)
+    (params : List Param)
     (hi : HasIntervalsAt get size n
-      (cubeFold [Interval.lower_half, Interval.upper_half] interval params)) :
+      (cubeFold [Interval.lower_half, Interval.upper_half] interval params))
+    (ih : ∀ j, n ≤ j → j < size →
+      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
     ¬ ∃ q ∈ interval.toReal, RupertPose q exactPolyhedron.hull := by
-  match params with
-  | [] =>
-    simp only [cubeFold, HasIntervalsAt] at hi
-    specialize hi ⟨0, by simp⟩
-    simp only [add_zero, List.length_cons, List.length_nil, Nat.reduceAdd, Fin.zero_eta,
-      Fin.isValue, Fin.getElem_fin, Fin.val_eq_zero, List.getElem_cons_zero] at hi
-    obtain ⟨hn, he⟩ := hi
-    change ¬∃ q ∈ interval.toReal, RupertPose q exactPolyhedron.hull
+  induction params generalizing n interval with
+  | nil =>
+    obtain ⟨hn, he⟩ := hi ⟨0, by simp [cubeFold]⟩
+    simp only [add_zero, cubeFold, Fin.getElem_fin, List.getElem_cons_zero] at hn he
     rw [← he]
-    exact Row.valid_imp_not_rupert_ix get size rowsValid n hn
-  | h::tl =>
+    exact ih n le_rfl hn
+  | cons h tl ihp =>
     rw [cube_fold_halves, has_intervals_concat] at hi
     obtain ⟨h1, h2⟩ := hi
-    obtain q1 := has_intervals_imp_no_rupert get size rowsValid _ _ tl h1
-    obtain q2 := has_intervals_imp_no_rupert get size rowsValid _ _ tl h2
-    exact non_rupert_halves_imp_non_rupert q1 q2
-termination_by (size - n, 4, params.length)
-decreasing_by
-  · right; left; norm_num
-  · right; right; simp only [List.length_cons, lt_add_iff_pos_right, zero_lt_one]
-  · left;
-    gcongr;
-    · refine has_intervals_start_in_table get size n _ ?_ h1
-      apply cube_fold_nonempty (hfs := by simp)
-    · grw [← cube_fold_nonempty (hfs := by simp)];
-      exact lt_add_one n
+    exact non_rupert_halves_imp_non_rupert (ihp _ _ h1 ih)
+      (ihp _ _ h2 fun j hj => ih j (by omega))
 
+theorem valid_param_split_imp_no_rupert (get : ℕ → Row) (size : ℕ) (row : Row)
+    (p : Param) (h : Row.ValidSplitParamAt get size row p)
+    (ih : ∀ j, row.ID < j → j < size →
+      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
+    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
+  obtain ⟨hid, hkids, hnzk, hkiv⟩ := h
+  refine non_rupert_parts_imp_non_rupert p row.nrChildren (hN := ⟨hnzk⟩) fun n => ?_
+  rw [← hkiv n]
+  exact ih _ (by omega) (by omega)
+
+theorem valid_single_param_split_imp_no_rupert (get : ℕ → Row) (size : ℕ) (row : Row)
+    (hr : Row.ValidSingleParamSplitAt get size row)
+    (ih : ∀ j, row.ID < j → j < size →
+      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
+    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
+  obtain ⟨p, -, h⟩ := hr
+  exact valid_param_split_imp_no_rupert get size row p h ih
+
+theorem valid_full_split_imp_no_rupert (get : ℕ → Row) (size : ℕ) (row : Row)
+    (hr : Row.ValidFullSplitAt get size row)
+    (ih : ∀ j, row.ID < j → j < size →
+      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
+    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
+  obtain ⟨-, -, hgt, hi⟩ := hr
+  exact has_intervals_imp_no_rupert get size row.IDfirstChild row.interval _ hi
+    fun j hj => ih j (by omega)
+
+theorem valid_split_imp_no_rupert (get : ℕ → Row) (size : ℕ) (row : Row)
+    (hr : row.ValidSplitAt get size)
+    (ih : ∀ j, row.ID < j → j < size →
+      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
+    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
+  obtain ⟨-, hr | hr⟩ := hr
+  · exact valid_single_param_split_imp_no_rupert get size row hr ih
+  · exact valid_full_split_imp_no_rupert get size row hr ih
+
+/-- No row of a valid table admits a Rupert pose.  Strong induction on
+`size - i`: a split row only refers to rows with larger IDs, and leaves are
+handled by the global/local theorems. -/
 theorem Row.valid_imp_not_rupert_ix
     (get : ℕ → Row) (size : ℕ) (rowsValid : RowsValidAt get size)
     (i : ℕ) (hi : i < size) :
     ¬ ∃ q ∈ (get i).interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨rowID, rowValid, _⟩ := rowsValid ⟨i, hi⟩
+  induction hk : size - i using Nat.strongRecOn generalizing i with
+  | ind k ih =>
+  obtain ⟨rowID, rowValid, -⟩ := rowsValid ⟨i, hi⟩
   have rowID' : (get i).ID = i := rowID
-  have rowLt : (get i).ID < size := by omega
+  have ih' : ∀ j, (get i).ID < j → j < size →
+      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull :=
+    fun j hj hjs => ih (size - j) (by omega) j hjs rfl
   rcases rowValid with split | global | localRow | localRow₂
-  · exact valid_split_imp_no_rupert get size rowsValid (get i) split rowLt
+  · exact valid_split_imp_no_rupert get size (get i) split ih'
   · exact valid_global_imp_no_rupert (get i) global
   · exact valid_local_imp_no_rupert (get i) localRow
   · exact valid_local₂_imp_no_rupert (get i) localRow₂
-termination_by (size - i, 3, 0)
-decreasing_by rw [rowID']; grind
-
-theorem valid_split_imp_no_rupert (get : ℕ → Row) (size : ℕ)
-    (rowsValid : RowsValidAt get size) (row : Row)
-    (hr : row.ValidSplitAt get size) (hlt : row.ID < size) :
-    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨_, hr⟩ := hr
-  rcases hr with hr' | ⟨_, _, hgt, hr'⟩
-  · exact valid_single_param_split_imp_no_rupert get size rowsValid row hr'
-  · exact valid_full_split_imp_no_rupert get size rowsValid row hgt hlt hr'
-termination_by (size - row.ID, 2, 0)
-
-theorem valid_single_param_split_imp_no_rupert (get : ℕ → Row) (size : ℕ)
-    (rowsValid : RowsValidAt get size) (row : Row)
-    (hr : Row.ValidSingleParamSplitAt get size row) :
-    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨p, -, h⟩ := hr
-  exact valid_param_split_imp_no_rupert get size rowsValid row p h
-termination_by (size - row.ID, 1, 0)
-
-theorem valid_full_split_imp_no_rupert (get : ℕ → Row) (size : ℕ)
-    (rowsValid : RowsValidAt get size) (row : Row)
-    (_hgt : row.ID < row.IDfirstChild)
-    (_hlt : row.ID < size)
-    (hi : HasIntervalsAt get size row.IDfirstChild
-      (cubeFold [Interval.lower_half, Interval.upper_half] row.interval Param.splitOrder)) :
-    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  exact has_intervals_imp_no_rupert get size rowsValid row.IDfirstChild row.interval _ hi
-termination_by (size - row.ID, 1, 0)
-decreasing_by left; exact Nat.sub_lt_sub_left _hlt _hgt
-
-theorem valid_param_split_imp_no_rupert (get : ℕ → Row) (size : ℕ)
-    (rowsValid : RowsValidAt get size) (row : Row)
-    (p : Param) (h : Row.ValidSplitParamAt get size row p) :
-    ¬∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨hid, hkids, hnzk, hkiv⟩ := h
-  refine non_rupert_parts_imp_non_rupert p row.nrChildren (hN := ⟨hnzk⟩) ?_
-  intro n
-  rw [← hkiv n]
-  clear hkiv hnzk
-  refine Row.valid_imp_not_rupert_ix get size rowsValid (row.IDfirstChild + n) ?_
-  grind
-
-termination_by (size - row.ID, 0, 0)
-decreasing_by all_goals grind
-
-end
 
 theorem Row.valid_imp_not_rupert
     (get : ℕ → Row) (size : ℕ) (rowsValid : RowsValidAt get size)
