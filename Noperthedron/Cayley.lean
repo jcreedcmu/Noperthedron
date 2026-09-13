@@ -369,6 +369,69 @@ public theorem BalancedSupport.AxisAngle.cayley_ratio_eq
       |Real.sin a.angle| * Real.sqrt (x ^ 2 + y ^ 2 + z ^ 2) :=
   a.cayley_ratio_eq_of_rotation_eq x y z rfl
 
+/-- Operator-norm distance from identity of a Cayley rotation is bounded by 2 * ‖w‖. -/
+public theorem cayleyMatrix_sub_one_opNorm_le (x y z : ℝ) :
+    ‖(cayleyMatrix x y z).toEuclideanLin.toContinuousLinearMap - 1‖ ≤
+      2 * Real.sqrt (x ^ 2 + y ^ 2 + z ^ 2) := by
+  let Q := (cayleyMatrix x y z).toEuclideanLin.toContinuousLinearMap
+  obtain ⟨a⟩ := BalancedSupport.exists_axisAngle (cayleyMatrix x y z) (cayleyMatrix_mem_SO3 x y z)
+  let s := x ^ 2 + y ^ 2 + z ^ 2
+  have hs : 0 ≤ s := by
+    dsimp only [s]
+    positivity
+  have hdenom : cayleyDenom x y z = 1 + s := by
+    dsimp only [s]
+    unfold cayleyDenom
+    ring
+  have hcos : Real.cos a.angle = (1 - s) / cayleyDenom x y z := by
+    have htrace : Matrix.trace (cayleyMatrix x y z) =
+        1 + 2 * Real.cos a.angle := by
+      calc
+        Matrix.trace (cayleyMatrix x y z) = LinearMap.trace ℝ ℝ³
+            (cayleyMatrix x y z).toEuclideanLin := by
+          simp only [Matrix.toLpLin_eq_toLin, Matrix.trace_toLin_eq]
+        _ = LinearMap.trace ℝ ℝ³
+            (cayleyMatrix x y z).toEuclideanLin.toContinuousLinearMap := by
+          congr 1
+        _ = LinearMap.trace ℝ ℝ³ Q := rfl
+        _ = 1 + 2 * Real.cos a.angle := a.linear_trace_eq
+    rw [trace_cayleyMatrix] at htrace
+    rw [show x ^ 2 + y ^ 2 + z ^ 2 = s by rfl] at htrace
+    field_simp [cayleyDenom_ne] at htrace ⊢
+    rw [hdenom] at htrace ⊢
+    nlinarith
+  have hnormsq : ‖Q - 1‖ ^ 2 = 2 * (1 - Real.cos a.angle) := by
+    have h_norm := a.norm_sub_id
+    rw [h_norm, mul_pow, sq_abs, Real.sin_sq, Real.cos_sq]
+    ring_nf
+  have hle : ‖Q - 1‖ ^ 2 ≤ (2 * Real.sqrt s) ^ 2 := by
+    rw [hnormsq, hcos, hdenom]
+    have hdiv : 2 * (1 - (1 - s) / (1 + s)) = 4 * s / (1 + s) := by
+      have : 1 + s ≠ 0 := by positivity
+      field_simp
+      ring
+    rw [hdiv]
+    rw [mul_pow, Real.sq_sqrt hs]
+    have hpos : 0 ≤ 4 * s := by positivity
+    have hden_ge : 1 ≤ 1 + s := by linarith
+    have : 4 * s / (1 + s) ≤ 4 * s := by
+      exact div_le_self hpos hden_ge
+    linarith
+  have hnonneg_rhs : 0 ≤ 2 * Real.sqrt s := by positivity
+  exact (sq_le_sq₀ (norm_nonneg _) hnonneg_rhs).1 hle
+
+/-- Operator-norm distance from identity of a Cayley rotation is bounded by 2 * r
+when the Cayley parameters satisfy `x^2 + y^2 + z^2 ≤ r^2`. -/
+public theorem cayleyMatrix_sub_one_opNorm_le_of_norm_sq_le
+    (x y z r : ℝ) (hr : 0 ≤ r) (hsq : x ^ 2 + y ^ 2 + z ^ 2 ≤ r ^ 2) :
+    ‖(cayleyMatrix x y z).toEuclideanLin.toContinuousLinearMap - 1‖ ≤ 2 * r := by
+  have hbase := cayleyMatrix_sub_one_opNorm_le x y z
+  have hsqrt : Real.sqrt (x ^ 2 + y ^ 2 + z ^ 2) ≤ r := by
+    rw [← Real.sqrt_sq hr]
+    exact Real.sqrt_le_sqrt hsq
+  linarith [hbase, hsqrt]
+
 end Noperthedron
 
 end
+
