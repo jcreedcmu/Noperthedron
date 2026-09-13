@@ -14,6 +14,7 @@ workers=${2:-8}
 tube_radius="51/10000"
 target_c="26/10000"
 max_depth=28
+max_nodes=100000
 
 echo "=== Generating Certified Local View Tables for Nopert #229 ==="
 echo "Artifact Directory: $artifact_dir"
@@ -21,6 +22,7 @@ echo "Tube Radius:        $tube_radius (0.0051)"
 echo "Target Margin c:    $target_c (0.0026)"
 echo "Workers:            $workers"
 echo "Max Depth:          $max_depth"
+echo "Max Nodes:          $max_nodes"
 
 pack_local() {
   local index=$1
@@ -45,6 +47,7 @@ for child in 0 1 2 3; do
     --tube-radius "$tube_radius" \
     --target-c "$target_c" \
     --max-depth "$max_depth" \
+    --max-nodes "$max_nodes" \
     --workers "$workers" \
     --resume
 
