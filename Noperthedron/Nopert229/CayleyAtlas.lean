@@ -27,6 +27,10 @@ def chartMatrix (chart : ChartIndex) : Matrix (Fin 3) (Fin 3) ℝ :=
     if i ≠ j then 0
     else if chart.val = 0 ∨ chart.val = i.val + 1 then 1 else -1
 
+theorem chartMatrix_zero : chartMatrix 0 = 1 := by
+  ext i j
+  fin_cases i <;> fin_cases j <;> rfl
+
 theorem chartMatrix_mem_SO3 (chart : ChartIndex) :
     chartMatrix chart ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
   rw [Matrix.mem_specialOrthogonalGroup_iff,

@@ -86,9 +86,23 @@ def Box.entryAbsUpper (box : Box) (i j : Fin 3) : ℚ :=
 def Box.mismatchFrobeniusSqUpper (box : Box) : ℚ :=
   ∑ i, ∑ j, box.entryAbsUpper i j ^ 2
 
+def Box.coordinateAbsUpper (box : Box) (i : Fin 3) : ℚ :=
+  |(box.variableBalls i).center| + (box.variableBalls i).radius
+
+def Box.identityRadiusSqUpper (box : Box) : ℚ :=
+  box.coordinateAbsUpper 0 ^ 2 +
+  box.coordinateAbsUpper 1 ^ 2 +
+  box.coordinateAbsUpper 2 ^ 2
+
+def Box.identityMismatchRadius (box : Box) : ℚ :=
+  2 * RationalApprox.sqrtℚUp16 box.identityRadiusSqUpper
+
 def Box.mismatchRadius (box : Box) : ℚ :=
-  RationalApprox.sqrtℚUp16 box.mismatchFrobeniusSqUpper +
-    LocalCertificate.symmetryError
+  if box.chart = 0 ∧ box.symmetryIndex = 0 then
+    box.identityMismatchRadius
+  else
+    RationalApprox.sqrtℚUp16 box.mismatchFrobeniusSqUpper +
+      LocalCertificate.symmetryError
 
 @[mk_iff]
 structure Box.Valid (box : Box) : Prop where
@@ -156,6 +170,47 @@ theorem Box.eval_mismatch_abs_le (box : Box) {p : AtlasPose ℝ}
     |(box.mismatchQuadratic i j).evalReal p.x p.y p.z| ≤
       (box.entryAbsUpper i j : ℝ) := by
   exact abs_le_center_abs_add_radius (box.mismatchBall_holds hp i j)
+
+theorem Box.eval_coordinate_abs_le (box : Box) {p : AtlasPose ℝ}
+    (hp : p ∈ box.interval.toReal) (i : Fin 3) :
+    |(![p.x, p.y, p.z] i)| ≤ (box.coordinateAbsUpper i : ℝ) := by
+  exact abs_le_center_abs_add_radius (box.variableBalls_hold hp i)
+
+theorem Box.identityRadiusSqUpper_nonneg (box : Box) :
+    0 ≤ box.identityRadiusSqUpper := by
+  unfold Box.identityRadiusSqUpper
+  positivity
+
+theorem Box.eval_identityRadiusSq_le (box : Box) {p : AtlasPose ℝ}
+    (hp : p ∈ box.interval.toReal) :
+    p.x ^ 2 + p.y ^ 2 + p.z ^ 2 ≤ (box.identityRadiusSqUpper : ℝ) := by
+  have h0 := box.eval_coordinate_abs_le hp 0
+  have h1 := box.eval_coordinate_abs_le hp 1
+  have h2 := box.eval_coordinate_abs_le hp 2
+  have hu0 : 0 ≤ (box.coordinateAbsUpper 0 : ℝ) := (abs_nonneg _).trans h0
+  have hu1 : 0 ≤ (box.coordinateAbsUpper 1 : ℝ) := (abs_nonneg _).trans h1
+  have hu2 : 0 ≤ (box.coordinateAbsUpper 2 : ℝ) := (abs_nonneg _).trans h2
+  have hs0 : p.x ^ 2 ≤ (box.coordinateAbsUpper 0 : ℝ) ^ 2 := by
+    have hx : |p.x| ≤ (box.coordinateAbsUpper 0 : ℝ) := by simpa using h0
+    simpa only [sq_abs] using (sq_le_sq₀ (abs_nonneg _) hu0).2 hx
+  have hs1 : p.y ^ 2 ≤ (box.coordinateAbsUpper 1 : ℝ) ^ 2 := by
+    have hy : |p.y| ≤ (box.coordinateAbsUpper 1 : ℝ) := by simpa using h1
+    simpa only [sq_abs] using (sq_le_sq₀ (abs_nonneg _) hu1).2 hy
+  have hs2 : p.z ^ 2 ≤ (box.coordinateAbsUpper 2 : ℝ) ^ 2 := by
+    have hz : |p.z| ≤ (box.coordinateAbsUpper 2 : ℝ) := by simpa using h2
+    simpa only [sq_abs] using (sq_le_sq₀ (abs_nonneg _) hu2).2 hz
+  have hsum : p.x ^ 2 + p.y ^ 2 + p.z ^ 2 ≤
+      (box.coordinateAbsUpper 0 : ℝ) ^ 2 +
+      (box.coordinateAbsUpper 1 : ℝ) ^ 2 +
+      (box.coordinateAbsUpper 2 : ℝ) ^ 2 := by linarith
+  have heq : (box.identityRadiusSqUpper : ℝ) =
+      (box.coordinateAbsUpper 0 : ℝ) ^ 2 +
+      (box.coordinateAbsUpper 1 : ℝ) ^ 2 +
+      (box.coordinateAbsUpper 2 : ℝ) ^ 2 := by
+    unfold Box.identityRadiusSqUpper
+    push_cast
+    rfl
+  linarith
 
 theorem Box.eval_mismatch_sum_sq_le (box : Box) {p : AtlasPose ℝ}
     (hp : p ∈ box.interval.toReal) :
@@ -297,33 +352,64 @@ theorem Box.rationalRelativeMismatchCLM_eq (box : Box)
     Matrix.toEuclideanLin_apply, Matrix.sub_mulVec]
   rfl
 
+theorem Box.identityMismatchRadius_norm_le (box : Box) {p : AtlasPose ℝ}
+    (hp : p ∈ box.interval.toReal) (hchart : box.chart = 0)
+    (hsym : box.symmetryIndex = 0) :
+    ‖box.exactRelativeMismatchCLM p‖ ≤ (box.identityMismatchRadius : ℝ) := by
+  have heq : box.exactRelativeMismatchCLM p =
+      (cayleyMatrix p.x p.y p.z).toEuclideanLin.toContinuousLinearMap - 1 := by
+    unfold Box.exactRelativeMismatchCLM Box.relativeCLM
+    rw [hchart, hsym, chartMatrix_zero, Matrix.one_mul, so3CLM_symmetry_zero]
+  rw [heq]
+  have hsq := box.eval_identityRadiusSq_le hp
+  have hsqrt_nonneg : 0 ≤ (RationalApprox.sqrtℚUp16 box.identityRadiusSqUpper : ℝ) := by
+    exact_mod_cast RationalApprox.sqrtℚUp16_nonneg box.identityRadiusSqUpper
+  have hsq_le : p.x ^ 2 + p.y ^ 2 + p.z ^ 2 ≤
+      (RationalApprox.sqrtℚUp16 box.identityRadiusSqUpper : ℝ) ^ 2 := by
+    have hbound := RationalApprox.le_mul_self_sqrtℚUp16 box.identityRadiusSqUpper_nonneg
+    have hcast : (box.identityRadiusSqUpper : ℝ) ≤
+        (RationalApprox.sqrtℚUp16 box.identityRadiusSqUpper : ℝ) ^ 2 := by
+      exact_mod_cast (by simpa [pow_two] using hbound)
+    exact hsq.trans hcast
+  have hbound := cayleyMatrix_sub_one_opNorm_le_of_norm_sq_le
+    p.x p.y p.z
+    (RationalApprox.sqrtℚUp16 box.identityRadiusSqUpper : ℝ)
+    hsqrt_nonneg hsq_le
+  calc
+    ‖(cayleyMatrix p.x p.y p.z).toEuclideanLin.toContinuousLinearMap - 1‖ ≤
+        2 * (RationalApprox.sqrtℚUp16 box.identityRadiusSqUpper : ℝ) := hbound
+    _ = (box.identityMismatchRadius : ℝ) := by
+      unfold Box.identityMismatchRadius
+      push_cast
+      rfl
+
 theorem Box.exactRelativeMismatchCLM_norm_le (box : Box)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) :
     ‖box.exactRelativeMismatchCLM p‖ ≤ (box.mismatchRadius : ℝ) := by
-  have hrat := box.rationalRelativeMismatchCLM_norm_le hp
-  have hsym :=
-    LocalCertificate.symmetryQCLM_difference_norm_bounded box.symmetryIndex
-  have hdecomp : box.exactRelativeMismatchCLM p =
-      box.rationalRelativeMismatchCLM p +
-        (LocalCertificate.symmetryQCLM box.symmetryIndex -
-          Noperthedron.SnubCube.so3CLM (symmetry box.symmetryIndex)) := by
-    rw [box.rationalRelativeMismatchCLM_eq]
-    unfold Box.exactRelativeMismatchCLM
-    abel
-  rw [hdecomp]
-  calc
-    _ ≤ ‖box.rationalRelativeMismatchCLM p‖ +
-        ‖LocalCertificate.symmetryQCLM box.symmetryIndex -
-          Noperthedron.SnubCube.so3CLM (symmetry box.symmetryIndex)‖ :=
-      norm_add_le _ _
-    _ ≤ (RationalApprox.sqrtℚUp16 box.mismatchFrobeniusSqUpper : ℝ) +
-        (LocalCertificate.symmetryError : ℝ) := by
-      apply add_le_add hrat
-      simpa only [norm_sub_rev] using hsym
-    _ = (box.mismatchRadius : ℝ) := by
-      unfold Box.mismatchRadius
-      push_cast
-      rfl
+  unfold Box.mismatchRadius
+  split_ifs with hzero
+  · exact box.identityMismatchRadius_norm_le hp hzero.1 hzero.2
+  · have hrat := box.rationalRelativeMismatchCLM_norm_le hp
+    have hsym :=
+      LocalCertificate.symmetryQCLM_difference_norm_bounded box.symmetryIndex
+    have hdecomp : box.exactRelativeMismatchCLM p =
+        box.rationalRelativeMismatchCLM p +
+          (LocalCertificate.symmetryQCLM box.symmetryIndex -
+            Noperthedron.SnubCube.so3CLM (symmetry box.symmetryIndex)) := by
+      rw [box.rationalRelativeMismatchCLM_eq]
+      unfold Box.exactRelativeMismatchCLM
+      abel
+    rw [hdecomp]
+    calc
+      _ ≤ ‖box.rationalRelativeMismatchCLM p‖ +
+          ‖LocalCertificate.symmetryQCLM box.symmetryIndex -
+            Noperthedron.SnubCube.so3CLM (symmetry box.symmetryIndex)‖ :=
+        norm_add_le _ _
+      _ ≤ (RationalApprox.sqrtℚUp16 box.mismatchFrobeniusSqUpper : ℝ) +
+          (LocalCertificate.symmetryError : ℝ) := by
+        apply add_le_add hrat
+        simpa only [norm_sub_rev] using hsym
+      _ = _ := by push_cast; rfl
 
 theorem Box.relativeCLM_eq_so3CLM (box : Box) (p : AtlasPose ℝ) :
     box.relativeCLM p =

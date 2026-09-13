@@ -22,6 +22,16 @@ open Noperthedron.BalancedSupport Real
 noncomputable def symmetry (g : OrbitIndex) : SO3 :=
   ⟨Rz_mat (2 * π * (g : ℝ) / 5), MatrixPose.Rz_mat_mem_SO3 _⟩
 
+@[simp] theorem symmetry_zero : symmetry 0 = 1 := by
+  apply Subtype.ext
+  ext i j
+  fin_cases i <;> fin_cases j <;> simp [symmetry, Rz_mat]
+
+@[simp] theorem so3CLM_symmetry_zero :
+    Noperthedron.SnubCube.so3CLM (symmetry 0) = 1 := by
+  ext v
+  simp [Noperthedron.SnubCube.so3CLM]
+
 def symmetryAction (g : OrbitIndex) (i : VertexIndex) : VertexIndex :=
   vertexIndex
     ⟨((orbitIndex i).val + g.val) % 5, Nat.mod_lt _ (by omega)⟩
