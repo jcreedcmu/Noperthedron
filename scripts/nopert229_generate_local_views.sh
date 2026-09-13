@@ -13,7 +13,7 @@ mkdir -p "$artifact_dir"
 workers=${2:-8}
 tube_radius="51/10000"
 target_c="26/10000"
-max_depth=24
+max_depth=28
 
 echo "=== Generating Certified Local View Tables for Nopert #229 ==="
 echo "Artifact Directory: $artifact_dir"
