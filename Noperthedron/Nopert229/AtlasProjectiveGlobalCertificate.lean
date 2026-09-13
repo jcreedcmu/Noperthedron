@@ -290,8 +290,44 @@ def Box.dBound (box : Box) : ℚ :=
       AtlasEdgeCertificate.endpointAbsBound
         box.interval.min.z box.interval.max.z ^ 2
 
+/-!
+Displacement error bound for Nopert #229.
+
+Why this term was tightened:
+Earlier formalizations used the looser legacy bound `RationalApprox.κℚ = 1 / 10^10`,
+giving `displacementError = 300 * box.dBound * 10^-10 ≈ 6e-8`. However, Nopert #229
+exhibits several "difficult" near-contact configurations where the true physical clearance
+margin between inner and outer polyhedra is extremely narrow (on the order of 10^-8 to 10^-7).
+Under the 10^-10 bound, `displacementError` alone consumed virtually all available clearance,
+causing certificates in these critical regions to fail the displacement obligation
+(`displacementError ≤ certifiedDisplacementLower - dBound * defect`) and forcing deep
+subdivision or stalling as `DIFFICULT`.
+
+By using `tightVertexErrorQ = 6 / 10^16` (proved in `TightApproximation.vertex_close_tight`),
+`displacementError` drops to `300 * box.dBound * (6 / 10^16) ≈ 3.6e-13`. This reduces the
+error term by over 166,000×, recovering almost the entire physical clearance margin for
+search and certification.
+
+Tradeoffs:
+1. Rational arithmetic bit-width vs. tree size:
+   Denominators of order 10^16 require slightly larger multiprecision rationals (GMP)
+   during Lean kernel verification compared to 10^10. However, `displacementError` is
+   evaluated only once per leaf cell, making the fractional-microsecond verification cost
+   negligible compared to the exponential tree-size reduction achieved by avoiding unnecessary
+   subdivisions.
+2. Algebraic isolation dependency:
+   The 6/10^16 bound relies on degree-16 polynomial root isolating intervals certified to
+   16 digits in `TightApproximation.lean`. A looser bound like 10^-10 is more generic and
+   cheaper to establish for arbitrary polyhedra, but for #229 the tight bound was already
+   formally verified.
+3. Search sensitivity:
+   A smaller `displacementError` allows the search solver to accept certificates with
+   narrower physical margins. This is fully sound because Lean verifies each leaf in
+   exact rational arithmetic, and double-precision floats in the search kernel easily
+   resolve 10^-13 without losing numerical stability.
+-/
 def Box.displacementError (box : Box) : ℚ :=
-  300 * box.dBound * RationalApprox.κℚ
+  300 * box.dBound * tightVertexErrorQ
 
 @[mk_iff]
 structure Box.Admissible (box : Box) : Prop where
@@ -1268,7 +1304,7 @@ theorem Box.denom_le_dBound (box : Box) {p : AtlasPose ℝ}
 theorem Box.exactDisplacement_sub_approx_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
     ‖box.exactDisplacementVector p i - box.approxDisplacementVector p i‖ ≤
-      2 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+      2 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
   have hrearrange :
       box.exactDisplacementVector p i - box.approxDisplacementVector p i =
         (CayleyAtlas.chartMatrix box.chart *
@@ -1292,20 +1328,20 @@ theorem Box.exactDisplacement_sub_approx_norm_le (box : Box)
           (exactVertex (box.certificate.index i) -
             toR3 (rationalVertex (box.certificate.index i)))‖ :=
       norm_sub_le _ _
-    _ ≤ cayleyDenom p.x p.y p.z * RationalApprox.κ +
-        cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+    _ ≤ cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) +
+        cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
       apply add_le_add
       · exact (AtlasEdgeCertificate.norm_chartNumerator_apply_le
           box.chart p.x p.y p.z _).trans
           (mul_le_mul_of_nonneg_left
-            (exactApproximation.approx (box.innerIndex i))
+            (vertex_close_tight (box.innerIndex i))
             (cayleyDenom_pos p.x p.y p.z).le)
       · rw [norm_smul, Real.norm_eq_abs,
           abs_of_pos (cayleyDenom_pos p.x p.y p.z)]
         exact mul_le_mul_of_nonneg_left
-          (exactApproximation.approx (box.certificate.index i))
+          (vertex_close_tight (box.certificate.index i))
           (cayleyDenom_pos p.x p.y p.z).le
-    _ = 2 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by ring
+    _ = 2 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by ring
 
 theorem Box.exactDisplacementVector_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
@@ -1335,7 +1371,7 @@ theorem Box.exactDisplacementVector_norm_le (box : Box)
 theorem Box.exactContact_sub_approx_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
     ‖box.exactContactVector p i - box.approxContactVector p i‖ ≤
-      10 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+      10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
   have hdecomp :
       box.exactContactVector p i - box.approxContactVector p i =
         cross3 (box.certificate.exactEdge i - box.certificate.approxEdge i)
@@ -1355,30 +1391,30 @@ theorem Box.exactContact_sub_approx_norm_le (box : Box)
         ‖cross3 (box.certificate.approxEdge i)
           (box.exactDisplacementVector p i -
             box.approxDisplacementVector p i)‖ := norm_add_le _ _
-    _ ≤ (2 * RationalApprox.κ) *
+    _ ≤ (2 * (tightVertexErrorQ : ℝ)) *
           (2 * cayleyDenom p.x p.y p.z) +
         (2 * (1 + RationalApprox.κ)) *
-          (2 * cayleyDenom p.x p.y p.z * RationalApprox.κ) := by
+          (2 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ)) := by
       exact add_le_add
         ((cross3_norm_le _ _).trans (mul_le_mul
-          (box.certificate.exactEdge_sub_approx_norm_le i)
+          (box.certificate.exactEdge_sub_approx_tight_norm_le i)
           (box.exactDisplacementVector_norm_le p i)
-          (norm_nonneg _) (by norm_num [RationalApprox.κ])))
+          (norm_nonneg _) (by norm_num [tightVertexErrorQ])))
         ((cross3_norm_le _ _).trans (mul_le_mul
           (box.certificate.approxEdge_norm_le i)
           (box.exactDisplacement_sub_approx_norm_le p i)
-          (norm_nonneg _) (by norm_num [RationalApprox.κ])))
-    _ ≤ 10 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+          (norm_nonneg _) (by norm_num [RationalApprox.κ, tightVertexErrorQ])))
+    _ ≤ 10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
       have hd := (cayleyDenom_pos p.x p.y p.z).le
-      have hk : 0 ≤ RationalApprox.κ := by norm_num [RationalApprox.κ]
+      have hk : 0 ≤ (tightVertexErrorQ : ℝ) := by norm_num [tightVertexErrorQ]
       have hfactor : 4 + 4 * (1 + RationalApprox.κ) ≤ (10 : ℝ) := by
         norm_num [RationalApprox.κ]
       calc
-        _ = cayleyDenom p.x p.y p.z * RationalApprox.κ *
+        _ = cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) *
             (4 + 4 * (1 + RationalApprox.κ)) := by ring
-        _ ≤ cayleyDenom p.x p.y p.z * RationalApprox.κ * 10 :=
+        _ ≤ cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) * 10 :=
           mul_le_mul_of_nonneg_left hfactor (mul_nonneg hd hk)
-        _ = 10 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by ring
+        _ = 10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by ring
 
 theorem Box.exactContactVector_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
@@ -1411,18 +1447,18 @@ theorem Box.contactValue_error (box : Box)
           (box.exactContactVector p i) -
         linearValue (AtlasProjectiveView.normalizedView box.root p)
           (box.approxContactVector p i)| ≤
-      10 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+      10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
   rw [linearValue_eq_inner_toLp, linearValue_eq_inner_toLp,
     ← inner_sub_right]
   calc
     _ ≤ ‖normalizedView3 box.localShell p‖ *
         ‖box.exactContactVector p i - box.approxContactVector p i‖ :=
       abs_real_inner_le_norm _ _
-    _ ≤ 1 * (10 * cayleyDenom p.x p.y p.z * RationalApprox.κ) :=
+    _ ≤ 1 * (10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ)) :=
       mul_le_mul (normalizedView3_norm_le_one box.localShell p hscale)
         (box.exactContact_sub_approx_norm_le p i) (norm_nonneg _)
         (by positivity)
-    _ = 10 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by ring
+    _ = 10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by ring
 
 theorem Box.weightedContact_error (box : Box)
     {p : AtlasPose ℝ} (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
@@ -1433,7 +1469,7 @@ theorem Box.weightedContact_error (box : Box)
             (AtlasProjectiveView.normalizedView box.root p) i *
           linearValue (AtlasProjectiveView.normalizedView box.root p)
             (box.approxContactVector p i)| ≤
-      100 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+      100 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
   let exactWeight := box.certificate.exactWeight box.localShell p i
   let approxWeight := box.certificate.approxWeight
     (AtlasProjectiveView.normalizedView box.root p) i
@@ -1454,31 +1490,31 @@ theorem Box.weightedContact_error (box : Box)
     _ = |exactWeight - approxWeight| * |exactContact| +
         |approxWeight| * |exactContact - approxContact| := by
       rw [abs_mul, abs_mul]
-    _ ≤ (10 * RationalApprox.κ) *
+    _ ≤ (10 * (tightVertexErrorQ : ℝ)) *
           (4 * cayleyDenom p.x p.y p.z) +
         (4 + 10 * RationalApprox.κ) *
-          (10 * cayleyDenom p.x p.y p.z * RationalApprox.κ) := by
+          (10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ)) := by
       exact add_le_add
         (mul_le_mul
-          (box.certificate.exactWeight_sub_approx_abs_le
+          (box.certificate.exactWeight_sub_approx_tight_abs_le
             box.localShell hscale i)
           (box.exactContactValue_abs_le hscale i)
-          (abs_nonneg _) (by norm_num [RationalApprox.κ]))
+          (abs_nonneg _) (by norm_num [tightVertexErrorQ]))
         (mul_le_mul
           (box.certificate.approxWeight_abs_le box.localShell hscale i)
           (box.contactValue_error hscale i)
-          (abs_nonneg _) (by norm_num [RationalApprox.κ]))
-    _ ≤ 100 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+          (abs_nonneg _) (by norm_num [RationalApprox.κ, tightVertexErrorQ]))
+    _ ≤ 100 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
       have hd := (cayleyDenom_pos p.x p.y p.z).le
-      have hk : 0 ≤ RationalApprox.κ := by norm_num [RationalApprox.κ]
-      have hfactor : 80 + 100 * RationalApprox.κ ≤ (100 : ℝ) := by
+      have hk : 0 ≤ (tightVertexErrorQ : ℝ) := by norm_num [tightVertexErrorQ]
+      have hfactor : 40 + 10 * (4 + 10 * RationalApprox.κ) ≤ (100 : ℝ) := by
         norm_num [RationalApprox.κ]
       calc
-        _ = cayleyDenom p.x p.y p.z * RationalApprox.κ *
-            (80 + 100 * RationalApprox.κ) := by ring
-        _ ≤ cayleyDenom p.x p.y p.z * RationalApprox.κ * 100 :=
+        _ = cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) *
+            (40 + 10 * (4 + 10 * RationalApprox.κ)) := by ring
+        _ ≤ cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) * 100 :=
           mul_le_mul_of_nonneg_left hfactor (mul_nonneg hd hk)
-        _ = 100 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by ring
+        _ = 100 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by ring
 
 theorem Box.clearedDisplacement_error (box : Box)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal)
@@ -1507,18 +1543,18 @@ theorem Box.clearedDisplacement_error (box : Box)
               (box.approxContactVector p i)| :=
       Finset.abs_sum_le_sum_abs _ _
     _ ≤ ∑ _i : Fin 3,
-        100 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+        100 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
       apply Finset.sum_le_sum
       intro i _
       exact box.weightedContact_error hscale i
-    _ = 300 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
+    _ = 300 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
       simp
       ring
-    _ ≤ 300 * (box.dBound : ℝ) * RationalApprox.κ := by
-      have hk : 0 ≤ RationalApprox.κ := by norm_num [RationalApprox.κ]
+    _ ≤ 300 * (box.dBound : ℝ) * (tightVertexErrorQ : ℝ) := by
+      have hk : 0 ≤ (tightVertexErrorQ : ℝ) := by norm_num [tightVertexErrorQ]
       nlinarith [box.denom_le_dBound hp]
     _ = (box.displacementError : ℝ) := by
-      simp [Box.displacementError, RationalApprox.κ, RationalApprox.κℚ]
+      simp [Box.displacementError, tightVertexErrorQ]
 
 noncomputable def Box.actualDisplacementVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
