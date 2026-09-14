@@ -14,7 +14,10 @@ atlas port needs no symmetry trig error term (SYMMETRY_ERROR = 0).
 """
 import itertools
 import sys
-from fractions import Fraction as Q
+try:
+    from gmpy2 import mpq as Q
+except ModuleNotFoundError:
+    from fractions import Fraction as Q
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))

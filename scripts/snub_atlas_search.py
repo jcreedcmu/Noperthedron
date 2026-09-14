@@ -14,7 +14,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import snub_atlas_group as group
 import snub_certificate_search as snub
-from fractions import Fraction as Q
+try:
+    from gmpy2 import mpq as Q
+except ModuleNotFoundError:
+    from fractions import Fraction as Q
 
 SNUB_Q = [tuple(Q(c) for c in v) for v in snub.VERTICES_Q]
 

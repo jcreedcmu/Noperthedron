@@ -9,7 +9,11 @@ scales coordinates to lie strictly inside the unit sphere for Lean's GoodPoly.
 from __future__ import annotations
 
 import math
-from fractions import Fraction as Q
+
+try:
+    from gmpy2 import mpq as Q
+except ModuleNotFoundError:
+    from fractions import Fraction as Q
 from typing import Tuple, List
 
 # 1. Base roots from repair214.cc (double precision from ruperts.sqlite nopert_214)

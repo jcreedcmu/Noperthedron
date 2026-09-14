@@ -23,10 +23,10 @@ import math
 import os
 import random
 import sys
-from fractions import Fraction as Q
-
-if os.environ.get("NOPERT_GMPY2"):
-    from gmpy2 import mpq as Q  # noqa: F811 (see nopert214_certificate_search)
+try:
+    from gmpy2 import mpq as Q
+except ModuleNotFoundError:
+    from fractions import Fraction as Q
 
 try:
     import numpy as np
