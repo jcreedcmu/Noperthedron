@@ -11,25 +11,27 @@ fi
 mkdir -p "$artifact_dir"
 
 workers=${2:-8}
-tube_radius="51/10000"
-target_c="26/10000"
+tube_radius="2/10000"
+target_c="1018/10000000"
 max_depth=28
-max_nodes=100000
+max_nodes=500000
 
 echo "=== Generating Certified Local View Tables for Nopert #229 ==="
 echo "Artifact Directory: $artifact_dir"
-echo "Tube Radius:        $tube_radius (0.0051)"
-echo "Target Margin c:    $target_c (0.0026)"
+echo "Tube Radius:        $tube_radius (0.0002)"
+echo "Target Margin c:    $target_c (0.0001018)"
 echo "Workers:            $workers"
 echo "Max Depth:          $max_depth"
 echo "Max Nodes:          $max_nodes"
+
+total_start=$(date +%s)
 
 pack_local() {
   local index=$1
   local input=$2
   local output="$artifact_dir/local-view${index}.pack"
   echo "Packing $input -> $output..."
-  python3 scripts/nopert214_emit_packed_local_view_lean.py \
+  python3 scripts/nopert229_emit_packed_local_view_lean.py \
     "$artifact_dir/$input" /dev/null \
     --table-index "$index" --namespace "GeneratedLocalView${index}Native" \
     --raw-output "$output.new" --raw-only
@@ -40,7 +42,11 @@ pack_local() {
 for child in 0 1 2 3; do
   json_file="local-view-child${child}.json"
   echo ""
+  echo "--------------------------------------------------------"
   echo "--- Processing Initial Child ${child} of Upper Wedge ---"
+  echo "--------------------------------------------------------"
+  child_start=$(date +%s)
+
   python3 scripts/nopert229_certificate_search.py generate-projective-local-view-table \
     "$artifact_dir/$json_file" \
     --initial-child "$child" \
@@ -51,8 +57,24 @@ for child in 0 1 2 3; do
     --workers "$workers" \
     --resume
 
+  child_end=$(date +%s)
+  child_elapsed=$((child_end - child_start))
+  echo "Child ${child} generation finished in ${child_elapsed} seconds."
+
   pack_local "$child" "$json_file"
+
+  # Verify packed table in Lean
+  echo "Verifying local-view${child}.pack in Lean..."
+  .lake/build/bin/checkNopert229Local "$artifact_dir/local-view${child}.pack" "$child"
+  echo "Child ${child} verified successfully in Lean!"
 done
 
+total_end=$(date +%s)
+total_elapsed=$((total_end - total_start))
+
 echo ""
-echo "=== All 4 local view tables generated and packed successfully! ==="
+echo "=========================================================="
+echo "=== All 4 local view tables generated, packed, and verified! ==="
+echo "Total Pipeline Runtime: ${total_elapsed} seconds"
+echo "=========================================================="
+

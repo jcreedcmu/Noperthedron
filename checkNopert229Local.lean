@@ -2,7 +2,7 @@ import Noperthedron.Nopert229.NativeExecutable
 import Noperthedron.Nopert229.PackedLocalViewTree
 
 /-!
-# Executable audit of Nopert #228 local-view chart
+# Executable audit of Nopert #229 local-view chart
 
 This reads the compact runtime artifact and checks the same sparse row
 predicates used by the generated `native_decide` proof, but as one ordinary
