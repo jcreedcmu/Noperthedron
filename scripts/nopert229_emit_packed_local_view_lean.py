@@ -122,6 +122,13 @@ def main():
         data = json.load(source)
     if not data.get("complete"):
         raise SystemExit("refusing to emit an incomplete table")
+    if "chunks" in data:
+        rows = []
+        base_dir = Path(args.input).parent
+        for chunk_name in data["chunks"]:
+            with open(base_dir / chunk_name, "r", encoding="utf-8") as chunk_f:
+                rows.extend(json.load(chunk_f))
+        data["rows"] = rows
     rows = data["rows"]
     if any(row is None for row in rows):
         raise SystemExit("table contains unfilled rows")

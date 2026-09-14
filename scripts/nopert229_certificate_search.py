@@ -5362,6 +5362,13 @@ def generate_projective_local_view_table(
                 saved["max_depth"] > max_depth or
                 saved.get("initial_child") != initial_child):
             raise ValueError("local-view checkpoint parameters do not match")
+        if "chunks" in saved:
+            chunk_rows = []
+            base_dir = os.path.dirname(output_path)
+            for chunk_name in saved["chunks"]:
+                with open(os.path.join(base_dir, chunk_name), "r", encoding="utf-8") as chunk_f:
+                    chunk_rows.extend(json.load(chunk_f))
+            saved["rows"] = chunk_rows
         rows = saved["rows"]
         compact_projective_local_rows(rows)
         stack = [(state[0],
