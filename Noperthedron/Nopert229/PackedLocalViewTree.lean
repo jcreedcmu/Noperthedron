@@ -103,17 +103,44 @@ def readCertificate : Decoder (Fin 4 → AxisCertificate) := do
   let d ← readAxis
   pure ![a, b, c, d]
 
-def readTrianglePath : Nat → AtlasProjectiveView.Triangle Rat →
-    Decoder (AtlasProjectiveView.Triangle Rat)
-  | 0, triangle => pure triangle
-  | length + 1, triangle => do
+structure PrecomputedTriangle where
+  v : Array Rat
+
+def PrecomputedTriangle.toTriangle (pt : PrecomputedTriangle) :
+    AtlasProjectiveView.Triangle Rat :=
+  fun i c => pt.v[3 * i.val + c.val]!
+
+def PrecomputedTriangle.ofTriangle (t : AtlasProjectiveView.Triangle Rat) :
+    PrecomputedTriangle :=
+  let arr : Array Rat := #[
+    t 0 0, t 0 1, t 0 2,
+    t 1 0, t 1 1, t 1 2,
+    t 2 0, t 2 1, t 2 2
+  ]
+  ⟨arr⟩
+
+def stepTriangle (pt : PrecomputedTriangle) (child : Fin 4) :
+    PrecomputedTriangle :=
+  let s := split pt.toTriangle child
+  let arr : Array Rat := #[
+    s 0 0, s 0 1, s 0 2,
+    s 1 0, s 1 1, s 1 2,
+    s 2 0, s 2 1, s 2 2
+  ]
+  ⟨arr⟩
+
+def readTrianglePath : Nat → PrecomputedTriangle →
+    Decoder PrecomputedTriangle
+  | 0, pt => pure pt
+  | length + 1, pt => do
       let child ← readNat
-      readTrianglePath length (split triangle (fin4 child))
+      readTrianglePath length (stepTriangle pt (fin4 child))
 
 def readTriangle (base : AtlasProjectiveView.Triangle Rat) :
     Decoder (AtlasProjectiveView.Triangle Rat) := do
   let length ← readNat
-  readTrianglePath length base
+  let pt ← readTrianglePath length (PrecomputedTriangle.ofTriangle base)
+  pure pt.toTriangle
 
 def readRow (base : AtlasProjectiveView.Triangle Rat) : Decoder Row := do
   let tag ← readNat
