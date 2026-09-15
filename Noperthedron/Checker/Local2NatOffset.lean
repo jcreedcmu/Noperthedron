@@ -98,7 +98,7 @@ lemma nUpOZ84_nonneg (S : ℤ) : 0 ≤ nUpOZ84 S := by
 
 lemma ceil52_eq (S : ℤ) (h : 0 < S) : (ceil52 S.toNat : ℤ) = -(-S / 10 ^ 52) := by
   unfold ceil52
-  rw [if_neg (by omega)]
+  rw [ite_eq_right (by omega)]
   omega
 
 lemma sqrtNum84_le_nUpOZ84 (S : ℤ) : sqrtNum84 S ≤ nUpOZ84 S := by
@@ -800,9 +800,9 @@ private lemma nUpO84_dom {S : ℕ} {Sz : ℤ} (h : (S : ℤ) = Sz) :
   rcases lt_or_eq_of_le (show (0 : ℤ) ≤ Sz from by omega) with hpos | hzero
   · have := sqrtNum84_le_nUpOZ84 Sz
     unfold nUpOZ84 at this
-    rw [if_neg (by omega)] at this
+    rw [ite_eq_right (by omega)] at this
     rwa [show Sz.toNat = S from by omega] at this
-  · rw [show sqrtNum84 Sz = 0 from by unfold sqrtNum84; rw [if_pos (by omega)]]
+  · rw [show sqrtNum84 Sz = 0 from by unfold sqrtNum84; rw [ite_eq_left (by omega)]]
     positivity
 
 /-- Sign-split main dot: the difference of the two `dotPO` sides. -/

@@ -274,11 +274,11 @@ private lemma sqrtℚUp16_intCast_div26 (S : ℤ) :
     RationalApprox.sqrtℚUp16 ((S : ℚ) / 10 ^ 26) = (sqrtNum26 S : ℚ) / 10 ^ 16 := by
   unfold RationalApprox.sqrtℚUp16 sqrtNum26
   rcases le_or_gt S 0 with hS | hS
-  · rw [if_pos (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
-        if_pos hS]
+  · rw [ite_eq_left (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
+        ite_eq_left hS]
     simp
   · have hSQ : (0:ℚ) < (S : ℚ) := by exact_mod_cast hS
-    rw [if_neg (not_le.mpr (by positivity)), if_neg (not_le.mpr hS)]
+    rw [ite_eq_right (not_le.mpr (by positivity)), ite_eq_right (not_le.mpr hS)]
     have hceil : ⌈(S : ℚ) / 10 ^ 26 * 10 ^ 32⌉ = S * 10 ^ 6 := by
       rw [show (S : ℚ) / 10 ^ 26 * 10 ^ 32 = ((S * 10 ^ 6 : ℤ) : ℚ) from by
         push_cast; ring]
@@ -293,11 +293,11 @@ private lemma sqrtℚUp16_intCast_div52 (S : ℤ) :
     RationalApprox.sqrtℚUp16 ((S : ℚ) / 10 ^ 52) = (sqrtNum52 S : ℚ) / 10 ^ 16 := by
   unfold RationalApprox.sqrtℚUp16 sqrtNum52
   rcases le_or_gt S 0 with hS | hS
-  · rw [if_pos (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
-        if_pos hS]
+  · rw [ite_eq_left (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
+        ite_eq_left hS]
     simp
   · have hSQ : (0:ℚ) < (S : ℚ) := by exact_mod_cast hS
-    rw [if_neg (not_le.mpr (by positivity)), if_neg (not_le.mpr hS)]
+    rw [ite_eq_right (not_le.mpr (by positivity)), ite_eq_right (not_le.mpr hS)]
     have hceil : ⌈(S : ℚ) / 10 ^ 52 * 10 ^ 32⌉ = -(-S / 10 ^ 20) := by
       rw [show (S : ℚ) / 10 ^ 52 * 10 ^ 32 = -(((-S : ℤ) : ℚ) / ((10 ^ 20 : ℕ) : ℚ)) from by
         push_cast; ring]
@@ -313,11 +313,11 @@ private lemma sqrtℚLow13_intCast_div26 (S : ℤ) :
     RationalApprox.sqrtℚLow13 ((S : ℚ) / 10 ^ 26) = (sqrtNumLow26 S : ℚ) / 10 ^ 13 := by
   unfold RationalApprox.sqrtℚLow13 sqrtNumLow26
   rcases le_or_gt S 0 with hS | hS
-  · rw [if_pos (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
+  · rw [ite_eq_left (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
       Int.toNat_of_nonpos hS]
     simp
   · have hSQ : (0:ℚ) < (S : ℚ) := by exact_mod_cast hS
-    rw [if_neg (not_le.mpr (by positivity))]
+    rw [ite_eq_right (not_le.mpr (by positivity))]
     have hfloor : ⌊(S : ℚ) / 10 ^ 26 * 10 ^ 26⌋ = S := by
       rw [div_mul_cancel₀ _ (by norm_num : ((10:ℚ) ^ 26) ≠ 0)]
       exact Int.floor_intCast _

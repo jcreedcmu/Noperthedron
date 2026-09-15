@@ -44,11 +44,11 @@ lemma sqrtℚUp16_intCast_div110 (S : ℤ) :
     RationalApprox.sqrtℚUp16 ((S : ℚ) / 10 ^ 110) = (sqrtNum110 S : ℚ) / 10 ^ 16 := by
   unfold RationalApprox.sqrtℚUp16 sqrtNum110
   rcases le_or_gt S 0 with hS | hS
-  · rw [if_pos (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
-      if_pos hS]
+  · rw [ite_eq_left (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
+      ite_eq_left hS]
     simp
   · have hSQ : (0 : ℚ) < (S : ℚ) := by exact_mod_cast hS
-    rw [if_neg (not_le.mpr (by positivity)), if_neg (not_le.mpr hS)]
+    rw [ite_eq_right (not_le.mpr (by positivity)), ite_eq_right (not_le.mpr hS)]
     have hceil : ⌈(S : ℚ) / 10 ^ 110 * 10 ^ 32⌉ = -(-S / 10 ^ 78) := by
       rw [show (S : ℚ) / 10 ^ 110 * 10 ^ 32
           = -(((-S : ℤ) : ℚ) / ((10 ^ 78 : ℕ) : ℚ)) from by push_cast; ring]

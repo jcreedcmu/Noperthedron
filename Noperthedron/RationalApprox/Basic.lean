@@ -330,10 +330,10 @@ theorem cond_ble_sub_cast (x c : ℕ) :
   · have h : ¬ x ≤ c := fun hle => by
       rw [Nat.ble_eq_true_of_le hle] at hb
       exact Bool.noConfusion hb
-    rw [cond_false, abs_of_nonneg (by omega : (0:ℤ) ≤ (x:ℤ) - c)]
+    rw [Bool.cond_false, abs_of_nonneg (by omega : (0:ℤ) ≤ (x:ℤ) - c)]
     omega
   · have h : x ≤ c := Nat.ble_eq ▸ hb
-    rw [cond_true, abs_sub_comm, abs_of_nonneg (by omega : (0:ℤ) ≤ (c:ℤ) - x)]
+    rw [Bool.cond_true, abs_sub_comm, abs_of_nonneg (by omega : (0:ℤ) ≤ (c:ℤ) - x)]
     omega
 
 structure UpperSqrt where
