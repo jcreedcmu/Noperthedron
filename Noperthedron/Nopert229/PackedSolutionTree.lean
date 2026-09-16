@@ -223,12 +223,13 @@ def readRow (chart : CayleyAtlas.ChartIndex)
     let symmetryIndex ← readNat
     let r ← readRat
     let sharedIndex ← readNat
+    let nodeId ← readNat
     let region ← readRegion triangles
     pure (.symmetryTube id {
       interval
       chart
       symmetryIndex := fin5 symmetryIndex
-      r } (fin4 sharedIndex) region)
+      r } (fin4 sharedIndex) nodeId region)
   else if tag = 7 then
     let region ← readRegion triangles
     pure (.radiusPrune id interval region)

@@ -127,7 +127,7 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
     (rowsValid : RowsValidAt symmetryIndex r get size)
     (i : ℕ) (hi : i < size) (tube : Tube)
     (htubeSymmetry : tube.symmetryIndex = symmetryIndex)
-    (htubeRadius : tube.r = r) (htube : tube.Valid)
+    (htubeRadius : tube.r ≤ r) (htube : tube.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal) (offset : ℝ²)
     (hscale : 1 ≤ viewScale (get i).root p)
     (hmem : InTriangle (toReal (get i).triangle)
@@ -168,10 +168,7 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
             AtlasLocalCertificate.Box.mismatchQuadratic,
             hsym]
             using htube
-        have hr : tube.r ≤ box.r := by
-          calc
-            tube.r = r := htubeRadius
-            _ ≤ box.r := hboxRadius
+        have hr : tube.r ≤ box.r := htubeRadius.trans hboxRadius
         simpa [actual, Box.retarget] using hmismatchTube.trans hr
       have hactual : actual.Valid :=
         Box.Valid.of_viewValid hactualView hmismatch
@@ -201,27 +198,40 @@ instance (table : Table) : Decidable table.Valid := by
   unfold Table.Valid
   infer_instance
 
+theorem Table.valid_imp_not_translated_rupert_at_node (table : Table)
+    (hvalid : table.Valid) (nodeId : ℕ) (hnode : nodeId < table.size) (tube : Tube)
+    (htubeSymmetry : tube.symmetryIndex = table.symmetryIndex)
+    (htubeRadius : tube.r ≤ table.r) (htube : tube.Valid)
+    {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal) (offset : ℝ²)
+    (hscale : 1 ≤ viewScale (table.get nodeId).root p)
+    (hmem : InTriangle (toReal (table.get nodeId).triangle)
+      (normalizedView (table.get nodeId).root p)) :
+    ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
+      exactPolyhedron.hull := by
+  obtain ⟨hnonempty, hrows, -, -⟩ := hvalid
+  exact valid_imp_not_rupert_ix table.symmetryIndex table.r
+    table.get table.size hrows nodeId hnode tube htubeSymmetry htubeRadius
+    htube hp offset hscale hmem
+
 theorem Table.valid_imp_not_translated_rupert_in_triangle (table : Table)
     (hvalid : table.Valid) (tube : Tube)
     (htubeSymmetry : tube.symmetryIndex = table.symmetryIndex)
-    (htubeRadius : tube.r = table.r) (htube : tube.Valid)
+    (htubeRadius : tube.r ≤ table.r) (htube : tube.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal)
     (hscale : 1 ≤ viewScale table.root p)
     (hmem : InTriangle (toReal table.triangle)
       (normalizedView table.root p)) (offset : ℝ²) :
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
       exactPolyhedron.hull := by
-  obtain ⟨hnonempty, hrows, hroot, htriangle⟩ := hvalid
-  have hchecked := valid_imp_not_rupert_ix table.symmetryIndex table.r
-    table.get table.size hrows 0 hnonempty tube htubeSymmetry htubeRadius
-    htube hp offset
-  rw [hroot, htriangle] at hchecked
+  have hchecked := Table.valid_imp_not_translated_rupert_at_node table
+    hvalid 0 hvalid.1 tube htubeSymmetry htubeRadius htube hp offset
+  rw [hvalid.2.2.1, hvalid.2.2.2] at hchecked
   exact hchecked hscale hmem
 
 theorem Table.valid_imp_not_translated_rupert (table : Table)
     (hvalid : table.Valid) (tube : Tube)
     (htubeSymmetry : tube.symmetryIndex = table.symmetryIndex)
-    (htubeRadius : tube.r = table.r) (htube : tube.Valid)
+    (htubeRadius : tube.r ≤ table.r) (htube : tube.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal)
     (hview : p.InViewWedge) (hupper : p.InUpperView) (offset : ℝ²)
     (hroot : table.root = 0) (htriangle : table.triangle = upperWedgeTriangle) :
