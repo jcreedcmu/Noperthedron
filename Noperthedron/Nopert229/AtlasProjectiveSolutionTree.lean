@@ -163,7 +163,7 @@ inductive Row where
       (region : Region)
   | projectiveLocal (id : ℕ) (box : AtlasProjectiveLocalCertificate.Box)
   | symmetryTube (id : ℕ) (tube : AtlasProjectiveLocalViewTree.Tube)
-      (sharedIndex : Fin 4) (nodeId : ℕ) (region : Region)
+      (sharedIndex : Fin 4) (path : List (Fin 4)) (region : Region)
   | radiusPrune (id : ℕ) (interval : Interval) (region : Region)
   | fundamentalPrune (id : ℕ) (box : AtlasFundamentalPrune.Box)
       (region : Region)
@@ -206,17 +206,24 @@ instance : Inhabited Row where
   default := .viewRoot 0 0 (AtlasPose.rootInterval ℚ)
 
 def SymmetryTubeMatches (tube : AtlasProjectiveLocalViewTree.Tube)
-    (nodeId : ℕ) (region : Region) : Option AtlasProjectiveLocalViewTree.Table → Prop
+    (path : List (Fin 4)) (region : Region) : Option AtlasProjectiveLocalViewTree.Table → Prop
   | none => False
   | some table =>
-      nodeId < table.size ∧
       tube.symmetryIndex = table.symmetryIndex ∧ tube.r ≤ table.r ∧
-        region = .triangle (table.get nodeId).root (table.get nodeId).triangle
+      match table.findNode path with
+      | none => False
+      | some nodeId =>
+          nodeId < table.size ∧
+          region = .triangle (table.get nodeId).root (table.get nodeId).triangle
 
-instance (tube : AtlasProjectiveLocalViewTree.Tube) (nodeId : ℕ) (region : Region)
+instance (tube : AtlasProjectiveLocalViewTree.Tube) (path : List (Fin 4)) (region : Region)
     (table : Option AtlasProjectiveLocalViewTree.Table) :
-    Decidable (SymmetryTubeMatches tube nodeId region table) := by
-  cases table <;> simp only [SymmetryTubeMatches] <;> infer_instance
+    Decidable (SymmetryTubeMatches tube path region table) := by
+  cases table
+  · simp only [SymmetryTubeMatches]
+    infer_instance
+  · simp only [SymmetryTubeMatches]
+    split <;> infer_instance
 
 def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
     (size : ℕ) (shared : SharedLocalTables) : Row → Prop
@@ -241,9 +248,9 @@ def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
   | .projectiveMixedGlobal _ box => box.chart = chart ∧ box.Valid
   | .symmetryLocal _ box _ => box.chart = chart ∧ box.Valid
   | .projectiveLocal _ box => box.chart = chart ∧ box.Valid
-  | .symmetryTube _ tube sharedIndex nodeId region =>
+  | .symmetryTube _ tube sharedIndex path region =>
       tube.chart = chart ∧ tube.Valid ∧
-        SymmetryTubeMatches tube nodeId region (shared sharedIndex)
+        SymmetryTubeMatches tube path region (shared sharedIndex)
   | .radiusPrune _ interval _ => interval.outsideCayleyBall
   | .fundamentalPrune _ box _ => box.chart = chart ∧ box.Valid
 
@@ -346,7 +353,7 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       subst hchart
       exact box.valid_imp_not_translated_rupert hbox hp offset
         hregion.1 hregion.2 hrupert
-  | symmetryTube id tube sharedIndex nodeId region =>
+  | symmetryTube id tube sharedIndex path region =>
       unfold NoRupert
       rintro ⟨p, hp, -, -, -, -, offset, hregion, hrupert⟩
       obtain ⟨hchart, htube, hmatch⟩ := hvalid
@@ -360,14 +367,21 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
           have htable : table.Valid := by
             simpa [OptionalLocalValid, hshared] using sharedValid sharedIndex
           have hmatch' :
-              nodeId < table.size ∧
               tube.symmetryIndex = table.symmetryIndex ∧ tube.r ≤ table.r ∧
-                region = .triangle (table.get nodeId).root (table.get nodeId).triangle := by
+              match table.findNode path with
+              | none => False
+              | some nodeId =>
+                  nodeId < table.size ∧
+                  region = .triangle (table.get nodeId).root (table.get nodeId).triangle := by
             simpa [SymmetryTubeMatches, hshared] using hmatch
-          obtain ⟨hnode, hsymmetry, hradius, hregionEq⟩ := hmatch'
-          rw [hregionEq] at hregion
-          exact table.valid_imp_not_translated_rupert_at_node htable nodeId hnode tube
-            hsymmetry hradius htube hp offset hregion.1 hregion.2 hrupert
+          obtain ⟨hsymmetry, hradius, hfind⟩ := hmatch'
+          split at hfind
+          · contradiction
+          · rename_i nodeId heq
+            obtain ⟨hnode, hregionEq⟩ := hfind
+            rw [hregionEq] at hregion
+            exact table.valid_imp_not_translated_rupert_at_node htable nodeId hnode tube
+              hsymmetry hradius htube hp offset hregion.1 hregion.2 hrupert
   | cayleySplit id lowerChild upperChild coordinate interval region =>
       obtain ⟨hlower, hupper, hlowerSize, hupperSize,
         hlowerInterval, hupperInterval, hlowerRegion, hupperRegion⟩ := hvalid

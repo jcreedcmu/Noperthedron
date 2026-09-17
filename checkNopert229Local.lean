@@ -22,10 +22,11 @@ def main (args : List String) : IO Unit := do
   let path ← match args with
     | path :: _ => pure path
     | _ => throw (IO.userError "expects the local-viewN.pack path and table index")
+  let indexStr := args.getD 1 "0"
   let packed ← IO.FS.readFile path
-  let table := PackedLocalViewTree.decodePackedTable ((args.getD 1 "0").toNat!) packed
+  let table := PackedLocalViewTree.decodePackedTable indexStr.toNat! packed
   let firstId := (table.get 0).id
   unless firstId = 0 do
     throw (IO.userError "packed table has an invalid first row id")
-  let checked ← checkLocal "2" taskCount table
+  let checked ← checkLocal indexStr taskCount table
   let _semanticProof : table.Valid := checked.down

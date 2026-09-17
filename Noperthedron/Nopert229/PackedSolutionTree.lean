@@ -187,6 +187,13 @@ def readLocalRow (chart : CayleyAtlas.ChartIndex)
     δ
     r })
 
+def readPath : Nat → Decoder (List (Fin 4))
+  | 0 => pure []
+  | length + 1 => do
+      let child ← readNat
+      let rest ← readPath length
+      pure (fin4 child :: rest)
+
 def readRow (chart : CayleyAtlas.ChartIndex)
     (intervals : Array AtlasProjectiveSolutionTree.Interval)
     (triangles : Array AtlasProjectiveSolutionTree.Triangle) : Decoder Row := do
@@ -223,13 +230,14 @@ def readRow (chart : CayleyAtlas.ChartIndex)
     let symmetryIndex ← readNat
     let r ← readRat
     let sharedIndex ← readNat
-    let nodeId ← readNat
+    let pathLength ← readNat
+    let path ← readPath pathLength
     let region ← readRegion triangles
     pure (.symmetryTube id {
       interval
       chart
       symmetryIndex := fin5 symmetryIndex
-      r } (fin4 sharedIndex) nodeId region)
+      r } (fin4 sharedIndex) path region)
   else if tag = 7 then
     let region ← readRegion triangles
     pure (.radiusPrune id interval region)

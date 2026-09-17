@@ -198,6 +198,20 @@ instance (table : Table) : Decidable table.Valid := by
   unfold Table.Valid
   infer_instance
 
+/-- Walk the quaternary quadtree starting from root (row 0), following the
+subdivision path. -/
+def Table.findNode (table : Table) (path : List (Fin 4)) : Option ℕ :=
+  let rec loop (currId : ℕ) : List (Fin 4) → Option ℕ
+    | [] => if currId < table.size then some currId else none
+    | c :: cs =>
+        if currId < table.size then
+          match table.get currId with
+          | .certificate .. => none
+          | .split _ children .. => loop (children c) cs
+        else
+          none
+  loop 0 path
+
 theorem Table.valid_imp_not_translated_rupert_at_node (table : Table)
     (hvalid : table.Valid) (nodeId : ℕ) (hnode : nodeId < table.size) (tube : Tube)
     (htubeSymmetry : tube.symmetryIndex = table.symmetryIndex)
