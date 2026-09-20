@@ -921,7 +921,9 @@ theorem Box.exactSupport_le_upper (box : Box)
     push_cast
     linarith [herr.2]
 
-theorem Box.valid_support (box : Box) (h : box.Valid)
+theorem Box.valid_support_of_upper (box : Box)
+    (defect : Fin 4 → Fin 3 → ℚ)
+    (h_supp : ∀ j i k, box.supportUpper j i k ≤ defect j i)
     {p : AtlasPose ℝ} (offset : ℝ²)
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
@@ -932,13 +934,13 @@ theorem Box.valid_support (box : Box) (h : box.Valid)
           (exactVertex k)) ≤
       inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex ((box.certificate j).supportIndex box i))) := by
+          (exactVertex ((box.certificate j).supportIndex box i))) +
+        (defect j i : ℝ) := by
   have hscaleNe :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
   have hupper := box.exactSupport_le_upper hscale hmem j i k
-  have hchecked := h.support j i k
-  have hsigned : (box.certificate j).exactSupport box p i k ≤ 0 :=
-    hupper.trans (by exact_mod_cast hchecked)
+  have hsigned : (box.certificate j).exactSupport box p i k ≤ (defect j i : ℝ) :=
+    hupper.trans (by exact_mod_cast h_supp j i k)
   have hdiff :
       inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
           ((outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
@@ -953,7 +955,25 @@ theorem Box.valid_support (box : Box) (h : box.Valid)
   rw [inner_sub_right] at hdiff
   linarith
 
-theorem Box.valid_direction_nonzero (box : Box) (h : box.Valid)
+theorem Box.valid_support (box : Box) (h : box.Valid)
+    {p : AtlasPose ℝ} (offset : ℝ²)
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (j : Fin 4) (i : Fin 3) (k : VertexIndex) :
+    inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+        (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
+          (exactVertex k)) ≤
+      inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+        (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
+          (exactVertex ((box.certificate j).supportIndex box i))) := by
+  have hsup := box.valid_support_of_upper (fun _ _ => 0) (fun j i k => h.support j i k)
+    offset hscale hmem j i k
+  push_cast at hsup
+  linarith
+
+theorem Box.valid_direction_nonzero_of_strict (box : Box)
+    (h_dir : ∀ j i, box.supportUpper j i ((box.certificate j).nonzeroWitness i) < 0)
     {p : AtlasPose ℝ} (offset : ℝ²)
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
@@ -964,7 +984,7 @@ theorem Box.valid_direction_nonzero (box : Box) (h : box.Valid)
   let k := (box.certificate j).nonzeroWitness i
   have hupper := box.exactSupport_le_upper hscale hmem j i k
   have hstrict : (box.supportUpper j i k : ℝ) < 0 := by
-    exact_mod_cast h.direction_nonzero j i
+    exact_mod_cast h_dir j i
   have hexact : (box.certificate j).exactSupport box p i k < 0 :=
     hupper.trans_lt hstrict
   have hscaleNe :=
@@ -978,6 +998,15 @@ theorem Box.valid_direction_nonzero (box : Box) (h : box.Valid)
       ((box.certificate j).exactDelta box i k)) < 0 at hexact
   rw [← heq] at hexact
   linarith
+
+theorem Box.valid_direction_nonzero (box : Box) (h : box.Valid)
+    {p : AtlasPose ℝ} (offset : ℝ²)
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (j : Fin 4) (i : Fin 3) :
+    direction box.root p ((box.certificate j).exactEdge i) ≠ 0 :=
+  box.valid_direction_nonzero_of_strict h.direction_nonzero offset hscale hmem j i
 
 noncomputable def AxisCertificate.approxWeight (cert : AxisCertificate)
     (n : Fin 3 → ℝ) (i : Fin 3) : ℝ :=
@@ -1184,7 +1213,8 @@ theorem Box.exactWeight_le_upper (box : Box)
   rw [herrorEq] at herr
   linarith [herr.2, hmax]
 
-theorem Box.valid_weight_nonneg (box : Box) (h : box.Valid)
+theorem Box.valid_weight_nonneg_of_lower (box : Box)
+    (h_weight : ∀ j i, 0 ≤ box.weightLower j i)
     {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
@@ -1192,8 +1222,31 @@ theorem Box.valid_weight_nonneg (box : Box) (h : box.Valid)
     (j : Fin 4) (i : Fin 3) :
     0 ≤ (box.certificate j).exactWeight box p i := by
   have hlower : (0 : ℝ) ≤ (box.weightLower j i : ℝ) := by
-    exact_mod_cast h.weight_nonneg j i
+    exact_mod_cast h_weight j i
   exact hlower.trans (box.weightLower_le_exact hscale hmem j i)
+
+theorem Box.valid_weight_nonneg (box : Box) (h : box.Valid)
+    {p : AtlasPose ℝ}
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (j : Fin 4) (i : Fin 3) :
+    0 ≤ (box.certificate j).exactWeight box p i :=
+  box.valid_weight_nonneg_of_lower h.weight_nonneg hscale hmem j i
+
+theorem Box.valid_weight_pos_of_lower (box : Box)
+    (h_pos : ∀ j, ∃ i, 0 < box.weightLower j i)
+    {p : AtlasPose ℝ}
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (j : Fin 4) :
+    ∃ i, 0 < (box.certificate j).exactWeight box p i := by
+  obtain ⟨i, hi⟩ := h_pos j
+  refine ⟨i, ?_⟩
+  have hiReal : (0 : ℝ) < (box.weightLower j i : ℝ) := by
+    exact_mod_cast hi
+  exact hiReal.trans_le (box.weightLower_le_exact hscale hmem j i)
 
 theorem Box.valid_weight_pos (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ}
@@ -1201,12 +1254,8 @@ theorem Box.valid_weight_pos (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
-    ∃ i, 0 < (box.certificate j).exactWeight box p i := by
-  obtain ⟨i, hi⟩ := h.weight_pos j
-  refine ⟨i, ?_⟩
-  have hiReal : (0 : ℝ) < (box.weightLower j i : ℝ) := by
-    exact_mod_cast hi
-  exact hiReal.trans_le (box.weightLower_le_exact hscale hmem j i)
+    ∃ i, 0 < (box.certificate j).exactWeight box p i :=
+  box.valid_weight_pos_of_lower h.weight_pos hscale hmem j
 
 theorem AxisCertificate.exactWeight_abs_le_four (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
@@ -1503,18 +1552,27 @@ theorem Box.exactVariation_sub_center_norm_le (box : Box)
   push_cast
   linarith
 
-theorem Box.toR3_approxNormalizedCenter (box : Box) (h : box.Valid)
-    (j : Fin 4) :
+theorem Box.toR3_approxNormalizedCenter_of_pos (box : Box)
+    (hB : ∀ j, 0 < (box.certificate j).B) (j : Fin 4) :
     toR3 (box.approxNormalizedCenter j) =
       (((box.certificate j).B : ℝ)⁻¹) • box.variationCenter j := by
-  have hB : ((box.certificate j).B : ℝ) ≠ 0 := by
-    exact_mod_cast (h.B_pos j).ne'
+  have hBne : ((box.certificate j).B : ℝ) ≠ 0 := by
+    exact_mod_cast (hB j).ne'
   ext coordinate
   simp [Box.approxNormalizedCenter, Box.variationCenter,
     Box.variationCenterQ, toR3, smul_eq_mul]
-  field_simp [hB]
+  field_simp [hBne]
 
-theorem Box.valid_normalizedVariation_move (box : Box) (h : box.Valid)
+theorem Box.toR3_approxNormalizedCenter (box : Box) (h : box.Valid)
+    (j : Fin 4) :
+    toR3 (box.approxNormalizedCenter j) =
+      (((box.certificate j).B : ℝ)⁻¹) • box.variationCenter j :=
+  box.toR3_approxNormalizedCenter_of_pos h.B_pos j
+
+theorem Box.valid_normalizedVariation_move_of_bounds (box : Box)
+    (hB : ∀ j, 0 < (box.certificate j).B)
+    (hvar : ∀ j, box.variationRadiusSum j + 3 * variationError ≤
+      (box.certificate j).B * box.δ)
     {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
@@ -1526,14 +1584,14 @@ theorem Box.valid_normalizedVariation_move (box : Box) (h : box.Valid)
           box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
         toR3 (box.approxNormalizedCenter j)‖ ≤ (box.δ : ℝ) := by
   have hBpos : (0 : ℝ) < ((box.certificate j).B : ℝ) := by
-    exact_mod_cast h.B_pos j
+    exact_mod_cast hB j
   have hBne := hBpos.ne'
   have hraw := box.exactVariation_sub_center_norm_le hscale hmem j
   have hchecked :
       (box.variationRadiusSum j : ℝ) + 3 * (variationError : ℝ) ≤
         ((box.certificate j).B : ℝ) * (box.δ : ℝ) := by
-    exact_mod_cast h.variation j
-  rw [normalizedVariation, box.toR3_approxNormalizedCenter h j,
+    exact_mod_cast hvar j
+  rw [normalizedVariation, box.toR3_approxNormalizedCenter_of_pos hB j,
     ← smul_sub, norm_smul, Real.norm_eq_abs, abs_inv,
     abs_of_pos hBpos]
   calc
@@ -1554,71 +1612,129 @@ theorem Box.valid_normalizedVariation_move (box : Box) (h : box.Valid)
       mul_le_mul_of_nonneg_left hchecked (inv_nonneg.mpr hBpos.le)
     _ = (box.δ : ℝ) := by field_simp [hBne]
 
-private theorem Box.barycentric_mem_convexHull (box : Box)
-    (h : box.Valid) (k : Fin 6) :
+theorem Box.valid_normalizedVariation_move (box : Box) (h : box.Valid)
+    {p : AtlasPose ℝ}
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (j : Fin 4) :
+    ‖normalizedVariation box.root p
+          (fun j i => (box.certificate j).exactEdge i)
+          (fun j i => (box.certificate j).index i)
+          box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
+        toR3 (box.approxNormalizedCenter j)‖ ≤ (box.δ : ℝ) :=
+  box.valid_normalizedVariation_move_of_bounds h.B_pos h.variation hscale hmem j
+
+theorem Box.barycentric_mem_convexHull_of_valid (box : Box)
+    (hbary : box.barycentricValid) (k : Fin 6) :
     toR3 (box.octahedronTarget k) ∈
       convexHull ℝ {toR3 (box.approxNormalizedCenter j) | j} := by
   apply Noperthedron.BalancedSupport.mem_convexHull_of_barycentric
     (fun j => toR3 (box.approxNormalizedCenter j))
     (fun j => (box.barycentric k j : ℝ))
   · intro j
-    exact_mod_cast h.barycentric.2 k j
+    exact_mod_cast hbary.2 k j
   · exact_mod_cast LocalCertificate.tetraBarycentricQ_sum
       box.approxNormalizedCenter (box.octahedronTarget k)
   · ext coordinate
     have hcoordinate := congrFun
       (LocalCertificate.tetraBarycentricQ_combination
         box.approxNormalizedCenter (box.octahedronTarget k)
-        h.barycentric.1) coordinate
+        hbary.1) coordinate
     simp only [Finset.sum_apply, Pi.smul_apply, smul_eq_mul, toR3,
       WithLp.ofLp_sum, WithLp.ofLp_smul, WithLp.ofLp_toLp]
     exact_mod_cast hcoordinate
 
-theorem Box.valid_center_axis_cover (box : Box) (h : box.Valid)
+private theorem Box.barycentric_mem_convexHull (box : Box)
+    (h : box.Valid) (k : Fin 6) :
+    toR3 (box.octahedronTarget k) ∈
+      convexHull ℝ {toR3 (box.approxNormalizedCenter j) | j} :=
+  box.barycentric_mem_convexHull_of_valid h.barycentric k
+
+theorem Box.valid_center_axis_cover_of_bounds (box : Box)
+    (hc : 0 ≤ box.c) (hdelta : 0 ≤ box.δ)
+    (hbary : box.barycentricValid)
     (axis : ℝ³) (haxis : ‖axis‖ = 1) :
     ∃ j, ((box.c + box.δ : ℚ) : ℝ) ≤
       inner ℝ axis (toR3 (box.approxNormalizedCenter j)) := by
   apply Noperthedron.BalancedSupport.octahedral_axis_cover
     (fun j => toR3 (box.approxNormalizedCenter j))
     ((box.c + box.δ : ℚ) : ℝ)
-  · exact_mod_cast add_nonneg h.c_nonneg h.delta_nonneg
+  · exact_mod_cast add_nonneg hc hdelta
   · have heq : toR3 (box.octahedronTarget 0) =
         (7 / 4 * (((box.c + box.δ : ℚ) : ℝ))) • xAxis3 := by
       rw [Box.octahedronTarget, LocalCertificate.octahedronAxis_zero]
       ext i; fin_cases i <;> norm_num [xAxis3, toR3]
     rw [← heq]
-    exact box.barycentric_mem_convexHull h 0
+    exact box.barycentric_mem_convexHull_of_valid hbary 0
   · have heq : toR3 (box.octahedronTarget 1) =
         (-(7 / 4 * (((box.c + box.δ : ℚ) : ℝ)))) • xAxis3 := by
       rw [Box.octahedronTarget, LocalCertificate.octahedronAxis_one]
       ext i; fin_cases i <;> norm_num [xAxis3, toR3]
     rw [← heq]
-    exact box.barycentric_mem_convexHull h 1
+    exact box.barycentric_mem_convexHull_of_valid hbary 1
   · have heq : toR3 (box.octahedronTarget 2) =
         (7 / 4 * (((box.c + box.δ : ℚ) : ℝ))) • yAxis3 := by
       rw [Box.octahedronTarget, LocalCertificate.octahedronAxis_two]
       ext i; fin_cases i <;> norm_num [yAxis3, toR3]
     rw [← heq]
-    exact box.barycentric_mem_convexHull h 2
+    exact box.barycentric_mem_convexHull_of_valid hbary 2
   · have heq : toR3 (box.octahedronTarget 3) =
         (-(7 / 4 * (((box.c + box.δ : ℚ) : ℝ)))) • yAxis3 := by
       rw [Box.octahedronTarget, LocalCertificate.octahedronAxis_three]
       ext i; fin_cases i <;> norm_num [yAxis3, toR3]
     rw [← heq]
-    exact box.barycentric_mem_convexHull h 3
+    exact box.barycentric_mem_convexHull_of_valid hbary 3
   · have heq : toR3 (box.octahedronTarget 4) =
         (7 / 4 * (((box.c + box.δ : ℚ) : ℝ))) • zAxis3 := by
       rw [Box.octahedronTarget, LocalCertificate.octahedronAxis_four]
       ext i; fin_cases i <;> norm_num [zAxis3, toR3]
     rw [← heq]
-    exact box.barycentric_mem_convexHull h 4
+    exact box.barycentric_mem_convexHull_of_valid hbary 4
   · have heq : toR3 (box.octahedronTarget 5) =
         (-(7 / 4 * (((box.c + box.δ : ℚ) : ℝ)))) • zAxis3 := by
       rw [Box.octahedronTarget, LocalCertificate.octahedronAxis_five]
       ext i; fin_cases i <;> norm_num [zAxis3, toR3]
     rw [← heq]
-    exact box.barycentric_mem_convexHull h 5
+    exact box.barycentric_mem_convexHull_of_valid hbary 5
   · exact haxis
+
+theorem Box.valid_center_axis_cover (box : Box) (h : box.Valid)
+    (axis : ℝ³) (haxis : ‖axis‖ = 1) :
+    ∃ j, ((box.c + box.δ : ℚ) : ℝ) ≤
+      inner ℝ axis (toR3 (box.approxNormalizedCenter j)) :=
+  box.valid_center_axis_cover_of_bounds h.c_nonneg h.delta_nonneg h.barycentric axis haxis
+
+theorem Box.valid_axis_cover_of_bounds (box : Box)
+    (hB : ∀ j, 0 < (box.certificate j).B)
+    (hc : 0 ≤ box.c) (hdelta : 0 ≤ box.δ)
+    (hvar : ∀ j, box.variationRadiusSum j + 3 * variationError ≤
+      (box.certificate j).B * box.δ)
+    (hbary : box.barycentricValid)
+    {p : AtlasPose ℝ}
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (axis : ℝ³) (haxis : ‖axis‖ = 1) :
+    ∃ j, (box.c : ℝ) ≤ inner ℝ axis
+      (normalizedVariation box.root p
+        (fun j i => (box.certificate j).exactEdge i)
+        (fun j i => (box.certificate j).index i)
+        box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j) := by
+  obtain ⟨j, hcenter⟩ := box.valid_center_axis_cover_of_bounds hc hdelta hbary axis haxis
+  refine ⟨j, ?_⟩
+  have hmove := box.valid_normalizedVariation_move_of_bounds hB hvar hscale hmem j
+  have hinner := abs_real_inner_le_norm axis
+    (normalizedVariation box.root p
+      (fun j i => (box.certificate j).exactEdge i)
+      (fun j i => (box.certificate j).index i)
+      box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
+        toR3 (box.approxNormalizedCenter j))
+  rw [haxis, one_mul, inner_sub_right] at hinner
+  have hdeltaReal : (0 : ℝ) ≤ (box.δ : ℝ) := by exact_mod_cast hdelta
+  push_cast at hcenter
+  rw [abs_le] at hinner
+  linarith
 
 theorem Box.valid_axis_cover (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ}
@@ -1630,21 +1746,8 @@ theorem Box.valid_axis_cover (box : Box) (h : box.Valid)
       (normalizedVariation box.root p
         (fun j i => (box.certificate j).exactEdge i)
         (fun j i => (box.certificate j).index i)
-        box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j) := by
-  obtain ⟨j, hcenter⟩ := box.valid_center_axis_cover h axis haxis
-  refine ⟨j, ?_⟩
-  have hmove := box.valid_normalizedVariation_move h hscale hmem j
-  have hinner := abs_real_inner_le_norm axis
-    (normalizedVariation box.root p
-      (fun j i => (box.certificate j).exactEdge i)
-      (fun j i => (box.certificate j).index i)
-      box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
-        toR3 (box.approxNormalizedCenter j))
-  rw [haxis, one_mul, inner_sub_right] at hinner
-  have hdelta : (0 : ℝ) ≤ (box.δ : ℝ) := by exact_mod_cast h.delta_nonneg
-  push_cast at hcenter
-  rw [abs_le] at hinner
-  linarith
+        box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j) :=
+  box.valid_axis_cover_of_bounds h.B_pos h.c_nonneg h.delta_nonneg h.variation h.barycentric hscale hmem axis haxis
 
 theorem AxisCertificate.direction_norm_le_two (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
@@ -1667,7 +1770,9 @@ theorem AxisCertificate.direction_norm_le_two (box : Box)
   exact (mul_le_mul hinv hrot (norm_nonneg _) (by norm_num)).trans
     (by norm_num)
 
-theorem Box.valid_budget (box : Box) (h : box.Valid)
+theorem Box.valid_budget_of_le (box : Box)
+    (h_weight : ∀ j i, 0 ≤ box.weightLower j i)
+    (h_budget : ∀ j, box.weightBudget j ≤ (box.certificate j).B)
     {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
@@ -1685,7 +1790,7 @@ theorem Box.valid_budget (box : Box) (h : box.Valid)
         ∑ i, (box.weightUpper j i : ℝ) * 2 := by
     apply Finset.sum_le_sum
     intro i _
-    have hw0 := box.valid_weight_nonneg h hscale hmem j i
+    have hw0 := box.valid_weight_nonneg_of_lower h_weight hscale hmem j i
     have hwUpper := box.exactWeight_le_upper hscale hmem j i
     have hfactor : ‖direction box.root p (cert.exactEdge i)‖ *
         ‖exactVertex (cert.supportIndex box i)‖ ≤ 2 := by
@@ -1703,10 +1808,47 @@ theorem Box.valid_budget (box : Box) (h : box.Valid)
   apply hsum.trans
   rw [← Finset.sum_mul]
   have hchecked : (2 * ∑ i, box.weightUpper j i : ℝ) ≤
-      ((box.certificate j).B : ℝ) := by exact_mod_cast h.budget j
+      ((box.certificate j).B : ℝ) := by exact_mod_cast h_budget j
   simpa [mul_comm] using hchecked
 
-theorem Box.valid_mismatch_bound (box : Box) (h : box.Valid)
+theorem Box.valid_defect_budget (box : Box)
+    (defect : Fin 4 → Fin 3 → ℚ) (D : Fin 4 → ℚ)
+    (h_defect_nonneg : ∀ j i, 0 ≤ defect j i)
+    (h_defect_budget : ∀ j, (∑ i, box.weightUpper j i * defect j i) ≤ D j)
+    {p : AtlasPose ℝ}
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (j : Fin 4) :
+    ∑ i, (box.certificate j).exactWeight box p i * (defect j i : ℝ) ≤ (D j : ℝ) := by
+  calc
+    ∑ i, (box.certificate j).exactWeight box p i * (defect j i : ℝ) ≤
+        ∑ i, (box.weightUpper j i : ℝ) * (defect j i : ℝ) := by
+      apply Finset.sum_le_sum
+      intro i _
+      have hw := box.exactWeight_le_upper hscale hmem j i
+      have hd : 0 ≤ (defect j i : ℝ) := by exact_mod_cast h_defect_nonneg j i
+      exact mul_le_mul_of_nonneg_right hw hd
+    _ ≤ (D j : ℝ) := by
+      have hchecked : (∑ i, box.weightUpper j i * defect j i : ℝ) ≤ (D j : ℝ) := by
+        exact_mod_cast h_defect_budget j
+      push_cast at hchecked
+      exact hchecked
+
+theorem Box.valid_budget (box : Box) (h : box.Valid)
+    {p : AtlasPose ℝ}
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (j : Fin 4) :
+    ∑ i, (box.certificate j).exactWeight box p i *
+      (‖direction box.root p ((box.certificate j).exactEdge i)‖ *
+        ‖exactVertex ((box.certificate j).supportIndex box i)‖) ≤
+      ((box.certificate j).B : ℝ) :=
+  box.valid_budget_of_le h.weight_nonneg h.budget hscale hmem j
+
+theorem Box.valid_mismatch_bound_of_radius (box : Box)
+    (h_mismatch : box.mismatchRadius ≤ box.r)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²) :
     ‖Noperthedron.SnubCube.so3CLM
         (p.matrixPoseWithOffset box.chart offset).innerRot -
@@ -1734,7 +1876,16 @@ theorem Box.valid_mismatch_bound (box : Box) (h : box.Valid)
       rw [Noperthedron.SnubCube.so3CLM_norm, one_mul]
     _ ≤ (box.mismatchRadius : ℝ) :=
       box.mismatchShell.exactRelativeMismatchCLM_norm_le hp
-    _ ≤ (box.r : ℝ) := by exact_mod_cast h.mismatch_bound
+    _ ≤ (box.r : ℝ) := by exact_mod_cast h_mismatch
+
+theorem Box.valid_mismatch_bound (box : Box) (h : box.Valid)
+    {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²) :
+    ‖Noperthedron.SnubCube.so3CLM
+        (p.matrixPoseWithOffset box.chart offset).innerRot -
+      Noperthedron.SnubCube.so3CLM
+        ((p.matrixPoseWithOffset box.chart offset).outerRot *
+          symmetry box.symmetryIndex)‖ ≤ (box.r : ℝ) :=
+  box.valid_mismatch_bound_of_radius h.mismatch_bound hp offset
 
 theorem Box.valid_axisAngle_ratio (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²)

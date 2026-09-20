@@ -284,6 +284,79 @@ theorem AxisAngle.ratio_of_norm_bound {Q : ℝ³ →L[ℝ] ℝ³}
     exact (sq_le_sq₀ (norm_nonneg _) hr).2 hnorm
   exact (mul_le_mul_of_nonneg_right hsq (by positivity)).trans hsmall
 
+/-- Annular rotation-angle dominance: for an adversary rotation whose chord length
+‖Q - 1‖ lies in an annular shell `[r0, r]`, the first variation dominates both
+the Rodrigues remainder and the weighted defect allowance.
+This is certified by a purely polynomial rational inequality without square roots. -/
+theorem AxisAngle.annular_dominates_of_norm_bounds {Q : ℝ³ →L[ℝ] ℝ³}
+    (a : AxisAngle Q) (B D c r0 r : ℝ)
+    (hB : 0 ≤ B) (hD : 0 ≤ D) (hc : 0 ≤ c) (hr0 : 0 ≤ r0) (hr : 0 ≤ r)
+    (hr_le : r ≤ 2)
+    (hnorm_ge : r0 ≤ ‖Q - 1‖)
+    (hnorm_le : ‖Q - 1‖ ≤ r)
+    (hcond : ((1 / 2) * r ^ 2 * B + D) ^ 2 ≤
+      r0 ^ 2 * (1 - (1 / 4) * r ^ 2) * (c ^ 2 * B ^ 2)) :
+    (1 - Real.cos a.angle) * B + D ≤ |Real.sin a.angle| * c * B := by
+  let sh := Real.sin (a.angle / 2)
+  let ch := Real.cos (a.angle / 2)
+  have hnormsq : ‖Q - 1‖ ^ 2 = 4 * sh ^ 2 := by
+    rw [a.norm_sub_id, mul_pow, sq_abs]
+    ring
+  have hcircle : sh ^ 2 + ch ^ 2 = 1 := by
+    exact Real.sin_sq_add_cos_sq (a.angle / 2)
+  have hbend : 1 - Real.cos a.angle = 2 * sh ^ 2 := by
+    dsimp [sh]
+    rw [Real.sin_sq, Real.cos_sq]
+    ring_nf
+  have hsin : Real.sin a.angle = 2 * sh * ch := by
+    dsimp [sh, ch]
+    conv_lhs => rw [show a.angle = 2 * (a.angle / 2) by ring]
+    rw [Real.sin_two_mul]
+  have hnorm_sq_le : ‖Q - 1‖ ^ 2 ≤ r ^ 2 := by
+    exact (sq_le_sq₀ (norm_nonneg _) hr).2 hnorm_le
+  have hnorm_sq_ge : r0 ^ 2 ≤ ‖Q - 1‖ ^ 2 := by
+    exact (sq_le_sq₀ hr0 (norm_nonneg _)).2 hnorm_ge
+  have hsh_sq_le : sh ^ 2 ≤ (1 / 4) * r ^ 2 := by
+    linarith [hnormsq, hnorm_sq_le]
+  have hsh_sq_ge : (1 / 4) * r0 ^ 2 ≤ sh ^ 2 := by
+    linarith [hnormsq, hnorm_sq_ge]
+  have hch_sq_ge : 1 - (1 / 4) * r ^ 2 ≤ ch ^ 2 := by
+    linarith [hcircle, hsh_sq_le]
+  have hr_sq_le : r ^ 2 ≤ 4 := by
+    nlinarith [hr, hr_le]
+  have hch_base_nonneg : 0 ≤ 1 - (1 / 4) * r ^ 2 := by
+    linarith [hr_sq_le]
+  have hprod_ge : r0 ^ 2 * (1 - (1 / 4) * r ^ 2) ≤ 4 * sh ^ 2 * ch ^ 2 := by
+    have h1 : r0 ^ 2 ≤ 4 * sh ^ 2 := by linarith [hsh_sq_ge]
+    have h4sh_nonneg : 0 ≤ 4 * sh ^ 2 := by positivity
+    exact mul_le_mul h1 hch_sq_ge hch_base_nonneg h4sh_nonneg
+  have hcB_nonneg : 0 ≤ c ^ 2 * B ^ 2 := by positivity
+  have hrhs_sq_ge : ((1 / 2) * r ^ 2 * B + D) ^ 2 ≤ (2 * |sh| * |ch| * c * B) ^ 2 := by
+    calc
+      ((1 / 2) * r ^ 2 * B + D) ^ 2 ≤
+          r0 ^ 2 * (1 - (1 / 4) * r ^ 2) * (c ^ 2 * B ^ 2) := hcond
+      _ ≤ (4 * sh ^ 2 * ch ^ 2) * (c ^ 2 * B ^ 2) :=
+        mul_le_mul_of_nonneg_right hprod_ge hcB_nonneg
+      _ = (2 * |sh| * |ch| * c * B) ^ 2 := by
+        have hring : (2 * |sh| * |ch| * c * B) ^ 2 =
+            4 * |sh| ^ 2 * |ch| ^ 2 * (c ^ 2 * B ^ 2) := by ring
+        rw [hring, sq_abs, sq_abs]
+  have hlhs_le : (1 - Real.cos a.angle) * B + D ≤ (1 / 2) * r ^ 2 * B + D := by
+    rw [hbend]
+    nlinarith [hsh_sq_le, hB]
+  have hlhs_nonneg : 0 ≤ (1 - Real.cos a.angle) * B + D := by
+    have hcos : Real.cos a.angle ≤ 1 := Real.cos_le_one _
+    nlinarith [hcos, hB, hD]
+  have hrhs_base_nonneg : 0 ≤ 2 * |sh| * |ch| * c * B := by positivity
+  have hcap_nonneg : 0 ≤ (1 / 2) * r ^ 2 * B + D := by positivity
+  have hstep : (1 / 2) * r ^ 2 * B + D ≤ 2 * |sh| * |ch| * c * B := by
+    exact (sq_le_sq₀ hcap_nonneg hrhs_base_nonneg).1 hrhs_sq_ge
+  have hfinal := hlhs_le.trans hstep
+  have heq : |Real.sin a.angle| * c * B = 2 * |sh| * |ch| * c * B := by
+    rw [hsin, abs_mul, abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 2)]
+  rw [heq]
+  exact hfinal
+
 /-- Every special orthogonal matrix has an exact `AxisAngle` presentation
 with angle in `(-π,π]`. -/
 theorem exists_axisAngle (A : Matrix (Fin 3) (Fin 3) ℝ)

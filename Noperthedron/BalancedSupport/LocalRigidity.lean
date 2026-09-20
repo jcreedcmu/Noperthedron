@@ -227,6 +227,99 @@ theorem not_rupertPose_of_reindexed_axisAngle_certificate
           outerProjectionLinear p (poly.v (outerIndex i))⟫
     simpa only [← map_sub] using hdisp
 
+/-- Defect-tolerant version of `axisAngle_weighted_displacement_nonneg`.  When
+the favorable first variation dominates the Rodrigues remainder plus the total
+weighted support defect, the balanced displacement covers all defects. -/
+theorem axisAngle_weighted_displacement_ge_defect
+    {κ : Type} [Fintype κ]
+    {Q : ℝ³ →L[ℝ] ℝ³} (a : AxisAngle Q)
+    (L : ℝ³ →L[ℝ] ℝ²) (hL : ∀ x, ‖L x‖ ≤ ‖x‖)
+    (weight : κ → ℝ) (direction : κ → ℝ²) (vertex : κ → ℝ³) (defect : κ → ℝ)
+    (hweight : ∀ i, 0 ≤ weight i)
+    (hdominates :
+      (1 - Real.cos a.angle) *
+          (∑ i, weight i * (‖direction i‖ * ‖vertex i‖)) +
+        ∑ i, weight i * defect i ≤
+        Real.sin a.angle *
+          (∑ i, weight i * ⟪direction i, L (a.first (vertex i))⟫)) :
+    ∑ i, weight i * defect i ≤
+      ∑ i, weight i * ⟪direction i, L (Q (vertex i) - vertex i)⟫ := by
+  let displacement : κ → ℝ := fun i =>
+    ⟪direction i, L (Q (vertex i) - vertex i)⟫
+  let first : κ → ℝ := fun i =>
+    ⟪direction i, L (a.first (vertex i))⟫
+  let remainder : κ → ℝ := fun i =>
+    ⟪direction i, L (a.remainder (vertex i))⟫
+  let bound : κ → ℝ := fun i => ‖direction i‖ * ‖vertex i‖
+  have hbend : 0 ≤ 1 - Real.cos a.angle := sub_nonneg.mpr (Real.cos_le_one _)
+  have hdecomp (i : κ) : displacement i =
+      Real.sin a.angle * first i + (1 - Real.cos a.angle) * remainder i := by
+    dsimp [displacement, first, remainder]
+    rw [a.apply_sub_exact, map_add, map_smul, map_smul,
+      inner_add_right, inner_smul_right, inner_smul_right]
+  have hremainder (i : κ) : -bound i ≤ remainder i := by
+    dsimp [bound, remainder]
+    have habs : |⟪direction i, L (a.remainder (vertex i))⟫| ≤
+        ‖direction i‖ * ‖vertex i‖ := by
+      calc
+        |⟪direction i, L (a.remainder (vertex i))⟫|
+            ≤ ‖direction i‖ * ‖L (a.remainder (vertex i))‖ :=
+              abs_real_inner_le_norm _ _
+        _ ≤ ‖direction i‖ * ‖a.remainder (vertex i)‖ :=
+          mul_le_mul_of_nonneg_left (hL _) (norm_nonneg _)
+        _ ≤ ‖direction i‖ * ‖vertex i‖ :=
+          mul_le_mul_of_nonneg_left (a.remainder_norm_le _) (norm_nonneg _)
+    linarith [neg_le_of_abs_le habs]
+  exact weighted_displacement_ge_defect_of_first_remainder
+    weight displacement first remainder bound defect (Real.sin a.angle)
+    (1 - Real.cos a.angle) hweight hbend hdecomp hremainder (by simpa using hdominates)
+
+/-- Defect-tolerant symmetry-reindexed version of the local certificate.
+If selected outer support vertices have excess bounded by `defect i`, and the
+first variation dominates the Rodrigues remainder plus the weighted defect,
+the pose cannot be Rupert. -/
+theorem not_rupertPose_of_reindexed_axisAngle_certificate_with_defect
+    {ι κ : Type} [Fintype ι] [Fintype κ] [Nonempty κ]
+    (poly : Polyhedron ι ℝ³) (p : MatrixPose)
+    {Q : ℝ³ →L[ℝ] ℝ³} (a : AxisAngle Q)
+    (innerIndex outerIndex : κ → ι)
+    (weight : κ → ℝ) (direction : κ → ℝ²) (defect : κ → ℝ)
+    (hdirection : ∀ i, direction i ≠ 0)
+    (hweight : ∀ i, 0 ≤ weight i) (hweight_pos : ∃ i, 0 < weight i)
+    (hbalance : ∑ i, weight i • direction i = 0)
+    (htracks : ∀ i,
+      proj_xyL (p.innerRot.val.toEuclideanLin (poly.v (innerIndex i))) =
+        outerProjectionLinear p (Q (poly.v (outerIndex i))))
+    (hsupport : ∀ i j,
+      ⟪direction i, outerProjectionLinear p (poly.v j)⟫ ≤
+        ⟪direction i, outerProjectionLinear p (poly.v (outerIndex i))⟫ + defect i)
+    (hdominates :
+      (1 - Real.cos a.angle) *
+          (∑ i, weight i * (‖direction i‖ * ‖poly.v (outerIndex i)‖)) +
+        ∑ i, weight i * defect i ≤
+        Real.sin a.angle *
+          (∑ i, weight i *
+            ⟪direction i,
+              outerProjectionLinear p (a.first (poly.v (outerIndex i)))⟫)) :
+    ¬ RupertPose p poly.hull := by
+  refine not_rupertPose_of_balanced_support_with_defect poly p innerIndex outerIndex
+    weight direction defect hdirection hweight hweight_pos hbalance ?_ ?_
+  · rintro i y ⟨v, ⟨j, rfl⟩, rfl⟩
+    change ⟪direction i,
+        proj_xyL (p.outerRot.val.toEuclideanLin (poly.v j))⟫ ≤
+      ⟪direction i,
+        proj_xyL (p.outerRot.val.toEuclideanLin (poly.v (outerIndex i)))⟫ + defect i
+    simpa [outerProjectionLinear] using hsupport i j
+  · have hdisp := axisAngle_weighted_displacement_ge_defect a
+      (outerProjectionLinear p) (outerProjectionLinear_norm_le p)
+      weight direction (fun i => poly.v (outerIndex i)) defect hweight hdominates
+    simp_rw [htracks]
+    change ∑ i, weight i * defect i ≤ ∑ i, weight i *
+      ⟪direction i,
+        outerProjectionLinear p (Q (poly.v (outerIndex i))) -
+          outerProjectionLinear p (poly.v (outerIndex i))⟫
+    simpa only [← map_sub] using hdisp
+
 end Noperthedron.BalancedSupport
 
 end

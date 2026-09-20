@@ -260,6 +260,94 @@ theorem not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation
   rw [← hA_eq j]
   exact hremainder.trans hj
 
+/-- Defect-tolerant symmetry axis-angle local certificate. -/
+theorem not_rupertPose_of_symmetry_axisAngle_certificate_with_defect
+    {κ : Type} [Fintype κ] [Nonempty κ]
+    (p : MatrixPose) (g : OrbitIndex)
+    (a : AxisAngle
+      ((relativeRotationAtSymmetry p g).val.toEuclideanLin.toContinuousLinearMap))
+    (index : κ → VertexIndex)
+    (weight : κ → ℝ) (direction : κ → ℝ²) (defect : κ → ℝ)
+    (hdirection : ∀ i, direction i ≠ 0)
+    (hweight : ∀ i, 0 ≤ weight i) (hweight_pos : ∃ i, 0 < weight i)
+    (hbalance : ∑ i, weight i • direction i = 0)
+    (hsupport : ∀ i j,
+      ⟪direction i, outerProjectionLinear p (exactVertex j)⟫ ≤
+        ⟪direction i, outerProjectionLinear p
+          (exactVertex (symmetryAction g (index i)))⟫ + defect i)
+    (hdominates :
+      (1 - Real.cos a.angle) *
+          (∑ i, weight i *
+            (‖direction i‖ * ‖exactVertex (symmetryAction g (index i))‖)) +
+        ∑ i, weight i * defect i ≤
+        Real.sin a.angle *
+          (∑ i, weight i *
+            ⟪direction i, outerProjectionLinear p
+              (a.first (exactVertex (symmetryAction g (index i))))⟫)) :
+    ¬ RupertPose p exactPolyhedron.hull := by
+  apply not_rupertPose_of_reindexed_axisAngle_certificate_with_defect
+    exactPolyhedron p a index (fun i => symmetryAction g (index i))
+    weight direction defect hdirection hweight hweight_pos hbalance
+  · intro i
+    exact (outer_relative_at_symmetry_apply p g (index i)).symm
+  · simpa [exactPolyhedron] using hsupport
+  · simpa [exactPolyhedron] using hdominates
+
+/-- Defect-tolerant version of `not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation`.
+When the first variation dominates the remainder plus the weighted defect across
+the axis cover, any non-identity rotation is excluded from being a Rupert pose. -/
+theorem not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation_with_defect
+    {J κ : Type} [Fintype κ] [Nonempty κ] [Fintype J] [Nonempty J]
+    (p : MatrixPose) (g : OrbitIndex)
+    (a : AxisAngle
+      ((relativeRotationAtSymmetry p g).val.toEuclideanLin.toContinuousLinearMap))
+    (index : J → κ → VertexIndex)
+    (weight : J → κ → ℝ) (direction : J → κ → ℝ²) (defect : J → κ → ℝ)
+    (A normalizedA centerNormalizedA : J → ℝ³) (B D : J → ℝ)
+    (c δ : ℝ)
+    (hB : ∀ j, 0 < B j)
+    (hA : ∀ j, A j = B j • normalizedA j)
+    (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
+      ∃ j, c + δ ≤ ⟪axis, centerNormalizedA j⟫)
+    (hmove : ∀ j, ‖normalizedA j - centerNormalizedA j‖ ≤ δ)
+    (hA_eq : ∀ j, A j = Noperthedron.SnubCube.firstVariationVector p
+      (weight j) (direction j)
+      (fun i => exactVertex (symmetryAction g (index j i))))
+    (hB_bound : ∀ j, ∑ i, weight j i *
+      (‖direction j i‖ * ‖exactVertex (symmetryAction g (index j i))‖) ≤ B j)
+    (hD_bound : ∀ j, ∑ i, weight j i * defect j i ≤ D j)
+    (hratio : ∀ j, (1 - Real.cos a.angle) * B j + D j ≤ |Real.sin a.angle| * c * B j)
+    (hdirection : ∀ j i, direction j i ≠ 0)
+    (hweight : ∀ j i, 0 ≤ weight j i)
+    (hweight_pos : ∀ j, ∃ i, 0 < weight j i)
+    (hbalance : ∀ j, ∑ i, weight j i • direction j i = 0)
+    (hsupport : ∀ j i k,
+      ⟪direction j i, outerProjectionLinear p (exactVertex k)⟫ ≤
+        ⟪direction j i, outerProjectionLinear p
+          (exactVertex (symmetryAction g (index j i)))⟫ + defect j i) :
+    ¬ RupertPose p exactPolyhedron.hull := by
+  obtain ⟨j, hj⟩ :=
+    exists_axis_certificate_dominating_remainder_with_defect_of_cover_perturbation
+      centerNormalizedA normalizedA A B D c δ |Real.sin a.angle|
+      (1 - Real.cos a.angle) (abs_nonneg _) hB hA hcover hmove hratio
+      a.signedAxis a.signedAxis_norm
+  apply not_rupertPose_of_symmetry_axisAngle_certificate_with_defect p g a
+    (index j) (weight j) (direction j) (defect j)
+    (hdirection j) (hweight j) (hweight_pos j) (hbalance j) (hsupport j)
+  have hremainder :
+      (1 - Real.cos a.angle) *
+          (∑ i, weight j i *
+            (‖direction j i‖ * ‖exactVertex (symmetryAction g (index j i))‖)) +
+        ∑ i, weight j i * defect j i ≤
+        (1 - Real.cos a.angle) * B j + D j := by
+    linarith [mul_le_mul_of_nonneg_left (hB_bound j)
+      (sub_nonneg.mpr (Real.cos_le_one a.angle)), hD_bound j]
+  rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a p
+    (weight j) (direction j)
+    (fun i => exactVertex (symmetryAction g (index j i)))]
+  rw [← hA_eq j]
+  exact hremainder.trans hj
+
 end Noperthedron.Nopert229
 
 end

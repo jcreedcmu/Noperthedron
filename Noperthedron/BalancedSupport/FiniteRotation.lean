@@ -68,6 +68,47 @@ theorem weighted_displacement_nonneg_of_first_remainder
   rw [heq]
   linarith
 
+/-- Finite-rotation estimate with support defect.  When the first variation
+dominates both the bounded Rodrigues remainder and the weighted defect allowance,
+the balanced displacement strictly pays for all defects. -/
+theorem weighted_displacement_ge_defect_of_first_remainder
+    {κ : Type} [Fintype κ]
+    (μ displacement first remainder bound defect : κ → ℝ)
+    (sinCoeff bendCoeff : ℝ)
+    (hμ : ∀ i, 0 ≤ μ i) (hbend : 0 ≤ bendCoeff)
+    (hdecomp : ∀ i,
+      displacement i = sinCoeff * first i + bendCoeff * remainder i)
+    (hremainder : ∀ i, -bound i ≤ remainder i)
+    (hdominates : bendCoeff * (∑ i, μ i * bound i) + ∑ i, μ i * defect i ≤
+      sinCoeff * (∑ i, μ i * first i)) :
+    ∑ i, μ i * defect i ≤ ∑ i, μ i * displacement i := by
+  have hrem := weighted_remainder_lower_bound μ remainder bound hμ hremainder
+  have hrem' :
+      -(bendCoeff * ∑ i, μ i * bound i) ≤
+        bendCoeff * ∑ i, μ i * remainder i := by
+    calc
+      -(bendCoeff * ∑ i, μ i * bound i) =
+          bendCoeff * (-(∑ i, μ i * bound i)) := by ring
+      _ ≤ bendCoeff * ∑ i, μ i * remainder i :=
+        mul_le_mul_of_nonneg_left hrem hbend
+  have heq :
+      ∑ i, μ i * displacement i =
+        sinCoeff * (∑ i, μ i * first i) +
+          bendCoeff * (∑ i, μ i * remainder i) := by
+    calc
+      ∑ i, μ i * displacement i =
+          ∑ i, (sinCoeff * (μ i * first i) + bendCoeff * (μ i * remainder i)) := by
+        refine Finset.sum_congr rfl ?_
+        intro i _
+        rw [hdecomp]
+        ring
+      _ = sinCoeff * (∑ i, μ i * first i) +
+          bendCoeff * (∑ i, μ i * remainder i) := by
+        rw [Finset.sum_add_distrib, Finset.mul_sum, Finset.mul_sum]
+  rw [heq]
+  linarith
+
 end Noperthedron.BalancedSupport
 
 end
+

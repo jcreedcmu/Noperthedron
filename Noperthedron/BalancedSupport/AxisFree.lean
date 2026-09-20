@@ -272,6 +272,31 @@ theorem exists_axis_certificate_dominating_remainder_of_cover_perturbation
     mul_le_mul_of_nonneg_left hscaled hsin
   linarith
 
+/-- Defect-tolerant version of `exists_axis_certificate_dominating_remainder_of_cover_perturbation`.
+When the first variation dominates the remainder plus the defect allowance across the
+entire axis cover, at least one axis certificate dominates the remainder plus defect. -/
+theorem exists_axis_certificate_dominating_remainder_with_defect_of_cover_perturbation
+    {J : Type} [Fintype J] [Nonempty J]
+    (center a A : J → ℝ³) (B D : J → ℝ) (c δ sinCoeff bendCoeff : ℝ)
+    (hsin : 0 ≤ sinCoeff) (hB : ∀ j, 0 < B j)
+    (hA : ∀ j, A j = B j • a j)
+    (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
+      ∃ j, c + δ ≤ ⟪axis, center j⟫)
+    (hmove : ∀ j, ‖a j - center j‖ ≤ δ)
+    (hratio : ∀ j, bendCoeff * B j + D j ≤ sinCoeff * c * B j)
+    (ω : ℝ³) (hω : ‖ω‖ = 1) :
+    ∃ j, bendCoeff * B j + D j ≤ sinCoeff * ⟪ω, A j⟫ := by
+  obtain ⟨j, hj⟩ := exists_inner_ge_of_cover_of_perturbation
+    center a c δ hcover hmove ω hω
+  have hscaled : c * B j ≤ ⟪ω, A j⟫ := by
+    rw [hA j, real_inner_smul_right]
+    nlinarith [hB j]
+  refine ⟨j, ?_⟩
+  have hratioB := hratio j
+  have hscaled' : sinCoeff * (c * B j) ≤ sinCoeff * ⟪ω, A j⟫ :=
+    mul_le_mul_of_nonneg_left hscaled hsin
+  linarith
+
 end Noperthedron.BalancedSupport
 
 end

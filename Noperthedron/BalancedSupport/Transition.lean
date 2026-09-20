@@ -23,45 +23,6 @@ namespace Noperthedron.BalancedSupport
 
 open scoped RealInnerProductSpace
 
-/-- Finite-rotation estimate with a nonzero support-defect target.  This is
-the ordered-algebra core of a transition certificate: the favorable first
-variation must pay both the Rodrigues remainder and the support deficit. -/
-theorem weighted_displacement_ge_defect_of_first_remainder
-    {κ : Type} [Fintype κ]
-    (μ displacement first remainder bound : κ → ℝ)
-    (sinCoeff bendCoeff totalDefect : ℝ)
-    (hμ : ∀ i, 0 ≤ μ i) (hbend : 0 ≤ bendCoeff)
-    (hdecomp : ∀ i,
-      displacement i = sinCoeff * first i + bendCoeff * remainder i)
-    (hremainder : ∀ i, -bound i ≤ remainder i)
-    (hdominates : bendCoeff * (∑ i, μ i * bound i) + totalDefect ≤
-      sinCoeff * (∑ i, μ i * first i)) :
-    totalDefect ≤ ∑ i, μ i * displacement i := by
-  have hrem := weighted_remainder_lower_bound μ remainder bound hμ hremainder
-  have hrem' :
-      -(bendCoeff * ∑ i, μ i * bound i) ≤
-        bendCoeff * ∑ i, μ i * remainder i := by
-    calc
-      -(bendCoeff * ∑ i, μ i * bound i) =
-          bendCoeff * (-(∑ i, μ i * bound i)) := by ring
-      _ ≤ bendCoeff * ∑ i, μ i * remainder i :=
-        mul_le_mul_of_nonneg_left hrem hbend
-  have heq :
-      ∑ i, μ i * displacement i =
-        sinCoeff * (∑ i, μ i * first i) +
-          bendCoeff * (∑ i, μ i * remainder i) := by
-    calc
-      ∑ i, μ i * displacement i =
-          ∑ i, (sinCoeff * (μ i * first i) +
-            bendCoeff * (μ i * remainder i)) := by
-              apply Finset.sum_congr rfl
-              intro i _
-              rw [hdecomp i]
-              ring
-      _ = _ := by
-        rw [Finset.sum_add_distrib, Finset.mul_sum, Finset.mul_sum]
-  rw [heq]
-  linarith
 
 /-- Axis-free selection with a support-defect allowance.  Compared with the
 ordinary local theorem, each candidate's first variation now pays an
