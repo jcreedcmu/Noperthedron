@@ -23,6 +23,8 @@ open AtlasProjectiveLocalCertificate AtlasProjectiveView AtlasProjectiveLocalRig
 open BalancedSupport
 open scoped RealInnerProductSpace
 
+set_option linter.unusedVariables false
+
 def interval : AtlasInterval ℚ :=
   AtlasInterval.mk
     { θ := 0, φ := 0
@@ -130,32 +132,127 @@ theorem not_rupertPose_cell_exceptional_annulus
     hannular_dominance
     hp offset hscale hmem a hr_min hexc
 
-/-- Concrete instance of the inner core certificate for cell `031213002112122012121`. -/
+/-- Concrete instance of the 9-vertex hull inner core certificate for cell `031213002112122012121`.
+Idea 3 from TINY_SLIVER.md: contacts at vertices v₂, v₄, v₁₅ on the true 9-vertex hull.
+Because all 3 contacts lie on the true 9-vertex hull, their support upper bounds are strictly ≤ 0. -/
+def cert_hull : AxisCertificate := {
+  edgeStart := ![3, 1, 10]
+  edgeFinish := ![2, 4, 15]
+  edgeStart₂ := ![2, 4, 15]
+  edgeFinish₂ := ![1, 8, 19]
+  mix := ![800, 800, 800]
+  index := ![2, 4, 15]
+  nonzeroWitness := ![9, 15, 1]
+  B := 18061 / 10000
+}
+
+def box_core : Box where
+  interval := interval
+  root := 0
+  triangle := triangle
+  chart := 0
+  symmetryIndex := 0
+  certificate := fun _ => cert_hull
+  c := 2133147 / 1000000000
+  δ := 333 / 1000000000
+  r := 1 / 1000
+
+theorem hB_pos_core : ∀ (j : Fin 4), 0 < (box_core.certificate j).B := by decide +kernel
+theorem hsupport_zero_core : ∀ (j : Fin 4) (i : Fin 3) (k : VertexIndex), box_core.supportUpper j i k ≤ 0 := by decide +kernel
+theorem hdir_nonzero_core : ∀ (j : Fin 4) (i : Fin 3), box_core.supportUpper j i ((box_core.certificate j).nonzeroWitness i) < 0 := by decide +kernel
+theorem hweight_nonneg_core : ∀ (j : Fin 4) (i : Fin 3), 0 ≤ box_core.weightLower j i := by decide +kernel
+theorem hweight_pos_core : ∀ (j : Fin 4), ∃ i, 0 < box_core.weightLower j i := by decide +kernel
+
 def cert_core : InnerCoreCertificate where
-  innerIndex := ![2, 4, 14]
-  cert := cert0
+  innerIndex := ![2, 4, 15]
+  cert := cert_hull
+
+/-- Sibling Axis 1 from node `031213002112122012120`. -/
+def cert1 : AxisCertificate := {
+  edgeStart := ![15, 2, 8]
+  edgeFinish := ![19, 1, 9]
+  edgeStart₂ := ![19, 1, 9]
+  edgeFinish₂ := ![3, 4, 10]
+  mix := ![200, 200, 200]
+  index := ![19, 1, 9]
+  nonzeroWitness := ![8, 15, 2]
+  B := 898481993 / 1000000000
+}
+
+/-- Sibling Axis 2 from node `031213002112122012120`. -/
+def cert2 : AxisCertificate := {
+  edgeStart := ![2, 10, 10]
+  edgeFinish := ![1, 15, 15]
+  edgeStart₂ := ![1, 15, 15]
+  edgeFinish₂ := ![4, 19, 19]
+  mix := ![0, 333, 0]
+  index := ![1, 15, 15]
+  nonzeroWitness := ![15, 1, 4]
+  B := 254450361 / 500000000
+}
+
+/-- Sibling Axis 3 from node `031213002112122012120`. -/
+def cert3 : AxisCertificate := {
+  edgeStart := ![3, 4, 14]
+  edgeFinish := ![2, 8, 15]
+  edgeStart₂ := ![2, 8, 15]
+  edgeFinish₂ := ![1, 9, 19]
+  mix := ![800, 800, 800]
+  index := ![2, 8, 15]
+  nonzeroWitness := ![9, 19, 1]
+  B := 264825469 / 200000000
+}
+
+def box_sib (cert : AxisCertificate) : Box where
+  interval := interval
+  root := 0
+  triangle := triangle
+  chart := 0
+  symmetryIndex := 0
+  certificate := fun _ => cert
+  c := 2133147 / 1000000000
+  δ := 333 / 1000000000
+  r := 1 / 1000
+
+theorem hB_pos_cert1 : ∀ (j : Fin 4), 0 < ((box_sib cert1).certificate j).B := by decide +kernel
+theorem hsupport_cert1 : ∀ (j : Fin 4) (i : Fin 3) (k : VertexIndex), (box_sib cert1).supportUpper j i k ≤ 0 := by decide +kernel
+theorem hdir_nonzero_cert1 : ∀ (j : Fin 4) (i : Fin 3), (box_sib cert1).supportUpper j i (((box_sib cert1).certificate j).nonzeroWitness i) < 0 := by decide +kernel
+theorem hweight_nonneg_cert1 : ∀ (j : Fin 4) (i : Fin 3), 0 ≤ (box_sib cert1).weightLower j i := by decide +kernel
+theorem hweight_pos_cert1 : ∀ (j : Fin 4), ∃ i, 0 < (box_sib cert1).weightLower j i := by decide +kernel
+
+theorem hB_pos_cert2 : ∀ (j : Fin 4), 0 < ((box_sib cert2).certificate j).B := by decide +kernel
+theorem hsupport_cert2 : ∀ (j : Fin 4) (i : Fin 3) (k : VertexIndex), (box_sib cert2).supportUpper j i k ≤ 0 := by decide +kernel
+theorem hdir_nonzero_cert2 : ∀ (j : Fin 4) (i : Fin 3), (box_sib cert2).supportUpper j i (((box_sib cert2).certificate j).nonzeroWitness i) < 0 := by decide +kernel
+theorem hweight_nonneg_cert2 : ∀ (j : Fin 4) (i : Fin 3), 0 ≤ (box_sib cert2).weightLower j i := by decide +kernel
+theorem hweight_pos_cert2 : ∀ (j : Fin 4), ∃ i, 0 < (box_sib cert2).weightLower j i := by decide +kernel
+
+theorem hB_pos_cert3 : ∀ (j : Fin 4), 0 < ((box_sib cert3).certificate j).B := by decide +kernel
+theorem hsupport_cert3 : ∀ (j : Fin 4) (i : Fin 3) (k : VertexIndex), (box_sib cert3).supportUpper j i k ≤ 0 := by decide +kernel
+theorem hdir_nonzero_cert3 : ∀ (j : Fin 4) (i : Fin 3), (box_sib cert3).supportUpper j i (((box_sib cert3).certificate j).nonzeroWitness i) < 0 := by decide +kernel
+theorem hweight_nonneg_cert3 : ∀ (j : Fin 4) (i : Fin 3), 0 ≤ (box_sib cert3).weightLower j i := by decide +kernel
+theorem hweight_pos_cert3 : ∀ (j : Fin 4), ∃ i, 0 < (box_sib cert3).weightLower j i := by decide +kernel
 
 /-- Ruling out adversary poses in the inner core `‖Q - 1‖ ≤ r_min` along the
-exceptional cone for cell `031213002112122012121`. -/
+exceptional cone for cell `031213002112122012121` using `cert_hull`.
+The support defect premise is discharged unconditionally by `hsupport_zero_core`. -/
 theorem not_rupertPose_cell_inner_core
-    (hsupport_zero : ∀ (j : Fin 4) (i : Fin 3) (k : VertexIndex), box.supportUpper j i k ≤ 0)
-    (hdisplacement : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
-      1 ≤ viewScale box.root p →
-      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+    (hdisplacement : ∀ {p : AtlasPose ℝ} (hp : p ∈ box_core.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box_core.root p →
+      InTriangle (toReal box_core.triangle) (AtlasProjectiveView.normalizedView box_core.root p) →
       ∀ a : AxisAngle
         (Noperthedron.SnubCube.so3CLM
           (relativeRotationAtSymmetry
-            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+            (p.matrixPoseWithOffset box_core.chart offset) box_core.symmetryIndex)),
         ‖Noperthedron.SnubCube.so3CLM
           (relativeRotationAtSymmetry
-            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
+            (p.matrixPoseWithOffset box_core.chart offset) box_core.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
         exceptional a.signedAxis →
-        0 ≤ ∑ i, (box.certificate 0).exactWeight box p i *
-          ⟪direction box.root p ((box.certificate 0).exactEdge i),
-            proj_xyL ((p.matrixPoseWithOffset box.chart offset).innerRot.val.toEuclideanLin
-              (exactPolyhedron.v (symmetryAction box.symmetryIndex (cert_core.innerIndex i)))) -
-            proj_xyL ((p.matrixPoseWithOffset box.chart offset).outerRot.val.toEuclideanLin
-              (exactPolyhedron.v (symmetryAction box.symmetryIndex (cert_core.cert.index i))))⟫) :
+        0 ≤ ∑ i, (box_core.certificate 0).exactWeight box_core p i *
+          ⟪direction box_core.root p ((box_core.certificate 0).exactEdge i),
+            proj_xyL ((p.matrixPoseWithOffset box_core.chart offset).innerRot.val.toEuclideanLin
+              (exactPolyhedron.v (symmetryAction box_core.symmetryIndex (cert_core.innerIndex i)))) -
+            proj_xyL ((p.matrixPoseWithOffset box_core.chart offset).outerRot.val.toEuclideanLin
+              (exactPolyhedron.v (symmetryAction box_core.symmetryIndex (cert_core.cert.index i))))⟫) :
     ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
       1 ≤ viewScale box.root p →
       InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
@@ -169,8 +266,8 @@ theorem not_rupertPose_cell_inner_core
         exceptional a.signedAxis →
         ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
   intro p hp offset hscale hmem a hr hexc
-  exact not_rupertPose_of_inner_core_certificate box cert_core r_min exceptional
-    rfl hdir_nonzero hweight_nonneg hweight_pos hsupport_zero
+  exact not_rupertPose_of_inner_core_certificate box_core cert_core r_min exceptional
+    rfl hdir_nonzero_core hweight_nonneg_core hweight_pos_core hsupport_zero_core
     hdisplacement hp offset hscale hmem a hr hexc
 
 /-- High-level identity tube property for cell `031213002112122012121`:
@@ -189,24 +286,23 @@ theorem not_rupertPose_cell_composed
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
         ¬ exceptional a.signedAxis →
         ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
-    (hsupport_zero : ∀ (j : Fin 4) (i : Fin 3) (k : VertexIndex), box.supportUpper j i k ≤ 0)
-    (hdisplacement : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
-      1 ≤ viewScale box.root p →
-      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+    (hdisplacement : ∀ {p : AtlasPose ℝ} (hp : p ∈ box_core.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box_core.root p →
+      InTriangle (toReal box_core.triangle) (AtlasProjectiveView.normalizedView box_core.root p) →
       ∀ a : AxisAngle
         (Noperthedron.SnubCube.so3CLM
           (relativeRotationAtSymmetry
-            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+            (p.matrixPoseWithOffset box_core.chart offset) box_core.symmetryIndex)),
         ‖Noperthedron.SnubCube.so3CLM
           (relativeRotationAtSymmetry
-            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
+            (p.matrixPoseWithOffset box_core.chart offset) box_core.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
         exceptional a.signedAxis →
-        0 ≤ ∑ i, (box.certificate 0).exactWeight box p i *
-          ⟪direction box.root p ((box.certificate 0).exactEdge i),
-            proj_xyL ((p.matrixPoseWithOffset box.chart offset).innerRot.val.toEuclideanLin
-              (exactPolyhedron.v (symmetryAction box.symmetryIndex (cert_core.innerIndex i)))) -
-            proj_xyL ((p.matrixPoseWithOffset box.chart offset).outerRot.val.toEuclideanLin
-              (exactPolyhedron.v (symmetryAction box.symmetryIndex (cert_core.cert.index i))))⟫) :
+        0 ≤ ∑ i, (box_core.certificate 0).exactWeight box_core p i *
+          ⟪direction box_core.root p ((box_core.certificate 0).exactEdge i),
+            proj_xyL ((p.matrixPoseWithOffset box_core.chart offset).innerRot.val.toEuclideanLin
+              (exactPolyhedron.v (symmetryAction box_core.symmetryIndex (cert_core.innerIndex i)))) -
+            proj_xyL ((p.matrixPoseWithOffset box_core.chart offset).outerRot.val.toEuclideanLin
+              (exactPolyhedron.v (symmetryAction box_core.symmetryIndex (cert_core.cert.index i))))⟫) :
     ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
       1 ≤ viewScale box.root p →
       InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
@@ -216,7 +312,7 @@ theorem not_rupertPose_cell_composed
     exact not_rupertPose_cell_exceptional_annulus hp offset hscale hmem a hr hexc
   · exact h_complement
   · intro p hp offset hscale hmem a hr hexc
-    exact not_rupertPose_cell_inner_core hsupport_zero hdisplacement hp offset hscale hmem a hr hexc
+    exact not_rupertPose_cell_inner_core hdisplacement hp offset hscale hmem a hr hexc
 
 end Noperthedron.Nopert229.AtlasProjectiveAnnularCertificateSmoke
 end
