@@ -747,6 +747,86 @@ theorem valid_imp_not_translated_rupert_of_three_way_split
     (h_complement hp offset hscale hmem)
     (h_inner_core hp offset hscale hmem)
 
+/-- Certificate for the inner core `‖Q - 1‖ ≤ r_min` of an exceptional axis.
+It specifies inner body indices `innerIndex` paired with an outer `AxisCertificate` `cert`
+(defining outer body indices `cert.index` and edge tangents), allowing cross-vertex
+contacts or standard contacts with verified displacement dominance. -/
+structure InnerCoreCertificate where
+  innerIndex : Fin 3 → VertexIndex
+  cert : AxisCertificate
+
+/-- When an inner core certificate has non-negative balanced displacement across
+the inner core `‖Q - 1‖ ≤ r_min`, no Rupert pose can occur in that region. -/
+theorem not_rupertPose_of_inner_core_certificate
+    (box : Box)
+    (coreCert : InnerCoreCertificate)
+    (r_min : ℚ)
+    (exceptional : ℝ³ → Prop)
+    (h_cert : box.certificate 0 = coreCert.cert)
+    (hdir_nonzero : ∀ (j : Fin 4) (i : Fin 3), box.supportUpper j i ((box.certificate j).nonzeroWitness i) < 0)
+    (hweight_nonneg : ∀ (j : Fin 4) (i : Fin 3), 0 ≤ box.weightLower j i)
+    (hweight_pos : ∀ (j : Fin 4), ∃ i, 0 < box.weightLower j i)
+    (hsupport : ∀ (j : Fin 4) (i : Fin 3) (k : VertexIndex), box.supportUpper j i k ≤ 0)
+    (hdisplacement : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ∀ a : AxisAngle
+        (Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+        ‖Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
+        exceptional a.signedAxis →
+        0 ≤ ∑ i, (box.certificate 0).exactWeight box p i *
+          ⟪direction box.root p ((box.certificate 0).exactEdge i),
+            proj_xyL ((p.matrixPoseWithOffset box.chart offset).innerRot.val.toEuclideanLin
+              (exactPolyhedron.v (symmetryAction box.symmetryIndex (coreCert.innerIndex i)))) -
+            proj_xyL ((p.matrixPoseWithOffset box.chart offset).outerRot.val.toEuclideanLin
+              (exactPolyhedron.v (symmetryAction box.symmetryIndex (coreCert.cert.index i))))⟫) :
+    ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ∀ a : AxisAngle
+        (Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+        ‖Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
+        exceptional a.signedAxis →
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+  intro p hp offset hscale hmem a hr hexc
+  have hscaleNe : viewScale box.root p ≠ 0 := by
+    linarith [(show (0 : ℝ) < 1 by norm_num), hscale]
+  refine not_rupertPose_of_balanced_support exactPolyhedron
+    (p.matrixPoseWithOffset box.chart offset)
+    (fun i => symmetryAction box.symmetryIndex (coreCert.innerIndex i))
+    (fun i => symmetryAction box.symmetryIndex (coreCert.cert.index i))
+    (fun i => (box.certificate 0).exactWeight box p i)
+    (fun i => direction box.root p ((box.certificate 0).exactEdge i))
+    ?_ ?_ ?_ ?_ ?_ ?_
+  · intro i
+    exact box.valid_direction_nonzero_of_strict hdir_nonzero offset hscale hmem 0 i
+  · intro i
+    simpa [AxisCertificate.exactWeight] using
+      box.valid_weight_nonneg_of_lower hweight_nonneg hscale hmem 0 i
+  · exact box.valid_weight_pos_of_lower hweight_pos hscale hmem 0
+  · exact weight_balance box.root p (fun i => (box.certificate 0).exactEdge i) hscaleNe
+  · rintro i y ⟨v, ⟨k, rfl⟩, rfl⟩
+    have hsup := box.valid_support_of_upper (fun _ _ => 0) hsupport offset hscale hmem 0 i k
+    have hcert_idx : (box.certificate 0).index i = coreCert.cert.index i := by rw [h_cert]
+    rw [← hcert_idx]
+    change inner ℝ (direction box.root p ((box.certificate 0).exactEdge i))
+        (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset) (exactVertex k)) ≤
+      inner ℝ (direction box.root p ((box.certificate 0).exactEdge i))
+        (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
+          (exactVertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))))
+    simpa [AxisCertificate.supportIndex] using hsup
+  · exact hdisplacement hp offset hscale hmem a hr hexc
+
 end Noperthedron.Nopert229.AtlasProjectiveLocalCertificate
+
+
 
 
