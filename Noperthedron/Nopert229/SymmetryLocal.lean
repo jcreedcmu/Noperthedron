@@ -348,6 +348,62 @@ theorem not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation_w
   rw [← hA_eq j]
   exact hremainder.trans hj
 
+/-- Decomposed version of `not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation`.
+When a family of partial axis certificates covers all rotation axes except an exceptional set
+where an alternate non-Rupert certificate holds, the pose cannot be a Rupert pose. -/
+theorem not_rupertPose_of_decomposed_symmetry_certificates
+    {J κ : Type} [Fintype J] [Fintype κ] [Nonempty κ]
+    (p : MatrixPose) (g : OrbitIndex)
+    (a : AxisAngle
+      ((relativeRotationAtSymmetry p g).val.toEuclideanLin.toContinuousLinearMap))
+    (exceptional : ℝ³ → Prop)
+    (index : J → κ → VertexIndex)
+    (weight : J → κ → ℝ) (direction : J → κ → ℝ²)
+    (A normalizedA centerNormalizedA : J → ℝ³) (B : J → ℝ)
+    (c δ : ℝ)
+    (hB : ∀ j, 0 < B j)
+    (hA : ∀ j, A j = B j • normalizedA j)
+    (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
+      (∃ j, c + δ ≤ ⟪axis, centerNormalizedA j⟫) ∨ exceptional axis)
+    (hmove : ∀ j, ‖normalizedA j - centerNormalizedA j‖ ≤ δ)
+    (hA_eq : ∀ j, A j = Noperthedron.SnubCube.firstVariationVector p
+      (weight j) (direction j)
+      (fun i => exactVertex (symmetryAction g (index j i))))
+    (hB_bound : ∀ j, ∑ i, weight j i *
+      (‖direction j i‖ * ‖exactVertex (symmetryAction g (index j i))‖) ≤ B j)
+    (hratio : 1 - Real.cos a.angle ≤ |Real.sin a.angle| * c)
+    (hdirection : ∀ j i, direction j i ≠ 0)
+    (hweight : ∀ j i, 0 ≤ weight j i)
+    (hweight_pos : ∀ j, ∃ i, 0 < weight j i)
+    (hbalance : ∀ j, ∑ i, weight j i • direction j i = 0)
+    (hsupport : ∀ j i k,
+      ⟪direction j i, outerProjectionLinear p (exactVertex k)⟫ ≤
+        ⟪direction j i, outerProjectionLinear p
+          (exactVertex (symmetryAction g (index j i)))⟫)
+    (hexceptional : exceptional a.signedAxis → ¬ RupertPose p exactPolyhedron.hull) :
+    ¬ RupertPose p exactPolyhedron.hull := by
+  rcases exists_axis_certificate_dominating_remainder_or_exceptional_of_cover_perturbation
+    centerNormalizedA normalizedA A B c δ |Real.sin a.angle|
+    (1 - Real.cos a.angle) exceptional (abs_nonneg _) hB hA hcover hmove hratio
+    a.signedAxis a.signedAxis_norm with ⟨j, hj⟩ | hex
+  · apply not_rupertPose_of_symmetry_axisAngle_certificate p g a
+      (index j) (weight j) (direction j)
+      (hdirection j) (hweight j) (hweight_pos j) (hbalance j) (hsupport j)
+    have hremainder :
+        (1 - Real.cos a.angle) *
+            (∑ i, weight j i *
+              (‖direction j i‖ * ‖exactVertex (symmetryAction g (index j i))‖)) ≤
+          (1 - Real.cos a.angle) * B j :=
+      mul_le_mul_of_nonneg_left (hB_bound j)
+        (sub_nonneg.mpr (Real.cos_le_one a.angle))
+    rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a p
+      (weight j) (direction j)
+      (fun i => exactVertex (symmetryAction g (index j i)))]
+    rw [← hA_eq j]
+    exact hremainder.trans hj
+  · exact hexceptional hex
+
 end Noperthedron.Nopert229
 
 end
+

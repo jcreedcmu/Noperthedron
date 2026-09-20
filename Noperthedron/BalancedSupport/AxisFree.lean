@@ -297,6 +297,56 @@ theorem exists_axis_certificate_dominating_remainder_with_defect_of_cover_pertur
     mul_le_mul_of_nonneg_left hscaled hsin
   linarith
 
+/-- Decomposition version of axis coverage under perturbation: every unit axis
+either has a certificate achieving inner product at least `c` against its perturbed vector,
+or satisfies the exceptional predicate. -/
+theorem exists_inner_ge_or_exceptional_of_cover_perturbation
+    {J : Type} [Fintype J]
+    (center current : J → ℝ³) (c δ : ℝ) (exceptional : ℝ³ → Prop)
+    (hcover : ∀ ω : ℝ³, ‖ω‖ = 1 → (∃ j, c + δ ≤ ⟪ω, center j⟫) ∨ exceptional ω)
+    (hmove : ∀ j, ‖current j - center j‖ ≤ δ)
+    (ω : ℝ³) (hω : ‖ω‖ = 1) :
+    (∃ j, c ≤ ⟪ω, current j⟫) ∨ exceptional ω := by
+  rcases hcover ω hω with ⟨j, hj⟩ | hex
+  · have hinner := abs_real_inner_le_norm ω (current j - center j)
+    rw [hω, one_mul] at hinner
+    have hlower : -δ ≤ ⟪ω, current j - center j⟫ := by
+      have habs : |⟪ω, current j - center j⟫| ≤ δ := hinner.trans (hmove j)
+      exact (abs_le.mp habs).1
+    refine Or.inl ⟨j, ?_⟩
+    rw [inner_sub_right] at hlower
+    linarith
+  · exact Or.inr hex
+
+/-- Decomposition version of remainder dominance: if a partial axis-free cover dominates
+the remainder outside an exceptional set of axes, then for any unit axis, either some
+certificate dominates the remainder or the axis is exceptional. -/
+theorem exists_axis_certificate_dominating_remainder_or_exceptional_of_cover_perturbation
+    {J : Type} [Fintype J]
+    (center a A : J → ℝ³) (B : J → ℝ) (c δ sinCoeff bendCoeff : ℝ)
+    (exceptional : ℝ³ → Prop)
+    (hsin : 0 ≤ sinCoeff) (hB : ∀ j, 0 < B j)
+    (hA : ∀ j, A j = B j • a j)
+    (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
+      (∃ j, c + δ ≤ ⟪axis, center j⟫) ∨ exceptional axis)
+    (hmove : ∀ j, ‖a j - center j‖ ≤ δ)
+    (hratio : bendCoeff ≤ sinCoeff * c)
+    (ω : ℝ³) (hω : ‖ω‖ = 1) :
+    (∃ j, bendCoeff * B j ≤ sinCoeff * ⟪ω, A j⟫) ∨ exceptional ω := by
+  rcases exists_inner_ge_or_exceptional_of_cover_perturbation
+    center a c δ exceptional hcover hmove ω hω with ⟨j, hj⟩ | hex
+  · have hscaled : c * B j ≤ ⟪ω, A j⟫ := by
+      rw [hA j, real_inner_smul_right]
+      nlinarith [hB j]
+    refine Or.inl ⟨j, ?_⟩
+    have hratioB : bendCoeff * B j ≤ sinCoeff * c * B j :=
+      mul_le_mul_of_nonneg_right hratio (hB j).le
+    have hscaled' : sinCoeff * (c * B j) ≤ sinCoeff * ⟪ω, A j⟫ :=
+      mul_le_mul_of_nonneg_left hscaled hsin
+    linarith
+  · exact Or.inr hex
+
 end Noperthedron.BalancedSupport
 
 end
+

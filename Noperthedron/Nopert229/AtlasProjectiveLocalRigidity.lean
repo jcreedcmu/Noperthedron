@@ -145,9 +145,9 @@ theorem firstVariationVector_eq (root : Fin 8) (p : AtlasPose ℝ)
   intro i _
   rw [outerLift_direction root p chart offset (edge i) hscale]
 
-noncomputable def normalizedVariation (root : Fin 8) (p : AtlasPose ℝ)
-    (edge : Fin 4 → EdgeTriple) (index : Fin 4 → Fin 3 → VertexIndex)
-    (g : OrbitIndex) (B : Fin 4 → ℝ) (j : Fin 4) : ℝ³ :=
+noncomputable def normalizedVariation {J : Type} (root : Fin 8) (p : AtlasPose ℝ)
+    (edge : J → EdgeTriple) (index : J → Fin 3 → VertexIndex)
+    (g : OrbitIndex) (B : J → ℝ) (j : J) : ℝ³ :=
   (B j)⁻¹ • variationVector root p (edge j)
     (fun i => exactVertex (symmetryAction g (index j i)))
 
@@ -283,6 +283,84 @@ theorem not_rupertPose_of_projective_local_certificates_with_defect
     exact weight_balance root p (edge j) hscale
   · exact hsupport
 
+/-- Decomposed version of `not_rupertPose_of_projective_local_certificates`.
+When a family of partial axis certificates covers all rotation axes except an exceptional set
+where an alternate non-Rupert certificate holds, the pose cannot be a Rupert pose. -/
+theorem not_rupertPose_of_projective_local_certificates_with_decomposition
+    {J : Type} [Fintype J]
+    (root : Fin 8) (p : AtlasPose ℝ) (chart : CayleyAtlas.ChartIndex)
+    (offset : ℝ²) (g : OrbitIndex)
+    (exceptional : ℝ³ → Prop)
+    (edge : J → EdgeTriple)
+    (index : J → Fin 3 → VertexIndex)
+    (B : J → ℝ) (c : ℝ)
+    (hscale : viewScale root p ≠ 0)
+    (hB : ∀ j, 0 < B j)
+    (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
+      (∃ j, c ≤ ⟪axis, normalizedVariation root p edge index g B j⟫) ∨ exceptional axis)
+    (hbudget : ∀ j, ∑ i, weight root p (edge j) i *
+      (‖direction root p (edge j i)‖ *
+        ‖exactVertex (symmetryAction g (index j i))‖) ≤ B j)
+    (hratio : ∀ a : AxisAngle
+      (Noperthedron.SnubCube.so3CLM
+        (relativeRotationAtSymmetry
+          (p.matrixPoseWithOffset chart offset) g)),
+      1 - Real.cos a.angle ≤ |Real.sin a.angle| * c)
+    (hdirection : ∀ j i, direction root p (edge j i) ≠ 0)
+    (hweight : ∀ j i, 0 ≤ weight root p (edge j) i)
+    (hweight_pos : ∀ j, ∃ i, 0 < weight root p (edge j) i)
+    (hsupport : ∀ j i k,
+      ⟪direction root p (edge j i),
+          outerProjectionLinear (p.matrixPoseWithOffset chart offset)
+            (exactVertex k)⟫ ≤
+        ⟪direction root p (edge j i),
+          outerProjectionLinear (p.matrixPoseWithOffset chart offset)
+            (exactVertex (symmetryAction g (index j i)))⟫)
+    (hexceptional : ∀ a : AxisAngle
+      (Noperthedron.SnubCube.so3CLM
+        (relativeRotationAtSymmetry
+          (p.matrixPoseWithOffset chart offset) g)),
+      exceptional a.signedAxis → ¬ RupertPose (p.matrixPoseWithOffset chart offset)
+        exactPolyhedron.hull) :
+    ¬ RupertPose (p.matrixPoseWithOffset chart offset)
+      exactPolyhedron.hull := by
+  let relative := relativeRotationAtSymmetry
+    (p.matrixPoseWithOffset chart offset) g
+  obtain ⟨a⟩ := exists_axisAngle relative.val relative.property
+  apply
+    Noperthedron.Nopert229.not_rupertPose_of_decomposed_symmetry_certificates
+      (p := p.matrixPoseWithOffset chart offset) (g := g) (a := a)
+      (exceptional := exceptional)
+      (index := index)
+      (weight := fun j => weight root p (edge j))
+      (direction := fun j i => direction root p (edge j i))
+      (A := fun j => variationVector root p (edge j)
+        (fun i => exactVertex (symmetryAction g (index j i))))
+      (normalizedA := normalizedVariation root p edge index g B)
+      (centerNormalizedA := normalizedVariation root p edge index g B)
+      (B := B) (c := c) (δ := 0)
+  · exact hB
+  · intro j
+    simp only [normalizedVariation, smul_smul]
+    rw [mul_inv_cancel₀ (ne_of_gt (hB j)), one_smul]
+  · intro axis haxis
+    simpa using hcover axis haxis
+  · intro j
+    simp
+  · intro j
+    exact (firstVariationVector_eq root p chart offset (edge j)
+      (fun i => exactVertex (symmetryAction g (index j i))) hscale).symm
+  · exact hbudget
+  · exact hratio a
+  · exact hdirection
+  · exact hweight
+  · exact hweight_pos
+  · intro j
+    exact weight_balance root p (edge j) hscale
+  · exact hsupport
+  · exact hexceptional a
+
 end Noperthedron.Nopert229.AtlasProjectiveLocalRigidity
 
 end
+
