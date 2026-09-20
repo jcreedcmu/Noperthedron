@@ -650,6 +650,103 @@ theorem not_rupertPose_of_annular_exceptional_cone_certificate
     hbudget hdefect_budget hweight_nonneg hweight_pos c_cone exceptional hexc_def
     hp offset hscale hmem a hexc hratio
 
+/-- Three-way decomposition for a cell:
+1. Annular exceptional cone: `r_min ≤ ‖Q - 1‖ ∧ exceptional a.signedAxis`
+2. Non-exceptional directions: `¬ exceptional a.signedAxis`
+3. Inner exceptional core: `‖Q - 1‖ ≤ r_min ∧ exceptional a.signedAxis`
+Together, these three regimes partition the entire rotation ball `‖Q - 1‖ ≤ r`. -/
+theorem not_rupertPose_of_three_way_split
+    (box : Box)
+    (r_min : ℚ)
+    (exceptional : ℝ³ → Prop)
+    {p : AtlasPose ℝ} (offset : ℝ²)
+    (h_annular_cone : ∀ a : AxisAngle
+      (Noperthedron.SnubCube.so3CLM
+        (relativeRotationAtSymmetry
+          (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+      (r_min : ℝ) ≤ ‖Noperthedron.SnubCube.so3CLM
+        (relativeRotationAtSymmetry
+          (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ →
+      exceptional a.signedAxis →
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+    (h_complement : ∀ a : AxisAngle
+      (Noperthedron.SnubCube.so3CLM
+        (relativeRotationAtSymmetry
+          (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+      ¬ exceptional a.signedAxis →
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+    (h_inner_core : ∀ a : AxisAngle
+      (Noperthedron.SnubCube.so3CLM
+        (relativeRotationAtSymmetry
+          (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+      ‖Noperthedron.SnubCube.so3CLM
+        (relativeRotationAtSymmetry
+          (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
+      exceptional a.signedAxis →
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull) :
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+  let relative := relativeRotationAtSymmetry
+    (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex
+  obtain ⟨a⟩ := exists_axisAngle relative.val relative.property
+  by_cases hexc : exceptional a.signedAxis
+  · by_cases h_inner : ‖Noperthedron.SnubCube.so3CLM relative - 1‖ ≤ (r_min : ℝ)
+    · exact h_inner_core a h_inner hexc
+    · push_neg at h_inner
+      exact h_annular_cone a h_inner.le hexc
+  · exact h_complement a hexc
+
+/-- A cell is Rupert-free across its entire viewing triangle and atlas interval
+if its adversary rotations are ruled out in:
+1. The annular exceptional cone (`h_annular_cone`),
+2. The complementary non-exceptional directions (`h_complement`), and
+3. The inner exceptional core (`h_inner_core`). -/
+theorem valid_imp_not_translated_rupert_of_three_way_split
+    (box : Box)
+    (r_min : ℚ)
+    (exceptional : ℝ³ → Prop)
+    (h_annular_cone : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ∀ a : AxisAngle
+        (Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+        (r_min : ℝ) ≤ ‖Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ →
+        exceptional a.signedAxis →
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+    (h_complement : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ∀ a : AxisAngle
+        (Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+        ¬ exceptional a.signedAxis →
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+    (h_inner_core : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ∀ a : AxisAngle
+        (Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+        ‖Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
+        exceptional a.signedAxis →
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull) :
+    ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+  intro p hp offset hscale hmem
+  exact not_rupertPose_of_three_way_split box r_min exceptional offset
+    (h_annular_cone hp offset hscale hmem)
+    (h_complement hp offset hscale hmem)
+    (h_inner_core hp offset hscale hmem)
+
 end Noperthedron.Nopert229.AtlasProjectiveLocalCertificate
 
 

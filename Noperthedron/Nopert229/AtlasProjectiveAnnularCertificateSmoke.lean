@@ -128,5 +128,43 @@ theorem not_rupertPose_cell_exceptional_annulus
     hannular_dominance
     hp offset hscale hmem a hr_min hexc
 
+/-- High-level identity tube property for cell `031213002112122012121`:
+Any pose in this cell has NO Rupert passage for any planar translation,
+composed from:
+1. Annular exceptional cone (`not_rupertPose_cell_exceptional_annulus`),
+2. Non-exceptional complementary directions (`h_complement`), and
+3. Inner exceptional core (`h_inner_core`). -/
+theorem not_rupertPose_cell_composed
+    (h_complement : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ∀ a : AxisAngle
+        (Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+        ¬ exceptional a.signedAxis →
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+    (h_inner_core : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ∀ a : AxisAngle
+        (Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
+        ‖Noperthedron.SnubCube.so3CLM
+          (relativeRotationAtSymmetry
+            (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
+        exceptional a.signedAxis →
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull) :
+    ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
+      1 ≤ viewScale box.root p →
+      InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+  apply valid_imp_not_translated_rupert_of_three_way_split box r_min exceptional
+  · intro p hp offset hscale hmem a hr hexc
+    exact not_rupertPose_cell_exceptional_annulus hp offset hscale hmem a hr hexc
+  · exact h_complement
+  · exact h_inner_core
+
 end Noperthedron.Nopert229.AtlasProjectiveAnnularCertificateSmoke
 end
