@@ -252,9 +252,7 @@ theorem quotient_ge_of_bounds {num num_ n1 n1_ n2 n2_ ΔN Δ1 Δ2 : ℝ}
     (hnum : |num - num_| ≤ ΔN) (h1 : |n1 - n1_| ≤ Δ1) (h2 : |n2 - n2_| ≤ Δ2)
     (hn1 : 0 < n1) (hn2 : 0 < n2) (hpos : 0 ≤ num_ - ΔN) :
     (num_ - ΔN) / ((n1_ + Δ1) * (n2_ + Δ2)) ≤ num / (n1 * n2) := by
-  have hnum' : num_ - ΔN ≤ num := by
-    have := abs_le.mp hnum
-    linarith [this.1]
+  have hnum' : num_ - ΔN ≤ num := sub_le_of_abs_sub_le_left hnum
   have h1' : n1 ≤ n1_ + Δ1 := by
     have := abs_le.mp h1
     linarith [this.2]

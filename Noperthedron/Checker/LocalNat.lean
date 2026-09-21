@@ -318,12 +318,7 @@ private lemma sqrtℚLow13_intCast_div26 (S : ℤ) :
     simp
   · have hSQ : (0:ℚ) < (S : ℚ) := by exact_mod_cast hS
     rw [ite_eq_right (not_le.mpr (by positivity))]
-    have hfloor : ⌊(S : ℚ) / 10 ^ 26 * 10 ^ 26⌋ = S := by
-      rw [div_mul_cancel₀ _ (by norm_num : ((10:ℚ) ^ 26) ≠ 0)]
-      exact Int.floor_intCast _
-    rw [hfloor]
-    push_cast
-    ring
+    simp
 
 end Bridges
 

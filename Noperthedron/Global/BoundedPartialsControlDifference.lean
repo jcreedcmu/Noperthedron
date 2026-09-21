@@ -143,7 +143,7 @@ lemma interpolated_deriv3_bound {n : ℕ} (x y : E n) {f : E n → ℝ} {M : ℝ
     apply Finset.abs_sum_le_sum_abs
   _ = ∑ i, ∑ j, ∑ k, |(y i - x i)| * |(y j - x j)| * |(y k - x k)| *
       |nth_partial i (nth_partial j (nth_partial k f)) ((1 - t) • x + t • y)| := by
-    conv => enter [1, 2, i, 2, j, 2, k]; repeat rw [abs_mul];
+    simp only [abs_mul]
   _ ≤ ∑ i, ∑ j, ∑ k, ε i * ε j * ε k * M := by
     refine Finset.sum_le_sum ?_; intro i hi;
     refine Finset.sum_le_sum ?_; intro j hj;

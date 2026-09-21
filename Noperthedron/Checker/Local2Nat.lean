@@ -57,14 +57,9 @@ private lemma sqrtℚUp16_intCast_div32 (S : ℤ) :
   · rw [ite_eq_left (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
         ite_eq_left hS]
     simp
-  · have hSQ : (0:ℚ) < (S : ℚ) := by exact_mod_cast hS
+  · have hSQ : (0:ℚ) < (S : ℚ) := mod_cast hS
     rw [ite_eq_right (not_le.mpr (by positivity)), ite_eq_right (not_le.mpr hS)]
-    have hceil : ⌈(S : ℚ) / 10 ^ 32 * 10 ^ 32⌉ = S := by
-      rw [div_mul_cancel₀ _ (by norm_num : ((10:ℚ) ^ 32) ≠ 0)]
-      exact Int.ceil_intCast _
-    rw [hceil]
-    push_cast
-    ring
+    simp
 
 lemma sqrtℚUp16_intCast_div84 (S : ℤ) :
     RationalApprox.sqrtℚUp16 ((S : ℚ) / 10 ^ 84) = (sqrtNum84 S : ℚ) / 10 ^ 16 := by
@@ -569,12 +564,7 @@ private lemma sqrtℚLow13_intCast_div26 (S : ℤ) :
     simp
   · have hSQ : (0:ℚ) < (S : ℚ) := by exact_mod_cast hS
     rw [ite_eq_right (not_le.mpr (by positivity))]
-    have hfloor : ⌊(S : ℚ) / 10 ^ 26 * 10 ^ 26⌋ = S := by
-      rw [div_mul_cancel₀ _ (by norm_num : ((10:ℚ) ^ 26) ≠ 0)]
-      exact Int.floor_intCast _
-    rw [hfloor]
-    push_cast
-    ring
+    simp
 
 end BrSound
 

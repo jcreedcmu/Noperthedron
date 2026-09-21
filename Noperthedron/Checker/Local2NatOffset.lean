@@ -76,8 +76,7 @@ def nUpO (m : ℕ) : ℕ :=
 lemma sqrt_succ_le_nUpO (m : ℕ) : Nat.sqrt m + 1 ≤ nUpO m := by
   unfold nUpO
   have sq : ∀ {s : ℕ}, m ≤ s * s → Nat.sqrt m ≤ s := fun {s} h =>
-    le_trans (Nat.sqrt_le_sqrt h)
-      (le_of_eq (by rw [show s * s = s ^ 2 from (sq s).symm]; exact Nat.sqrt_eq' s))
+    le_trans (Nat.sqrt_le_sqrt h) (le_of_eq (Nat.sqrt_eq s))
   refine Nat.succ_le_succ ?_
   split_ifs with h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 h17 <;>
     first
