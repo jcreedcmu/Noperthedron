@@ -50,34 +50,38 @@ def sqrtNum32 (S : ℤ) : ℤ :=
 def sqrtNum84 (S : ℤ) : ℤ :=
   if S ≤ 0 then 0 else (Nat.sqrt (-(-S / 10 ^ 52)).toNat + 1 : ℕ)
 
+/-- Scaling an integer numerator by `d · 10³²` only requires a ceiling division
+by `d` before taking the integer square root. This single bridge covers all
+input scales used by the second-order checker. -/
+lemma sqrtℚUp16_intCast_div_scaled (S : ℤ) (d : ℕ) (hd : 0 < d) :
+    RationalApprox.sqrtℚUp16 ((S : ℚ) / ((d : ℚ) * 10 ^ 32)) =
+      ((if S ≤ 0 then 0 else (Nat.sqrt (-(-S / (d : ℤ))).toNat + 1 : ℕ) : ℤ) : ℚ)
+        / 10 ^ 16 := by
+  have hdQ : (0 : ℚ) < d := by exact_mod_cast hd
+  unfold RationalApprox.sqrtℚUp16
+  rcases le_or_gt S 0 with hS | hS
+  · rw [ite_eq_left hS, ite_eq_left (div_nonpos_of_nonpos_of_nonneg
+      (by exact_mod_cast hS) (by positivity))]
+    simp
+  · rw [ite_eq_right (not_le.mpr hS), ite_eq_right (not_le.mpr (div_pos
+      (by exact_mod_cast hS) (by positivity)))]
+    have hscale : (S : ℚ) / ((d : ℚ) * 10 ^ 32) * 10 ^ 32
+        = -(((-S : ℤ) : ℚ) / (d : ℚ)) := by
+      push_cast
+      field_simp
+    rw [hscale, Int.ceil_neg, Rat.floor_intCast_div_natCast]
+    push_cast
+    rfl
+
 private lemma sqrtℚUp16_intCast_div32 (S : ℤ) :
     RationalApprox.sqrtℚUp16 ((S : ℚ) / 10 ^ 32) = (sqrtNum32 S : ℚ) / 10 ^ 16 := by
-  unfold RationalApprox.sqrtℚUp16 sqrtNum32
-  rcases le_or_gt S 0 with hS | hS
-  · rw [ite_eq_left (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
-        ite_eq_left hS]
-    simp
-  · have hSQ : (0:ℚ) < (S : ℚ) := mod_cast hS
-    rw [ite_eq_right (not_le.mpr (by positivity)), ite_eq_right (not_le.mpr hS)]
-    simp
+  convert sqrtℚUp16_intCast_div_scaled S 1 (by decide) using 1 <;>
+    norm_num [sqrtNum32]
 
 lemma sqrtℚUp16_intCast_div84 (S : ℤ) :
     RationalApprox.sqrtℚUp16 ((S : ℚ) / 10 ^ 84) = (sqrtNum84 S : ℚ) / 10 ^ 16 := by
-  unfold RationalApprox.sqrtℚUp16 sqrtNum84
-  rcases le_or_gt S 0 with hS | hS
-  · rw [ite_eq_left (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
-        ite_eq_left hS]
-    simp
-  · have hSQ : (0:ℚ) < (S : ℚ) := by exact_mod_cast hS
-    rw [ite_eq_right (not_le.mpr (by positivity)), ite_eq_right (not_le.mpr hS)]
-    have hceil : ⌈(S : ℚ) / 10 ^ 84 * 10 ^ 32⌉ = -(-S / 10 ^ 52) := by
-      rw [show (S : ℚ) / 10 ^ 84 * 10 ^ 32 = -(((-S : ℤ) : ℚ) / ((10 ^ 52 : ℕ) : ℚ)) from by
-        push_cast; ring]
-      rw [Int.ceil_neg, Rat.floor_intCast_div_natCast]
-      norm_num
-    rw [hceil]
-    push_cast
-    ring
+  convert sqrtℚUp16_intCast_div_scaled S (10 ^ 52) (by positivity) using 1 <;>
+    norm_num [sqrtNum84]
 
 /-! ## The generic ε-weighted budget polynomial -/
 
@@ -769,7 +773,7 @@ section BeSound
 
 /-- `su.f` of a squared pair of scale-`10⁴²` fractions, plus a `10¹⁶`-scale
 slack. -/
-private lemma upper_f_pair42 (u v slackN : ℤ) {slack : ℚ}
+lemma upper_f_pair42 (u v slackN : ℤ) {slack : ℚ}
     (hslack : slack = (slackN : ℚ) / 10 ^ 16) :
     RationalApprox.sqrtApprox16.upper_sqrt.f
         (((u : ℚ) / 10 ^ 42) * ((u : ℚ) / 10 ^ 42)
@@ -792,7 +796,7 @@ private lemma upper_f_pair42' (z : App6N) (slackN : ℤ) {slack : ℚ}
   exact upper_f_pair42 z.a0 z.a1 slackN hslack
 
 /-- `dRotMs` at a canonical cast structure, as an integer fraction. -/
-private lemma dRotMs_intCast (z : App6N) {slack scale : ℚ} (slackN scaleN : ℤ)
+lemma dRotMs_intCast (z : App6N) {slack scale : ℚ} (slackN scaleN : ℤ)
     (εθ εφ : ℚ)
     (hslack : slack = (slackN : ℚ) / 10 ^ 16) (hscale : scale = (scaleN : ℚ) / 10 ^ 16) :
     Local2Fast.dRotMs RationalApprox.sqrtApprox16.upper_sqrt slack (app6QofN z) εθ εφ scale

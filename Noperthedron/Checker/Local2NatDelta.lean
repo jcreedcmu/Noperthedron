@@ -22,6 +22,10 @@ polynomial.
 the `Bε₂ℚ` conjunct before deciding, so the ℚ definition is never
 evaluated: the only ℚ-normalization left is the single division that
 produces the fraction's `Rat` value.
+
+The correctness proof converts whole applied families with `app6_intCast`,
+then composes the displacement identity and the two budget bridges.
+Coordinate casts and norm-atom scaling are proved once in `Local2Nat`.
 -/
 
 namespace Noperthedron.Solution.Local2Nat
@@ -42,21 +46,8 @@ def sqrtNum110 (S : ℤ) : ℤ :=
 
 lemma sqrtℚUp16_intCast_div110 (S : ℤ) :
     RationalApprox.sqrtℚUp16 ((S : ℚ) / 10 ^ 110) = (sqrtNum110 S : ℚ) / 10 ^ 16 := by
-  unfold RationalApprox.sqrtℚUp16 sqrtNum110
-  rcases le_or_gt S 0 with hS | hS
-  · rw [ite_eq_left (div_nonpos_iff.mpr (Or.inr ⟨by exact_mod_cast hS, by positivity⟩)),
-      ite_eq_left hS]
-    simp
-  · have hSQ : (0 : ℚ) < (S : ℚ) := by exact_mod_cast hS
-    rw [ite_eq_right (not_le.mpr (by positivity)), ite_eq_right (not_le.mpr hS)]
-    have hceil : ⌈(S : ℚ) / 10 ^ 110 * 10 ^ 32⌉ = -(-S / 10 ^ 78) := by
-      rw [show (S : ℚ) / 10 ^ 110 * 10 ^ 32
-          = -(((-S : ℤ) : ℚ) / ((10 ^ 78 : ℕ) : ℚ)) from by push_cast; ring]
-      rw [Int.ceil_neg, Rat.floor_intCast_div_natCast]
-      norm_num
-    rw [hceil]
-    push_cast
-    ring
+  convert sqrtℚUp16_intCast_div_scaled S (10 ^ 78) (by positivity) using 1 <;>
+    norm_num [sqrtNum110]
 
 /-! ## Three-variable ε-budget polynomial (`ΔrotRMℚ` shape) -/
 
@@ -186,32 +177,47 @@ def _root_.Noperthedron.Solution.Row.δ₂PairZ (row : Row) : ℤ × ℤ :=
 
 section DeltaBridge
 
-private lemma mulVec2_c0 (M : Matrix (Fin 2) (Fin 2) ℚ) (w : Fin 2 → ℚ) :
-    (M *ᵥ w) 0 = M 0 0 * w 0 + M 0 1 * w 1 := by
-  simp [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
+/-- Convert the three-angle budget as a whole, using the same norm-atom
+bridge as the two-angle budget in `Local2Nat`. -/
+private lemma dRotRMs_intCast (z : App6N) (εα εθ εφ : ℚ) :
+    dRotRMs sqrtApprox16.upper_sqrt (3 * κℚ) (app6QofN z) εα εθ εφ
+      = ((budRM3 (sqrtNum84 (z.a0 * z.a0 + z.a1 * z.a1) + 3 * 10 ^ 6)
+          (sqrtNum84 (z.b0 * z.b0 + z.b1 * z.b1) + 3 * 10 ^ 6)
+          (sqrtNum84 (z.c0 * z.c0 + z.c1 * z.c1) + 3 * 10 ^ 6)
+          (sqrtNum84 (z.d0 * z.d0 + z.d1 * z.d1) + 3 * 10 ^ 6)
+          (sqrtNum84 (z.e0 * z.e0 + z.e1 * z.e1) + 3 * 10 ^ 6)
+          (sqrtNum84 (z.f0 * z.f0 + z.f1 * z.f1) + 3 * 10 ^ 6)
+          (10 ^ 16) εα.num εα.den εθ.num εθ.den εφ.num εφ.den : ℤ) : ℚ)
+        / (6 * ((εα.den : ℚ) * εθ.den * εφ.den) ^ 3 * 10 ^ 16) := by
+  have hκ : (3 * κℚ : ℚ) = ((3 * 10 ^ 6 : ℤ) : ℚ) / 10 ^ 16 := by
+    norm_num [κℚ]
+  unfold dRotRMs
+  simp only [app6QofN]
+  simpa only [one_mul] using budRM3_div_eq _ _ _ _ _ _ (10 ^ 16) (rem := 1) εα εθ εφ 16
+    (upper_f_pair42 z.a0 z.a1 _ hκ) (upper_f_pair42 z.b0 z.b1 _ hκ)
+    (upper_f_pair42 z.c0 z.c1 _ hκ) (upper_f_pair42 z.d0 z.d1 _ hκ)
+    (upper_f_pair42 z.e0 z.e1 _ hκ) (upper_f_pair42 z.f0 z.f1 _ hκ)
+    (by norm_num)
 
-private lemma mulVec2_c1 (M : Matrix (Fin 2) (Fin 2) ℚ) (w : Fin 2 → ℚ) :
-    (M *ᵥ w) 1 = M 1 0 * w 0 + M 1 1 * w 1 := by
-  simp [Matrix.mulVec, dotProduct, Fin.sum_univ_two]
+/-- Express the rotated displacement in applied-family coordinates before
+converting either family to integers. -/
+private lemma displacement_norm (p : Pose ℚ) (P Q : Fin 3 → ℚ) :
+    sqrtApprox16.upper_sqrt.norm (p.rotRℚ (p.rotM₁ℚ P) - p.rotM₂ℚ Q)
+      = RationalApprox.sqrtℚUp16
+        ((cosℚ p.α * (app6 (fam2 p.θ₁ p.φ₁) P).a0
+          - sinℚ p.α * (app6 (fam2 p.θ₁ p.φ₁) P).a1
+          - (app6 (fam2 p.θ₂ p.φ₂) Q).a0) ^ 2
+        + (sinℚ p.α * (app6 (fam2 p.θ₁ p.φ₁) P).a0
+          + cosℚ p.α * (app6 (fam2 p.θ₁ p.φ₁) P).a1
+          - (app6 (fam2 p.θ₂ p.φ₂) Q).a1) ^ 2) := by
+  rw [norm2_eq]
+  simp only [app6_a0, app6_a1, Pose.rotRℚ, Pose.rotM₁ℚ, Pose.rotM₂ℚ,
+    RationalApprox.rotRℚ, RationalApprox.rotMℚ, Matrix.toLin'_apply,
+    RationalApprox.rotRℚ_mat, Matrix.cons_mulVec, Matrix.cons_dotProduct,
+    Matrix.empty_mulVec, Matrix.dotProduct_of_isEmpty, add_zero, Matrix.cons_val_zero,
+    Matrix.cons_val_one, neg_mul, Pi.sub_apply, sub_eq_add_neg, pow_two]
+  rfl
 
-private lemma hf16 : sqrtApprox16.upper_sqrt.f = RationalApprox.sqrtℚUp16 := rfl
-
-/-- Norm atom with `3κ` slack, integer form. -/
-private lemma atom84 {x y : ℚ} {zx zy : ℤ}
-    (hx : x = (zx : ℚ) / 10 ^ 42) (hy : y = (zy : ℚ) / 10 ^ 42) :
-    sqrtApprox16.upper_sqrt.f (x * x + y * y) + 3 * κℚ
-      = ((sqrtNum84 (zx * zx + zy * zy) + 3 * 10 ^ 6 : ℤ) : ℚ) / 10 ^ 16 := by
-  rw [hx, hy, hf16,
-    show ((zx : ℚ) / 10 ^ 42 * ((zx : ℚ) / 10 ^ 42)
-        + (zy : ℚ) / 10 ^ 42 * ((zy : ℚ) / 10 ^ 42))
-      = ((zx * zx + zy * zy : ℤ) : ℚ) / 10 ^ 84 from by push_cast; ring,
-    sqrtℚUp16_intCast_div84,
-    show (3 * κℚ : ℚ) = ((3 * 10 ^ 6 : ℤ) : ℚ) / 10 ^ 16 from by
-      norm_num [RationalApprox.κℚ]]
-  push_cast
-  ring
-
-set_option maxHeartbeats 1600000 in
 /-- `Row.BoundDelta₂ℚi` as the integer fraction. -/
 private lemma boundDelta_bridge (row : Row) (i : Fin 3) :
     row.BoundDelta₂ℚi i = ((δ₂BZ row i : ℤ) : ℚ) / ((δ₂DZ row : ℤ) : ℚ) := by
@@ -234,79 +240,7 @@ private lemma boundDelta_bridge (row : Row) (i : Fin 3) :
   have hAQ := app6_intCast p.θ₂ p.φ₂ (row.Qi i)
   rw [← hzP] at hAP
   rw [← hzQ] at hAQ
-  -- projection casts
-  have pa0 : (app6 (fam2 p.θ₁ p.φ₁) Pv).a0 = (zP.a0 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pa1 : (app6 (fam2 p.θ₁ p.φ₁) Pv).a1 = (zP.a1 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pb0 : (app6 (fam2 p.θ₁ p.φ₁) Pv).b0 = (zP.b0 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pb1 : (app6 (fam2 p.θ₁ p.φ₁) Pv).b1 = (zP.b1 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pc0 : (app6 (fam2 p.θ₁ p.φ₁) Pv).c0 = (zP.c0 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pc1 : (app6 (fam2 p.θ₁ p.φ₁) Pv).c1 = (zP.c1 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pd0 : (app6 (fam2 p.θ₁ p.φ₁) Pv).d0 = (zP.d0 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pd1 : (app6 (fam2 p.θ₁ p.φ₁) Pv).d1 = (zP.d1 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pe0 : (app6 (fam2 p.θ₁ p.φ₁) Pv).e0 = (zP.e0 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pe1 : (app6 (fam2 p.θ₁ p.φ₁) Pv).e1 = (zP.e1 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pf0 : (app6 (fam2 p.θ₁ p.φ₁) Pv).f0 = (zP.f0 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have pf1 : (app6 (fam2 p.θ₁ p.φ₁) Pv).f1 = (zP.f1 : ℚ) / 10 ^ 42 := by rw [hAP]; rfl
-  have qa0 : (app6 (fam2 p.θ₂ p.φ₂) Qv).a0 = (zQ.a0 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qa1 : (app6 (fam2 p.θ₂ p.φ₂) Qv).a1 = (zQ.a1 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qb0 : (app6 (fam2 p.θ₂ p.φ₂) Qv).b0 = (zQ.b0 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qb1 : (app6 (fam2 p.θ₂ p.φ₂) Qv).b1 = (zQ.b1 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qc0 : (app6 (fam2 p.θ₂ p.φ₂) Qv).c0 = (zQ.c0 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qc1 : (app6 (fam2 p.θ₂ p.φ₂) Qv).c1 = (zQ.c1 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qd0 : (app6 (fam2 p.θ₂ p.φ₂) Qv).d0 = (zQ.d0 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qd1 : (app6 (fam2 p.θ₂ p.φ₂) Qv).d1 = (zQ.d1 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qe0 : (app6 (fam2 p.θ₂ p.φ₂) Qv).e0 = (zQ.e0 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qe1 : (app6 (fam2 p.θ₂ p.φ₂) Qv).e1 = (zQ.e1 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qf0 : (app6 (fam2 p.θ₂ p.φ₂) Qv).f0 = (zQ.f0 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  have qf1 : (app6 (fam2 p.θ₂ p.φ₂) Qv).f1 = (zQ.f1 : ℚ) / 10 ^ 42 := by rw [hAQ]; rfl
-  -- head components
-  have eM0 : p.rotM₁ℚ Pv 0 = (zP.a0 : ℚ) / 10 ^ 42 := by
-    rw [show p.rotM₁ℚ Pv = RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ Pv from by
-        simp [Pose.rotM₁ℚ, RationalApprox.rotMℚ, Matrix.toLin'_apply],
-      ← app6_a0]
-    exact pa0
-  have eM1 : p.rotM₁ℚ Pv 1 = (zP.a1 : ℚ) / 10 ^ 42 := by
-    rw [show p.rotM₁ℚ Pv = RationalApprox.rotMℚ_mat p.θ₁ p.φ₁ *ᵥ Pv from by
-        simp [Pose.rotM₁ℚ, RationalApprox.rotMℚ, Matrix.toLin'_apply],
-      ← app6_a1]
-    exact pa1
-  have eN0 : p.rotM₂ℚ Qv 0 = (zQ.a0 : ℚ) / 10 ^ 42 := by
-    rw [show p.rotM₂ℚ Qv = RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ Qv from by
-        simp [Pose.rotM₂ℚ, RationalApprox.rotMℚ, Matrix.toLin'_apply],
-      ← app6_a0]
-    exact qa0
-  have eN1 : p.rotM₂ℚ Qv 1 = (zQ.a1 : ℚ) / 10 ^ 42 := by
-    rw [show p.rotM₂ℚ Qv = RationalApprox.rotMℚ_mat p.θ₂ p.φ₂ *ᵥ Qv from by
-        simp [Pose.rotM₂ℚ, RationalApprox.rotMℚ, Matrix.toLin'_apply],
-      ← app6_a1]
-    exact qa1
-  have hR : p.rotRℚ (p.rotM₁ℚ Pv) = RationalApprox.rotRℚ_mat p.α *ᵥ p.rotM₁ℚ Pv := by
-    simp [Pose.rotRℚ, RationalApprox.rotRℚ, Matrix.toLin'_apply]
-  have hw0 : (p.rotRℚ (p.rotM₁ℚ Pv) - p.rotM₂ℚ Qv) 0
-      = ((cosNum13 p.α * zP.a0 - sinNum13 p.α * zP.a1 - 10 ^ 13 * zQ.a0 : ℤ) : ℚ)
-        / 10 ^ 55 := by
-    rw [Pi.sub_apply, hR, mulVec2_c0,
-      show (RationalApprox.rotRℚ_mat p.α : Matrix (Fin 2) (Fin 2) ℚ) 0 0
-        = cosℚ p.α from by simp [RationalApprox.rotRℚ_mat],
-      show (RationalApprox.rotRℚ_mat p.α : Matrix (Fin 2) (Fin 2) ℚ) 0 1
-        = -sinℚ p.α from by simp [RationalApprox.rotRℚ_mat],
-      eM0, eM1, eN0, ← RationalApprox.sinNum13_div_eq p.α,
-      ← RationalApprox.cosNum13_div_eq p.α]
-    push_cast
-    ring
-  have hw1 : (p.rotRℚ (p.rotM₁ℚ Pv) - p.rotM₂ℚ Qv) 1
-      = ((sinNum13 p.α * zP.a0 + cosNum13 p.α * zP.a1 - 10 ^ 13 * zQ.a1 : ℤ) : ℚ)
-        / 10 ^ 55 := by
-    rw [Pi.sub_apply, hR, mulVec2_c1,
-      show (RationalApprox.rotRℚ_mat p.α : Matrix (Fin 2) (Fin 2) ℚ) 1 0
-        = sinℚ p.α from by simp [RationalApprox.rotRℚ_mat],
-      show (RationalApprox.rotRℚ_mat p.α : Matrix (Fin 2) (Fin 2) ℚ) 1 1
-        = cosℚ p.α from by simp [RationalApprox.rotRℚ_mat],
-      eM0, eM1, eN1, ← RationalApprox.sinNum13_div_eq p.α,
-      ← RationalApprox.cosNum13_div_eq p.α]
-    push_cast
-    ring
-  -- the three summands
+  -- Convert the displacement and the two rotation budgets independently.
   have hhead : sqrtApprox16.upper_sqrt.norm (p.rotRℚ (p.rotM₁ℚ Pv) - p.rotM₂ℚ Qv)
         + 6 * κℚ
       = ((sqrtNum110 ((cosNum13 p.α * zP.a0 - sinNum13 p.α * zP.a1 - 10 ^ 13 * zQ.a0)
@@ -314,55 +248,29 @@ private lemma boundDelta_bridge (row : Row) (i : Fin 3) :
           + (sinNum13 p.α * zP.a0 + cosNum13 p.α * zP.a1 - 10 ^ 13 * zQ.a1)
             * (sinNum13 p.α * zP.a0 + cosNum13 p.α * zP.a1 - 10 ^ 13 * zQ.a1))
           + 6 * 10 ^ 6 : ℤ) : ℚ) / 10 ^ 16 := by
-    rw [norm2_eq, hw0, hw1, hf16,
-      show ∀ a b : ℤ, ((a : ℚ) / 10 ^ 55 * ((a : ℚ) / 10 ^ 55)
-          + (b : ℚ) / 10 ^ 55 * ((b : ℚ) / 10 ^ 55))
-        = ((a * a + b * b : ℤ) : ℚ) / 10 ^ 110 from fun a b => by push_cast; ring,
-      sqrtℚUp16_intCast_div110,
-      show (6 * κℚ : ℚ) = ((6 * 10 ^ 6 : ℤ) : ℚ) / 10 ^ 16 from by
-        norm_num [RationalApprox.κℚ]]
-    push_cast
+    rw [displacement_norm, hAP, hAQ]
+    simp only [app6QofN]
+    rw [← RationalApprox.sinNum13_div_eq p.α, ← RationalApprox.cosNum13_div_eq p.α]
+    have scaled (s c x0 x1 y0 y1 : ℤ) :
+        ((c : ℚ) / 10 ^ 13 * ((x0 : ℚ) / 10 ^ 42)
+            - (s : ℚ) / 10 ^ 13 * ((x1 : ℚ) / 10 ^ 42) - (y0 : ℚ) / 10 ^ 42) ^ 2
+          + ((s : ℚ) / 10 ^ 13 * ((x0 : ℚ) / 10 ^ 42)
+            + (c : ℚ) / 10 ^ 13 * ((x1 : ℚ) / 10 ^ 42) - (y1 : ℚ) / 10 ^ 42) ^ 2
+        = (((c * x0 - s * x1 - 10 ^ 13 * y0) * (c * x0 - s * x1 - 10 ^ 13 * y0)
+            + (s * x0 + c * x1 - 10 ^ 13 * y1) * (s * x0 + c * x1 - 10 ^ 13 * y1) : ℤ) : ℚ)
+          / 10 ^ 110 := by push_cast; ring
+    rw [scaled, sqrtℚUp16_intCast_div110]
+    norm_num [κℚ]
     ring
-  have hRM : ΔrotRMℚ sqrtApprox16.upper_sqrt p.θ₁ p.φ₁ Pv row.εα row.εθ₁ row.εφ₁
-      = ((budRM3 (sqrtNum84 (zP.a0 * zP.a0 + zP.a1 * zP.a1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zP.b0 * zP.b0 + zP.b1 * zP.b1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zP.c0 * zP.c0 + zP.c1 * zP.c1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zP.d0 * zP.d0 + zP.d1 * zP.d1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zP.e0 * zP.e0 + zP.e1 * zP.e1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zP.f0 * zP.f0 + zP.f1 * zP.f1) + 3 * 10 ^ 6)
-          (10 ^ 16) row.εα.num row.εα.den row.εθ₁.num row.εθ₁.den
-          row.εφ₁.num row.εφ₁.den : ℤ) : ℚ)
-        / (6 * ((row.εα.den : ℚ) * (row.εθ₁.den : ℚ) * (row.εφ₁.den : ℚ)) ^ 3
-          * 10 ^ 16) := by
-    rw [dRotRMs_eq]
-    unfold dRotRMs
-    rw [show (row.εα + row.εθ₁ + row.εφ₁) ^ 3 / 6
-        = (1 : ℚ) * (row.εα + row.εθ₁ + row.εφ₁) ^ 3 / 6 from by ring]
-    exact budRM3_div_eq _ _ _ _ _ _ _ row.εα row.εθ₁ row.εφ₁ 16
-      (atom84 pa0 pa1) (atom84 pb0 pb1) (atom84 pc0 pc1) (atom84 pd0 pd1)
-      (atom84 pe0 pe1) (atom84 pf0 pf1) (by push_cast; norm_num)
-  have hM : ΔrotMℚ sqrtApprox16.upper_sqrt p.θ₂ p.φ₂ Qv row.εθ₂ row.εφ₂
-      = ((budN (sqrtNum84 (zQ.b0 * zQ.b0 + zQ.b1 * zQ.b1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zQ.c0 * zQ.c0 + zQ.c1 * zQ.c1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zQ.d0 * zQ.d0 + zQ.d1 * zQ.d1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zQ.e0 * zQ.e0 + zQ.e1 * zQ.e1) + 3 * 10 ^ 6)
-          (sqrtNum84 (zQ.f0 * zQ.f0 + zQ.f1 * zQ.f1) + 3 * 10 ^ 6)
-          (10 ^ 16) row.εθ₂.num row.εθ₂.den row.εφ₂.num row.εφ₂.den : ℤ) : ℚ)
-        / (6 * ((row.εθ₂.den : ℚ) * (row.εφ₂.den : ℚ)) ^ 3 * 10 ^ 16) := by
-    unfold RationalApprox.ΔrotMℚ
-    rw [dRotMs_eq]
-    unfold dRotMs
-    exact budN_div_eq _ _ _ _ _ _ row.εθ₂ row.εφ₂ 16
-      (atom84 qb0 qb1) (atom84 qc0 qc1) (atom84 qd0 qd1) (atom84 qe0 qe1)
-      (atom84 qf0 qf1) (by push_cast; norm_num)
-  rw [hhead, hRM, hM]
+  rw [hhead, dRotRMs_eq, hAP, dRotRMs_intCast,
+    RationalApprox.ΔrotMℚ, dRotMs_eq, hAQ,
+    dRotMs_intCast zQ (3 * 10 ^ 6) (10 ^ 16) row.εθ₂ row.εφ₂
+      (by norm_num [κℚ]) (by norm_num)]
   push_cast
   field_simp
   ring
 
 end DeltaBridge
-
-
 
 /-- `Finset.max'` of a `Fin 3` image as a nested `max`. -/
 private lemma max'_image_fin3 (f : Fin 3 → ℚ) :
