@@ -55,91 +55,59 @@ lemma mem_interval_imp_mem_some_part (q : Pose ℝ) (iv : Interval) (p : Param)
     (by simpa only [h0, h1] using mem_toReal_iff.mp hq p)
   exact ⟨n, mem_nth_part q iv p (M + 1) n hq hn⟩
 
-lemma non_rupert_parts_imp_non_rupert (p : Param) {iv : Interval} (N : ℕ) [hN : NeZero N]
-    (qq : ∀ n : Fin N, ¬∃ q ∈ (Interval.nth_part p iv N n).toReal, RupertPose q exactPolyhedron.hull) :
-    ¬∃ q ∈ iv.toReal, RupertPose q exactPolyhedron.hull := by
-  rintro ⟨q, hq1, hq2⟩
-  obtain ⟨n, hq1⟩ := mem_interval_imp_mem_some_part q iv p N hq1
-  exact qq n ⟨q, hq1, hq2⟩
+/-- Repeated bisection covers the original interval, independently of the
+row table or the property that its leaves will certify. -/
+lemma mem_cubeFold_halves {q : Pose ℝ} {iv : Interval} (params : List Param)
+    (hq : q ∈ iv.toReal) :
+    ∃ part ∈ cubeFold [Interval.lower_half, Interval.upper_half] iv params,
+      q ∈ part.toReal := by
+  induction params generalizing iv with
+  | nil => exact ⟨iv, by simp [cubeFold], hq⟩
+  | cons p params ih =>
+    obtain ⟨n, hn⟩ := mem_interval_imp_mem_some_part q iv p 2 hq
+    obtain ⟨part, hpart, hq⟩ := ih hn
+    refine ⟨part, ?_, hq⟩
+    simp only [cubeFold, List.flatMap_cons, List.flatMap_nil, List.append_nil,
+      List.mem_append]
+    fin_cases n
+    · exact Or.inl hpart
+    · exact Or.inr hpart
 
-/-- Since the two halves are `nth_part 2 0` and `nth_part 2 1`, this is
-`non_rupert_parts_imp_non_rupert` at `N = 2`. Used in the cube-fold part of the proof below. -/
-lemma non_rupert_halves_imp_non_rupert {p : Param} {iv : Interval}
-    (q1 : ¬∃ q ∈ (Interval.lower_half p iv).toReal, RupertPose q exactPolyhedron.hull)
-    (q2 : ¬∃ q ∈ (Interval.upper_half p iv).toReal, RupertPose q exactPolyhedron.hull) :
-    ¬∃ q ∈ iv.toReal, RupertPose q exactPolyhedron.hull := by
-  refine non_rupert_parts_imp_non_rupert p 2 fun n => ?_
-  fin_cases n
-  · exact q1
-  · exact q2
+/-- A point in one of the listed intervals occurs in its corresponding row. -/
+lemma HasIntervalsAt.exists_row {get : ℕ → Row} {size start : ℕ} {ivs : List Interval}
+    (h : HasIntervalsAt get size start ivs) {part : Interval} (hpart : part ∈ ivs)
+    {q : Pose ℝ} (hq : q ∈ part.toReal) :
+    ∃ j, start ≤ j ∧ j < size ∧ q ∈ (get j).interval.toReal := by
+  obtain ⟨i, hi, rfl⟩ := List.mem_iff_getElem.mp hpart
+  obtain ⟨hj, heq⟩ := h ⟨i, hi⟩
+  exact ⟨start + i, Nat.le_add_right _ _, hj, by rwa [heq]⟩
 
-/-!
-## From row validity to "no Rupert pose in the row's box"
-
-Validity constrains each row to refer only to rows with larger IDs (its
-children), so the argument is a strong induction on the number of rows after
-the row in question.  Each helper theorem below takes the induction hypothesis
-`ih` — "no Rupert pose in any row strictly after this one" — as an explicit
-argument; `Row.valid_imp_not_rupert_ix` ties the knot.
--/
-
-/-- If the `2^|params|` leaves of the cube of halvings of `interval` sit in the
-table at consecutive rows starting at `n`, and none of those rows admits a
-Rupert pose, then neither does `interval`.  Structural induction on `params`. -/
-theorem has_intervals_imp_no_rupert (get : ℕ → Row) (size n : ℕ) (interval : Interval)
-    (params : List Param)
-    (hi : HasIntervalsAt get size n
-      (cubeFold [Interval.lower_half, Interval.upper_half] interval params))
-    (ih : ∀ j, n ≤ j → j < size →
-      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
-    ¬ ∃ q ∈ interval.toReal, RupertPose q exactPolyhedron.hull := by
-  induction params generalizing n interval with
-  | nil =>
-    obtain ⟨hn, he⟩ := hi ⟨0, by simp [cubeFold]⟩
-    simp only [add_zero, cubeFold, Fin.getElem_fin, List.getElem_cons_zero] at hn he
-    rw [← he]
-    exact ih n le_rfl hn
-  | cons h tl ihp =>
-    rw [cube_fold_halves, has_intervals_concat] at hi
-    obtain ⟨h1, h2⟩ := hi
-    exact non_rupert_halves_imp_non_rupert (ihp _ _ h1 ih)
-      (ihp _ _ h2 fun j hj => ih j (by omega))
-
-theorem valid_param_split_imp_no_rupert (get : ℕ → Row) (size : ℕ) (row : Row)
-    (p : Param) (h : Row.ValidSplitParamAt get size row p)
-    (ih : ∀ j, row.ID < j → j < size →
-      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
-    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨hid, hkids, hnzk, hkiv⟩ := h
-  refine non_rupert_parts_imp_non_rupert p row.nrChildren (hN := ⟨hnzk⟩) fun n => ?_
-  rw [← hkiv n]
-  exact ih _ (by omega) (by omega)
-
-theorem valid_single_param_split_imp_no_rupert (get : ℕ → Row) (size : ℕ) (row : Row)
-    (hr : Row.ValidSingleParamSplitAt get size row)
-    (ih : ∀ j, row.ID < j → j < size →
-      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
-    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨p, -, h⟩ := hr
-  exact valid_param_split_imp_no_rupert get size row p h ih
-
-theorem valid_full_split_imp_no_rupert (get : ℕ → Row) (size : ℕ) (row : Row)
-    (hr : Row.ValidFullSplitAt get size row)
-    (ih : ∀ j, row.ID < j → j < size →
-      ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
-    ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨-, -, hgt, hi⟩ := hr
-  exact has_intervals_imp_no_rupert get size row.IDfirstChild row.interval _ hi
-    fun j hj => ih j (by omega)
+/-- Every point of a valid split lies in a child with a strictly larger row
+index. This is the only fact about splits needed by the table's soundness proof. -/
+lemma Row.ValidSplitAt.exists_child {get : ℕ → Row} {size : ℕ} {row : Row}
+    (h : row.ValidSplitAt get size) {q : Pose ℝ} (hq : q ∈ row.interval.toReal) :
+    ∃ j, row.ID < j ∧ j < size ∧ q ∈ (get j).interval.toReal := by
+  obtain ⟨-, hs | hf⟩ := h
+  · obtain ⟨p, -, h⟩ := hs
+    let : NeZero row.nrChildren := ⟨h.nonzero_children⟩
+    obtain ⟨n, hn⟩ := mem_interval_imp_mem_some_part q row.interval p row.nrChildren hq
+    refine ⟨row.IDfirstChild + n, ?_, ?_, ?_⟩
+    · have := h.id_in_table; omega
+    · have := h.children_in_table; have := n.isLt; omega
+    · rwa [h.children_intervals_good n]
+  · obtain ⟨-, -, hgt, hivs⟩ := hf
+    obtain ⟨part, hpart, hq⟩ := mem_cubeFold_halves Param.splitOrder hq
+    obtain ⟨j, hj, hjs, hq⟩ := hivs.exists_row hpart hq
+    exact ⟨j, lt_of_lt_of_le hgt hj, hjs, hq⟩
 
 theorem valid_split_imp_no_rupert (get : ℕ → Row) (size : ℕ) (row : Row)
     (hr : row.ValidSplitAt get size)
     (ih : ∀ j, row.ID < j → j < size →
       ¬ ∃ q ∈ (get j).interval.toReal, RupertPose q exactPolyhedron.hull) :
     ¬ ∃ q ∈ row.interval.toReal, RupertPose q exactPolyhedron.hull := by
-  obtain ⟨-, hr | hr⟩ := hr
-  · exact valid_single_param_split_imp_no_rupert get size row hr ih
-  · exact valid_full_split_imp_no_rupert get size row hr ih
+  rintro ⟨q, hq, hrupert⟩
+  obtain ⟨j, hj, hjs, hq⟩ := hr.exists_child hq
+  exact ih j hj hjs ⟨q, hq, hrupert⟩
 
 /-- No row of a valid table admits a Rupert pose.  Strong induction on
 `size - i`: a split row only refers to rows with larger IDs, and leaves are

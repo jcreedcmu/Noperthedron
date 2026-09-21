@@ -107,42 +107,5 @@ structure ValidTable : Type where
   contains_tightInterval :
     (tightInterval : Set (Pose ℝ)) ⊆ ((get 0).interval.toReal : Set (Pose ℝ))
 
-lemma cube_fold_halves (h : Param) (tl : List Param) (iv : Interval)
-    (lower : Param → Interval → Interval)
-    (upper : Param → Interval → Interval) :
-    cubeFold [lower, upper] iv (h :: tl) =
-      cubeFold [lower, upper] (lower h iv) tl ++
-      cubeFold [lower, upper] (upper h iv) tl := by
-  simp [cubeFold]
-
-lemma has_intervals_concat (get : ℕ → Row) (size start : ℕ) (ivs1 ivs2 : List Interval) :
-    HasIntervalsAt get size start (ivs1 ++ ivs2) ↔
-    HasIntervalsAt get size start ivs1 ∧
-      HasIntervalsAt get size (start + ivs1.length) ivs2 := by
-  constructor
-  · intro hi
-    constructor
-    · unfold HasIntervalsAt at hi ⊢
-      intro i; simpa using hi (Fin.castLE (by simp) i)
-    · unfold HasIntervalsAt at hi ⊢
-      intro i
-      specialize hi ⟨ivs1.length + i, by simp⟩
-      simp at hi
-      obtain ⟨h, p⟩ := hi
-      replace h : start + ivs1.length + (↑i : ℕ) < size :=
-        by ring_nf at h ⊢; exact h
-      exact ⟨h, by ring_nf at p ⊢; exact p⟩
-  · rintro ⟨h1, h2⟩
-    unfold HasIntervalsAt at h1 h2 ⊢
-    intro i
-    if h : i < ivs1.length then
-      specialize h1 ⟨i, h⟩
-      simp_all
-    else
-      replace h := Nat.le_of_not_lt h
-      have : (i : ℕ) - ivs1.length < ivs2.length := by grind
-      specialize h2 ⟨(i : ℕ) - ivs1.length, this⟩
-      simp_all
-
 end Noperthedron.Solution
 end

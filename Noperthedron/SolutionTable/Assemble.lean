@@ -44,7 +44,11 @@ concurrent `Task.spawn`s. Since `Task.spawn fn` is *definitionally*
 proved exactly as for a sequential checker. The loops are `Fin.foldl`, which
 compiles flat (the auto-derived `Nat.decidableBallLT` instances are
 structurally recursive and overflow the runtime stack on tables with
-millions of rows). -/
+millions of rows).
+
+The decision procedure is a parameter of the entire chain. The native and
+kernel-speed routes instantiate this one implementation with their respective
+`DecidablePred (Row.ValidIxAt get size)` instances. -/
 
 theorem Fin.foldl_and_factor {n : ℕ} (p : Fin n → Bool) (init : Bool) :
     (Fin.foldl n (fun acc i => acc && p i) init) =
@@ -71,10 +75,12 @@ theorem task_get_spawn {α : Type} (fn : Unit → α) (prio : Task.Priority) :
 
 /-- `Row.ValidIxAt` as a `Bool`, vacuously `true` past `size` (chunks may
 overhang the end). -/
-def validIxAtB (get : ℕ → Row) (size i : ℕ) : Bool :=
+def validIxAtB (get : ℕ → Row) (size i : ℕ)
+    [DecidablePred (Row.ValidIxAt get size)] : Bool :=
   if i < size then decide (Row.ValidIxAt get size i) else true
 
-theorem validIxAtB_eq_true_iff (get : ℕ → Row) (size i : ℕ) :
+theorem validIxAtB_eq_true_iff (get : ℕ → Row) (size i : ℕ)
+    [DecidablePred (Row.ValidIxAt get size)] :
     validIxAtB get size i = true ↔ (i < size → Row.ValidIxAt get size i) := by
   unfold validIxAtB
   split
@@ -87,10 +93,12 @@ theorem validIxAtB_eq_true_iff (get : ℕ → Row) (size i : ℕ) :
 
 /-- Check `validIxAtB` on indices `[start, start + cnt)`, as a flat
 `Fin.foldl` loop. -/
-def chunkValidIxAtB (get : ℕ → Row) (size start cnt : ℕ) : Bool :=
+def chunkValidIxAtB (get : ℕ → Row) (size start cnt : ℕ)
+    [DecidablePred (Row.ValidIxAt get size)] : Bool :=
   Fin.foldl cnt (init := true) fun acc j => acc && validIxAtB get size (start + j.val)
 
-theorem chunkValidIxAtB_eq_true_iff (get : ℕ → Row) (size start cnt : ℕ) :
+theorem chunkValidIxAtB_eq_true_iff (get : ℕ → Row) (size start cnt : ℕ)
+    [DecidablePred (Row.ValidIxAt get size)] :
     chunkValidIxAtB get size start cnt = true ↔
       ∀ k, start ≤ k → k < start + cnt → validIxAtB get size k = true := by
   unfold chunkValidIxAtB
@@ -106,12 +114,14 @@ theorem chunkValidIxAtB_eq_true_iff (get : ℕ → Row) (size start cnt : ℕ) :
 size `chunkSize` running concurrently via `Task.spawn`. The leading `decide`
 guard ensures the chunks cover everything, so soundness holds for arbitrary
 `nTasks`/`chunkSize`. -/
-def rowsValidIxAtChunkedB (get : ℕ → Row) (size nTasks chunkSize : ℕ) : Bool :=
+def rowsValidIxAtChunkedB (get : ℕ → Row) (size nTasks chunkSize : ℕ)
+    [DecidablePred (Row.ValidIxAt get size)] : Bool :=
   decide (size ≤ nTasks * chunkSize) &&
     (((List.range nTasks).map fun t =>
         Task.spawn fun _ => chunkValidIxAtB get size (t * chunkSize) chunkSize).all Task.get)
 
 theorem validIxAt_of_rowsValidIxAtChunkedB {get : ℕ → Row} {size nTasks chunkSize : ℕ}
+    [DecidablePred (Row.ValidIxAt get size)]
     (h : rowsValidIxAtChunkedB get size nTasks chunkSize = true) :
     ∀ i : Fin size, Row.ValidIxAt get size i := by
   unfold rowsValidIxAtChunkedB at h
@@ -138,10 +148,12 @@ theorem validIxAt_of_rowsValidIxAtChunkedB {get : ℕ → Row} {size nTasks chun
 
 /-- Parallel analogue over near-equal chunks; `nTasks` should comfortably
 exceed the core count for load balancing. -/
-def rowsValidIxAtParB (get : ℕ → Row) (size nTasks : ℕ) : Bool :=
+def rowsValidIxAtParB (get : ℕ → Row) (size nTasks : ℕ)
+    [DecidablePred (Row.ValidIxAt get size)] : Bool :=
   rowsValidIxAtChunkedB get size nTasks (size / nTasks + 1)
 
 theorem validIxAt_of_rowsValidIxAtParB {get : ℕ → Row} {size nTasks : ℕ}
+    [DecidablePred (Row.ValidIxAt get size)]
     (h : rowsValidIxAtParB get size nTasks = true) :
     ∀ i : Fin size, Row.ValidIxAt get size i :=
   validIxAt_of_rowsValidIxAtChunkedB h
