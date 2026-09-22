@@ -52,6 +52,11 @@ name = "benchRows"
 root = "benchRows"
 buildType = "release"
 
+[[lean_exe]]
+name = "diag_row"
+root = "diag_row"
+buildType = "release"
+
 # Executable audit of a packed Nopert #214 local-view certificate.
 [[lean_exe]]
 name = "checkNopert214Local2"
@@ -99,4 +104,16 @@ buildType = "release"
 name = "checkNopert229Local"
 root = "checkNopert229Local"
 buildType = "release"
+
+[[lean_exe]]
+name = "time_row"
+root = "time_row"
+buildType = "release"
+
+[[lean_exe]]
+name = "bench_decode"
+root = "bench_decode"
+buildType = "release"
+
+
 

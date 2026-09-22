@@ -28,23 +28,22 @@ structure Cursor where
   data : ByteArray
   pos : Nat := 0
 
-def readNatAux (data : ByteArray) (pos acc fuel : Nat) : Nat × Nat :=
-  match fuel with
-  | 0 => (acc, pos)
-  | fuel + 1 =>
-      if h : pos < data.size then
-        let value := (data[pos]).toNat
-        if 48 ≤ value ∧ value ≤ 57 then
-          readNatAux data (pos + 1) (10 * acc + value - 48) fuel
-        else
-          (acc, pos + 1)
-      else
-        (acc, pos)
-
 def Cursor.readNat (cursor : Cursor) : Nat × Cursor :=
-  let result := readNatAux cursor.data cursor.pos 0
-    (cursor.data.size - cursor.pos)
-  (result.1, { cursor with pos := result.2 })
+  Id.run do
+    let data := cursor.data
+    let mut pos := cursor.pos
+    let mut acc : Nat := 0
+    let size := data.size
+    while h : pos < size do
+      let byte := data[pos]
+      pos := pos + 1
+      if byte = 44 then
+        break
+      let value := byte.toNat
+      if 48 ≤ value ∧ value ≤ 57 then
+        acc := 10 * acc + value - 48
+    (acc, { cursor with pos })
+
 
 abbrev Decoder := StateM Cursor
 
@@ -101,7 +100,11 @@ def readCertificate : Decoder (Fin 4 → AxisCertificate) := do
   let b ← readAxis
   let c ← readAxis
   let d ← readAxis
-  pure ![a, b, c, d]
+  pure (fun
+    | 0 => a
+    | 1 => b
+    | 2 => c
+    | 3 => d)
 
 structure PrecomputedTriangle where
   v : Array Rat
@@ -129,12 +132,16 @@ def stepTriangle (pt : PrecomputedTriangle) (child : Fin 4) :
   ]
   ⟨arr⟩
 
-def readTrianglePath : Nat → PrecomputedTriangle →
-    Decoder PrecomputedTriangle
-  | 0, pt => pure pt
-  | length + 1, pt => do
-      let child ← readNat
-      readTrianglePath length (stepTriangle pt (fin4 child))
+def readTrianglePath (length : Nat) (pt : PrecomputedTriangle) :
+    Decoder PrecomputedTriangle := fun cursor =>
+  Id.run do
+    let mut curCursor := cursor
+    let mut curPt := pt
+    for _ in [0:length] do
+      let (child, nextCursor) := curCursor.readNat
+      curCursor := nextCursor
+      curPt := stepTriangle curPt (fin4 child)
+    (curPt, curCursor)
 
 def readTriangle (base : AtlasProjectiveView.Triangle Rat) :
     Decoder (AtlasProjectiveView.Triangle Rat) := do
@@ -153,6 +160,36 @@ def readRow (base : AtlasProjectiveView.Triangle Rat) : Decoder Row := do
     let c ← readNat
     let d ← readNat
     pure (.split id ![a, b, c, d] (fin8 root) triangle)
+  else if tag = 2 then
+    let symmetryIndex ← readNat
+    let certificate ← readCertificate
+    let c ← readRat
+    let δ ← readRat
+    let r ← readRat
+    let coreAxis ← readAxis
+    let d0 ← readRat
+    let d1 ← readRat
+    let d2 ← readRat
+    let defect0 : Fin 3 → ℚ := ![d0, d1, d2]
+    let D0 ← readRat
+    let r_min ← readRat
+    let c_cone ← readRat
+    let c_core ← readRat
+    let lam ← readRat
+    let w0 ← readRat
+    let w1 ← readRat
+    let w2 ← readRat
+    let w : Fin 3 → ℚ := ![w0, w1, w2]
+    pure (.decomposed id {
+      interval := AtlasPose.rootInterval Rat
+      root := fin8 root
+      triangle
+      chart := 0
+      symmetryIndex := fin5 symmetryIndex
+      certificate
+      c
+      δ
+      r } coreAxis defect0 D0 r_min c_cone c_core lam w)
   else
     let symmetryIndex ← readNat
     let certificate ← readCertificate
@@ -170,16 +207,20 @@ def readRow (base : AtlasProjectiveView.Triangle Rat) : Decoder Row := do
       δ
       r })
 
-def readRows (base : AtlasProjectiveView.Triangle Rat) :
-    Nat → Array Row → Decoder (Array Row)
-  | 0, rows => pure rows
-  | count + 1, rows => do
-      let row ← readRow base
-      readRows base count (rows.push row)
+def readRows (base : AtlasProjectiveView.Triangle Rat) (count : Nat) :
+    Decoder (Array Row) := fun cursor =>
+  Id.run do
+    let mut cur := cursor
+    let mut rows := Array.mkEmpty count
+    for _ in [0:count] do
+      let (row, next) := readRow base cur
+      cur := next
+      rows := rows.push row
+    (rows, cur)
 
 def decodeRows (base : AtlasProjectiveView.Triangle Rat)
     (count : Nat) (packed : String) : Array Row :=
-  (readRows base count #[] { data := packed.toUTF8 }).1
+  (readRows base count { data := packed.toUTF8 }).1
 
 def decodeTable (initialChild symmetryIndex : Nat) (r : Rat)
     (count : Nat) (packed : String) : Table :=
@@ -205,15 +246,13 @@ def readDecoded (base : AtlasProjectiveView.Triangle Rat) :
   let count ← readNat
   let symmetryIndex ← readNat
   let r ← readRat
-  let rows ← readRows base count #[]
+  let rows ← readRows base count
   pure { symmetryIndex, r, count, rows }
 
-/-- Decode a self-describing packed local-table artifact. The initial projective
-root child is supplied by its position in the four-table atlas. -/
-def decodePackedTable (initialChild : Nat) (packed : String) : Table :=
+/-- Decode a self-describing packed local-table artifact from binary bytes. -/
+def decodePackedByteArray (initialChild : Nat) (data : ByteArray) : Table :=
   let base := split upperWedgeTriangle (fin4 initialChild)
-  let decoded :=
-    (readDecoded base { data := packed.toUTF8 }).1
+  let decoded := (readDecoded base { data }).1
   {
     symmetryIndex := fin5 decoded.symmetryIndex
     r := decoded.r
@@ -222,6 +261,11 @@ def decodePackedTable (initialChild : Nat) (packed : String) : Table :=
     get := fun i => decoded.rows[i]!
     size := decoded.count
   }
+
+/-- Decode a self-describing packed local-table artifact. The initial projective
+root child is supplied by its position in the four-table atlas. -/
+def decodePackedTable (initialChild : Nat) (packed : String) : Table :=
+  decodePackedByteArray initialChild packed.toUTF8
 
 end Noperthedron.Nopert229.PackedLocalViewTree
 

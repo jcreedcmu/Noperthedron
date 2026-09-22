@@ -921,6 +921,41 @@ theorem Box.exactSupport_le_upper (box : Box)
     push_cast
     linarith [herr.2]
 
+theorem Box.valid_support_of_upper_single (box : Box)
+    (j : Fin 4)
+    (defect : Fin 3 → ℚ)
+    (h_supp : ∀ i k, box.supportUpper j i k ≤ defect i)
+    {p : AtlasPose ℝ} (offset : ℝ²)
+    (hscale : 1 ≤ viewScale box.root p)
+    (hmem : InTriangle (toReal box.triangle)
+      (AtlasProjectiveView.normalizedView box.root p))
+    (i : Fin 3) (k : VertexIndex) :
+    inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+        (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
+          (exactVertex k)) ≤
+      inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+        (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
+          (exactVertex ((box.certificate j).supportIndex box i))) +
+        (defect i : ℝ) := by
+  have hscaleNe :=
+    (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
+  have hupper := box.exactSupport_le_upper hscale hmem j i k
+  have hsigned : (box.certificate j).exactSupport box p i k ≤ (defect i : ℝ) :=
+    hupper.trans (by exact_mod_cast h_supp i k)
+  have hdiff :
+      inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+          ((outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
+            (exactVertex k) -
+          (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
+            (exactVertex ((box.certificate j).supportIndex box i))) =
+        (box.certificate j).exactSupport box p i k := by
+    rw [← map_sub,
+      inner_direction_outerProjection_eq_support box.root p box.chart offset
+        _ _ hscaleNe]
+    rfl
+  rw [inner_sub_right] at hdiff
+  linarith
+
 theorem Box.valid_support_of_upper (box : Box)
     (defect : Fin 4 → Fin 3 → ℚ)
     (h_supp : ∀ j i k, box.supportUpper j i k ≤ defect j i)

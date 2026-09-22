@@ -1,6 +1,7 @@
 module
 
 public import Noperthedron.Nopert229.AtlasProjectiveLocalCertificate
+public import Noperthedron.Nopert229.AtlasProjectiveAnnularCertificate
 
 @[expose] public section
 
@@ -45,16 +46,21 @@ inductive Row where
   | split (id : ℕ) (children : Fin 4 → ℕ)
       (root : Fin 8) (triangle : AtlasProjectiveView.Triangle ℚ)
   | certificate (id : ℕ) (box : AtlasProjectiveLocalCertificate.Box)
+  | decomposed (id : ℕ) (box : AtlasProjectiveLocalCertificate.Box)
+      (coreAxis : AxisCertificate)
+      (defect0 : Fin 3 → ℚ) (D0 : ℚ)
+      (r_min c_cone c_core lam : ℚ)
+      (w : Fin 3 → ℚ)
 deriving DecidableEq
 
 def Row.id : Row → ℕ
-  | .split id .. | .certificate id .. => id
+  | .split id .. | .certificate id .. | .decomposed id .. => id
 
 def Row.root : Row → Fin 8
-  | .split _ _ root _ | .certificate _ { root, .. } => root
+  | .split _ _ root _ | .certificate _ { root, .. } | .decomposed _ { root, .. } .. => root
 
 def Row.triangle : Row → AtlasProjectiveView.Triangle ℚ
-  | .split _ _ _ triangle | .certificate _ { triangle, .. } => triangle
+  | .split _ _ _ triangle | .certificate _ { triangle, .. } | .decomposed _ { triangle, .. } .. => triangle
 
 instance : Inhabited Row where
   default := .split 0 (fun _ => 0) 0 upperWedgeTriangle
@@ -68,6 +74,9 @@ def Row.ValidAt (symmetryIndex : OrbitIndex) (r : ℚ)
         Noperthedron.SnubCube.ProjectiveView.split triangle child
   | .certificate _ box =>
       box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧ box.ViewValid
+  | .decomposed _ box coreAxis defect0 D0 r_min c_cone c_core lam w =>
+      box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧
+      box.DecomposedViewValid coreAxis defect0 D0 r_min c_cone c_core lam w
 
 instance (symmetryIndex : OrbitIndex) (r : ℚ) (get : ℕ → Row)
     (size : ℕ) (row : Row) :
@@ -174,6 +183,33 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
         Box.Valid.of_viewValid hactualView hmismatch
       exact actual.valid_imp_not_translated_rupert hactual hp offset
         hscale hmem
+  | decomposed id box coreAxis defect0 D0 r_min c_cone c_core lam w =>
+      obtain ⟨hboxSymmetry, hboxRadius, hview⟩ := hvalid
+      let actual := box.retarget tube.interval tube.chart
+      have hactualView : actual.DecomposedViewValid coreAxis defect0 D0 r_min c_cone c_core lam w :=
+        hview.retarget tube.interval tube.chart
+      have hmismatch : actual.mismatchRadius ≤ actual.r := by
+        have hsym : box.symmetryIndex = tube.symmetryIndex :=
+          hboxSymmetry.trans htubeSymmetry.symm
+        have hmismatchTube : actual.mismatchRadius ≤ tube.r := by
+          simpa [actual, Box.retarget, Box.mismatchRadius,
+            Box.mismatchShell, Tube.Valid, Tube.mismatchRadius, Tube.shell,
+            AtlasLocalCertificate.Box.mismatchRadius,
+            AtlasLocalCertificate.Box.identityMismatchRadius,
+            AtlasLocalCertificate.Box.identityRadiusSqUpper,
+            AtlasLocalCertificate.Box.coordinateAbsUpper,
+            AtlasLocalCertificate.Box.mismatchFrobeniusSqUpper,
+            AtlasLocalCertificate.Box.entryAbsUpper,
+            AtlasLocalCertificate.Box.mismatchBall,
+            AtlasLocalCertificate.Box.variableBalls,
+            AtlasLocalCertificate.Box.mismatchQuadratic,
+            hsym]
+            using htube
+        have hr : tube.r ≤ box.r := htubeRadius.trans hboxRadius
+        simpa [actual, Box.retarget] using hmismatchTube.trans hr
+      exact actual.valid_imp_not_translated_rupert_of_decomposedViewValid
+        coreAxis defect0 D0 r_min c_cone c_core lam w
+        hactualView hmismatch hp offset hscale hmem
 termination_by size - i
 decreasing_by
   all_goals
@@ -206,7 +242,7 @@ def Table.findNode (table : Table) (path : List (Fin 4)) : Option ℕ :=
     | c :: cs =>
         if currId < table.size then
           match table.get currId with
-          | .certificate .. => none
+          | .certificate .. | .decomposed .. => none
           | .split _ children .. => loop (children c) cs
         else
           none
