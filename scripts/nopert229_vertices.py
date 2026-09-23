@@ -4,6 +4,12 @@
 Derived directly from ruperts/repair214.cc without any STL round-trip.
 Enforces exact algebraic coplanarity of the quadrilateral faces and
 scales coordinates to lie strictly inside the unit sphere for Lean's GoodPoly.
+
+NOTE: This generator historically rounded rotated coordinates to 16 decimal places
+(Q(f'{vx:.16f}')), leaving a residual coplanarity defect of ~4.5e-17 that creases
+the 5 quads into 10 triangles (32 facet planes). For the canonical exact 27-face
+rational vertices with pure power-of-two denominators (2^52) and zero coplanarity defect,
+see ruperts/codebdd229.cc and noteperts/QUAD_FACES.md.
 """
 
 from __future__ import annotations
