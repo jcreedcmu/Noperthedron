@@ -87,8 +87,6 @@ def testDefect0 : Fin 3 → ℚ := ![0, 0, 0]
 
 def testD0 : ℚ := 0
 
-#eval testBox.DecomposedViewValid coreAx testDefect0 testD0 (1 / 10000) (133 / 10000) (18 / 10000) testLam testW
-
 theorem testDecomposedValid :
   testBox.DecomposedViewValid coreAx testDefect0 testD0 (1 / 10000) (133 / 10000) (18 / 10000) testLam testW := by
-  decide
+  constructor <;> try norm_num <;> try (decide +kernel)
