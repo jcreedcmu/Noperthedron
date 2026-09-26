@@ -76,9 +76,6 @@ def applicable : TriangleSymmetry → (Fin 3 → VertexIndex) → Prop
 instance (s : TriangleSymmetry) (Q : Fin 3 → VertexIndex) : Decidable (s.applicable Q) := by
   cases s <;> unfold applicable <;> infer_instance
 
-private lemma RzL_periodic (x : ℝ) (z : ℤ) : RzL (x + z * (2 * π)) = RzL x := by
-  simp only [RzL, Rz_mat_add_int_mul_two_pi]
-
 private lemma RzL_apply_add (α β : ℝ) (v : ℝ³) : RzL (α + β) v = RzL α (RzL β v) := by
   have h := RzC.map_add_eq_mul α β
   simp only [RzC_coe] at h
@@ -96,7 +93,7 @@ private lemma RzL_nat_mod_15 (x : ℕ) :
   rw [show 2 * π * ((x % 15 : ℕ) : ℝ) / 15
         = 2 * π * (x : ℝ) / 15 + ((-((x / 15 : ℕ) : ℤ) : ℤ) : ℝ) * (2 * π) by
       rw [hcast]; linear_combination (2 * π / 15) * hreal,
-      RzL_periodic]
+      RzL_add_int_mul_two_pi]
 
 private lemma int_neg_one_pow_smul (j : ℕ) (w : ℝ³) :
     (-1 : ℤ)^j • w = ((-1 : ℝ)^j) • w := by norm_cast
@@ -269,7 +266,7 @@ private theorem congruent_of_reflection (Pi Qi : Fin 3 → VertexIndex)
       RzL_nat_mod_15,
       show 2 * π * ((15 - k.val + n.val : ℕ) : ℝ) / 15 = (φ + -θ) + (1 : ℤ) * (2 * π) by
         push_cast [Nat.cast_sub hk_le]; rw [hφ_def, hθ_def]; ring,
-      RzL_periodic]
+      RzL_add_int_mul_two_pi]
   exact neg_one_pow_mod_two_smul m.val ℓ.val _
 
 /-- Key theorem: whenever `Pi j = s.apply (Qi j)` for all `j` and the symmetry

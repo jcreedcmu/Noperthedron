@@ -134,6 +134,9 @@ lemma RzC_coe : RzC = RzL := rfl
 theorem Rz_mat_add_int_mul_two_pi (z : ℤ) (x : ℝ) : Rz_mat (x + z * (2 * π)) = Rz_mat x := by
   ext i j; fin_cases i <;> fin_cases j <;> simp
 
+theorem RzL_add_int_mul_two_pi (z : ℤ) (x : ℝ) : RzL (x + z * (2 * π)) = RzL x := by
+  unfold RzL; rw [Rz_mat_add_int_mul_two_pi]
+
 noncomputable
 def rot3_mat : Fin 3 → ℝ → Matrix (Fin 3) (Fin 3) ℝ
   | 0 => Rx_mat
@@ -352,6 +355,9 @@ lemma rotM_periodic_φ {θ φ : ℝ} {k : ℤ} :
     rotM θ (φ + k * (2 * π)) = rotM θ φ := by
   ext v i; fin_cases i <;>
   · simp [rotM, rotM_mat]
+
+lemma rotR_add_int_mul_two_pi (z : ℤ) (α : ℝ) : rotR (α + z * (2 * π)) = rotR α := by
+  ext v i; fin_cases i <;> simp [rotR, rotR_mat]
 
 /-- A convex polyhedron, given as a finite indexed set of vertices. -/
 structure Polyhedron (ι X : Type) where
