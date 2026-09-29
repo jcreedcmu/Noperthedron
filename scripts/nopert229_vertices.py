@@ -20,6 +20,7 @@ try:
     from gmpy2 import mpq as Q
 except ModuleNotFoundError:
     from fractions import Fraction as Q
+from pathlib import Path
 from typing import Tuple, List
 
 # 1. Base roots from repair214.cc (double precision from ruperts.sqlite nopert_214)
@@ -95,27 +96,24 @@ SEEDS_Q: Tuple[Tuple[Q, Q, Q], ...] = tuple(
     tuple(Q(f"{x:.16f}") for x in seed) for seed in SEEDS
 )
 
-# Generate 20 vertices in orbit-major ordering:
-# slot = k * 4 + s for k in 0..4 (orbit), s in 0..3 (seed)
-def generate_vertices_q() -> Tuple[Tuple[Q, Q, Q], ...]:
-    table = []
-    for k in range(5):
-        angle = 2.0 * math.pi * k / 5.0
-        c = math.cos(angle)
-        s = math.sin(angle)
-        for s_idx in range(4):
-            seed = SEEDS[s_idx]
-            vx = c * seed[0] - s * seed[1]
-            vy = s * seed[0] + c * seed[1]
-            vz = seed[2]
-            table.append((
-                Q(f"{vx:.16f}"),
-                Q(f"{vy:.16f}"),
-                Q(f"{vz:.16f}"),
-            ))
-    return tuple(table)
+import json
 
-VERTICES_Q = generate_vertices_q()
+def load_exact27_vertices() -> Tuple[Tuple[Q, Q, Q], ...]:
+    json_path = Path(__file__).resolve().parent.parent.parent / "nopert229" / "vertices229_exact27.json"
+    if not json_path.exists():
+        json_path = Path("/root/quad/nopert229/vertices229_exact27.json")
+    with open(json_path) as f:
+        data = json.load(f)
+    verts = []
+    for item in data["vertices"]:
+        verts.append((
+            Q(item["x"]),
+            Q(item["y"]),
+            Q(item["z"])
+        ))
+    return tuple(verts)
+
+VERTICES_Q = load_exact27_vertices()
 VERTICES = [tuple(map(float, v)) for v in VERTICES_Q]
 
 def det3(a, b, c):
