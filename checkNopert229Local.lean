@@ -15,8 +15,8 @@ open Noperthedron.Nopert229
 open Noperthedron.Nopert229.AtlasProjectiveLocalViewTree
 open Noperthedron.Nopert229.NativeExecutable
 
-/-- Keep this aligned with the empirically faster full constructor setting. -/
-private def taskCount : Nat := 64
+/-- Keep this aligned with available hardware concurrency. -/
+private def taskCount : Nat := 8
 
 def main (args : List String) : IO Unit := do
   let path ← match args with

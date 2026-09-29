@@ -32,6 +32,9 @@ def SparseRowValidAt (symmetryIndex : OrbitIndex) (r : ℚ)
   | .decomposed _ box coreAxis defect0 D0 r_min c_cone c_core lam w =>
       box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧
       box.DecomposedViewValid coreAxis defect0 D0 r_min c_cone c_core lam w
+  | .flockDecomposed _ box flockAxes defect0 D0 r_min c_cone c_core S_max T_max tree =>
+      box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧
+      box.FlockDecomposedViewValid flockAxes defect0 D0 r_min c_cone c_core S_max T_max tree
 
 instance (symmetryIndex : OrbitIndex) (r : ℚ) (get : ℕ → Row)
     (size : ℕ) (row : Row) :
@@ -96,6 +99,7 @@ theorem Row.ValidAt.of_sparse {symmetryIndex : OrbitIndex} {r : ℚ}
           GeneratedTangentCones.table
           GeneratedTangentCones.table_valid_kernel⟩
   | decomposed => exact h
+  | flockDecomposed => exact h
 
 theorem rowsValidAt_of_sparse {symmetryIndex : OrbitIndex} {r : ℚ}
     {get : ℕ → Row} {size : ℕ}

@@ -1,6 +1,7 @@
 module
 
 public import Noperthedron.Nopert229.AtlasProjectiveLocalViewTree
+public import Noperthedron.Nopert229.QuadCoverTree
 
 @[expose] public section
 
@@ -106,6 +107,37 @@ def readCertificate : Decoder (Fin 4 → AxisCertificate) := do
     | 2 => c
     | 3 => d)
 
+def readAxes (count : Nat) : Decoder (Array AxisCertificate) := fun cursor =>
+  Id.run do
+    let mut cur := cursor
+    let mut axes := Array.mkEmpty count
+    for _ in [0:count] do
+      let (ax, next) := readAxis cur
+      cur := next
+      axes := axes.push ax
+    (axes, cur)
+
+def readQuadTree (fuel : Nat := 1000) : Decoder QuadCoverTree := fun cursor =>
+  match fuel with
+  | 0 => (.outside, cursor)
+  | fuel + 1 =>
+      let (nodeTag, c1) := readNat cursor
+      if nodeTag = 0 then
+        (.outside, c1)
+      else if nodeTag = 1 then
+        let (m, c2) := readNat c1
+        (.covered m, c2)
+      else if nodeTag = 2 then
+        let (mid, c2) := readRat c1
+        let (left, c3) := readQuadTree fuel c2
+        let (right, c4) := readQuadTree fuel c3
+        (.splitS mid left right, c4)
+      else
+        let (mid, c2) := readRat c1
+        let (left, c3) := readQuadTree fuel c2
+        let (right, c4) := readQuadTree fuel c3
+        (.splitT mid left right, c4)
+
 structure PrecomputedTriangle where
   v : Array Rat
 
@@ -190,6 +222,35 @@ def readRow (base : AtlasProjectiveView.Triangle Rat) : Decoder Row := do
       c
       δ
       r } coreAxis defect0 D0 r_min c_cone c_core lam w)
+  else if tag = 3 then
+    let symmetryIndex ← readNat
+    let certificate ← readCertificate
+    let c ← readRat
+    let δ ← readRat
+    let r ← readRat
+    let numFlockAxes ← readNat
+    let flockAxes ← readAxes numFlockAxes
+    let d0 ← readRat
+    let d1 ← readRat
+    let d2 ← readRat
+    let defect0 : Fin 3 → ℚ := ![d0, d1, d2]
+    let D0 ← readRat
+    let r_min ← readRat
+    let c_cone ← readRat
+    let c_core ← readRat
+    let S_max ← readRat
+    let T_max ← readRat
+    let tree ← readQuadTree 1000
+    pure (.flockDecomposed id {
+      interval := AtlasPose.rootInterval Rat
+      root := fin8 root
+      triangle
+      chart := 0
+      symmetryIndex := fin5 symmetryIndex
+      certificate
+      c
+      δ
+      r } flockAxes defect0 D0 r_min c_cone c_core S_max T_max tree)
   else
     let symmetryIndex ← readNat
     let certificate ← readCertificate
