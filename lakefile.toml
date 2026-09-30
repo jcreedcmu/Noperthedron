@@ -115,5 +115,10 @@ name = "bench_decode"
 root = "bench_decode"
 buildType = "release"
 
+[[lean_exe]]
+name = "validate_code_pack"
+root = "validate_code_pack"
+buildType = "release"
+
 
 

@@ -328,6 +328,39 @@ root child is supplied by its position in the four-table atlas. -/
 def decodePackedTable (initialChild : Nat) (packed : String) : Table :=
   decodePackedByteArray initialChild packed.toUTF8
 
+def readTriangleCorners : Decoder (AtlasProjectiveView.Triangle Rat) := do
+  let c00 ← readRat; let c01 ← readRat; let c02 ← readRat
+  let c10 ← readRat; let c11 ← readRat; let c12 ← readRat
+  let c20 ← readRat; let c21 ← readRat; let c22 ← readRat
+  pure ![![c00, c01, c02], ![c10, c11, c12], ![c20, c21, c22]]
+
+structure DecodedCodeTable where
+  count : Nat
+  symmetryIndex : Nat
+  r : Rat
+  base : AtlasProjectiveView.Triangle Rat
+  rows : Array Row
+
+def readDecodedCodeTable : Decoder DecodedCodeTable := do
+  let count ← readNat
+  let symmetryIndex ← readNat
+  let r ← readRat
+  let base ← readTriangleCorners
+  let rows ← readRows base count
+  pure { count, symmetryIndex, r, base, rows }
+
+/-- Decode a self-describing packed code-triangle artifact from binary bytes. -/
+def decodePackedCodeTriangle (data : ByteArray) : Table :=
+  let decoded := (readDecodedCodeTable { data }).1
+  {
+    symmetryIndex := fin5 decoded.symmetryIndex
+    r := decoded.r
+    root := 0
+    triangle := decoded.base
+    get := fun i => decoded.rows[i]!
+    size := decoded.count
+  }
+
 end Noperthedron.Nopert229.PackedLocalViewTree
 
 end
