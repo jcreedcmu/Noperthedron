@@ -54,7 +54,7 @@ buildType = "release"
 
 [[lean_exe]]
 name = "diag_row"
-root = "diag_row"
+root = "diagnose_row"
 buildType = "release"
 
 # Executable audit of a packed Nopert #214 local-view certificate.
@@ -119,6 +119,7 @@ buildType = "release"
 name = "validate_code_pack"
 root = "validate_code_pack"
 buildType = "release"
+
 
 
 
