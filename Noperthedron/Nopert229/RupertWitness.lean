@@ -12,23 +12,31 @@ public import Mathlib.Analysis.Normed.Affine.AddTorsorBases
 # Nopert #229 is Rupert
 
 Contrary to the original goal of this development, the exact
-fivefold-symmetric Nopert #229 *does* have the Rupert property.  The
-passage is astronomically thin: the inner shadow clears the outer shadow
-boundary by about `1.8e-8`, which is far below the resolution of the
-floating-point searches that classified this polyhedron as a "nopert".
+fivefold-symmetric Nopert #229 (`exactVerts`) *does* have the Rupert
+property. The passage is a near-identity one: the inner copy is rotated
+relative to the outer by about `3e-6` radians, at an outer view direction
+just on the eclipsed side (face-visibility code 75) of the view plane in
+which the equatorial quadrilateral `[10, 13, 14, 15]` is edge-on, near the
+"canyon" point `u ≈ (0.91569, 0.20303, 0.34682)`. There the first-order
+rigidity margin of the identity pose is slightly negative (about `-3e-6`
+in normalized units), so a small rotation about
+`ω ≈ (0.40165, -0.48335, -0.77785)` plus a translation moves every inner
+vertex strictly inside; the eclipsed vertices 13 and 14 have enough slack
+for the rotation angle used. The inner shadow clears the outer shadow
+boundary by about `3.8e-11`.
 
-This file exhibits an explicit rational witness.  Both rotations are Cayley
-matrices with rational parameters, hence exactly special orthogonal.  The
+This file exhibits an explicit rational witness. Both rotations are Cayley
+matrices with rational parameters, hence exactly special orthogonal. The
 containment proof reduces to twenty strict triangle-membership inequalities
 over `ℚ` (checked by `decide` against the `tightVertex` rational model)
 plus the kernel-proved `2e-16` bound between `tightVertex` and the exact
-vertices.  The worst rational sub-area margin is about `1.37e-8`, six
-orders of magnitude above the total approximation error.
+vertices. The worst rational sub-area margin is about `2.9e-11`, more than
+three orders of magnitude above the `40 * δQ = 8e-15` needed.
 
-The witness was discovered by following the failure set of the local
-certificate search: the achievable local margin crosses zero along a curve
-of outer view directions, and past that curve first-order fitting
-perturbations of the diagonal pose exist and survive at finite angle.
+The witness was found (2026-09-30) while trying to certify the identity tube
+for codes 48/75: see `nopert229/notes/Q.md` §1.8 and the generator
+`nopert229/oneoffs/rupert_witness229.py`. (An earlier, unrelated version of
+this file was a verbatim copy of the Nopert #214 witness.)
 -/
 
 open Matrix
@@ -40,26 +48,26 @@ namespace RupertWitness
 /-! ## The witness data -/
 
 /-- Cayley parameters of the inner rotation. -/
-def cx₁ : ℚ := -119091614393 / 171136508057
-def cy₁ : ℚ := -445838043814 / 513409524171
-def cz₁ : ℚ := -640307571101 / 513409524171
+def cx₁ : ℚ := 6046976991085 / 620339907718
+def cy₁ : ℚ := 1023314188346 / 706673559801
+def cz₁ : ℚ := 5520186512827 / 391071689151
 
 /-- Cayley parameters of the outer rotation. -/
-def cx₂ : ℚ := -178692746467 / 256835444761
-def cy₂ : ℚ := -222739085837 / 256835444761
-def cz₂ : ℚ := -91469524897 / 73381555646
+def cx₂ : ℚ := 9485305881721 / 973056582627
+def cy₂ : ℚ := 1414850452283 / 977059632845
+def cz₂ : ℚ := 12257599669495 / 868365819586
 
 /-- The inner shadow translation. -/
 def offsetQ : Fin 2 → ℚ :=
-  ![-68618674499 / 1000000000000000, 1164714843 / 25000000000000]
+  ![132439942 / 997860311188125, 14466642 / 61879353896317]
 
 /-- For each inner vertex, an outer triangle strictly containing its
 projection, oriented counterclockwise. -/
 def witnessTriangle : Fin 20 → Fin 20 × Fin 20 × Fin 20 := ![
-  (2, 8, 13), (5, 13, 7), (5, 14, 7), (0, 19, 3), (0, 5, 8),
-  (0, 5, 8), (3, 6, 8), (0, 3, 7), (0, 5, 8), (5, 8, 12),
-  (6, 8, 14), (5, 19, 7), (2, 8, 12), (8, 13, 19), (4, 14, 19),
-  (7, 13, 19), (1, 8, 13), (0, 14, 19), (0, 14, 19), (7, 12, 19)]
+  (19, 1, 4), (19, 1, 4), (19, 2, 4), (19, 3, 2), (19, 1, 4),
+  (1, 4, 8), (2, 4, 10), (3, 1, 15), (19, 4, 8), (4, 9, 15),
+  (2, 10, 15), (3, 9, 15), (19, 4, 9), (19, 10, 15), (19, 10, 15),
+  (3, 8, 15), (19, 4, 9), (3, 1, 9), (3, 1, 10), (19, 3, 15)]
 
 /-! ## Rational shadow points -/
 
@@ -458,9 +466,9 @@ theorem innerVertex_mem (i : VertexIndex) :
 end RupertWitness
 
 open RupertWitness in
-/-- **The exact fivefold-symmetric Nopert #229 is Rupert.**  The witness
+/-- **The exact fivefold-symmetric Nopert #229 is Rupert.** The witness
 pose threads the polyhedron through itself with a clearance of roughly
-`1.8e-8`. -/
+`3.8e-11`, using a relative rotation of about `3e-6` radians. -/
 theorem isRupert_exactVerts : IsRupert exactVerts := by
   refine ⟨innerRot, innerRot_mem, offsetR, outerRot, outerRot_mem, ?_⟩
   intro hull inner_shadow outer_shadow
