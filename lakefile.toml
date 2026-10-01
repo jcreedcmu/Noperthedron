@@ -127,3 +127,8 @@ buildType = "release"
 name = "check_identity_tube"
 root = "check_identity_tube"
 buildType = "release"
+
+[[lean_exe]]
+name = "time_pack_rows"
+root = "time_pack_rows"
+buildType = "release"
