@@ -221,7 +221,8 @@ class Builder:
                 score = min(pos, negc)
                 if best is None or score > best[0]:
                     best = (score, n)
-        assert best is not None, f"no splitting plane at depth {depth}, poly {len(poly)} pts"
+        assert best is not None, (f"no splitting plane at depth {depth}: uncovered cell "
+                                  f"{[tuple(float(x) for x in p) for p in poly]}")
         n = primitive(best[1])
         pos = self.build(cons + [n], clip(poly, n), depth + 1)
         negn = self.build(cons + [neg(n)], clip(poly, neg(n)), depth + 1)
