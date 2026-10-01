@@ -106,6 +106,16 @@ theorem supportAt_eq_sum
   rw [hdelta]
   rw [crossQ_sum3, dotQ_sum3]
 
+/-- Fast decision of one contact's tangent-generator support checks in
+compiled code (the contact's edge is evaluated once; see
+`Box.supportListOK`). -/
+instance (priority := high) (box : Box) (j : Fin 4) (i : Fin 3) :
+    Decidable (∀ generator : Fin 7, box.supportUpper j i
+      (supportGenerator ((box.certificate j).supportIndex box i) generator) ≤ 0) :=
+  decidable_of_iff (box.supportListOK j i ((List.finRange 7).map
+      (supportGenerator ((box.certificate j).supportIndex box i))) = true)
+    (by simp [Box.supportListOK_iff, List.mem_finRange])
+
 @[mk_iff]
 structure Box.SparseViewValid (box : Box) : Prop where
   triangle_valid :

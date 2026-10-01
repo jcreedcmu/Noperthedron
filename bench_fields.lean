@@ -1,5 +1,6 @@
 import Noperthedron.Nopert229.NativeExecutable
 import Noperthedron.Nopert229.PackedLocalViewTree
+import Noperthedron.Nopert229.SparseSupport
 
 /-! Time the fields of `Box.ViewValid` separately on sampled certificate rows.
 Usage: bench_fields <file.pack> <samples> -/
@@ -41,11 +42,18 @@ def main (args : List String) : IO Unit := do
       let _ ← timeIt "barycentric" acc fun _ => decide box.barycentricValid
       let _ ← timeIt "angle_bound" acc fun _ => decide (box.r ^ 2 * (1 + box.c ^ 2) ≤ 4 * box.c ^ 2)
       let _ ← timeIt "ViewValid (all)" acc fun _ => decide box.ViewValid
+      let _ ← timeIt "sparse support_generators" acc fun _ => decide (∀ j i generator,
+        box.supportUpper j i (SparseSupport.supportGenerator ((box.certificate j).supportIndex box i) generator) ≤ 0)
+      let _ ← timeIt "sparse support_boundary" acc fun _ => decide (∀ j i,
+        ((box.certificate j).mix i = 0 ∨ (box.certificate j).mix i = 1000) →
+        ∀ target, box.supportUpper j i target ≤ 0)
+      let _ ← timeIt "SparseViewValid (all)" acc fun _ => decide (SparseSupport.Box.SparseViewValid box)
     | _ => pure ()
     i := i + stride
   let l ← acc.get
   let labels := ["triangle_valid", "B_pos", "weight_nonneg", "weight_pos", "support",
-    "direction_nonzero", "budget", "variation", "barycentric", "angle_bound", "ViewValid (all)"]
+    "direction_nonzero", "budget", "variation", "barycentric", "angle_bound", "ViewValid (all)", "sparse support_generators",
+    "sparse support_boundary", "SparseViewValid (all)"]
   IO.println s!"{n} certificate rows"
   for lab in labels do
     let tot := (l.filter (·.1 == lab)).foldl (fun s p => s + p.2) 0

@@ -161,6 +161,51 @@ def Box.supportUpper (box : Box) (j : Fin 4) (i : Fin 3)
   if box.exactSupportTie j i k then 0
   else max3 (fun corner => box.supportAt j corner i k) + supportError
 
+/-! Fast decision of `∀ j i k, supportUpper j i k ≤ 0` for compiled code:
+per (axis, contact) the edge vector is evaluated once as data, and per
+vertex the cross product once, instead of re-running `edgeQ` for every
+coordinate access (function-valued vectors are not shared in compiled code). -/
+
+/-- `supportUpper` with a given edge vector, the cross product held as data. -/
+def Box.supportUpperWith (box : Box) (edge : VectorQ) (j : Fin 4) (i : Fin 3)
+    (k : VertexIndex) : ℚ :=
+  if box.exactSupportTie j i k then 0
+  else
+    let cr := LocalCertificate.crossQ edge ((box.certificate j).deltaQ box i k)
+    let ca : Array ℚ := #[cr 0, cr 1, cr 2]
+    max3 (fun corner => dotQ (box.triangle corner) (fun c => ca.getD c.val 0)) +
+      supportError
+
+theorem Box.supportUpperWith_edgeQ (box : Box) (j : Fin 4) (i : Fin 3) (k : VertexIndex) :
+    box.supportUpperWith ((box.certificate j).edgeQ i) j i k = box.supportUpper j i k := by
+  unfold Box.supportUpperWith Box.supportUpper Box.supportAt
+  split_ifs
+  · rfl
+  · rfl
+
+/-- The support inequalities of one contact against the vertices `ks`, with
+its edge evaluated once. -/
+def Box.supportListOK (box : Box) (j : Fin 4) (i : Fin 3) (ks : List VertexIndex) : Bool :=
+  let e := (box.certificate j).edgeQ i
+  let ea : Array ℚ := #[e 0, e 1, e 2]
+  ks.all fun k => decide (box.supportUpperWith (fun c => ea.getD c.val 0) j i k ≤ 0)
+
+theorem Box.supportListOK_iff (box : Box) (j : Fin 4) (i : Fin 3) (ks : List VertexIndex) :
+    box.supportListOK j i ks = true ↔ ∀ k ∈ ks, box.supportUpper j i k ≤ 0 := by
+  have he : (fun c : Fin 3 =>
+      (#[(box.certificate j).edgeQ i 0, (box.certificate j).edgeQ i 1,
+        (box.certificate j).edgeQ i 2] : Array ℚ).getD c.val 0) =
+      (box.certificate j).edgeQ i := by
+    funext c
+    fin_cases c <;> rfl
+  simp only [Box.supportListOK, he, Box.supportUpperWith_edgeQ, List.all_eq_true,
+    decide_eq_true_eq]
+
+instance (priority := high) (box : Box) (j : Fin 4) (i : Fin 3) :
+    Decidable (∀ k : VertexIndex, box.supportUpper j i k ≤ 0) :=
+  decidable_of_iff (box.supportListOK j i (List.finRange 20) = true)
+    (by simp [Box.supportListOK_iff, List.mem_finRange])
+
 def Box.weightAt (box : Box) (j : Fin 4) (corner : Fin 3)
     (i : Fin 3) : ℚ :=
   dotQ (box.triangle corner) ((box.certificate j).weightCoefficient i)
