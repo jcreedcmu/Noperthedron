@@ -81,6 +81,41 @@ def coefficient (vars : Fin 3 → RatBall) (q : RatQuadratic3)
 def lower (vars : Fin 3 → RatBall) (q : RatQuadratic3) : ℚ :=
   min3 fun i => min3 fun j => min3 fun k => coefficient vars q i j k
 
+/-! Compiled code re-evaluates `coefficient`'s shared terms (and the
+function-valued `vars`) for each of the 27 controls; `lowerFast` computes
+them once, as arguments of `lowerOf`. -/
+
+/-- The 27 controls from the substituted coefficients. -/
+def lowerOf (a0 ax ay az axx ayy azz axy axz ayz : ℚ) : ℚ :=
+  min3 fun i => min3 fun j => min3 fun k =>
+    let u : ℚ := i.val / 2
+    let v : ℚ := j.val / 2
+    let w : ℚ := k.val / 2
+    a0 + u*ax + v*ay + w*az +
+      (if i = 2 then axx else 0) +
+      (if j = 2 then ayy else 0) +
+      (if k = 2 then azz else 0) +
+      u*v*axy + u*w*axz + v*w*ayz
+
+def lowerWith (lx ly lz wx wy wz : ℚ) (q : RatQuadratic3) : ℚ :=
+  lowerOf (q.evalQ lx ly lz)
+    (wx * (q.cx + 2*q.cxx*lx + q.cxy*ly + q.cxz*lz))
+    (wy * (q.cy + q.cxy*lx + 2*q.cyy*ly + q.cyz*lz))
+    (wz * (q.cz + q.cxz*lx + q.cyz*ly + 2*q.czz*lz))
+    (q.cxx * wx * wx) (q.cyy * wy * wy) (q.czz * wz * wz)
+    (q.cxy * wx * wy) (q.cxz * wx * wz) (q.cyz * wy * wz)
+
+def lowerFast (vars : Fin 3 → RatBall) (q : RatQuadratic3) : ℚ :=
+  let v0 := vars 0
+  let v1 := vars 1
+  let v2 := vars 2
+  lowerWith (v0.center - v0.radius) (v1.center - v1.radius) (v2.center - v2.radius)
+    (2 * v0.radius) (2 * v1.radius) (2 * v2.radius) q
+
+@[csimp] theorem lower_eq_lowerFast : @lower = @lowerFast := by
+  funext vars q
+  rfl
+
 noncomputable def evalBernstein (vars : Fin 3 → RatBall)
     (q : RatQuadratic3) (tx ty tz : ℝ) : ℝ :=
   ∑ i : Fin 3, (∑ j : Fin 3, (∑ k : Fin 3,

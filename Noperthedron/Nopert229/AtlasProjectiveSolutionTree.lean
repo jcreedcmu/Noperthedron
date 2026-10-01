@@ -143,6 +143,95 @@ theorem noRupert_of_outsideCayleyBall (chart : ChartIndex)
   unfold AtlasPose.CayleyBounded at hbounded
   nlinarith
 
+/-! ## Relaxed view triangles
+
+The code triangles' corners are facet-plane intersections with ~1000-bit
+coordinates, and their midpoint subdivisions only grow.  Certificates are
+far cheaper to check over a slightly larger triangle with short (dyadic)
+coordinates; `Row.regionRelax` swaps one in once each corner of the exact
+triangle is checked to lie in it. -/
+
+/-- Barycentric weights `(s, u)` of `point` for corners 1 and 2 of `outer`,
+by Cramer's rule in the `(x, y)` projection.  Only a candidate: `cornerInB`
+re-checks the full 3D combination. -/
+def cornerWeights (outer : Triangle) (point : AtlasProjectiveView.Vector ℚ) : ℚ × ℚ :=
+  let ax := outer 1 0 - outer 0 0
+  let ay := outer 1 1 - outer 0 1
+  let bx := outer 2 0 - outer 0 0
+  let by_ := outer 2 1 - outer 0 1
+  let px := point 0 - outer 0 0
+  let py := point 1 - outer 0 1
+  let det := ax * by_ - ay * bx
+  ((px * by_ - py * bx) / det, (ax * py - ay * px) / det)
+
+/-- `point` is the convex combination `(1 - s - u, s, u)` of `outer`'s
+corners, with `(s, u) = cornerWeights outer point`. -/
+def cornerInWith (outer : Triangle) (point : AtlasProjectiveView.Vector ℚ)
+    (su : ℚ × ℚ) : Bool :=
+  decide (0 ≤ su.1 ∧ 0 ≤ su.2 ∧ su.1 + su.2 ≤ 1 ∧
+    ∀ c : Fin 3, point c =
+      (1 - su.1 - su.2) * outer 0 c + su.1 * outer 1 c + su.2 * outer 2 c)
+
+def cornerInB (outer : Triangle) (point : AtlasProjectiveView.Vector ℚ) : Bool :=
+  cornerInWith outer point (cornerWeights outer point)
+
+/-- Every corner of `inner` lies in `outer`. -/
+def triangleWithinB (outer inner : Triangle) : Bool :=
+  cornerInB outer (inner 0) && cornerInB outer (inner 1) && cornerInB outer (inner 2)
+
+theorem inTriangle_of_cornerInWith {outer : Triangle}
+    {point : AtlasProjectiveView.Vector ℚ} {su : ℚ × ℚ}
+    (h : cornerInWith outer point su = true) :
+    InTriangle (toReal outer) (fun c => (point c : ℝ)) := by
+  unfold cornerInWith at h
+  rw [decide_eq_true_iff] at h
+  obtain ⟨hs, hu, hsum, heq⟩ := h
+  refine ⟨![((1 - su.1 - su.2 : ℚ) : ℝ), (su.1 : ℝ), (su.2 : ℝ)], ?_, ?_, ?_⟩
+  · intro i
+    fin_cases i <;> simp <;> norm_cast <;> linarith
+  · simp [Fin.sum_univ_three]
+    ring
+  · funext c
+    have hc := congrArg (fun q : ℚ => (q : ℝ)) (heq c)
+    simp only [affinePoint, toReal, Fin.sum_univ_three]
+    rw [hc]
+    push_cast
+    simp
+
+theorem inTriangle_of_cornerInB {outer : Triangle}
+    {point : AtlasProjectiveView.Vector ℚ} (h : cornerInB outer point = true) :
+    InTriangle (toReal outer) (fun c => (point c : ℝ)) :=
+  inTriangle_of_cornerInWith h
+
+/-- Triangles are convex: if every corner of `inner` lies in `outer`, so
+does every point of `inner`. -/
+theorem inTriangle_of_triangleWithinB {outer inner : Triangle}
+    (h : triangleWithinB outer inner = true) {point : AtlasProjectiveView.Vector ℝ}
+    (hmem : InTriangle (toReal inner) point) :
+    InTriangle (toReal outer) point := by
+  simp only [triangleWithinB, Bool.and_eq_true] at h
+  obtain ⟨⟨h0, h1⟩, h2⟩ := h
+  obtain ⟨v0, hv0, hs0, he0⟩ := inTriangle_of_cornerInB h0
+  obtain ⟨v1, hv1, hs1, he1⟩ := inTriangle_of_cornerInB h1
+  obtain ⟨v2, hv2, hs2, he2⟩ := inTriangle_of_cornerInB h2
+  obtain ⟨w, hw, hsum, hpoint⟩ := hmem
+  simp only [Fin.sum_univ_three] at hs0 hs1 hs2 hsum
+  refine ⟨fun i => w 0 * v0 i + w 1 * v1 i + w 2 * v2 i, ?_, ?_, ?_⟩
+  · intro i
+    have := hw 0; have := hw 1; have := hw 2
+    have := hv0 i; have := hv1 i; have := hv2 i
+    positivity
+  · simp only [Fin.sum_univ_three]
+    linear_combination w 0 * hs0 + w 1 * hs1 + w 2 * hs2 + hsum
+  · rw [hpoint]
+    funext c
+    have e0 := congrFun he0 c
+    have e1 := congrFun he1 c
+    have e2 := congrFun he2 c
+    simp only [affinePoint, toReal, Fin.sum_univ_three] at e0 e1 e2 ⊢
+    rw [e0, e1, e2]
+    ring
+
 inductive Row where
   | cayleySplit (id lowerChild upperChild : ℕ) (coordinate : Fin 5)
       (interval : Interval) (region : Region)
@@ -168,13 +257,18 @@ inductive Row where
   | radiusPrune (id : ℕ) (interval : Interval) (region : Region)
   | fundamentalPrune (id : ℕ) (box : AtlasFundamentalPrune.Box)
       (region : Region)
+  /-- Replace the view triangle by a larger `outer` one (see
+  `triangleWithinB`); the child covers the same interval over `outer`. -/
+  | regionRelax (id child : ℕ) (interval : Interval) (root : Fin 8)
+      (triangle outer : Triangle)
 
 def Row.id : Row → ℕ
   | .cayleySplit id .. | .viewRoot id .. | .viewSplit id .. |
       .projective id .. | .projectiveGlobal id .. |
       .projectiveMixedGlobal id .. |
       .symmetryLocal id .. | .radiusPrune id .. |
-      .fundamentalPrune id .. | .symmetryTube id .. | .codeRoot id .. => id
+      .fundamentalPrune id .. | .symmetryTube id .. | .codeRoot id ..
+      | .regionRelax id .. => id
   | .projectiveLocal id .. => id
 
 def Row.interval : Row → Interval
@@ -190,6 +284,7 @@ def Row.interval : Row → Interval
   | .codeRoot _ _ interval => interval
   | .radiusPrune _ interval _ => interval
   | .fundamentalPrune _ box _ => box.interval
+  | .regionRelax _ _ interval _ _ _ => interval
 
 def Row.region : Row → Region
   | .cayleySplit _ _ _ _ _ region => region
@@ -204,6 +299,7 @@ def Row.region : Row → Region
   | .codeRoot .. => .sphere
   | .radiusPrune _ _ region => region
   | .fundamentalPrune _ _ region => region
+  | .regionRelax _ _ _ root triangle _ => .triangle root triangle
 
 instance : Inhabited Row where
   default := .viewRoot 0 0 (AtlasPose.rootInterval ℚ)
@@ -257,6 +353,11 @@ def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
         SymmetryTubeMatches tube path region shared[sharedIndex]?
   | .radiusPrune _ interval _ => interval.outsideCayleyBall
   | .fundamentalPrune _ box _ => box.chart = chart ∧ box.Valid
+  | .regionRelax id child interval root triangle outer =>
+      id < child ∧ child < size ∧
+      (get child).interval = interval ∧
+      (get child).region = .triangle root outer ∧
+      triangleWithinB outer triangle = true
   | .codeRoot id children interval =>
       children.size = WedgeCover.codeTriangles.size ∧
       ∀ t (ht : t < children.size),
@@ -430,6 +531,15 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       rw [hchildInterval, hchildRegion] at hchild
       exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
         ⟨hregion.1, hchildMem⟩, hrupert⟩
+  | regionRelax id child interval root triangle outer =>
+      unfold NoRupert
+      rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, hregion, hrupert⟩
+      obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion, hwithin⟩ := hvalid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+        child hchildSize
+      rw [hchildInterval, hchildRegion] at hchild
+      exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
+        ⟨hregion.1, inTriangle_of_triangleWithinB hwithin hregion.2⟩, hrupert⟩
   | radiusPrune id interval region =>
       exact noRupert_of_outsideCayleyBall chart interval region hvalid
   | fundamentalPrune id box region =>

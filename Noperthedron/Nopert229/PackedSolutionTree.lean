@@ -253,6 +253,13 @@ def readRow (chart : CayleyAtlas.ChartIndex)
     let count ← readNat
     let children ← readNats count #[]
     pure (.codeRoot id children interval)
+  else if tag = 11 then
+    let child ← readNat
+    let root ← readNat
+    let triangleIndex ← readNat
+    let outerIndex ← readNat
+    pure (.regionRelax id child interval (fin8 root)
+      (triangleAt triangles triangleIndex) (triangleAt triangles outerIndex))
   else
     readMixedGlobalRow chart triangles id interval
 

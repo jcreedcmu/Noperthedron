@@ -25,6 +25,7 @@ def rowKind : Row → String
   | .codeRoot .. => "codeRoot"
   | .radiusPrune .. => "radiusPrune"
   | .fundamentalPrune .. => "fundamentalPrune"
+  | .regionRelax .. => "regionRelax"
 
 def main (args : List String) : IO UInt32 := do
   let (chartStr, packPath, manifestPath) ← match args with

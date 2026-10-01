@@ -107,6 +107,75 @@ def Box.contactDefectUpper (box : Box) (i : Fin 3) : ℚ :=
   max 0 ((Finset.image (box.weightedSupportUpper i) Finset.univ).max'
     (by simp only [Finset.image_nonempty]; exact Finset.univ_nonempty))
 
+/-! Fast `contactDefectUpper` for compiled code.  The specification above
+re-evaluates the contact edge, the weight polynomial and the support cross
+product at every one of its nine controls and every vertex (function-valued
+vectors are not shared in compiled code); here they are held as data. -/
+
+/-- The three view-corner values of `v · n` for a vector held as data. -/
+def Box.cornerDots (box : Box) (n : Array ℚ) : Array ℚ :=
+  #[dotQ (box.triangle 0) (fun c => n.getD c.val 0),
+    dotQ (box.triangle 1) (fun c => n.getD c.val 0),
+    dotQ (box.triangle 2) (fun c => n.getD c.val 0)]
+
+def vec3Array (v : VectorQ) : Array ℚ := #[v 0, v 1, v 2]
+
+theorem vec3Array_getD (v : VectorQ) (c : Fin 3) : (vec3Array v).getD c.val 0 = v c := by
+  fin_cases c <;> simp [vec3Array]
+
+theorem Box.cornerDots_getD (box : Box) (v : VectorQ) (a : Fin 3) :
+    (box.cornerDots (vec3Array v)).getD a.val 0 = dotQ (box.triangle a) v := by
+  fin_cases a <;> rfl
+
+/-- `weightedSupportUpper` from the corner weights `w` and corner supports
+`s` (both as data). -/
+def weightedSupportOf (w s : Array ℚ) : ℚ :=
+  max3 fun a => max3 fun b =>
+    ((w.getD a.val 0 + AtlasProjectiveLocalCertificate.supportError) *
+        (s.getD b.val 0 + AtlasProjectiveLocalCertificate.supportError) +
+      (w.getD b.val 0 + AtlasProjectiveLocalCertificate.supportError) *
+        (s.getD a.val 0 + AtlasProjectiveLocalCertificate.supportError)) / 2
+
+def Box.supportCorners (box : Box) (i : Fin 3) (edge : VectorQ)
+    (k : VertexIndex) : Array ℚ :=
+  box.cornerDots (vec3Array
+    (LocalCertificate.crossQ edge (box.certificate.deltaQ box.localShell i k)))
+
+def Box.contactDefectUpperFast (box : Box) (i : Fin 3) : ℚ :=
+  let ea := vec3Array (box.certificate.edgeQ i)
+  let edge : VectorQ := fun c => ea.getD c.val 0
+  let w := box.cornerDots (vec3Array (box.certificate.weightCoefficient i))
+  max 0 ((Finset.image (fun k =>
+      if k = box.certificate.index i then 0
+      else weightedSupportOf w (box.supportCorners i edge k)) Finset.univ).max'
+    (by simp only [Finset.image_nonempty]; exact Finset.univ_nonempty))
+
+theorem Box.weightedSupportUpper_eq_of (box : Box) (i : Fin 3) (k : VertexIndex) :
+    (if k = box.certificate.index i then 0
+      else weightedSupportOf
+        (box.cornerDots (vec3Array (box.certificate.weightCoefficient i)))
+        (box.supportCorners i
+          (fun c => (vec3Array (box.certificate.edgeQ i)).getD c.val 0) k)) =
+      box.weightedSupportUpper i k := by
+  have hedge : (fun c : Fin 3 => (vec3Array (box.certificate.edgeQ i)).getD c.val 0) =
+      box.certificate.edgeQ i := funext (vec3Array_getD _)
+  unfold Box.weightedSupportUpper Box.weightedSupportControl
+  split_ifs with hk
+  · simp [max3]
+  · unfold weightedSupportOf Box.supportCorners
+    simp only [hedge, Box.cornerDots_getD]
+    rfl
+
+theorem Box.contactDefectUpperFast_eq (box : Box) (i : Fin 3) :
+    box.contactDefectUpperFast i = box.contactDefectUpper i := by
+  unfold Box.contactDefectUpperFast Box.contactDefectUpper
+  simp only [Box.weightedSupportUpper_eq_of]
+
+@[csimp] theorem Box.contactDefectUpper_eq_fast :
+    @Box.contactDefectUpper = @Box.contactDefectUpperFast := by
+  funext box i
+  exact (box.contactDefectUpperFast_eq i).symm
+
 def Box.weightedDefectUpper (box : Box) : ℚ :=
   ∑ i, box.contactDefectUpper i
 
@@ -236,6 +305,96 @@ def Box.bernsteinDisplacementLower (box : Box) : ℚ :=
   min3 fun i => min3 fun j =>
     QuadraticBernstein.lower box.relativeBalls (box.viewControlQuadratic i j)
 
+/-! Fast Bernstein bound for compiled code.  The specification evaluates
+`adjustedViewDisplacementQuadratic` 21 times (each re-deriving the nine
+contact quadratics from the vertices); here the contact quadratics and
+weight coefficients are computed once into tables, and the six distinct
+view quadratics (corners and edge midpoints) once each. -/
+
+/-- `contactQuadratic i c` at index `3 * i + c`. -/
+def Box.contactQuadraticTable (box : Box) : Array RatQuadratic3 :=
+  #[box.contactQuadratic 0 0, box.contactQuadratic 0 1, box.contactQuadratic 0 2,
+    box.contactQuadratic 1 0, box.contactQuadratic 1 1, box.contactQuadratic 1 2,
+    box.contactQuadratic 2 0, box.contactQuadratic 2 1, box.contactQuadratic 2 2]
+
+/-- `certificate.weightCoefficient i c` at index `3 * i + c`. -/
+def Box.weightCoefficientTable (box : Box) : Array ℚ :=
+  let w := box.certificate.weightCoefficient
+  #[w 0 0, w 0 1, w 0 2, w 1 0, w 1 1, w 1 2, w 2 0, w 2 1, w 2 2]
+
+def quadZero : RatQuadratic3 := ⟨0, 0, 0, 0, 0, 0, 0, 0, 0, 0⟩
+
+/-- `adjustedViewDisplacementQuadratic` from the tables, at a view held as
+data. -/
+def Box.viewQuadraticWith (box : Box) (cq : Array RatQuadratic3) (wc : Array ℚ)
+    (n : Array ℚ) : RatQuadratic3 :=
+  let n0 := n.getD 0 0
+  let n1 := n.getD 1 0
+  let n2 := n.getD 2 0
+  RatQuadratic3.scale (n0 * wc.getD 0 0 + n1 * wc.getD 1 0 + n2 * wc.getD 2 0)
+      (RatQuadratic3.scale n0 (cq.getD 0 quadZero) +
+        RatQuadratic3.scale n1 (cq.getD 1 quadZero) +
+        RatQuadratic3.scale n2 (cq.getD 2 quadZero)) +
+    RatQuadratic3.scale (n0 * wc.getD 3 0 + n1 * wc.getD 4 0 + n2 * wc.getD 5 0)
+      (RatQuadratic3.scale n0 (cq.getD 3 quadZero) +
+        RatQuadratic3.scale n1 (cq.getD 4 quadZero) +
+        RatQuadratic3.scale n2 (cq.getD 5 quadZero)) +
+    RatQuadratic3.scale (n0 * wc.getD 6 0 + n1 * wc.getD 7 0 + n2 * wc.getD 8 0)
+      (RatQuadratic3.scale n0 (cq.getD 6 quadZero) +
+        RatQuadratic3.scale n1 (cq.getD 7 quadZero) +
+        RatQuadratic3.scale n2 (cq.getD 8 quadZero)) +
+    RatQuadratic3.scale box.ballMultiplier box.cayleyConstraintQuadratic
+
+theorem Box.viewQuadraticWith_eq (box : Box) (n : VectorQ) :
+    box.viewQuadraticWith box.contactQuadraticTable box.weightCoefficientTable
+      (vec3Array n) = box.adjustedViewDisplacementQuadratic n := by
+  rfl
+
+/-- The tensor Bernstein bound from the corner quadratics `q` and the
+edge-midpoint quadratics `m01 m02 m12`. -/
+def bernsteinOf (vars : Fin 3 → RatBall) (q0 q1 q2 m01 m02 m12 : RatQuadratic3) : ℚ :=
+  let q : Fin 3 → RatQuadratic3 := ![q0, q1, q2]
+  let m : Fin 3 → Fin 3 → RatQuadratic3 := ![![q0, m01, m02], ![m01, q1, m12], ![m02, m12, q2]]
+  min3 fun i => min3 fun j =>
+    QuadraticBernstein.lower vars
+      (if i = j then q i
+       else RatQuadratic3.scale 2 (m i j) - RatQuadratic3.scale (1 / 2) (q i + q j))
+
+def Box.bernsteinWith (box : Box) (cq : Array RatQuadratic3) (wc : Array ℚ) : ℚ :=
+  let t := box.triangle
+  let mid := Noperthedron.SnubCube.ProjectiveView.midpoint
+  bernsteinOf box.relativeBalls
+    (box.viewQuadraticWith cq wc (vec3Array (t 0)))
+    (box.viewQuadraticWith cq wc (vec3Array (t 1)))
+    (box.viewQuadraticWith cq wc (vec3Array (t 2)))
+    (box.viewQuadraticWith cq wc (vec3Array (mid (t 0) (t 1))))
+    (box.viewQuadraticWith cq wc (vec3Array (mid (t 0) (t 2))))
+    (box.viewQuadraticWith cq wc (vec3Array (mid (t 1) (t 2))))
+
+def Box.bernsteinDisplacementLowerFast (box : Box) : ℚ :=
+  box.bernsteinWith box.contactQuadraticTable box.weightCoefficientTable
+
+theorem midpoint_comm (a b : VectorQ) :
+    Noperthedron.SnubCube.ProjectiveView.midpoint a b =
+      Noperthedron.SnubCube.ProjectiveView.midpoint b a := by
+  funext c
+  simp [Noperthedron.SnubCube.ProjectiveView.midpoint, add_comm]
+
+theorem Box.bernsteinDisplacementLowerFast_eq (box : Box) :
+    box.bernsteinDisplacementLowerFast = box.bernsteinDisplacementLower := by
+  unfold Box.bernsteinDisplacementLowerFast Box.bernsteinWith
+  simp only [Box.viewQuadraticWith_eq]
+  unfold bernsteinOf Box.bernsteinDisplacementLower Box.viewControlQuadratic
+  simp only [min3]
+  simp [midpoint_comm (box.triangle 1) (box.triangle 0),
+    midpoint_comm (box.triangle 2) (box.triangle 0),
+    midpoint_comm (box.triangle 2) (box.triangle 1)]
+
+@[csimp] theorem Box.bernsteinDisplacementLower_eq_fast :
+    @Box.bernsteinDisplacementLower = @Box.bernsteinDisplacementLowerFast := by
+  funext box
+  exact box.bernsteinDisplacementLowerFast_eq.symm
+
 /-- An S-procedure strengthening, with the Cayley constraint folded into the
 quadratic coefficients *before* interval evaluation.  This preserves the
 correlation that cancels radial variation near the boundary of the Cayley
@@ -276,6 +435,75 @@ def Box.adjustedDisplacementBall (box : Box) : RatBall :=
         (RatBall.mul byy (RatBall.mul y y)))
       (RatBall.mul byz (RatBall.mul y z)))
     (RatBall.mul bzz (RatBall.mul z z))
+
+/-! Fast `adjustedDisplacementBall` for compiled code: the ten coefficient
+balls read the contact quadratics and weight coefficients from the tables
+instead of re-deriving them at every access. -/
+
+def Box.coefficientBallWith (box : Box) (cq : Array RatQuadratic3) (wc : Array ℚ)
+    (coefficient : RatQuadratic3 → ℚ) : RatBall :=
+  RatQuadratic3.evalBall box.localShell.triangleBalls
+    (Noperthedron.SnubCube.ProjectiveLocalCertificate.mulLinear
+        (fun c => wc.getD c.val 0) (fun c => coefficient (cq.getD c.val quadZero)) +
+      Noperthedron.SnubCube.ProjectiveLocalCertificate.mulLinear
+        (fun c => wc.getD (3 + c.val) 0) (fun c => coefficient (cq.getD (3 + c.val) quadZero)) +
+      Noperthedron.SnubCube.ProjectiveLocalCertificate.mulLinear
+        (fun c => wc.getD (6 + c.val) 0) (fun c => coefficient (cq.getD (6 + c.val) quadZero)))
+
+theorem Box.coefficientBallWith_eq (box : Box) (coefficient : RatQuadratic3 → ℚ) :
+    box.coefficientBallWith box.contactQuadraticTable box.weightCoefficientTable coefficient =
+      box.coefficientBall coefficient := by
+  unfold Box.coefficientBallWith Box.coefficientBall Box.viewCoefficientQuadratic
+    Noperthedron.SnubCube.ProjectiveLocalCertificate.mulLinear
+  rfl
+
+def Box.adjustedDisplacementBallWith (box : Box) (cq : Array RatQuadratic3)
+    (wc : Array ℚ) : RatBall :=
+  let lambda := box.ballMultiplier
+  let b0 := RatBall.add (box.coefficientBallWith cq wc RatQuadratic3.c0)
+    (RatBall.const (-3 * lambda))
+  let bx := box.coefficientBallWith cq wc RatQuadratic3.cx
+  let b_y := box.coefficientBallWith cq wc RatQuadratic3.cy
+  let bz := box.coefficientBallWith cq wc RatQuadratic3.cz
+  let bxx := RatBall.add (box.coefficientBallWith cq wc RatQuadratic3.cxx)
+    (RatBall.const lambda)
+  let bxy := box.coefficientBallWith cq wc RatQuadratic3.cxy
+  let bxz := box.coefficientBallWith cq wc RatQuadratic3.cxz
+  let byy := RatBall.add (box.coefficientBallWith cq wc RatQuadratic3.cyy)
+    (RatBall.const lambda)
+  let byz := box.coefficientBallWith cq wc RatQuadratic3.cyz
+  let bzz := RatBall.add (box.coefficientBallWith cq wc RatQuadratic3.czz)
+    (RatBall.const lambda)
+  let x := box.relativeBalls 0
+  let y := box.relativeBalls 1
+  let z := box.relativeBalls 2
+  RatBall.add
+    (RatBall.add
+      (RatBall.add
+        (RatBall.add
+          (RatBall.add
+            (RatBall.add
+              (RatBall.add
+                (RatBall.add
+                  (RatBall.add b0 (RatBall.mul bx x))
+                  (RatBall.mul b_y y))
+                (RatBall.mul bz z))
+              (RatBall.mul bxx (RatBall.mul x x)))
+            (RatBall.mul bxy (RatBall.mul x y)))
+          (RatBall.mul bxz (RatBall.mul x z)))
+        (RatBall.mul byy (RatBall.mul y y)))
+      (RatBall.mul byz (RatBall.mul y z)))
+    (RatBall.mul bzz (RatBall.mul z z))
+
+def Box.adjustedDisplacementBallFast (box : Box) : RatBall :=
+  box.adjustedDisplacementBallWith box.contactQuadraticTable box.weightCoefficientTable
+
+@[csimp] theorem Box.adjustedDisplacementBall_eq_fast :
+    @Box.adjustedDisplacementBall = @Box.adjustedDisplacementBallFast := by
+  funext box
+  unfold Box.adjustedDisplacementBallFast Box.adjustedDisplacementBallWith
+    Box.adjustedDisplacementBall
+  simp only [Box.coefficientBallWith_eq]
 
 def Box.certifiedDisplacementLower (box : Box) : ℚ :=
   max (box.adjustedDisplacementBall.center -

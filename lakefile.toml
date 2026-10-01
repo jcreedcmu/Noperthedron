@@ -157,3 +157,8 @@ buildType = "release"
 name = "time_global_rows"
 root = "time_global_rows"
 buildType = "release"
+
+[[lean_exe]]
+name = "bench_global_box"
+root = "bench_global_box"
+buildType = "release"
