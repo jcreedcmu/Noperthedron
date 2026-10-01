@@ -147,3 +147,8 @@ buildType = "release"
 name = "exact5d_golden"
 root = "exact5d_golden"
 buildType = "release"
+
+[[lean_exe]]
+name = "check_global_rows"
+root = "check_global_rows"
+buildType = "release"
