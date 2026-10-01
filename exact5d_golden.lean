@@ -20,6 +20,12 @@ weightLower x3, weightUpper x3, weightedDefectUpper, bernsteinDisplacementLower,
 adjustedDisplacementBall center, radius, certifiedDisplacementLower, dBound,
 displacementError, admissible (0/1), valid (0/1).
 Output for M: bernsteinDisplacementLower, weightedDefectUpper, valid (0/1).
+
+  P chart cx cy cz rx ry rz r
+
+Output for P: outsideCayleyBall (0/1), fundamental-prune lower bound for
+direction positive and negative, their validity (0/1 each), the chart-0
+identity tube's mismatchRadius, and Tube.Valid for radius r (0/1).
 -/
 
 open Noperthedron.Nopert229
@@ -144,13 +150,27 @@ def mixedLine (t : Toks) : String := Id.run do
     weight := ![w[0]!, w[1]!, w[2]!, w[3]!] }
   s!"{box.bernsteinDisplacementLower} {box.weightedDefectUpper} {b2n (decide box.Valid)}"
 
+def pruneLine (t : Toks) : String :=
+  let (chart, t) := t.nat
+  let (iv, t) := t.interval
+  let (r, _) := t.rat
+  let pos : AtlasFundamentalPrune.Box := { interval := iv, chart := fin4 chart, direction := .positive }
+  let neg : AtlasFundamentalPrune.Box := { interval := iv, chart := fin4 chart, direction := .negative }
+  let tube : AtlasProjectiveLocalViewTree.Tube := { interval := iv, chart := 0, symmetryIndex := 0, r }
+  s!"{b2n (decide (AtlasProjectiveSolutionTree.Interval.outsideCayleyBall iv))} " ++
+    s!"{pos.lower} {neg.lower} {b2n (decide pos.Valid)} {b2n (decide neg.Valid)} " ++
+    s!"{tube.mismatchRadius} {b2n (decide tube.Valid)}"
+
 partial def loop (stdin : IO.FS.Stream) (stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
   let toks := (line.trimAscii.toString.splitOn " ").filter (· ≠ "") |>.toArray
   if toks.size > 0 then
     let t : Toks := { toks, pos := 1 }
-    let out := if toks[0]! == "G" then globalLine t else mixedLine t
+    let out :=
+      if toks[0]! == "G" then globalLine t
+      else if toks[0]! == "P" then pruneLine t
+      else mixedLine t
     stdout.putStrLn out
     stdout.flush
   loop stdin stdout
