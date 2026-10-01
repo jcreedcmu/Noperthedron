@@ -395,6 +395,36 @@ theorem Box.bernsteinDisplacementLowerFast_eq (box : Box) :
   funext box
   exact box.bernsteinDisplacementLowerFast_eq.symm
 
+/-- The six distinct view quadratics (corners, then midpoints 01, 02, 12),
+computed once; used by the mixed certificate's fast path. -/
+def Box.viewQuadratics (box : Box) : Array RatQuadratic3 :=
+  let cq := box.contactQuadraticTable
+  let wc := box.weightCoefficientTable
+  let t := box.triangle
+  let mid := Noperthedron.SnubCube.ProjectiveView.midpoint
+  #[box.viewQuadraticWith cq wc (vec3Array (t 0)),
+    box.viewQuadraticWith cq wc (vec3Array (t 1)),
+    box.viewQuadraticWith cq wc (vec3Array (t 2)),
+    box.viewQuadraticWith cq wc (vec3Array (mid (t 0) (t 1))),
+    box.viewQuadraticWith cq wc (vec3Array (mid (t 0) (t 2))),
+    box.viewQuadraticWith cq wc (vec3Array (mid (t 1) (t 2)))]
+
+/-- `viewControlQuadratic i j` from `viewQuadratics`. -/
+def controlOf (qs : Array RatQuadratic3) (i j : Fin 3) : RatQuadratic3 :=
+  let q : Fin 3 → RatQuadratic3 := fun i => qs.getD i.val quadZero
+  let m : Fin 3 → Fin 3 → RatQuadratic3 := fun i j =>
+    qs.getD (if i.val + j.val = 1 then 3 else if i.val + j.val = 2 then 4 else 5) quadZero
+  if i = j then q i
+  else RatQuadratic3.scale 2 (m i j) - RatQuadratic3.scale (1 / 2) (q i + q j)
+
+theorem Box.controlOf_viewQuadratics (box : Box) (i j : Fin 3) :
+    controlOf box.viewQuadratics i j = box.viewControlQuadratic i j := by
+  fin_cases i <;> fin_cases j <;>
+    simp [controlOf, Box.viewQuadratics, Box.viewQuadraticWith_eq, Box.viewControlQuadratic,
+      midpoint_comm (box.triangle 1) (box.triangle 0),
+      midpoint_comm (box.triangle 2) (box.triangle 0),
+      midpoint_comm (box.triangle 2) (box.triangle 1)]
+
 /-- An S-procedure strengthening, with the Cayley constraint folded into the
 quadratic coefficients *before* interval evaluation.  This preserves the
 correlation that cancels radial variation near the boundary of the Cayley

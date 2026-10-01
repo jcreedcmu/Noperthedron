@@ -65,6 +65,31 @@ def Box.bernsteinDisplacementLower (box : Box) : ℚ :=
     QuadraticBernstein.lower box.relativeBalls
       (box.viewControlQuadratic i j)
 
+/-! Fast `bernsteinDisplacementLower` for compiled code: each component's
+six view quadratics are computed once (`viewQuadratics`) instead of once
+per control and access. -/
+
+def mixedBernsteinOf (vars : Fin 3 → RatBall) (w : Fin 4 → ℚ)
+    (a0 a1 a2 a3 : Array RatQuadratic3) : ℚ :=
+  QuadraticBernstein.min3 fun i => QuadraticBernstein.min3 fun j =>
+    QuadraticBernstein.lower vars
+      (RatQuadratic3.scale (w 0) (AtlasProjectiveGlobalCertificate.controlOf a0 i j) +
+        RatQuadratic3.scale (w 1) (AtlasProjectiveGlobalCertificate.controlOf a1 i j) +
+        RatQuadratic3.scale (w 2) (AtlasProjectiveGlobalCertificate.controlOf a2 i j) +
+        RatQuadratic3.scale (w 3) (AtlasProjectiveGlobalCertificate.controlOf a3 i j))
+
+def Box.bernsteinDisplacementLowerFast (box : Box) : ℚ :=
+  mixedBernsteinOf box.relativeBalls box.weight
+    (box.componentBox 0).viewQuadratics (box.componentBox 1).viewQuadratics
+    (box.componentBox 2).viewQuadratics (box.componentBox 3).viewQuadratics
+
+@[csimp] theorem Box.bernsteinDisplacementLower_eq_fast :
+    @Box.bernsteinDisplacementLower = @Box.bernsteinDisplacementLowerFast := by
+  funext box
+  unfold Box.bernsteinDisplacementLowerFast mixedBernsteinOf Box.bernsteinDisplacementLower
+    Box.viewControlQuadratic
+  simp only [AtlasProjectiveGlobalCertificate.Box.controlOf_viewQuadratics]
+
 def Box.weightedDefectUpper (box : Box) : ℚ :=
   ∑ k, box.weight k * (box.componentBox k).weightedDefectUpper
 
