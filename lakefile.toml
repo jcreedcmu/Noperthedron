@@ -132,3 +132,13 @@ buildType = "release"
 name = "time_pack_rows"
 root = "time_pack_rows"
 buildType = "release"
+
+[[lean_exe]]
+name = "bench_rat"
+root = "bench_rat"
+buildType = "release"
+
+[[lean_exe]]
+name = "bench_fields"
+root = "bench_fields"
+buildType = "release"

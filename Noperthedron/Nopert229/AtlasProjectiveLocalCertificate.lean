@@ -194,9 +194,44 @@ def Box.barycentricValid (box : Box) : Prop :=
   LocalCertificate.tetraDetQ box.approxNormalizedCenter ≠ 0 ∧
     ∀ k j, 0 ≤ box.barycentric k j
 
-instance (box : Box) : Decidable box.barycentricValid := by
-  unfold Box.barycentricValid
+/-! In compiled code a function-valued vector re-evaluates its defining
+expression on every access, and each entry of `approxNormalizedCenter` is a
+full ball evaluation of a quadratic. The barycentric checks read the four
+centers hundreds of times, so the decision procedure below first tabulates
+them as data and then checks the same condition on the table. -/
+
+/-- The four normalized centers as data. -/
+def Box.centerTable (box : Box) : Array (Array ℚ) :=
+  Array.ofFn fun j : Fin 4 => Array.ofFn fun c : Fin 3 => box.approxNormalizedCenter j c
+
+/-- Read a `4 × 3` table of rationals. -/
+def tableGet43 (t : Array (Array ℚ)) (j : Fin 4) (c : Fin 3) : ℚ :=
+  (t.getD j.val #[]).getD c.val 0
+
+theorem Box.tableGet43_centerTable (box : Box) :
+    tableGet43 box.centerTable = box.approxNormalizedCenter := by
+  funext j c
+  simp [tableGet43, Box.centerTable, Array.getD]
+
+/-- `barycentricValid` stated on a table of centers. -/
+def barycentricValidOn (t : Array (Array ℚ)) (box : Box) : Prop :=
+  LocalCertificate.tetraDetQ (tableGet43 t) ≠ 0 ∧
+    ∀ k j, 0 ≤ LocalCertificate.tetraBarycentricQ (tableGet43 t) (box.octahedronTarget k) j
+
+instance (t : Array (Array ℚ)) (box : Box) : Decidable (barycentricValidOn t box) := by
+  unfold barycentricValidOn
   infer_instance
+
+theorem Box.barycentricValid_iff_on (box : Box) :
+    barycentricValidOn box.centerTable box ↔ box.barycentricValid := by
+  simp only [barycentricValidOn, Box.tableGet43_centerTable, Box.barycentricValid,
+    Box.barycentric]
+
+instance (box : Box) : Decidable box.barycentricValid :=
+  -- Tabulate the centers once (data, so compiled code shares it).
+  let t := box.centerTable
+  have h : barycentricValidOn t box ↔ box.barycentricValid := box.barycentricValid_iff_on
+  decidable_of_iff _ h
 
 /-- Reuse the denominator-cleared atlas mismatch evaluator.  Its geometric
 certificate field is irrelevant to the mismatch definitions. -/
