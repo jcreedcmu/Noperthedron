@@ -53,6 +53,30 @@ def rationalVertices : VertexIndex → Fin 3 → ℚ := ![
   ![2655758254394453/4503599627370496, 147719848473375/1125899906842624, -1718020733186383/2251799813685248]
 ]
 
+/-! ### Fast evaluation in compiled code
+
+`rationalVertices` is a `![…]` literal of big rationals. In compiled code each
+access walks the `Fin.cons` chain and re-normalizes the rational literal (a
+GMP gcd on ~260-bit numbers for the planarized vertices), and the native
+certificate checkers access vertices tens of thousands of times per row. The
+`@[csimp]` lemma below makes compiled code read a table of rationals computed
+once at initialization instead. It is a proved equality, so it changes speed
+only, not what is checked. (The table must hold data, not functions: the
+compiler eta-expands function-valued definitions, so a table of closures
+would still recompute on every access.) -/
+
+/-- The coordinates of `rationalVertices`, computed once. -/
+def rationalVerticesTable : Array (Array ℚ) :=
+  Array.ofFn fun i : VertexIndex => Array.ofFn fun c : Fin 3 => rationalVertices i c
+
+def rationalVerticesImpl (i : VertexIndex) (c : Fin 3) : ℚ :=
+  (rationalVerticesTable[i.val]'(by simp [rationalVerticesTable]))[c.val]'(by
+    simp [rationalVerticesTable])
+
+@[csimp] theorem rationalVertices_eq_impl : @rationalVertices = @rationalVerticesImpl := by
+  funext i c
+  simp [rationalVerticesImpl, rationalVerticesTable]
+
 abbrev stlVertices := rationalVertices
 
 def rationalVertex (i : VertexIndex) : Fin 3 → ℚ := rationalVertices i
