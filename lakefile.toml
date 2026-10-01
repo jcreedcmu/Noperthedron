@@ -123,3 +123,7 @@ buildType = "release"
 
 
 
+[[lean_exe]]
+name = "check_identity_tube"
+root = "check_identity_tube"
+buildType = "release"
