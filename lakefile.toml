@@ -152,3 +152,8 @@ buildType = "release"
 name = "check_global_rows"
 root = "check_global_rows"
 buildType = "release"
+
+[[lean_exe]]
+name = "time_global_rows"
+root = "time_global_rows"
+buildType = "release"
