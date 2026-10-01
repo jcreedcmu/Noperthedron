@@ -218,9 +218,39 @@ def barycentricValidOn (t : Array (Array ℚ)) (box : Box) : Prop :=
   LocalCertificate.tetraDetQ (tableGet43 t) ≠ 0 ∧
     ∀ k j, 0 ≤ LocalCertificate.tetraBarycentricQ (tableGet43 t) (box.octahedronTarget k) j
 
-instance (t : Array (Array ℚ)) (box : Box) : Decidable (barycentricValidOn t box) := by
-  unfold barycentricValidOn
-  infer_instance
+/-- `tetraBarycentricQ` as data: all four coordinates from one evaluation
+(the function-valued version recomputes the determinants per coordinate). -/
+def tetraBarycentricArr (p : Fin 4 → Fin 3 → ℚ) (target : Fin 3 → ℚ) : Array ℚ :=
+  let a := LocalCertificate.sub3Q (p 0) (p 3)
+  let b := LocalCertificate.sub3Q (p 1) (p 3)
+  let c := LocalCertificate.sub3Q (p 2) (p 3)
+  let y := LocalCertificate.sub3Q target (p 3)
+  let D := LocalCertificate.det3Q a b c
+  let l0 := LocalCertificate.det3Q y b c / D
+  let l1 := LocalCertificate.det3Q a y c / D
+  let l2 := LocalCertificate.det3Q a b y / D
+  #[l0, l1, l2, 1 - l0 - l1 - l2]
+
+theorem tetraBarycentricArr_getElem! (p : Fin 4 → Fin 3 → ℚ) (target : Fin 3 → ℚ)
+    (j : Fin 4) :
+    (tetraBarycentricArr p target)[j.val]! = LocalCertificate.tetraBarycentricQ p target j := by
+  fin_cases j <;> rfl
+
+/-- The nonnegativity half of `barycentricValidOn`, one barycentric
+evaluation per octahedron target. -/
+def baryNonnegOn (t : Array (Array ℚ)) (box : Box) : Bool :=
+  (List.finRange 6).all fun k =>
+    let w := tetraBarycentricArr (tableGet43 t) (box.octahedronTarget k)
+    (List.finRange 4).all fun j => decide (0 ≤ w[j.val]!)
+
+theorem baryNonnegOn_iff (t : Array (Array ℚ)) (box : Box) :
+    baryNonnegOn t box = true ↔
+      ∀ k j, 0 ≤ LocalCertificate.tetraBarycentricQ (tableGet43 t) (box.octahedronTarget k) j := by
+  simp [baryNonnegOn, List.all_eq_true, List.mem_finRange, tetraBarycentricArr_getElem!]
+
+instance (t : Array (Array ℚ)) (box : Box) : Decidable (barycentricValidOn t box) :=
+  decidable_of_iff (LocalCertificate.tetraDetQ (tableGet43 t) ≠ 0 ∧ baryNonnegOn t box = true)
+    (by rw [baryNonnegOn_iff]; rfl)
 
 theorem Box.barycentricValid_iff_on (box : Box) :
     barycentricValidOn box.centerTable box ↔ box.barycentricValid := by
