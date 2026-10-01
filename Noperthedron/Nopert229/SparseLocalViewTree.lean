@@ -21,11 +21,12 @@ open SparseSupport
 
 def SparseRowValidAt (symmetryIndex : OrbitIndex) (r : ℚ)
     (get : ℕ → Row) (size : ℕ) : Row → Prop
-  | .split id children root triangle => ∀ child,
+  | .split id children root triangle rLower => r ≤ rLower ∧ ∀ child,
       id < children child ∧ children child < size ∧
       (get (children child)).root = root ∧
       (get (children child)).triangle =
-        Noperthedron.SnubCube.ProjectiveView.split triangle child
+        Noperthedron.SnubCube.ProjectiveView.split triangle child ∧
+      rLower ≤ (get (children child)).rLower
   | .certificate _ box =>
       box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧
         SparseSupport.Box.SparseViewValid box

@@ -43,8 +43,12 @@ instance (tube : Tube) : Decidable tube.Valid := by
   infer_instance
 
 inductive Row where
+  /-- An interior node. `rLower` is a certified lower bound on the tube
+  radius of every certificate in its subtree (each child's `rLower` is at
+  least it), so a tube of radius `≤ rLower` is ruled out on the node's
+  triangle even when other parts of the table only certify a smaller tube. -/
   | split (id : ℕ) (children : Fin 4 → ℕ)
-      (root : Fin 8) (triangle : AtlasProjectiveView.Triangle ℚ)
+      (root : Fin 8) (triangle : AtlasProjectiveView.Triangle ℚ) (rLower : ℚ)
   | certificate (id : ℕ) (box : AtlasProjectiveLocalCertificate.Box)
   | decomposed (id : ℕ) (box : AtlasProjectiveLocalCertificate.Box)
       (coreAxis : AxisCertificate)
@@ -62,21 +66,28 @@ def Row.id : Row → ℕ
   | .split id .. | .certificate id .. | .decomposed id .. | .flockDecomposed id .. => id
 
 def Row.root : Row → Fin 8
-  | .split _ _ root _ | .certificate _ { root, .. } | .decomposed _ { root, .. } .. | .flockDecomposed _ { root, .. } .. => root
+  | .split _ _ root _ _ | .certificate _ { root, .. } | .decomposed _ { root, .. } .. | .flockDecomposed _ { root, .. } .. => root
 
 def Row.triangle : Row → AtlasProjectiveView.Triangle ℚ
-  | .split _ _ _ triangle | .certificate _ { triangle, .. } | .decomposed _ { triangle, .. } .. | .flockDecomposed _ { triangle, .. } .. => triangle
+  | .split _ _ _ triangle _ | .certificate _ { triangle, .. } | .decomposed _ { triangle, .. } .. | .flockDecomposed _ { triangle, .. } .. => triangle
+
+/-- The certified tube radius lower bound of a node: stored on interior nodes,
+the certificate's own radius on leaves. -/
+def Row.rLower : Row → ℚ
+  | .split _ _ _ _ rLower => rLower
+  | .certificate _ box | .decomposed _ box .. | .flockDecomposed _ box .. => box.r
 
 instance : Inhabited Row where
-  default := .split 0 (fun _ => 0) 0 upperWedgeTriangle
+  default := .split 0 (fun _ => 0) 0 upperWedgeTriangle 0
 
 def Row.ValidAt (symmetryIndex : OrbitIndex) (r : ℚ)
     (get : ℕ → Row) (size : ℕ) : Row → Prop
-  | .split id children root triangle => ∀ child,
+  | .split id children root triangle rLower => r ≤ rLower ∧ ∀ child,
       id < children child ∧ children child < size ∧
       (get (children child)).root = root ∧
       (get (children child)).triangle =
-        Noperthedron.SnubCube.ProjectiveView.split triangle child
+        Noperthedron.SnubCube.ProjectiveView.split triangle child ∧
+      rLower ≤ (get (children child)).rLower
   | .certificate _ box =>
       box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧ box.ViewValid
   | .decomposed _ box coreAxis defect0 D0 r_min c_cone c_core lam w =>
@@ -144,7 +155,7 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
     (rowsValid : RowsValidAt symmetryIndex r get size)
     (i : ℕ) (hi : i < size) (tube : Tube)
     (htubeSymmetry : tube.symmetryIndex = symmetryIndex)
-    (htubeRadius : tube.r ≤ r) (htube : tube.Valid)
+    (htubeRadius : tube.r ≤ (get i).rLower) (htube : tube.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal) (offset : ℝ²)
     (hscale : 1 ≤ viewScale (get i).root p)
     (hmem : InTriangle (toReal (get i).triangle)
@@ -152,15 +163,15 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
       exactPolyhedron.hull := by
   obtain ⟨hid, hvalid⟩ := rowsValid ⟨i, hi⟩
-  generalize hrow : get i = row at hid hvalid hscale hmem ⊢
+  generalize hrow : get i = row at hid hvalid hscale hmem htubeRadius ⊢
   cases row with
-  | split id children root triangle =>
+  | split id children root triangle rLower =>
       obtain ⟨child, hchildMem⟩ := mem_split hmem
-      obtain ⟨hforward, hchildSize, hchildRoot, hchildTriangle⟩ :=
-        hvalid child
+      obtain ⟨hforward, hchildSize, hchildRoot, hchildTriangle, hchildRadius⟩ :=
+        hvalid.2 child
       have hchild := valid_imp_not_rupert_ix symmetryIndex r get size
         rowsValid (children child) hchildSize tube htubeSymmetry
-        htubeRadius htube hp offset
+        (le_trans htubeRadius hchildRadius) htube hp offset
       rw [hchildRoot, hchildTriangle] at hchild
       exact hchild hscale hchildMem
   | certificate id box =>
@@ -185,7 +196,7 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
             AtlasLocalCertificate.Box.mismatchQuadratic,
             hsym]
             using htube
-        have hr : tube.r ≤ box.r := htubeRadius.trans hboxRadius
+        have hr : tube.r ≤ box.r := htubeRadius
         simpa [actual, Box.retarget] using hmismatchTube.trans hr
       have hactual : actual.Valid :=
         Box.Valid.of_viewValid hactualView hmismatch
@@ -213,7 +224,7 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
             AtlasLocalCertificate.Box.mismatchQuadratic,
             hsym]
             using htube
-        have hr : tube.r ≤ box.r := htubeRadius.trans hboxRadius
+        have hr : tube.r ≤ box.r := htubeRadius
         simpa [actual, Box.retarget] using hmismatchTube.trans hr
       exact actual.valid_imp_not_translated_rupert_of_decomposedViewValid
         coreAxis defect0 D0 r_min c_cone c_core lam w
@@ -240,7 +251,7 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
             AtlasLocalCertificate.Box.mismatchQuadratic,
             hsym]
             using htube
-        have hr : tube.r ≤ box.r := htubeRadius.trans hboxRadius
+        have hr : tube.r ≤ box.r := htubeRadius
         simpa [actual, Box.retarget] using hmismatchTube.trans hr
       exact actual.valid_imp_not_translated_rupert_of_flockDecomposedViewValid
         flockAxes defect0 D0 r_min c_cone c_core S_max T_max tree
@@ -250,6 +261,15 @@ decreasing_by
   all_goals
     have : id = i := by simpa [Row.id, hrow] using hid
     omega
+
+/-- Every node's radius bound is at least the table-wide radius `r`. -/
+theorem le_rLower_of_rowsValid {symmetryIndex : OrbitIndex} {r : ℚ}
+    {get : ℕ → Row} {size : ℕ}
+    (rowsValid : RowsValidAt symmetryIndex r get size) (i : ℕ) (hi : i < size) :
+    r ≤ (get i).rLower := by
+  obtain ⟨-, hvalid⟩ := rowsValid ⟨i, hi⟩
+  generalize get i = row at hvalid ⊢
+  cases row <;> first | exact hvalid.1 | exact hvalid.2.1
 
 structure Table where
   symmetryIndex : OrbitIndex
@@ -283,10 +303,12 @@ def Table.findNode (table : Table) (path : List (Fin 4)) : Option ℕ :=
           none
   loop 0 path
 
-theorem Table.valid_imp_not_translated_rupert_at_node (table : Table)
+/-- A valid table rules out every tube up to the radius bound of the node
+whose triangle contains the view. -/
+theorem Table.valid_imp_not_translated_rupert_at_node_rLower (table : Table)
     (hvalid : table.Valid) (nodeId : ℕ) (hnode : nodeId < table.size) (tube : Tube)
     (htubeSymmetry : tube.symmetryIndex = table.symmetryIndex)
-    (htubeRadius : tube.r ≤ table.r) (htube : tube.Valid)
+    (htubeRadius : tube.r ≤ (table.get nodeId).rLower) (htube : tube.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal) (offset : ℝ²)
     (hscale : 1 ≤ viewScale (table.get nodeId).root p)
     (hmem : InTriangle (toReal (table.get nodeId).triangle)
@@ -296,6 +318,20 @@ theorem Table.valid_imp_not_translated_rupert_at_node (table : Table)
   obtain ⟨hnonempty, hrows, -, -⟩ := hvalid
   exact valid_imp_not_rupert_ix table.symmetryIndex table.r
     table.get table.size hrows nodeId hnode tube htubeSymmetry htubeRadius
+    htube hp offset hscale hmem
+
+theorem Table.valid_imp_not_translated_rupert_at_node (table : Table)
+    (hvalid : table.Valid) (nodeId : ℕ) (hnode : nodeId < table.size) (tube : Tube)
+    (htubeSymmetry : tube.symmetryIndex = table.symmetryIndex)
+    (htubeRadius : tube.r ≤ table.r) (htube : tube.Valid)
+    {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal) (offset : ℝ²)
+    (hscale : 1 ≤ viewScale (table.get nodeId).root p)
+    (hmem : InTriangle (toReal (table.get nodeId).triangle)
+      (normalizedView (table.get nodeId).root p)) :
+    ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
+      exactPolyhedron.hull :=
+  table.valid_imp_not_translated_rupert_at_node_rLower hvalid nodeId hnode tube
+    htubeSymmetry (htubeRadius.trans (le_rLower_of_rowsValid hvalid.2.1 nodeId hnode))
     htube hp offset hscale hmem
 
 theorem Table.valid_imp_not_translated_rupert_in_triangle (table : Table)
