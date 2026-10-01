@@ -71,21 +71,27 @@ def checkLocal (label : String) (taskCount : Nat)
   else
     throw (IO.userError s!"local table {label} is not valid")
 
-/-- Four checked local tables, before they are attached to the global trees. -/
-structure CheckedLocalTables where
-  tables : Fin 4 → AtlasProjectiveLocalViewTree.Table
-  valid : ∀ index, (tables index).Valid
+/-- Check the shared-local (identity-tube) tables from index `k` on,
+threading the validity proofs of the tables already checked. -/
+partial def checkLocalFrom (taskCount : Nat)
+    (tables : AtlasProjectiveSolutionTree.SharedLocalTables) (k : Nat)
+    (hk : ∀ i (h : i < tables.size), i < k → tables[i].Valid) :
+    IO (PLift (AtlasProjectiveSolutionTree.SharedLocalValid tables)) := do
+  if hlt : k < tables.size then
+    let checked ← checkLocal s!"{k}" taskCount tables[k]
+    checkLocalFrom taskCount tables (k + 1) (fun i h hik => by
+      rcases Nat.lt_succ_iff_lt_or_eq.mp hik with h' | h'
+      · exact hk i h h'
+      · subst h'
+        exact checked.down)
+  else
+    pure ⟨fun i h => hk i h (by omega)⟩
 
-def CheckedLocalTables.shared (checked : CheckedLocalTables) :
-    AtlasProjectiveSolutionTree.SharedLocalTables :=
-  fun index => some (checked.tables index)
-
-theorem CheckedLocalTables.sharedValid (checked : CheckedLocalTables) :
-    AtlasProjectiveSolutionTree.SharedLocalValid checked.shared := by
-  intro index
-  simp only [CheckedLocalTables.shared,
-    AtlasProjectiveSolutionTree.OptionalLocalValid]
-  exact checked.valid index
+/-- Check every shared-local table (one per code triangle). -/
+def checkLocalAll (taskCount : Nat)
+    (tables : AtlasProjectiveSolutionTree.SharedLocalTables) :
+    IO (PLift (AtlasProjectiveSolutionTree.SharedLocalValid tables)) :=
+  checkLocalFrom taskCount tables 0 (fun _ _ h => absurd h (Nat.not_lt_zero _))
 
 /-- Check one data-only global chart table after attaching the already checked
 shared-local tables. -/
@@ -151,29 +157,17 @@ Generated global data is supplied as a function of the checked shared-local
 tables. The two equations prevent an executable wrapper from accidentally
 checking the right rows under the wrong chart or shared-local environment. -/
 def constructProof (localTaskCount globalTaskCount : Nat)
-    (localTables : Fin 4 → AtlasProjectiveLocalViewTree.Table)
+    (localTables : AtlasProjectiveSolutionTree.SharedLocalTables)
     (globalTables : AtlasProjectiveSolutionTree.SharedLocalTables →
       CayleyAtlas.ChartIndex → AtlasProjectiveSolutionTree.Table)
     (hchart : ∀ shared chart, (globalTables shared chart).chart = chart)
     (hshared : ∀ shared chart,
       (globalTables shared chart).sharedLocal = shared) :
     IO (PLift (¬ IsRupert exactVerts)) := do
-  let local0 ← checkLocal "0" localTaskCount (localTables 0)
-  let local1 ← checkLocal "1" localTaskCount (localTables 1)
-  let local2 ← checkLocal "2" localTaskCount (localTables 2)
-  let local3 ← checkLocal "3" localTaskCount (localTables 3)
-  let checkedLocal : CheckedLocalTables := {
-    tables := localTables
-    valid := by
-      intro index
-      fin_cases index
-      · exact local0.down
-      · exact local1.down
-      · exact local2.down
-      · exact local3.down }
-  let shared := checkedLocal.shared
+  let checkedLocal ← checkLocalAll localTaskCount localTables
+  let shared := localTables
   have sharedValid : AtlasProjectiveSolutionTree.SharedLocalValid shared :=
-    checkedLocal.sharedValid
+    checkedLocal.down
   let table0 := globalTables shared 0
   have shared0 : AtlasProjectiveSolutionTree.SharedLocalValid
       table0.sharedLocal := by
@@ -214,7 +208,7 @@ def constructProof (localTaskCount globalTaskCount : Nat)
       · exact valid1.down
       · exact valid2.down
       · exact valid3.down }
-  log "constructed proof: exact Nopert #229 is not Rupert"
+  log "constructed proof: the exact polyhedron is not Rupert"
   pure ⟨checkedCharts.notRupert⟩
 
 end Noperthedron.Nopert229.NativeExecutable

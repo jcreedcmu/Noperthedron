@@ -121,7 +121,7 @@ def main (args : List String) : IO Unit := do
         else throw (IO.userError "sample count must be positive")
     | none => throw (IO.userError "selection must be a natural number")
   let packed ← IO.FS.readFile path
-  let shared : SharedLocalTables := fun _ => none
+  let shared : SharedLocalTables := #[]
   let table := PackedSolutionTree.decodeTable chart shared packed
   IO.println s!"decoded benchmark chart {chart}: {table.size} rows"
   (← IO.getStdout).flush

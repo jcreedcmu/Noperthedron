@@ -12,7 +12,7 @@ open Noperthedron.Nopert229.AtlasProjectiveLocalCertificate
 private def certificateIndices (table : Table) : List Nat :=
   (List.range table.size).filter fun i => match table.get i with
     | .certificate .. => true
-    | .split .. => false
+    | _ => false
 
 private def sampleEvenly (indices : List Nat) (limit : Nat) : List Nat :=
   if indices.length ≤ limit then indices
@@ -23,7 +23,7 @@ private def sampleEvenly (indices : List Nat) (limit : Nat) : List Nat :=
 private def checkDetailed (table : Table) (i : Nat) : IO Unit := do
   let row := table.get i
   match row with
-  | .split .. => IO.println "Row is split"
+  | .split .. | .decomposed .. | .flockDecomposed .. => IO.println "Row is not a plain certificate"
   | .certificate id box =>
       IO.println s!"Row {id}:"
       IO.println s!"  box.symmetryIndex = table.symmetryIndex: {decide (box.symmetryIndex = table.symmetryIndex)}"

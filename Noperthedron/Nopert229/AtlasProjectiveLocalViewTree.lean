@@ -364,6 +364,95 @@ theorem Table.valid_imp_not_translated_rupert (table : Table)
   · simpa [hroot] using hscale
   · simpa [hroot, htriangle] using hmem
 
+/-! ### Views below a node
+
+The 5D search subdivides each code triangle with the same four-way split as
+the identity-tube tables, so a 5D view triangle is a node triangle of a table
+split further by some digits. -/
+
+/-- `triangle` split successively along `path`. -/
+def splitPath (triangle : AtlasProjectiveView.Triangle ℚ) :
+    List (Fin 4) → AtlasProjectiveView.Triangle ℚ
+  | [] => triangle
+  | c :: cs => splitPath (Noperthedron.SnubCube.ProjectiveView.split triangle c) cs
+
+/-- A sub-triangle of the four-way split lies inside its parent. -/
+theorem inTriangle_of_split {triangle : AtlasProjectiveView.Triangle ℚ} {child : Fin 4}
+    {point : Fin 3 → ℝ}
+    (h : InTriangle (toReal (Noperthedron.SnubCube.ProjectiveView.split triangle child)) point) :
+    InTriangle (toReal triangle) point := by
+  obtain ⟨w, hnonneg, hsum, hpoint⟩ := h
+  have h0 := hnonneg 0
+  have h1 := hnonneg 1
+  have h2 := hnonneg 2
+  simp only [Fin.sum_univ_three] at hsum
+  fin_cases child
+  · refine ⟨![w 0 + w 1 / 2 + w 2 / 2, w 1 / 2, w 2 / 2], ?_, ?_, ?_⟩
+    · intro i; fin_cases i <;> simp <;> positivity
+    · simp [Fin.sum_univ_three]; linarith
+    · rw [hpoint]; funext c
+      simp [affinePoint, Fin.sum_univ_three, Noperthedron.SnubCube.ProjectiveView.split, toReal]
+      ring
+  · refine ⟨![w 0 / 2, w 0 / 2 + w 1 + w 2 / 2, w 2 / 2], ?_, ?_, ?_⟩
+    · intro i; fin_cases i <;> simp <;> positivity
+    · simp [Fin.sum_univ_three]; linarith
+    · rw [hpoint]; funext c
+      simp [affinePoint, Fin.sum_univ_three, Noperthedron.SnubCube.ProjectiveView.split, toReal]
+      ring
+  · refine ⟨![w 0 / 2, w 1 / 2, w 0 / 2 + w 1 / 2 + w 2], ?_, ?_, ?_⟩
+    · intro i; fin_cases i <;> simp <;> positivity
+    · simp [Fin.sum_univ_three]; linarith
+    · rw [hpoint]; funext c
+      simp [affinePoint, Fin.sum_univ_three, Noperthedron.SnubCube.ProjectiveView.split, toReal]
+      ring
+  · refine ⟨![w 0 / 2 + w 2 / 2, w 0 / 2 + w 1 / 2, w 1 / 2 + w 2 / 2], ?_, ?_, ?_⟩
+    · intro i; fin_cases i <;> simp <;> positivity
+    · simp [Fin.sum_univ_three]; linarith
+    · rw [hpoint]; funext c
+      simp [affinePoint, Fin.sum_univ_three, Noperthedron.SnubCube.ProjectiveView.split, toReal]
+      ring
+
+theorem inTriangle_of_splitPath {triangle : AtlasProjectiveView.Triangle ℚ}
+    {path : List (Fin 4)} {point : Fin 3 → ℝ}
+    (h : InTriangle (toReal (splitPath triangle path)) point) :
+    InTriangle (toReal triangle) point := by
+  induction path generalizing triangle with
+  | nil => exact h
+  | cons c cs ih => exact inTriangle_of_split (ih h)
+
+/-- Walk `path` from the root as far as the table goes. Returns the node
+reached and the digits left over (nonempty only when the walk stops at a
+leaf). Soundness does not depend on how the node is found, only on its index
+being in range. -/
+def Table.findNodePrefix (table : Table) (path : List (Fin 4)) :
+    Option (ℕ × List (Fin 4)) :=
+  let rec loop (currId : ℕ) : List (Fin 4) → Option (ℕ × List (Fin 4))
+    | [] => if currId < table.size then some (currId, []) else none
+    | c :: cs =>
+        if currId < table.size then
+          match table.get currId with
+          | .split _ children .. => loop (children c) cs
+          | _ => some (currId, c :: cs)
+        else
+          none
+  loop 0 path
+
+/-- A valid table rules out tubes up to a node's radius bound on every
+sub-triangle of the node's triangle. -/
+theorem Table.valid_imp_not_translated_rupert_below_node (table : Table)
+    (hvalid : table.Valid) (nodeId : ℕ) (hnode : nodeId < table.size)
+    (rest : List (Fin 4)) (tube : Tube)
+    (htubeSymmetry : tube.symmetryIndex = table.symmetryIndex)
+    (htubeRadius : tube.r ≤ (table.get nodeId).rLower) (htube : tube.Valid)
+    {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal) (offset : ℝ²)
+    (hscale : 1 ≤ viewScale (table.get nodeId).root p)
+    (hmem : InTriangle (toReal (splitPath (table.get nodeId).triangle rest))
+      (normalizedView (table.get nodeId).root p)) :
+    ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
+      exactPolyhedron.hull :=
+  table.valid_imp_not_translated_rupert_at_node_rLower hvalid nodeId hnode tube
+    htubeSymmetry htubeRadius htube hp offset hscale (inTriangle_of_splitPath hmem)
+
 end Noperthedron.Nopert229.AtlasProjectiveLocalViewTree
 
 end

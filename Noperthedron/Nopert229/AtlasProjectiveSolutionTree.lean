@@ -7,6 +7,7 @@ public import Noperthedron.Nopert229.AtlasProjectiveLocalCertificate
 public import Noperthedron.Nopert229.AtlasProjectiveLocalViewTree
 public import Noperthedron.Nopert229.AtlasProjectiveGlobalCertificate
 public import Noperthedron.Nopert229.AtlasProjectiveMixedGlobalCertificate
+public import Noperthedron.Nopert229.WedgeCoverData
 public import Noperthedron.ParallelBool
 
 @[expose] public section
@@ -28,18 +29,12 @@ open Noperthedron.SnubCube.ProjectiveView
 abbrev Interval := AtlasInterval ℚ
 abbrev Triangle := AtlasProjectiveView.Triangle ℚ
 
-abbrev SharedLocalTables := Fin 4 → Option AtlasProjectiveLocalViewTree.Table
-
-def OptionalLocalValid : Option AtlasProjectiveLocalViewTree.Table → Prop
-  | none => True
-  | some table => table.Valid
-
-instance (table : Option AtlasProjectiveLocalViewTree.Table) :
-    Decidable (OptionalLocalValid table) := by
-  cases table <;> simp only [OptionalLocalValid] <;> infer_instance
+/-- The identity-tube tables, one per code triangle, in
+`WedgeCover.codeTriangles` order. -/
+abbrev SharedLocalTables := Array AtlasProjectiveLocalViewTree.Table
 
 def SharedLocalValid (shared : SharedLocalTables) : Prop :=
-  ∀ index, OptionalLocalValid (shared index)
+  ∀ index (h : index < shared.size), shared[index].Valid
 
 instance (shared : SharedLocalTables) :
     Decidable (SharedLocalValid shared) := by
@@ -162,8 +157,14 @@ inductive Row where
   | symmetryLocal (id : ℕ) (box : AtlasLocalCertificate.Box)
       (region : Region)
   | projectiveLocal (id : ℕ) (box : AtlasProjectiveLocalCertificate.Box)
+  /-- Rigidity-tube leaf: the view region is a sub-triangle (along `path`)
+  of the identity-tube table `sharedIndex`'s base triangle, and the tube is
+  within the radius certified at the deepest table node on that path. -/
   | symmetryTube (id : ℕ) (tube : AtlasProjectiveLocalViewTree.Tube)
-      (sharedIndex : Fin 4) (path : List (Fin 4)) (region : Region)
+      (sharedIndex : ℕ) (path : List (Fin 4)) (region : Region)
+  /-- Split the whole upper view wedge into the code triangles
+  (`WedgeCover.codeTriangles`); child `t` gets code triangle `t`. -/
+  | codeRoot (id : ℕ) (children : Array ℕ) (interval : Interval)
   | radiusPrune (id : ℕ) (interval : Interval) (region : Region)
   | fundamentalPrune (id : ℕ) (box : AtlasFundamentalPrune.Box)
       (region : Region)
@@ -173,7 +174,7 @@ def Row.id : Row → ℕ
       .projective id .. | .projectiveGlobal id .. |
       .projectiveMixedGlobal id .. |
       .symmetryLocal id .. | .radiusPrune id .. |
-      .fundamentalPrune id .. | .symmetryTube id .. => id
+      .fundamentalPrune id .. | .symmetryTube id .. | .codeRoot id .. => id
   | .projectiveLocal id .. => id
 
 def Row.interval : Row → Interval
@@ -186,6 +187,7 @@ def Row.interval : Row → Interval
   | .symmetryLocal _ box _ => box.interval
   | .projectiveLocal _ box => box.interval
   | .symmetryTube _ tube .. => tube.interval
+  | .codeRoot _ _ interval => interval
   | .radiusPrune _ interval _ => interval
   | .fundamentalPrune _ box _ => box.interval
 
@@ -199,6 +201,7 @@ def Row.region : Row → Region
   | .symmetryLocal _ _ region => region
   | .projectiveLocal _ box => .triangle box.root box.triangle
   | .symmetryTube _ _ _ _ region => region
+  | .codeRoot .. => .sphere
   | .radiusPrune _ _ region => region
   | .fundamentalPrune _ _ region => region
 
@@ -209,12 +212,13 @@ def SymmetryTubeMatches (tube : AtlasProjectiveLocalViewTree.Tube)
     (path : List (Fin 4)) (region : Region) : Option AtlasProjectiveLocalViewTree.Table → Prop
   | none => False
   | some table =>
-      tube.symmetryIndex = table.symmetryIndex ∧ tube.r ≤ table.r ∧
-      match table.findNode path with
+      tube.symmetryIndex = table.symmetryIndex ∧
+      match table.findNodePrefix path with
       | none => False
-      | some nodeId =>
-          nodeId < table.size ∧
-          region = .triangle (table.get nodeId).root (table.get nodeId).triangle
+      | some (nodeId, rest) =>
+          nodeId < table.size ∧ tube.r ≤ (table.get nodeId).rLower ∧
+          region = .triangle (table.get nodeId).root
+            (AtlasProjectiveLocalViewTree.splitPath (table.get nodeId).triangle rest)
 
 instance (tube : AtlasProjectiveLocalViewTree.Tube) (path : List (Fin 4)) (region : Region)
     (table : Option AtlasProjectiveLocalViewTree.Table) :
@@ -250,9 +254,15 @@ def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
   | .projectiveLocal _ box => box.chart = chart ∧ box.Valid
   | .symmetryTube _ tube sharedIndex path region =>
       tube.chart = chart ∧ tube.Valid ∧
-        SymmetryTubeMatches tube path region (shared sharedIndex)
+        SymmetryTubeMatches tube path region shared[sharedIndex]?
   | .radiusPrune _ interval _ => interval.outsideCayleyBall
   | .fundamentalPrune _ box _ => box.chart = chart ∧ box.Valid
+  | .codeRoot id children interval =>
+      children.size = WedgeCover.codeTriangles.size ∧
+      ∀ t (ht : t < children.size),
+        id < children[t] ∧ children[t] < size ∧
+        (get children[t]).interval = interval ∧
+        (get children[t]).region = .triangle 0 (WedgeCover.codeTriangles.getD t 0)
 
 instance (chart : ChartIndex) (get : ℕ → Row) (size : ℕ)
     (shared : SharedLocalTables) (row : Row) :
@@ -358,30 +368,37 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       rintro ⟨p, hp, -, -, -, -, offset, hregion, hrupert⟩
       obtain ⟨hchart, htube, hmatch⟩ := hvalid
       subst hchart
-      cases hshared : shared sharedIndex with
-      | none =>
-          have : False := by
-            simpa [SymmetryTubeMatches, hshared] using hmatch
-          contradiction
+      cases hshared : shared[sharedIndex]? with
+      | none => simp [SymmetryTubeMatches, hshared] at hmatch
       | some table =>
-          have htable : table.Valid := by
-            simpa [OptionalLocalValid, hshared] using sharedValid sharedIndex
-          have hmatch' :
-              tube.symmetryIndex = table.symmetryIndex ∧ tube.r ≤ table.r ∧
-              match table.findNode path with
-              | none => False
-              | some nodeId =>
-                  nodeId < table.size ∧
-                  region = .triangle (table.get nodeId).root (table.get nodeId).triangle := by
-            simpa [SymmetryTubeMatches, hshared] using hmatch
-          obtain ⟨hsymmetry, hradius, hfind⟩ := hmatch'
+          obtain ⟨hidx, htableEq⟩ := Array.getElem?_eq_some_iff.mp hshared
+          have htable : table.Valid := htableEq ▸ sharedValid sharedIndex hidx
+          rw [hshared] at hmatch
+          obtain ⟨hsymmetry, hfind⟩ := hmatch
           split at hfind
-          · contradiction
-          · rename_i nodeId heq
-            obtain ⟨hnode, hregionEq⟩ := hfind
+          · exact hfind.elim
+          · rename_i nodeId rest _
+            obtain ⟨hnode, hradius, hregionEq⟩ := hfind
             rw [hregionEq] at hregion
-            exact table.valid_imp_not_translated_rupert_at_node htable nodeId hnode tube
-              hsymmetry hradius htube hp offset hregion.1 hregion.2 hrupert
+            exact table.valid_imp_not_translated_rupert_below_node htable nodeId hnode
+              rest tube hsymmetry hradius htube hp offset hregion.1 hregion.2 hrupert
+  | codeRoot id children interval =>
+      unfold NoRupert
+      rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, -, hrupert⟩
+      obtain ⟨hscale, hmem⟩ := upperView_mem_wedgeTriangle p hview hupper
+      obtain ⟨t, tri, hget, hin⟩ := WedgeCover.codeTriangles_cover _ hmem
+      obtain ⟨htlt, htri⟩ := Array.getElem?_eq_some_iff.mp hget
+      obtain ⟨hsize, hall⟩ := hvalid
+      have ht : t < children.size := hsize ▸ htlt
+      obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion⟩ := hall t ht
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+        children[t] hchildSize
+      rw [hchildInterval, hchildRegion] at hchild
+      have hgetD : WedgeCover.codeTriangles.getD t 0 = tri := by
+        simp [Array.getD, htlt, htri]
+      rw [hgetD] at hchild
+      exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
+        ⟨hscale, hin⟩, hrupert⟩
   | cayleySplit id lowerChild upperChild coordinate interval region =>
       obtain ⟨hlower, hupper, hlowerSize, hupperSize,
         hlowerInterval, hupperInterval, hlowerRegion, hupperRegion⟩ := hvalid
@@ -431,7 +448,7 @@ structure Table where
   chart : ChartIndex
   get : ℕ → Row
   size : ℕ
-  sharedLocal : SharedLocalTables := fun _ => none
+  sharedLocal : SharedLocalTables := #[]
 
 def Table.Valid (table : Table) : Prop :=
   0 < table.size ∧

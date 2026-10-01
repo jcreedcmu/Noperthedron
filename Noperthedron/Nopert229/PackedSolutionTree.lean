@@ -237,7 +237,7 @@ def readRow (chart : CayleyAtlas.ChartIndex)
       interval
       chart
       symmetryIndex := fin5 symmetryIndex
-      r } (fin4 sharedIndex) path region)
+      r } sharedIndex path region)
   else if tag = 7 then
     let region ← readRegion triangles
     pure (.radiusPrune id interval region)
@@ -249,6 +249,10 @@ def readRow (chart : CayleyAtlas.ChartIndex)
       chart
       direction := if direction = 1 then .positive else .negative }
       region)
+  else if tag = 10 then
+    let count ← readNat
+    let children ← readNats count #[]
+    pure (.codeRoot id children interval)
   else
     readMixedGlobalRow chart triangles id interval
 
