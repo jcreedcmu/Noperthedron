@@ -142,3 +142,8 @@ buildType = "release"
 name = "bench_fields"
 root = "bench_fields"
 buildType = "release"
+
+[[lean_exe]]
+name = "exact5d_golden"
+root = "exact5d_golden"
+buildType = "release"
