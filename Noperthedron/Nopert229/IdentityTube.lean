@@ -18,6 +18,8 @@ smallest table radius.
 
 namespace Noperthedron.Nopert229.IdentityTube
 
+variable {P : C5Model}
+
 open AtlasProjectiveView AtlasProjectiveLocalViewTree WedgeCover
 open Noperthedron.SnubCube.ProjectiveView
 
@@ -55,7 +57,7 @@ theorem not_translated_rupert_of_tables (tables : ℕ → Table)
     {p : AtlasPose ℝ} (hp : p ∈ tube.interval.toReal)
     (hview : p.InViewWedge) (hupper : p.InUpperView) (offset : ℝ²) :
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   obtain ⟨hscale, hwedge⟩ := upperView_mem_wedgeTriangle p hview hupper
   obtain ⟨t, tri, hget, hin⟩ := codeTriangles_cover _ hwedge
   obtain ⟨ht, htri⟩ := Array.getElem?_eq_some_iff.mp hget

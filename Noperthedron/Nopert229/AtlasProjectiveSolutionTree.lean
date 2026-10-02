@@ -66,9 +66,9 @@ def NoRupert (chart : ChartIndex) (interval : Interval)
 
 theorem noRupert_halves (chart : ChartIndex) (interval : Interval)
     (region : Region) (coordinate : Fin 5)
-    (hlower : NoRupert chart (interval.lowerHalf coordinate) region)
-    (hupper : NoRupert chart (interval.upperHalf coordinate) region) :
-    NoRupert chart interval region := by
+    (hlower : NoRupert (P := P) chart (interval.lowerHalf coordinate) region)
+    (hupper : NoRupert (P := P) chart (interval.upperHalf coordinate) region) :
+    NoRupert (P := P) chart interval region := by
   rintro ⟨p, hp, hbounded, hfund, hview, hupperView, offset, hregion, hrupert⟩
   rcases AtlasInterval.mem_imp_mem_lowerHalf_or_upperHalf coordinate hp with
     hl | hu
@@ -79,9 +79,9 @@ theorem noRupert_halves (chart : ChartIndex) (interval : Interval)
 
 theorem noRupert_cut (chart : ChartIndex) (interval : Interval)
     (region : Region) (coordinate : Fin 5) (t : ℚ)
-    (hlower : NoRupert chart (interval.lowerAt coordinate t) region)
-    (hupper : NoRupert chart (interval.upperAt coordinate t) region) :
-    NoRupert chart interval region := by
+    (hlower : NoRupert (P := P) chart (interval.lowerAt coordinate t) region)
+    (hupper : NoRupert (P := P) chart (interval.upperAt coordinate t) region) :
+    NoRupert (P := P) chart interval region := by
   rintro ⟨p, hp, hbounded, hfund, hview, hupperView, offset, hregion, hrupert⟩
   rcases AtlasInterval.mem_imp_mem_lowerAt_or_upperAt coordinate t hp with
     hl | hu
@@ -131,7 +131,7 @@ private theorem minAbsBound_le_abs {lo hi : ℚ} {x : ℝ}
 
 theorem noRupert_of_outsideCayleyBall (chart : ChartIndex)
     (interval : Interval) (region : Region)
-    (h : interval.outsideCayleyBall) : NoRupert chart interval region := by
+    (h : interval.outsideCayleyBall) : NoRupert (P := P) chart interval region := by
   rintro ⟨p, hp, hbounded, -, -, -, offset, hregion, hrupert⟩
   have hmem := AtlasInterval.mem_toReal_iff.mp hp
   have hx := minAbsBound_le_abs (hmem 2)
@@ -454,7 +454,7 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
     (sharedValid : SharedLocalValid shared)
     (rowsValid : RowsValidAt chart get size shared)
     (i : ℕ) (hi : i < size) :
-    NoRupert chart (get i).interval (get i).region := by
+    NoRupert (P := P) chart (get i).interval (get i).region := by
   obtain ⟨hid, hvalid⟩ := rowsValid ⟨i, hi⟩
   generalize hrow : get i = row at hid hvalid ⊢
   cases row with
@@ -697,7 +697,7 @@ theorem Table.valid_imp_no_chart_translated_pose
       RupertPose (p.matrixPoseWithOffset table.chart offset)
         P.polyhedron.hull := by
   obtain ⟨hnonempty, hrows, hrootInterval, hrootRegion, hshared⟩ := h
-  have hchecked := valid_imp_noRupert_ix table.chart table.get table.size
+  have hchecked := valid_imp_noRupert_ix (P := P) table.chart table.get table.size
     table.sharedLocal hshared hrows 0 hnonempty
   rw [hrootInterval, hrootRegion] at hchecked
   rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, hrupert⟩
@@ -715,7 +715,7 @@ theorem no_matrixPose_of_valid_tables
   rintro ⟨p, hrupert⟩
   obtain ⟨chart, q, offset, hq, hbounded, hview, hupper, hfund, heq⟩ :=
     AtlasFundamentalPrune.exists_fundamental_atlas_translated_pose p
-  have hno := (table chart).valid_imp_no_chart_translated_pose (hvalid chart)
+  have hno := (table chart).valid_imp_no_chart_translated_pose (P := P) (hvalid chart)
   rw [hchart chart] at hno
   exact hno ⟨q, hq, hbounded, hfund, hview, hupper, offset,
     heq.mpr hrupert⟩

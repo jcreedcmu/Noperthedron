@@ -243,7 +243,7 @@ theorem Box.valid_exactWeightedDisplacement (box : Box) (h : box.Valid)
       (AtlasProjectiveView.normalizedView box.root p)) :
     (box.dBound : ℝ) * (box.weightedDefectUpper : ℝ) ≤
       ∑ k, (box.weight k : ℝ) *
-        (box.componentBox k).exactClearedDisplacement p := by
+        (box.componentBox k).exactClearedDisplacement (P := P) p := by
   have hbernstein := box.bernsteinDisplacementLower_le_adjusted hp hmem
   have hconstraint : p.x ^ 2 + p.y ^ 2 + p.z ^ 2 - 3 ≤ 0 := by
     unfold AtlasPose.CayleyBounded at hbounded
@@ -266,8 +266,8 @@ theorem Box.valid_exactWeightedDisplacement (box : Box) (h : box.Valid)
   have herror (k : Fin 4) :
       (box.componentBox k).approxClearedDisplacement p -
           (box.displacementError : ℝ) ≤
-        (box.componentBox k).exactClearedDisplacement p := by
-    have herr := (box.componentBox k).clearedDisplacement_error hp hscale
+        (box.componentBox k).exactClearedDisplacement (P := P) p := by
+    have herr := (box.componentBox k).clearedDisplacement_error (P := P) hp hscale
     rw [abs_le] at herr
     have heq : (box.componentBox k).displacementError =
         box.displacementError := by
@@ -279,7 +279,7 @@ theorem Box.valid_exactWeightedDisplacement (box : Box) (h : box.Valid)
           ((box.componentBox k).approxClearedDisplacement p -
             (box.displacementError : ℝ)) ≤
         ∑ k, (box.weight k : ℝ) *
-          (box.componentBox k).exactClearedDisplacement p := by
+          (box.componentBox k).exactClearedDisplacement (P := P) p := by
     apply Finset.sum_le_sum
     intro k _
     exact mul_le_mul_of_nonneg_left (herror k)
@@ -291,7 +291,7 @@ theorem Box.valid_exactWeightedDisplacement (box : Box) (h : box.Valid)
           (box.componentBox k).approxClearedDisplacement p) -
           (box.displacementError : ℝ) ≤
         ∑ k, (box.weight k : ℝ) *
-          (box.componentBox k).exactClearedDisplacement p := by
+          (box.componentBox k).exactClearedDisplacement (P := P) p := by
     calc
       _ = ∑ k, (box.weight k : ℝ) *
           ((box.componentBox k).approxClearedDisplacement p -
@@ -313,15 +313,15 @@ theorem Box.valid_actualWeightedDisplacement (box : Box) (h : box.Valid)
       (AtlasProjectiveView.normalizedView box.root p)) :
     (box.weightedDefectUpper : ℝ) ≤
       ∑ k, (box.weight k : ℝ) *
-        (box.componentBox k).actualClearedDisplacement p := by
-  have hexact := box.valid_exactWeightedDisplacement
+        (box.componentBox k).actualClearedDisplacement (P := P) p := by
+  have hexact := box.valid_exactWeightedDisplacement (P := P)
     h hp hbounded hscale hmem
   have hexactEq :
       (∑ k, (box.weight k : ℝ) *
-          (box.componentBox k).exactClearedDisplacement p) =
+          (box.componentBox k).exactClearedDisplacement (P := P) p) =
         cayleyDenom p.x p.y p.z *
           ∑ k, (box.weight k : ℝ) *
-            (box.componentBox k).actualClearedDisplacement p := by
+            (box.componentBox k).actualClearedDisplacement (P := P) p := by
     simp_rw [(box.componentBox _).exactClearedDisplacement_eq_denom_mul]
     simp [Fin.sum_univ_four]
     ring
@@ -346,9 +346,9 @@ theorem Box.valid_weightedActualDefect_le (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
     (∑ k, (box.weight k : ℝ) *
-      (∑ i, (box.componentBox k).certificate.exactWeight
+      (∑ i, (box.componentBox k).certificate.exactWeight (P := P)
           (box.componentBox k).localShell p i *
-        (box.componentBox k).actualDefect p i)) ≤
+        (box.componentBox k).actualDefect (P := P) p i)) ≤
       (box.weightedDefectUpper : ℝ) := by
   unfold Box.weightedDefectUpper
   push_cast
@@ -369,20 +369,20 @@ theorem Box.exists_component_displacement (box : Box) (h : box.Valid)
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
-    ∃ k, (∑ i, (box.componentBox k).certificate.exactWeight
+    ∃ k, (∑ i, (box.componentBox k).certificate.exactWeight (P := P)
           (box.componentBox k).localShell p i *
-        (box.componentBox k).actualDefect p i) ≤
-      (box.componentBox k).actualClearedDisplacement p := by
+        (box.componentBox k).actualDefect (P := P) p i) ≤
+      (box.componentBox k).actualClearedDisplacement (P := P) p := by
   classical
   let actual := fun k : Fin 4 =>
-    (box.componentBox k).actualClearedDisplacement p
+    (box.componentBox k).actualClearedDisplacement (P := P) p
   let defect := fun k : Fin 4 =>
-    ∑ i, (box.componentBox k).certificate.exactWeight
+    ∑ i, (box.componentBox k).certificate.exactWeight (P := P)
         (box.componentBox k).localShell p i *
-      (box.componentBox k).actualDefect p i
+      (box.componentBox k).actualDefect (P := P) p i
   let gap := fun k : Fin 4 => actual k - defect k
-  have hdefect := box.valid_weightedActualDefect_le h hscale hmem
-  have hdisplacement := box.valid_actualWeightedDisplacement
+  have hdefect := box.valid_weightedActualDefect_le (P := P) h hscale hmem
+  have hdisplacement := box.valid_actualWeightedDisplacement (P := P)
     h hp hbounded hscale hmem
   have havg : 0 ≤ ∑ k, (box.weight k : ℝ) * gap k := by
     have horder :
@@ -443,10 +443,10 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
   rw [component.actualClearedDisplacement_eq_pose offset hscaleNe] at hactual
   apply AtlasProjectiveGlobalRigidity.not_rupertPose_of_projective_global_certificate_with_defect
     component.root p component.chart offset
-    (fun i => component.certificate.exactEdge i)
+    (fun i => component.certificate.exactEdge (P := P) i)
     component.innerIndex component.certificate.index
     (component.actualDefect p) hscaleNe
-  · exact component.valid_direction_nonzero hadmissible offset hscale' hmem'
+  · exact component.valid_direction_nonzero (P := P) hadmissible offset hscale' hmem'
   · intro i
     simpa [AxisCertificate.exactWeight,
       AtlasProjectiveGlobalCertificate.Box.localShell, component] using

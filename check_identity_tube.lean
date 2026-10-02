@@ -79,7 +79,7 @@ def main (args : List String) : IO Unit := do
       let hvalid ← validateFrom paths tables 0 (fun _ h => absurd h (Nat.not_lt_zero _))
       have hvalid' : ∀ t, t < codeTriangles.size → (tables t).Valid := by
         intro t ht; exact hvalid.down t (by rw [hsize.down]; exact ht)
-      let _proof := @not_translated_rupert_of_tables tables s r hmatch hvalid'
+      let _proof := fun (P : C5Model) => @not_translated_rupert_of_tables P tables s r hmatch hvalid'
       IO.println s!"[IDENTITY TUBE PROVED] all {paths.size} tables checked in this process; tube symmetry {s}, radius {r}"
     else if unstamped.isEmpty then
       IO.println s!"[IDENTITY TUBE] all {paths.size} tables have validate_code_pack stamps; with not_translated_rupert_of_tables this gives tube symmetry {s}, radius {r}"

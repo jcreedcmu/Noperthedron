@@ -735,13 +735,13 @@ theorem Box.valid_support_with_defect (box : Box) (_h : box.Admissible)
 theorem Box.exactSupport_le_actualDefect (box : Box) (p : AtlasPose ℝ)
     (i : Fin 3) (k : VertexIndex) :
     box.certificate.exactSupport (P := P) box.localShell p i k ≤
-      box.actualDefect p i := by
+      box.actualDefect (P := P) p i := by
   unfold Box.actualDefect
   exact Finset.le_max' _ _
     (Finset.mem_image_of_mem _ (Finset.mem_univ k))
 
 theorem Box.actualDefect_nonneg (box : Box) (p : AtlasPose ℝ)
-    (i : Fin 3) : 0 ≤ box.actualDefect p i := by
+    (i : Fin 3) : 0 ≤ box.actualDefect (P := P) p i := by
   have htie : box.localShell.exactSupportTie 0 i
       (box.certificate.index i) := by
     unfold AtlasProjectiveLocalCertificate.Box.exactSupportTie
@@ -761,7 +761,7 @@ theorem Box.valid_support_with_actualDefect (box : Box) (_h : box.Admissible)
           (P.vertex k)) ≤
       inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (P.vertex (box.certificate.index i))) + box.actualDefect p i := by
+          (P.vertex (box.certificate.index i))) + box.actualDefect (P := P) p i := by
   have hscaleNe :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
   have hdefect := box.exactSupport_le_actualDefect (P := P) p i k
@@ -1365,7 +1365,7 @@ theorem Box.exactWeight_mul_actualDefect_le_contactDefect
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin 3) :
-    box.certificate.exactWeight (P := P) box.localShell p i * box.actualDefect p i ≤
+    box.certificate.exactWeight (P := P) box.localShell p i * box.actualDefect (P := P) p i ≤
       (box.contactDefectUpper i : ℝ) := by
   let values : Finset ℝ := Finset.image
     (fun k => box.certificate.exactSupport (P := P) box.localShell p i k)
@@ -1375,7 +1375,7 @@ theorem Box.exactWeight_mul_actualDefect_le_contactDefect
     exact Finset.univ_nonempty
   have hmember : values.max' hvalues ∈ values := Finset.max'_mem _ _
   obtain ⟨k, _hk, hkvalue⟩ := Finset.mem_image.mp hmember
-  have hactual : box.actualDefect p i =
+  have hactual : box.actualDefect (P := P) p i =
       box.certificate.exactSupport (P := P) box.localShell p i k := by
     simpa only [Box.actualDefect, values] using hkvalue.symm
   rw [hactual]
@@ -1388,7 +1388,7 @@ theorem Box.exactWeightedActualDefect_le (box : Box) (h : box.Admissible)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
     (∑ i, box.certificate.exactWeight (P := P) box.localShell p i *
-        box.actualDefect p i) ≤ (box.weightedDefectUpper : ℝ) := by
+        box.actualDefect (P := P) p i) ≤ (box.weightedDefectUpper : ℝ) := by
   rw [Box.weightedDefectUpper]
   push_cast
   exact Finset.sum_le_sum fun i _ =>
