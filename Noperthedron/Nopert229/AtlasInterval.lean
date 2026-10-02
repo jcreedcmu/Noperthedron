@@ -154,6 +154,76 @@ theorem mem_imp_mem_lowerHalf_or_upperHalf {p : AtlasPose ℝ}
   · exact Or.inl (mem_lowerHalf hp h)
   · exact Or.inr (mem_upperHalf hp h)
 
+/-! ### Splitting at an arbitrary point
+
+`lowerAt` / `upperAt` generalize `lowerHalf` / `upperHalf` (which split at
+the midpoint) to any rational cut, clamped into the coordinate's range so
+the halves are always intervals. -/
+
+/-- The cut point `t`, clamped into `[min_i, max_i]`. -/
+def cut (iv : AtlasInterval ℚ) (i : Fin 5) (t : ℚ) : ℚ :=
+  Max.max (iv.min.get i) (Min.min t (iv.max.get i))
+
+private theorem min_le_cut (iv : AtlasInterval ℚ) (i : Fin 5) (t : ℚ) :
+    iv.min.get i ≤ iv.cut i t :=
+  _root_.le_max_left _ _
+
+private theorem cut_le_max (iv : AtlasInterval ℚ) (i : Fin 5) (t : ℚ) :
+    iv.cut i t ≤ iv.max.get i := by
+  have h := (AtlasPose.le_iff_forall_get _ _).mp iv.min_le_max i
+  exact _root_.max_le h (_root_.min_le_right _ _)
+
+def lowerAt (iv : AtlasInterval ℚ) (i : Fin 5) (t : ℚ) : AtlasInterval ℚ :=
+  AtlasInterval.mk iv.min (iv.max.set i (iv.cut i t)) (by
+    rw [AtlasPose.le_iff_forall_get]
+    intro j
+    by_cases h : j = i
+    · subst j
+      simpa using iv.min_le_cut i t
+    · simpa [AtlasPose.get_set_of_ne _ _ h] using
+        (AtlasPose.le_iff_forall_get _ _).mp iv.min_le_max j)
+
+def upperAt (iv : AtlasInterval ℚ) (i : Fin 5) (t : ℚ) : AtlasInterval ℚ :=
+  AtlasInterval.mk (iv.min.set i (iv.cut i t)) iv.max (by
+    rw [AtlasPose.le_iff_forall_get]
+    intro j
+    by_cases h : j = i
+    · subst j
+      simpa using iv.cut_le_max i t
+    · simpa [AtlasPose.get_set_of_ne _ _ h] using
+        (AtlasPose.le_iff_forall_get _ _).mp iv.min_le_max j)
+
+theorem mem_lowerAt {p : AtlasPose ℝ} {iv : AtlasInterval ℚ}
+    {i : Fin 5} {t : ℚ} (hp : p ∈ iv.toReal)
+    (hi : p.get i ≤ (iv.cut i t : ℝ)) :
+    p ∈ (iv.lowerAt i t).toReal := by
+  rw [mem_toReal_iff] at hp ⊢
+  intro j
+  by_cases h : j = i
+  · subst j
+    simpa only [lowerAt, AtlasInterval.min, AtlasInterval.max,
+      AtlasPose.get_set_same, Set.mem_Icc] using And.intro (hp i).1 hi
+  · simpa [lowerAt, AtlasPose.get_set_of_ne _ _ h] using hp j
+
+theorem mem_upperAt {p : AtlasPose ℝ} {iv : AtlasInterval ℚ}
+    {i : Fin 5} {t : ℚ} (hp : p ∈ iv.toReal)
+    (hi : (iv.cut i t : ℝ) ≤ p.get i) :
+    p ∈ (iv.upperAt i t).toReal := by
+  rw [mem_toReal_iff] at hp ⊢
+  intro j
+  by_cases h : j = i
+  · subst j
+    simpa only [upperAt, AtlasInterval.min, AtlasInterval.max,
+      AtlasPose.get_set_same, Set.mem_Icc] using And.intro hi (hp i).2
+  · simpa [upperAt, AtlasPose.get_set_of_ne _ _ h] using hp j
+
+theorem mem_imp_mem_lowerAt_or_upperAt {p : AtlasPose ℝ}
+    {iv : AtlasInterval ℚ} (i : Fin 5) (t : ℚ) (hp : p ∈ iv.toReal) :
+    p ∈ (iv.lowerAt i t).toReal ∨ p ∈ (iv.upperAt i t).toReal := by
+  rcases le_total (p.get i) (iv.cut i t : ℝ) with h | h
+  · exact Or.inl (mem_lowerAt hp h)
+  · exact Or.inr (mem_upperAt hp h)
+
 theorem rootInterval_toReal :
     AtlasInterval.toReal (AtlasPose.rootInterval ℚ) =
       AtlasPose.rootInterval ℝ := by

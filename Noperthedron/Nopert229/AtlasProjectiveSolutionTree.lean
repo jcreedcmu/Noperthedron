@@ -75,6 +75,19 @@ theorem noRupert_halves (chart : ChartIndex) (interval : Interval)
   · exact hupper ⟨p, hu, hbounded, hfund, hview, hupperView,
       offset, hregion, hrupert⟩
 
+theorem noRupert_cut (chart : ChartIndex) (interval : Interval)
+    (region : Region) (coordinate : Fin 5) (t : ℚ)
+    (hlower : NoRupert chart (interval.lowerAt coordinate t) region)
+    (hupper : NoRupert chart (interval.upperAt coordinate t) region) :
+    NoRupert chart interval region := by
+  rintro ⟨p, hp, hbounded, hfund, hview, hupperView, offset, hregion, hrupert⟩
+  rcases AtlasInterval.mem_imp_mem_lowerAt_or_upperAt coordinate t hp with
+    hl | hu
+  · exact hlower ⟨p, hl, hbounded, hfund, hview, hupperView,
+      offset, hregion, hrupert⟩
+  · exact hupper ⟨p, hu, hbounded, hfund, hview, hupperView,
+      offset, hregion, hrupert⟩
+
 def minAbsBound (lo hi : ℚ) : ℚ :=
   if lo ≤ 0 ∧ 0 ≤ hi then 0 else min |lo| |hi|
 
@@ -261,6 +274,10 @@ inductive Row where
   `triangleWithinB`); the child covers the same interval over `outer`. -/
   | regionRelax (id child : ℕ) (interval : Interval) (root : Fin 8)
       (triangle outer : Triangle)
+  /-- Split one coordinate at an arbitrary rational point `cut` (clamped
+  into its range); `cayleySplit` is the midpoint case. -/
+  | cayleySplitAt (id lowerChild upperChild : ℕ) (coordinate : Fin 5) (cut : ℚ)
+      (interval : Interval) (region : Region)
 
 def Row.id : Row → ℕ
   | .cayleySplit id .. | .viewRoot id .. | .viewSplit id .. |
@@ -268,7 +285,7 @@ def Row.id : Row → ℕ
       .projectiveMixedGlobal id .. |
       .symmetryLocal id .. | .radiusPrune id .. |
       .fundamentalPrune id .. | .symmetryTube id .. | .codeRoot id ..
-      | .regionRelax id .. => id
+      | .regionRelax id .. | .cayleySplitAt id .. => id
   | .projectiveLocal id .. => id
 
 def Row.interval : Row → Interval
@@ -285,6 +302,7 @@ def Row.interval : Row → Interval
   | .radiusPrune _ interval _ => interval
   | .fundamentalPrune _ box _ => box.interval
   | .regionRelax _ _ interval _ _ _ => interval
+  | .cayleySplitAt _ _ _ _ _ interval _ => interval
 
 def Row.region : Row → Region
   | .cayleySplit _ _ _ _ _ region => region
@@ -300,6 +318,7 @@ def Row.region : Row → Region
   | .radiusPrune _ _ region => region
   | .fundamentalPrune _ _ region => region
   | .regionRelax _ _ _ root triangle _ => .triangle root triangle
+  | .cayleySplitAt _ _ _ _ _ _ region => region
 
 instance : Inhabited Row where
   default := .viewRoot 0 0 (AtlasPose.rootInterval ℚ)
@@ -353,6 +372,13 @@ def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
         SymmetryTubeMatches tube path region shared[sharedIndex]?
   | .radiusPrune _ interval _ => interval.outsideCayleyBall
   | .fundamentalPrune _ box _ => box.chart = chart ∧ box.Valid
+  | .cayleySplitAt id lowerChild upperChild coordinate cut interval region =>
+      id < lowerChild ∧ id < upperChild ∧
+      lowerChild < size ∧ upperChild < size ∧
+      (get lowerChild).interval = interval.lowerAt coordinate cut ∧
+      (get upperChild).interval = interval.upperAt coordinate cut ∧
+      (get lowerChild).region = region ∧
+      (get upperChild).region = region
   | .regionRelax id child interval root triangle outer =>
       id < child ∧ child < size ∧
       (get child).interval = interval ∧
@@ -531,6 +557,16 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       rw [hchildInterval, hchildRegion] at hchild
       exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
         ⟨hregion.1, hchildMem⟩, hrupert⟩
+  | cayleySplitAt id lowerChild upperChild coordinate cut interval region =>
+      obtain ⟨hlower, hupper, hlowerSize, hupperSize,
+        hlowerInterval, hupperInterval, hlowerRegion, hupperRegion⟩ := hvalid
+      apply noRupert_cut chart interval region coordinate cut
+      · rw [← hlowerInterval, ← hlowerRegion]
+        exact valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+          lowerChild hlowerSize
+      · rw [← hupperInterval, ← hupperRegion]
+        exact valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+          upperChild hupperSize
   | regionRelax id child interval root triangle outer =>
       unfold NoRupert
       rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, hregion, hrupert⟩

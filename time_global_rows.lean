@@ -26,6 +26,7 @@ def rowKind : Row → String
   | .radiusPrune .. => "radiusPrune"
   | .fundamentalPrune .. => "fundamentalPrune"
   | .regionRelax .. => "regionRelax"
+  | .cayleySplitAt .. => "cayleySplitAt"
 
 def main (args : List String) : IO UInt32 := do
   let (chartStr, packPath, manifestPath) ← match args with

@@ -253,6 +253,14 @@ def readRow (chart : CayleyAtlas.ChartIndex)
     let count ← readNat
     let children ← readNats count #[]
     pure (.codeRoot id children interval)
+  else if tag = 12 then
+    let lowerChild ← readNat
+    let upperChild ← readNat
+    let coordinate ← readNat
+    let cut ← readRat
+    let region ← readRegion triangles
+    pure (.cayleySplitAt id lowerChild upperChild (fin5 coordinate) cut
+      interval region)
   else if tag = 11 then
     let child ← readNat
     let root ← readNat
