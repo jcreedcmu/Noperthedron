@@ -171,6 +171,94 @@ noncomputable def exactGoodPoly : GoodPoly VertexIndex where
   nontriv := exactVertex_norm_pos
   vertex_radius_le_one := exactVertex_norm_le_one
 
+/-! ### Fivefold-symmetric models near the rational vertices
+
+The certificates are checked against `rationalVertex`. What they need from
+the real polyhedron is only exact fivefold symmetry about z and a per-vertex
+distance bound, so they cover every `C5Model` below, not just `exactVertex`. -/
+
+/-- The per-vertex distance the certificates allow between a model vertex and
+`rationalVertex` (`TightApproximation.tightVertexErrorQ` has this value). -/
+def modelErrorQ : ℚ := 6 / 10^16
+
+/-- A polyhedron with exact fivefold symmetry about z, near the rational
+model: vertex `i` is seed `seedIndex i` rotated by `2π · orbitIndex i / 5`,
+and each vertex is within `modelErrorQ` of `rationalVertex i`. -/
+structure C5Model where
+  seed : SeedIndex → ℝ³
+  close : ∀ i : VertexIndex,
+    ‖RzL (2 * Real.pi * (orbitIndex i : ℝ) / 5) (seed (seedIndex i)) -
+      toR3 (rationalVertex i)‖ ≤ (modelErrorQ : ℝ)
+
+/-- Every rational vertex has norm in `[1/10, 1 - 10⁻¹²]`. -/
+theorem rationalVertex_sq_norm_bounds : ∀ i : VertexIndex,
+    (1 / 100 : ℚ) ≤ rationalVertex i 0 ^ 2 + rationalVertex i 1 ^ 2 + rationalVertex i 2 ^ 2 ∧
+      rationalVertex i 0 ^ 2 + rationalVertex i 1 ^ 2 + rationalVertex i 2 ^ 2 ≤
+        (1 - 1 / 10^12) ^ 2 := by
+  decide +kernel
+
+theorem norm_toR3_rationalVertex (i : VertexIndex) :
+    1 / 10 ≤ ‖toR3 (rationalVertex i)‖ ∧ ‖toR3 (rationalVertex i)‖ ≤ 1 - 1 / 10^12 := by
+  obtain ⟨hlo, hhi⟩ := rationalVertex_sq_norm_bounds i
+  set q : ℚ := rationalVertex i 0 ^ 2 + rationalVertex i 1 ^ 2 + rationalVertex i 2 ^ 2
+  have hsq : ‖toR3 (rationalVertex i)‖ ^ 2 = (q : ℝ) := by
+    rw [EuclideanSpace.norm_eq, Real.sq_sqrt (by positivity)]
+    simp only [Fin.sum_univ_three, Real.norm_eq_abs, sq_abs, toR3, q]
+    push_cast
+    ring
+  have hlo' : (((1 / 100 : ℚ)) : ℝ) ≤ (q : ℝ) := Rat.cast_le.mpr hlo
+  have hhi' : (q : ℝ) ≤ (((1 - 1 / 10^12) ^ 2 : ℚ) : ℝ) := Rat.cast_le.mpr hhi
+  push_cast at hlo' hhi'
+  have hn := norm_nonneg (toR3 (rationalVertex i))
+  constructor <;> nlinarith
+
+namespace C5Model
+
+variable (P : C5Model)
+
+/-- Vertex `i`: seed `seedIndex i` rotated by `2π · orbitIndex i / 5`. -/
+noncomputable def vertex (i : VertexIndex) : ℝ³ :=
+  RzL (2 * Real.pi * (orbitIndex i : ℝ) / 5) (P.seed (seedIndex i))
+
+noncomputable def polyhedron : Polyhedron VertexIndex ℝ³ :=
+  ⟨P.vertex⟩
+
+noncomputable def verts : Finset ℝ³ :=
+  Finset.image P.vertex Finset.univ
+
+theorem polyhedron_hull : P.polyhedron.hull = convexHull ℝ P.verts := by
+  simp only [Polyhedron.hull, polyhedron, verts, Finset.coe_image,
+    Finset.coe_univ, Set.image_univ]
+  congr 1
+
+@[simp] theorem polyhedron_vertex (i : VertexIndex) : P.polyhedron.v i = P.vertex i := rfl
+
+theorem vertex_close_model (i : VertexIndex) :
+    ‖P.vertex i - toR3 (rationalVertex i)‖ ≤ (modelErrorQ : ℝ) :=
+  P.close i
+
+theorem vertex_norm_pos (i : VertexIndex) : 0 < ‖P.vertex i‖ := by
+  have h := norm_sub_norm_le (toR3 (rationalVertex i)) (P.vertex i)
+  rw [norm_sub_rev] at h
+  have hc := P.vertex_close_model i
+  have hr := (norm_toR3_rationalVertex i).1
+  norm_num [modelErrorQ] at hc
+  linarith
+
+theorem vertex_norm_le_one (i : VertexIndex) : ‖P.vertex i‖ ≤ 1 := by
+  have h := norm_le_norm_add_norm_sub' (P.vertex i) (toR3 (rationalVertex i))
+  have hc := P.vertex_close_model i
+  have hr := (norm_toR3_rationalVertex i).2
+  norm_num [modelErrorQ] at hc
+  linarith
+
+noncomputable def goodPoly : GoodPoly VertexIndex where
+  vertices := P.polyhedron
+  nontriv := P.vertex_norm_pos
+  vertex_radius_le_one := P.vertex_norm_le_one
+
+end C5Model
+
 end Noperthedron.Nopert229
 
 end

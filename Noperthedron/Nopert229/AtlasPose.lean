@@ -15,6 +15,8 @@ no Euler singularities.
 
 namespace Noperthedron.Nopert229
 
+variable {P : C5Model}
+
 open scoped Matrix
 open CayleyAtlas
 
@@ -241,8 +243,8 @@ theorem exists_atlas_translated_pose (p : MatrixPose) :
     ∃ δ : ℝ, ∃ chart : ChartIndex, ∃ q : AtlasPose ℝ, ∃ offset : ℝ²,
       q ∈ AtlasPose.rootInterval ℝ ∧
       (RupertPose (q.matrixPoseWithOffset chart offset)
-          exactPolyhedron.hull ↔
-        RupertPose (p.rotateBy δ) exactPolyhedron.hull) := by
+          P.polyhedron.hull ↔
+        RupertPose (p.rotateBy δ) P.polyhedron.hull) := by
   obtain ⟨δ, euler, offset, heuler, -, heq⟩ :=
     exists_tight_translated_pose p
   obtain ⟨chart, q, hq, hmatrix⟩ :=
@@ -256,13 +258,13 @@ theorem no_matrixPose_of_no_atlas_translated_pose
     (h : ¬ ∃ chart : ChartIndex, ∃ q ∈ AtlasPose.rootInterval ℝ,
       ∃ offset : ℝ²,
         RupertPose (q.matrixPoseWithOffset chart offset)
-          exactPolyhedron.hull) :
-    ¬ ∃ p : MatrixPose, RupertPose p exactPolyhedron.hull := by
+          P.polyhedron.hull) :
+    ¬ ∃ p : MatrixPose, RupertPose p P.polyhedron.hull := by
   rintro ⟨p, hp⟩
   obtain ⟨δ, chart, q, offset, hq, heq⟩ :=
     exists_atlas_translated_pose p
-  have hrot : RupertPose (p.rotateBy δ) exactPolyhedron.hull :=
-    (MatrixPose.RupertPose_rotateBy_iff p δ exactPolyhedron.hull).mpr hp
+  have hrot : RupertPose (p.rotateBy δ) P.polyhedron.hull :=
+    (MatrixPose.RupertPose_rotateBy_iff p δ P.polyhedron.hull).mpr hp
   exact h ⟨chart, q, hq, offset, heq.mpr hrot⟩
 
 /-- It suffices to exclude only the radius-bounded part of each atlas root. -/
@@ -270,17 +272,17 @@ theorem no_matrixPose_of_no_bounded_atlas_translated_pose
     (h : ¬ ∃ chart : ChartIndex, ∃ q ∈ AtlasPose.rootInterval ℝ,
       q.CayleyBounded ∧ q.InViewWedge ∧ ∃ offset : ℝ²,
         RupertPose (q.matrixPoseWithOffset chart offset)
-          exactPolyhedron.hull) :
-    ¬ ∃ p : MatrixPose, RupertPose p exactPolyhedron.hull := by
+          P.polyhedron.hull) :
+    ¬ ∃ p : MatrixPose, RupertPose p P.polyhedron.hull := by
   rintro ⟨p, hp⟩
   obtain ⟨δ, euler, offset, heuler, hview, heq⟩ :=
     exists_tight_translated_pose p
   obtain ⟨chart, q, hq, hbounded, hqview, hmatrix⟩ :=
     exists_bounded_atlas_pose_of_tight_pose euler offset heuler.1 hview
-  have hrot : RupertPose (p.rotateBy δ) exactPolyhedron.hull :=
-    (MatrixPose.RupertPose_rotateBy_iff p δ exactPolyhedron.hull).mpr hp
+  have hrot : RupertPose (p.rotateBy δ) P.polyhedron.hull :=
+    (MatrixPose.RupertPose_rotateBy_iff p δ P.polyhedron.hull).mpr hp
   have heulerRupert :
-      RupertPose (euler.matrixPoseWithOffset offset) exactPolyhedron.hull :=
+      RupertPose (euler.matrixPoseWithOffset offset) P.polyhedron.hull :=
     heq.mpr hrot
   exact h ⟨chart, q, hq, hbounded, hqview, offset,
     hmatrix ▸ heulerRupert⟩

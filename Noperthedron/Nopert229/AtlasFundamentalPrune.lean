@@ -18,6 +18,8 @@ for the two trigonometric coefficients.
 
 namespace Noperthedron.Nopert229.AtlasFundamentalPrune
 
+variable {P : C5Model}
+
 open scoped Matrix
 open Noperthedron.Checker
 open CayleyAtlas
@@ -591,8 +593,8 @@ theorem exists_fundamental_atlas_translated_pose (p : MatrixPose) :
       q ∈ AtlasPose.rootInterval ℝ ∧ q.CayleyBounded ∧ q.InViewWedge ∧
       q.InUpperView ∧ q.InFivefoldFundamentalDomain chart ∧
       (RupertPose (q.matrixPoseWithOffset chart offset)
-          exactPolyhedron.hull ↔
-        RupertPose p exactPolyhedron.hull) := by
+          P.polyhedron.hull ↔
+        RupertPose p P.polyhedron.hull) := by
   obtain ⟨euler, offset, heuler, hview, hupper, heq⟩ :=
     exists_upper_tight_translated_pose p
   let oldPose := euler.matrixPoseWithOffset offset

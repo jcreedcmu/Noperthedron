@@ -16,6 +16,8 @@ the domain that the certificate tree must cover.
 
 namespace Noperthedron.Nopert229
 
+variable {P : C5Model}
+
 open Real
 open Noperthedron.BalancedSupport
 
@@ -66,12 +68,12 @@ private theorem translated_outerShadow_eq (p : Pose ℝ) (offset : ℝ²)
 
 private theorem translated_rupert_iff_of_images {p q : Pose ℝ}
     (offset : ℝ²)
-    (hinner : p.inner '' exactPolyhedron.hull =
-      q.inner '' exactPolyhedron.hull)
-    (houter : p.outer '' exactPolyhedron.hull =
-      q.outer '' exactPolyhedron.hull) :
-    RupertPose (p.matrixPoseWithOffset offset) exactPolyhedron.hull ↔
-      RupertPose (q.matrixPoseWithOffset offset) exactPolyhedron.hull := by
+    (hinner : p.inner '' P.polyhedron.hull =
+      q.inner '' P.polyhedron.hull)
+    (houter : p.outer '' P.polyhedron.hull =
+      q.outer '' P.polyhedron.hull) :
+    RupertPose (p.matrixPoseWithOffset offset) P.polyhedron.hull ↔
+      RupertPose (q.matrixPoseWithOffset offset) P.polyhedron.hull := by
   unfold RupertPose
   rw [translated_innerShadow_eq, translated_innerShadow_eq,
     translated_outerShadow_eq, translated_outerShadow_eq,
@@ -86,8 +88,8 @@ theorem tighten_theta (p : Pose ℝ) :
       q.θ₂ ∈ Set.Ico 0 (2 * π / 5) ∧
       q.θ₁ - q.θ₂ ∈ Set.Ico (-(π / 5)) (π / 5) ∧
       q.φ₁ = p.φ₁ ∧ q.φ₂ = p.φ₂ ∧ q.α = p.α ∧
-      p.inner '' exactPolyhedron.hull = q.inner '' exactPolyhedron.hull ∧
-      p.outer '' exactPolyhedron.hull = q.outer '' exactPolyhedron.hull := by
+      p.inner '' P.polyhedron.hull = q.inner '' P.polyhedron.hull ∧
+      p.outer '' P.polyhedron.hull = q.outer '' P.polyhedron.hull := by
   have hperiod : 0 < 2 * π / 5 := div_pos two_pi_pos (by norm_num)
   let θ₂ := Real.emod p.θ₂ (2 * π / 5)
   obtain ⟨k₂, hk₂⟩ :=
@@ -110,32 +112,32 @@ theorem tighten_theta (p : Pose ℝ) :
   refine ⟨q, Real.emod_in_interval hperiod, ?_, rfl, rfl, rfl, ?_, ?_⟩
   · simpa [q, θ₁] using hd
   · calc
-      p.inner '' exactPolyhedron.hull =
-          (p.rotR ∘ p.rotM₁) '' exactPolyhedron.hull := by
+      p.inner '' P.polyhedron.hull =
+          (p.rotR ∘ p.rotM₁) '' P.polyhedron.hull := by
             rw [Pose.inner_eq_RM]
-      _ = p.rotR '' (p.rotM₁ '' exactPolyhedron.hull) := by
+      _ = p.rotR '' (p.rotM₁ '' P.polyhedron.hull) := by
             rw [Set.image_comp]
-      _ = p.rotR '' (rotM p.θ₁ p.φ₁ '' exactPolyhedron.hull) := rfl
+      _ = p.rotR '' (rotM p.θ₁ p.φ₁ '' P.polyhedron.hull) := rfl
       _ = p.rotR '' (rotM (p.θ₁ + (k₂ + kd) * (2 * π / 5)) p.φ₁ ''
-          exactPolyhedron.hull) := by
-            have hs := rotM_add_fifth_iterated
+          P.polyhedron.hull) := by
+            have hs := rotM_add_fifth_iterated (P := P)
               (θ := p.θ₁) (φ := p.φ₁) (k₂ + kd)
             push_cast at hs
             rw [hs]
-      _ = p.rotR '' (rotM θ₁ p.φ₁ '' exactPolyhedron.hull) := by rw [hθ₁]
-      _ = (q.rotR ∘ q.rotM₁) '' exactPolyhedron.hull := by
+      _ = p.rotR '' (rotM θ₁ p.φ₁ '' P.polyhedron.hull) := by rw [hθ₁]
+      _ = (q.rotR ∘ q.rotM₁) '' P.polyhedron.hull := by
             rw [Set.image_comp]
             rfl
-      _ = q.inner '' exactPolyhedron.hull := by rw [Pose.inner_eq_RM]
+      _ = q.inner '' P.polyhedron.hull := by rw [Pose.inner_eq_RM]
   · calc
-      p.outer '' exactPolyhedron.hull =
-          p.rotM₂ '' exactPolyhedron.hull := by rw [Pose.outer_eq_M]
-      _ = rotM p.θ₂ p.φ₂ '' exactPolyhedron.hull := rfl
+      p.outer '' P.polyhedron.hull =
+          p.rotM₂ '' P.polyhedron.hull := by rw [Pose.outer_eq_M]
+      _ = rotM p.θ₂ p.φ₂ '' P.polyhedron.hull := rfl
       _ = rotM (p.θ₂ + k₂ * (2 * π / 5)) p.φ₂ ''
-          exactPolyhedron.hull := by rw [rotM_add_fifth_iterated k₂]
-      _ = rotM θ₂ p.φ₂ '' exactPolyhedron.hull := by rw [← hk₂]
-      _ = q.rotM₂ '' exactPolyhedron.hull := rfl
-      _ = q.outer '' exactPolyhedron.hull := by rw [Pose.outer_eq_M]
+          P.polyhedron.hull := by rw [rotM_add_fifth_iterated k₂]
+      _ = rotM θ₂ p.φ₂ '' P.polyhedron.hull := by rw [← hk₂]
+      _ = q.rotM₂ '' P.polyhedron.hull := rfl
+      _ = q.outer '' P.polyhedron.hull := by rw [Pose.outer_eq_M]
 
 private theorem period_lt_root_upper : 2 * π / 5 < (8 / 5 : ℝ) := by
   nlinarith [Real.pi_lt_four]
@@ -146,8 +148,8 @@ theorem exists_tight_translated_pose (p : MatrixPose) :
     ∃ δ : ℝ, ∃ q : Pose ℝ, ∃ offset : ℝ²,
       InTightPoseRegion q ∧
       InViewWedge q ∧
-      (RupertPose (q.matrixPoseWithOffset offset) exactPolyhedron.hull ↔
-        RupertPose (p.rotateBy δ) exactPolyhedron.hull) := by
+      (RupertPose (q.matrixPoseWithOffset offset) P.polyhedron.hull ↔
+        RupertPose (p.rotateBy δ) P.polyhedron.hull) := by
   obtain ⟨δ, p0, offset, hp0, _hθ0, hφ0, heq⟩ :=
     Noperthedron.BalancedSupport.exists_universal_translated_pose p
   obtain ⟨q, hθ₂, hdiff, hφ₁, hφ₂, hα, hinner, houter⟩ := tighten_theta p0
@@ -182,8 +184,8 @@ theorem exists_upper_tight_translated_pose (p : MatrixPose) :
     ∃ q : Pose ℝ, ∃ offset : ℝ²,
       InTightPoseRegion q ∧
       InViewWedge q ∧ q.φ₂ ≤ Real.pi / 2 ∧
-      (RupertPose (q.matrixPoseWithOffset offset) exactPolyhedron.hull ↔
-        RupertPose p exactPolyhedron.hull) := by
+      (RupertPose (q.matrixPoseWithOffset offset) P.polyhedron.hull ↔
+        RupertPose p P.polyhedron.hull) := by
   let p' := p.upperViewRepresentative
   have hp' : 0 ≤ p'.outerRot.val 2 2 :=
     MatrixPose.upperViewRepresentative_outer_22_nonneg p
@@ -224,16 +226,16 @@ theorem exists_upper_tight_translated_pose (p : MatrixPose) :
     · rw [hφ₂]
       exact hφ0
   have hrupert :
-      RupertPose (q.matrixPoseWithOffset offset) exactPolyhedron.hull ↔
-        RupertPose p exactPolyhedron.hull := by
+      RupertPose (q.matrixPoseWithOffset offset) P.polyhedron.hull ↔
+        RupertPose p P.polyhedron.hull := by
     calc
       _ ↔ RupertPose (p0.matrixPoseWithOffset offset)
-          exactPolyhedron.hull :=
+          P.polyhedron.hull :=
         (translated_rupert_iff_of_images offset hinner houter).symm
-      _ ↔ RupertPose (p'.rotateBy δ) exactPolyhedron.hull := by rw [heq]
-      _ ↔ RupertPose p' exactPolyhedron.hull :=
+      _ ↔ RupertPose (p'.rotateBy δ) P.polyhedron.hull := by rw [heq]
+      _ ↔ RupertPose p' P.polyhedron.hull :=
         MatrixPose.RupertPose_rotateBy_iff p' δ _
-      _ ↔ RupertPose p exactPolyhedron.hull :=
+      _ ↔ RupertPose p P.polyhedron.hull :=
         MatrixPose.RupertPose_upperViewRepresentative_iff p _
   refine ⟨q, offset, ⟨hq, hrelative⟩, hview, ?_, hrupert⟩
   simpa [hφ₂] using hφ0Upper
@@ -241,12 +243,12 @@ theorem exists_upper_tight_translated_pose (p : MatrixPose) :
 /-- Excluding the reduced rational root box excludes every matrix pose. -/
 theorem no_matrixPose_of_no_tight_translated_pose
     (h : ¬ ∃ q, InTightPoseRegion q ∧ ∃ offset : ℝ²,
-      RupertPose (q.matrixPoseWithOffset offset) exactPolyhedron.hull) :
-    ¬ ∃ p : MatrixPose, RupertPose p exactPolyhedron.hull := by
+      RupertPose (q.matrixPoseWithOffset offset) P.polyhedron.hull) :
+    ¬ ∃ p : MatrixPose, RupertPose p P.polyhedron.hull := by
   rintro ⟨p, hp⟩
   obtain ⟨δ, q, offset, hq, -, heq⟩ := exists_tight_translated_pose p
-  have hrot : RupertPose (p.rotateBy δ) exactPolyhedron.hull :=
-    (MatrixPose.RupertPose_rotateBy_iff p δ exactPolyhedron.hull).mpr hp
+  have hrot : RupertPose (p.rotateBy δ) P.polyhedron.hull :=
+    (MatrixPose.RupertPose_rotateBy_iff p δ P.polyhedron.hull).mpr hp
   exact h ⟨q, hq, offset, heq.mpr hrot⟩
 
 end Noperthedron.Nopert229

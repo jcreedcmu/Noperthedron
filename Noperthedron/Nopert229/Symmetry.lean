@@ -18,6 +18,8 @@ open Real
 
 namespace Noperthedron.Nopert229
 
+variable {P : C5Model}
+
 def nextOrbit : OrbitIndex ≃ OrbitIndex where
   toFun k := ⟨(k.val + 1) % 5, Nat.mod_lt _ (by omega)⟩
   invFun k := ⟨(k.val + 4) % 5, Nat.mod_lt _ (by omega)⟩
@@ -32,9 +34,9 @@ private lemma RzL_apply_add (α β : ℝ) (v : ℝ³) :
   rfl
 
 theorem rotate_vertex (k : OrbitIndex) (s : SeedIndex) :
-    RzL (2 * π / 5) (exactVertex (vertexIndex k s)) =
-      exactVertex (vertexIndex (nextOrbit k) s) := by
-  simp only [exactVertex, orbitIndex_vertexIndex, seedIndex_vertexIndex]
+    RzL (2 * π / 5) (P.vertex (vertexIndex k s)) =
+      P.vertex (vertexIndex (nextOrbit k) s) := by
+  simp only [C5Model.vertex, orbitIndex_vertexIndex, seedIndex_vertexIndex]
   rw [← RzL_apply_add]
   fin_cases k
   · simp [nextOrbit]
@@ -50,11 +52,11 @@ theorem rotate_vertex (k : OrbitIndex) (s : SeedIndex) :
     simp only [RzL, Rz_mat_add_int_mul_two_pi]
 
 theorem rotate_vertices :
-    RzL (2 * π / 5) '' (exactVerts : Set ℝ³) = exactVerts := by
+    RzL (2 * π / 5) '' (P.verts : Set ℝ³) = P.verts := by
   ext x
   constructor
   · rintro ⟨y, hy, rfl⟩
-    simp only [exactVerts, Finset.mem_coe, Finset.mem_image,
+    simp only [C5Model.verts, Finset.mem_coe, Finset.mem_image,
       Finset.mem_univ, true_and] at hy ⊢
     obtain ⟨i, rfl⟩ := hy
     let k := orbitIndex i
@@ -63,24 +65,24 @@ theorem rotate_vertices :
     refine ⟨vertexIndex (nextOrbit k) s, ?_⟩
     rw [← rotate_vertex k s, hi]
   · intro hx
-    simp only [exactVerts, Finset.mem_coe, Finset.mem_image,
+    simp only [C5Model.verts, Finset.mem_coe, Finset.mem_image,
       Finset.mem_univ, true_and] at hx
     obtain ⟨i, rfl⟩ := hx
     let k := orbitIndex i
     let s := seedIndex i
     have hi : vertexIndex k s = i := indexEquiv.symm_apply_apply i
     let p := nextOrbit.symm k
-    refine ⟨exactVertex (vertexIndex p s), ?_, ?_⟩
-    · simp only [exactVerts, Finset.mem_coe, Finset.mem_image,
+    refine ⟨P.vertex (vertexIndex p s), ?_, ?_⟩
+    · simp only [C5Model.verts, Finset.mem_coe, Finset.mem_image,
         Finset.mem_univ, true_and]
       exact ⟨vertexIndex p s, rfl⟩
     · rw [rotate_vertex p s, nextOrbit.apply_symm_apply, hi]
 
 theorem rotate_hull :
-    RzL (2 * π / 5) '' exactPolyhedron.hull = exactPolyhedron.hull := by
-  rw [exactPolyhedron_hull]
-  change (RzL (2 * π / 5)).toLinearMap '' convexHull ℝ (exactVerts : Set ℝ³) =
-    convexHull ℝ (exactVerts : Set ℝ³)
+    RzL (2 * π / 5) '' P.polyhedron.hull = P.polyhedron.hull := by
+  rw [P.polyhedron_hull]
+  change (RzL (2 * π / 5)).toLinearMap '' convexHull ℝ (P.verts : Set ℝ³) =
+    convexHull ℝ (P.verts : Set ℝ³)
   rw [LinearMap.image_convexHull]
   congr 1
   simpa using rotate_vertices
@@ -88,8 +90,8 @@ theorem rotate_hull :
 /-- Every nonnegative power of the generating fivefold rotation preserves
 the exact hull. -/
 theorem rotate_hull_iterated_nat (n : ℕ) :
-    RzL ((n : ℝ) * (2 * π / 5)) '' exactPolyhedron.hull =
-      exactPolyhedron.hull := by
+    RzL ((n : ℝ) * (2 * π / 5)) '' P.polyhedron.hull =
+      P.polyhedron.hull := by
   induction n with
   | zero =>
       have hzero : RzL 0 = ContinuousLinearMap.id ℝ ℝ³ := by
@@ -118,8 +120,8 @@ theorem rotate_hull_iterated_nat (n : ℕ) :
 
 /-- A single symmetry step does not change the shadow at fixed inclination. -/
 theorem rotM_add_fifth (θ φ : ℝ) :
-    rotM (θ + 2 * π / 5) φ '' exactPolyhedron.hull =
-      rotM θ φ '' exactPolyhedron.hull := by
+    rotM (θ + 2 * π / 5) φ '' P.polyhedron.hull =
+      rotM θ φ '' P.polyhedron.hull := by
   repeat rw [rotM_identity]
   push_cast
   have hmap : RzL (-(θ + 2 * π / 5)) =
@@ -128,8 +130,8 @@ theorem rotM_add_fifth (θ φ : ℝ) :
     rw [show -(θ + 2 * π / 5) = -θ + -(2 * π / 5) by ring,
       RzL_apply_add]
     rfl
-  have hneg : RzL (-(2 * π / 5)) '' exactPolyhedron.hull =
-      exactPolyhedron.hull := by
+  have hneg : RzL (-(2 * π / 5)) '' P.polyhedron.hull =
+      P.polyhedron.hull := by
     have hinv (v : ℝ³) :
         RzL (-(2 * π / 5)) (RzL (2 * π / 5) v) = v := by
       rw [← RzL_apply_add,
@@ -139,7 +141,7 @@ theorem rotM_add_fifth (θ φ : ℝ) :
     ext x
     constructor
     · rintro ⟨y, hy, rfl⟩
-      have hyimg : y ∈ RzL (2 * π / 5) '' exactPolyhedron.hull := by
+      have hyimg : y ∈ RzL (2 * π / 5) '' P.polyhedron.hull := by
         rw [rotate_hull]
         exact hy
       obtain ⟨z, hz, rfl⟩ := hyimg
@@ -148,7 +150,7 @@ theorem rotM_add_fifth (θ φ : ℝ) :
     · intro hx
       refine ⟨RzL (2 * π / 5) x, ?_, hinv x⟩
       have hmem : RzL (2 * π / 5) x ∈
-          RzL (2 * π / 5) '' exactPolyhedron.hull := ⟨x, hx, rfl⟩
+          RzL (2 * π / 5) '' P.polyhedron.hull := ⟨x, hx, rfl⟩
       rwa [rotate_hull] at hmem
   rw [hmap]
   push_cast
@@ -156,20 +158,20 @@ theorem rotM_add_fifth (θ φ : ℝ) :
   rw [hneg]
 
 theorem rotM_add_fifth_iterated {θ φ : ℝ} (n : ℤ) :
-    rotM (θ + n * (2 * π / 5)) φ '' exactPolyhedron.hull =
-      rotM θ φ '' exactPolyhedron.hull := by
+    rotM (θ + n * (2 * π / 5)) φ '' P.polyhedron.hull =
+      rotM θ φ '' P.polyhedron.hull := by
   induction n using Int.induction_on with
   | zero => simp
   | succ n hn =>
       rw [← hn]
       push_cast
-      have h := rotM_add_fifth (θ + n * (2 * π / 5)) φ
+      have h := rotM_add_fifth (P := P) (θ + n * (2 * π / 5)) φ
       ring_nf at h ⊢
       exact h
   | pred n hn =>
       rw [← hn]
       push_cast
-      have h := rotM_add_fifth (θ + (-1 - n) * (2 * π / 5)) φ
+      have h := rotM_add_fifth (P := P) (θ + (-1 - n) * (2 * π / 5)) φ
       ring_nf at h ⊢
       exact h.symm
 

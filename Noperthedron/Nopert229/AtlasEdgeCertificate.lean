@@ -16,6 +16,8 @@ before interval evaluation, preserving cancellations between contacts.
 
 namespace Noperthedron.Nopert229.AtlasEdgeCertificate
 
+variable {P : C5Model}
+
 open scoped RealInnerProductSpace
 open Noperthedron.Checker
 open Noperthedron.BalancedSupport
@@ -282,42 +284,42 @@ theorem Box.displacementBall_holds (box : Box) {p : AtlasPose ℝ}
 
 noncomputable def Box.exactEdge (box : Box)
     (i : Fin (box.edgePred + 1)) : ℝ³ :=
-  exactVertex (box.outerIndex i) - exactVertex (box.outerIndex (box.next i))
+  P.vertex (box.outerIndex i) - P.vertex (box.outerIndex (box.next i))
 
 noncomputable def Box.exactDelta (box : Box)
     (i : Fin (box.edgePred + 1)) (k : VertexIndex) : ℝ³ :=
-  exactVertex k - exactVertex (box.outerIndex i)
+  P.vertex k - P.vertex (box.outerIndex i)
 
 noncomputable def Box.exactDisplacementVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) : ℝ³ :=
   (chartMatrix box.chart * cayleyNumeratorMatrix p.x p.y p.z).toEuclideanLin
-      (exactVertex (box.innerIndex i)) -
-    cayleyDenom p.x p.y p.z • exactVertex (box.outerIndex i)
+      (P.vertex (box.innerIndex i)) -
+    cayleyDenom p.x p.y p.z • P.vertex (box.outerIndex i)
 
 noncomputable def Box.exactContactVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) : ℝ³ :=
-  cross3 (box.exactEdge i) (box.exactDisplacementVector p i)
+  cross3 (box.exactEdge (P := P) i) (box.exactDisplacementVector (P := P) p i)
 
 noncomputable def Box.exactTotalVector (box : Box)
-    (p : AtlasPose ℝ) : ℝ³ := ∑ i, box.exactContactVector p i
+    (p : AtlasPose ℝ) : ℝ³ := ∑ i, box.exactContactVector (P := P) p i
 
 noncomputable def Box.exactClearedDisplacement (box : Box)
-    (p : AtlasPose ℝ) : ℝ := ⟪viewVector p, box.exactTotalVector p⟫
+    (p : AtlasPose ℝ) : ℝ := ⟪viewVector p, box.exactTotalVector (P := P) p⟫
 
 noncomputable def Box.actualDisplacementVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) : ℝ³ :=
   (chartMatrix box.chart * cayleyMatrix p.x p.y p.z).toEuclideanLin
-      (exactVertex (box.innerIndex i)) - exactVertex (box.outerIndex i)
+      (P.vertex (box.innerIndex i)) - P.vertex (box.outerIndex i)
 
 noncomputable def Box.actualContactVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) : ℝ³ :=
-  cross3 (box.exactEdge i) (box.actualDisplacementVector p i)
+  cross3 (box.exactEdge (P := P) i) (box.actualDisplacementVector (P := P) p i)
 
 noncomputable def Box.actualTotalVector (box : Box)
-    (p : AtlasPose ℝ) : ℝ³ := ∑ i, box.actualContactVector p i
+    (p : AtlasPose ℝ) : ℝ³ := ∑ i, box.actualContactVector (P := P) p i
 
 noncomputable def Box.actualDisplacement (box : Box)
-    (p : AtlasPose ℝ) : ℝ := ⟪viewVector p, box.actualTotalVector p⟫
+    (p : AtlasPose ℝ) : ℝ := ⟪viewVector p, box.actualTotalVector (P := P) p⟫
 
 theorem chart_numerator_apply_eq_denom_smul (chart : ChartIndex)
     (x y z : ℝ) (v : ℝ³) :
@@ -331,30 +333,30 @@ theorem chart_numerator_apply_eq_denom_smul (chart : ChartIndex)
 
 theorem Box.exactDisplacementVector_eq_denom_smul (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) :
-    box.exactDisplacementVector p i =
-      cayleyDenom p.x p.y p.z • box.actualDisplacementVector p i := by
+    box.exactDisplacementVector (P := P) p i =
+      cayleyDenom p.x p.y p.z • box.actualDisplacementVector (P := P) p i := by
   unfold Box.exactDisplacementVector Box.actualDisplacementVector
   rw [chart_numerator_apply_eq_denom_smul, ← smul_sub]
 
 theorem Box.exactContactVector_eq_denom_smul (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) :
-    box.exactContactVector p i =
-      cayleyDenom p.x p.y p.z • box.actualContactVector p i := by
+    box.exactContactVector (P := P) p i =
+      cayleyDenom p.x p.y p.z • box.actualContactVector (P := P) p i := by
   unfold Box.exactContactVector Box.actualContactVector
   rw [box.exactDisplacementVector_eq_denom_smul, cross3_smul_right]
 
 theorem Box.exactTotalVector_eq_denom_smul (box : Box)
     (p : AtlasPose ℝ) :
-    box.exactTotalVector p =
-      cayleyDenom p.x p.y p.z • box.actualTotalVector p := by
+    box.exactTotalVector (P := P) p =
+      cayleyDenom p.x p.y p.z • box.actualTotalVector (P := P) p := by
   unfold Box.exactTotalVector Box.actualTotalVector
   simp_rw [box.exactContactVector_eq_denom_smul]
   exact (Finset.smul_sum).symm
 
 theorem Box.exactClearedDisplacement_eq_denom_mul (box : Box)
     (p : AtlasPose ℝ) :
-    box.exactClearedDisplacement p =
-      cayleyDenom p.x p.y p.z * box.actualDisplacement p := by
+    box.exactClearedDisplacement (P := P) p =
+      cayleyDenom p.x p.y p.z * box.actualDisplacement (P := P) p := by
   unfold Box.exactClearedDisplacement Box.actualDisplacement
   rw [box.exactTotalVector_eq_denom_smul, inner_smul_right]
 
@@ -362,15 +364,9 @@ theorem Box.exactClearedDisplacement_eq_denom_mul (box : Box)
 
 theorem norm_rationalVertex_le (i : VertexIndex) :
     ‖toR3 (rationalVertex i)‖ ≤ 1 + RationalApprox.κ := by
-  calc
-    ‖toR3 (rationalVertex i)‖ =
-        ‖exactVertex i - (exactVertex i - toR3 (rationalVertex i))‖ := by
-      congr 1
-      abel
-    _ ≤ ‖exactVertex i‖ +
-        ‖exactVertex i - toR3 (rationalVertex i)‖ := norm_sub_le _ _
-    _ ≤ 1 + RationalApprox.κ :=
-      add_le_add (exactVertex_norm_le_one i) (exactApproximation.approx i)
+  have h := (norm_toR3_rationalVertex i).2
+  have hκ : (0 : ℝ) ≤ RationalApprox.κ := by norm_num [RationalApprox.κ]
+  linarith
 
 theorem norm_chartMatrix_apply (chart : ChartIndex) (v : ℝ³) :
     ‖(chartMatrix chart).toEuclideanLin v‖ = ‖v‖ := by
@@ -399,10 +395,10 @@ theorem Box.approxDelta_eq (box : Box) (i : Fin (box.edgePred + 1))
   simp [Box.approxDelta, Box.deltaQ, toR3]
 
 theorem Box.exactEdge_norm_le_two (box : Box)
-    (i : Fin (box.edgePred + 1)) : ‖box.exactEdge i‖ ≤ 2 := by
+    (i : Fin (box.edgePred + 1)) : ‖box.exactEdge (P := P) i‖ ≤ 2 := by
   exact (norm_sub_le _ _).trans (by
-    linarith [exactVertex_norm_le_one (box.outerIndex i),
-      exactVertex_norm_le_one (box.outerIndex (box.next i))])
+    linarith [P.vertex_norm_le_one (box.outerIndex i),
+      P.vertex_norm_le_one (box.outerIndex (box.next i))])
 
 theorem Box.approxEdge_norm_le (box : Box)
     (i : Fin (box.edgePred + 1)) :
@@ -414,28 +410,28 @@ theorem Box.approxEdge_norm_le (box : Box)
 
 theorem Box.exactEdge_sub_approx_norm_le (box : Box)
     (i : Fin (box.edgePred + 1)) :
-    ‖box.exactEdge i - box.approxEdge i‖ ≤ 2 * RationalApprox.κ := by
+    ‖box.exactEdge (P := P) i - box.approxEdge i‖ ≤ 2 * RationalApprox.κ := by
   rw [box.approxEdge_eq]
   have hrearrange :
-      box.exactEdge i -
+      box.exactEdge (P := P) i -
           (toR3 (rationalVertex (box.outerIndex i)) -
             toR3 (rationalVertex (box.outerIndex (box.next i)))) =
-        (exactVertex (box.outerIndex i) -
+        (P.vertex (box.outerIndex i) -
             toR3 (rationalVertex (box.outerIndex i))) -
-          (exactVertex (box.outerIndex (box.next i)) -
+          (P.vertex (box.outerIndex (box.next i)) -
             toR3 (rationalVertex (box.outerIndex (box.next i)))) := by
     unfold Box.exactEdge
     abel
   rw [hrearrange]
   calc
-    _ ≤ ‖exactVertex (box.outerIndex i) -
+    _ ≤ ‖P.vertex (box.outerIndex i) -
           toR3 (rationalVertex (box.outerIndex i))‖ +
-        ‖exactVertex (box.outerIndex (box.next i)) -
+        ‖P.vertex (box.outerIndex (box.next i)) -
           toR3 (rationalVertex (box.outerIndex (box.next i)))‖ :=
       norm_sub_le _ _
     _ ≤ RationalApprox.κ + RationalApprox.κ := add_le_add
-      (exactApproximation.approx (box.outerIndex i))
-      (exactApproximation.approx (box.outerIndex (box.next i)))
+      (P.approximation.approx (box.outerIndex i))
+      (P.approximation.approx (box.outerIndex (box.next i)))
     _ = 2 * RationalApprox.κ := by ring
 
 private theorem abs_le_endpointAbsBound {lo hi : ℚ} {x : ℝ}
@@ -491,16 +487,16 @@ theorem norm_chartNumerator_apply_le (chart : ChartIndex)
 
 theorem Box.exactDisplacement_sub_approx_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) :
-    ‖box.exactDisplacementVector p i - box.approxDisplacementVector p i‖ ≤
+    ‖box.exactDisplacementVector (P := P) p i - box.approxDisplacementVector p i‖ ≤
       2 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
   have hrearrange :
-      box.exactDisplacementVector p i - box.approxDisplacementVector p i =
+      box.exactDisplacementVector (P := P) p i - box.approxDisplacementVector p i =
         (chartMatrix box.chart *
             cayleyNumeratorMatrix p.x p.y p.z).toEuclideanLin
-          (exactVertex (box.innerIndex i) -
+          (P.vertex (box.innerIndex i) -
             toR3 (rationalVertex (box.innerIndex i))) -
         cayleyDenom p.x p.y p.z •
-          (exactVertex (box.outerIndex i) -
+          (P.vertex (box.outerIndex i) -
             toR3 (rationalVertex (box.outerIndex i))) := by
     unfold Box.exactDisplacementVector Box.approxDisplacementVector
     unfold AtlasQuadratic.approxDisplacementVector
@@ -510,59 +506,59 @@ theorem Box.exactDisplacement_sub_approx_norm_le (box : Box)
   calc
     _ ≤ ‖(chartMatrix box.chart *
           cayleyNumeratorMatrix p.x p.y p.z).toEuclideanLin
-          (exactVertex (box.innerIndex i) -
+          (P.vertex (box.innerIndex i) -
             toR3 (rationalVertex (box.innerIndex i)))‖ +
         ‖cayleyDenom p.x p.y p.z •
-          (exactVertex (box.outerIndex i) -
+          (P.vertex (box.outerIndex i) -
             toR3 (rationalVertex (box.outerIndex i)))‖ := norm_sub_le _ _
     _ ≤ cayleyDenom p.x p.y p.z * RationalApprox.κ +
         cayleyDenom p.x p.y p.z * RationalApprox.κ := by
       apply add_le_add
       · exact (norm_chartNumerator_apply_le box.chart p.x p.y p.z _).trans
           (mul_le_mul_of_nonneg_left
-            (exactApproximation.approx (box.innerIndex i))
+            (P.approximation.approx (box.innerIndex i))
             (cayleyDenom_pos p.x p.y p.z).le)
       · rw [norm_smul, Real.norm_eq_abs,
           abs_of_pos (cayleyDenom_pos p.x p.y p.z)]
         exact mul_le_mul_of_nonneg_left
-          (exactApproximation.approx (box.outerIndex i))
+          (P.approximation.approx (box.outerIndex i))
           (cayleyDenom_pos p.x p.y p.z).le
     _ = 2 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by ring
 
 theorem Box.exactDisplacementVector_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) :
-    ‖box.exactDisplacementVector p i‖ ≤
+    ‖box.exactDisplacementVector (P := P) p i‖ ≤
       2 * cayleyDenom p.x p.y p.z := by
   unfold Box.exactDisplacementVector
   calc
     _ ≤ ‖(chartMatrix box.chart *
           cayleyNumeratorMatrix p.x p.y p.z).toEuclideanLin
-          (exactVertex (box.innerIndex i))‖ +
-        ‖cayleyDenom p.x p.y p.z • exactVertex (box.outerIndex i)‖ :=
+          (P.vertex (box.innerIndex i))‖ +
+        ‖cayleyDenom p.x p.y p.z • P.vertex (box.outerIndex i)‖ :=
       norm_sub_le _ _
     _ ≤ cayleyDenom p.x p.y p.z + cayleyDenom p.x p.y p.z := by
       apply add_le_add
       · exact (norm_chartNumerator_apply_le box.chart p.x p.y p.z _).trans
           ((mul_le_mul_of_nonneg_left
-            (exactVertex_norm_le_one (box.innerIndex i))
+            (P.vertex_norm_le_one (box.innerIndex i))
             (cayleyDenom_pos p.x p.y p.z).le).trans_eq (mul_one _))
       · rw [norm_smul, Real.norm_eq_abs,
           abs_of_pos (cayleyDenom_pos p.x p.y p.z)]
         exact (mul_le_mul_of_nonneg_left
-          (exactVertex_norm_le_one (box.outerIndex i))
+          (P.vertex_norm_le_one (box.outerIndex i))
           (cayleyDenom_pos p.x p.y p.z).le).trans_eq (mul_one _)
     _ = 2 * cayleyDenom p.x p.y p.z := by ring
 
 theorem Box.exactContact_sub_approx_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1)) :
-    ‖box.exactContactVector p i - box.approxContactVector p i‖ ≤
+    ‖box.exactContactVector (P := P) p i - box.approxContactVector p i‖ ≤
       10 * cayleyDenom p.x p.y p.z * RationalApprox.κ := by
   have hdecomp :
-      box.exactContactVector p i - box.approxContactVector p i =
-        cross3 (box.exactEdge i - box.approxEdge i)
-          (box.exactDisplacementVector p i) +
+      box.exactContactVector (P := P) p i - box.approxContactVector p i =
+        cross3 (box.exactEdge (P := P) i - box.approxEdge i)
+          (box.exactDisplacementVector (P := P) p i) +
         cross3 (box.approxEdge i)
-          (box.exactDisplacementVector p i -
+          (box.exactDisplacementVector (P := P) p i -
             box.approxDisplacementVector p i) := by
     ext c
     fin_cases c <;>
@@ -603,7 +599,7 @@ theorem Box.exactContact_sub_approx_norm_le (box : Box)
 theorem Box.exactContact_sub_approx_norm_le_error (box : Box)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal)
     (i : Fin (box.edgePred + 1)) :
-    ‖box.exactContactVector p i - box.approxContactVector p i‖ ≤
+    ‖box.exactContactVector (P := P) p i - box.approxContactVector p i‖ ≤
       10 * (box.dBound : ℝ) * RationalApprox.κ := by
   exact (box.exactContact_sub_approx_norm_le p i).trans (by
     have hk : 0 ≤ RationalApprox.κ := by norm_num [RationalApprox.κ]
@@ -611,11 +607,11 @@ theorem Box.exactContact_sub_approx_norm_le_error (box : Box)
 
 theorem Box.exactTotal_sub_approx_norm_le_error (box : Box)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) :
-    ‖box.exactTotalVector p - box.approxTotalVector p‖ ≤
+    ‖box.exactTotalVector (P := P) p - box.approxTotalVector p‖ ≤
       (box.edgePred + 1 : ℝ) * 10 * (box.dBound : ℝ) *
         RationalApprox.κ := by
-  have hsum : box.exactTotalVector p - box.approxTotalVector p =
-      ∑ i, (box.exactContactVector p i - box.approxContactVector p i) := by
+  have hsum : box.exactTotalVector (P := P) p - box.approxTotalVector p =
+      ∑ i, (box.exactContactVector (P := P) p i - box.approxContactVector p i) := by
     unfold Box.exactTotalVector Box.approxTotalVector
     rw [Finset.sum_sub_distrib]
   rw [hsum]
@@ -635,11 +631,11 @@ theorem viewVector_norm (p : AtlasPose ℝ) : ‖viewVector p‖ = 1 := by
 
 theorem Box.clearedDisplacement_error (box : Box)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) :
-    |box.exactClearedDisplacement p - box.approxClearedDisplacement p| ≤
+    |box.exactClearedDisplacement (P := P) p - box.approxClearedDisplacement p| ≤
       (box.displacementError : ℝ) := by
   have hrearrange :
-      box.exactClearedDisplacement p - box.approxClearedDisplacement p =
-        ⟪viewVector p, box.exactTotalVector p - box.approxTotalVector p⟫ := by
+      box.exactClearedDisplacement (P := P) p - box.approxClearedDisplacement p =
+        ⟪viewVector p, box.exactTotalVector (P := P) p - box.approxTotalVector p⟫ := by
     unfold Box.exactClearedDisplacement Box.approxClearedDisplacement
     rw [inner_sub_right]
   rw [hrearrange]
@@ -674,10 +670,10 @@ theorem Box.supportBall_holds (box : Box) {p : AtlasPose ℝ}
 
 theorem Box.exactDelta_norm_le_two (box : Box)
     (i : Fin (box.edgePred + 1)) (k : VertexIndex) :
-    ‖box.exactDelta i k‖ ≤ 2 := by
+    ‖box.exactDelta (P := P) i k‖ ≤ 2 := by
   exact (norm_sub_le _ _).trans (by
-    linarith [exactVertex_norm_le_one k,
-      exactVertex_norm_le_one (box.outerIndex i)])
+    linarith [P.vertex_norm_le_one k,
+      P.vertex_norm_le_one (box.outerIndex i)])
 
 theorem Box.approxDelta_norm_le (box : Box)
     (i : Fin (box.edgePred + 1)) (k : VertexIndex) :
@@ -689,39 +685,39 @@ theorem Box.approxDelta_norm_le (box : Box)
 
 theorem Box.exactDelta_sub_approx_norm_le (box : Box)
     (i : Fin (box.edgePred + 1)) (k : VertexIndex) :
-    ‖box.exactDelta i k - box.approxDelta i k‖ ≤
+    ‖box.exactDelta (P := P) i k - box.approxDelta i k‖ ≤
       2 * RationalApprox.κ := by
   rw [box.approxDelta_eq]
   have hrearrange :
-      box.exactDelta i k -
+      box.exactDelta (P := P) i k -
           (toR3 (rationalVertex k) -
             toR3 (rationalVertex (box.outerIndex i))) =
-        (exactVertex k - toR3 (rationalVertex k)) -
-          (exactVertex (box.outerIndex i) -
+        (P.vertex k - toR3 (rationalVertex k)) -
+          (P.vertex (box.outerIndex i) -
             toR3 (rationalVertex (box.outerIndex i))) := by
     unfold Box.exactDelta
     abel
   rw [hrearrange]
   calc
-    _ ≤ ‖exactVertex k - toR3 (rationalVertex k)‖ +
-        ‖exactVertex (box.outerIndex i) -
+    _ ≤ ‖P.vertex k - toR3 (rationalVertex k)‖ +
+        ‖P.vertex (box.outerIndex i) -
           toR3 (rationalVertex (box.outerIndex i))‖ := norm_sub_le _ _
     _ ≤ RationalApprox.κ + RationalApprox.κ := add_le_add
-      (exactApproximation.approx k)
-      (exactApproximation.approx (box.outerIndex i))
+      (P.approximation.approx k)
+      (P.approximation.approx (box.outerIndex i))
     _ = 2 * RationalApprox.κ := by ring
 
 theorem Box.cross_error (box : Box) (i : Fin (box.edgePred + 1))
     (k : VertexIndex) :
-    ‖cross3 (box.exactEdge i) (box.exactDelta i k) -
+    ‖cross3 (box.exactEdge (P := P) i) (box.exactDelta (P := P) i k) -
         cross3 (box.approxEdge i) (box.approxDelta i k)‖ ≤
       10 * RationalApprox.κ := by
   have hdecomp :
-      cross3 (box.exactEdge i) (box.exactDelta i k) -
+      cross3 (box.exactEdge (P := P) i) (box.exactDelta (P := P) i k) -
           cross3 (box.approxEdge i) (box.approxDelta i k) =
-        cross3 (box.exactEdge i - box.approxEdge i) (box.exactDelta i k) +
+        cross3 (box.exactEdge (P := P) i - box.approxEdge i) (box.exactDelta (P := P) i k) +
           cross3 (box.approxEdge i)
-            (box.exactDelta i k - box.approxDelta i k) := by
+            (box.exactDelta (P := P) i k - box.approxDelta i k) := by
     ext c
     fin_cases c <;> simp [cross3, cross_apply] <;> ring
   rw [hdecomp]
@@ -747,11 +743,11 @@ theorem Box.cross_error (box : Box) (i : Fin (box.edgePred + 1))
 noncomputable def Box.exactSupportValue (box : Box)
     (p : AtlasPose ℝ) (i : Fin (box.edgePred + 1))
     (k : VertexIndex) : ℝ :=
-  ⟪viewVector p, cross3 (box.exactEdge i) (box.exactDelta i k)⟫
+  ⟪viewVector p, cross3 (box.exactEdge (P := P) i) (box.exactDelta (P := P) i k)⟫
 
 theorem Box.supportValue_error (box : Box) (p : AtlasPose ℝ)
     (i : Fin (box.edgePred + 1)) (k : VertexIndex) :
-    |box.exactSupportValue p i k - box.approxSupportValue p i k| ≤
+    |box.exactSupportValue (P := P) p i k - box.approxSupportValue p i k| ≤
       (supportError : ℝ) := by
   rw [Box.exactSupportValue, Box.approxSupportValue, ← inner_sub_right]
   calc
@@ -768,52 +764,52 @@ theorem Box.supportValue_error (box : Box) (p : AtlasPose ℝ)
 theorem Box.cycleDirection_eq (box : Box) (p : AtlasPose ℝ)
     (offset : ℝ²) (i : Fin (box.edgePred + 1)) :
     cycleDirection (p.matrixPoseWithOffset box.chart offset)
-        exactPolyhedron box.outerIndex i =
-      quarterTurn (rotM p.θ p.φ (box.exactEdge i)) := by
+        P.polyhedron box.outerIndex i =
+      quarterTurn (rotM p.θ p.φ (box.exactEdge (P := P) i)) := by
   change quarterTurn (outerProjectionLinear
       (p.matrixPoseWithOffset box.chart offset)
-      (exactVertex (box.outerIndex i) -
-        exactVertex (box.outerIndex (box.next i)))) = _
+      (P.vertex (box.outerIndex i) -
+        P.vertex (box.outerIndex (box.next i)))) = _
   rw [show outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-      (exactVertex (box.outerIndex i) -
-        exactVertex (box.outerIndex (box.next i))) =
+      (P.vertex (box.outerIndex i) -
+        P.vertex (box.outerIndex (box.next i))) =
       rotM p.θ p.φ
-        (exactVertex (box.outerIndex i) -
-          exactVertex (box.outerIndex (box.next i))) by
+        (P.vertex (box.outerIndex i) -
+          P.vertex (box.outerIndex (box.next i))) by
     simpa [outerProjectionLinear] using
       AtlasPose.matrixPoseWithOffset_outer_rotation_project box.chart p offset
-        (exactVertex (box.outerIndex i) -
-          exactVertex (box.outerIndex (box.next i)))]
+        (P.vertex (box.outerIndex i) -
+          P.vertex (box.outerIndex (box.next i)))]
   rfl
 
 theorem Box.exactSupportValue_eq (box : Box) (p : AtlasPose ℝ)
     (offset : ℝ²) (i : Fin (box.edgePred + 1)) (k : VertexIndex) :
-    box.exactSupportValue p i k =
+    box.exactSupportValue (P := P) p i k =
       ⟪cycleDirection (p.matrixPoseWithOffset box.chart offset)
-          exactPolyhedron box.outerIndex i,
+          P.polyhedron box.outerIndex i,
         outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex k - exactVertex (box.outerIndex i))⟫ := by
+          (P.vertex k - P.vertex (box.outerIndex i))⟫ := by
   rw [box.cycleDirection_eq p offset i]
   rw [show outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-      (exactVertex k - exactVertex (box.outerIndex i)) =
+      (P.vertex k - P.vertex (box.outerIndex i)) =
       rotM p.θ p.φ
-        (exactVertex k - exactVertex (box.outerIndex i)) by
+        (P.vertex k - P.vertex (box.outerIndex i)) by
     simpa [outerProjectionLinear] using
       AtlasPose.matrixPoseWithOffset_outer_rotation_project box.chart p offset
-        (exactVertex k - exactVertex (box.outerIndex i))]
+        (P.vertex k - P.vertex (box.outerIndex i))]
   rw [inner_quarterTurn_rotM_eq]
   simp [Box.exactSupportValue, Box.exactEdge, Box.exactDelta,
     PiLp.inner_apply, Fin.sum_univ_three, mul_comm]
 
 theorem Box.actualContactValue_eq (box : Box) (p : AtlasPose ℝ)
     (offset : ℝ²) (i : Fin (box.edgePred + 1)) :
-    ⟪viewVector p, box.actualContactVector p i⟫ =
+    ⟪viewVector p, box.actualContactVector (P := P) p i⟫ =
       ⟪cycleDirection (p.matrixPoseWithOffset box.chart offset)
-          exactPolyhedron box.outerIndex i,
+          P.polyhedron box.outerIndex i,
         proj_xyL ((p.matrixPoseWithOffset box.chart offset).innerRot.val.toEuclideanLin
-          (exactVertex (box.innerIndex i))) -
+          (P.vertex (box.innerIndex i))) -
         proj_xyL ((p.matrixPoseWithOffset box.chart offset).outerRot.val.toEuclideanLin
-          (exactVertex (box.outerIndex i)))⟫ := by
+          (P.vertex (box.outerIndex i)))⟫ := by
   rw [box.cycleDirection_eq p offset i,
     AtlasPose.matrixPoseWithOffset_inner_rotation_project,
     AtlasPose.matrixPoseWithOffset_outer_rotation_project, ← map_sub]
@@ -823,15 +819,15 @@ theorem Box.actualContactValue_eq (box : Box) (p : AtlasPose ℝ)
 
 theorem Box.actualDisplacement_eq_sum (box : Box) (p : AtlasPose ℝ)
     (offset : ℝ²) :
-    box.actualDisplacement p =
+    box.actualDisplacement (P := P) p =
       ∑ i, ⟪cycleDirection (p.matrixPoseWithOffset box.chart offset)
-          exactPolyhedron box.outerIndex i,
+          P.polyhedron box.outerIndex i,
         proj_xyL ((p.matrixPoseWithOffset box.chart offset).innerRot.val.toEuclideanLin
-          (exactVertex (box.innerIndex i))) -
+          (P.vertex (box.innerIndex i))) -
         proj_xyL ((p.matrixPoseWithOffset box.chart offset).outerRot.val.toEuclideanLin
-          (exactVertex (box.outerIndex i)))⟫ := by
-  have hsum : box.actualDisplacement p =
-      ∑ i, ⟪viewVector p, box.actualContactVector p i⟫ := by
+          (P.vertex (box.outerIndex i)))⟫ := by
+  have hsum : box.actualDisplacement (P := P) p =
+      ∑ i, ⟪viewVector p, box.actualContactVector (P := P) p i⟫ := by
     unfold Box.actualDisplacement Box.actualTotalVector
     simp [PiLp.inner_apply, Finset.sum_apply, Finset.sum_mul]
     rw [Finset.sum_comm]
@@ -846,7 +842,7 @@ theorem Box.exactSupportValue_le_supportUpper (box : Box)
     (hcenter : box.centerInFour) {p : AtlasPose ℝ}
     (hp : p ∈ box.interval.toReal) (i : Fin (box.edgePred + 1))
     (k : VertexIndex) :
-    box.exactSupportValue p i k ≤ (box.supportUpper i k : ℝ) := by
+    box.exactSupportValue (P := P) p i k ≤ (box.supportUpper i k : ℝ) := by
   have hball := box.supportBall_holds hp hcenter i k
   have happrox : box.approxSupportValue p i k ≤
       ((box.supportBall i k).center + (box.supportBall i k).radius : ℚ) := by
@@ -855,7 +851,7 @@ theorem Box.exactSupportValue_le_supportUpper (box : Box)
     rw [abs_le] at hball
     linarith
   push_cast at happrox
-  have herr := box.supportValue_error p i k
+  have herr := box.supportValue_error (P := P) p i k
   rw [abs_le] at herr
   calc
     box.exactSupportValue p i k ≤
@@ -892,13 +888,13 @@ theorem Box.valid_direction_nonzero (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²)
     (i : Fin (box.edgePred + 1)) :
     cycleDirection (p.matrixPoseWithOffset box.chart offset)
-      exactPolyhedron box.outerIndex i ≠ 0 := by
-  have hupper := box.exactSupportValue_le_supportUpper
+      P.polyhedron box.outerIndex i ≠ 0 := by
+  have hupper := box.exactSupportValue_le_supportUpper (P := P)
     h.center_in_four hp i (box.nonzeroWitness i)
-  have hneg : box.exactSupportValue p i (box.nonzeroWitness i) < 0 := by
+  have hneg : box.exactSupportValue (P := P) p i (box.nonzeroWitness i) < 0 := by
     exact lt_of_le_of_lt hupper (by exact_mod_cast h.direction_nonzero i)
   intro hzero
-  have heq := box.exactSupportValue_eq p offset i (box.nonzeroWitness i)
+  have heq := box.exactSupportValue_eq (P := P) p offset i (box.nonzeroWitness i)
   rw [hzero] at heq
   simp at heq
   linarith
@@ -907,9 +903,9 @@ theorem Box.valid_support (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²)
     (i : Fin (box.edgePred + 1)) (k : VertexIndex) :
     ⟪cycleDirection (p.matrixPoseWithOffset box.chart offset)
-        exactPolyhedron box.outerIndex i,
+        P.polyhedron box.outerIndex i,
       outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-        (exactVertex k - exactVertex (box.outerIndex i))⟫ ≤
+        (P.vertex k - P.vertex (box.outerIndex i))⟫ ≤
       (box.defect i : ℝ) := by
   rw [← box.exactSupportValue_eq p offset i k]
   exact (box.exactSupportValue_le_supportUpper
@@ -919,7 +915,7 @@ theorem Box.valid_support (box : Box) (h : box.Valid)
 theorem Box.valid_exactClearedDisplacement (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) :
     (box.dBound : ℝ) * (box.totalDefect : ℝ) ≤
-      box.exactClearedDisplacement p := by
+      box.exactClearedDisplacement (P := P) p := by
   have hball := box.displacementBall_holds hp h.center_in_four
   have hlower := RatBall.lower_le_of_holds hball
   change (box.displacementBall.center - box.displacementBall.radius : ℚ) ≤
@@ -936,14 +932,14 @@ theorem Box.valid_exactClearedDisplacement (box : Box) (h : box.Valid)
             (box.displacementBall.radius : ℝ) := by
       exact_mod_cast h.displacement
     exact hc.trans hlower
-  have herr := box.clearedDisplacement_error hp
+  have herr := box.clearedDisplacement_error (P := P) hp
   rw [abs_le] at herr
   linarith
 
 theorem Box.valid_actualDisplacement (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) :
-    (box.totalDefect : ℝ) ≤ box.actualDisplacement p := by
-  have hcleared := box.valid_exactClearedDisplacement h hp
+    (box.totalDefect : ℝ) ≤ box.actualDisplacement (P := P) p := by
+  have hcleared := box.valid_exactClearedDisplacement (P := P) h hp
   rw [box.exactClearedDisplacement_eq_denom_mul] at hcleared
   have hcharge :
       cayleyDenom p.x p.y p.z * (box.totalDefect : ℝ) ≤
@@ -956,23 +952,23 @@ theorem Box.valid_actualDisplacement (box : Box) (h : box.Valid)
 theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
     ∀ p ∈ box.interval.toReal, ∀ offset : ℝ²,
       ¬ RupertPose (p.matrixPoseWithOffset box.chart offset)
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
   intro p hp offset
   apply not_rupertPose_of_cycle_support_with_defect
-    exactPolyhedron (p.matrixPoseWithOffset box.chart offset)
+    P.polyhedron (p.matrixPoseWithOffset box.chart offset)
     box.innerIndex box.outerIndex (fun i => (box.defect i : ℝ))
   · exact box.valid_direction_nonzero h hp offset
   · intro i k
-    simpa [exactPolyhedron] using box.valid_support h hp offset i k
-  · have hactual := box.valid_actualDisplacement h hp
+    simpa [C5Model.polyhedron] using box.valid_support h hp offset i k
+  · have hactual := box.valid_actualDisplacement (P := P) h hp
     rw [box.actualDisplacement_eq_sum p offset] at hactual
-    simpa [Box.totalDefect, exactPolyhedron] using hactual
+    simpa [Box.totalDefect, C5Model.polyhedron] using hactual
 
 theorem Box.valid_imp_no_translated_rupert_in_interval
     (box : Box) (h : box.Valid) :
     ¬ ∃ p ∈ box.interval.toReal, ∃ offset : ℝ²,
       RupertPose (p.matrixPoseWithOffset box.chart offset)
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
   rintro ⟨p, hp, offset, hrupert⟩
   exact box.valid_imp_not_translated_rupert h p hp offset hrupert
 

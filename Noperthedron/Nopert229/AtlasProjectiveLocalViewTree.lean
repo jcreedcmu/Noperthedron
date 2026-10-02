@@ -16,6 +16,8 @@ near-symmetry leaf in the main search to reuse the same view atlas.
 
 namespace Noperthedron.Nopert229.AtlasProjectiveLocalViewTree
 
+variable {P : C5Model}
+
 open AtlasProjectiveView AtlasProjectiveLocalCertificate
 open Noperthedron.SnubCube.ProjectiveView
 
@@ -161,7 +163,7 @@ theorem valid_imp_not_rupert_ix (symmetryIndex : OrbitIndex) (r : ℚ)
     (hmem : InTriangle (toReal (get i).triangle)
       (normalizedView (get i).root p)) :
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   obtain ⟨hid, hvalid⟩ := rowsValid ⟨i, hi⟩
   generalize hrow : get i = row at hid hvalid hscale hmem htubeRadius ⊢
   cases row with
@@ -314,7 +316,7 @@ theorem Table.valid_imp_not_translated_rupert_at_node_rLower (table : Table)
     (hmem : InTriangle (toReal (table.get nodeId).triangle)
       (normalizedView (table.get nodeId).root p)) :
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   obtain ⟨hnonempty, hrows, -, -⟩ := hvalid
   exact valid_imp_not_rupert_ix table.symmetryIndex table.r
     table.get table.size hrows nodeId hnode tube htubeSymmetry htubeRadius
@@ -329,7 +331,7 @@ theorem Table.valid_imp_not_translated_rupert_at_node (table : Table)
     (hmem : InTriangle (toReal (table.get nodeId).triangle)
       (normalizedView (table.get nodeId).root p)) :
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
-      exactPolyhedron.hull :=
+      P.polyhedron.hull :=
   table.valid_imp_not_translated_rupert_at_node_rLower hvalid nodeId hnode tube
     htubeSymmetry (htubeRadius.trans (le_rLower_of_rowsValid hvalid.2.1 nodeId hnode))
     htube hp offset hscale hmem
@@ -343,8 +345,8 @@ theorem Table.valid_imp_not_translated_rupert_in_triangle (table : Table)
     (hmem : InTriangle (toReal table.triangle)
       (normalizedView table.root p)) (offset : ℝ²) :
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
-      exactPolyhedron.hull := by
-  have hchecked := Table.valid_imp_not_translated_rupert_at_node table
+      P.polyhedron.hull := by
+  have hchecked := Table.valid_imp_not_translated_rupert_at_node (P := P) table
     hvalid 0 hvalid.1 tube htubeSymmetry htubeRadius htube hp offset
   rw [hvalid.2.2.1, hvalid.2.2.2] at hchecked
   exact hchecked hscale hmem
@@ -357,7 +359,7 @@ theorem Table.valid_imp_not_translated_rupert (table : Table)
     (hview : p.InViewWedge) (hupper : p.InUpperView) (offset : ℝ²)
     (hroot : table.root = 0) (htriangle : table.triangle = upperWedgeTriangle) :
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   obtain ⟨hscale, hmem⟩ := upperView_mem_wedgeTriangle p hview hupper
   apply table.valid_imp_not_translated_rupert_in_triangle hvalid tube
     htubeSymmetry htubeRadius htube hp
@@ -449,7 +451,7 @@ theorem Table.valid_imp_not_translated_rupert_below_node (table : Table)
     (hmem : InTriangle (toReal (splitPath (table.get nodeId).triangle rest))
       (normalizedView (table.get nodeId).root p)) :
     ¬ RupertPose (p.matrixPoseWithOffset tube.chart offset)
-      exactPolyhedron.hull :=
+      P.polyhedron.hull :=
   table.valid_imp_not_translated_rupert_at_node_rLower hvalid nodeId hnode tube
     htubeSymmetry htubeRadius htube hp offset hscale (inTriangle_of_splitPath hmem)
 

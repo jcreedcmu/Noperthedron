@@ -18,6 +18,8 @@ coordinates, enclosed by nested rational interval arithmetic.
 
 namespace Noperthedron.Nopert229.AtlasProjectiveGlobalCertificate
 
+variable {P : C5Model}
+
 open Noperthedron.Checker Noperthedron.BalancedSupport
 open Noperthedron.SnubCube.ProjectiveView
 open AtlasProjectiveView AtlasProjectiveEdgeCertificate
@@ -71,7 +73,7 @@ what permits a correlated upper bound on `weight * defect`. -/
 noncomputable def Box.actualDefect (box : Box) (p : AtlasPose ℝ)
     (i : Fin 3) : ℝ :=
   (Finset.image
-    (fun k => box.certificate.exactSupport box.localShell p i k)
+    (fun k => box.certificate.exactSupport (P := P) box.localShell p i k)
     Finset.univ).max' (by
       simp only [Finset.image_nonempty]
       exact Finset.univ_nonempty)
@@ -627,7 +629,7 @@ theorem Box.valid_weight_nonneg (box : Box) (h : box.Admissible)
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) (i : Fin 3) :
-    0 ≤ box.certificate.exactWeight box.localShell p i := by
+    0 ≤ box.certificate.exactWeight (P := P) box.localShell p i := by
   have hlower : (0 : ℝ) ≤ (box.weightLower i : ℝ) := by
     exact_mod_cast h.weight_nonneg i
   apply hlower.trans
@@ -638,7 +640,7 @@ theorem Box.valid_weight_pos (box : Box) (h : box.Admissible)
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
-    ∃ i, 0 < box.certificate.exactWeight box.localShell p i := by
+    ∃ i, 0 < box.certificate.exactWeight (P := P) box.localShell p i := by
   obtain ⟨i, hi⟩ := h.weight_pos
   refine ⟨i, ?_⟩
   have hiReal : (0 : ℝ) < (box.weightLower i : ℝ) := by exact_mod_cast hi
@@ -700,26 +702,26 @@ theorem Box.valid_support_with_defect (box : Box) (_h : box.Admissible)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin 3) (k : VertexIndex) :
-    inner ℝ (direction box.root p (box.certificate.exactEdge i))
+    inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex k)) ≤
-      inner ℝ (direction box.root p (box.certificate.exactEdge i))
+          (P.vertex k)) ≤
+      inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex (box.certificate.index i))) + (box.defect i : ℝ) := by
+          (P.vertex (box.certificate.index i))) + (box.defect i : ℝ) := by
   have hscaleNe :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
-  have hupper := box.localShell.exactSupport_le_upper
+  have hupper := box.localShell.exactSupport_le_upper (P := P)
     hscale hmem 0 i k
   have hdefect : box.certificate.exactSupport box.localShell p i k ≤
       (box.defect i : ℝ) :=
     hupper.trans (by exact_mod_cast box.supportUpper_le_defect i k)
   have hdiff :
-      inner ℝ (direction box.root p (box.certificate.exactEdge i))
+      inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
           ((outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
-              (exactVertex k) -
+              (P.vertex k) -
             (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
-              (exactVertex (box.certificate.index i))) =
-        box.certificate.exactSupport box.localShell p i k := by
+              (P.vertex (box.certificate.index i))) =
+        box.certificate.exactSupport (P := P) box.localShell p i k := by
     rw [← map_sub,
       inner_direction_outerProjection_eq_support box.root p box.chart offset
         _ _ hscaleNe]
@@ -732,7 +734,7 @@ theorem Box.valid_support_with_defect (box : Box) (_h : box.Admissible)
 
 theorem Box.exactSupport_le_actualDefect (box : Box) (p : AtlasPose ℝ)
     (i : Fin 3) (k : VertexIndex) :
-    box.certificate.exactSupport box.localShell p i k ≤
+    box.certificate.exactSupport (P := P) box.localShell p i k ≤
       box.actualDefect p i := by
   unfold Box.actualDefect
   exact Finset.le_max' _ _
@@ -744,9 +746,9 @@ theorem Box.actualDefect_nonneg (box : Box) (p : AtlasPose ℝ)
       (box.certificate.index i) := by
     unfold AtlasProjectiveLocalCertificate.Box.exactSupportTie
     exact Or.inl (box.localShell_supportIndex i).symm
-  rw [← box.localShell.exactSupport_eq_zero_of_tie 0 i
+  rw [← box.localShell.exactSupport_eq_zero_of_tie (P := P) 0 i
     (box.certificate.index i) htie]
-  exact box.exactSupport_le_actualDefect p i (box.certificate.index i)
+  exact box.exactSupport_le_actualDefect (P := P) p i (box.certificate.index i)
 
 theorem Box.valid_support_with_actualDefect (box : Box) (_h : box.Admissible)
     {p : AtlasPose ℝ} (offset : ℝ²)
@@ -754,22 +756,22 @@ theorem Box.valid_support_with_actualDefect (box : Box) (_h : box.Admissible)
     (_hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin 3) (k : VertexIndex) :
-    inner ℝ (direction box.root p (box.certificate.exactEdge i))
+    inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex k)) ≤
-      inner ℝ (direction box.root p (box.certificate.exactEdge i))
+          (P.vertex k)) ≤
+      inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex (box.certificate.index i))) + box.actualDefect p i := by
+          (P.vertex (box.certificate.index i))) + box.actualDefect p i := by
   have hscaleNe :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
-  have hdefect := box.exactSupport_le_actualDefect p i k
+  have hdefect := box.exactSupport_le_actualDefect (P := P) p i k
   have hdiff :
-      inner ℝ (direction box.root p (box.certificate.exactEdge i))
+      inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
           ((outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
-              (exactVertex k) -
+              (P.vertex k) -
             (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
-              (exactVertex (box.certificate.index i))) =
-        box.certificate.exactSupport box.localShell p i k := by
+              (P.vertex (box.certificate.index i))) =
+        box.certificate.exactSupport (P := P) box.localShell p i k := by
     rw [← map_sub,
       inner_direction_outerProjection_eq_support box.root p box.chart offset
         _ _ hscaleNe]
@@ -785,10 +787,10 @@ theorem Box.valid_direction_nonzero (box : Box) (h : box.Admissible)
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) (i : Fin 3) :
-    direction box.root p (box.certificate.exactEdge i) ≠ 0 := by
+    direction box.root p (box.certificate.exactEdge (P := P) i) ≠ 0 := by
   intro hzero
   let k := box.certificate.nonzeroWitness i
-  have hupper := box.localShell.exactSupport_le_upper hscale hmem 0 i k
+  have hupper := box.localShell.exactSupport_le_upper (P := P) hscale hmem 0 i k
   have hstrict : (box.supportUpper i k : ℝ) < 0 := by
     exact_mod_cast h.direction_nonzero i
   have hexact : box.certificate.exactSupport box.localShell p i k < 0 :=
@@ -796,8 +798,8 @@ theorem Box.valid_direction_nonzero (box : Box) (h : box.Admissible)
   have hscaleNe :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
   have heq := inner_direction_outerProjection_eq_support box.root p
-    box.chart offset (box.certificate.exactEdge i)
-    (box.certificate.exactDelta box.localShell i k) hscaleNe
+    box.chart offset (box.certificate.exactEdge (P := P) i)
+    (box.certificate.exactDelta (P := P) box.localShell i k) hscaleNe
   rw [hzero, inner_zero_left] at heq
   change linearValue (AtlasProjectiveView.normalizedView box.root p)
     (cross3 (box.certificate.exactEdge i)
@@ -814,8 +816,8 @@ noncomputable def Box.exactDisplacementVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
   (CayleyAtlas.chartMatrix box.chart *
       cayleyNumeratorMatrix p.x p.y p.z).toEuclideanLin
-        (exactVertex (box.innerIndex i)) -
-    cayleyDenom p.x p.y p.z • exactVertex (box.certificate.index i)
+        (P.vertex (box.innerIndex i)) -
+    cayleyDenom p.x p.y p.z • P.vertex (box.certificate.index i)
 
 noncomputable def Box.approxContactVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
@@ -823,7 +825,7 @@ noncomputable def Box.approxContactVector (box : Box)
 
 noncomputable def Box.exactContactVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
-  cross3 (box.certificate.exactEdge i) (box.exactDisplacementVector p i)
+  cross3 (box.certificate.exactEdge (P := P) i) (box.exactDisplacementVector (P := P) p i)
 
 noncomputable def Box.approxClearedDisplacement (box : Box)
     (p : AtlasPose ℝ) : ℝ :=
@@ -834,9 +836,9 @@ noncomputable def Box.approxClearedDisplacement (box : Box)
 
 noncomputable def Box.exactClearedDisplacement (box : Box)
     (p : AtlasPose ℝ) : ℝ :=
-  ∑ i, box.certificate.exactWeight box.localShell p i *
+  ∑ i, box.certificate.exactWeight (P := P) box.localShell p i *
     linearValue (AtlasProjectiveView.normalizedView box.root p)
-      (box.exactContactVector p i)
+      (box.exactContactVector (P := P) p i)
 
 theorem Box.eval_contactQuadratic (box : Box) (p : AtlasPose ℝ)
     (i c : Fin 3) :
@@ -1259,37 +1261,37 @@ theorem Box.exactWeight_mul_exactSupport_le_contactDefect
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin 3) (k : VertexIndex) :
-    box.certificate.exactWeight box.localShell p i *
-        box.certificate.exactSupport box.localShell p i k ≤
+    box.certificate.exactWeight (P := P) box.localShell p i *
+        box.certificate.exactSupport (P := P) box.localShell p i k ≤
       (box.contactDefectUpper i : ℝ) := by
-  have hwNonneg := box.valid_weight_nonneg h hscale hmem i
+  have hwNonneg := box.valid_weight_nonneg (P := P) h hscale hmem i
   by_cases htie : k = box.certificate.index i
   · subst k
     have hlocalTie : box.localShell.exactSupportTie 0 i
         (box.certificate.index i) := by
       unfold AtlasProjectiveLocalCertificate.Box.exactSupportTie
       exact Or.inl (box.localShell_supportIndex i).symm
-    have hzero : box.certificate.exactSupport box.localShell p i
+    have hzero : box.certificate.exactSupport (P := P) box.localShell p i
         (box.certificate.index i) = 0 := by
       simpa [Box.localShell] using
         box.localShell.exactSupport_eq_zero_of_tie 0 i _ hlocalTie
     rw [hzero, mul_zero]
     exact_mod_cast box.contactDefectUpper_nonneg i
   · by_cases hsNonpos :
-        box.certificate.exactSupport box.localShell p i k ≤ 0
+        box.certificate.exactSupport (P := P) box.localShell p i k ≤ 0
     · exact (mul_nonpos_of_nonneg_of_nonpos hwNonneg hsNonpos).trans
         (by exact_mod_cast box.contactDefectUpper_nonneg i)
     · have hsPos : 0 <
           box.certificate.exactSupport box.localShell p i k :=
         lt_of_not_ge hsNonpos
       obtain ⟨weight, hweight, hsum, hpoint⟩ := hmem
-      have hwError := box.certificate.exactWeight_sub_approx_tight_abs_le
+      have hwError := box.certificate.exactWeight_sub_approx_tight_abs_le (P := P)
         box.localShell hscale i
-      have hsError := box.certificate.exactSupport_sub_approx_abs_le
+      have hsError := box.certificate.exactSupport_sub_approx_abs_le (P := P)
         box.localShell hscale i k
       rw [abs_le] at hwError hsError
       have hwUpper :
-          box.certificate.exactWeight box.localShell p i ≤
+          box.certificate.exactWeight (P := P) box.localShell p i ≤
             box.certificate.approxWeight
                 (AtlasProjectiveView.normalizedView box.root p) i +
               (AtlasProjectiveLocalCertificate.supportError : ℝ) := by
@@ -1298,7 +1300,7 @@ theorem Box.exactWeight_mul_exactSupport_le_contactDefect
           norm_num [AtlasProjectiveLocalCertificate.supportError,
             tightVertexErrorQ]
         have herr :
-            box.certificate.exactWeight box.localShell p i -
+            box.certificate.exactWeight (P := P) box.localShell p i -
               box.certificate.approxWeight
                 (AtlasProjectiveView.normalizedView box.root p) i ≤
               (AtlasProjectiveLocalCertificate.supportError : ℝ) := by
@@ -1308,12 +1310,12 @@ theorem Box.exactWeight_mul_exactSupport_le_contactDefect
             _ = _ := herrorEq
         linarith only [herr]
       have hsUpper :
-          box.certificate.exactSupport box.localShell p i k ≤
+          box.certificate.exactSupport (P := P) box.localShell p i k ≤
             box.certificate.approxSupport box.localShell
                 (AtlasProjectiveView.normalizedView box.root p) i k +
               (AtlasProjectiveLocalCertificate.supportError : ℝ) := by
         have herr :
-            box.certificate.exactSupport box.localShell p i k -
+            box.certificate.exactSupport (P := P) box.localShell p i k -
               box.certificate.approxSupport box.localShell
                 (AtlasProjectiveView.normalizedView box.root p) i k ≤
               (AtlasProjectiveLocalCertificate.supportError : ℝ) := by
@@ -1363,10 +1365,10 @@ theorem Box.exactWeight_mul_actualDefect_le_contactDefect
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin 3) :
-    box.certificate.exactWeight box.localShell p i * box.actualDefect p i ≤
+    box.certificate.exactWeight (P := P) box.localShell p i * box.actualDefect p i ≤
       (box.contactDefectUpper i : ℝ) := by
   let values : Finset ℝ := Finset.image
-    (fun k => box.certificate.exactSupport box.localShell p i k)
+    (fun k => box.certificate.exactSupport (P := P) box.localShell p i k)
     Finset.univ
   have hvalues : values.Nonempty := by
     simp only [values, Finset.image_nonempty]
@@ -1374,7 +1376,7 @@ theorem Box.exactWeight_mul_actualDefect_le_contactDefect
   have hmember : values.max' hvalues ∈ values := Finset.max'_mem _ _
   obtain ⟨k, _hk, hkvalue⟩ := Finset.mem_image.mp hmember
   have hactual : box.actualDefect p i =
-      box.certificate.exactSupport box.localShell p i k := by
+      box.certificate.exactSupport (P := P) box.localShell p i k := by
     simpa only [Box.actualDefect, values] using hkvalue.symm
   rw [hactual]
   exact box.exactWeight_mul_exactSupport_le_contactDefect
@@ -1385,7 +1387,7 @@ theorem Box.exactWeightedActualDefect_le (box : Box) (h : box.Admissible)
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
-    (∑ i, box.certificate.exactWeight box.localShell p i *
+    (∑ i, box.certificate.exactWeight (P := P) box.localShell p i *
         box.actualDefect p i) ≤ (box.weightedDefectUpper : ℝ) := by
   rw [Box.weightedDefectUpper]
   push_cast
@@ -1561,16 +1563,16 @@ theorem Box.denom_le_dBound (box : Box) {p : AtlasPose ℝ}
 
 theorem Box.exactDisplacement_sub_approx_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
-    ‖box.exactDisplacementVector p i - box.approxDisplacementVector p i‖ ≤
+    ‖box.exactDisplacementVector (P := P) p i - box.approxDisplacementVector p i‖ ≤
       2 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
   have hrearrange :
-      box.exactDisplacementVector p i - box.approxDisplacementVector p i =
+      box.exactDisplacementVector (P := P) p i - box.approxDisplacementVector p i =
         (CayleyAtlas.chartMatrix box.chart *
             cayleyNumeratorMatrix p.x p.y p.z).toEuclideanLin
-          (exactVertex (box.innerIndex i) -
+          (P.vertex (box.innerIndex i) -
             toR3 (rationalVertex (box.innerIndex i))) -
         cayleyDenom p.x p.y p.z •
-          (exactVertex (box.certificate.index i) -
+          (P.vertex (box.certificate.index i) -
             toR3 (rationalVertex (box.certificate.index i))) := by
     unfold Box.exactDisplacementVector Box.approxDisplacementVector
     unfold AtlasQuadratic.approxDisplacementVector
@@ -1580,10 +1582,10 @@ theorem Box.exactDisplacement_sub_approx_norm_le (box : Box)
   calc
     _ ≤ ‖(CayleyAtlas.chartMatrix box.chart *
           cayleyNumeratorMatrix p.x p.y p.z).toEuclideanLin
-          (exactVertex (box.innerIndex i) -
+          (P.vertex (box.innerIndex i) -
             toR3 (rationalVertex (box.innerIndex i)))‖ +
         ‖cayleyDenom p.x p.y p.z •
-          (exactVertex (box.certificate.index i) -
+          (P.vertex (box.certificate.index i) -
             toR3 (rationalVertex (box.certificate.index i)))‖ :=
       norm_sub_le _ _
     _ ≤ cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) +
@@ -1592,50 +1594,50 @@ theorem Box.exactDisplacement_sub_approx_norm_le (box : Box)
       · exact (AtlasEdgeCertificate.norm_chartNumerator_apply_le
           box.chart p.x p.y p.z _).trans
           (mul_le_mul_of_nonneg_left
-            (vertex_close_tight (box.innerIndex i))
+            (P.vertex_close_tight (box.innerIndex i))
             (cayleyDenom_pos p.x p.y p.z).le)
       · rw [norm_smul, Real.norm_eq_abs,
           abs_of_pos (cayleyDenom_pos p.x p.y p.z)]
         exact mul_le_mul_of_nonneg_left
-          (vertex_close_tight (box.certificate.index i))
+          (P.vertex_close_tight (box.certificate.index i))
           (cayleyDenom_pos p.x p.y p.z).le
     _ = 2 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by ring
 
 theorem Box.exactDisplacementVector_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
-    ‖box.exactDisplacementVector p i‖ ≤
+    ‖box.exactDisplacementVector (P := P) p i‖ ≤
       2 * cayleyDenom p.x p.y p.z := by
   unfold Box.exactDisplacementVector
   calc
     _ ≤ ‖(CayleyAtlas.chartMatrix box.chart *
           cayleyNumeratorMatrix p.x p.y p.z).toEuclideanLin
-          (exactVertex (box.innerIndex i))‖ +
+          (P.vertex (box.innerIndex i))‖ +
         ‖cayleyDenom p.x p.y p.z •
-          exactVertex (box.certificate.index i)‖ := norm_sub_le _ _
+          P.vertex (box.certificate.index i)‖ := norm_sub_le _ _
     _ ≤ cayleyDenom p.x p.y p.z + cayleyDenom p.x p.y p.z := by
       apply add_le_add
       · exact (AtlasEdgeCertificate.norm_chartNumerator_apply_le
           box.chart p.x p.y p.z _).trans
           ((mul_le_mul_of_nonneg_left
-            (exactVertex_norm_le_one (box.innerIndex i))
+            (P.vertex_norm_le_one (box.innerIndex i))
             (cayleyDenom_pos p.x p.y p.z).le).trans_eq (mul_one _))
       · rw [norm_smul, Real.norm_eq_abs,
           abs_of_pos (cayleyDenom_pos p.x p.y p.z)]
         exact (mul_le_mul_of_nonneg_left
-          (exactVertex_norm_le_one (box.certificate.index i))
+          (P.vertex_norm_le_one (box.certificate.index i))
           (cayleyDenom_pos p.x p.y p.z).le).trans_eq (mul_one _)
     _ = 2 * cayleyDenom p.x p.y p.z := by ring
 
 theorem Box.exactContact_sub_approx_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
-    ‖box.exactContactVector p i - box.approxContactVector p i‖ ≤
+    ‖box.exactContactVector (P := P) p i - box.approxContactVector p i‖ ≤
       10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
   have hdecomp :
-      box.exactContactVector p i - box.approxContactVector p i =
-        cross3 (box.certificate.exactEdge i - box.certificate.approxEdge i)
-          (box.exactDisplacementVector p i) +
+      box.exactContactVector (P := P) p i - box.approxContactVector p i =
+        cross3 (box.certificate.exactEdge (P := P) i - box.certificate.approxEdge i)
+          (box.exactDisplacementVector (P := P) p i) +
         cross3 (box.certificate.approxEdge i)
-          (box.exactDisplacementVector p i -
+          (box.exactDisplacementVector (P := P) p i -
             box.approxDisplacementVector p i) := by
     ext c
     fin_cases c <;>
@@ -1676,7 +1678,7 @@ theorem Box.exactContact_sub_approx_norm_le (box : Box)
 
 theorem Box.exactContactVector_norm_le (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
-    ‖box.exactContactVector p i‖ ≤
+    ‖box.exactContactVector (P := P) p i‖ ≤
       4 * cayleyDenom p.x p.y p.z := by
   unfold Box.exactContactVector
   exact (cross3_norm_le _ _).trans
@@ -1687,7 +1689,7 @@ theorem Box.exactContactVector_norm_le (box : Box)
 theorem Box.exactContactValue_abs_le (box : Box)
     {p : AtlasPose ℝ} (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
     |linearValue (AtlasProjectiveView.normalizedView box.root p)
-        (box.exactContactVector p i)| ≤
+        (box.exactContactVector (P := P) p i)| ≤
       4 * cayleyDenom p.x p.y p.z := by
   rw [linearValue_eq_inner_toLp]
   calc
@@ -1702,7 +1704,7 @@ theorem Box.exactContactValue_abs_le (box : Box)
 theorem Box.contactValue_error (box : Box)
     {p : AtlasPose ℝ} (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
     |linearValue (AtlasProjectiveView.normalizedView box.root p)
-          (box.exactContactVector p i) -
+          (box.exactContactVector (P := P) p i) -
         linearValue (AtlasProjectiveView.normalizedView box.root p)
           (box.approxContactVector p i)| ≤
       10 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
@@ -1720,20 +1722,20 @@ theorem Box.contactValue_error (box : Box)
 
 theorem Box.weightedContact_error (box : Box)
     {p : AtlasPose ℝ} (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    |box.certificate.exactWeight box.localShell p i *
+    |box.certificate.exactWeight (P := P) box.localShell p i *
           linearValue (AtlasProjectiveView.normalizedView box.root p)
-            (box.exactContactVector p i) -
+            (box.exactContactVector (P := P) p i) -
         box.certificate.approxWeight
             (AtlasProjectiveView.normalizedView box.root p) i *
           linearValue (AtlasProjectiveView.normalizedView box.root p)
             (box.approxContactVector p i)| ≤
       100 * cayleyDenom p.x p.y p.z * (tightVertexErrorQ : ℝ) := by
-  let exactWeight := box.certificate.exactWeight box.localShell p i
+  let exactWeight := box.certificate.exactWeight (P := P) box.localShell p i
   let approxWeight := box.certificate.approxWeight
     (AtlasProjectiveView.normalizedView box.root p) i
   let exactContact := linearValue
     (AtlasProjectiveView.normalizedView box.root p)
-    (box.exactContactVector p i)
+    (box.exactContactVector (P := P) p i)
   let approxContact := linearValue
     (AtlasProjectiveView.normalizedView box.root p)
     (box.approxContactVector p i)
@@ -1777,13 +1779,13 @@ theorem Box.weightedContact_error (box : Box)
 theorem Box.clearedDisplacement_error (box : Box)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal)
     (hscale : 1 ≤ viewScale box.root p) :
-    |box.exactClearedDisplacement p - box.approxClearedDisplacement p| ≤
+    |box.exactClearedDisplacement (P := P) p - box.approxClearedDisplacement p| ≤
       (box.displacementError : ℝ) := by
   have hsum :
-      box.exactClearedDisplacement p - box.approxClearedDisplacement p =
-        ∑ i, (box.certificate.exactWeight box.localShell p i *
+      box.exactClearedDisplacement (P := P) p - box.approxClearedDisplacement p =
+        ∑ i, (box.certificate.exactWeight (P := P) box.localShell p i *
             linearValue (AtlasProjectiveView.normalizedView box.root p)
-              (box.exactContactVector p i) -
+              (box.exactContactVector (P := P) p i) -
           box.certificate.approxWeight
               (AtlasProjectiveView.normalizedView box.root p) i *
             linearValue (AtlasProjectiveView.normalizedView box.root p)
@@ -1818,36 +1820,36 @@ noncomputable def Box.actualDisplacementVector (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
   (CayleyAtlas.chartMatrix box.chart *
       cayleyMatrix p.x p.y p.z).toEuclideanLin
-        (exactVertex (box.innerIndex i)) -
-    exactVertex (box.certificate.index i)
+        (P.vertex (box.innerIndex i)) -
+    P.vertex (box.certificate.index i)
 
 noncomputable def Box.actualClearedDisplacement (box : Box)
     (p : AtlasPose ℝ) : ℝ :=
-  ∑ i, box.certificate.exactWeight box.localShell p i *
+  ∑ i, box.certificate.exactWeight (P := P) box.localShell p i *
     linearValue (AtlasProjectiveView.normalizedView box.root p)
-      (cross3 (box.certificate.exactEdge i)
-        (box.actualDisplacementVector p i))
+      (cross3 (box.certificate.exactEdge (P := P) i)
+        (box.actualDisplacementVector (P := P) p i))
 
 theorem Box.exactDisplacementVector_eq_denom_smul (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
-    box.exactDisplacementVector p i =
-      cayleyDenom p.x p.y p.z • box.actualDisplacementVector p i := by
+    box.exactDisplacementVector (P := P) p i =
+      cayleyDenom p.x p.y p.z • box.actualDisplacementVector (P := P) p i := by
   unfold Box.exactDisplacementVector Box.actualDisplacementVector
   rw [AtlasEdgeCertificate.chart_numerator_apply_eq_denom_smul, ← smul_sub]
 
 theorem Box.exactContactVector_eq_denom_smul (box : Box)
     (p : AtlasPose ℝ) (i : Fin 3) :
-    box.exactContactVector p i =
+    box.exactContactVector (P := P) p i =
       cayleyDenom p.x p.y p.z •
-        cross3 (box.certificate.exactEdge i)
-          (box.actualDisplacementVector p i) := by
+        cross3 (box.certificate.exactEdge (P := P) i)
+          (box.actualDisplacementVector (P := P) p i) := by
   unfold Box.exactContactVector
   rw [box.exactDisplacementVector_eq_denom_smul, cross3_smul_right]
 
 theorem Box.exactClearedDisplacement_eq_denom_mul (box : Box)
     (p : AtlasPose ℝ) :
-    box.exactClearedDisplacement p =
-      cayleyDenom p.x p.y p.z * box.actualClearedDisplacement p := by
+    box.exactClearedDisplacement (P := P) p =
+      cayleyDenom p.x p.y p.z * box.actualClearedDisplacement (P := P) p := by
   unfold Box.exactClearedDisplacement Box.actualClearedDisplacement
   simp_rw [box.exactContactVector_eq_denom_smul]
   simp only [linearValue, WithLp.ofLp_smul, Pi.smul_apply, smul_eq_mul]
@@ -1860,14 +1862,14 @@ theorem Box.actualContactValue_eq_pose (box : Box)
     {p : AtlasPose ℝ} (offset : ℝ²)
     (hscale : viewScale box.root p ≠ 0) (i : Fin 3) :
     linearValue (AtlasProjectiveView.normalizedView box.root p)
-        (cross3 (box.certificate.exactEdge i)
-          (box.actualDisplacementVector p i)) =
-      inner ℝ (direction box.root p (box.certificate.exactEdge i))
+        (cross3 (box.certificate.exactEdge (P := P) i)
+          (box.actualDisplacementVector (P := P) p i)) =
+      inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
         (proj_xyL
             ((p.matrixPoseWithOffset box.chart offset).innerRot.val.toEuclideanLin
-              (exactVertex (box.innerIndex i))) -
+              (P.vertex (box.innerIndex i))) -
           outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-            (exactVertex (box.certificate.index i))) := by
+            (P.vertex (box.certificate.index i))) := by
   rw [← inner_direction_outerProjection_eq_support box.root p box.chart offset
     (box.certificate.exactEdge i) (box.actualDisplacementVector p i) hscale]
   congr 2
@@ -1877,31 +1879,31 @@ theorem Box.actualContactValue_eq_pose (box : Box)
       outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
           ((CayleyAtlas.chartMatrix box.chart *
               cayleyMatrix p.x p.y p.z).toEuclideanLin
-            (exactVertex (box.innerIndex i))) =
+            (P.vertex (box.innerIndex i))) =
         rotM p.θ p.φ
           ((CayleyAtlas.chartMatrix box.chart *
               cayleyMatrix p.x p.y p.z).toEuclideanLin
-            (exactVertex (box.innerIndex i))) := by
+            (P.vertex (box.innerIndex i))) := by
     simpa [outerProjectionLinear, ContinuousLinearMap.comp_apply] using
       p.matrixPoseWithOffset_outer_rotation_project box.chart offset
         ((CayleyAtlas.chartMatrix box.chart *
             cayleyMatrix p.x p.y p.z).toEuclideanLin
-          (exactVertex (box.innerIndex i)))
+          (P.vertex (box.innerIndex i)))
   rw [hrelative,
     ← p.matrixPoseWithOffset_inner_rotation_project box.chart offset
-      (exactVertex (box.innerIndex i))]
+      (P.vertex (box.innerIndex i))]
 
 theorem Box.actualClearedDisplacement_eq_pose (box : Box)
     {p : AtlasPose ℝ} (offset : ℝ²)
     (hscale : viewScale box.root p ≠ 0) :
-    box.actualClearedDisplacement p =
-      ∑ i, box.certificate.exactWeight box.localShell p i *
-        inner ℝ (direction box.root p (box.certificate.exactEdge i))
+    box.actualClearedDisplacement (P := P) p =
+      ∑ i, box.certificate.exactWeight (P := P) box.localShell p i *
+        inner ℝ (direction box.root p (box.certificate.exactEdge (P := P) i))
           (proj_xyL
               ((p.matrixPoseWithOffset box.chart offset).innerRot.val.toEuclideanLin
-                (exactVertex (box.innerIndex i))) -
+                (P.vertex (box.innerIndex i))) -
             outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-              (exactVertex (box.certificate.index i))) := by
+              (P.vertex (box.certificate.index i))) := by
   unfold Box.actualClearedDisplacement
   apply Finset.sum_congr rfl
   intro i _
@@ -1914,7 +1916,7 @@ theorem Box.valid_exactClearedDisplacement (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
     (box.dBound : ℝ) * (box.weightedDefectUpper : ℝ) ≤
-      box.exactClearedDisplacement p := by
+      box.exactClearedDisplacement (P := P) p := by
   have hball := box.adjustedDisplacementBall_holds hp hmem
   have hlower := RatBall.lower_le_of_holds hball
   change (box.adjustedDisplacementBall.center -
@@ -1944,7 +1946,7 @@ theorem Box.valid_exactClearedDisplacement (box : Box) (h : box.Valid)
       (box.ballMultiplier : ℝ) *
         (p.x ^ 2 + p.y ^ 2 + p.z ^ 2 - 3) ≤ 0 :=
     mul_nonpos_of_nonneg_of_nonpos hlambda hconstraint
-  have herr := box.clearedDisplacement_error hp hscale
+  have herr := box.clearedDisplacement_error (P := P) hp hscale
   rw [abs_le] at herr
   linarith
 
@@ -1954,8 +1956,8 @@ theorem Box.valid_actualClearedDisplacement (box : Box) (h : box.Valid)
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
-    (box.weightedDefectUpper : ℝ) ≤ box.actualClearedDisplacement p := by
-  have hexact := box.valid_exactClearedDisplacement h hp hbounded hscale hmem
+    (box.weightedDefectUpper : ℝ) ≤ box.actualClearedDisplacement (P := P) p := by
+  have hexact := box.valid_exactClearedDisplacement (P := P) h hp hbounded hscale hmem
   rw [box.exactClearedDisplacement_eq_denom_mul] at hexact
   have hcharge : cayleyDenom p.x p.y p.z *
       (box.weightedDefectUpper : ℝ) ≤
@@ -1976,25 +1978,25 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
         (AtlasProjectiveView.normalizedView box.root p) →
       ∀ offset : ℝ²,
         ¬ RupertPose (p.matrixPoseWithOffset box.chart offset)
-          exactPolyhedron.hull := by
+          P.polyhedron.hull := by
   intro p hp hbounded hscale hmem offset
   have hscaleNe : viewScale box.root p ≠ 0 :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
   apply AtlasProjectiveGlobalRigidity.not_rupertPose_of_projective_global_certificate_with_defect
-    box.root p box.chart offset (fun i => box.certificate.exactEdge i)
+    box.root p box.chart offset (fun i => box.certificate.exactEdge (P := P) i)
     box.innerIndex box.certificate.index (box.actualDefect p)
     hscaleNe
-  · exact box.valid_direction_nonzero h offset hscale hmem
+  · exact box.valid_direction_nonzero (P := P) h offset hscale hmem
   · intro i
     simpa [AxisCertificate.exactWeight, Box.localShell] using
       box.valid_weight_nonneg h hscale hmem i
   · obtain ⟨i, hi⟩ := box.valid_weight_pos h hscale hmem
     exact ⟨i, by simpa [AxisCertificate.exactWeight, Box.localShell] using hi⟩
   · exact box.valid_support_with_actualDefect h offset hscale hmem
-  · have hactual := box.valid_actualClearedDisplacement h hp hbounded hscale hmem
+  · have hactual := box.valid_actualClearedDisplacement (P := P) h hp hbounded hscale hmem
     rw [box.actualClearedDisplacement_eq_pose offset hscaleNe] at hactual
     have hweighted :=
-      box.exactWeightedActualDefect_le h hscale hmem
+      box.exactWeightedActualDefect_le (P := P) h hscale hmem
     exact hweighted.trans (by
       simpa [AxisCertificate.exactWeight, Box.localShell] using hactual)
 
@@ -2007,7 +2009,7 @@ theorem Box.valid_imp_no_translated_rupert_in_interval
         (AtlasProjectiveView.normalizedView box.root p) ∧
       ∃ offset : ℝ²,
         RupertPose (p.matrixPoseWithOffset box.chart offset)
-          exactPolyhedron.hull := by
+          P.polyhedron.hull := by
   rintro ⟨p, hp, hbounded, hscale, hmem, offset, hrupert⟩
   exact box.valid_imp_not_translated_rupert h p hp hbounded hscale hmem offset hrupert
 

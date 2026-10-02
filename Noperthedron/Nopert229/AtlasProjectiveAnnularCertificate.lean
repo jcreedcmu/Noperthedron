@@ -34,6 +34,8 @@ is unconditionally ruled out.
 
 namespace Noperthedron.Nopert229.AtlasProjectiveLocalCertificate
 
+variable {P : C5Model}
+
 open scoped BigOperators Real RealInnerProductSpace
 open Noperthedron.BalancedSupport
 open Noperthedron.SnubCube.ProjectiveView
@@ -95,7 +97,7 @@ theorem TwoZoneBox.valid_imp_not_translated_rupert (box : TwoZoneBox) (h : box.V
     (hmem : InTriangle (toReal box.innerBox.triangle)
       (AtlasProjectiveView.normalizedView box.innerBox.root p)) :
     ¬ RupertPose (p.matrixPoseWithOffset box.innerBox.chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   let chart := box.innerBox.chart
   let g := box.innerBox.symmetryIndex
   let relative := relativeRotationAtSymmetry
@@ -139,7 +141,7 @@ theorem TwoZoneBox.valid_imp_not_translated_rupert (box : TwoZoneBox) (h : box.V
         box.innerBox.valid_weight_pos_of_lower
           h.inner_valid.weight_pos hscale hmem j
     · intro j i k
-      have hsup := box.innerBox.valid_support_of_upper (fun _ _ => 0)
+      have hsup := box.innerBox.valid_support_of_upper (P := P) (fun _ _ => 0)
         (fun j i k => h.inner_valid.support j i k) offset hscale hmem j i k
       push_cast at hsup
       simpa [AxisCertificate.supportIndex] using hsup
@@ -245,7 +247,7 @@ theorem TwoZoneBox.valid_imp_no_translated_rupert_in_region
       InTriangle (toReal box.innerBox.triangle)
         (AtlasProjectiveView.normalizedView box.innerBox.root p) ∧
       RupertPose (p.matrixPoseWithOffset box.innerBox.chart offset)
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
   rintro ⟨p, hp, offset, hscale, hmem, hrupert⟩
   exact box.valid_imp_not_translated_rupert h hp offset hscale hmem hrupert
 
@@ -291,23 +293,23 @@ theorem not_rupertPose_of_decomposed_two_zone
       ∀ j i k,
         ⟪direction outerBox.root p (inner_edge j i),
             outerProjectionLinear (p.matrixPoseWithOffset outerBox.chart offset)
-              (exactVertex k)⟫ ≤
+              (P.vertex k)⟫ ≤
           ⟪direction outerBox.root p (inner_edge j i),
             outerProjectionLinear (p.matrixPoseWithOffset outerBox.chart offset)
-              (exactVertex (symmetryAction outerBox.symmetryIndex (inner_index j i)))⟫)
+              (P.vertex (symmetryAction outerBox.symmetryIndex (inner_index j i)))⟫)
     (hinner_budget : ∀ (p : AtlasPose ℝ),
       p ∈ outerBox.interval.toReal → 1 ≤ viewScale outerBox.root p →
       InTriangle (toReal outerBox.triangle) (AtlasProjectiveView.normalizedView outerBox.root p) →
       ∀ j, ∑ i, weight outerBox.root p (inner_edge j) i *
         (‖direction outerBox.root p (inner_edge j i)‖ *
-          ‖exactVertex (symmetryAction outerBox.symmetryIndex (inner_index j i))‖) ≤
+          ‖P.vertex (symmetryAction outerBox.symmetryIndex (inner_index j i))‖) ≤
         (inner_B j : ℝ))
     (hinner_cover : ∀ (p : AtlasPose ℝ),
       p ∈ outerBox.interval.toReal → 1 ≤ viewScale outerBox.root p →
       InTriangle (toReal outerBox.triangle) (AtlasProjectiveView.normalizedView outerBox.root p) →
       ∀ axis : ℝ³, ‖axis‖ = 1 →
         (∃ j, (inner_c : ℝ) ≤ ⟪axis,
-          normalizedVariation outerBox.root p inner_edge inner_index outerBox.symmetryIndex
+          normalizedVariation (P := P) outerBox.root p inner_edge inner_index outerBox.symmetryIndex
             (fun j => (inner_B j : ℝ)) j⟫) ∨
         exceptional axis)
     -- Exceptional obstruction hypothesis on the inner core
@@ -322,13 +324,13 @@ theorem not_rupertPose_of_decomposed_two_zone
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset outerBox.chart offset) outerBox.symmetryIndex) - 1‖ ≤ (r0 : ℝ) →
       exceptional a.signedAxis →
-      ¬ RupertPose (p.matrixPoseWithOffset outerBox.chart offset) exactPolyhedron.hull) :
+      ¬ RupertPose (p.matrixPoseWithOffset outerBox.chart offset) P.polyhedron.hull) :
     ∀ {p : AtlasPose ℝ} (hp : p ∈ outerBox.interval.toReal) (offset : ℝ²),
       1 ≤ viewScale outerBox.root p →
       InTriangle (toReal outerBox.triangle)
         (AtlasProjectiveView.normalizedView outerBox.root p) →
       ¬ RupertPose (p.matrixPoseWithOffset outerBox.chart offset)
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
   intro p hp offset hscale hmem
   let chart := outerBox.chart
   let g := outerBox.symmetryIndex
@@ -469,14 +471,14 @@ theorem not_rupertPose_of_exceptional_cone_certificate
     (hexc : exceptional a.signedAxis)
     (hratio : (1 - Real.cos a.angle) * ((box.certificate j).B : ℝ) + (D j : ℝ) ≤
       |Real.sin a.angle| * ((c_cone : ℝ) - (box.δ : ℝ)) * ((box.certificate j).B : ℝ)) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   have hscaleNe := (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
-  have hmove := box.valid_normalizedVariation_move_of_bounds
+  have hmove := box.valid_normalizedVariation_move_of_bounds (P := P)
     hB_pos hvariation hscale hmem j
   have ha_norm : ‖a.signedAxis‖ = 1 := a.signedAxis_norm
   have hinner := abs_real_inner_le_norm a.signedAxis
-    (normalizedVariation box.root p
-      (fun j i => (box.certificate j).exactEdge i)
+    (normalizedVariation (P := P) box.root p
+      (fun j i => (box.certificate j).exactEdge (P := P) i)
       (fun j i => (box.certificate j).index i)
       box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
         toR3 (box.approxNormalizedCenter j))
@@ -486,8 +488,8 @@ theorem not_rupertPose_of_exceptional_cone_certificate
   rw [abs_le] at hinner
   have hcone_margin : ((c_cone : ℝ) - (box.δ : ℝ)) ≤
       inner ℝ a.signedAxis
-        (normalizedVariation box.root p
-          (fun j i => (box.certificate j).exactEdge i)
+        (normalizedVariation (P := P) box.root p
+          (fun j i => (box.certificate j).exactEdge (P := P) i)
           (fun j i => (box.certificate j).index i)
           box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j) := by
     linarith
@@ -496,56 +498,56 @@ theorem not_rupertPose_of_exceptional_cone_certificate
     (g := box.symmetryIndex)
     (a := a)
     (index := fun i => (box.certificate j).index i)
-    (weight := fun i => (box.certificate j).exactWeight box p i)
-    (direction := fun i => direction box.root p ((box.certificate j).exactEdge i))
+    (weight := fun i => (box.certificate j).exactWeight (P := P) box p i)
+    (direction := fun i => direction box.root p ((box.certificate j).exactEdge (P := P) i))
     (defect := fun i => (defect j i : ℝ))
-  · exact box.valid_direction_nonzero_of_strict hdir_nonzero offset hscale hmem j
+  · exact box.valid_direction_nonzero_of_strict (P := P) hdir_nonzero offset hscale hmem j
   · intro i
     simpa [AxisCertificate.exactWeight] using
-      box.valid_weight_nonneg_of_lower hweight_nonneg hscale hmem j i
+      box.valid_weight_nonneg_of_lower (P := P) hweight_nonneg hscale hmem j i
   · simpa [AxisCertificate.exactWeight] using
-      box.valid_weight_pos_of_lower hweight_pos hscale hmem j
+      box.valid_weight_pos_of_lower (P := P) hweight_pos hscale hmem j
   · exact weight_balance box.root p (fun i => (box.certificate j).exactEdge i) hscaleNe
   · intro i k
     simpa [AxisCertificate.supportIndex] using
       box.valid_support_of_upper defect hsupport offset hscale hmem j i k
   · have hbudget_bound :
-        ∑ i, (box.certificate j).exactWeight box p i *
-          (‖direction box.root p ((box.certificate j).exactEdge i)‖ *
-            ‖exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖) ≤
+        ∑ i, (box.certificate j).exactWeight (P := P) box p i *
+          (‖direction box.root p ((box.certificate j).exactEdge (P := P) i)‖ *
+            ‖P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖) ≤
           ((box.certificate j).B : ℝ) := by
       simpa [AxisCertificate.exactWeight, AxisCertificate.supportIndex,
         AxisCertificate.exactSelectedVertex] using
         box.valid_budget_of_le hweight_nonneg hbudget hscale hmem j
     have hD_bound :
-        ∑ i, (box.certificate j).exactWeight box p i * (defect j i : ℝ) ≤ (D j : ℝ) := by
+        ∑ i, (box.certificate j).exactWeight (P := P) box p i * (defect j i : ℝ) ≤ (D j : ℝ) := by
       simpa [AxisCertificate.exactWeight] using
         box.valid_defect_budget defect D hdefect_nonneg hdefect_budget
           hscale hmem j
     have hremainder :
         (1 - Real.cos a.angle) *
-            (∑ i, (box.certificate j).exactWeight box p i *
-              (‖direction box.root p ((box.certificate j).exactEdge i)‖ *
-                ‖exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖)) +
-          ∑ i, (box.certificate j).exactWeight box p i * (defect j i : ℝ) ≤
+            (∑ i, (box.certificate j).exactWeight (P := P) box p i *
+              (‖direction box.root p ((box.certificate j).exactEdge (P := P) i)‖ *
+                ‖P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖)) +
+          ∑ i, (box.certificate j).exactWeight (P := P) box p i * (defect j i : ℝ) ≤
           (1 - Real.cos a.angle) * ((box.certificate j).B : ℝ) + (D j : ℝ) := by
       linarith [mul_le_mul_of_nonneg_left hbudget_bound (sub_nonneg.mpr (Real.cos_le_one a.angle)), hD_bound]
-    have hweight_def : (fun i => (box.certificate j).exactWeight box p i) =
-        weight box.root p (fun i => (box.certificate j).exactEdge i) := rfl
+    have hweight_def : (fun i => (box.certificate j).exactWeight (P := P) box p i) =
+        weight box.root p (fun i => (box.certificate j).exactEdge (P := P) i) := rfl
     rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
       (fun i => (box.certificate j).exactWeight box p i)
       (fun i => direction box.root p ((box.certificate j).exactEdge i))
-      (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i)))]
+      (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i)))]
     rw [hweight_def]
     rw [firstVariationVector_eq box.root p box.chart offset (fun i => (box.certificate j).exactEdge i)
-      (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))) hscaleNe]
+      (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))) hscaleNe]
     have hB_real_pos : (0 : ℝ) < ((box.certificate j).B : ℝ) := by exact_mod_cast hB_pos j
     have hvar_eq :
-        variationVector box.root p (fun i => (box.certificate j).exactEdge i)
-          (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))) =
+        variationVector box.root p (fun i => (box.certificate j).exactEdge (P := P) i)
+          (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))) =
         ((box.certificate j).B : ℝ) •
-          normalizedVariation box.root p
-            (fun j i => (box.certificate j).exactEdge i)
+          normalizedVariation (P := P) box.root p
+            (fun j i => (box.certificate j).exactEdge (P := P) i)
             (fun j i => (box.certificate j).index i)
             box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j := by
       simp only [normalizedVariation, smul_smul]
@@ -556,8 +558,8 @@ theorem not_rupertPose_of_exceptional_cone_certificate
         |Real.sin a.angle| * ((c_cone : ℝ) - (box.δ : ℝ)) * ((box.certificate j).B : ℝ) ≤
           |Real.sin a.angle| * (((box.certificate j).B : ℝ) *
             inner ℝ a.signedAxis
-              (normalizedVariation box.root p
-                (fun j i => (box.certificate j).exactEdge i)
+              (normalizedVariation (P := P) box.root p
+                (fun j i => (box.certificate j).exactEdge (P := P) i)
                 (fun j i => (box.certificate j).index i)
                 box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j)) := by
       calc
@@ -621,7 +623,7 @@ theorem not_rupertPose_of_annular_exceptional_cone_certificate
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖)
     (hexc : exceptional a.signedAxis) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   have hc_eff_nonneg : (0 : ℝ) ≤ (c_cone : ℝ) - (box.δ : ℝ) := by
     have : (box.δ : ℝ) ≤ (c_cone : ℝ) := by exact_mod_cast hc_cone_margin
     linarith
@@ -670,13 +672,13 @@ theorem not_rupertPose_of_three_way_split
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ →
       exceptional a.signedAxis →
-      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull)
     (h_complement : ∀ a : AxisAngle
       (Noperthedron.SnubCube.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
       ¬ exceptional a.signedAxis →
-      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull)
     (h_inner_core : ∀ a : AxisAngle
       (Noperthedron.SnubCube.so3CLM
         (relativeRotationAtSymmetry
@@ -685,8 +687,8 @@ theorem not_rupertPose_of_three_way_split
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
       exceptional a.signedAxis →
-      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull) :
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   let relative := relativeRotationAtSymmetry
     (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex
   obtain ⟨a⟩ := exists_axisAngle relative.val relative.property
@@ -717,7 +719,7 @@ theorem valid_imp_not_translated_rupert_of_three_way_split
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ →
         exceptional a.signedAxis →
-        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull)
     (h_complement : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
       1 ≤ viewScale box.root p →
       InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
@@ -726,7 +728,7 @@ theorem valid_imp_not_translated_rupert_of_three_way_split
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
         ¬ exceptional a.signedAxis →
-        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull)
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull)
     (h_inner_core : ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
       1 ≤ viewScale box.root p →
       InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
@@ -738,11 +740,11 @@ theorem valid_imp_not_translated_rupert_of_three_way_split
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
         exceptional a.signedAxis →
-        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull) :
+        ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull) :
     ∀ {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²),
       1 ≤ viewScale box.root p →
       InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
-      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+      ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   intro p hp offset hscale hmem
   exact not_rupertPose_of_three_way_split box r_min exceptional offset
     (h_annular_cone hp offset hscale hmem)
@@ -780,7 +782,7 @@ theorem not_rupertPose_of_inner_core_cone_axis
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ))
     (hexc : exceptional a.signedAxis) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   have hc_eff_nonneg : (0 : ℝ) ≤ (c_core : ℝ) - (box.δ : ℝ) := by
     have : (box.δ : ℝ) ≤ (c_core : ℝ) := by exact_mod_cast hc_core_margin
     linarith
@@ -802,12 +804,12 @@ theorem not_rupertPose_of_inner_core_cone_axis
         mul_le_mul_of_nonneg_right hangle_ratio hB_real_nonneg
       _ = |Real.sin a.angle| * ((c_core : ℝ) - (box.δ : ℝ)) * ((box.certificate 0).B : ℝ) := by ring
   have hscaleNe := (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
-  have _hmove := box.valid_normalizedVariation_move_of_bounds
+  have _hmove := box.valid_normalizedVariation_move_of_bounds (P := P)
     hB_pos hvariation hscale hmem 0
   have ha_norm : ‖a.signedAxis‖ = 1 := a.signedAxis_norm
   have hinner := abs_real_inner_le_norm a.signedAxis
-    (normalizedVariation box.root p
-      (fun j i => (box.certificate j).exactEdge i)
+    (normalizedVariation (P := P) box.root p
+      (fun j i => (box.certificate j).exactEdge (P := P) i)
       (fun j i => (box.certificate j).index i)
       box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) 0 -
         toR3 (box.approxNormalizedCenter 0))
@@ -817,8 +819,8 @@ theorem not_rupertPose_of_inner_core_cone_axis
   rw [abs_le] at hinner
   have _hcone_margin : ((c_core : ℝ) - (box.δ : ℝ)) ≤
       inner ℝ a.signedAxis
-        (normalizedVariation box.root p
-          (fun j i => (box.certificate j).exactEdge i)
+        (normalizedVariation (P := P) box.root p
+          (fun j i => (box.certificate j).exactEdge (P := P) i)
           (fun j i => (box.certificate j).index i)
           box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) 0) := by
     linarith
@@ -827,53 +829,53 @@ theorem not_rupertPose_of_inner_core_cone_axis
     (g := box.symmetryIndex)
     (a := a)
     (index := fun i => (box.certificate 0).index i)
-    (weight := fun i => (box.certificate 0).exactWeight box p i)
-    (direction := fun i => direction box.root p ((box.certificate 0).exactEdge i))
+    (weight := fun i => (box.certificate 0).exactWeight (P := P) box p i)
+    (direction := fun i => direction box.root p ((box.certificate 0).exactEdge (P := P) i))
     (defect := fun _ => 0)
-  · exact box.valid_direction_nonzero_of_strict hdir_nonzero offset hscale hmem 0
+  · exact box.valid_direction_nonzero_of_strict (P := P) hdir_nonzero offset hscale hmem 0
   · intro i
     simpa [AxisCertificate.exactWeight] using
-      box.valid_weight_nonneg_of_lower hweight_nonneg hscale hmem 0 i
+      box.valid_weight_nonneg_of_lower (P := P) hweight_nonneg hscale hmem 0 i
   · simpa [AxisCertificate.exactWeight] using
-      box.valid_weight_pos_of_lower hweight_pos hscale hmem 0
+      box.valid_weight_pos_of_lower (P := P) hweight_pos hscale hmem 0
   · exact weight_balance box.root p (fun i => (box.certificate 0).exactEdge i) hscaleNe
   · intro i k
-    have hsup := box.valid_support_of_upper (fun _ _ => 0)
+    have hsup := box.valid_support_of_upper (P := P) (fun _ _ => 0)
       hsupport offset hscale hmem 0 i k
     push_cast at hsup
     simpa [AxisCertificate.supportIndex] using hsup
   · have hbudget_bound :
-        ∑ i, (box.certificate 0).exactWeight box p i *
-          (‖direction box.root p ((box.certificate 0).exactEdge i)‖ *
-            ‖exactVertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))‖) ≤
+        ∑ i, (box.certificate 0).exactWeight (P := P) box p i *
+          (‖direction box.root p ((box.certificate 0).exactEdge (P := P) i)‖ *
+            ‖P.vertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))‖) ≤
           ((box.certificate 0).B : ℝ) := by
       simpa [AxisCertificate.exactWeight, AxisCertificate.supportIndex,
         AxisCertificate.exactSelectedVertex] using
         box.valid_budget_of_le hweight_nonneg hbudget hscale hmem 0
     have hremainder :
         (1 - Real.cos a.angle) *
-            (∑ i, (box.certificate 0).exactWeight box p i *
-              (‖direction box.root p ((box.certificate 0).exactEdge i)‖ *
-                ‖exactVertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))‖)) +
-          ∑ i, (box.certificate 0).exactWeight box p i * (0 : ℝ) ≤
+            (∑ i, (box.certificate 0).exactWeight (P := P) box p i *
+              (‖direction box.root p ((box.certificate 0).exactEdge (P := P) i)‖ *
+                ‖P.vertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))‖)) +
+          ∑ i, (box.certificate 0).exactWeight (P := P) box p i * (0 : ℝ) ≤
           (1 - Real.cos a.angle) * ((box.certificate 0).B : ℝ) := by
       simp only [mul_zero, Finset.sum_const_zero, add_zero]
       exact mul_le_mul_of_nonneg_left hbudget_bound (sub_nonneg.mpr (Real.cos_le_one a.angle))
-    have hweight_def : (fun i => (box.certificate 0).exactWeight box p i) =
-        weight box.root p (fun i => (box.certificate 0).exactEdge i) := rfl
+    have hweight_def : (fun i => (box.certificate 0).exactWeight (P := P) box p i) =
+        weight box.root p (fun i => (box.certificate 0).exactEdge (P := P) i) := rfl
     rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
       (fun i => (box.certificate 0).exactWeight box p i)
       (fun i => direction box.root p ((box.certificate 0).exactEdge i))
-      (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i)))]
+      (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i)))]
     rw [hweight_def]
     rw [firstVariationVector_eq box.root p box.chart offset (fun i => (box.certificate 0).exactEdge i)
-      (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))) hscaleNe]
+      (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))) hscaleNe]
     have hvar_eq :
-        variationVector box.root p (fun i => (box.certificate 0).exactEdge i)
-          (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))) =
+        variationVector box.root p (fun i => (box.certificate 0).exactEdge (P := P) i)
+          (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))) =
         ((box.certificate 0).B : ℝ) •
-          normalizedVariation box.root p
-            (fun j i => (box.certificate j).exactEdge i)
+          normalizedVariation (P := P) box.root p
+            (fun j i => (box.certificate j).exactEdge (P := P) i)
             (fun j i => (box.certificate j).index i)
             box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) 0 := by
       simp only [normalizedVariation, smul_smul]
@@ -883,8 +885,8 @@ theorem not_rupertPose_of_inner_core_cone_axis
         |Real.sin a.angle| * ((c_core : ℝ) - (box.δ : ℝ)) * ((box.certificate 0).B : ℝ) ≤
           |Real.sin a.angle| * (((box.certificate 0).B : ℝ) *
             inner ℝ a.signedAxis
-              (normalizedVariation box.root p
-                (fun j i => (box.certificate j).exactEdge i)
+              (normalizedVariation (P := P) box.root p
+                (fun j i => (box.certificate j).exactEdge (P := P) i)
                 (fun j i => (box.certificate j).index i)
                 box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) 0)) := by
       calc
@@ -906,7 +908,7 @@ theorem not_rupertPose_of_inner_core_cone_axis
       (1 - Real.cos a.angle) *
           (∑ i, (box.certificate 0).exactWeight box p i *
             (‖direction box.root p ((box.certificate 0).exactEdge i)‖ *
-              ‖exactVertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))‖)) +
+              ‖P.vertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i))‖)) +
         ∑ i, (box.certificate 0).exactWeight box p i * (0 : ℝ) ≤
           (1 - Real.cos a.angle) * ((box.certificate 0).B : ℝ) := hremainder
       _ ≤ |Real.sin a.angle| * ((c_core : ℝ) - (box.δ : ℝ)) * ((box.certificate 0).B : ℝ) := by
@@ -947,7 +949,7 @@ theorem not_rupertPose_of_single_complement_axis
       ((relativeRotationAtSymmetry
         (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex).val.toEuclideanLin.toContinuousLinearMap))
     (haxis_cover : (c_comp : ℝ) ≤ inner ℝ a.signedAxis (toR3 (box.approxNormalizedCenter j))) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   have hc_eff_nonneg : (0 : ℝ) ≤ (c_comp : ℝ) - (box.δ : ℝ) := by
     have : (box.δ : ℝ) ≤ (c_comp : ℝ) := by exact_mod_cast hc_comp_margin
     linarith
@@ -969,12 +971,12 @@ theorem not_rupertPose_of_single_complement_axis
     push_cast at hr
     exact hr
   have hscaleNe := (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
-  have _hmove := box.valid_normalizedVariation_move_of_bounds
+  have _hmove := box.valid_normalizedVariation_move_of_bounds (P := P)
     hB_pos hvariation hscale hmem j
   have ha_norm : ‖a.signedAxis‖ = 1 := a.signedAxis_norm
   have hinner := abs_real_inner_le_norm a.signedAxis
-    (normalizedVariation box.root p
-      (fun j i => (box.certificate j).exactEdge i)
+    (normalizedVariation (P := P) box.root p
+      (fun j i => (box.certificate j).exactEdge (P := P) i)
       (fun j i => (box.certificate j).index i)
       box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
         toR3 (box.approxNormalizedCenter j))
@@ -983,8 +985,8 @@ theorem not_rupertPose_of_single_complement_axis
   rw [abs_le] at hinner
   have _hcone_margin : ((c_comp : ℝ) - (box.δ : ℝ)) ≤
       inner ℝ a.signedAxis
-        (normalizedVariation box.root p
-          (fun j i => (box.certificate j).exactEdge i)
+        (normalizedVariation (P := P) box.root p
+          (fun j i => (box.certificate j).exactEdge (P := P) i)
           (fun j i => (box.certificate j).index i)
           box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j) := by
     linarith
@@ -993,53 +995,53 @@ theorem not_rupertPose_of_single_complement_axis
     (g := box.symmetryIndex)
     (a := a)
     (index := fun i => (box.certificate j).index i)
-    (weight := fun i => (box.certificate j).exactWeight box p i)
-    (direction := fun i => direction box.root p ((box.certificate j).exactEdge i))
+    (weight := fun i => (box.certificate j).exactWeight (P := P) box p i)
+    (direction := fun i => direction box.root p ((box.certificate j).exactEdge (P := P) i))
     (defect := fun _ => 0)
-  · exact box.valid_direction_nonzero_of_strict hdir_nonzero offset hscale hmem j
+  · exact box.valid_direction_nonzero_of_strict (P := P) hdir_nonzero offset hscale hmem j
   · intro i
     simpa [AxisCertificate.exactWeight] using
-      box.valid_weight_nonneg_of_lower hweight_nonneg hscale hmem j i
+      box.valid_weight_nonneg_of_lower (P := P) hweight_nonneg hscale hmem j i
   · simpa [AxisCertificate.exactWeight] using
-      box.valid_weight_pos_of_lower hweight_pos hscale hmem j
+      box.valid_weight_pos_of_lower (P := P) hweight_pos hscale hmem j
   · exact weight_balance box.root p (fun i => (box.certificate j).exactEdge i) hscaleNe
   · intro i k
-    have hsup := box.valid_support_of_upper_single j (fun _ => 0)
+    have hsup := box.valid_support_of_upper_single (P := P) j (fun _ => 0)
       hsupport offset hscale hmem i k
     push_cast at hsup
     simpa [AxisCertificate.supportIndex] using hsup
   · have hbudget_bound :
-        ∑ i, (box.certificate j).exactWeight box p i *
-          (‖direction box.root p ((box.certificate j).exactEdge i)‖ *
-            ‖exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖) ≤
+        ∑ i, (box.certificate j).exactWeight (P := P) box p i *
+          (‖direction box.root p ((box.certificate j).exactEdge (P := P) i)‖ *
+            ‖P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖) ≤
           ((box.certificate j).B : ℝ) := by
       simpa [AxisCertificate.exactWeight, AxisCertificate.supportIndex,
         AxisCertificate.exactSelectedVertex] using
         box.valid_budget_of_le hweight_nonneg hbudget hscale hmem j
     have hremainder :
         (1 - Real.cos a.angle) *
-            (∑ i, (box.certificate j).exactWeight box p i *
-              (‖direction box.root p ((box.certificate j).exactEdge i)‖ *
-                ‖exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖)) +
-          ∑ i, (box.certificate j).exactWeight box p i * (0 : ℝ) ≤
+            (∑ i, (box.certificate j).exactWeight (P := P) box p i *
+              (‖direction box.root p ((box.certificate j).exactEdge (P := P) i)‖ *
+                ‖P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖)) +
+          ∑ i, (box.certificate j).exactWeight (P := P) box p i * (0 : ℝ) ≤
           (1 - Real.cos a.angle) * ((box.certificate j).B : ℝ) := by
       simp only [mul_zero, Finset.sum_const_zero, add_zero]
       exact mul_le_mul_of_nonneg_left hbudget_bound (sub_nonneg.mpr (Real.cos_le_one a.angle))
-    have hweight_def : (fun i => (box.certificate j).exactWeight box p i) =
-        weight box.root p (fun i => (box.certificate j).exactEdge i) := rfl
+    have hweight_def : (fun i => (box.certificate j).exactWeight (P := P) box p i) =
+        weight box.root p (fun i => (box.certificate j).exactEdge (P := P) i) := rfl
     rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
       (fun i => (box.certificate j).exactWeight box p i)
       (fun i => direction box.root p ((box.certificate j).exactEdge i))
-      (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i)))]
+      (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i)))]
     rw [hweight_def]
     rw [firstVariationVector_eq box.root p box.chart offset (fun i => (box.certificate j).exactEdge i)
-      (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))) hscaleNe]
+      (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))) hscaleNe]
     have hvar_eq :
-        variationVector box.root p (fun i => (box.certificate j).exactEdge i)
-          (fun i => exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))) =
+        variationVector box.root p (fun i => (box.certificate j).exactEdge (P := P) i)
+          (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))) =
         ((box.certificate j).B : ℝ) •
-          normalizedVariation box.root p
-            (fun j i => (box.certificate j).exactEdge i)
+          normalizedVariation (P := P) box.root p
+            (fun j i => (box.certificate j).exactEdge (P := P) i)
             (fun j i => (box.certificate j).index i)
             box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j := by
       simp only [normalizedVariation, smul_smul]
@@ -1049,8 +1051,8 @@ theorem not_rupertPose_of_single_complement_axis
         |Real.sin a.angle| * ((c_comp : ℝ) - (box.δ : ℝ)) * ((box.certificate j).B : ℝ) ≤
           |Real.sin a.angle| * (((box.certificate j).B : ℝ) *
             inner ℝ a.signedAxis
-              (normalizedVariation box.root p
-                (fun j i => (box.certificate j).exactEdge i)
+              (normalizedVariation (P := P) box.root p
+                (fun j i => (box.certificate j).exactEdge (P := P) i)
                 (fun j i => (box.certificate j).index i)
                 box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j)) := by
       calc
@@ -1072,7 +1074,7 @@ theorem not_rupertPose_of_single_complement_axis
       (1 - Real.cos a.angle) *
           (∑ i, (box.certificate j).exactWeight box p i *
             (‖direction box.root p ((box.certificate j).exactEdge i)‖ *
-              ‖exactVertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖)) +
+              ‖P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i))‖)) +
         ∑ i, (box.certificate j).exactWeight box p i * (0 : ℝ) ≤
           (1 - Real.cos a.angle) * ((box.certificate j).B : ℝ) := hremainder
       _ ≤ |Real.sin a.angle| * ((c_comp : ℝ) - (box.δ : ℝ)) * ((box.certificate j).B : ℝ) := by
@@ -1360,7 +1362,7 @@ theorem valid_imp_not_translated_rupert_of_decomposed
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   let coreBox := box.withCoreAxis coreAxis c_core r_min
   let exceptional : ℝ³ → Prop := fun axis =>
     (c_cone : ℝ) ≤ inner ℝ axis (toR3 (box.approxNormalizedCenter 0))
@@ -1434,7 +1436,7 @@ theorem valid_imp_not_translated_rupert_of_decomposed
   · intro p' hp' off' hs' hm' a hnorm_upper hexc
     have hexc_core : (c_core : ℝ) ≤ inner ℝ a.signedAxis (toR3 (coreBox.approxNormalizedCenter 0)) :=
       hexc_covers a.signedAxis a.signedAxis_norm hexc
-    change ¬ RupertPose (p'.matrixPoseWithOffset coreBox.chart off') exactPolyhedron.hull
+    change ¬ RupertPose (p'.matrixPoseWithOffset coreBox.chart off') P.polyhedron.hull
     apply not_rupertPose_of_inner_core_cone_axis coreBox r_min c_core exceptional
       hr_min_nonneg hc_core_margin (fun _ => hcore_B_pos) hdelta_nonneg
       (fun _ => hcore_var) (fun _ i k => hcore_supp i k) (fun _ i => hcore_dir i)
@@ -1519,7 +1521,7 @@ theorem Box.valid_imp_not_translated_rupert_of_decomposedViewValid
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   have hu_pos' : (0 : ℝ) < inner ℝ (toR3 (box.approxNormalizedCenter 0)) (toR3 (box.approxNormalizedCenter 0)) := by
     rw [inner_self_toR3]
     exact_mod_cast hview.hu_pos
@@ -1626,7 +1628,7 @@ theorem valid_imp_not_translated_rupert_of_flock_decomposed
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   let exceptional : ℝ³ → Prop := fun axis =>
     (c_cone : ℝ) ≤ inner ℝ axis (toR3 (box.approxNormalizedCenter 0))
   apply valid_imp_not_translated_rupert_of_three_way_split box r_min exceptional
@@ -1699,7 +1701,7 @@ theorem valid_imp_not_translated_rupert_of_flock_decomposed
   · intro p' hp' off' hs' hm' a hnorm_upper hexc
     obtain ⟨m, hexc_core⟩ := hexc_covers a.signedAxis a.signedAxis_norm hexc
     let coreBox := box.withCoreAxis (coreAxes m) c_core r_min
-    change ¬ RupertPose (p'.matrixPoseWithOffset coreBox.chart off') exactPolyhedron.hull
+    change ¬ RupertPose (p'.matrixPoseWithOffset coreBox.chart off') P.polyhedron.hull
     let exc_single : ℝ³ → Prop := fun axis => axis = a.signedAxis
     apply not_rupertPose_of_inner_core_cone_axis coreBox r_min c_core exc_single
       hr_min_nonneg hc_core_margin (fun _ => hcore_B_pos m) hdelta_nonneg
@@ -1791,7 +1793,7 @@ theorem Box.valid_imp_not_translated_rupert_of_flockDecomposedViewValid
     (hscale : 1 ≤ viewScale box.root p)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
-    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) exactPolyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull := by
   have hexc_covers : ∀ axis : ℝ³, ‖axis‖ = 1 →
       (c_cone : ℝ) ≤ inner ℝ axis (toR3 (box.approxNormalizedCenter 0)) →
       ∃ m : Fin flockAxes.size, (c_core : ℝ) ≤ inner ℝ axis (toR3 ((box.withCoreAxis (flockAxes[m]) c_core r_min).approxNormalizedCenter 0)) := by

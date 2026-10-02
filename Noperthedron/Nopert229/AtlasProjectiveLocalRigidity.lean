@@ -16,6 +16,8 @@ is supplied separately by the atlas-local Cayley mismatch certificate.
 
 namespace Noperthedron.Nopert229.AtlasProjectiveLocalRigidity
 
+variable {P : C5Model}
+
 open scoped RealInnerProductSpace
 open Noperthedron.BalancedSupport
 open Noperthedron.SnubCube.ProjectiveView
@@ -149,7 +151,7 @@ noncomputable def normalizedVariation {J : Type} (root : Fin 8) (p : AtlasPose �
     (edge : J → EdgeTriple) (index : J → Fin 3 → VertexIndex)
     (g : OrbitIndex) (B : J → ℝ) (j : J) : ℝ³ :=
   (B j)⁻¹ • variationVector root p (edge j)
-    (fun i => exactVertex (symmetryAction g (index j i)))
+    (fun i => P.vertex (symmetryAction g (index j i)))
 
 theorem not_rupertPose_of_projective_local_certificates
     (root : Fin 8) (p : AtlasPose ℝ) (chart : CayleyAtlas.ChartIndex)
@@ -160,10 +162,10 @@ theorem not_rupertPose_of_projective_local_certificates
     (hscale : viewScale root p ≠ 0)
     (hB : ∀ j, 0 < B j)
     (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
-      ∃ j, c ≤ ⟪axis, normalizedVariation root p edge index g B j⟫)
+      ∃ j, c ≤ ⟪axis, normalizedVariation (P := P) root p edge index g B j⟫)
     (hbudget : ∀ j, ∑ i, weight root p (edge j) i *
       (‖direction root p (edge j i)‖ *
-        ‖exactVertex (symmetryAction g (index j i))‖) ≤ B j)
+        ‖P.vertex (symmetryAction g (index j i))‖) ≤ B j)
     (hratio : ∀ a : AxisAngle
       (Noperthedron.SnubCube.so3CLM
         (relativeRotationAtSymmetry
@@ -175,12 +177,12 @@ theorem not_rupertPose_of_projective_local_certificates
     (hsupport : ∀ j i k,
       ⟪direction root p (edge j i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex k)⟫ ≤
+            (P.vertex k)⟫ ≤
         ⟪direction root p (edge j i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex (symmetryAction g (index j i)))⟫) :
+            (P.vertex (symmetryAction g (index j i)))⟫) :
     ¬ RupertPose (p.matrixPoseWithOffset chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   let relative := relativeRotationAtSymmetry
     (p.matrixPoseWithOffset chart offset) g
   obtain ⟨a⟩ := exists_axisAngle relative.val relative.property
@@ -191,7 +193,7 @@ theorem not_rupertPose_of_projective_local_certificates
       (weight := fun j => weight root p (edge j))
       (direction := fun j i => direction root p (edge j i))
       (A := fun j => variationVector root p (edge j)
-        (fun i => exactVertex (symmetryAction g (index j i))))
+        (fun i => P.vertex (symmetryAction g (index j i))))
       (normalizedA := normalizedVariation root p edge index g B)
       (centerNormalizedA := normalizedVariation root p edge index g B)
       (B := B) (c := c) (δ := 0)
@@ -205,7 +207,7 @@ theorem not_rupertPose_of_projective_local_certificates
     simp
   · intro j
     exact (firstVariationVector_eq root p chart offset (edge j)
-      (fun i => exactVertex (symmetryAction g (index j i))) hscale).symm
+      (fun i => P.vertex (symmetryAction g (index j i))) hscale).symm
   · exact hbudget
   · exact hratio a
   · exact hdirection
@@ -225,10 +227,10 @@ theorem not_rupertPose_of_projective_local_certificates_with_defect
     (hscale : viewScale root p ≠ 0)
     (hB : ∀ j, 0 < B j)
     (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
-      ∃ j, c ≤ ⟪axis, normalizedVariation root p edge index g B j⟫)
+      ∃ j, c ≤ ⟪axis, normalizedVariation (P := P) root p edge index g B j⟫)
     (hbudget : ∀ j, ∑ i, weight root p (edge j) i *
       (‖direction root p (edge j i)‖ *
-        ‖exactVertex (symmetryAction g (index j i))‖) ≤ B j)
+        ‖P.vertex (symmetryAction g (index j i))‖) ≤ B j)
     (hD_bound : ∀ j, ∑ i, weight root p (edge j) i * defect j i ≤ D j)
     (hratio : ∀ a : AxisAngle
       (Noperthedron.SnubCube.so3CLM
@@ -241,12 +243,12 @@ theorem not_rupertPose_of_projective_local_certificates_with_defect
     (hsupport : ∀ j i k,
       ⟪direction root p (edge j i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex k)⟫ ≤
+            (P.vertex k)⟫ ≤
         ⟪direction root p (edge j i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex (symmetryAction g (index j i)))⟫ + defect j i) :
+            (P.vertex (symmetryAction g (index j i)))⟫ + defect j i) :
     ¬ RupertPose (p.matrixPoseWithOffset chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   let relative := relativeRotationAtSymmetry
     (p.matrixPoseWithOffset chart offset) g
   obtain ⟨a⟩ := exists_axisAngle relative.val relative.property
@@ -258,7 +260,7 @@ theorem not_rupertPose_of_projective_local_certificates_with_defect
       (direction := fun j i => direction root p (edge j i))
       (defect := defect)
       (A := fun j => variationVector root p (edge j)
-        (fun i => exactVertex (symmetryAction g (index j i))))
+        (fun i => P.vertex (symmetryAction g (index j i))))
       (normalizedA := normalizedVariation root p edge index g B)
       (centerNormalizedA := normalizedVariation root p edge index g B)
       (B := B) (D := D) (c := c) (δ := 0)
@@ -272,7 +274,7 @@ theorem not_rupertPose_of_projective_local_certificates_with_defect
     simp
   · intro j
     exact (firstVariationVector_eq root p chart offset (edge j)
-      (fun i => exactVertex (symmetryAction g (index j i))) hscale).symm
+      (fun i => P.vertex (symmetryAction g (index j i))) hscale).symm
   · exact hbudget
   · exact hD_bound
   · exact hratio a
@@ -297,10 +299,10 @@ theorem not_rupertPose_of_projective_local_certificates_with_decomposition
     (hscale : viewScale root p ≠ 0)
     (hB : ∀ j, 0 < B j)
     (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
-      (∃ j, c ≤ ⟪axis, normalizedVariation root p edge index g B j⟫) ∨ exceptional axis)
+      (∃ j, c ≤ ⟪axis, normalizedVariation (P := P) root p edge index g B j⟫) ∨ exceptional axis)
     (hbudget : ∀ j, ∑ i, weight root p (edge j) i *
       (‖direction root p (edge j i)‖ *
-        ‖exactVertex (symmetryAction g (index j i))‖) ≤ B j)
+        ‖P.vertex (symmetryAction g (index j i))‖) ≤ B j)
     (hratio : ∀ a : AxisAngle
       (Noperthedron.SnubCube.so3CLM
         (relativeRotationAtSymmetry
@@ -312,18 +314,18 @@ theorem not_rupertPose_of_projective_local_certificates_with_decomposition
     (hsupport : ∀ j i k,
       ⟪direction root p (edge j i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex k)⟫ ≤
+            (P.vertex k)⟫ ≤
         ⟪direction root p (edge j i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex (symmetryAction g (index j i)))⟫)
+            (P.vertex (symmetryAction g (index j i)))⟫)
     (hexceptional : ∀ a : AxisAngle
       (Noperthedron.SnubCube.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset chart offset) g)),
       exceptional a.signedAxis → ¬ RupertPose (p.matrixPoseWithOffset chart offset)
-        exactPolyhedron.hull) :
+        P.polyhedron.hull) :
     ¬ RupertPose (p.matrixPoseWithOffset chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   let relative := relativeRotationAtSymmetry
     (p.matrixPoseWithOffset chart offset) g
   obtain ⟨a⟩ := exists_axisAngle relative.val relative.property
@@ -335,7 +337,7 @@ theorem not_rupertPose_of_projective_local_certificates_with_decomposition
       (weight := fun j => weight root p (edge j))
       (direction := fun j i => direction root p (edge j i))
       (A := fun j => variationVector root p (edge j)
-        (fun i => exactVertex (symmetryAction g (index j i))))
+        (fun i => P.vertex (symmetryAction g (index j i))))
       (normalizedA := normalizedVariation root p edge index g B)
       (centerNormalizedA := normalizedVariation root p edge index g B)
       (B := B) (c := c) (δ := 0)
@@ -349,7 +351,7 @@ theorem not_rupertPose_of_projective_local_certificates_with_decomposition
     simp
   · intro j
     exact (firstVariationVector_eq root p chart offset (edge j)
-      (fun i => exactVertex (symmetryAction g (index j i))) hscale).symm
+      (fun i => P.vertex (symmetryAction g (index j i))) hscale).symm
   · exact hbudget
   · exact hratio a
   · exact hdirection

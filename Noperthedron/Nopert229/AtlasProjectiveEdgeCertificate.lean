@@ -15,6 +15,8 @@ normalized viewing vector, so their extrema occur at triangle corners.
 
 namespace Noperthedron.Nopert229.AtlasProjectiveEdgeCertificate
 
+variable {P : C5Model}
+
 open scoped RealInnerProductSpace
 open Noperthedron.Checker
 open Noperthedron.BalancedSupport
@@ -431,7 +433,7 @@ theorem Box.exactSupport_le_scaledUpper (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin (box.edgePred + 1)) (k : VertexIndex) :
-    box.edgeShell.exactSupportValue p i k ≤
+    box.edgeShell.exactSupportValue (P := P) p i k ≤
       viewScale box.root p * (box.supportUpper i k : ℝ) := by
   have hscalePos : 0 < viewScale box.root p :=
     lt_of_lt_of_le (by norm_num) hscale
@@ -443,7 +445,7 @@ theorem Box.exactSupport_le_scaledUpper (box : Box)
         (max3 (fun j => box.supportAt j i k) : ℝ) := by
     rw [happroxEq]
     exact mul_le_mul_of_nonneg_left hprojective hscalePos.le
-  have herr := box.edgeShell.supportValue_error p i k
+  have herr := box.edgeShell.supportValue_error (P := P) p i k
   rw [abs_le] at herr
   have herrorNonneg : (0 : ℝ) ≤ (supportError : ℝ) := by
     norm_num [supportError, RationalApprox.κℚ]
@@ -470,8 +472,8 @@ theorem Box.valid_direction_nonzero (box : Box) (h : box.Valid)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin (box.edgePred + 1)) :
     cycleDirection (p.matrixPoseWithOffset box.chart offset)
-      exactPolyhedron box.outerIndex i ≠ 0 := by
-  have hupper := box.exactSupport_le_scaledUpper hscale hmem i
+      P.polyhedron box.outerIndex i ≠ 0 := by
+  have hupper := box.exactSupport_le_scaledUpper (P := P) hscale hmem i
     (box.nonzeroWitness i)
   have hupperNeg : (box.supportUpper i (box.nonzeroWitness i) : ℝ) < 0 := by
     exact_mod_cast h.direction_nonzero i
@@ -481,11 +483,11 @@ theorem Box.valid_direction_nonzero (box : Box) (h : box.Valid)
       (box.nonzeroWitness i) < 0 :=
     lt_of_le_of_lt hupper (mul_neg_of_pos_of_neg hscalePos hupperNeg)
   intro hzero
-  have heq := box.edgeShell.exactSupportValue_eq p offset i
+  have heq := box.edgeShell.exactSupportValue_eq (P := P) p offset i
     (box.nonzeroWitness i)
   have hzeroShell : cycleDirection
       (p.matrixPoseWithOffset box.edgeShell.chart offset)
-      exactPolyhedron box.edgeShell.outerIndex i = 0 := by
+      P.polyhedron box.edgeShell.outerIndex i = 0 := by
     simpa [Box.edgeShell] using hzero
   rw [hzeroShell] at heq
   simp at heq
@@ -498,11 +500,11 @@ theorem Box.valid_support (box : Box) (_h : box.Valid)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin (box.edgePred + 1)) (k : VertexIndex) :
     ⟪cycleDirection (p.matrixPoseWithOffset box.chart offset)
-        exactPolyhedron box.outerIndex i,
+        P.polyhedron box.outerIndex i,
       outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-        (exactVertex k - exactVertex (box.outerIndex i))⟫ ≤
+        (P.vertex k - P.vertex (box.outerIndex i))⟫ ≤
       viewScale box.root p * (box.defect i : ℝ) := by
-  have heq := box.edgeShell.exactSupportValue_eq p offset i k
+  have heq := box.edgeShell.exactSupportValue_eq (P := P) p offset i k
   simp only [Box.edgeShell] at heq
   rw [← heq]
   exact (box.exactSupport_le_scaledUpper hscale hmem i k).trans
@@ -518,7 +520,7 @@ theorem Box.valid_exactClearedDisplacement (box : Box) (h : box.Valid)
       (AtlasProjectiveView.normalizedView box.root p)) :
     viewScale box.root p * (box.edgeShell.dBound : ℝ) *
         (box.totalDefect : ℝ) ≤
-      box.edgeShell.exactClearedDisplacement p := by
+      box.edgeShell.exactClearedDisplacement (P := P) p := by
   have hscalePos : 0 < viewScale box.root p :=
     lt_of_lt_of_le (by norm_num) hscale
   have hprojective :=
@@ -541,7 +543,7 @@ theorem Box.valid_exactClearedDisplacement (box : Box) (h : box.Valid)
           (box.edgeShell.displacementError : ℝ)) ≤
       box.edgeShell.approxClearedDisplacement p :=
     (mul_le_mul_of_nonneg_left hchecked hscalePos.le).trans happroxLower
-  have herr := box.edgeShell.clearedDisplacement_error hp
+  have herr := box.edgeShell.clearedDisplacement_error (P := P) hp
   rw [abs_le] at herr
   have herrorNonneg : (0 : ℝ) ≤
       (box.edgeShell.displacementError : ℝ) := by
@@ -566,8 +568,8 @@ theorem Box.valid_actualDisplacement (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
     viewScale box.root p * (box.totalDefect : ℝ) ≤
-      box.edgeShell.actualDisplacement p := by
-  have hcleared := box.valid_exactClearedDisplacement h hp hbounded hscale hmem
+      box.edgeShell.actualDisplacement (P := P) p := by
+  have hcleared := box.valid_exactClearedDisplacement (P := P) h hp hbounded hscale hmem
   rw [box.edgeShell.exactClearedDisplacement_eq_denom_mul] at hcleared
   have hcharge : viewScale box.root p *
       (cayleyDenom p.x p.y p.z * (box.totalDefect : ℝ)) ≤
@@ -578,7 +580,7 @@ theorem Box.valid_actualDisplacement (box : Box) (h : box.Valid)
       (by exact_mod_cast box.totalDefect_nonneg)
   have hmul : cayleyDenom p.x p.y p.z *
       (viewScale box.root p * (box.totalDefect : ℝ)) ≤
-      cayleyDenom p.x p.y p.z * box.edgeShell.actualDisplacement p := by
+      cayleyDenom p.x p.y p.z * box.edgeShell.actualDisplacement (P := P) p := by
     calc
       _ = viewScale box.root p *
           (cayleyDenom p.x p.y p.z * (box.totalDefect : ℝ)) := by ring
@@ -595,15 +597,15 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
     ¬ RupertPose (p.matrixPoseWithOffset box.chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   apply not_rupertPose_of_cycle_support_with_defect
-    exactPolyhedron (p.matrixPoseWithOffset box.chart offset)
+    P.polyhedron (p.matrixPoseWithOffset box.chart offset)
     box.innerIndex box.outerIndex
     (fun i => viewScale box.root p * (box.defect i : ℝ))
   · exact box.valid_direction_nonzero h offset hscale hmem
   · intro i k
-    simpa [exactPolyhedron] using box.valid_support h offset hscale hmem i k
-  · have hactual := box.valid_actualDisplacement h hp hbounded hscale hmem
+    simpa [C5Model.polyhedron] using box.valid_support h offset hscale hmem i k
+  · have hactual := box.valid_actualDisplacement (P := P) h hp hbounded hscale hmem
     rw [box.edgeShell.actualDisplacement_eq_sum p offset] at hactual
     rw [Box.totalDefect] at hactual
     push_cast at hactual

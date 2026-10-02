@@ -17,6 +17,8 @@ any rational leaf contained in the certified neighborhood may use the row.
 
 namespace Noperthedron.Nopert229.LocalCertificate
 
+variable {P : C5Model}
+
 open RationalApprox GlobalTheorem
 open scoped Matrix RealInnerProductSpace
 
@@ -446,7 +448,7 @@ noncomputable def AxisCertificate.realDirection
 
 noncomputable def AxisCertificate.realVertex
     (box : Box) (cert : AxisCertificate) (i : Fin 3) : ℝ³ :=
-  exactVertex (symmetryAction box.symmetryIndex (cert.contact i).index)
+  P.vertex (symmetryAction box.symmetryIndex (cert.contact i).index)
 
 lemma AxisCertificate.B_pos (box : Box) (h : box.GeometricValid)
     (j : Fin 4) : 0 < (box.certificate j).B := by
@@ -471,7 +473,7 @@ lemma AxisCertificate.real_remainder_le_B (box : Box) (h : box.GeometricValid)
     (j : Fin 4) :
     ∑ i, (box.certificate j).realWeight i *
         (‖(box.certificate j).realDirection i‖ *
-          ‖(box.certificate j).realVertex box i‖) ≤
+          ‖(box.certificate j).realVertex (P := P) box i‖) ≤
       ((box.certificate j).B : ℝ) := by
   calc
     ∑ i, (box.certificate j).realWeight i *
@@ -483,7 +485,7 @@ lemma AxisCertificate.real_remainder_le_B (box : Box) (h : box.GeometricValid)
       rw [AxisCertificate.realDirection_norm box h j i, one_mul]
       exact mul_le_of_le_one_right
         (AxisCertificate.realWeight_nonneg box h j i)
-        (exactVertex_norm_le_one _)
+        (P.vertex_norm_le_one _)
     _ = ((box.certificate j).B : ℝ) := by
       unfold AxisCertificate.B AxisCertificate.realWeight
       push_cast
@@ -507,7 +509,7 @@ noncomputable def AxisCertificate.normalizedAAt
   ((cert.B : ℝ)⁻¹) •
     Noperthedron.SnubCube.firstVariationVector
       (q.matrixPoseWithOffset offset) cert.realWeight cert.realDirection
-      (cert.realVertex box)
+      (cert.realVertex (P := P) box)
 
 lemma AxisCertificate.firstVariation_eq_B_smul_normalizedAAt
     (box : Box) (h : box.GeometricValid) (j : Fin 4)
@@ -515,9 +517,9 @@ lemma AxisCertificate.firstVariation_eq_B_smul_normalizedAAt
     Noperthedron.SnubCube.firstVariationVector
         (q.matrixPoseWithOffset offset) (box.certificate j).realWeight
         (box.certificate j).realDirection
-        ((box.certificate j).realVertex box) =
+        ((box.certificate j).realVertex (P := P) box) =
       ((box.certificate j).B : ℝ) •
-        (box.certificate j).normalizedAAt box q offset := by
+        (box.certificate j).normalizedAAt (P := P) box q offset := by
   rw [AxisCertificate.normalizedAAt, smul_smul]
   simp [ne_of_gt (AxisCertificate.B_pos box h j)]
 
@@ -793,7 +795,7 @@ lemma AxisCertificate.toR3_approxA_eq_smul (box : Box)
 
 theorem valid_center_normalizedA_approx (box : Box)
     (h : box.GeometricValid) (j : Fin 4) :
-    ‖(box.certificate j).normalizedAAt box box.center.toReal 0 -
+    ‖(box.certificate j).normalizedAAt (P := P) box box.center.toReal 0 -
         toR3 (box.approxNormalizedA j)‖ ≤
       ((centerVectorError : ℚ) : ℝ) := by
   let cert := box.certificate j
@@ -817,15 +819,15 @@ theorem valid_center_normalizedA_approx (box : Box)
       unfold AxisCertificate.B AxisCertificate.realWeight
       push_cast
       rfl)
-    (fun i => exactVertex_norm_le_one _)
+    (fun i => P.vertex_norm_le_one _)
     (fun i => by
-      change ‖exactVertex
+      change ‖P.vertex
           (symmetryAction box.symmetryIndex (cert.contact i).index) -
         toR3 (rationalVertex
           (symmetryAction box.symmetryIndex (cert.contact i).index))‖ ≤
             RationalApprox.κ
-      simpa [exactApproximation, exactPolyhedron, rationalPolyhedron] using
-        (exactApproximation.approx
+      simpa [C5Model.approximation, C5Model.polyhedron, rationalPolyhedron] using
+        (P.approximation.approx
           (symmetryAction box.symmetryIndex (cert.contact i).index)))
     (fun i => by
       have hlift := Noperthedron.SnubCube.norm_outerLift_rationalApprox_sub_le
@@ -842,7 +844,7 @@ theorem valid_center_normalizedA_approx (box : Box)
     (by
       simpa [Noperthedron.SnubCube.firstVariationVector, exactLift,
         AxisCertificate.realWeight, AxisCertificate.realDirection,
-        AxisCertificate.realVertex, exactVertex, approxVertex, cert] using
+        AxisCertificate.realVertex, C5Model.vertex, approxVertex, cert] using
           (AxisCertificate.firstVariation_eq_B_smul_normalizedAAt
             box h j box.center.toReal (0 : ℝ²)))
     (by
@@ -863,7 +865,7 @@ theorem valid_normalizedA_move (box : Box) (h : box.GeometricValid)
     (hq : Pose.near box.center.toReal (box.εα : ℝ) (box.εθ₁ : ℝ)
       (box.εφ₁ : ℝ) (box.εθ₂ : ℝ) (box.εφ₂ : ℝ) q)
     (offset : ℝ²) (j : Fin 4) :
-    ‖(box.certificate j).normalizedAAt box q offset -
+    ‖(box.certificate j).normalizedAAt (P := P) box q offset -
         toR3 (box.approxNormalizedA j)‖ ≤
       ((box.axisPerturbation : ℚ) : ℝ) := by
   let cert := box.certificate j
@@ -873,8 +875,8 @@ theorem valid_normalizedA_move (box : Box) (h : box.GeometricValid)
     exact_mod_cast (h.weight_pos j i).le
   have hbudget :
       ∑ i, cert.realWeight i *
-          (‖cert.realDirection i‖ * ‖cert.realVertex box i‖) ≤ (cert.B : ℝ) :=
-    AxisCertificate.real_remainder_le_B box h j
+          (‖cert.realDirection i‖ * ‖cert.realVertex (P := P) box i‖) ≤ (cert.B : ℝ) :=
+    AxisCertificate.real_remainder_le_B (P := P) box h j
   have hcenterMove :=
     Noperthedron.SnubCube.norm_normalizedFirstVariation_matrixPoseWithOffset_sub_le_of_budget_bound
       q box.center.toReal offset 0 cert.realWeight cert.realDirection
@@ -885,13 +887,13 @@ theorem valid_normalizedA_move (box : Box) (h : box.GeometricValid)
       (AxisCertificate.firstVariation_eq_B_smul_normalizedAAt
         box h j box.center.toReal 0)
   have hcenterMove' :
-      ‖cert.normalizedAAt box q offset -
-          cert.normalizedAAt box box.center.toReal 0‖ ≤ (box.outerRadius : ℝ) := by
+      ‖cert.normalizedAAt (P := P) box q offset -
+          cert.normalizedAAt (P := P) box box.center.toReal 0‖ ≤ (box.outerRadius : ℝ) := by
     apply hcenterMove.trans
     rw [show (box.outerRadius : ℝ) =
       (box.εφ₂ : ℝ) + (box.εθ₂ : ℝ) by simp [Box.outerRadius]]
     exact add_le_add hq.2.2.2.1 hq.2.2.1
-  have happrox := valid_center_normalizedA_approx box h j
+  have happrox := valid_center_normalizedA_approx (P := P) box h j
   calc
     ‖(box.certificate j).normalizedAAt box q offset -
         toR3 (box.approxNormalizedA j)‖ ≤
@@ -956,13 +958,13 @@ theorem contact_support_pose (box : Box) (contact : Contact)
     (hq : Pose.near box.center.toReal (box.εα : ℝ) (box.εθ₁ : ℝ)
       (box.εφ₁ : ℝ) (box.εθ₂ : ℝ) (box.εφ₂ : ℝ) q)
     (k : VertexIndex) :
-    ⟪toR2 contact.direction, q.outer (exactVertex k)⟫ ≤
-      ⟪toR2 contact.direction, q.outer (exactVertex
+    ⟪toR2 contact.direction, q.outer (P.vertex k)⟫ ≤
+      ⟪toR2 contact.direction, q.outer (P.vertex
         (symmetryAction box.symmetryIndex contact.index))⟫ := by
   let selected := symmetryAction box.symmetryIndex contact.index
   let qouter := outerAsInnerReal q
   let pbar := (outerAsInner box.center).toReal
-  let pc : _root_.GlobalTheorem.GlobalContact exactGoodPoly pbar
+  let pc : _root_.GlobalTheorem.GlobalContact P.goodPoly pbar
       (0 : ℝ) (box.εθ₂ : ℝ) (box.εφ₂ : ℝ)
       (box.εθ₂ : ℝ) (box.εφ₂ : ℝ) := {
     Si := selected
@@ -981,17 +983,17 @@ theorem contact_support_pose (box : Box) (contact : Contact)
     pbar qouter (0 : ℝ) (box.εθ₂ : ℝ) (box.εφ₂ : ℝ)
       (box.εθ₂ : ℝ) (box.εφ₂ : ℝ)
       (by exact_mod_cast box.εθ₂_nonneg)
-      (by exact_mod_cast box.εφ₂_nonneg) hnear exactGoodPoly pc k
+      (by exact_mod_cast box.εφ₂_nonneg) hnear P.goodPoly pc k
   have hH :
       _root_.GlobalTheorem.H pbar (box.εθ₂ : ℝ) (box.εφ₂ : ℝ)
-          pc.w (exactVertex k) ≤
+          pc.w (P.vertex k) ≤
         ((Hℚ box.center box.εθ₂ box.εφ₂ contact.direction
           (rationalVertex k) : ℚ) : ℝ) := by
     change _root_.GlobalTheorem.H box.center.toReal
         (box.εθ₂ : ℝ) (box.εφ₂ : ℝ) (toR2 contact.direction)
-          (exactVertex k) ≤ _
+          (P.vertex k) ≤ _
     exact H_le_Hℚ box.εθ₂_nonneg box.εφ₂_nonneg
-      (exactVertex_norm_le_one k) (exactApproximation.approx k)
+      (P.vertex_norm_le_one k) (P.approximation.approx k)
       (direction_norm_eq_one hdirection) hcenter
   have hchecked :
       ((Hℚ box.center box.εθ₂ box.εφ₂ contact.direction
@@ -1003,19 +1005,19 @@ theorem contact_support_pose (box : Box) (contact : Contact)
       ((Gℚ (outerAsInner box.center) 0 box.εθ₂ box.εφ₂
           (rationalVertex selected) contact.direction : ℚ) : ℝ) ≤
         _root_.GlobalTheorem.G pbar 0 (box.εθ₂ : ℝ) (box.εφ₂ : ℝ)
-          (exactVertex selected) (toR2 contact.direction) := by
-    simpa [pbar, exactApproximation, rationalPolyhedron] using
+          (P.vertex selected) (toR2 contact.direction) := by
+    simpa [pbar, C5Model.approximation, rationalPolyhedron] using
       (Gℚ_le_G (p_ := outerAsInner box.center) (εα := (0 : ℚ))
         (εθ := box.εθ₂) (εφ := box.εφ₂)
         (by norm_num) box.εθ₂_nonneg box.εφ₂_nonneg
-        (exactVertex_norm_le_one selected)
-        (exactApproximation.approx selected)
+        (P.vertex_norm_le_one selected)
+        (P.approximation.approx selected)
         (direction_norm_eq_one hdirection) (outerAsInner_mem_four hcenter))
   have hinner := _root_.GlobalTheorem.global_theorem_inequality_ii
     pbar qouter (0 : ℝ) (box.εθ₂ : ℝ) (box.εφ₂ : ℝ)
       (box.εθ₂ : ℝ) (box.εφ₂ : ℝ)
       (by norm_num) (by exact_mod_cast box.εθ₂_nonneg)
-      (by exact_mod_cast box.εφ₂_nonneg) hnear exactGoodPoly pc
+      (by exact_mod_cast box.εφ₂_nonneg) hnear P.goodPoly pc
   simp only [_root_.GlobalTheorem.GlobalContact.S,
     _root_.GlobalTheorem.GlobalContact.Sval] at hinner
   dsimp [pc] at houter hinner
@@ -1034,11 +1036,11 @@ theorem contact_support_matrixPose (box : Box) (contact : Contact)
     (offset : ℝ²) (k : VertexIndex) :
     ⟪toR2 contact.direction,
         Noperthedron.BalancedSupport.outerProjectionLinear
-          (q.matrixPoseWithOffset offset) (exactVertex k)⟫ ≤
+          (q.matrixPoseWithOffset offset) (P.vertex k)⟫ ≤
       ⟪toR2 contact.direction,
         Noperthedron.BalancedSupport.outerProjectionLinear
           (q.matrixPoseWithOffset offset)
-          (exactVertex (symmetryAction box.symmetryIndex contact.index))⟫ := by
+          (P.vertex (symmetryAction box.symmetryIndex contact.index))⟫ := by
   simpa [Noperthedron.BalancedSupport.outerProjectionLinear,
     Noperthedron.BalancedSupport.matrixPoseWithOffset_outer_rotation_project] using
     contact_support_pose box contact hcenter hdirection hsupported hq k
@@ -1050,11 +1052,11 @@ theorem valid_contact_support_matrixPose (box : Box) (h : box.GeometricValid)
     (offset : ℝ²) (j : Fin 4) (i : Fin 3) (k : VertexIndex) :
     ⟪toR2 ((box.certificate j).contact i).direction,
         Noperthedron.BalancedSupport.outerProjectionLinear
-          (q.matrixPoseWithOffset offset) (exactVertex k)⟫ ≤
+          (q.matrixPoseWithOffset offset) (P.vertex k)⟫ ≤
       ⟪toR2 ((box.certificate j).contact i).direction,
         Noperthedron.BalancedSupport.outerProjectionLinear
           (q.matrixPoseWithOffset offset)
-          (exactVertex (symmetryAction box.symmetryIndex
+          (P.vertex (symmetryAction box.symmetryIndex
             ((box.certificate j).contact i).index))⟫ :=
   contact_support_matrixPose box ((box.certificate j).contact i)
     h.center_in_four (h.direction_unit j i)
@@ -1144,7 +1146,7 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
     ∀ q, Pose.near box.center.toReal (box.εα : ℝ) (box.εθ₁ : ℝ)
         (box.εφ₁ : ℝ) (box.εθ₂ : ℝ) (box.εφ₂ : ℝ) q →
       ∀ offset : ℝ²,
-        ¬ RupertPose (q.matrixPoseWithOffset offset) exactGoodPoly.hull := by
+        ¬ RupertPose (q.matrixPoseWithOffset offset) P.goodPoly.hull := by
   intro q hq offset
   let hg := h.geometric
   let relative := relativeRotationAtSymmetry
@@ -1160,19 +1162,19 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
       (A := fun j => Noperthedron.SnubCube.firstVariationVector
         (q.matrixPoseWithOffset offset) (box.certificate j).realWeight
         (box.certificate j).realDirection
-        ((box.certificate j).realVertex box))
-      (normalizedA := fun j => (box.certificate j).normalizedAAt box q offset)
+        ((box.certificate j).realVertex (P := P) box))
+      (normalizedA := fun j => (box.certificate j).normalizedAAt (P := P) box q offset)
       (centerNormalizedA := fun j => toR3 (box.approxNormalizedA j))
       (B := fun j => ((box.certificate j).B : ℝ))
       (c := (box.c : ℝ)) (δ := (box.axisPerturbation : ℝ))
   · intro j
     exact_mod_cast AxisCertificate.B_pos box hg j
   · intro j
-    exact AxisCertificate.firstVariation_eq_B_smul_normalizedAAt
+    exact AxisCertificate.firstVariation_eq_B_smul_normalizedAAt (P := P)
       box hg j q offset
   · intro axis haxis
     simpa only [Rat.cast_add] using valid_center_axis_cover box hg axis haxis
-  · exact valid_normalizedA_move box hg hq offset
+  · exact valid_normalizedA_move (P := P) box hg hq offset
   · intro j
     rfl
   · exact AxisCertificate.real_remainder_le_B box hg
@@ -1192,7 +1194,7 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
 theorem Box.valid_imp_no_translated_rupert_in_interval
     (box : Box) (h : box.Valid) :
     ¬ ∃ q ∈ box.realInterval, ∃ offset : ℝ²,
-      RupertPose (q.matrixPoseWithOffset offset) exactGoodPoly.hull := by
+      RupertPose (q.matrixPoseWithOffset offset) P.goodPoly.hull := by
   rintro ⟨q, hq, offset, hrupert⟩
   exact box.valid_imp_not_translated_rupert h q
     (box.near_center_of_mem_realInterval hq) offset hrupert

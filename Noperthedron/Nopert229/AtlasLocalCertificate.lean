@@ -16,6 +16,8 @@ each entry of the denominator-cleared mismatch is a rational quadratic.
 
 namespace Noperthedron.Nopert229.AtlasLocalCertificate
 
+variable {P : C5Model}
+
 open scoped Matrix RealInnerProductSpace
 open Noperthedron.Checker
 open Noperthedron.Nopert229.CayleyAtlas
@@ -483,7 +485,7 @@ five-dimensional atlas box, independently of the projective view region. -/
 theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
     ∀ p ∈ box.interval.toReal, ∀ offset : ℝ²,
       ¬ RupertPose (p.matrixPoseWithOffset box.chart offset)
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
   intro p hp offset
   let ebox := box.eulerBox
   let q := outerPose p
@@ -505,10 +507,10 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
         (p.matrixPoseWithOffset box.chart offset)
         (ebox.certificate j).realWeight
         (ebox.certificate j).realDirection
-        (LocalCertificate.AxisCertificate.realVertex ebox
+        (LocalCertificate.AxisCertificate.realVertex (P := P) ebox
           (ebox.certificate j)))
       (normalizedA := fun j =>
-        (ebox.certificate j).normalizedAAt ebox q offset)
+        (ebox.certificate j).normalizedAAt (P := P) ebox q offset)
       (centerNormalizedA := fun j => toR3 (ebox.approxNormalizedA j))
       (B := fun j => ((ebox.certificate j).B : ℝ))
       (c := (ebox.c : ℝ)) (δ := (ebox.axisPerturbation : ℝ))
@@ -520,12 +522,12 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
       outerPose, AtlasPose.outerSO3, AtlasPose.matrixPoseWithOffset,
       Pose.matrixPoseWithOffset,
       Pose.matrixPoseOfPose] using
-      (LocalCertificate.AxisCertificate.firstVariation_eq_B_smul_normalizedAAt
+      (LocalCertificate.AxisCertificate.firstVariation_eq_B_smul_normalizedAAt (P := P)
         ebox h.geometry j q offset)
   · intro axis haxis
     simpa only [Rat.cast_add] using
       LocalCertificate.valid_center_axis_cover ebox h.geometry axis haxis
-  · exact LocalCertificate.valid_normalizedA_move
+  · exact LocalCertificate.valid_normalizedA_move (P := P)
       ebox h.geometry hqnear offset
   · intro j
     rfl
@@ -557,7 +559,7 @@ theorem Box.valid_imp_no_translated_rupert_in_interval
     (box : Box) (h : box.Valid) :
     ¬ ∃ p ∈ box.interval.toReal, ∃ offset : ℝ²,
       RupertPose (p.matrixPoseWithOffset box.chart offset)
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
   rintro ⟨p, hp, offset, hrupert⟩
   exact box.valid_imp_not_translated_rupert h p hp offset hrupert
 

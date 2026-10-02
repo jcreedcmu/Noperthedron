@@ -232,6 +232,16 @@ noncomputable def exactApproximation :
   bijection := Equiv.refl VertexIndex
   approx i := vertex_close i
 
+/-- Every `C5Model` is a `κ`-approximation of the rational model. -/
+theorem C5Model.vertex_close (P : C5Model) (i : VertexIndex) :
+    ‖P.vertex i - toR3 (rationalVertex i)‖ ≤ κ :=
+  (P.vertex_close_model i).trans (by norm_num [modelErrorQ, κ])
+
+noncomputable def C5Model.approximation (P : C5Model) :
+    RationalApprox.κApproxPoly P.polyhedron rationalPolyhedron where
+  bijection := Equiv.refl VertexIndex
+  approx i := P.vertex_close i
+
 end Noperthedron.Nopert229
 
 end

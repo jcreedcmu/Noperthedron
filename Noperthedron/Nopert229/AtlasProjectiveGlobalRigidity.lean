@@ -15,6 +15,8 @@ no reference to a nearby symmetry or to an axis-angle decomposition.
 
 namespace Noperthedron.Nopert229.AtlasProjectiveGlobalRigidity
 
+variable {P : C5Model}
+
 open scoped RealInnerProductSpace
 open Noperthedron.BalancedSupport
 open AtlasProjectiveLocalRigidity
@@ -31,20 +33,20 @@ theorem not_rupertPose_of_projective_global_certificate
     (hsupport : ∀ i k,
       ⟪direction root p (edge i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex k)⟫ ≤
+            (P.vertex k)⟫ ≤
         ⟪direction root p (edge i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex (outerIndex i))⟫)
+            (P.vertex (outerIndex i))⟫)
     (hdisplacement : 0 ≤ ∑ i, weight root p edge i *
       ⟪direction root p (edge i),
         proj_xyL ((p.matrixPoseWithOffset chart offset).innerRot.val.toEuclideanLin
-            (exactVertex (innerIndex i))) -
+            (P.vertex (innerIndex i))) -
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex (outerIndex i))⟫) :
+            (P.vertex (outerIndex i))⟫) :
     ¬ RupertPose (p.matrixPoseWithOffset chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   let pose := p.matrixPoseWithOffset chart offset
-  apply not_rupertPose_of_balanced_support exactPolyhedron pose
+  apply not_rupertPose_of_balanced_support P.polyhedron pose
     innerIndex outerIndex (weight root p edge)
     (fun i => direction root p (edge i))
   · exact hdirection
@@ -73,22 +75,22 @@ theorem not_rupertPose_of_projective_global_certificate_with_defect
     (hsupport : ∀ i k,
       ⟪direction root p (edge i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex k)⟫ ≤
+            (P.vertex k)⟫ ≤
         ⟪direction root p (edge i),
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-            (exactVertex (outerIndex i))⟫ + defect i)
+            (P.vertex (outerIndex i))⟫ + defect i)
     (hdisplacement : ∑ i, weight root p edge i * defect i ≤
       ∑ i, weight root p edge i *
         ⟪direction root p (edge i),
           proj_xyL
               ((p.matrixPoseWithOffset chart offset).innerRot.val.toEuclideanLin
-                (exactVertex (innerIndex i))) -
+                (P.vertex (innerIndex i))) -
             outerProjectionLinear (p.matrixPoseWithOffset chart offset)
-              (exactVertex (outerIndex i))⟫) :
+              (P.vertex (outerIndex i))⟫) :
     ¬ RupertPose (p.matrixPoseWithOffset chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   let pose := p.matrixPoseWithOffset chart offset
-  apply not_rupertPose_of_balanced_support_with_defect exactPolyhedron pose
+  apply not_rupertPose_of_balanced_support_with_defect P.polyhedron pose
     innerIndex outerIndex (weight root p edge)
     (fun i => direction root p (edge i)) defect
   · exact hdirection

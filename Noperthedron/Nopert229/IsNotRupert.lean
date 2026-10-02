@@ -17,6 +17,8 @@ open scoped Matrix
 
 namespace Noperthedron.Nopert229
 
+variable {P : C5Model}
+
 open CayleyAtlas
 open AtlasProjectiveSolutionTree
 
@@ -38,11 +40,11 @@ theorem not_rupert_of_valid_tables
     (table : ChartIndex → AtlasProjectiveSolutionTree.Table)
     (hchart : ∀ chart, (table chart).chart = chart)
     (hvalid : ∀ chart, (table chart).Valid) :
-    ¬ IsRupert exactVerts := by
+    ¬ IsRupert P.verts := by
   intro hrupert
-  have hset : IsRupertSet (convexHull ℝ exactVerts) :=
-    (rupert_iff_rupert_set exactVerts).mp hrupert
-  rw [← exactPolyhedron_hull] at hset
+  have hset : IsRupertSet (convexHull ℝ P.verts) :=
+    (rupert_iff_rupert_set P.verts).mp hrupert
+  rw [← P.polyhedron_hull] at hset
   exact no_matrixPose_of_valid_tables table hchart hvalid
     (rupert_set_implies_matrix_pose hset)
 

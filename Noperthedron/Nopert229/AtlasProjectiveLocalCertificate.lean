@@ -12,6 +12,8 @@ public import Noperthedron.SnubCube.ProjectiveLocalCertificate
 
 namespace Noperthedron.Nopert229.AtlasProjectiveLocalCertificate
 
+variable {P : C5Model}
+
 open scoped RealInnerProductSpace
 open Noperthedron.Checker
 open Noperthedron.BalancedSupport
@@ -76,9 +78,9 @@ def AxisCertificate.edgeQ (cert : AxisCertificate) (i : Fin 3) : VectorQ :=
 noncomputable def AxisCertificate.exactEdge
     (cert : AxisCertificate) (i : Fin 3) : ℝ³ :=
   (cert.mixQ i : ℝ) •
-      (exactVertex (cert.edgeStart i) - exactVertex (cert.edgeFinish i)) +
+      (P.vertex (cert.edgeStart i) - P.vertex (cert.edgeFinish i)) +
     (1 - (cert.mixQ i : ℝ)) •
-      (exactVertex (cert.edgeStart₂ i) - exactVertex (cert.edgeFinish₂ i))
+      (P.vertex (cert.edgeStart₂ i) - P.vertex (cert.edgeFinish₂ i))
 
 def AxisCertificate.weightCoefficient
     (cert : AxisCertificate) : Fin 3 → VectorQ := ![
@@ -470,7 +472,7 @@ noncomputable def AxisCertificate.approxEdge
 
 noncomputable def AxisCertificate.exactSelectedVertex (box : Box)
     (cert : AxisCertificate) (i : Fin 3) : ℝ³ :=
-  exactVertex (cert.supportIndex box i)
+  P.vertex (cert.supportIndex box i)
 
 noncomputable def AxisCertificate.approxSelectedVertex (box : Box)
     (cert : AxisCertificate) (i : Fin 3) : ℝ³ :=
@@ -478,7 +480,7 @@ noncomputable def AxisCertificate.approxSelectedVertex (box : Box)
 
 noncomputable def AxisCertificate.exactDelta (box : Box)
     (cert : AxisCertificate) (i : Fin 3) (k : VertexIndex) : ℝ³ :=
-  exactVertex k - cert.exactSelectedVertex box i
+  P.vertex k - cert.exactSelectedVertex (P := P) box i
 
 noncomputable def AxisCertificate.approxDelta (box : Box)
     (cert : AxisCertificate) (i : Fin 3) (k : VertexIndex) : ℝ³ :=
@@ -503,33 +505,33 @@ theorem AxisCertificate.approxDelta_eq (box : Box)
   simp [AxisCertificate.approxDelta, AxisCertificate.deltaQ, toR3]
 
 theorem AxisCertificate.exactEdge_norm_le_two
-    (cert : AxisCertificate) (i : Fin 3) : ‖cert.exactEdge i‖ ≤ 2 := by
+    (cert : AxisCertificate) (i : Fin 3) : ‖cert.exactEdge (P := P) i‖ ≤ 2 := by
   have hlambdaQ := cert.mixQ_nonneg i
   have hlambdaQ' := cert.mixQ_le_one i
   have hlambda : (0 : ℝ) ≤ (cert.mixQ i : ℝ) := by exact_mod_cast hlambdaQ
   have h1lambda : (0 : ℝ) ≤ 1 - (cert.mixQ i : ℝ) := by
     exact sub_nonneg.mpr (by exact_mod_cast hlambdaQ')
   have hfirst :
-      ‖exactVertex (cert.edgeStart i) - exactVertex (cert.edgeFinish i)‖ ≤ 2 :=
+      ‖P.vertex (cert.edgeStart i) - P.vertex (cert.edgeFinish i)‖ ≤ 2 :=
     (norm_sub_le _ _).trans (by
-      linarith [exactVertex_norm_le_one (cert.edgeStart i),
-        exactVertex_norm_le_one (cert.edgeFinish i)])
+      linarith [P.vertex_norm_le_one (cert.edgeStart i),
+        P.vertex_norm_le_one (cert.edgeFinish i)])
   have hsecond :
-      ‖exactVertex (cert.edgeStart₂ i) - exactVertex (cert.edgeFinish₂ i)‖ ≤ 2 :=
+      ‖P.vertex (cert.edgeStart₂ i) - P.vertex (cert.edgeFinish₂ i)‖ ≤ 2 :=
     (norm_sub_le _ _).trans (by
-      linarith [exactVertex_norm_le_one (cert.edgeStart₂ i),
-        exactVertex_norm_le_one (cert.edgeFinish₂ i)])
+      linarith [P.vertex_norm_le_one (cert.edgeStart₂ i),
+        P.vertex_norm_le_one (cert.edgeFinish₂ i)])
   unfold AxisCertificate.exactEdge
   calc
     _ ≤ ‖(cert.mixQ i : ℝ) •
-          (exactVertex (cert.edgeStart i) - exactVertex (cert.edgeFinish i))‖ +
+          (P.vertex (cert.edgeStart i) - P.vertex (cert.edgeFinish i))‖ +
         ‖(1 - (cert.mixQ i : ℝ)) •
-          (exactVertex (cert.edgeStart₂ i) - exactVertex (cert.edgeFinish₂ i))‖ :=
+          (P.vertex (cert.edgeStart₂ i) - P.vertex (cert.edgeFinish₂ i))‖ :=
       norm_add_le _ _
     _ = (cert.mixQ i : ℝ) *
-          ‖exactVertex (cert.edgeStart i) - exactVertex (cert.edgeFinish i)‖ +
+          ‖P.vertex (cert.edgeStart i) - P.vertex (cert.edgeFinish i)‖ +
         (1 - (cert.mixQ i : ℝ)) *
-          ‖exactVertex (cert.edgeStart₂ i) - exactVertex (cert.edgeFinish₂ i)‖ := by
+          ‖P.vertex (cert.edgeStart₂ i) - P.vertex (cert.edgeFinish₂ i)‖ := by
       rw [norm_smul, norm_smul, Real.norm_eq_abs, Real.norm_eq_abs,
         abs_of_nonneg hlambda, abs_of_nonneg h1lambda]
     _ ≤ (cert.mixQ i : ℝ) * 2 + (1 - (cert.mixQ i : ℝ)) * 2 :=
@@ -583,7 +585,7 @@ theorem AxisCertificate.approxEdge_norm_le
 
 theorem AxisCertificate.exactEdge_sub_approx_norm_le
     (cert : AxisCertificate) (i : Fin 3) :
-    ‖cert.exactEdge i - cert.approxEdge i‖ ≤ 2 * RationalApprox.κ := by
+    ‖cert.exactEdge (P := P) i - cert.approxEdge i‖ ≤ 2 * RationalApprox.κ := by
   have hlambdaQ := cert.mixQ_nonneg i
   have hlambdaQ' := cert.mixQ_le_one i
   have hlambda : (0 : ℝ) ≤ (cert.mixQ i : ℝ) := by exact_mod_cast hlambdaQ
@@ -591,7 +593,7 @@ theorem AxisCertificate.exactEdge_sub_approx_norm_le
     exact sub_nonneg.mpr (by exact_mod_cast hlambdaQ')
   rw [cert.approxEdge_eq]
   have hrearrange :
-      cert.exactEdge i -
+      cert.exactEdge (P := P) i -
           ((cert.mixQ i : ℝ) •
               (toR3 (rationalVertex (cert.edgeStart i)) -
                 toR3 (rationalVertex (cert.edgeFinish i))) +
@@ -599,59 +601,59 @@ theorem AxisCertificate.exactEdge_sub_approx_norm_le
               (toR3 (rationalVertex (cert.edgeStart₂ i)) -
                 toR3 (rationalVertex (cert.edgeFinish₂ i)))) =
         (cert.mixQ i : ℝ) •
-            ((exactVertex (cert.edgeStart i) -
+            ((P.vertex (cert.edgeStart i) -
                 toR3 (rationalVertex (cert.edgeStart i))) -
-              (exactVertex (cert.edgeFinish i) -
+              (P.vertex (cert.edgeFinish i) -
                 toR3 (rationalVertex (cert.edgeFinish i)))) +
           (1 - (cert.mixQ i : ℝ)) •
-            ((exactVertex (cert.edgeStart₂ i) -
+            ((P.vertex (cert.edgeStart₂ i) -
                 toR3 (rationalVertex (cert.edgeStart₂ i))) -
-              (exactVertex (cert.edgeFinish₂ i) -
+              (P.vertex (cert.edgeFinish₂ i) -
                 toR3 (rationalVertex (cert.edgeFinish₂ i)))) := by
     unfold AxisCertificate.exactEdge
     simp only [smul_sub]
     abel
   rw [hrearrange]
   have hfirst :
-      ‖(exactVertex (cert.edgeStart i) -
+      ‖(P.vertex (cert.edgeStart i) -
             toR3 (rationalVertex (cert.edgeStart i))) -
-          (exactVertex (cert.edgeFinish i) -
+          (P.vertex (cert.edgeFinish i) -
             toR3 (rationalVertex (cert.edgeFinish i)))‖ ≤
         2 * RationalApprox.κ := by
     calc
-      _ ≤ ‖exactVertex (cert.edgeStart i) -
+      _ ≤ ‖P.vertex (cert.edgeStart i) -
             toR3 (rationalVertex (cert.edgeStart i))‖ +
-          ‖exactVertex (cert.edgeFinish i) -
+          ‖P.vertex (cert.edgeFinish i) -
             toR3 (rationalVertex (cert.edgeFinish i))‖ := norm_sub_le _ _
       _ ≤ RationalApprox.κ + RationalApprox.κ := add_le_add
-        (exactApproximation.approx (cert.edgeStart i))
-        (exactApproximation.approx (cert.edgeFinish i))
+        (P.approximation.approx (cert.edgeStart i))
+        (P.approximation.approx (cert.edgeFinish i))
       _ = 2 * RationalApprox.κ := by ring
   have hsecond :
-      ‖(exactVertex (cert.edgeStart₂ i) -
+      ‖(P.vertex (cert.edgeStart₂ i) -
             toR3 (rationalVertex (cert.edgeStart₂ i))) -
-          (exactVertex (cert.edgeFinish₂ i) -
+          (P.vertex (cert.edgeFinish₂ i) -
             toR3 (rationalVertex (cert.edgeFinish₂ i)))‖ ≤
         2 * RationalApprox.κ := by
     calc
-      _ ≤ ‖exactVertex (cert.edgeStart₂ i) -
+      _ ≤ ‖P.vertex (cert.edgeStart₂ i) -
             toR3 (rationalVertex (cert.edgeStart₂ i))‖ +
-          ‖exactVertex (cert.edgeFinish₂ i) -
+          ‖P.vertex (cert.edgeFinish₂ i) -
             toR3 (rationalVertex (cert.edgeFinish₂ i))‖ := norm_sub_le _ _
       _ ≤ RationalApprox.κ + RationalApprox.κ := add_le_add
-        (exactApproximation.approx (cert.edgeStart₂ i))
-        (exactApproximation.approx (cert.edgeFinish₂ i))
+        (P.approximation.approx (cert.edgeStart₂ i))
+        (P.approximation.approx (cert.edgeFinish₂ i))
       _ = 2 * RationalApprox.κ := by ring
   calc
     _ ≤ ‖(cert.mixQ i : ℝ) •
-          ((exactVertex (cert.edgeStart i) -
+          ((P.vertex (cert.edgeStart i) -
               toR3 (rationalVertex (cert.edgeStart i))) -
-            (exactVertex (cert.edgeFinish i) -
+            (P.vertex (cert.edgeFinish i) -
               toR3 (rationalVertex (cert.edgeFinish i))))‖ +
         ‖(1 - (cert.mixQ i : ℝ)) •
-          ((exactVertex (cert.edgeStart₂ i) -
+          ((P.vertex (cert.edgeStart₂ i) -
               toR3 (rationalVertex (cert.edgeStart₂ i))) -
-            (exactVertex (cert.edgeFinish₂ i) -
+            (P.vertex (cert.edgeFinish₂ i) -
               toR3 (rationalVertex (cert.edgeFinish₂ i))))‖ := norm_add_le _ _
     _ = (cert.mixQ i : ℝ) * _ + (1 - (cert.mixQ i : ℝ)) * _ := by
       rw [norm_smul, norm_smul, Real.norm_eq_abs, Real.norm_eq_abs,
@@ -666,7 +668,7 @@ theorem AxisCertificate.exactEdge_sub_approx_norm_le
 smaller than the generic approximation allowance used by variation bounds. -/
 theorem AxisCertificate.exactEdge_sub_approx_tight_norm_le
     (cert : AxisCertificate) (i : Fin 3) :
-    ‖cert.exactEdge i - cert.approxEdge i‖ ≤
+    ‖cert.exactEdge (P := P) i - cert.approxEdge i‖ ≤
       2 * (tightVertexErrorQ : ℝ) := by
   have hlambdaQ := cert.mixQ_nonneg i
   have hlambdaQ' := cert.mixQ_le_one i
@@ -675,7 +677,7 @@ theorem AxisCertificate.exactEdge_sub_approx_tight_norm_le
     exact sub_nonneg.mpr (by exact_mod_cast hlambdaQ')
   rw [cert.approxEdge_eq]
   have hrearrange :
-      cert.exactEdge i -
+      cert.exactEdge (P := P) i -
           ((cert.mixQ i : ℝ) •
               (toR3 (rationalVertex (cert.edgeStart i)) -
                 toR3 (rationalVertex (cert.edgeFinish i))) +
@@ -683,59 +685,59 @@ theorem AxisCertificate.exactEdge_sub_approx_tight_norm_le
               (toR3 (rationalVertex (cert.edgeStart₂ i)) -
                 toR3 (rationalVertex (cert.edgeFinish₂ i)))) =
         (cert.mixQ i : ℝ) •
-            ((exactVertex (cert.edgeStart i) -
+            ((P.vertex (cert.edgeStart i) -
                 toR3 (rationalVertex (cert.edgeStart i))) -
-              (exactVertex (cert.edgeFinish i) -
+              (P.vertex (cert.edgeFinish i) -
                 toR3 (rationalVertex (cert.edgeFinish i)))) +
           (1 - (cert.mixQ i : ℝ)) •
-            ((exactVertex (cert.edgeStart₂ i) -
+            ((P.vertex (cert.edgeStart₂ i) -
                 toR3 (rationalVertex (cert.edgeStart₂ i))) -
-              (exactVertex (cert.edgeFinish₂ i) -
+              (P.vertex (cert.edgeFinish₂ i) -
                 toR3 (rationalVertex (cert.edgeFinish₂ i)))) := by
     unfold AxisCertificate.exactEdge
     simp only [smul_sub]
     abel
   rw [hrearrange]
   have hfirst :
-      ‖(exactVertex (cert.edgeStart i) -
+      ‖(P.vertex (cert.edgeStart i) -
             toR3 (rationalVertex (cert.edgeStart i))) -
-          (exactVertex (cert.edgeFinish i) -
+          (P.vertex (cert.edgeFinish i) -
             toR3 (rationalVertex (cert.edgeFinish i)))‖ ≤
         2 * (tightVertexErrorQ : ℝ) := by
     calc
-      _ ≤ ‖exactVertex (cert.edgeStart i) -
+      _ ≤ ‖P.vertex (cert.edgeStart i) -
             toR3 (rationalVertex (cert.edgeStart i))‖ +
-          ‖exactVertex (cert.edgeFinish i) -
+          ‖P.vertex (cert.edgeFinish i) -
             toR3 (rationalVertex (cert.edgeFinish i))‖ := norm_sub_le _ _
       _ ≤ (tightVertexErrorQ : ℝ) + (tightVertexErrorQ : ℝ) := add_le_add
-        (vertex_close_tight (cert.edgeStart i))
-        (vertex_close_tight (cert.edgeFinish i))
+        (P.vertex_close_tight (cert.edgeStart i))
+        (P.vertex_close_tight (cert.edgeFinish i))
       _ = 2 * (tightVertexErrorQ : ℝ) := by ring
   have hsecond :
-      ‖(exactVertex (cert.edgeStart₂ i) -
+      ‖(P.vertex (cert.edgeStart₂ i) -
             toR3 (rationalVertex (cert.edgeStart₂ i))) -
-          (exactVertex (cert.edgeFinish₂ i) -
+          (P.vertex (cert.edgeFinish₂ i) -
             toR3 (rationalVertex (cert.edgeFinish₂ i)))‖ ≤
         2 * (tightVertexErrorQ : ℝ) := by
     calc
-      _ ≤ ‖exactVertex (cert.edgeStart₂ i) -
+      _ ≤ ‖P.vertex (cert.edgeStart₂ i) -
             toR3 (rationalVertex (cert.edgeStart₂ i))‖ +
-          ‖exactVertex (cert.edgeFinish₂ i) -
+          ‖P.vertex (cert.edgeFinish₂ i) -
             toR3 (rationalVertex (cert.edgeFinish₂ i))‖ := norm_sub_le _ _
       _ ≤ (tightVertexErrorQ : ℝ) + (tightVertexErrorQ : ℝ) := add_le_add
-        (vertex_close_tight (cert.edgeStart₂ i))
-        (vertex_close_tight (cert.edgeFinish₂ i))
+        (P.vertex_close_tight (cert.edgeStart₂ i))
+        (P.vertex_close_tight (cert.edgeFinish₂ i))
       _ = 2 * (tightVertexErrorQ : ℝ) := by ring
   calc
     _ ≤ ‖(cert.mixQ i : ℝ) •
-          ((exactVertex (cert.edgeStart i) -
+          ((P.vertex (cert.edgeStart i) -
               toR3 (rationalVertex (cert.edgeStart i))) -
-            (exactVertex (cert.edgeFinish i) -
+            (P.vertex (cert.edgeFinish i) -
               toR3 (rationalVertex (cert.edgeFinish i))))‖ +
         ‖(1 - (cert.mixQ i : ℝ)) •
-          ((exactVertex (cert.edgeStart₂ i) -
+          ((P.vertex (cert.edgeStart₂ i) -
               toR3 (rationalVertex (cert.edgeStart₂ i))) -
-            (exactVertex (cert.edgeFinish₂ i) -
+            (P.vertex (cert.edgeFinish₂ i) -
               toR3 (rationalVertex (cert.edgeFinish₂ i))))‖ := norm_add_le _ _
     _ = (cert.mixQ i : ℝ) * _ + (1 - (cert.mixQ i : ℝ)) * _ := by
       rw [norm_smul, norm_smul, Real.norm_eq_abs, Real.norm_eq_abs,
@@ -748,8 +750,8 @@ theorem AxisCertificate.exactEdge_sub_approx_tight_norm_le
 
 theorem AxisCertificate.exactSelectedVertex_norm_le_one (box : Box)
     (cert : AxisCertificate) (i : Fin 3) :
-    ‖cert.exactSelectedVertex box i‖ ≤ 1 :=
-  exactVertex_norm_le_one (cert.supportIndex box i)
+    ‖cert.exactSelectedVertex (P := P) box i‖ ≤ 1 :=
+  P.vertex_norm_le_one (cert.supportIndex box i)
 
 theorem AxisCertificate.approxSelectedVertex_norm_le (box : Box)
     (cert : AxisCertificate) (i : Fin 3) :
@@ -758,9 +760,9 @@ theorem AxisCertificate.approxSelectedVertex_norm_le (box : Box)
 
 theorem AxisCertificate.exactSelectedVertex_sub_approx_norm_le (box : Box)
     (cert : AxisCertificate) (i : Fin 3) :
-    ‖cert.exactSelectedVertex box i - cert.approxSelectedVertex box i‖ ≤
+    ‖cert.exactSelectedVertex (P := P) box i - cert.approxSelectedVertex box i‖ ≤
       RationalApprox.κ :=
-  exactApproximation.approx (cert.supportIndex box i)
+  P.approximation.approx (cert.supportIndex box i)
 
 noncomputable def normalizedView3 (box : Box) (p : AtlasPose ℝ) : ℝ³ :=
   WithLp.toLp 2 (AtlasProjectiveView.normalizedView box.root p)
@@ -780,11 +782,11 @@ theorem normalizedView3_norm_le_one (box : Box) (p : AtlasPose ℝ)
 
 theorem AxisCertificate.exactDelta_norm_le_two (box : Box)
     (cert : AxisCertificate) (i : Fin 3) (k : VertexIndex) :
-    ‖cert.exactDelta box i k‖ ≤ 2 := by
+    ‖cert.exactDelta (P := P) box i k‖ ≤ 2 := by
   unfold AxisCertificate.exactDelta
   exact (norm_sub_le _ _).trans (by
-    linarith [exactVertex_norm_le_one k,
-      cert.exactSelectedVertex_norm_le_one box i])
+    linarith [P.vertex_norm_le_one k,
+      cert.exactSelectedVertex_norm_le_one (P := P) box i])
 
 theorem AxisCertificate.approxDelta_norm_le (box : Box)
     (cert : AxisCertificate) (i : Fin 3) (k : VertexIndex) :
@@ -796,62 +798,62 @@ theorem AxisCertificate.approxDelta_norm_le (box : Box)
 
 theorem AxisCertificate.exactDelta_sub_approx_norm_le (box : Box)
     (cert : AxisCertificate) (i : Fin 3) (k : VertexIndex) :
-    ‖cert.exactDelta box i k - cert.approxDelta box i k‖ ≤
+    ‖cert.exactDelta (P := P) box i k - cert.approxDelta box i k‖ ≤
       2 * RationalApprox.κ := by
   rw [cert.approxDelta_eq]
-  have hrearrange : cert.exactDelta box i k -
+  have hrearrange : cert.exactDelta (P := P) box i k -
         (toR3 (rationalVertex k) -
           toR3 (rationalVertex (cert.supportIndex box i))) =
-      (exactVertex k - toR3 (rationalVertex k)) -
-        (exactVertex (cert.supportIndex box i) -
+      (P.vertex k - toR3 (rationalVertex k)) -
+        (P.vertex (cert.supportIndex box i) -
           toR3 (rationalVertex (cert.supportIndex box i))) := by
     unfold AxisCertificate.exactDelta AxisCertificate.exactSelectedVertex
     abel
   rw [hrearrange]
   calc
-    _ ≤ ‖exactVertex k - toR3 (rationalVertex k)‖ +
-        ‖exactVertex (cert.supportIndex box i) -
+    _ ≤ ‖P.vertex k - toR3 (rationalVertex k)‖ +
+        ‖P.vertex (cert.supportIndex box i) -
           toR3 (rationalVertex (cert.supportIndex box i))‖ := norm_sub_le _ _
     _ ≤ RationalApprox.κ + RationalApprox.κ := add_le_add
-      (exactApproximation.approx k)
-      (exactApproximation.approx (cert.supportIndex box i))
+      (P.approximation.approx k)
+      (P.approximation.approx (cert.supportIndex box i))
     _ = 2 * RationalApprox.κ := by ring
 
 theorem AxisCertificate.exactDelta_sub_approx_tight_norm_le (box : Box)
     (cert : AxisCertificate) (i : Fin 3) (k : VertexIndex) :
-    ‖cert.exactDelta box i k - cert.approxDelta box i k‖ ≤
+    ‖cert.exactDelta (P := P) box i k - cert.approxDelta box i k‖ ≤
       2 * (tightVertexErrorQ : ℝ) := by
   rw [cert.approxDelta_eq]
-  have hrearrange : cert.exactDelta box i k -
+  have hrearrange : cert.exactDelta (P := P) box i k -
         (toR3 (rationalVertex k) -
           toR3 (rationalVertex (cert.supportIndex box i))) =
-      (exactVertex k - toR3 (rationalVertex k)) -
-        (exactVertex (cert.supportIndex box i) -
+      (P.vertex k - toR3 (rationalVertex k)) -
+        (P.vertex (cert.supportIndex box i) -
           toR3 (rationalVertex (cert.supportIndex box i))) := by
     unfold AxisCertificate.exactDelta AxisCertificate.exactSelectedVertex
     abel
   rw [hrearrange]
   calc
-    _ ≤ ‖exactVertex k - toR3 (rationalVertex k)‖ +
-        ‖exactVertex (cert.supportIndex box i) -
+    _ ≤ ‖P.vertex k - toR3 (rationalVertex k)‖ +
+        ‖P.vertex (cert.supportIndex box i) -
           toR3 (rationalVertex (cert.supportIndex box i))‖ := norm_sub_le _ _
     _ ≤ (tightVertexErrorQ : ℝ) + (tightVertexErrorQ : ℝ) := add_le_add
-      (vertex_close_tight k)
-      (vertex_close_tight (cert.supportIndex box i))
+      (P.vertex_close_tight k)
+      (P.vertex_close_tight (cert.supportIndex box i))
     _ = 2 * (tightVertexErrorQ : ℝ) := by ring
 
 theorem AxisCertificate.supportCross_tight_error (box : Box)
     (cert : AxisCertificate) (i : Fin 3) (k : VertexIndex) :
-    ‖cross3 (cert.exactEdge i) (cert.exactDelta box i k) -
+    ‖cross3 (cert.exactEdge (P := P) i) (cert.exactDelta (P := P) box i k) -
         cross3 (cert.approxEdge i) (cert.approxDelta box i k)‖ ≤
       10 * (tightVertexErrorQ : ℝ) := by
   have hdecomp :
-      cross3 (cert.exactEdge i) (cert.exactDelta box i k) -
+      cross3 (cert.exactEdge (P := P) i) (cert.exactDelta (P := P) box i k) -
           cross3 (cert.approxEdge i) (cert.approxDelta box i k) =
-        cross3 (cert.exactEdge i - cert.approxEdge i)
-            (cert.exactDelta box i k) +
+        cross3 (cert.exactEdge (P := P) i - cert.approxEdge i)
+            (cert.exactDelta (P := P) box i k) +
           cross3 (cert.approxEdge i)
-            (cert.exactDelta box i k - cert.approxDelta box i k) := by
+            (cert.exactDelta (P := P) box i k - cert.approxDelta box i k) := by
     ext coordinate
     fin_cases coordinate <;> simp [cross3, cross_apply] <;> ring
   rw [hdecomp]
@@ -878,16 +880,16 @@ theorem AxisCertificate.supportCross_tight_error (box : Box)
 
 theorem AxisCertificate.supportCross_error (box : Box)
     (cert : AxisCertificate) (i : Fin 3) (k : VertexIndex) :
-    ‖cross3 (cert.exactEdge i) (cert.exactDelta box i k) -
+    ‖cross3 (cert.exactEdge (P := P) i) (cert.exactDelta (P := P) box i k) -
         cross3 (cert.approxEdge i) (cert.approxDelta box i k)‖ ≤
       10 * RationalApprox.κ := by
   have hdecomp :
-      cross3 (cert.exactEdge i) (cert.exactDelta box i k) -
+      cross3 (cert.exactEdge (P := P) i) (cert.exactDelta (P := P) box i k) -
           cross3 (cert.approxEdge i) (cert.approxDelta box i k) =
-        cross3 (cert.exactEdge i - cert.approxEdge i)
-            (cert.exactDelta box i k) +
+        cross3 (cert.exactEdge (P := P) i - cert.approxEdge i)
+            (cert.exactDelta (P := P) box i k) +
           cross3 (cert.approxEdge i)
-            (cert.exactDelta box i k - cert.approxDelta box i k) := by
+            (cert.exactDelta (P := P) box i k - cert.approxDelta box i k) := by
     ext coordinate
     fin_cases coordinate <;> simp [cross3, cross_apply] <;> ring
   rw [hdecomp]
@@ -921,7 +923,7 @@ noncomputable def AxisCertificate.exactSupport (box : Box)
     (cert : AxisCertificate) (p : AtlasPose ℝ)
     (i : Fin 3) (k : VertexIndex) : ℝ :=
   linearValue (AtlasProjectiveView.normalizedView box.root p)
-    (cross3 (cert.exactEdge i) (cert.exactDelta box i k))
+    (cross3 (cert.exactEdge (P := P) i) (cert.exactDelta (P := P) box i k))
 
 theorem linearValue_eq_inner_toLp (n : Fin 3 → ℝ) (v : ℝ³) :
     linearValue n v = inner ℝ (WithLp.toLp 2 n) v := by
@@ -961,7 +963,7 @@ theorem Box.approxSupport_le_max (box : Box) {p : AtlasPose ℝ}
 theorem AxisCertificate.exactSupport_sub_approx_abs_le (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) (k : VertexIndex) :
-    |cert.exactSupport box p i k -
+    |cert.exactSupport (P := P) box p i k -
         cert.approxSupport box
           (AtlasProjectiveView.normalizedView box.root p) i k| ≤
       (supportError : ℝ) := by
@@ -985,7 +987,7 @@ theorem AxisCertificate.exactSupport_sub_approx_abs_le (box : Box)
 theorem Box.exactSupport_eq_zero_of_tie (box : Box) {p : AtlasPose ℝ}
     (j : Fin 4) (i : Fin 3) (k : VertexIndex)
     (htie : box.exactSupportTie j i k) :
-    (box.certificate j).exactSupport box p i k = 0 := by
+    (box.certificate j).exactSupport (P := P) box p i k = 0 := by
   let cert := box.certificate j
   change cert.exactSupport box p i k = 0
   change k = cert.supportIndex box i ∨
@@ -996,7 +998,7 @@ theorem Box.exactSupport_eq_zero_of_tie (box : Box) {p : AtlasPose ℝ}
   rcases htie with hselected | hfirst | hsecond
   · subst k
     have hdelta :
-        cert.exactDelta box i (cert.supportIndex box i) = 0 := by
+        cert.exactDelta (P := P) box i (cert.supportIndex box i) = 0 := by
       simp [AxisCertificate.exactDelta, AxisCertificate.exactSelectedVertex]
     unfold AxisCertificate.exactSupport
     rw [hdelta]
@@ -1016,13 +1018,13 @@ theorem Box.exactSupport_le_upper (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) (k : VertexIndex) :
-    (box.certificate j).exactSupport box p i k ≤
+    (box.certificate j).exactSupport (P := P) box p i k ≤
       (box.supportUpper j i k : ℝ) := by
   by_cases hk : box.exactSupportTie j i k
   · rw [box.exactSupport_eq_zero_of_tie j i k hk]
     simp [Box.supportUpper, hk]
   · have happ := box.approxSupport_le_max hmem j i k
-    have herr := (box.certificate j).exactSupport_sub_approx_abs_le
+    have herr := (box.certificate j).exactSupport_sub_approx_abs_le (P := P)
       box hscale i k
     rw [abs_le] at herr
     simp only [Box.supportUpper, if_neg hk]
@@ -1040,25 +1042,25 @@ theorem Box.valid_support_of_upper_single (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (i : Fin 3) (k : VertexIndex) :
-    inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+    inner ℝ (direction box.root p ((box.certificate j).exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex k)) ≤
-      inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+          (P.vertex k)) ≤
+      inner ℝ (direction box.root p ((box.certificate j).exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex ((box.certificate j).supportIndex box i))) +
+          (P.vertex ((box.certificate j).supportIndex box i))) +
         (defect i : ℝ) := by
   have hscaleNe :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
-  have hupper := box.exactSupport_le_upper hscale hmem j i k
+  have hupper := box.exactSupport_le_upper (P := P) hscale hmem j i k
   have hsigned : (box.certificate j).exactSupport box p i k ≤ (defect i : ℝ) :=
     hupper.trans (by exact_mod_cast h_supp i k)
   have hdiff :
-      inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+      inner ℝ (direction box.root p ((box.certificate j).exactEdge (P := P) i))
           ((outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
-            (exactVertex k) -
+            (P.vertex k) -
           (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
-            (exactVertex ((box.certificate j).supportIndex box i))) =
-        (box.certificate j).exactSupport box p i k := by
+            (P.vertex ((box.certificate j).supportIndex box i))) =
+        (box.certificate j).exactSupport (P := P) box p i k := by
     rw [← map_sub,
       inner_direction_outerProjection_eq_support box.root p box.chart offset
         _ _ hscaleNe]
@@ -1074,25 +1076,25 @@ theorem Box.valid_support_of_upper (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) (k : VertexIndex) :
-    inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+    inner ℝ (direction box.root p ((box.certificate j).exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex k)) ≤
-      inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+          (P.vertex k)) ≤
+      inner ℝ (direction box.root p ((box.certificate j).exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex ((box.certificate j).supportIndex box i))) +
+          (P.vertex ((box.certificate j).supportIndex box i))) +
         (defect j i : ℝ) := by
   have hscaleNe :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
-  have hupper := box.exactSupport_le_upper hscale hmem j i k
+  have hupper := box.exactSupport_le_upper (P := P) hscale hmem j i k
   have hsigned : (box.certificate j).exactSupport box p i k ≤ (defect j i : ℝ) :=
     hupper.trans (by exact_mod_cast h_supp j i k)
   have hdiff :
-      inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+      inner ℝ (direction box.root p ((box.certificate j).exactEdge (P := P) i))
           ((outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
-            (exactVertex k) -
+            (P.vertex k) -
           (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset))
-            (exactVertex ((box.certificate j).supportIndex box i))) =
-        (box.certificate j).exactSupport box p i k := by
+            (P.vertex ((box.certificate j).supportIndex box i))) =
+        (box.certificate j).exactSupport (P := P) box p i k := by
     rw [← map_sub,
       inner_direction_outerProjection_eq_support box.root p box.chart offset
         _ _ hscaleNe]
@@ -1106,13 +1108,13 @@ theorem Box.valid_support (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) (k : VertexIndex) :
-    inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+    inner ℝ (direction box.root p ((box.certificate j).exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex k)) ≤
-      inner ℝ (direction box.root p ((box.certificate j).exactEdge i))
+          (P.vertex k)) ≤
+      inner ℝ (direction box.root p ((box.certificate j).exactEdge (P := P) i))
         (outerProjectionLinear (p.matrixPoseWithOffset box.chart offset)
-          (exactVertex ((box.certificate j).supportIndex box i))) := by
-  have hsup := box.valid_support_of_upper (fun _ _ => 0) (fun j i k => h.support j i k)
+          (P.vertex ((box.certificate j).supportIndex box i))) := by
+  have hsup := box.valid_support_of_upper (P := P) (fun _ _ => 0) (fun j i k => h.support j i k)
     offset hscale hmem j i k
   push_cast at hsup
   linarith
@@ -1124,10 +1126,10 @@ theorem Box.valid_direction_nonzero_of_strict (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) :
-    direction box.root p ((box.certificate j).exactEdge i) ≠ 0 := by
+    direction box.root p ((box.certificate j).exactEdge (P := P) i) ≠ 0 := by
   intro hzero
   let k := (box.certificate j).nonzeroWitness i
-  have hupper := box.exactSupport_le_upper hscale hmem j i k
+  have hupper := box.exactSupport_le_upper (P := P) hscale hmem j i k
   have hstrict : (box.supportUpper j i k : ℝ) < 0 := by
     exact_mod_cast h_dir j i
   have hexact : (box.certificate j).exactSupport box p i k < 0 :=
@@ -1135,8 +1137,8 @@ theorem Box.valid_direction_nonzero_of_strict (box : Box)
   have hscaleNe :=
     (lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) hscale).ne'
   have heq := inner_direction_outerProjection_eq_support box.root p
-    box.chart offset ((box.certificate j).exactEdge i)
-    ((box.certificate j).exactDelta box i k) hscaleNe
+    box.chart offset ((box.certificate j).exactEdge (P := P) i)
+    ((box.certificate j).exactDelta (P := P) box i k) hscaleNe
   rw [hzero, inner_zero_left] at heq
   change linearValue (AtlasProjectiveView.normalizedView box.root p)
     (cross3 ((box.certificate j).exactEdge i)
@@ -1150,7 +1152,7 @@ theorem Box.valid_direction_nonzero (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) :
-    direction box.root p ((box.certificate j).exactEdge i) ≠ 0 :=
+    direction box.root p ((box.certificate j).exactEdge (P := P) i) ≠ 0 :=
   box.valid_direction_nonzero_of_strict h.direction_nonzero offset hscale hmem j i
 
 noncomputable def AxisCertificate.approxWeight (cert : AxisCertificate)
@@ -1159,7 +1161,7 @@ noncomputable def AxisCertificate.approxWeight (cert : AxisCertificate)
 
 noncomputable def AxisCertificate.exactWeight (box : Box)
     (cert : AxisCertificate) (p : AtlasPose ℝ) (i : Fin 3) : ℝ :=
-  weight box.root p (fun j => cert.exactEdge j) i
+  weight box.root p (fun j => cert.exactEdge (P := P) j) i
 
 theorem toR3_crossQ (a b : Fin 3 → ℚ) :
     toR3 (LocalCertificate.crossQ a b) = cross3 (toR3 a) (toR3 b) := by
@@ -1180,16 +1182,16 @@ theorem AxisCertificate.approxWeightVector_eq (cert : AxisCertificate)
 
 theorem AxisCertificate.crossEdge_error (cert : AxisCertificate)
     (i j : Fin 3) :
-    ‖cross3 (cert.exactEdge i) (cert.exactEdge j) -
+    ‖cross3 (cert.exactEdge (P := P) i) (cert.exactEdge (P := P) j) -
         cross3 (cert.approxEdge i) (cert.approxEdge j)‖ ≤
       10 * RationalApprox.κ := by
   have hdecomp :
-      cross3 (cert.exactEdge i) (cert.exactEdge j) -
+      cross3 (cert.exactEdge (P := P) i) (cert.exactEdge (P := P) j) -
           cross3 (cert.approxEdge i) (cert.approxEdge j) =
-        cross3 (cert.exactEdge i - cert.approxEdge i)
-            (cert.exactEdge j) +
+        cross3 (cert.exactEdge (P := P) i - cert.approxEdge i)
+            (cert.exactEdge (P := P) j) +
           cross3 (cert.approxEdge i)
-            (cert.exactEdge j - cert.approxEdge j) := by
+            (cert.exactEdge (P := P) j - cert.approxEdge j) := by
     ext coordinate
     fin_cases coordinate <;> simp [cross3, cross_apply] <;> ring
   rw [hdecomp]
@@ -1215,16 +1217,16 @@ theorem AxisCertificate.crossEdge_error (cert : AxisCertificate)
 
 theorem AxisCertificate.crossEdge_tight_error (cert : AxisCertificate)
     (i j : Fin 3) :
-    ‖cross3 (cert.exactEdge i) (cert.exactEdge j) -
+    ‖cross3 (cert.exactEdge (P := P) i) (cert.exactEdge (P := P) j) -
         cross3 (cert.approxEdge i) (cert.approxEdge j)‖ ≤
       10 * (tightVertexErrorQ : ℝ) := by
   have hdecomp :
-      cross3 (cert.exactEdge i) (cert.exactEdge j) -
+      cross3 (cert.exactEdge (P := P) i) (cert.exactEdge (P := P) j) -
           cross3 (cert.approxEdge i) (cert.approxEdge j) =
-        cross3 (cert.exactEdge i - cert.approxEdge i)
-            (cert.exactEdge j) +
+        cross3 (cert.exactEdge (P := P) i - cert.approxEdge i)
+            (cert.exactEdge (P := P) j) +
           cross3 (cert.approxEdge i)
-            (cert.exactEdge j - cert.approxEdge j) := by
+            (cert.exactEdge (P := P) j - cert.approxEdge j) := by
     ext coordinate
     fin_cases coordinate <;> simp [cross3, cross_apply] <;> ring
   rw [hdecomp]
@@ -1251,7 +1253,7 @@ theorem AxisCertificate.crossEdge_tight_error (cert : AxisCertificate)
 theorem AxisCertificate.exactWeight_sub_approx_abs_le (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    |cert.exactWeight box p i - cert.approxWeight
+    |cert.exactWeight (P := P) box p i - cert.approxWeight
         (AtlasProjectiveView.normalizedView box.root p) i| ≤
       10 * RationalApprox.κ := by
   have hn := normalizedView3_norm_le_one box p hscale
@@ -1273,7 +1275,7 @@ theorem AxisCertificate.exactWeight_sub_approx_abs_le (box : Box)
 theorem AxisCertificate.exactWeight_sub_approx_tight_abs_le (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    |cert.exactWeight box p i - cert.approxWeight
+    |cert.exactWeight (P := P) box p i - cert.approxWeight
         (AtlasProjectiveView.normalizedView box.root p) i| ≤
       10 * (tightVertexErrorQ : ℝ) := by
   have hn := normalizedView3_norm_le_one box p hscale
@@ -1306,7 +1308,7 @@ theorem Box.weightLower_le_exact (box : Box)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) :
     (box.weightLower j i : ℝ) ≤
-      (box.certificate j).exactWeight box p i := by
+      (box.certificate j).exactWeight (P := P) box p i := by
   have hmin : (min3 (fun corner => box.weightAt j corner i) : ℝ) ≤
       (box.certificate j).approxWeight
         (AtlasProjectiveView.normalizedView box.root p) i := by
@@ -1317,7 +1319,7 @@ theorem Box.weightLower_le_exact (box : Box)
       (box.certificate j).approxWeight (toReal box.triangle corner) i
     rw [← box.weightAt_cast j corner i]
     exact_mod_cast min3_le (fun c => box.weightAt j c i) corner
-  have herr := (box.certificate j).exactWeight_sub_approx_tight_abs_le
+  have herr := (box.certificate j).exactWeight_sub_approx_tight_abs_le (P := P)
     box hscale i
   rw [abs_le] at herr
   have herrorEq : (10 * (tightVertexErrorQ : ℝ)) =
@@ -1334,7 +1336,7 @@ theorem Box.exactWeight_le_upper (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) :
-    (box.certificate j).exactWeight box p i ≤
+    (box.certificate j).exactWeight (P := P) box p i ≤
       (box.weightUpper j i : ℝ) := by
   have hmax :
       (box.certificate j).approxWeight
@@ -1347,7 +1349,7 @@ theorem Box.exactWeight_le_upper (box : Box)
       (toReal box.triangle corner) i ≤ _
     rw [← box.weightAt_cast j corner i]
     exact_mod_cast le_max3 (fun c => box.weightAt j c i) corner
-  have herr := (box.certificate j).exactWeight_sub_approx_tight_abs_le
+  have herr := (box.certificate j).exactWeight_sub_approx_tight_abs_le (P := P)
     box hscale i
   rw [abs_le] at herr
   have herrorEq : (10 * (tightVertexErrorQ : ℝ)) =
@@ -1365,7 +1367,7 @@ theorem Box.valid_weight_nonneg_of_lower (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) :
-    0 ≤ (box.certificate j).exactWeight box p i := by
+    0 ≤ (box.certificate j).exactWeight (P := P) box p i := by
   have hlower : (0 : ℝ) ≤ (box.weightLower j i : ℝ) := by
     exact_mod_cast h_weight j i
   exact hlower.trans (box.weightLower_le_exact hscale hmem j i)
@@ -1376,7 +1378,7 @@ theorem Box.valid_weight_nonneg (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (i : Fin 3) :
-    0 ≤ (box.certificate j).exactWeight box p i :=
+    0 ≤ (box.certificate j).exactWeight (P := P) box p i :=
   box.valid_weight_nonneg_of_lower h.weight_nonneg hscale hmem j i
 
 theorem Box.valid_weight_pos_of_lower (box : Box)
@@ -1386,7 +1388,7 @@ theorem Box.valid_weight_pos_of_lower (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
-    ∃ i, 0 < (box.certificate j).exactWeight box p i := by
+    ∃ i, 0 < (box.certificate j).exactWeight (P := P) box p i := by
   obtain ⟨i, hi⟩ := h_pos j
   refine ⟨i, ?_⟩
   have hiReal : (0 : ℝ) < (box.weightLower j i : ℝ) := by
@@ -1399,13 +1401,13 @@ theorem Box.valid_weight_pos (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
-    ∃ i, 0 < (box.certificate j).exactWeight box p i :=
+    ∃ i, 0 < (box.certificate j).exactWeight (P := P) box p i :=
   box.valid_weight_pos_of_lower h.weight_pos hscale hmem j
 
 theorem AxisCertificate.exactWeight_abs_le_four (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    |cert.exactWeight box p i| ≤ 4 := by
+    |cert.exactWeight (P := P) box p i| ≤ 4 := by
   have hn := normalizedView3_norm_le_one box p hscale
   fin_cases i
   all_goals
@@ -1424,22 +1426,22 @@ theorem AxisCertificate.approxWeight_abs_le (box : Box)
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
     |cert.approxWeight (AtlasProjectiveView.normalizedView box.root p) i| ≤
       4 + 10 * RationalApprox.κ := by
-  have herr := cert.exactWeight_sub_approx_abs_le box hscale i
-  have hexact := cert.exactWeight_abs_le_four box hscale i
+  have herr := cert.exactWeight_sub_approx_abs_le (P := exactModel) box hscale i
+  have hexact := cert.exactWeight_abs_le_four (P := exactModel) box hscale i
   calc
     _ ≤ |cert.exactWeight box p i| +
         |cert.exactWeight box p i - cert.approxWeight
           (AtlasProjectiveView.normalizedView box.root p) i| := by
-      have htriangle := abs_add_le (cert.exactWeight box p i)
+      have htriangle := abs_add_le (cert.exactWeight (P := exactModel) box p i)
         (cert.approxWeight (AtlasProjectiveView.normalizedView box.root p) i -
-          cert.exactWeight box p i)
+          cert.exactWeight (P := exactModel) box p i)
       rw [add_sub_cancel] at htriangle
       simpa [abs_sub_comm] using htriangle
     _ ≤ 4 + 10 * RationalApprox.κ := add_le_add hexact herr
 
 noncomputable def AxisCertificate.exactLift (box : Box)
     (cert : AxisCertificate) (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
-  cross3 (normalizedView3 box p) (cert.exactEdge i)
+  cross3 (normalizedView3 box p) (cert.exactEdge (P := P) i)
 
 noncomputable def AxisCertificate.approxLift (box : Box)
     (cert : AxisCertificate) (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
@@ -1447,9 +1449,9 @@ noncomputable def AxisCertificate.approxLift (box : Box)
 
 theorem AxisCertificate.exactLift_sub_approx_eq (box : Box)
     (cert : AxisCertificate) (p : AtlasPose ℝ) (i : Fin 3) :
-    cert.exactLift box p i - cert.approxLift box p i =
+    cert.exactLift (P := P) box p i - cert.approxLift box p i =
       cross3 (normalizedView3 box p)
-        (cert.exactEdge i - cert.approxEdge i) := by
+        (cert.exactEdge (P := P) i - cert.approxEdge i) := by
   ext coordinate
   fin_cases coordinate <;>
     simp [AxisCertificate.exactLift, AxisCertificate.approxLift,
@@ -1458,7 +1460,7 @@ theorem AxisCertificate.exactLift_sub_approx_eq (box : Box)
 theorem AxisCertificate.exactLift_sub_approx_norm_le (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    ‖cert.exactLift box p i - cert.approxLift box p i‖ ≤
+    ‖cert.exactLift (P := P) box p i - cert.approxLift box p i‖ ≤
       2 * RationalApprox.κ := by
   rw [cert.exactLift_sub_approx_eq]
   exact (cross3_norm_le _ _).trans
@@ -1469,7 +1471,7 @@ theorem AxisCertificate.exactLift_sub_approx_norm_le (box : Box)
 theorem AxisCertificate.exactLift_norm_le_two (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    ‖cert.exactLift box p i‖ ≤ 2 := by
+    ‖cert.exactLift (P := P) box p i‖ ≤ 2 := by
   unfold AxisCertificate.exactLift
   exact (cross3_norm_le _ _).trans
     ((mul_le_mul (normalizedView3_norm_le_one box p hscale)
@@ -1488,7 +1490,7 @@ theorem AxisCertificate.approxLift_norm_le (box : Box)
 
 noncomputable def AxisCertificate.exactCross (box : Box)
     (cert : AxisCertificate) (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
-  cross3 (cert.exactSelectedVertex box i) (cert.exactLift box p i)
+  cross3 (cert.exactSelectedVertex (P := P) box i) (cert.exactLift (P := P) box p i)
 
 noncomputable def AxisCertificate.approxCross (box : Box)
     (cert : AxisCertificate) (p : AtlasPose ℝ) (i : Fin 3) : ℝ³ :=
@@ -1497,7 +1499,7 @@ noncomputable def AxisCertificate.approxCross (box : Box)
 theorem AxisCertificate.exactCross_norm_le_two (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    ‖cert.exactCross box p i‖ ≤ 2 := by
+    ‖cert.exactCross (P := P) box p i‖ ≤ 2 := by
   unfold AxisCertificate.exactCross
   exact (cross3_norm_le _ _).trans
     ((mul_le_mul (cert.exactSelectedVertex_norm_le_one box i)
@@ -1507,12 +1509,12 @@ theorem AxisCertificate.exactCross_norm_le_two (box : Box)
 theorem AxisCertificate.exactCross_sub_approx_norm_le (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    ‖cert.exactCross box p i - cert.approxCross box p i‖ ≤
+    ‖cert.exactCross (P := P) box p i - cert.approxCross box p i‖ ≤
       5 * RationalApprox.κ := by
-  have hdecomp : cert.exactCross box p i - cert.approxCross box p i =
-      cross3 (cert.exactSelectedVertex box i)
-          (cert.exactLift box p i - cert.approxLift box p i) +
-        cross3 (cert.exactSelectedVertex box i -
+  have hdecomp : cert.exactCross (P := P) box p i - cert.approxCross box p i =
+      cross3 (cert.exactSelectedVertex (P := P) box i)
+          (cert.exactLift (P := P) box p i - cert.approxLift box p i) +
+        cross3 (cert.exactSelectedVertex (P := P) box i -
             cert.approxSelectedVertex box i)
           (cert.approxLift box p i) := by
     unfold AxisCertificate.exactCross AxisCertificate.approxCross
@@ -1552,8 +1554,8 @@ theorem AxisCertificate.approxVariation_eq_sum_approxCross (box : Box)
 theorem AxisCertificate.variation_error (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) :
-    ‖variationVector box.root p (fun i => cert.exactEdge i)
-          (fun i => cert.exactSelectedVertex box i) -
+    ‖variationVector box.root p (fun i => cert.exactEdge (P := P) i)
+          (fun i => cert.exactSelectedVertex (P := P) box i) -
         cert.approxVariation box
           (AtlasProjectiveView.normalizedView box.root p)‖ ≤
       (variationError : ℝ) := by
@@ -1574,16 +1576,16 @@ theorem AxisCertificate.variation_error (box : Box)
       apply Finset.sum_le_sum
       intro i _
       have hdecomp :
-          cert.exactWeight box p i • cert.exactCross box p i -
+          cert.exactWeight (P := P) box p i • cert.exactCross (P := P) box p i -
               cert.approxWeight
                   (AtlasProjectiveView.normalizedView box.root p) i •
                 cert.approxCross box p i =
-            (cert.exactWeight box p i - cert.approxWeight
+            (cert.exactWeight (P := P) box p i - cert.approxWeight
                 (AtlasProjectiveView.normalizedView box.root p) i) •
-              cert.exactCross box p i +
+              cert.exactCross (P := P) box p i +
             cert.approxWeight
                 (AtlasProjectiveView.normalizedView box.root p) i •
-              (cert.exactCross box p i - cert.approxCross box p i) := by
+              (cert.exactCross (P := P) box p i - cert.approxCross box p i) := by
         module
       rw [hdecomp]
       calc
@@ -1626,17 +1628,17 @@ theorem Box.exactVariation_coordinate_error (box : Box)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) (coordinate : Fin 3) :
     |variationVector box.root p
-          (fun i => (box.certificate j).exactEdge i)
-          (fun i => (box.certificate j).exactSelectedVertex box i) coordinate -
+          (fun i => (box.certificate j).exactEdge (P := P) i)
+          (fun i => (box.certificate j).exactSelectedVertex (P := P) box i) coordinate -
         box.variationCenter j coordinate| ≤
       ((box.variationBall j coordinate).radius : ℝ) +
         (variationError : ℝ) := by
   let cert := box.certificate j
-  let exact := variationVector box.root p (fun i => cert.exactEdge i)
-    (fun i => cert.exactSelectedVertex box i)
+  let exact := variationVector box.root p (fun i => cert.exactEdge (P := P) i)
+    (fun i => cert.exactSelectedVertex (P := P) box i)
   let approx := cert.approxVariation box
     (AtlasProjectiveView.normalizedView box.root p)
-  have hvariation := cert.variation_error box hscale
+  have hvariation := cert.variation_error (P := P) box hscale
   have hcoordinate := PiLp.norm_apply_le (exact - approx) coordinate
   have hcoordError : |exact coordinate - approx coordinate| ≤
       (variationError : ℝ) := by
@@ -1673,19 +1675,19 @@ theorem Box.exactVariation_sub_center_norm_le (box : Box)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
     ‖variationVector box.root p
-          (fun i => (box.certificate j).exactEdge i)
-          (fun i => (box.certificate j).exactSelectedVertex box i) -
+          (fun i => (box.certificate j).exactEdge (P := P) i)
+          (fun i => (box.certificate j).exactSelectedVertex (P := P) box i) -
         box.variationCenter j‖ ≤
       (box.variationRadiusSum j : ℝ) + 3 * (variationError : ℝ) := by
   let diff := variationVector box.root p
-      (fun i => (box.certificate j).exactEdge i)
-      (fun i => (box.certificate j).exactSelectedVertex box i) -
+      (fun i => (box.certificate j).exactEdge (P := P) i)
+      (fun i => (box.certificate j).exactSelectedVertex (P := P) box i) -
     box.variationCenter j
   apply (Noperthedron.SnubCube.ProjectiveLocalCertificate.norm_le_sum_abs_coordinates
     diff).trans
-  have h0 := box.exactVariation_coordinate_error hscale hmem j 0
-  have h1 := box.exactVariation_coordinate_error hscale hmem j 1
-  have h2 := box.exactVariation_coordinate_error hscale hmem j 2
+  have h0 := box.exactVariation_coordinate_error (P := P) hscale hmem j 0
+  have h1 := box.exactVariation_coordinate_error (P := P) hscale hmem j 1
+  have h2 := box.exactVariation_coordinate_error (P := P) hscale hmem j 2
   change |diff 0| ≤ ((box.variationBall j 0).radius : ℝ) +
     (variationError : ℝ) at h0
   change |diff 1| ≤ ((box.variationBall j 1).radius : ℝ) +
@@ -1723,15 +1725,15 @@ theorem Box.valid_normalizedVariation_move_of_bounds (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
-    ‖normalizedVariation box.root p
-          (fun j i => (box.certificate j).exactEdge i)
+    ‖normalizedVariation (P := P) box.root p
+          (fun j i => (box.certificate j).exactEdge (P := P) i)
           (fun j i => (box.certificate j).index i)
           box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
         toR3 (box.approxNormalizedCenter j)‖ ≤ (box.δ : ℝ) := by
   have hBpos : (0 : ℝ) < ((box.certificate j).B : ℝ) := by
     exact_mod_cast hB j
   have hBne := hBpos.ne'
-  have hraw := box.exactVariation_sub_center_norm_le hscale hmem j
+  have hraw := box.exactVariation_sub_center_norm_le (P := P) hscale hmem j
   have hchecked :
       (box.variationRadiusSum j : ℝ) + 3 * (variationError : ℝ) ≤
         ((box.certificate j).B : ℝ) * (box.δ : ℝ) := by
@@ -1743,7 +1745,7 @@ theorem Box.valid_normalizedVariation_move_of_bounds (box : Box)
     ((box.certificate j).B : ℝ)⁻¹ *
         ‖variationVector box.root p
             (fun i => (box.certificate j).exactEdge i)
-            (fun i => exactVertex (symmetryAction box.symmetryIndex
+            (fun i => P.vertex (symmetryAction box.symmetryIndex
               ((box.certificate j).index i))) -
           box.variationCenter j‖ ≤
       ((box.certificate j).B : ℝ)⁻¹ *
@@ -1763,8 +1765,8 @@ theorem Box.valid_normalizedVariation_move (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
-    ‖normalizedVariation box.root p
-          (fun j i => (box.certificate j).exactEdge i)
+    ‖normalizedVariation (P := P) box.root p
+          (fun j i => (box.certificate j).exactEdge (P := P) i)
           (fun j i => (box.certificate j).index i)
           box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
         toR3 (box.approxNormalizedCenter j)‖ ≤ (box.δ : ℝ) :=
@@ -1862,16 +1864,16 @@ theorem Box.valid_axis_cover_of_bounds (box : Box)
       (AtlasProjectiveView.normalizedView box.root p))
     (axis : ℝ³) (haxis : ‖axis‖ = 1) :
     ∃ j, (box.c : ℝ) ≤ inner ℝ axis
-      (normalizedVariation box.root p
-        (fun j i => (box.certificate j).exactEdge i)
+      (normalizedVariation (P := P) box.root p
+        (fun j i => (box.certificate j).exactEdge (P := P) i)
         (fun j i => (box.certificate j).index i)
         box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j) := by
   obtain ⟨j, hcenter⟩ := box.valid_center_axis_cover_of_bounds hc hdelta hbary axis haxis
   refine ⟨j, ?_⟩
-  have hmove := box.valid_normalizedVariation_move_of_bounds hB hvar hscale hmem j
+  have hmove := box.valid_normalizedVariation_move_of_bounds (P := P) hB hvar hscale hmem j
   have hinner := abs_real_inner_le_norm axis
-    (normalizedVariation box.root p
-      (fun j i => (box.certificate j).exactEdge i)
+    (normalizedVariation (P := P) box.root p
+      (fun j i => (box.certificate j).exactEdge (P := P) i)
       (fun j i => (box.certificate j).index i)
       box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j -
         toR3 (box.approxNormalizedCenter j))
@@ -1888,8 +1890,8 @@ theorem Box.valid_axis_cover (box : Box) (h : box.Valid)
       (AtlasProjectiveView.normalizedView box.root p))
     (axis : ℝ³) (haxis : ‖axis‖ = 1) :
     ∃ j, (box.c : ℝ) ≤ inner ℝ axis
-      (normalizedVariation box.root p
-        (fun j i => (box.certificate j).exactEdge i)
+      (normalizedVariation (P := P) box.root p
+        (fun j i => (box.certificate j).exactEdge (P := P) i)
         (fun j i => (box.certificate j).index i)
         box.symmetryIndex (fun j => ((box.certificate j).B : ℝ)) j) :=
   box.valid_axis_cover_of_bounds h.B_pos h.c_nonneg h.delta_nonneg h.variation h.barycentric hscale hmem axis haxis
@@ -1897,12 +1899,12 @@ theorem Box.valid_axis_cover (box : Box) (h : box.Valid)
 theorem AxisCertificate.direction_norm_le_two (box : Box)
     (cert : AxisCertificate) {p : AtlasPose ℝ}
     (hscale : 1 ≤ viewScale box.root p) (i : Fin 3) :
-    ‖direction box.root p (cert.exactEdge i)‖ ≤ 2 := by
+    ‖direction box.root p (cert.exactEdge (P := P) i)‖ ≤ 2 := by
   have hscalePos : 0 < viewScale box.root p :=
     lt_of_lt_of_le (by norm_num) hscale
   have hinv : (viewScale box.root p)⁻¹ ≤ 1 :=
     (inv_le_one₀ hscalePos).2 hscale
-  have hrot : ‖rotM p.θ p.φ (cert.exactEdge i)‖ ≤ 2 := by
+  have hrot : ‖rotM p.θ p.φ (cert.exactEdge (P := P) i)‖ ≤ 2 := by
     calc
       _ ≤ ‖rotM p.θ p.φ‖ * ‖cert.exactEdge i‖ :=
         ContinuousLinearMap.le_opNorm _ _
@@ -1923,26 +1925,26 @@ theorem Box.valid_budget_of_le (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
-    ∑ i, (box.certificate j).exactWeight box p i *
-      (‖direction box.root p ((box.certificate j).exactEdge i)‖ *
-        ‖exactVertex ((box.certificate j).supportIndex box i)‖) ≤
+    ∑ i, (box.certificate j).exactWeight (P := P) box p i *
+      (‖direction box.root p ((box.certificate j).exactEdge (P := P) i)‖ *
+        ‖P.vertex ((box.certificate j).supportIndex box i)‖) ≤
       ((box.certificate j).B : ℝ) := by
   let cert := box.certificate j
   have hsum :
-      ∑ i, cert.exactWeight box p i *
-          (‖direction box.root p (cert.exactEdge i)‖ *
-            ‖exactVertex (cert.supportIndex box i)‖) ≤
+      ∑ i, cert.exactWeight (P := P) box p i *
+          (‖direction box.root p (cert.exactEdge (P := P) i)‖ *
+            ‖P.vertex (cert.supportIndex box i)‖) ≤
         ∑ i, (box.weightUpper j i : ℝ) * 2 := by
     apply Finset.sum_le_sum
     intro i _
-    have hw0 := box.valid_weight_nonneg_of_lower h_weight hscale hmem j i
-    have hwUpper := box.exactWeight_le_upper hscale hmem j i
-    have hfactor : ‖direction box.root p (cert.exactEdge i)‖ *
-        ‖exactVertex (cert.supportIndex box i)‖ ≤ 2 := by
+    have hw0 := box.valid_weight_nonneg_of_lower (P := P) h_weight hscale hmem j i
+    have hwUpper := box.exactWeight_le_upper (P := P) hscale hmem j i
+    have hfactor : ‖direction box.root p (cert.exactEdge (P := P) i)‖ *
+        ‖P.vertex (cert.supportIndex box i)‖ ≤ 2 := by
       calc
         _ ≤ 2 * 1 := mul_le_mul
           (cert.direction_norm_le_two box hscale i)
-          (exactVertex_norm_le_one (cert.supportIndex box i))
+          (P.vertex_norm_le_one (cert.supportIndex box i))
           (norm_nonneg _) (by norm_num)
         _ = 2 := by norm_num
     calc
@@ -1965,13 +1967,13 @@ theorem Box.valid_defect_budget (box : Box)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
-    ∑ i, (box.certificate j).exactWeight box p i * (defect j i : ℝ) ≤ (D j : ℝ) := by
+    ∑ i, (box.certificate j).exactWeight (P := P) box p i * (defect j i : ℝ) ≤ (D j : ℝ) := by
   calc
     ∑ i, (box.certificate j).exactWeight box p i * (defect j i : ℝ) ≤
         ∑ i, (box.weightUpper j i : ℝ) * (defect j i : ℝ) := by
       apply Finset.sum_le_sum
       intro i _
-      have hw := box.exactWeight_le_upper hscale hmem j i
+      have hw := box.exactWeight_le_upper (P := P) hscale hmem j i
       have hd : 0 ≤ (defect j i : ℝ) := by exact_mod_cast h_defect_nonneg j i
       exact mul_le_mul_of_nonneg_right hw hd
     _ ≤ (D j : ℝ) := by
@@ -1986,9 +1988,9 @@ theorem Box.valid_budget (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p))
     (j : Fin 4) :
-    ∑ i, (box.certificate j).exactWeight box p i *
-      (‖direction box.root p ((box.certificate j).exactEdge i)‖ *
-        ‖exactVertex ((box.certificate j).supportIndex box i)‖) ≤
+    ∑ i, (box.certificate j).exactWeight (P := P) box p i *
+      (‖direction box.root p ((box.certificate j).exactEdge (P := P) i)‖ *
+        ‖P.vertex ((box.certificate j).supportIndex box i)‖) ≤
       ((box.certificate j).B : ℝ) :=
   box.valid_budget_of_le h.weight_nonneg h.budget hscale hmem j
 
@@ -2055,7 +2057,7 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid)
     (hmem : InTriangle (toReal box.triangle)
       (AtlasProjectiveView.normalizedView box.root p)) :
     ¬ RupertPose (p.matrixPoseWithOffset box.chart offset)
-      exactPolyhedron.hull := by
+      P.polyhedron.hull := by
   apply not_rupertPose_of_projective_local_certificates
     (root := box.root) (p := p) (chart := box.chart) (offset := offset)
     (g := box.symmetryIndex)
@@ -2090,7 +2092,7 @@ theorem Box.valid_imp_no_translated_rupert_in_region
       InTriangle (toReal box.triangle)
         (AtlasProjectiveView.normalizedView box.root p) ∧
       RupertPose (p.matrixPoseWithOffset box.chart offset)
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
   rintro ⟨p, hp, offset, hscale, hmem, hrupert⟩
   exact box.valid_imp_not_translated_rupert h hp offset hscale hmem hrupert
 

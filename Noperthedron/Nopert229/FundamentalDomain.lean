@@ -17,6 +17,8 @@ before geometric certificates are attempted.
 
 namespace Noperthedron.Nopert229
 
+variable {P : C5Model}
+
 open scoped Matrix
 
 /-- The `k`th exact rotation around the symmetry axis. -/
@@ -72,9 +74,9 @@ theorem fivefoldMatrix_mul (a b : OrbitIndex) :
 
 /-- Every exact fivefold rotation maps the exact hull onto itself. -/
 theorem fivefoldMatrix_image_hull (k : OrbitIndex) :
-    (fivefoldMatrix k).toEuclideanLin '' exactPolyhedron.hull =
-      exactPolyhedron.hull := by
-  change RzL ((k : ℝ) * (2 * Real.pi / 5)) '' exactPolyhedron.hull = _
+    (fivefoldMatrix k).toEuclideanLin '' P.polyhedron.hull =
+      P.polyhedron.hull := by
+  change RzL ((k : ℝ) * (2 * Real.pi / 5)) '' P.polyhedron.hull = _
   exact rotate_hull_iterated_nat k.val
 
 /-- Compose only the inner rotation by an exact symmetry. -/
@@ -86,13 +88,13 @@ noncomputable def _root_.MatrixPose.rightNopert229Symmetry
 
 theorem innerShadow_rightNopert229Symmetry
     (p : MatrixPose) (k : OrbitIndex) :
-    innerShadow (p.rightNopert229Symmetry k) exactPolyhedron.hull =
-      innerShadow p exactPolyhedron.hull := by
+    innerShadow (p.rightNopert229Symmetry k) P.polyhedron.hull =
+      innerShadow p P.polyhedron.hull := by
   ext w
   constructor
   · rintro ⟨v, hv, rfl⟩
     have hgv : (fivefoldMatrix k).toEuclideanLin v ∈
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
       rw [← fivefoldMatrix_image_hull k]
       exact ⟨v, hv, rfl⟩
     refine ⟨(fivefoldMatrix k).toEuclideanLin v, hgv, ?_⟩
@@ -100,7 +102,7 @@ theorem innerShadow_rightNopert229Symmetry
       fivefoldSO3, Matrix.toLpLin_apply, Matrix.mulVec_mulVec]
   · rintro ⟨v, hv, rfl⟩
     have hv' : v ∈ (fivefoldMatrix k).toEuclideanLin ''
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
       rwa [fivefoldMatrix_image_hull k]
     obtain ⟨u, hu, rfl⟩ := hv'
     refine ⟨u, hu, ?_⟩
@@ -109,14 +111,14 @@ theorem innerShadow_rightNopert229Symmetry
 
 @[simp] theorem outerShadow_rightNopert229Symmetry
     (p : MatrixPose) (k : OrbitIndex) :
-    outerShadow (p.rightNopert229Symmetry k) exactPolyhedron.hull =
-      outerShadow p exactPolyhedron.hull := by
+    outerShadow (p.rightNopert229Symmetry k) P.polyhedron.hull =
+      outerShadow p P.polyhedron.hull := by
   rfl
 
 theorem RupertPose_rightNopert229Symmetry_iff
     (p : MatrixPose) (k : OrbitIndex) :
-    RupertPose (p.rightNopert229Symmetry k) exactPolyhedron.hull ↔
-      RupertPose p exactPolyhedron.hull := by
+    RupertPose (p.rightNopert229Symmetry k) P.polyhedron.hull ↔
+      RupertPose p P.polyhedron.hull := by
   simp only [RupertPose, innerShadow_rightNopert229Symmetry,
     outerShadow_rightNopert229Symmetry]
 

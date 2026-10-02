@@ -16,6 +16,8 @@ valid pointwise obstruction.
 
 namespace Noperthedron.Nopert229.AtlasProjectiveMixedGlobalCertificate
 
+variable {P : C5Model}
+
 open Noperthedron.Checker Noperthedron.BalancedSupport
 open CayleyAtlas AtlasProjectiveView
 open AtlasProjectiveGlobalCertificate
@@ -425,7 +427,7 @@ theorem Box.valid_imp_not_translated_rupert (box : Box) (h : box.Valid) :
         (AtlasProjectiveView.normalizedView box.root p) →
       ∀ offset : ℝ²,
         ¬ RupertPose (p.matrixPoseWithOffset box.chart offset)
-          exactPolyhedron.hull := by
+          P.polyhedron.hull := by
   intro p hp hbounded hscale hmem offset
   obtain ⟨k, hactual⟩ := box.exists_component_displacement
     h hp hbounded hscale hmem
@@ -468,7 +470,7 @@ theorem Box.valid_imp_no_translated_rupert_in_interval
         (AtlasProjectiveView.normalizedView box.root p) ∧
       ∃ offset : ℝ²,
         RupertPose (p.matrixPoseWithOffset box.chart offset)
-          exactPolyhedron.hull := by
+          P.polyhedron.hull := by
   rintro ⟨p, hp, hbounded, hscale, hmem, offset, hrupert⟩
   exact box.valid_imp_not_translated_rupert h p hp hbounded hscale hmem
     offset hrupert

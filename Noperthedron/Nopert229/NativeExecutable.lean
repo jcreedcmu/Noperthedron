@@ -21,6 +21,8 @@ their correctness comes from the specifications of the Boolean checkers.
 
 namespace Noperthedron.Nopert229.NativeExecutable
 
+variable {P : C5Model}
+
 open AtlasProjectiveLocalViewTree
 open SparseLocalViewTree
 
@@ -146,10 +148,12 @@ structure CheckedChartTables where
   charts : ∀ chart, (tables chart).chart = chart
   valid : ∀ chart, (tables chart).Valid
 
-/-- The proof object constructed by a successful executable run. -/
+/-- The proof object constructed by a successful executable run: the checked
+tables exclude every `C5Model` (fivefold-symmetric polyhedra within
+`modelErrorQ` of the rational vertices) at once. -/
 theorem CheckedChartTables.notRupert (checked : CheckedChartTables) :
-    ¬ IsRupert exactVerts :=
-  not_rupert_of_valid_tables checked.tables checked.charts checked.valid
+    ∀ P : C5Model, ¬ IsRupert P.verts :=
+  fun _ => not_rupert_of_valid_tables checked.tables checked.charts checked.valid
 
 /-- Check all certificate data and construct the final non-Rupert proof.
 
@@ -163,7 +167,7 @@ def constructProof (localTaskCount globalTaskCount : Nat)
     (hchart : ∀ shared chart, (globalTables shared chart).chart = chart)
     (hshared : ∀ shared chart,
       (globalTables shared chart).sharedLocal = shared) :
-    IO (PLift (¬ IsRupert exactVerts)) := do
+    IO (PLift (∀ P : C5Model, ¬ IsRupert P.verts)) := do
   let checkedLocal ← checkLocalAll localTaskCount localTables
   let shared := localTables
   have sharedValid : AtlasProjectiveSolutionTree.SharedLocalValid shared :=
@@ -208,7 +212,7 @@ def constructProof (localTaskCount globalTaskCount : Nat)
       · exact valid1.down
       · exact valid2.down
       · exact valid3.down }
-  log "constructed proof: the exact polyhedron is not Rupert"
+  log "constructed proof: no C5Model (fivefold-symmetric polyhedron within 6e-16 of the rational vertices) is Rupert"
   pure ⟨checkedCharts.notRupert⟩
 
 end Noperthedron.Nopert229.NativeExecutable

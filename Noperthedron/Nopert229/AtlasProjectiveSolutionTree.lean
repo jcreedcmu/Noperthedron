@@ -23,6 +23,8 @@ triangle subdivision.  Leaves carry projective edge-cycle certificates.
 
 namespace Noperthedron.Nopert229.AtlasProjectiveSolutionTree
 
+variable {P : C5Model}
+
 open CayleyAtlas AtlasProjectiveView
 open Noperthedron.SnubCube.ProjectiveView
 
@@ -60,7 +62,7 @@ def NoRupert (chart : ChartIndex) (interval : Interval)
     ∃ offset : ℝ²,
     region.Mem p ∧
       RupertPose (p.matrixPoseWithOffset chart offset)
-        exactPolyhedron.hull
+        P.polyhedron.hull
 
 theorem noRupert_halves (chart : ChartIndex) (interval : Interval)
     (region : Region) (coordinate : Fin 5)
@@ -693,7 +695,7 @@ theorem Table.valid_imp_no_chart_translated_pose
       p.CayleyBounded ∧ p.InFivefoldFundamentalDomain table.chart ∧
       p.InViewWedge ∧ p.InUpperView ∧ ∃ offset : ℝ²,
       RupertPose (p.matrixPoseWithOffset table.chart offset)
-        exactPolyhedron.hull := by
+        P.polyhedron.hull := by
   obtain ⟨hnonempty, hrows, hrootInterval, hrootRegion, hshared⟩ := h
   have hchecked := valid_imp_noRupert_ix table.chart table.get table.size
     table.sharedLocal hshared hrows 0 hnonempty
@@ -709,7 +711,7 @@ theorem no_matrixPose_of_valid_tables
     (table : ChartIndex → Table)
     (hchart : ∀ chart, (table chart).chart = chart)
     (hvalid : ∀ chart, (table chart).Valid) :
-    ¬ ∃ p : MatrixPose, RupertPose p exactPolyhedron.hull := by
+    ¬ ∃ p : MatrixPose, RupertPose p P.polyhedron.hull := by
   rintro ⟨p, hrupert⟩
   obtain ⟨chart, q, offset, hq, hbounded, hview, hupper, hfund, heq⟩ :=
     AtlasFundamentalPrune.exists_fundamental_atlas_translated_pose p
