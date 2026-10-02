@@ -306,6 +306,44 @@ def decodeTable (chart : CayleyAtlas.ChartIndex)
     sharedLocal := shared
   }
 
+/-- Add `k` to a row's id and to its children's ids. -/
+def shiftRow (k : Nat) : Row → Row
+  | .cayleySplit id l u c iv r => .cayleySplit (id + k) (l + k) (u + k) c iv r
+  | .viewRoot id ch iv => .viewRoot (id + k) (ch + k) iv
+  | .viewSplit id ch iv root tri => .viewSplit (id + k) (fun i => ch i + k) iv root tri
+  | .projective id b => .projective (id + k) b
+  | .projectiveGlobal id b => .projectiveGlobal (id + k) b
+  | .projectiveMixedGlobal id b => .projectiveMixedGlobal (id + k) b
+  | .symmetryLocal id b r => .symmetryLocal (id + k) b r
+  | .projectiveLocal id b => .projectiveLocal (id + k) b
+  | .symmetryTube id tube s path r => .symmetryTube (id + k) tube s path r
+  | .codeRoot id ch iv => .codeRoot (id + k) (ch.map (· + k)) iv
+  | .radiusPrune id iv r => .radiusPrune (id + k) iv r
+  | .fundamentalPrune id b r => .fundamentalPrune (id + k) b r
+  | .regionRelax id ch iv root tri outer => .regionRelax (id + k) (ch + k) iv root tri outer
+  | .cayleySplitAt id l u c cut iv r => .cayleySplitAt (id + k) (l + k) (u + k) c cut iv r
+
+/-- Decode a chart table from per-code packs (nopert229 `pack5d --per_code`),
+one per code triangle in order, each with its job's root as row 0. Row 0 of
+the result is a `codeRoot` over the restricted root interval, followed by each
+code's rows with their ids shifted. Like `decodeTable`, this is untrusted
+plumbing: the table is checked afterwards. -/
+def decodeCodeTables (chart : CayleyAtlas.ChartIndex)
+    (shared : SharedLocalTables) (packs : Array String) : Table :=
+  let decoded := packs.map fun packed => (readDecoded chart { data := packed.toUTF8 }).1
+  let (offsets, size) := decoded.foldl
+    (fun (acc : Array Nat × Nat) d => (acc.1.push acc.2, acc.2 + d.count)) (#[], 1)
+  let root : Row := .codeRoot 0 offsets
+    (AtlasFundamentalPrune.restrictedRootInterval chart)
+  let rows := (decoded.zip offsets).foldl
+    (fun (rows : Array Row) (d, offset) => rows ++ d.rows.map (shiftRow offset)) #[root]
+  {
+    chart
+    get := fun i => rows[i]!
+    size
+    sharedLocal := shared
+  }
+
 end Noperthedron.Nopert229.PackedSolutionTree
 
 end
