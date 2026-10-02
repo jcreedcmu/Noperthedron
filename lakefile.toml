@@ -53,8 +53,8 @@ root = "benchRows"
 buildType = "release"
 
 [[lean_exe]]
-name = "constructNopert229"
-root = "constructNopert229"
+name = "constructNopert231"
+root = "constructNopert231"
 buildType = "release"
 
 [[lean_exe]]

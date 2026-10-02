@@ -1,6 +1,6 @@
-import Noperthedron.Nopert229.NativeExecutable
-import Noperthedron.Nopert229.PackedLocalViewTree
-import Noperthedron.Nopert229.PackedSolutionTree
+import Noperthedron.Nopert231.NativeExecutable
+import Noperthedron.Nopert231.PackedLocalViewTree
+import Noperthedron.Nopert231.PackedSolutionTree
 
 /-!
 Development checker for 5D search packs (nopert229/pack5d): decodes a
@@ -8,7 +8,7 @@ global pack for one chart, with the identity-tube code tables as shared
 tables, and checks every row with Lean's row checker
 (`AtlasProjectiveSolutionTree.validIxAtB`), reporting the rows that fail.
 
-Unlike `constructNopert229`, this works for partial packs (e.g. one job's
+Unlike `constructNopert231`, this works for partial packs (e.g. one job's
 tree with its root node as row 0), which are not valid chart tables.
 
 Usage: check_global_rows <chart> <pack | per-code directory> <code-pack manifest.txt>
@@ -18,11 +18,11 @@ A directory holds per-code packs `c<chart>/t<t>.pack` (nopert229
 root), skipping packs whose `.checked` file is newer, so a re-searched code
 needs only its own check. When a pack passes, `<pack>.checked` is written:
 bookkeeping for nopert229's `scoreboard5d`, not part of any proof (the proof
-is `constructNopert229`, which decodes the codes with `decodeCodeTables`).
+is `constructNopert231`, which decodes the codes with `decodeCodeTables`).
 -/
 
-open Noperthedron.Nopert229
-open Noperthedron.Nopert229.AtlasProjectiveSolutionTree
+open Noperthedron.Nopert231
+open Noperthedron.Nopert231.AtlasProjectiveSolutionTree
 
 /-- Whether `a` was modified after `b` (both exist). -/
 def newerThan (a b : System.FilePath) : IO Bool := do
