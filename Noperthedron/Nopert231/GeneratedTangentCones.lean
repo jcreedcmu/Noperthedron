@@ -71176,9 +71176,9 @@ private theorem valid_59_58 :
       simp [combination_59_58, supportGenerator, rationalVertex,
         rationalVertices, Fin.sum_univ_three] <;> norm_num
 
-theorem table_valid_kernel : TangentTableValid table := by
-  intro base target htarget
-  fin_cases base <;> fin_cases target
+private theorem row_valid_0 (target : VertexIndex) (htarget : target ≠ 0) :
+    (table 0 target).Valid 0 target := by
+  fin_cases target
   · exact (htarget rfl).elim
   · exact valid_0_1
   · exact valid_0_2
@@ -71239,6 +71239,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_0_57
   · exact valid_0_58
   · exact valid_0_59
+
+private theorem row_valid_1 (target : VertexIndex) (htarget : target ≠ 1) :
+    (table 1 target).Valid 1 target := by
+  fin_cases target
   · exact valid_1_0
   · exact (htarget rfl).elim
   · exact valid_1_2
@@ -71299,6 +71303,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_1_57
   · exact valid_1_58
   · exact valid_1_59
+
+private theorem row_valid_2 (target : VertexIndex) (htarget : target ≠ 2) :
+    (table 2 target).Valid 2 target := by
+  fin_cases target
   · exact valid_2_0
   · exact valid_2_1
   · exact (htarget rfl).elim
@@ -71359,6 +71367,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_2_57
   · exact valid_2_58
   · exact valid_2_59
+
+private theorem row_valid_3 (target : VertexIndex) (htarget : target ≠ 3) :
+    (table 3 target).Valid 3 target := by
+  fin_cases target
   · exact valid_3_0
   · exact valid_3_1
   · exact valid_3_2
@@ -71419,6 +71431,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_3_57
   · exact valid_3_58
   · exact valid_3_59
+
+private theorem row_valid_4 (target : VertexIndex) (htarget : target ≠ 4) :
+    (table 4 target).Valid 4 target := by
+  fin_cases target
   · exact valid_4_0
   · exact valid_4_1
   · exact valid_4_2
@@ -71479,6 +71495,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_4_57
   · exact valid_4_58
   · exact valid_4_59
+
+private theorem row_valid_5 (target : VertexIndex) (htarget : target ≠ 5) :
+    (table 5 target).Valid 5 target := by
+  fin_cases target
   · exact valid_5_0
   · exact valid_5_1
   · exact valid_5_2
@@ -71539,6 +71559,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_5_57
   · exact valid_5_58
   · exact valid_5_59
+
+private theorem row_valid_6 (target : VertexIndex) (htarget : target ≠ 6) :
+    (table 6 target).Valid 6 target := by
+  fin_cases target
   · exact valid_6_0
   · exact valid_6_1
   · exact valid_6_2
@@ -71599,6 +71623,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_6_57
   · exact valid_6_58
   · exact valid_6_59
+
+private theorem row_valid_7 (target : VertexIndex) (htarget : target ≠ 7) :
+    (table 7 target).Valid 7 target := by
+  fin_cases target
   · exact valid_7_0
   · exact valid_7_1
   · exact valid_7_2
@@ -71659,6 +71687,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_7_57
   · exact valid_7_58
   · exact valid_7_59
+
+private theorem row_valid_8 (target : VertexIndex) (htarget : target ≠ 8) :
+    (table 8 target).Valid 8 target := by
+  fin_cases target
   · exact valid_8_0
   · exact valid_8_1
   · exact valid_8_2
@@ -71719,6 +71751,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_8_57
   · exact valid_8_58
   · exact valid_8_59
+
+private theorem row_valid_9 (target : VertexIndex) (htarget : target ≠ 9) :
+    (table 9 target).Valid 9 target := by
+  fin_cases target
   · exact valid_9_0
   · exact valid_9_1
   · exact valid_9_2
@@ -71779,6 +71815,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_9_57
   · exact valid_9_58
   · exact valid_9_59
+
+private theorem row_valid_10 (target : VertexIndex) (htarget : target ≠ 10) :
+    (table 10 target).Valid 10 target := by
+  fin_cases target
   · exact valid_10_0
   · exact valid_10_1
   · exact valid_10_2
@@ -71839,6 +71879,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_10_57
   · exact valid_10_58
   · exact valid_10_59
+
+private theorem row_valid_11 (target : VertexIndex) (htarget : target ≠ 11) :
+    (table 11 target).Valid 11 target := by
+  fin_cases target
   · exact valid_11_0
   · exact valid_11_1
   · exact valid_11_2
@@ -71899,6 +71943,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_11_57
   · exact valid_11_58
   · exact valid_11_59
+
+private theorem row_valid_12 (target : VertexIndex) (htarget : target ≠ 12) :
+    (table 12 target).Valid 12 target := by
+  fin_cases target
   · exact valid_12_0
   · exact valid_12_1
   · exact valid_12_2
@@ -71959,6 +72007,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_12_57
   · exact valid_12_58
   · exact valid_12_59
+
+private theorem row_valid_13 (target : VertexIndex) (htarget : target ≠ 13) :
+    (table 13 target).Valid 13 target := by
+  fin_cases target
   · exact valid_13_0
   · exact valid_13_1
   · exact valid_13_2
@@ -72019,6 +72071,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_13_57
   · exact valid_13_58
   · exact valid_13_59
+
+private theorem row_valid_14 (target : VertexIndex) (htarget : target ≠ 14) :
+    (table 14 target).Valid 14 target := by
+  fin_cases target
   · exact valid_14_0
   · exact valid_14_1
   · exact valid_14_2
@@ -72079,6 +72135,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_14_57
   · exact valid_14_58
   · exact valid_14_59
+
+private theorem row_valid_15 (target : VertexIndex) (htarget : target ≠ 15) :
+    (table 15 target).Valid 15 target := by
+  fin_cases target
   · exact valid_15_0
   · exact valid_15_1
   · exact valid_15_2
@@ -72139,6 +72199,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_15_57
   · exact valid_15_58
   · exact valid_15_59
+
+private theorem row_valid_16 (target : VertexIndex) (htarget : target ≠ 16) :
+    (table 16 target).Valid 16 target := by
+  fin_cases target
   · exact valid_16_0
   · exact valid_16_1
   · exact valid_16_2
@@ -72199,6 +72263,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_16_57
   · exact valid_16_58
   · exact valid_16_59
+
+private theorem row_valid_17 (target : VertexIndex) (htarget : target ≠ 17) :
+    (table 17 target).Valid 17 target := by
+  fin_cases target
   · exact valid_17_0
   · exact valid_17_1
   · exact valid_17_2
@@ -72259,6 +72327,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_17_57
   · exact valid_17_58
   · exact valid_17_59
+
+private theorem row_valid_18 (target : VertexIndex) (htarget : target ≠ 18) :
+    (table 18 target).Valid 18 target := by
+  fin_cases target
   · exact valid_18_0
   · exact valid_18_1
   · exact valid_18_2
@@ -72319,6 +72391,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_18_57
   · exact valid_18_58
   · exact valid_18_59
+
+private theorem row_valid_19 (target : VertexIndex) (htarget : target ≠ 19) :
+    (table 19 target).Valid 19 target := by
+  fin_cases target
   · exact valid_19_0
   · exact valid_19_1
   · exact valid_19_2
@@ -72379,6 +72455,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_19_57
   · exact valid_19_58
   · exact valid_19_59
+
+private theorem row_valid_20 (target : VertexIndex) (htarget : target ≠ 20) :
+    (table 20 target).Valid 20 target := by
+  fin_cases target
   · exact valid_20_0
   · exact valid_20_1
   · exact valid_20_2
@@ -72439,6 +72519,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_20_57
   · exact valid_20_58
   · exact valid_20_59
+
+private theorem row_valid_21 (target : VertexIndex) (htarget : target ≠ 21) :
+    (table 21 target).Valid 21 target := by
+  fin_cases target
   · exact valid_21_0
   · exact valid_21_1
   · exact valid_21_2
@@ -72499,6 +72583,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_21_57
   · exact valid_21_58
   · exact valid_21_59
+
+private theorem row_valid_22 (target : VertexIndex) (htarget : target ≠ 22) :
+    (table 22 target).Valid 22 target := by
+  fin_cases target
   · exact valid_22_0
   · exact valid_22_1
   · exact valid_22_2
@@ -72559,6 +72647,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_22_57
   · exact valid_22_58
   · exact valid_22_59
+
+private theorem row_valid_23 (target : VertexIndex) (htarget : target ≠ 23) :
+    (table 23 target).Valid 23 target := by
+  fin_cases target
   · exact valid_23_0
   · exact valid_23_1
   · exact valid_23_2
@@ -72619,6 +72711,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_23_57
   · exact valid_23_58
   · exact valid_23_59
+
+private theorem row_valid_24 (target : VertexIndex) (htarget : target ≠ 24) :
+    (table 24 target).Valid 24 target := by
+  fin_cases target
   · exact valid_24_0
   · exact valid_24_1
   · exact valid_24_2
@@ -72679,6 +72775,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_24_57
   · exact valid_24_58
   · exact valid_24_59
+
+private theorem row_valid_25 (target : VertexIndex) (htarget : target ≠ 25) :
+    (table 25 target).Valid 25 target := by
+  fin_cases target
   · exact valid_25_0
   · exact valid_25_1
   · exact valid_25_2
@@ -72739,6 +72839,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_25_57
   · exact valid_25_58
   · exact valid_25_59
+
+private theorem row_valid_26 (target : VertexIndex) (htarget : target ≠ 26) :
+    (table 26 target).Valid 26 target := by
+  fin_cases target
   · exact valid_26_0
   · exact valid_26_1
   · exact valid_26_2
@@ -72799,6 +72903,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_26_57
   · exact valid_26_58
   · exact valid_26_59
+
+private theorem row_valid_27 (target : VertexIndex) (htarget : target ≠ 27) :
+    (table 27 target).Valid 27 target := by
+  fin_cases target
   · exact valid_27_0
   · exact valid_27_1
   · exact valid_27_2
@@ -72859,6 +72967,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_27_57
   · exact valid_27_58
   · exact valid_27_59
+
+private theorem row_valid_28 (target : VertexIndex) (htarget : target ≠ 28) :
+    (table 28 target).Valid 28 target := by
+  fin_cases target
   · exact valid_28_0
   · exact valid_28_1
   · exact valid_28_2
@@ -72919,6 +73031,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_28_57
   · exact valid_28_58
   · exact valid_28_59
+
+private theorem row_valid_29 (target : VertexIndex) (htarget : target ≠ 29) :
+    (table 29 target).Valid 29 target := by
+  fin_cases target
   · exact valid_29_0
   · exact valid_29_1
   · exact valid_29_2
@@ -72979,6 +73095,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_29_57
   · exact valid_29_58
   · exact valid_29_59
+
+private theorem row_valid_30 (target : VertexIndex) (htarget : target ≠ 30) :
+    (table 30 target).Valid 30 target := by
+  fin_cases target
   · exact valid_30_0
   · exact valid_30_1
   · exact valid_30_2
@@ -73039,6 +73159,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_30_57
   · exact valid_30_58
   · exact valid_30_59
+
+private theorem row_valid_31 (target : VertexIndex) (htarget : target ≠ 31) :
+    (table 31 target).Valid 31 target := by
+  fin_cases target
   · exact valid_31_0
   · exact valid_31_1
   · exact valid_31_2
@@ -73099,6 +73223,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_31_57
   · exact valid_31_58
   · exact valid_31_59
+
+private theorem row_valid_32 (target : VertexIndex) (htarget : target ≠ 32) :
+    (table 32 target).Valid 32 target := by
+  fin_cases target
   · exact valid_32_0
   · exact valid_32_1
   · exact valid_32_2
@@ -73159,6 +73287,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_32_57
   · exact valid_32_58
   · exact valid_32_59
+
+private theorem row_valid_33 (target : VertexIndex) (htarget : target ≠ 33) :
+    (table 33 target).Valid 33 target := by
+  fin_cases target
   · exact valid_33_0
   · exact valid_33_1
   · exact valid_33_2
@@ -73219,6 +73351,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_33_57
   · exact valid_33_58
   · exact valid_33_59
+
+private theorem row_valid_34 (target : VertexIndex) (htarget : target ≠ 34) :
+    (table 34 target).Valid 34 target := by
+  fin_cases target
   · exact valid_34_0
   · exact valid_34_1
   · exact valid_34_2
@@ -73279,6 +73415,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_34_57
   · exact valid_34_58
   · exact valid_34_59
+
+private theorem row_valid_35 (target : VertexIndex) (htarget : target ≠ 35) :
+    (table 35 target).Valid 35 target := by
+  fin_cases target
   · exact valid_35_0
   · exact valid_35_1
   · exact valid_35_2
@@ -73339,6 +73479,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_35_57
   · exact valid_35_58
   · exact valid_35_59
+
+private theorem row_valid_36 (target : VertexIndex) (htarget : target ≠ 36) :
+    (table 36 target).Valid 36 target := by
+  fin_cases target
   · exact valid_36_0
   · exact valid_36_1
   · exact valid_36_2
@@ -73399,6 +73543,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_36_57
   · exact valid_36_58
   · exact valid_36_59
+
+private theorem row_valid_37 (target : VertexIndex) (htarget : target ≠ 37) :
+    (table 37 target).Valid 37 target := by
+  fin_cases target
   · exact valid_37_0
   · exact valid_37_1
   · exact valid_37_2
@@ -73459,6 +73607,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_37_57
   · exact valid_37_58
   · exact valid_37_59
+
+private theorem row_valid_38 (target : VertexIndex) (htarget : target ≠ 38) :
+    (table 38 target).Valid 38 target := by
+  fin_cases target
   · exact valid_38_0
   · exact valid_38_1
   · exact valid_38_2
@@ -73519,6 +73671,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_38_57
   · exact valid_38_58
   · exact valid_38_59
+
+private theorem row_valid_39 (target : VertexIndex) (htarget : target ≠ 39) :
+    (table 39 target).Valid 39 target := by
+  fin_cases target
   · exact valid_39_0
   · exact valid_39_1
   · exact valid_39_2
@@ -73579,6 +73735,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_39_57
   · exact valid_39_58
   · exact valid_39_59
+
+private theorem row_valid_40 (target : VertexIndex) (htarget : target ≠ 40) :
+    (table 40 target).Valid 40 target := by
+  fin_cases target
   · exact valid_40_0
   · exact valid_40_1
   · exact valid_40_2
@@ -73639,6 +73799,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_40_57
   · exact valid_40_58
   · exact valid_40_59
+
+private theorem row_valid_41 (target : VertexIndex) (htarget : target ≠ 41) :
+    (table 41 target).Valid 41 target := by
+  fin_cases target
   · exact valid_41_0
   · exact valid_41_1
   · exact valid_41_2
@@ -73699,6 +73863,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_41_57
   · exact valid_41_58
   · exact valid_41_59
+
+private theorem row_valid_42 (target : VertexIndex) (htarget : target ≠ 42) :
+    (table 42 target).Valid 42 target := by
+  fin_cases target
   · exact valid_42_0
   · exact valid_42_1
   · exact valid_42_2
@@ -73759,6 +73927,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_42_57
   · exact valid_42_58
   · exact valid_42_59
+
+private theorem row_valid_43 (target : VertexIndex) (htarget : target ≠ 43) :
+    (table 43 target).Valid 43 target := by
+  fin_cases target
   · exact valid_43_0
   · exact valid_43_1
   · exact valid_43_2
@@ -73819,6 +73991,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_43_57
   · exact valid_43_58
   · exact valid_43_59
+
+private theorem row_valid_44 (target : VertexIndex) (htarget : target ≠ 44) :
+    (table 44 target).Valid 44 target := by
+  fin_cases target
   · exact valid_44_0
   · exact valid_44_1
   · exact valid_44_2
@@ -73879,6 +74055,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_44_57
   · exact valid_44_58
   · exact valid_44_59
+
+private theorem row_valid_45 (target : VertexIndex) (htarget : target ≠ 45) :
+    (table 45 target).Valid 45 target := by
+  fin_cases target
   · exact valid_45_0
   · exact valid_45_1
   · exact valid_45_2
@@ -73939,6 +74119,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_45_57
   · exact valid_45_58
   · exact valid_45_59
+
+private theorem row_valid_46 (target : VertexIndex) (htarget : target ≠ 46) :
+    (table 46 target).Valid 46 target := by
+  fin_cases target
   · exact valid_46_0
   · exact valid_46_1
   · exact valid_46_2
@@ -73999,6 +74183,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_46_57
   · exact valid_46_58
   · exact valid_46_59
+
+private theorem row_valid_47 (target : VertexIndex) (htarget : target ≠ 47) :
+    (table 47 target).Valid 47 target := by
+  fin_cases target
   · exact valid_47_0
   · exact valid_47_1
   · exact valid_47_2
@@ -74059,6 +74247,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_47_57
   · exact valid_47_58
   · exact valid_47_59
+
+private theorem row_valid_48 (target : VertexIndex) (htarget : target ≠ 48) :
+    (table 48 target).Valid 48 target := by
+  fin_cases target
   · exact valid_48_0
   · exact valid_48_1
   · exact valid_48_2
@@ -74119,6 +74311,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_48_57
   · exact valid_48_58
   · exact valid_48_59
+
+private theorem row_valid_49 (target : VertexIndex) (htarget : target ≠ 49) :
+    (table 49 target).Valid 49 target := by
+  fin_cases target
   · exact valid_49_0
   · exact valid_49_1
   · exact valid_49_2
@@ -74179,6 +74375,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_49_57
   · exact valid_49_58
   · exact valid_49_59
+
+private theorem row_valid_50 (target : VertexIndex) (htarget : target ≠ 50) :
+    (table 50 target).Valid 50 target := by
+  fin_cases target
   · exact valid_50_0
   · exact valid_50_1
   · exact valid_50_2
@@ -74239,6 +74439,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_50_57
   · exact valid_50_58
   · exact valid_50_59
+
+private theorem row_valid_51 (target : VertexIndex) (htarget : target ≠ 51) :
+    (table 51 target).Valid 51 target := by
+  fin_cases target
   · exact valid_51_0
   · exact valid_51_1
   · exact valid_51_2
@@ -74299,6 +74503,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_51_57
   · exact valid_51_58
   · exact valid_51_59
+
+private theorem row_valid_52 (target : VertexIndex) (htarget : target ≠ 52) :
+    (table 52 target).Valid 52 target := by
+  fin_cases target
   · exact valid_52_0
   · exact valid_52_1
   · exact valid_52_2
@@ -74359,6 +74567,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_52_57
   · exact valid_52_58
   · exact valid_52_59
+
+private theorem row_valid_53 (target : VertexIndex) (htarget : target ≠ 53) :
+    (table 53 target).Valid 53 target := by
+  fin_cases target
   · exact valid_53_0
   · exact valid_53_1
   · exact valid_53_2
@@ -74419,6 +74631,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_53_57
   · exact valid_53_58
   · exact valid_53_59
+
+private theorem row_valid_54 (target : VertexIndex) (htarget : target ≠ 54) :
+    (table 54 target).Valid 54 target := by
+  fin_cases target
   · exact valid_54_0
   · exact valid_54_1
   · exact valid_54_2
@@ -74479,6 +74695,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_54_57
   · exact valid_54_58
   · exact valid_54_59
+
+private theorem row_valid_55 (target : VertexIndex) (htarget : target ≠ 55) :
+    (table 55 target).Valid 55 target := by
+  fin_cases target
   · exact valid_55_0
   · exact valid_55_1
   · exact valid_55_2
@@ -74539,6 +74759,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_55_57
   · exact valid_55_58
   · exact valid_55_59
+
+private theorem row_valid_56 (target : VertexIndex) (htarget : target ≠ 56) :
+    (table 56 target).Valid 56 target := by
+  fin_cases target
   · exact valid_56_0
   · exact valid_56_1
   · exact valid_56_2
@@ -74599,6 +74823,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_56_57
   · exact valid_56_58
   · exact valid_56_59
+
+private theorem row_valid_57 (target : VertexIndex) (htarget : target ≠ 57) :
+    (table 57 target).Valid 57 target := by
+  fin_cases target
   · exact valid_57_0
   · exact valid_57_1
   · exact valid_57_2
@@ -74659,6 +74887,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact (htarget rfl).elim
   · exact valid_57_58
   · exact valid_57_59
+
+private theorem row_valid_58 (target : VertexIndex) (htarget : target ≠ 58) :
+    (table 58 target).Valid 58 target := by
+  fin_cases target
   · exact valid_58_0
   · exact valid_58_1
   · exact valid_58_2
@@ -74719,6 +74951,10 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_58_57
   · exact (htarget rfl).elim
   · exact valid_58_59
+
+private theorem row_valid_59 (target : VertexIndex) (htarget : target ≠ 59) :
+    (table 59 target).Valid 59 target := by
+  fin_cases target
   · exact valid_59_0
   · exact valid_59_1
   · exact valid_59_2
@@ -74780,8 +75016,69 @@ theorem table_valid_kernel : TangentTableValid table := by
   · exact valid_59_58
   · exact (htarget rfl).elim
 
-theorem table_valid_native : TangentTableValid table := by
-  native_decide
+theorem table_valid_kernel : TangentTableValid table := by
+  intro base target htarget
+  fin_cases base
+  · exact row_valid_0 target htarget
+  · exact row_valid_1 target htarget
+  · exact row_valid_2 target htarget
+  · exact row_valid_3 target htarget
+  · exact row_valid_4 target htarget
+  · exact row_valid_5 target htarget
+  · exact row_valid_6 target htarget
+  · exact row_valid_7 target htarget
+  · exact row_valid_8 target htarget
+  · exact row_valid_9 target htarget
+  · exact row_valid_10 target htarget
+  · exact row_valid_11 target htarget
+  · exact row_valid_12 target htarget
+  · exact row_valid_13 target htarget
+  · exact row_valid_14 target htarget
+  · exact row_valid_15 target htarget
+  · exact row_valid_16 target htarget
+  · exact row_valid_17 target htarget
+  · exact row_valid_18 target htarget
+  · exact row_valid_19 target htarget
+  · exact row_valid_20 target htarget
+  · exact row_valid_21 target htarget
+  · exact row_valid_22 target htarget
+  · exact row_valid_23 target htarget
+  · exact row_valid_24 target htarget
+  · exact row_valid_25 target htarget
+  · exact row_valid_26 target htarget
+  · exact row_valid_27 target htarget
+  · exact row_valid_28 target htarget
+  · exact row_valid_29 target htarget
+  · exact row_valid_30 target htarget
+  · exact row_valid_31 target htarget
+  · exact row_valid_32 target htarget
+  · exact row_valid_33 target htarget
+  · exact row_valid_34 target htarget
+  · exact row_valid_35 target htarget
+  · exact row_valid_36 target htarget
+  · exact row_valid_37 target htarget
+  · exact row_valid_38 target htarget
+  · exact row_valid_39 target htarget
+  · exact row_valid_40 target htarget
+  · exact row_valid_41 target htarget
+  · exact row_valid_42 target htarget
+  · exact row_valid_43 target htarget
+  · exact row_valid_44 target htarget
+  · exact row_valid_45 target htarget
+  · exact row_valid_46 target htarget
+  · exact row_valid_47 target htarget
+  · exact row_valid_48 target htarget
+  · exact row_valid_49 target htarget
+  · exact row_valid_50 target htarget
+  · exact row_valid_51 target htarget
+  · exact row_valid_52 target htarget
+  · exact row_valid_53 target htarget
+  · exact row_valid_54 target htarget
+  · exact row_valid_55 target htarget
+  · exact row_valid_56 target htarget
+  · exact row_valid_57 target htarget
+  · exact row_valid_58 target htarget
+  · exact row_valid_59 target htarget
 
 end Noperthedron.Nopert231.GeneratedTangentCones
 

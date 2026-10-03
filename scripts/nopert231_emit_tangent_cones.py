@@ -203,22 +203,28 @@ def emit(destination: Path):
                 "",
             ])
 
-    lines.extend([
-        "theorem table_valid_kernel : TangentTableValid table := by",
-        "  intro base target htarget",
-        "  fin_cases base <;> fin_cases target",
-    ])
+    # Assemble per base vertex: one fin_cases over all pairs nests
+    # NUM_VERTICES^2 goals, which exceeds the recursion limit at 60 vertices.
     for base in range(NUM_VERTICES):
+        lines.extend([
+            f"private theorem row_valid_{base} (target : VertexIndex) (htarget : target ≠ {base}) :",
+            f"    (table {base} target).Valid {base} target := by",
+            "  fin_cases target",
+        ])
         for target in range(NUM_VERTICES):
             if base == target:
                 lines.append("  · exact (htarget rfl).elim")
             else:
                 lines.append(f"  · exact valid_{base}_{target}")
-    lines.append("")
-
+        lines.append("")
     lines.extend([
-        "theorem table_valid_native : TangentTableValid table := by",
-        "  native_decide", "",
+        "theorem table_valid_kernel : TangentTableValid table := by",
+        "  intro base target htarget",
+        "  fin_cases base",
+    ])
+    for base in range(NUM_VERTICES):
+        lines.append(f"  · exact row_valid_{base} target htarget")
+    lines.extend(["",
         "end Noperthedron.Nopert231.GeneratedTangentCones", "", "end", "",
     ])
     destination.parent.mkdir(parents=True, exist_ok=True)
