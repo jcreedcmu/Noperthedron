@@ -1,6 +1,7 @@
 module
 
 public import Noperthedron.Nopert231.IcoModel
+public import Noperthedron.MainTheorem
 
 @[expose] public section
 
@@ -15,6 +16,8 @@ of the image box to `rationalVertex i` by `modelErrorQ`.
 -/
 
 namespace Noperthedron.Nopert231
+
+open scoped Matrix
 
 /-- A closed rational box. -/
 structure RatBox where
@@ -143,5 +146,47 @@ noncomputable def IModel.ofBox (B : RatBox) (hcheck : closeCheck B = true) (v0 :
         _ ≤ _ := hiR
     have hpos : (0 : ℝ) ≤ (modelErrorQ : ℝ) := by norm_num [modelErrorQ]
     exact (sq_le_sq₀ (norm_nonneg _) hpos).mp hsq
+
+/-! ### Rotating the vertex set -/
+
+/-- Rupert-ness is invariant under rotating the vertex set. -/
+theorem _root_.isRupert_image_rotation (Q : Matrix (Fin 3) (Fin 3) ℝ)
+    (hQ : Q ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
+    (V : Finset (EuclideanSpace ℝ (Fin 3))) (h : IsRupert V) :
+    IsRupert (V.image Q.toEuclideanLin) := by
+  obtain ⟨R1, hR1, off, R2, hR2, hsub⟩ := h
+  have hQt : Qᵀ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
+    have := (Matrix.mem_specialOrthogonalGroup_iff).mp hQ
+    rw [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]
+    exact ⟨by simpa using (Matrix.mem_orthogonalGroup_iff' (Fin 3) ℝ).mp this.1,
+      by simpa using this.2⟩
+  have hQtQ : Qᵀ * Q = 1 := (Matrix.mem_orthogonalGroup_iff' (Fin 3) ℝ).mp hQ.1
+  have hhull : convexHull ℝ (↑(V.image Q.toEuclideanLin) : Set (EuclideanSpace ℝ (Fin 3))) =
+      Q.toEuclideanLin '' convexHull ℝ ↑V := by
+    rw [Finset.coe_image, LinearMap.image_convexHull]
+  have hback : ∀ (R : Matrix (Fin 3) (Fin 3) ℝ) (p : EuclideanSpace ℝ (Fin 3)),
+      (R * Qᵀ).toEuclideanLin (Q.toEuclideanLin p) = R.toEuclideanLin p := by
+    intro R p
+    simp [Matrix.toLpLin_apply, Matrix.mulVec_mulVec, hQtQ]
+  have hset : ∀ (R : Matrix (Fin 3) (Fin 3) ℝ) (o : EuclideanSpace ℝ (Fin 2)),
+      { x | ∃ p ∈ convexHull ℝ (↑(V.image Q.toEuclideanLin) : Set (EuclideanSpace ℝ (Fin 3))),
+          o + proj_xy ((R * Qᵀ).toEuclideanLin p) = x } =
+        { x | ∃ p ∈ convexHull ℝ (↑V : Set (EuclideanSpace ℝ (Fin 3))),
+          o + proj_xy (R.toEuclideanLin p) = x } := by
+    intro R o
+    rw [hhull]
+    ext y
+    constructor
+    · rintro ⟨p, ⟨q, hq, rfl⟩, rfl⟩
+      exact ⟨q, hq, by rw [hback]⟩
+    · rintro ⟨q, hq, rfl⟩
+      exact ⟨Q.toEuclideanLin q, ⟨q, hq, rfl⟩, by rw [hback]⟩
+  refine ⟨R1 * Qᵀ, Submonoid.mul_mem _ hR1 hQt, off, R2 * Qᵀ,
+    Submonoid.mul_mem _ hR2 hQt, ?_⟩
+  dsimp only at hsub ⊢
+  have h2 := hset R2 0
+  simp only [zero_add] at h2
+  rw [hset R1 off, h2]
+  exact hsub
 
 end Noperthedron.Nopert231
