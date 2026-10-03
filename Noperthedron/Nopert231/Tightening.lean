@@ -66,7 +66,7 @@ private theorem translated_outerShadow_eq (p : Pose ℝ) (offset : ℝ²)
   · rintro ⟨v, hv, rfl⟩
     exact ⟨v, hv, matrixPoseWithOffset_outer_project p offset v⟩
 
-private theorem translated_rupert_iff_of_images {p q : Pose ℝ}
+theorem translated_rupert_iff_of_images {p q : Pose ℝ}
     (offset : ℝ²)
     (hinner : p.inner '' P.polyhedron.hull =
       q.inner '' P.polyhedron.hull)
@@ -89,7 +89,8 @@ theorem tighten_theta (p : Pose ℝ) :
       q.θ₁ - q.θ₂ ∈ Set.Ico (-(π / 5)) (π / 5) ∧
       q.φ₁ = p.φ₁ ∧ q.φ₂ = p.φ₂ ∧ q.α = p.α ∧
       p.inner '' P.polyhedron.hull = q.inner '' P.polyhedron.hull ∧
-      p.outer '' P.polyhedron.hull = q.outer '' P.polyhedron.hull := by
+      p.outer '' P.polyhedron.hull = q.outer '' P.polyhedron.hull ∧
+      ∃ k : ℤ, q.θ₂ = p.θ₂ + k * (2 * π / 5) := by
   have hperiod : 0 < 2 * π / 5 := div_pos two_pi_pos (by norm_num)
   let θ₂ := Real.emod p.θ₂ (2 * π / 5)
   obtain ⟨k₂, hk₂⟩ :=
@@ -109,7 +110,7 @@ theorem tighten_theta (p : Pose ℝ) :
     rw [hk₂, hkd]
     ring
   let q : Pose ℝ := {p with θ₁ := θ₁, θ₂ := θ₂}
-  refine ⟨q, Real.emod_in_interval hperiod, ?_, rfl, rfl, rfl, ?_, ?_⟩
+  refine ⟨q, Real.emod_in_interval hperiod, ?_, rfl, rfl, rfl, ?_, ?_, k₂, hk₂⟩
   · simpa [q, θ₁] using hd
   · calc
       p.inner '' P.polyhedron.hull =
@@ -152,7 +153,7 @@ theorem exists_tight_translated_pose (p : MatrixPose) :
         RupertPose (p.rotateBy δ) P.polyhedron.hull) := by
   obtain ⟨δ, p0, offset, hp0, _hθ0, hφ0, heq⟩ :=
     Noperthedron.BalancedSupport.exists_universal_translated_pose p
-  obtain ⟨q, hθ₂, hdiff, hφ₁, hφ₂, hα, hinner, houter⟩ := tighten_theta p0
+  obtain ⟨q, hθ₂, hdiff, hφ₁, hφ₂, hα, hinner, houter, -⟩ := tighten_theta p0
   have hq : q ∈ tightPoseInterval := by
     rw [NonemptyInterval.mem_def, Pose.le_iff, Pose.le_iff]
     rw [NonemptyInterval.mem_def, Pose.le_iff, Pose.le_iff] at hp0
@@ -204,7 +205,7 @@ theorem exists_upper_tight_translated_pose (p : MatrixPose) :
     have hneg := Real.cos_neg_of_pi_div_two_lt_of_lt
       (lt_of_not_ge h) (hφ0.2.trans_lt (by linarith [Real.pi_pos]))
     linarith
-  obtain ⟨q, hθ₂, hdiff, hφ₁, hφ₂, hα, hinner, houter⟩ := tighten_theta p0
+  obtain ⟨q, hθ₂, hdiff, hφ₁, hφ₂, hα, hinner, houter, -⟩ := tighten_theta p0
   have hq : q ∈ tightPoseInterval := by
     rw [NonemptyInterval.mem_def, Pose.le_iff, Pose.le_iff]
     rw [NonemptyInterval.mem_def, Pose.le_iff, Pose.le_iff] at hp0

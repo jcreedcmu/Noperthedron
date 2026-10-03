@@ -157,7 +157,10 @@ def emit(destination: Path):
         "namespace Noperthedron.Nopert231.GeneratedTangentCones", "",
         "set_option linter.unusedTactic false",
         "set_option linter.unreachableTactic false",
-        "set_option linter.unnecessarySeqFocus false", "",
+        "set_option linter.unnecessarySeqFocus false",
+        # `table b t` unfolds two `![…]` lookups, whose depth grows with b + t
+        # (base + target >= 69 exceeds the default 512 at 60 vertices).
+        "set_option maxRecDepth 8192", "",
         "open SparseSupport", "",
     ]
     for base, row in enumerate(table):

@@ -10,6 +10,7 @@ namespace Noperthedron.Nopert231.GeneratedTangentCones
 set_option linter.unusedTactic false
 set_option linter.unreachableTactic false
 set_option linter.unnecessarySeqFocus false
+set_option maxRecDepth 8192
 
 open SparseSupport
 
