@@ -89,6 +89,95 @@ noncomputable def val (x : IcoZ) : ℝ :=
 
 @[simp] theorem val_mk_int (a : Int) : val ⟨a, 0, 0, 0⟩ = a := by simp [val]
 
+/-! ### Rational enclosures of values -/
+
+def sqrt5Lo : ℚ := 22360679774997896964091736 / 10^25
+def sqrt5Hi : ℚ := 22360679774997896964091737 / 10^25
+def s72Lo : ℚ := 9510565162951535721164393 / 10^25
+def s72Hi : ℚ := 9510565162951535721164394 / 10^25
+
+theorem sqrt5_bounds : (sqrt5Lo : ℝ) ≤ sqrt5 ∧ sqrt5 ≤ sqrt5Hi := by
+  have h0 := sqrt5_nonneg
+  have hsq := sqrt5_sq
+  constructor
+  · nlinarith [sq_nonneg (sqrt5 - sqrt5Lo), show (sqrt5Lo : ℝ) ^ 2 ≤ 5 by norm_num [sqrt5Lo],
+      show (0 : ℝ) ≤ sqrt5Lo by norm_num [sqrt5Lo]]
+  · nlinarith [sq_nonneg (sqrt5 - sqrt5Hi), show (5 : ℝ) ≤ (sqrt5Hi : ℝ) ^ 2 by norm_num [sqrt5Hi],
+      show (0 : ℝ) ≤ sqrt5Hi by norm_num [sqrt5Hi]]
+
+theorem s72_bounds : (s72Lo : ℝ) ≤ s72 ∧ s72 ≤ s72Hi := by
+  obtain ⟨h5lo, h5hi⟩ := sqrt5_bounds
+  have h0 := s72_nonneg
+  have hsq := s72_sq
+  have hlo : (s72Lo : ℝ) ^ 2 ≤ (5 + sqrt5Lo) / 8 := by norm_num [s72Lo, sqrt5Lo]
+  have hhi : (5 + sqrt5Hi) / 8 ≤ (s72Hi : ℝ) ^ 2 := by norm_num [s72Hi, sqrt5Hi]
+  constructor
+  · nlinarith [sq_nonneg (s72 - s72Lo), show (0 : ℝ) ≤ s72Lo by norm_num [s72Lo]]
+  · nlinarith [sq_nonneg (s72 - s72Hi), show (0 : ℝ) ≤ s72Hi by norm_num [s72Hi]]
+
+/-- A lower bound for `k t` when `l ≤ t ≤ u`. -/
+def loMul (k : Int) (l u : ℚ) : ℚ := if 0 ≤ k then k * l else k * u
+
+/-- An upper bound for `k t` when `l ≤ t ≤ u`. -/
+def hiMul (k : Int) (l u : ℚ) : ℚ := if 0 ≤ k then k * u else k * l
+
+theorem loMul_le (k : Int) {l u : ℚ} {t : ℝ} (hl : (l : ℝ) ≤ t) (hu : t ≤ u) :
+    (loMul k l u : ℝ) ≤ k * t := by
+  unfold loMul
+  split_ifs with hk
+  · push_cast
+    exact mul_le_mul_of_nonneg_left hl (by exact_mod_cast hk)
+  · push_cast
+    exact mul_le_mul_of_nonpos_left hu (by exact_mod_cast (le_of_lt (not_le.mp hk)))
+
+theorem le_hiMul (k : Int) {l u : ℚ} {t : ℝ} (hl : (l : ℝ) ≤ t) (hu : t ≤ u) :
+    (k : ℝ) * t ≤ hiMul k l u := by
+  unfold hiMul
+  split_ifs with hk
+  · push_cast
+    exact mul_le_mul_of_nonneg_left hu (by exact_mod_cast hk)
+  · push_cast
+    exact mul_le_mul_of_nonpos_left hl (by exact_mod_cast (le_of_lt (not_le.mp hk)))
+
+def lo (x : IcoZ) : ℚ :=
+  x.a + loMul x.b sqrt5Lo sqrt5Hi + loMul x.c s72Lo s72Hi +
+    loMul x.d (sqrt5Lo * s72Lo) (sqrt5Hi * s72Hi)
+
+def hi (x : IcoZ) : ℚ :=
+  x.a + hiMul x.b sqrt5Lo sqrt5Hi + hiMul x.c s72Lo s72Hi +
+    hiMul x.d (sqrt5Lo * s72Lo) (sqrt5Hi * s72Hi)
+
+theorem prod_bounds : ((sqrt5Lo * s72Lo : ℚ) : ℝ) ≤ sqrt5 * s72 ∧
+    sqrt5 * s72 ≤ ((sqrt5Hi * s72Hi : ℚ) : ℝ) := by
+  obtain ⟨h5lo, h5hi⟩ := sqrt5_bounds
+  obtain ⟨hslo, hshi⟩ := s72_bounds
+  have h5 : (0 : ℝ) ≤ sqrt5Lo := by norm_num [sqrt5Lo]
+  have hs : (0 : ℝ) ≤ s72Lo := by norm_num [s72Lo]
+  push_cast
+  exact ⟨mul_le_mul h5lo hslo hs (by linarith), mul_le_mul h5hi hshi (by linarith) (by linarith)⟩
+
+theorem lo_le_val (x : IcoZ) : (lo x : ℝ) ≤ val x := by
+  obtain ⟨h5lo, h5hi⟩ := sqrt5_bounds
+  obtain ⟨hslo, hshi⟩ := s72_bounds
+  obtain ⟨hplo, hphi⟩ := prod_bounds
+  have hb := loMul_le x.b h5lo h5hi
+  have hc := loMul_le x.c hslo hshi
+  have hd := loMul_le x.d hplo hphi
+  simp only [lo, val]
+  push_cast at hb hc hd ⊢
+  nlinarith
+
+theorem val_le_hi (x : IcoZ) : val x ≤ (hi x : ℝ) := by
+  obtain ⟨h5lo, h5hi⟩ := sqrt5_bounds
+  obtain ⟨hslo, hshi⟩ := s72_bounds
+  obtain ⟨hplo, hphi⟩ := prod_bounds
+  have hb := le_hiMul x.b h5lo h5hi
+  have hc := le_hiMul x.c hslo hshi
+  have hd := le_hiMul x.d hplo hphi
+  simp only [hi, val]
+  push_cast at hb hc hd ⊢
+  nlinarith
+
 end IcoZ
 
 /-- A 3 × 3 matrix over `IcoZ`, row-major fields. -/

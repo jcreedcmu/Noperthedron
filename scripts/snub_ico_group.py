@@ -18,6 +18,9 @@ Emitted, besides the 60 matrices (entries in units of 1/20, IcoField.IcoZ):
                     journals refer to neighbor n)
   icoInverseIndex   each element's inverse (its transpose)
   elementVertexIndex  the inverse of vertexElementIndex
+  icoNeighborNum    the C++ search's rounded neighbors (numerators over 10^12),
+                    copied from symmetry_neighbors.h so that the Lean prune
+                    rows use exactly the same matrices
   vertexElementIndex  the element g with vertex i = g * vertex 0, from the
                     model's vertices (nopert229/snub_model.txt); the snub
                     dodecahedron's vertices are a free I-orbit
@@ -164,9 +167,11 @@ def main():
     group, index, table = generate()
 
     hdr = (args.nopert229 / "symmetry_neighbors.h").read_text()
-    rows = [[int(x) / 1e12 for x in r.split(",")]
-            for r in re.findall(r"\{([-0-9, ]+)\}", hdr)]
-    rows = [r for r in rows if len(r) == 9]
+    nums = [[int(x) for x in r.split(",")] for r in re.findall(r"\{([-0-9, ]+)\}", hdr)]
+    nums = [r for r in nums if len(r) == 9]
+    if "SYMMETRY_NEIGHBOR_DENOM = 1000000000000;" not in hdr:
+        raise SystemExit("symmetry_neighbors.h: expected denominator 10^12")
+    rows = [[x / 1e12 for x in r] for r in nums]
     if len(rows) != 12:
         raise SystemExit(f"expected 12 neighbors in symmetry_neighbors.h, got {len(rows)}")
     neighbors = []
@@ -262,6 +267,10 @@ def main():
     w("/-- The 12 rotations by ±72° about the six 5-fold axes, in the order of\n"
       "nopert229/symmetry_neighbors.h. -/")
     w("def icoNeighborIndex : List Nat := " + nat_list(neighbors) + "\n")
+    w("/-- The rounded neighbors of nopert229/symmetry_neighbors.h (the C++ search's\n"
+      "icosahedral prune), row-major numerators over 10^12. -/")
+    w("def icoNeighborNum : List (List Int) := [\n" +
+      ",\n".join("  [" + ", ".join(str(x) for x in r) + "]" for r in nums) + "]\n")
     w("/-- vertex i = icoEntry (vertexElement[i]) / 20 * vertex 0. -/")
     w("def vertexElementIndex : List Nat := " + nat_list(elem) + "\n")
     inv_elem = [elem.index(k) for k in range(60)]
