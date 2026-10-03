@@ -118,6 +118,122 @@ def tilted_rotation():
                        for j in range(3)) for i in range(3))
 
 
+def k_inverse(x):
+    """1/x in K, x = A + B s with A, B in Q(sqrt5)."""
+    a, b, c, d = x.v
+
+    def qmul(p, q):
+        return (p[0] * q[0] + 5 * p[1] * q[1], p[0] * q[1] + p[1] * q[0])
+
+    def qinv(p):
+        n = p[0] ** 2 - 5 * p[1] ** 2
+        return (p[0] / n, -p[1] / n)
+
+    A, B = (a, b), (c, d)
+    s2 = (F(5, 8), F(1, 8))
+    bb = qmul(qmul(B, B), s2)
+    den = qmul(A, A)
+    den_inv = qinv((den[0] - bb[0], den[1] - bb[1]))
+    na, nb = qmul(A, den_inv), qmul(B, den_inv)
+    return K(na[0], na[1], -nb[0], -nb[1])
+
+
+def k_det3(m):
+    return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+            - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]))
+
+
+def view_reduction_data(group, triangle):
+    """Data for the view reduction modulo Ih into the triangle T
+    (S.md §2.3, reduction 2).
+
+    The chamber's three walls are the mirrors of half-turns H_i in I (a
+    mirror is -(half-turn about its normal)). With c a rational interior
+    point, the Dirichlet choice of the view gives <w, c + H_i c> >= 0. Each
+    homogeneous wall m_j of T (w in cone(T) iff <w, m_j> >= 0) is written as
+    sum_i lambda_ji (c + H_i c), lambda >= 0, exactly in K. Returns integer
+    data: the walls (group indices), C = 100 c, D_i = 2000 (c + H_i c) in
+    IcoZ coordinates, the integer normals m_j, scales N_j and Lambda_ji (IcoZ)
+    with N_j m_j = sum_i Lambda_ji D_i."""
+    deg = math.pi / 180
+    pole = (0.0, 0.0, 1.0)
+    polar5 = math.acos(1 / math.sqrt(5))
+    axis5 = (math.sin(polar5) * math.cos(54 * deg), math.sin(polar5) * math.sin(54 * deg),
+             math.cos(polar5))
+    normals = [(math.cos(108 * deg), math.sin(108 * deg), 0.0),
+               (math.cos(144 * deg), math.sin(144 * deg), 0.0),
+               tuple(p - q for p, q in zip(pole, axis5))]
+    walls = []
+    for n in normals:
+        norm = math.sqrt(sum(x * x for x in n))
+        n = [x / norm for x in n]
+        hits = []
+        for k, g in enumerate(group):
+            if g[0][0] + g[1][1] + g[2][2] != K(-1):
+                continue
+            # A half-turn about n maps n to n.
+            gn = [sum(g[i][j].f() * n[j] for j in range(3)) for i in range(3)]
+            if all(abs(gn[i] - n[i]) < 1e-9 for i in range(3)):
+                hits.append(k)
+        if len(hits) != 1:
+            raise SystemExit(f"wall half-turn: {len(hits)} matches")
+        walls.append(hits[0])
+    for w in walls:
+        if transpose(group[w]) != group[w]:
+            raise SystemExit("a wall half-turn is not symmetric")
+    c = [F(1, 4), F(9, 50), F(19, 20)]
+    ck = [K(x) for x in c]
+    d = [[ck[i] + sum((group[w][i][j] * ck[j] for j in range(3)), Z) for i in range(3)]
+         for w in walls]
+    # Homogeneous walls of cone(T): m = corner_k x corner_l, positive on the third.
+    m_list = []
+    for k, l, o in ((0, 1, 2), (1, 2, 0), (2, 0, 1)):
+        a, b = triangle[k], triangle[l]
+        m = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+        if sum(x * y for x, y in zip(m, triangle[o])) < 0:
+            m = [-x for x in m]
+        den = 1
+        for x in m:
+            den = math.lcm(den, x.denominator)
+        m = [x * den for x in m]
+        g = 0
+        for x in m:
+            g = math.gcd(g, int(x))
+        m_list.append([int(x) // g for x in m])
+    cols = [[d[i][r] for i in range(3)] for r in range(3)]
+    det_inv = k_inverse(k_det3(cols))
+    lam = []
+    for m in m_list:
+        mk = [K(x) for x in m]
+        row = []
+        for i in range(3):
+            mi = [[mk[r] if col == i else cols[r][col] for col in range(3)] for r in range(3)]
+            row.append(k_det3(mi) * det_inv)
+        for r in range(3):
+            if sum((row[i] * d[i][r] for i in range(3)), Z) != mk[r]:
+                raise SystemExit("Farkas solve failed")
+        if any(x.f() < 0 for x in row):
+            raise SystemExit("T is not a superset of the chamber (negative multiplier)")
+        lam.append(row)
+    # Integer scaling: D_i = 2000 d_i; N_j m_j = sum_i Lambda_ji D_i with
+    # Lambda_ji = N_j lambda_ji / 2000.
+    dz = [[[int(q * 2000) for q in x.v] for x in di] for di in d]
+    for di in d:
+        for x in di:
+            if any((q * 2000).denominator != 1 for q in x.v):
+                raise SystemExit("D_i is not integral")
+    scales, lz = [], []
+    for row in lam:
+        den = 1
+        for x in row:
+            for q in x.v:
+                den = math.lcm(den, (q / 2000).denominator)
+        scales.append(den)
+        lz.append([[int(q / 2000 * den) for q in x.v] for x in row])
+    return walls, [int(x * 100) for x in c], dz, m_list, scales, lz
+
+
 def generate():
     gens = [RZ, RX, tilted_rotation()]
     group, index = [IDENTITY], {IDENTITY: 0}
@@ -279,6 +395,34 @@ def main():
     inverse = [index[transpose(g)] for g in group]
     w("/-- The inverse (transpose) of each element. -/")
     w("def icoInverseIndex : List Nat := " + nat_list(inverse) + "\n")
+    tri_line = next(l for l in (args.nopert229 / "snub_model.txt").read_text().splitlines()
+                    if l.startswith("view_triangle "))
+    vals = [F(x) for x in tri_line.split()[1:]]
+    triangle = [vals[0:3], vals[3:6], vals[6:9]]
+    walls, cz, dz, m_list, scales, lz = view_reduction_data(group, triangle)
+
+    def lean_icoz(v):
+        return "⟨" + ", ".join(str(x) for x in v) + "⟩"
+
+    w("/-! ### View reduction modulo Ih into the triangle T (S.md §2.3) -/\n")
+    w("/-- T, from nopert229/snub_model.txt: corners on x + y + z = 1. -/")
+    w("def icoViewTriangleCorners : List (List ℚ) := [" + ", ".join(
+        "[" + ", ".join(f"{q.numerator}/{q.denominator}" for q in corner) + "]"
+        for corner in triangle) + "]\n")
+    w("/-- The half-turns whose mirrors (-H) are the chamber's walls. -/")
+    w("def viewWallIndex : List Nat := " + nat_list(walls) + "\n")
+    w("/-- 100 c, c the rational interior point of the chamber. -/")
+    w("def viewCenter100 : List Int := " + nat_list(cz) + "\n")
+    w("/-- D_i = 2000 (c + H_i c), in `IcoZ` coordinates. -/")
+    w("def viewWallVector : List (List IcoZ) := [" + ", ".join(
+        "[" + ", ".join(lean_icoz(x) for x in di) + "]" for di in dz) + "]\n")
+    w("/-- The homogeneous walls m_j of cone(T): w ∈ cone(T) iff ⟨w, m_j⟩ ≥ 0. -/")
+    w("def viewTriangleNormal : List (List Int) := " +
+      "[" + ", ".join(nat_list(m) for m in m_list) + "]\n")
+    w("/-- N_j m_j = Σ_i Λ_ji D_i with Λ_ji ≥ 0 (Farkas multipliers, exact in K). -/")
+    w("def viewFarkasScale : List Nat := " + nat_list(scales) + "\n")
+    w("def viewFarkas : List (List IcoZ) := [" + ", ".join(
+        "[" + ", ".join(lean_icoz(x) for x in row) + "]" for row in lz) + "]\n")
     w("end Noperthedron.Nopert231")
     args.out.write_text("\n".join(out) + "\n", encoding="utf-8")
     den = 1

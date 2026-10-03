@@ -302,4 +302,26 @@ def elementVertexIndex : List Nat := [0, 12, 59, 4, 24, 11, 16, 47, 55, 2, 21, 8
 /-- The inverse (transpose) of each element. -/
 def icoInverseIndex : List Nat := [0, 20, 2, 53, 12, 5, 33, 7, 59, 38, 40, 31, 4, 13, 14, 58, 16, 17, 18, 19, 1, 21, 56, 57, 52, 25, 55, 27, 54, 29, 47, 11, 51, 6, 39, 49, 37, 36, 9, 34, 10, 41, 44, 48, 42, 46, 45, 30, 43, 35, 50, 32, 24, 3, 28, 26, 22, 23, 15, 8]
 
+/-! ### View reduction modulo Ih into the triangle T (S.md §2.3) -/
+
+/-- T, from nopert229/snub_model.txt: corners on x + y + z = 1. -/
+def icoViewTriangleCorners : List (List ℚ) := [[0/1, 0/1, 1/1], [500/1343, 160/1343, 683/1343], [250/1281, 115/427, 98/183]]
+
+/-- The half-turns whose mirrors (-H) are the chamber's walls. -/
+def viewWallIndex : List Nat := [19, 7, 17]
+
+/-- 100 c, c the rational interior point of the chamber. -/
+def viewCenter100 : List Int := [25, 18, 95]
+
+/-- D_i = 2000 (c + H_i c), in `IcoZ` coordinates. -/
+def viewWallVector : List (List IcoZ) := [[⟨375, -125, 180, -180⟩, ⟨450, 90, 250, -250⟩, ⟨0, 0, 0, 0⟩], [⟨375, 125, -360, 0⟩, ⟨450, -90, -500, 0⟩, ⟨0, 0, 0, 0⟩], [⟨250, 0, -1720, 416⟩, ⟨-770, -118, 250, 50⟩, ⟨1720, -416, -500, 100⟩]]
+
+/-- The homogeneous walls m_j of cone(T): w ∈ cone(T) iff ⟨w, m_j⟩ ≥ 0. -/
+def viewTriangleNormal : List (List Int) := [[-8, 25, 0], [-19, -26, 20], [69, -50, 0]]
+
+/-- N_j m_j = Σ_i Λ_ji D_i with Λ_ji ≥ 0 (Farkas multipliers, exact in K). -/
+def viewFarkasScale : List Nat := [22189900, 446088840896200, 44379800]
+
+def viewFarkas : List (List IcoZ) := [[⟨395375, 383675, 556405, -104781⟩, ⟨363500, -265050, 629845, -168531⟩, ⟨0, 0, 0, 0⟩], [⟨-3740358204185, 5585453491063, 4924087115720, -6165823920504⟩, ⟨-14060707238150, 1333809634824, 5867331042680, 2655476913896⟩, ⟨8079489269000, 2067933948200, 2694568450000, 783115420000⟩], [⟨1393125, -1994475, -1739080, 2229816⟩, ⟨1182750, 2777400, -3005920, 2484816⟩, ⟨0, 0, 0, 0⟩]]
+
 end Noperthedron.Nopert231
