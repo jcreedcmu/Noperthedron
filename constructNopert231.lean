@@ -71,8 +71,8 @@ def main (args : List String) : IO Unit := do
     localTables globalTables
     (by intro shared chart; fin_cases chart <;> rfl)
     (by intro shared chart; fin_cases chart <;> rfl)
-  let proof : ∀ P : C5Model, ¬ IsRupert P.verts := checked.down
-  -- The verified model (exact rotations of the rational seeds). The true snub
-  -- dodecahedron is instantiated by the ideal snub module (S.md §4 step 10).
-  let _exact : ¬ IsRupert exactVerts := exactModel_verts ▸ proof exactModel
-  IO.println "instantiated: the exact model (exactVerts) is not Rupert"
+  let proof : ∀ P : IModel, ¬ IsRupert P.toC5.verts := checked.down
+  -- The true snub dodecahedron is instantiated by the ideal snub module
+  -- (S.md §4 step 10).
+  let _ := proof
+  IO.println "constructed: no IModel is Rupert"

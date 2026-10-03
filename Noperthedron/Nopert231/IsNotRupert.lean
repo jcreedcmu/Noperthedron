@@ -34,18 +34,19 @@ private lemma rupert_set_implies_matrix_pose {S : Set ℝ³}
   repeat rw [← proj_xy_eq_proj_xyL]
   exact hshadow
 
-/-- Valid exclusion tables for all four Cayley charts prove that the exact
-fivefold-symmetric version of Nopert #229 is not Rupert. -/
-theorem not_rupert_of_valid_tables
+/-- Valid exclusion tables for all four Cayley charts prove that no
+icosahedral model (`IModel`: the snub dodecahedron and every I-orbit near
+its rational model) is Rupert. -/
+theorem not_rupert_of_valid_tables (Q : IModel)
     (table : ChartIndex → AtlasProjectiveSolutionTree.Table)
     (hchart : ∀ chart, (table chart).chart = chart)
-    (hvalid : ∀ chart, (table chart).Valid) :
-    ¬ IsRupert P.verts := by
+    (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true) :
+    ¬ IsRupert Q.toC5.verts := by
   intro hrupert
-  have hset : IsRupertSet (convexHull ℝ P.verts) :=
-    (rupert_iff_rupert_set P.verts).mp hrupert
-  rw [← P.polyhedron_hull] at hset
-  exact no_matrixPose_of_valid_tables table hchart hvalid
+  have hset : IsRupertSet (convexHull ℝ Q.toC5.verts) :=
+    (rupert_iff_rupert_set Q.toC5.verts).mp hrupert
+  rw [← Q.toC5.polyhedron_hull] at hset
+  exact no_matrixPose_of_valid_tables Q table hchart hvalid hcover
     (rupert_set_implies_matrix_pose hset)
 
 end Noperthedron.Nopert231

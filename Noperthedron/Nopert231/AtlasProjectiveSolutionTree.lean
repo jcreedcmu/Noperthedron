@@ -9,6 +9,7 @@ public import Noperthedron.Nopert231.AtlasProjectiveGlobalCertificate
 public import Noperthedron.Nopert231.AtlasProjectiveMixedGlobalCertificate
 public import Noperthedron.Nopert231.WedgeCoverData
 public import Noperthedron.ParallelBool
+public import Noperthedron.Nopert231.IcoView
 
 @[expose] public section
 
@@ -57,8 +58,8 @@ def Region.Mem : Region → AtlasPose ℝ → Prop
 def NoRupert (chart : ChartIndex) (interval : Interval)
     (region : Region) : Prop :=
   ¬ ∃ p ∈ interval.toReal, p.CayleyBounded ∧
-    p.InFivefoldFundamentalDomain chart ∧ p.InViewWedge ∧
-    p.InUpperView ∧
+    p.InIcoFundamentalDomain chart ∧ p.InViewWedge ∧
+    (p.InUpperView ∧ p.InIcoView) ∧
     ∃ offset : ℝ²,
     region.Mem p ∧
       RupertPose (p.matrixPoseWithOffset chart offset)
@@ -272,6 +273,9 @@ inductive Row where
   | radiusPrune (id : ℕ) (interval : Interval) (region : Region)
   | fundamentalPrune (id : ℕ) (box : AtlasFundamentalPrune.Box)
       (region : Region)
+  /-- Icosahedral prune: a neighbor of the identity in I increases the trace
+  over the whole box (pack tag 13). -/
+  | icoPrune (id : ℕ) (box : AtlasIcoPrune.Box) (region : Region)
   /-- Replace the view triangle by a larger `outer` one (see
   `triangleWithinB`); the child covers the same interval over `outer`. -/
   | regionRelax (id child : ℕ) (interval : Interval) (root : Fin 8)
@@ -286,7 +290,7 @@ def Row.id : Row → ℕ
       .projective id .. | .projectiveGlobal id .. |
       .projectiveMixedGlobal id .. |
       .symmetryLocal id .. | .radiusPrune id .. |
-      .fundamentalPrune id .. | .symmetryTube id .. | .codeRoot id ..
+      .fundamentalPrune id .. | .icoPrune id .. | .symmetryTube id .. | .codeRoot id ..
       | .regionRelax id .. | .cayleySplitAt id .. => id
   | .projectiveLocal id .. => id
 
@@ -303,6 +307,7 @@ def Row.interval : Row → Interval
   | .codeRoot _ _ interval => interval
   | .radiusPrune _ interval _ => interval
   | .fundamentalPrune _ box _ => box.interval
+  | .icoPrune _ box _ => box.interval
   | .regionRelax _ _ interval _ _ _ => interval
   | .cayleySplitAt _ _ _ _ _ interval _ => interval
 
@@ -319,6 +324,7 @@ def Row.region : Row → Region
   | .codeRoot .. => .sphere
   | .radiusPrune _ _ region => region
   | .fundamentalPrune _ _ region => region
+  | .icoPrune _ _ region => region
   | .regionRelax _ _ _ root triangle _ => .triangle root triangle
   | .cayleySplitAt _ _ _ _ _ _ region => region
 
@@ -374,6 +380,7 @@ def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
         SymmetryTubeMatches tube path region shared[sharedIndex]?
   | .radiusPrune _ interval _ => interval.outsideCayleyBall
   | .fundamentalPrune _ box _ => box.chart = chart ∧ box.Valid
+  | .icoPrune _ box _ => box.chart = chart ∧ box.Valid
   | .cayleySplitAt id lowerChild upperChild coordinate cut interval region =>
       id < lowerChild ∧ id < upperChild ∧
       lowerChild < size ∧ upperChild < size ∧
@@ -449,9 +456,18 @@ theorem rowsValidAt_of_range {chart : ChartIndex} {get : ℕ → Row} {size : �
   intro i
   simpa using h.2 ⟨i.val, i.isLt⟩
 
+/-- The view triangle of the icosahedral reduction is the base triangle the
+code triangles cover (both come from nopert229's model). -/
+theorem icoViewTriangle_eq_baseTriangle :
+    toReal icoViewTriangle = toReal WedgeCover.baseTriangle := by
+  congr 1
+  funext k c
+  fin_cases k <;> fin_cases c <;> decide +kernel
+
 theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
     (size : ℕ) (shared : SharedLocalTables)
     (sharedValid : SharedLocalValid shared)
+    (hcover : WedgeCover.coverValid = true)
     (rowsValid : RowsValidAt chart get size shared)
     (i : ℕ) (hi : i < size) :
     NoRupert (P := P) chart (get i).interval (get i).region := by
@@ -514,13 +530,14 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
   | codeRoot id children interval =>
       unfold NoRupert
       rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, -, hrupert⟩
-      obtain ⟨hscale, hmem⟩ := upperView_mem_wedgeTriangle p hview hupper
-      obtain ⟨t, tri, hget, hin⟩ := WedgeCover.codeTriangles_cover _ hmem
+      obtain ⟨hscale, hmem⟩ := viewCone_mem_icoViewTriangle p hupper.2
+      rw [icoViewTriangle_eq_baseTriangle] at hmem
+      obtain ⟨t, tri, hget, hin⟩ := WedgeCover.codeTriangles_cover hcover _ hmem
       obtain ⟨htlt, htri⟩ := Array.getElem?_eq_some_iff.mp hget
       obtain ⟨hsize, hall⟩ := hvalid
       have ht : t < children.size := hsize ▸ htlt
       obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion⟩ := hall t ht
-      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
         children[t] hchildSize
       rw [hchildInterval, hchildRegion] at hchild
       have hgetD : WedgeCover.codeTriangles.getD t 0 = tri := by
@@ -533,17 +550,17 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
         hlowerInterval, hupperInterval, hlowerRegion, hupperRegion⟩ := hvalid
       apply noRupert_halves chart interval region coordinate
       · rw [← hlowerInterval, ← hlowerRegion]
-        exact valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
           lowerChild hlowerSize
       · rw [← hupperInterval, ← hupperRegion]
-        exact valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
           upperChild hupperSize
   | viewRoot id child interval =>
       unfold NoRupert
       rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, -, hrupert⟩
-      obtain ⟨hscale, hmem⟩ := upperView_mem_wedgeTriangle p hview hupper
+      obtain ⟨hscale, hmem⟩ := upperView_mem_wedgeTriangle p hview hupper.1
       obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion⟩ := hvalid
-      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
         child hchildSize
       rw [hchildInterval, hchildRegion] at hchild
       exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
@@ -554,7 +571,7 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       obtain ⟨child, hchildMem⟩ := mem_split hregion.2
       obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion⟩ :=
         hvalid child
-      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
         (children child) hchildSize
       rw [hchildInterval, hchildRegion] at hchild
       exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
@@ -564,16 +581,16 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
         hlowerInterval, hupperInterval, hlowerRegion, hupperRegion⟩ := hvalid
       apply noRupert_cut chart interval region coordinate cut
       · rw [← hlowerInterval, ← hlowerRegion]
-        exact valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
           lowerChild hlowerSize
       · rw [← hupperInterval, ← hupperRegion]
-        exact valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
           upperChild hupperSize
   | regionRelax id child interval root triangle outer =>
       unfold NoRupert
       rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, hregion, hrupert⟩
       obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion, hwithin⟩ := hvalid
-      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid rowsValid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
         child hchildSize
       rw [hchildInterval, hchildRegion] at hchild
       exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
@@ -585,7 +602,13 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       rintro ⟨p, hp, hbounded, hfund, -, -, offset, -, hrupert⟩
       obtain ⟨hchart, hbox⟩ := hvalid
       subst hchart
-      exact box.valid_imp_not_inFundamentalDomain hbox hp hbounded hfund
+      exact box.valid_imp_not_inFundamentalDomain hbox hp hbounded hfund.toFivefold
+  | icoPrune id box region =>
+      unfold NoRupert
+      rintro ⟨p, hp, hbounded, hfund, -, -, offset, -, hrupert⟩
+      obtain ⟨hchart, hbox⟩ := hvalid
+      subst hchart
+      exact box.valid_imp_not_inIcoFundamentalDomain hbox hp hbounded hfund
 termination_by size - i
 decreasing_by
   all_goals
@@ -690,32 +713,32 @@ theorem Table.Valid.of_withTasksB {table : Table} {taskCount : ℕ}
   exact h
 
 theorem Table.valid_imp_no_chart_translated_pose
-    (table : Table) (h : table.Valid) :
+    (table : Table) (h : table.Valid) (hcover : WedgeCover.coverValid = true) :
     ¬ ∃ p ∈ AtlasPose.rootInterval ℝ,
-      p.CayleyBounded ∧ p.InFivefoldFundamentalDomain table.chart ∧
-      p.InViewWedge ∧ p.InUpperView ∧ ∃ offset : ℝ²,
+      p.CayleyBounded ∧ p.InIcoFundamentalDomain table.chart ∧
+      p.InViewWedge ∧ (p.InUpperView ∧ p.InIcoView) ∧ ∃ offset : ℝ²,
       RupertPose (p.matrixPoseWithOffset table.chart offset)
         P.polyhedron.hull := by
   obtain ⟨hnonempty, hrows, hrootInterval, hrootRegion, hshared⟩ := h
   have hchecked := valid_imp_noRupert_ix (P := P) table.chart table.get table.size
-    table.sharedLocal hshared hrows 0 hnonempty
+    table.sharedLocal hshared hcover hrows 0 hnonempty
   rw [hrootInterval, hrootRegion] at hchecked
   rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, hrupert⟩
   exact hchecked ⟨p,
     AtlasFundamentalPrune.mem_restrictedRootInterval
-      table.chart hp hbounded hfund,
+      table.chart hp hbounded hfund.toFivefold,
     hbounded, hfund, hview, hupper, offset, trivial, hrupert⟩
 
-/-- Four valid chart tables exclude every matrix pose. -/
-theorem no_matrixPose_of_valid_tables
+/-- Four valid chart tables exclude every matrix pose of an `IModel`. -/
+theorem no_matrixPose_of_valid_tables (Q : IModel)
     (table : ChartIndex → Table)
     (hchart : ∀ chart, (table chart).chart = chart)
-    (hvalid : ∀ chart, (table chart).Valid) :
-    ¬ ∃ p : MatrixPose, RupertPose p P.polyhedron.hull := by
+    (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true) :
+    ¬ ∃ p : MatrixPose, RupertPose p Q.toC5.polyhedron.hull := by
   rintro ⟨p, hrupert⟩
   obtain ⟨chart, q, offset, hq, hbounded, hview, hupper, hfund, heq⟩ :=
-    AtlasFundamentalPrune.exists_fundamental_atlas_translated_pose p
-  have hno := (table chart).valid_imp_no_chart_translated_pose (P := P) (hvalid chart)
+    IModel.exists_ico_full_atlas_translated_pose Q p
+  have hno := (table chart).valid_imp_no_chart_translated_pose (P := Q.toC5) (hvalid chart) hcover
   rw [hchart chart] at hno
   exact hno ⟨q, hq, hbounded, hfund, hview, hupper, offset,
     heq.mpr hrupert⟩

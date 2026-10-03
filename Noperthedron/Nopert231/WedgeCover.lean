@@ -291,4 +291,72 @@ theorem wedge_covered (tris : Array Tri) (tree : Node)
   obtain ⟨hsum, hcs⟩ := wedge_constraints_hold u hu
   exact Node.sound tris u hsum tree wedgeConstraints hcheck hcs
 
+/-- Checking a split from its two children's checks (lets generated data
+check a large tree one node at a time). -/
+theorem Node.check_split {tris : Array Tri} {cs : List V} {n : V} {pos neg : Node}
+    (hp : pos.check tris (cs ++ [n]) = true) (hn : neg.check tris (cs ++ [-n]) = true) :
+    (Node.split n pos neg).check tris cs = true := by
+  simp only [Node.check, hp, hn, Bool.and_self]
+
+/-! ### Any base triangle (the snub's T) -/
+
+/-- A base triangle must be nondegenerate, with corners on the plane `u 0 + u 1 + u 2 = 1`. -/
+def baseTriangleValid (base : Tri) : Bool :=
+  decide (detQ (base 0) (base 1) (base 2) ≠ 0) && decide (dotQ (base 0) sumVec = 1) &&
+    decide (dotQ (base 1) sumVec = 1) && decide (dotQ (base 2) sumVec = 1)
+
+/-- The three (oriented) edge functionals of a base triangle. -/
+def baseConstraints (base : Tri) : List V := [edgeFn base 0, edgeFn base 1, edgeFn base 2]
+
+theorem base_constraints_hold (base : Tri) (hbase : baseTriangleValid base = true)
+    (u : Fin 3 → ℝ) (hu : InTriangle (toReal base) u) :
+    (u 0 + u 1 + u 2 = 1) ∧ ∀ a ∈ baseConstraints base, 0 ≤ dotR u a := by
+  simp only [baseTriangleValid, Bool.and_eq_true, decide_eq_true_eq] at hbase
+  obtain ⟨⟨⟨hdet, hs0⟩, hs1⟩, hs2⟩ := hbase
+  obtain ⟨w, hw, hws, rfl⟩ := hu
+  rw [Fin.sum_univ_three] at hws
+  have hs0R : ((base 0 0 : ℚ) : ℝ) + base 0 1 + base 0 2 = 1 := by
+    have := congrArg (fun q : ℚ => (q : ℝ)) hs0
+    simpa [dotQ, sumVec] using this
+  have hs1R : ((base 1 0 : ℚ) : ℝ) + base 1 1 + base 1 2 = 1 := by
+    have := congrArg (fun q : ℚ => (q : ℝ)) hs1
+    simpa [dotQ, sumVec] using this
+  have hs2R : ((base 2 0 : ℚ) : ℝ) + base 2 1 + base 2 2 = 1 := by
+    have := congrArg (fun q : ℚ => (q : ℝ)) hs2
+    simpa [dotQ, sumVec] using this
+  constructor
+  · simp only [affinePoint, toReal, Fin.sum_univ_three]
+    linear_combination w 0 * hs0R + w 1 * hs1R + w 2 * hs2R + hws
+  · -- Edge i evaluates to orient · w_i · det.
+    have hpos : (0 : ℝ) < (orient base : ℝ) * (detQ (base 0) (base 1) (base 2) : ℝ) := by
+      have : (0 : ℚ) < orient base * detQ (base 0) (base 1) (base 2) := by
+        unfold orient
+        split_ifs with h
+        · simpa using h
+        · have : detQ (base 0) (base 1) (base 2) < 0 :=
+            lt_of_le_of_ne (not_lt.mp h) hdet
+          linarith
+      exact_mod_cast this
+    have hkey : ∀ i : Fin 3, dotR (affinePoint (toReal base) w) (edgeFn base i) =
+        (orient base : ℝ) * (detQ (base 0) (base 1) (base 2) : ℝ) * w i := by
+      intro i
+      fin_cases i <;>
+        simp [dotR, edgeFn, crossQ, detQ, dotQ, affinePoint, toReal, Fin.sum_univ_three] <;>
+        ring
+    intro a ha
+    simp only [baseConstraints, List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with rfl | rfl | rfl
+    · rw [hkey 0]; exact mul_nonneg hpos.le (hw 0)
+    · rw [hkey 1]; exact mul_nonneg hpos.le (hw 1)
+    · rw [hkey 2]; exact mul_nonneg hpos.le (hw 2)
+
+/-- Main cover theorem for any valid base triangle. -/
+theorem base_covered (base : Tri) (hbase : baseTriangleValid base = true)
+    (tris : Array Tri) (tree : Node)
+    (hcheck : tree.check tris (baseConstraints base) = true)
+    (u : Fin 3 → ℝ) (hu : InTriangle (toReal base) u) :
+    ∃ t : ℕ, ∃ tri, tris[t]? = some tri ∧ InTriangle (toReal tri) u := by
+  obtain ⟨hsum, hcs⟩ := base_constraints_hold base hbase u hu
+  exact Node.sound tris u hsum tree (baseConstraints base) hcheck hcs
+
 end Noperthedron.Nopert231.WedgeCover

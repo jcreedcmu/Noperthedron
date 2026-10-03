@@ -147,13 +147,14 @@ structure CheckedChartTables where
   tables : CayleyAtlas.ChartIndex → AtlasProjectiveSolutionTree.Table
   charts : ∀ chart, (tables chart).chart = chart
   valid : ∀ chart, (tables chart).Valid
+  cover : WedgeCover.coverValid = true
 
 /-- The proof object constructed by a successful executable run: the checked
-tables exclude every `C5Model` (fivefold-symmetric polyhedra within
-`modelErrorQ` of the rational vertices) at once. -/
+tables and view cover exclude every `IModel` (I-orbits within `modelErrorQ`
+of the rational vertices) at once. -/
 theorem CheckedChartTables.notRupert (checked : CheckedChartTables) :
-    ∀ P : C5Model, ¬ IsRupert P.verts :=
-  fun _ => not_rupert_of_valid_tables checked.tables checked.charts checked.valid
+    ∀ P : IModel, ¬ IsRupert P.toC5.verts :=
+  fun P => not_rupert_of_valid_tables P checked.tables checked.charts checked.valid checked.cover
 
 /-- Check all certificate data and construct the final non-Rupert proof.
 
@@ -167,7 +168,15 @@ def constructProof (localTaskCount globalTaskCount : Nat)
     (hchart : ∀ shared chart, (globalTables shared chart).chart = chart)
     (hshared : ∀ shared chart,
       (globalTables shared chart).sharedLocal = shared) :
-    IO (PLift (∀ P : C5Model, ¬ IsRupert P.verts)) := do
+    IO (PLift (∀ P : IModel, ¬ IsRupert P.toC5.verts)) := do
+  -- The cover of T by the code triangles (too large for the kernel; see
+  -- WedgeCoverData), checked natively like the tables.
+  let coverStart ← IO.monoNanosNow
+  log "checking the view cover (code triangles cover T)"
+  let cover : PLift (WedgeCover.coverValid = true) ←
+    if h : WedgeCover.coverValid = true then pure ⟨h⟩
+    else throw (IO.userError "the view cover is invalid")
+  log s!"view cover valid ({(← IO.monoNanosNow) - coverStart} ns)"
   let checkedLocal ← checkLocalAll localTaskCount localTables
   let shared := localTables
   have sharedValid : AtlasProjectiveSolutionTree.SharedLocalValid shared :=
@@ -211,8 +220,9 @@ def constructProof (localTaskCount globalTaskCount : Nat)
       · exact valid0.down
       · exact valid1.down
       · exact valid2.down
-      · exact valid3.down }
-  log "constructed proof: no C5Model (fivefold-symmetric polyhedron within 6e-16 of the rational vertices) is Rupert"
+      · exact valid3.down
+    cover := cover.down }
+  log "constructed proof: no IModel (I-orbit within 6e-16 of the rational vertices) is Rupert"
   pure ⟨checkedCharts.notRupert⟩
 
 end Noperthedron.Nopert231.NativeExecutable

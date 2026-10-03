@@ -337,4 +337,195 @@ theorem viewCone_mem_icoViewTriangle (p : AtlasPose ℝ)
         Noperthedron.Atlas.ProjectiveView.toReal, weight, Fin.sum_univ_three] <;>
       field_simp <;> ring
 
+/-! ### Threading the reduced view through the Euler extraction -/
+
+/-- The view of Euler angles: the third row of `rotRM_mat θ φ α`. -/
+noncomputable def eulerView (θ φ : ℝ) : Fin 3 → ℝ :=
+  ![Real.cos θ * Real.sin φ, Real.sin θ * Real.sin φ, Real.cos φ]
+
+theorem rotRM_mat_row2 (θ φ α : ℝ) (k : Fin 3) : rotRM_mat θ φ α 2 k = eulerView θ φ k := by
+  fin_cases k <;>
+    simp [eulerView, rotRM_mat, Matrix.mul_apply, Rz_mat, Ry_mat, Fin.sum_univ_three] <;> ring
+
+/-- Off the pole, a view in cone(T) has azimuth in [0, 2π/5): T lies between
+the azimuths 17.7° and 54.1°. -/
+theorem theta_mem_of_viewCone {θ φ : ℝ} (hθ : θ ∈ Set.Ioc (-Real.pi) Real.pi)
+    (hsin : 0 < Real.sin φ) (hcone : InViewCone (eulerView θ φ)) :
+    θ ∈ Set.Ico 0 (2 * Real.pi / 5) := by
+  have h0 := hcone 0
+  have h2 := hcone 2
+  simp [triNormal, viewTriangleNormal, eulerView, Fin.sum_univ_three] at h0 h2
+  -- 25 sin θ ≥ 8 cos θ and 69 cos θ ≥ 50 sin θ, after dividing by sin φ.
+  have ha : 8 * Real.cos θ ≤ 25 * Real.sin θ := by nlinarith
+  have hb : 50 * Real.sin θ ≤ 69 * Real.cos θ := by nlinarith
+  have hc : 0 < Real.cos θ := by
+    by_contra hneg
+    push_neg at hneg
+    have hs0 : Real.sin θ = 0 ∧ Real.cos θ = 0 := by constructor <;> nlinarith
+    have := Real.sin_sq_add_cos_sq θ
+    rw [hs0.1, hs0.2] at this
+    norm_num at this
+  have hs : 0 ≤ Real.sin θ := by nlinarith
+  have hθ0 : 0 ≤ θ := by
+    by_contra hneg
+    push_neg at hneg
+    have := Real.sin_neg_of_neg_of_neg_pi_lt hneg hθ.1
+    linarith
+  refine ⟨hθ0, ?_⟩
+  -- cos θ ≥ 0.586 > cos(2π/5) ≈ 0.309.
+  have hcos2 : (1 / 2 : ℝ) < Real.cos θ := by
+    have hsq := Real.sin_sq_add_cos_sq θ
+    by_contra hle
+    push_neg at hle
+    have hs2 : Real.sin θ ≤ 69 / 100 := by nlinarith
+    nlinarith [mul_le_mul hs2 hs2 hs (by norm_num), mul_le_mul hle hle hc.le (by norm_num)]
+  by_contra hge
+  push_neg at hge
+  have hle : θ ≤ Real.pi := hθ.2
+  have hmono : Real.cos θ ≤ Real.cos (2 * Real.pi / 5) :=
+    Real.cos_le_cos_of_nonneg_of_le_pi (by positivity) hle hge
+  rw [cos_two_pi_div_five] at hmono
+  have h5 := IcoZ.sqrt5_bounds
+  norm_num [IcoZ.sqrt5Hi] at h5
+  linarith [h5.2]
+
+theorem eulerView_eq_of_sin_eq_zero {θ θ' φ : ℝ} (h : Real.sin φ = 0) :
+    eulerView θ φ = eulerView θ' φ := by
+  funext k
+  fin_cases k <;> simp [eulerView, h]
+
+/-- `exists_upper_tight_translated_pose`, for a pose whose view is in
+cone(T), keeping the view: the tightened Euler angles have the same view. -/
+theorem exists_tight_pose_viewCone (P : C5Model) (p : MatrixPose) (hcone : InViewCone p.view) :
+    ∃ q : Pose ℝ, ∃ offset : ℝ²,
+      InTightPoseRegion q ∧ InViewWedge q ∧ q.φ₂ ≤ Real.pi / 2 ∧
+      InViewCone (eulerView q.θ₂ q.φ₂) ∧
+      (RupertPose (q.matrixPoseWithOffset offset) P.polyhedron.hull ↔
+        RupertPose p P.polyhedron.hull) := by
+  obtain ⟨δ, p0, offset, hp0, hθ0, hφ0, heq⟩ :=
+    Noperthedron.BalancedSupport.exists_universal_translated_pose p
+  -- The outer third row survives the screen rotation.
+  have hrow : eulerView p0.θ₂ p0.φ₂ = p.view := by
+    funext k
+    have h := congrArg (fun pose : MatrixPose ↦ pose.outerRot.val 2 k) heq
+    simp only [Pose.matrixPoseWithOffset, Pose.matrixPoseOfPose, MatrixPose.rotateBy] at h
+    rw [← rotRM_mat_row2 p0.θ₂ p0.φ₂ 0 k]
+    simp only [MatrixPose.view]
+    convert h using 1
+    fin_cases k <;> simp [Matrix.mul_apply, Rz_mat, Fin.sum_univ_three]
+  have hcone0 : InViewCone (eulerView p0.θ₂ p0.φ₂) := hrow ▸ hcone
+  have hcos : 0 ≤ Real.cos p0.φ₂ := by
+    have := viewCone_coords_nonneg hcone0 2
+    simpa [eulerView] using this
+  have hφ0Upper : p0.φ₂ ≤ Real.pi / 2 := by
+    by_contra h
+    have hneg := Real.cos_neg_of_pi_div_two_lt_of_lt
+      (lt_of_not_ge h) (hφ0.2.trans_lt (by linarith [Real.pi_pos]))
+    linarith
+  obtain ⟨q, hθ₂, hdiff, hφ₁, hφ₂, hα, hinner, houter, k, hk⟩ := tighten_theta (P := P) p0
+  -- The tightening does not move the view.
+  have hview_eq : eulerView q.θ₂ q.φ₂ = eulerView p0.θ₂ p0.φ₂ := by
+    rw [hφ₂]
+    by_cases hs : Real.sin p0.φ₂ = 0
+    · exact eulerView_eq_of_sin_eq_zero hs
+    · have hspos : 0 < Real.sin p0.φ₂ :=
+        lt_of_le_of_ne (Real.sin_nonneg_of_mem_Icc hφ0) (Ne.symm hs)
+      have hθp := theta_mem_of_viewCone hθ0 hspos hcone0
+      have hk0 : k = 0 := by
+        have hper : 0 < 2 * Real.pi / 5 := by positivity
+        have hlt : |(k : ℝ)| * (2 * Real.pi / 5) < 1 * (2 * Real.pi / 5) := by
+          rw [← abs_of_pos hper, ← abs_mul, one_mul, abs_of_pos hper]
+          rw [abs_lt]
+          constructor <;> nlinarith [hθ₂.1, hθ₂.2, hθp.1, hθp.2, hk]
+        have : |(k : ℝ)| < 1 := lt_of_mul_lt_mul_right hlt hper.le
+        have : |k| < 1 := by exact_mod_cast this
+        obtain ⟨h1, h2⟩ := abs_lt.mp this
+        omega
+      rw [hk, hk0]
+      simp
+  have hq : q ∈ tightPoseInterval := by
+    rw [NonemptyInterval.mem_def, Pose.le_iff, Pose.le_iff]
+    rw [NonemptyInterval.mem_def, Pose.le_iff, Pose.le_iff] at hp0
+    dsimp [tightPoseInterval, Noperthedron.BalancedSupport.universalPoseInterval] at hp0 ⊢
+    rcases hp0 with ⟨hlo, hhi⟩
+    exact ⟨
+      ⟨by nlinarith [hθ₂.1, hdiff.1, Real.pi_lt_four],
+        hθ₂.1, hφ₁.symm ▸ hlo.2.2.1,
+        hφ₂.symm ▸ hlo.2.2.2.1, hα.symm ▸ hlo.2.2.2.2⟩,
+      ⟨by nlinarith [hθ₂.2, hdiff.2, Real.pi_lt_four],
+        hθ₂.2.le.trans (by nlinarith [Real.pi_lt_four]),
+        hφ₁.symm ▸ hhi.2.2.1, hφ₂.symm ▸ hhi.2.2.2.1,
+        hα.symm ▸ hhi.2.2.2.2⟩⟩
+  have hrelative : q.θ₁ - q.θ₂ ∈ Set.Icc (-(2 / 3)) (2 / 3) := by
+    constructor <;> nlinarith [hdiff.1, hdiff.2, Real.pi_lt_d20]
+  have hview : InViewWedge q := by
+    constructor
+    · exact ⟨hθ₂.1, hθ₂.2.le⟩
+    · rw [hφ₂]
+      exact hφ0
+  have hrupert :
+      RupertPose (q.matrixPoseWithOffset offset) P.polyhedron.hull ↔
+        RupertPose p P.polyhedron.hull := by
+    calc
+      _ ↔ RupertPose (p0.matrixPoseWithOffset offset) P.polyhedron.hull :=
+        (translated_rupert_iff_of_images offset hinner houter).symm
+      _ ↔ RupertPose (p.rotateBy δ) P.polyhedron.hull := by rw [heq]
+      _ ↔ RupertPose p P.polyhedron.hull := MatrixPose.RupertPose_rotateBy_iff p δ _
+  refine ⟨q, offset, ⟨hq, hrelative⟩, hview, by simpa [hφ₂] using hφ0Upper, ?_, hrupert⟩
+  rw [hview_eq]
+  exact hcone0
+
+/-! ### The full icosahedral reduction -/
+
+open AtlasEdgeCertificate in
+/-- The view of an atlas pose lies in cone(T). -/
+def AtlasPose.InIcoView (p : AtlasPose ℝ) : Prop := InViewCone fun c => viewVector p c
+
+open AtlasEdgeCertificate in
+theorem AtlasPose.inIcoView_ofPose (euler : Pose ℝ) (x y z : ℝ)
+    (h : InViewCone (eulerView euler.θ₂ euler.φ₂)) : (AtlasPose.ofPose euler x y z).InIcoView := by
+  have hv : (fun c => viewVector (AtlasPose.ofPose euler x y z) c) =
+      eulerView euler.θ₂ euler.φ₂ := by
+    funext c
+    fin_cases c <;> simp [viewVector, eulerView, AtlasPose.ofPose]
+  unfold AtlasPose.InIcoView
+  rw [hv]
+  exact h
+
+/-- Every matrix pose has an equivalent bounded atlas representative whose
+view lies in cone(T) (and the #231 wedge) and whose relative rotation lies in
+the icosahedral cell. -/
+theorem IModel.exists_ico_full_atlas_translated_pose (P : IModel) (p : MatrixPose) :
+    ∃ chart : CayleyAtlas.ChartIndex, ∃ q : AtlasPose ℝ, ∃ offset : ℝ²,
+      q ∈ AtlasPose.rootInterval ℝ ∧ q.CayleyBounded ∧ q.InViewWedge ∧
+      (q.InUpperView ∧ q.InIcoView) ∧ q.InIcoFundamentalDomain chart ∧
+      (RupertPose (q.matrixPoseWithOffset chart offset) P.toC5.polyhedron.hull ↔
+        RupertPose p P.toC5.polyhedron.hull) := by
+  obtain ⟨p1, hcone1, heq1⟩ := P.exists_viewCone_pose p
+  obtain ⟨euler, offset, heuler, hview, hupper, hcone, heq⟩ :=
+    exists_tight_pose_viewCone P.toC5 p1 hcone1
+  let oldPose := euler.matrixPoseWithOffset offset
+  obtain ⟨g, hgfund⟩ := exists_mul_ico_inFundamentalDomain oldPose.relativeRotation
+  let reduced := oldPose.rightIcoSymmetry g
+  obtain ⟨chart, x, hx, y, hy, z, hz, hradius, hrelative⟩ :=
+    CayleyAtlas.exists_bounded_chart_cayley reduced.relativeRotation
+      (Noperthedron.Atlas.MatrixPose.relativeRotation_mem_SO3 reduced)
+  let q := AtlasPose.ofPose euler x y z
+  have hq : q ∈ AtlasPose.rootInterval ℝ :=
+    AtlasPose.ofPose_mem_root euler x y z heuler.1 hx hy hz
+  have hmatrix : q.matrixPoseWithOffset chart offset = reduced := by
+    apply IModel.matrixPoseWithOffset_ofPose_eq_rightIcoSymmetry
+    rw [← MatrixPose.relativeRotation_rightIcoSymmetry]
+    exact hrelative
+  have hqfund : q.InIcoFundamentalDomain chart := by
+    have h := AtlasPose.matrixPoseWithOffset_relativeRotation chart q offset
+    rw [hmatrix, MatrixPose.relativeRotation_rightIcoSymmetry] at h
+    rw [AtlasPose.InIcoFundamentalDomain, ← h]
+    exact hgfund
+  refine ⟨chart, q, offset, hq, hradius, ?_, ⟨?_, AtlasPose.inIcoView_ofPose euler x y z hcone⟩,
+    hqfund, ?_⟩
+  · simpa [q, AtlasPose.InViewWedge, AtlasPose.ofPose, InViewWedge] using hview
+  · simpa [q, AtlasPose.InUpperView, AtlasPose.ofPose] using hupper
+  · rw [hmatrix, P.RupertPose_rightIcoSymmetry_iff, heq, heq1]
+
 end Noperthedron.Nopert231

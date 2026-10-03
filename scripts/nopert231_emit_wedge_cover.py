@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Emit a Lean certificate that the code triangles cover upperWedgeTriangle.
+"""Emit a Lean certificate that the code triangles cover their base triangle
+(the JSON's fundamental domain: the snub's T, or #231's upperWedgeTriangle).
 
 Reads nopert229/codebdd231.json (the code cells' projective triangles) and
 builds, in exact rational arithmetic, a decision tree over half-spaces
@@ -243,23 +244,31 @@ def qlist(xs) -> str:
     return "[" + ", ".join(q(x) for x in xs) + "]"
 
 
-def emit_node(node, out, defs, counter):
-    """Emit nodes as separate defs (to keep terms shallow); returns name."""
+def emit_node(node, out, defs, counter, structure=None):
+    """Emit nodes as separate defs (to keep terms shallow); returns name.
+    `structure` collects (name, normal, pos, neg) for splits and (name,) for
+    the other nodes, children first."""
     kind = node[0]
     counter[0] += 1
     name = f"node_{counter[0]}"
     if kind == "empty":
         _, lam, kappa = node
         defs.append(f"def {name} : Node := .empty {qlist(lam)} {q(kappa)}")
+        if structure is not None:
+            structure.append((name,))
     elif kind == "leaf":
         _, t, certs = node
         cs = ", ".join(f"({qlist(m)}, {q(k)})" for m, k in certs)
         defs.append(f"def {name} : Node := .leaf {t} [{cs}]")
+        if structure is not None:
+            structure.append((name,))
     else:
         _, n, pos, negn = node
-        pn = emit_node(pos, out, defs, counter)
-        nn = emit_node(negn, out, defs, counter)
+        pn = emit_node(pos, out, defs, counter, structure)
+        nn = emit_node(negn, out, defs, counter, structure)
         defs.append(f"def {name} : Node := .split {vec(n)} {pn} {nn}")
+        if structure is not None:
+            structure.append((name, n, pn, nn))
     return name
 
 
@@ -276,7 +285,12 @@ def main():
     for t in tris:
         for c in t:
             assert sum(c) == 1, "triangle corner not on the affine plane"
-    wedge = ((F(1), F(0), F(0)), (F(10, 41), F(31, 41), F(0)), (F(0), F(0), F(1)))
+    # The base triangle the code cells tile: the JSON's fundamental domain
+    # (the snub's Schwarz triangle T), or #231's fivefold wedge.
+    if "fundamental_domain" in d and "corners" in d["fundamental_domain"]:
+        wedge = tuple(tuple(F(c[k]) for k in "xyz") for c in d["fundamental_domain"]["corners"])
+    else:
+        wedge = ((F(1), F(0), F(0)), (F(10, 41), F(31, 41), F(0)), (F(0), F(0), F(1)))
     wedge_edges = edges(wedge)
     b = Builder(tris)
     root = b.build(list(wedge_edges), list(wedge))
@@ -284,7 +298,8 @@ def main():
 
     defs = []
     counter = [0]
-    rootname = emit_node(root, None, defs, counter)
+    structure = []
+    rootname = emit_node(root, None, defs, counter, structure)
     lines = [
         "module",
         "",
@@ -302,24 +317,36 @@ def main():
         "code order (as exported to the code packs). -/",
         "def codeTriangles : Array Tri := #[",
     ]
+    base_line = "def baseTriangle : Tri := ![" + ", ".join(vec(c) for c in wedge) + "]"
     tl = []
     for t in tris:
         tl.append("  ![" + ", ".join(vec(c) for c in t) + "]")
     lines.append(",\n".join(tl))
     lines.append("]")
     lines.append("")
+    lines.append("/-- The triangle the code triangles cover (codebdd231.json's fundamental domain). -/")
+    lines.append(base_line)
+    lines.append("")
+    lines.append("theorem baseTriangle_valid : baseTriangleValid baseTriangle = true := by decide +kernel")
+    lines.append("")
     lines.extend(defs)
     lines.append("")
     lines.append(f"def coverTree : Node := {rootname}")
     lines.append("")
-    lines.append("theorem coverTree_check : coverTree.check codeTriangles wedgeConstraints = true := by")
-    lines.append("  decide +kernel")
+    # The cover check is too large for the kernel (snub: 4,545 nodes,
+    # numbers up to 1,371 digits; a whole-tree `decide +kernel` got stuck, and
+    # per-node theorems exceeded 100 GB). It is a hypothesis of the solution-
+    # tree soundness theorems instead, evaluated natively by
+    # constructNopert231 like the pack tables.
+    lines.append("/-- The cover check, evaluated natively by the verifier. -/")
+    lines.append("def coverValid : Bool := coverTree.check codeTriangles (baseConstraints baseTriangle)")
     lines.append("")
-    lines.append("/-- Every point of the upper view wedge lies in one of the code triangles. -/")
-    lines.append("theorem codeTriangles_cover (u : Fin 3 → ℝ)")
-    lines.append("    (hu : InTriangle (toReal AtlasProjectiveView.upperWedgeTriangle) u) :")
+    lines.append("/-- Every point of the base triangle lies in one of the code triangles,")
+    lines.append("given the (natively checked) cover. -/")
+    lines.append("theorem codeTriangles_cover (hcover : coverValid = true) (u : Fin 3 → ℝ)")
+    lines.append("    (hu : InTriangle (toReal baseTriangle) u) :")
     lines.append("    ∃ t : ℕ, ∃ tri, codeTriangles[t]? = some tri ∧ InTriangle (toReal tri) u :=")
-    lines.append("  wedge_covered codeTriangles coverTree coverTree_check u hu")
+    lines.append("  base_covered baseTriangle baseTriangle_valid codeTriangles coverTree hcover u hu")
     lines.append("")
     lines.append("end Noperthedron.Nopert231.WedgeCover")
     lines.append("")
