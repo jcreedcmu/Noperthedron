@@ -33,8 +33,9 @@ def load_exact27_vertices() -> Tuple[Tuple[Q, Q, Q], ...]:
 
 VERTICES_Q = load_exact27_vertices()
 VERTICES = [tuple(map(float, v)) for v in VERTICES_Q]
-SEEDS_Q = VERTICES_Q[:4]
-SEEDS = VERTICES[:4]
+NUM_SEEDS = len(VERTICES_Q) // 5  # vertex S k + s is seed s rotated by 2 pi k / 5
+SEEDS_Q = VERTICES_Q[:NUM_SEEDS]
+SEEDS = VERTICES[:NUM_SEEDS]
 
 def det3(a, b, c):
     return (a[0] * (b[1] * c[2] - b[2] * c[1])

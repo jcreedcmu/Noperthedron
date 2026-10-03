@@ -21,29 +21,29 @@ from pathlib import Path
 from nopert231_vertices import VERTICES_Q
 
 
-ADJACENCY = (
-    (1, 4, 8, 12, 16, 17),
-    (0, 2, 4, 5, 17, 18),
-    (1, 3, 5, 6, 7, 18),
-    (2, 7, 11, 15, 18, 19),
-    (0, 1, 5, 8, 12, 16),
-    (1, 2, 4, 6, 8, 9),
-    (2, 5, 7, 9, 10, 11),
-    (2, 3, 6, 11, 15, 19),
-    (0, 4, 5, 9, 12, 16),
-    (5, 6, 8, 10, 12, 13),
-    (6, 9, 11, 13, 15),
-    (3, 6, 7, 10, 15, 19),
-    (0, 4, 8, 9, 13, 16),
-    (9, 10, 12, 14, 15, 16, 17),
-    (13, 15, 17, 19),
-    (3, 7, 10, 11, 13, 14, 19),
-    (0, 4, 8, 12, 13, 17),
-    (0, 1, 13, 14, 16, 18, 19),
-    (1, 2, 3, 17, 19),
-    (3, 7, 11, 14, 15, 17, 18),
-)
+def hull_adjacency():
+    """Neighbors of each vertex along hull edges, from the exact facet planes
+    of the code database (codebdd231.json, written with the vertices): two
+    vertices are adjacent when they lie on two common facets. Sorted, so the
+    order is reproducible."""
+    import json
+    path = Path(__file__).resolve().parent.parent.parent / "nopert229" / "codebdd231.json"
+    if not path.exists():
+        path = Path("/root/quad/nopert229/codebdd231.json")
+    planes = [set(p["face_vertices"]) for p in json.load(open(path))["planes"]]
+    n = len(VERTICES_Q)
+    adjacency = []
+    for a in range(n):
+        row = [b for b in range(n) if b != a and sum(1 for f in planes if a in f and b in f) >= 2]
+        adjacency.append(tuple(row))
+    return tuple(adjacency)
 
+
+ADJACENCY = hull_adjacency()
+NUM_VERTICES = len(VERTICES_Q)
+# SparseSupport.supportGenerator has rows of this width (padded with the vertex).
+GENERATOR_WIDTH = 7
+assert max(len(row) for row in ADJACENCY) <= GENERATOR_WIDTH
 
 def sub(u, v):
     return (u[0] - v[0], u[1] - v[1], u[2] - v[2])
@@ -137,9 +137,9 @@ def lean_combination(indices, coefficients):
 def emit(destination: Path):
     table = []
     max_bits = 0
-    for base in range(20):
+    for base in range(NUM_VERTICES):
         row = []
-        for target in range(20):
+        for target in range(NUM_VERTICES):
             indices, coefficients = find_combination(base, target)
             if base != target:
                 validate(base, target, indices, coefficients)
@@ -179,8 +179,8 @@ def emit(destination: Path):
         lines.append(f"  ]{suffix}")
     lines.extend(["]", ""])
 
-    for base in range(20):
-        for target in range(20):
+    for base in range(NUM_VERTICES):
+        for target in range(NUM_VERTICES):
             if base == target:
                 continue
             name = f"combination_{base}_{target}"
@@ -208,8 +208,8 @@ def emit(destination: Path):
         "  intro base target htarget",
         "  fin_cases base <;> fin_cases target",
     ])
-    for base in range(20):
-        for target in range(20):
+    for base in range(NUM_VERTICES):
+        for target in range(NUM_VERTICES):
             if base == target:
                 lines.append("  · exact (htarget rfl).elim")
             else:
@@ -227,10 +227,32 @@ def emit(destination: Path):
           f"maximum rational component {max_bits} bits)")
 
 
+def write_support_generator(sparse_support: Path):
+    """Rewrites the body of `supportGenerator` in SparseSupport.lean: row
+    `base` lists ADJACENCY[base], padded with `base` to GENERATOR_WIDTH."""
+    import re
+    rows = []
+    for base, row in enumerate(ADJACENCY):
+        padded = list(row) + [base] * (GENERATOR_WIDTH - len(row))
+        rows.append("  ![" + ", ".join(map(str, padded)) + "]")
+    header = f"def supportGenerator : VertexIndex → Fin {GENERATOR_WIDTH} → VertexIndex := !["
+    text = sparse_support.read_text(encoding="utf-8")
+    pattern = re.compile(re.escape(header) + r"\n.*?\n\]", re.S)
+    text, k = pattern.subn(lambda _: header + "\n" + ",\n".join(rows) + "\n]", text, count=1)
+    if k != 1:
+        raise SystemExit(f"{sparse_support}: no supportGenerator definition")
+    sparse_support.write_text(text, encoding="utf-8")
+    print(f"updated {sparse_support} ({NUM_VERTICES} rows)")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("output", type=Path)
+    parser.add_argument("--sparse_support", type=Path,
+                        default=Path(__file__).resolve().parent.parent / "Noperthedron" /
+                        "Nopert231" / "SparseSupport.lean")
     args = parser.parse_args()
+    write_support_generator(args.sparse_support)
     emit(args.output)
 
 
