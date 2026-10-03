@@ -581,7 +581,7 @@ theorem matrixPoseWithOffset_ofPose_eq_rightSymmetry
             rw [hrelative']
             rfl
       _ = reduced.innerRot.val :=
-            Noperthedron.SnubCube.MatrixPose.outer_mul_relativeRotation
+            Noperthedron.Atlas.MatrixPose.outer_mul_relativeRotation
               reduced
   · rfl
   · rfl
@@ -604,7 +604,7 @@ theorem exists_fundamental_atlas_translated_pose (p : MatrixPose) :
   let reduced := oldPose.rightNopert231Symmetry k
   obtain ⟨chart, x, hx, y, hy, z, hz, hradius, hrelative⟩ :=
     exists_bounded_chart_cayley reduced.relativeRotation
-      (Noperthedron.SnubCube.MatrixPose.relativeRotation_mem_SO3 reduced)
+      (Noperthedron.Atlas.MatrixPose.relativeRotation_mem_SO3 reduced)
   let q := AtlasPose.ofPose euler x y z
   have hq : q ∈ AtlasPose.rootInterval ℝ :=
     AtlasPose.ofPose_mem_root euler x y z heuler.1 hx hy hz

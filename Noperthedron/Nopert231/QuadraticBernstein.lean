@@ -1,7 +1,7 @@
 module
 
 public import Noperthedron.Checker.RatQuadratic3
-public import Noperthedron.SnubCube.BernsteinCertificate
+public import Noperthedron.Atlas.BernsteinCertificate
 
 @[expose] public section
 
@@ -15,7 +15,7 @@ quadratic representation used by the Nopert #229 atlas checker.
 namespace Noperthedron.Nopert231.QuadraticBernstein
 
 open Noperthedron.Checker
-open Noperthedron.SnubCube.BernsteinCertificate
+open Noperthedron.Atlas.BernsteinCertificate
 
 def min3 (f : Fin 3 → ℚ) : ℚ := min (f 0) (min (f 1) (f 2))
 

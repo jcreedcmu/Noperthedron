@@ -1,7 +1,7 @@
 module
 
 public import Noperthedron.BalancedSupport.TranslatedPose
-public import Noperthedron.SnubCube.Tightening
+public import Noperthedron.Atlas.Tightening
 
 @[expose] public section
 
@@ -42,10 +42,10 @@ theorem exists_universal_translated_pose (p : MatrixPose) :
       q.θ₂ ∈ Set.Ioc (-π) π ∧ q.φ₂ ∈ Set.Icc 0 π ∧
       q.matrixPoseWithOffset offset = p.rotateBy δ := by
   obtain ⟨θi, φi, αi, hθi, hφi, _hαi, hinner⟩ :=
-    Noperthedron.SnubCube.SO3_to_bounded_rotRM_params
+    Noperthedron.Atlas.SO3_to_bounded_rotRM_params
       p.innerRot.val p.innerRot.property
   obtain ⟨θo, φo, αo, hθo, hφo, _hαo, houter⟩ :=
-    Noperthedron.SnubCube.SO3_to_bounded_rotRM_params
+    Noperthedron.Atlas.SO3_to_bounded_rotRM_params
       p.outerRot.val p.outerRot.property
   let δ := -αo
   obtain ⟨α, hα, hRzα⟩ := Bounding.Rz_mod_two_pi (δ + αi)

@@ -20,7 +20,7 @@ variable {P : C5Model}
 
 open scoped RealInnerProductSpace
 open Noperthedron.BalancedSupport
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 open AtlasEdgeCertificate AtlasProjectiveView
 
 abbrev EdgeTriple := Fin 3 → ℝ³
@@ -108,13 +108,13 @@ theorem inner_direction_outerProjection_eq_support
 theorem outerLift_direction (root : Fin 8) (p : AtlasPose ℝ)
     (chart : CayleyAtlas.ChartIndex) (offset : ℝ²) (edge : ℝ³)
     (hscale : viewScale root p ≠ 0) :
-    Noperthedron.SnubCube.outerLift
+    Noperthedron.Atlas.outerLift
         (p.matrixPoseWithOffset chart offset) (direction root p edge) =
       cross3 (WithLp.toLp 2
         (AtlasProjectiveView.normalizedView root p)) edge := by
   apply ext_inner_right ℝ
   intro v
-  rw [← Noperthedron.SnubCube.inner_outerProjection_eq_outerLift]
+  rw [← Noperthedron.Atlas.inner_outerProjection_eq_outerLift]
   rw [direction, real_inner_smul_left]
   have hproj :
       outerProjectionLinear (p.matrixPoseWithOffset chart offset) v =
@@ -138,11 +138,11 @@ noncomputable def variationVector (root : Fin 8) (p : AtlasPose ℝ)
 theorem firstVariationVector_eq (root : Fin 8) (p : AtlasPose ℝ)
     (chart : CayleyAtlas.ChartIndex) (offset : ℝ²) (edge : EdgeTriple)
     (vertex : VertexTriple) (hscale : viewScale root p ≠ 0) :
-    Noperthedron.SnubCube.firstVariationVector
+    Noperthedron.Atlas.firstVariationVector
         (p.matrixPoseWithOffset chart offset) (weight root p edge)
         (fun i => direction root p (edge i)) vertex =
       variationVector root p edge vertex := by
-  unfold Noperthedron.SnubCube.firstVariationVector variationVector
+  unfold Noperthedron.Atlas.firstVariationVector variationVector
   apply Finset.sum_congr rfl
   intro i _
   rw [outerLift_direction root p chart offset (edge i) hscale]
@@ -167,7 +167,7 @@ theorem not_rupertPose_of_projective_local_certificates
       (‖direction root p (edge j i)‖ *
         ‖P.vertex (symmetryAction g (index j i))‖) ≤ B j)
     (hratio : ∀ a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM
+      (Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset chart offset) g)),
       1 - Real.cos a.angle ≤ |Real.sin a.angle| * c)
@@ -233,7 +233,7 @@ theorem not_rupertPose_of_projective_local_certificates_with_defect
         ‖P.vertex (symmetryAction g (index j i))‖) ≤ B j)
     (hD_bound : ∀ j, ∑ i, weight root p (edge j) i * defect j i ≤ D j)
     (hratio : ∀ a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM
+      (Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset chart offset) g)),
       ∀ j, (1 - Real.cos a.angle) * B j + D j ≤ |Real.sin a.angle| * c * B j)
@@ -304,7 +304,7 @@ theorem not_rupertPose_of_projective_local_certificates_with_decomposition
       (‖direction root p (edge j i)‖ *
         ‖P.vertex (symmetryAction g (index j i))‖) ≤ B j)
     (hratio : ∀ a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM
+      (Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset chart offset) g)),
       1 - Real.cos a.angle ≤ |Real.sin a.angle| * c)
@@ -319,7 +319,7 @@ theorem not_rupertPose_of_projective_local_certificates_with_decomposition
           outerProjectionLinear (p.matrixPoseWithOffset chart offset)
             (P.vertex (symmetryAction g (index j i)))⟫)
     (hexceptional : ∀ a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM
+      (Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset chart offset) g)),
       exceptional a.signedAxis → ¬ RupertPose (p.matrixPoseWithOffset chart offset)

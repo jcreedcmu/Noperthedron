@@ -187,7 +187,7 @@ theorem AtlasPose.matrixPoseWithOffset_ofPose_eq (euler : Pose ℝ)
       euler.matrixPoseWithOffset offset := by
   let oldPose := euler.matrixPoseWithOffset offset
   have hrecover :=
-    Noperthedron.SnubCube.MatrixPose.outer_mul_relativeRotation oldPose
+    Noperthedron.Atlas.MatrixPose.outer_mul_relativeRotation oldPose
   apply matrixPose_ext_val
   · calc
       ((AtlasPose.ofPose euler x y z).matrixPoseWithOffset chart offset).innerRot.val =
@@ -212,7 +212,7 @@ theorem exists_atlas_pose_of_tight_pose (euler : Pose ℝ) (offset : ℝ²)
   let oldPose := euler.matrixPoseWithOffset offset
   obtain ⟨chart, x, hx, y, hy, z, hz, _hradius, hrelative⟩ :=
     exists_bounded_chart_cayley oldPose.relativeRotation
-      (Noperthedron.SnubCube.MatrixPose.relativeRotation_mem_SO3 oldPose)
+      (Noperthedron.Atlas.MatrixPose.relativeRotation_mem_SO3 oldPose)
   refine ⟨chart, AtlasPose.ofPose euler x y z,
     AtlasPose.ofPose_mem_root euler x y z heuler hx hy hz, ?_⟩
   exact AtlasPose.matrixPoseWithOffset_ofPose_eq
@@ -229,7 +229,7 @@ theorem exists_bounded_atlas_pose_of_tight_pose
   let oldPose := euler.matrixPoseWithOffset offset
   obtain ⟨chart, x, hx, y, hy, z, hz, hradius, hrelative⟩ :=
     exists_bounded_chart_cayley oldPose.relativeRotation
-      (Noperthedron.SnubCube.MatrixPose.relativeRotation_mem_SO3 oldPose)
+      (Noperthedron.Atlas.MatrixPose.relativeRotation_mem_SO3 oldPose)
   refine ⟨chart, AtlasPose.ofPose euler x y z,
     AtlasPose.ofPose_mem_root euler x y z heuler hx hy hz,
     hradius, by simpa [AtlasPose.InViewWedge, AtlasPose.ofPose, InViewWedge]

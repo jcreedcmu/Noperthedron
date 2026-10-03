@@ -1,7 +1,8 @@
 module
 
 public import Noperthedron.Nopert231.Tightening
-public import Noperthedron.SnubCube.CayleyInterval
+public import Noperthedron.Checker.RatBall
+public import Noperthedron.Atlas.CayleyPose
 
 @[expose] public section
 

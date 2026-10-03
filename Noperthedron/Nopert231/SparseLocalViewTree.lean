@@ -25,7 +25,7 @@ def SparseRowValidAt (symmetryIndex : OrbitIndex) (r : ℚ)
       id < children child ∧ children child < size ∧
       (get (children child)).root = root ∧
       (get (children child)).triangle =
-        Noperthedron.SnubCube.ProjectiveView.split triangle child ∧
+        Noperthedron.Atlas.ProjectiveView.split triangle child ∧
       rLower ≤ (get (children child)).rLower
   | .certificate _ box =>
       box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧

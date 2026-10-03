@@ -1,7 +1,7 @@
 module
 
 public import Noperthedron.Nopert231.AtlasInterval
-public import Noperthedron.SnubCube.CayleyEdgeCertificate
+public import Noperthedron.Atlas.CayleyEdgeCertificate
 
 @[expose] public section
 
@@ -19,7 +19,7 @@ namespace Noperthedron.Nopert231.AtlasQuadratic
 open Noperthedron.Checker
 open Noperthedron.BalancedSupport
 open Noperthedron.Nopert231.CayleyAtlas
-open Noperthedron.SnubCube.CayleyEdgeCertificate
+open Noperthedron.Atlas.CayleyEdgeCertificate
 
 def chartSign (chart : ChartIndex) (c : Fin 3) : ℚ :=
   if chart.val = 0 ∨ chart.val = c.val + 1 then 1 else -1
@@ -46,14 +46,14 @@ theorem chartMatrix_eq_diagonal (chart : ChartIndex) :
 def numeratorQuadratic (chart : ChartIndex) :
     Matrix (Fin 3) (Fin 3) RatQuadratic3 :=
   fun i j => RatQuadratic3.scale (chartSign chart i)
-    (Noperthedron.SnubCube.CayleyEdgeCertificate.numeratorQuadratic i j)
+    (Noperthedron.Atlas.CayleyEdgeCertificate.numeratorQuadratic i j)
 
 theorem eval_numeratorQuadratic (chart : ChartIndex) (i j : Fin 3)
     (x y z : ℝ) :
     (numeratorQuadratic chart i j).evalReal x y z =
       (chartMatrix chart * cayleyNumeratorMatrix x y z) i j := by
   rw [numeratorQuadratic, RatQuadratic3.evalReal_scale,
-    Noperthedron.SnubCube.CayleyEdgeCertificate.eval_numeratorQuadratic]
+    Noperthedron.Atlas.CayleyEdgeCertificate.eval_numeratorQuadratic]
   rw [chartMatrix_eq_diagonal, Matrix.diagonal_mul]
 
 def sum3Q (f : Fin 3 → RatQuadratic3) : RatQuadratic3 :=
@@ -76,7 +76,7 @@ theorem eval_displacementQuadratic (chart : ChartIndex)
   simp only [displacementQuadratic, sum3Q,
     RatQuadratic3.evalReal_sub, RatQuadratic3.evalReal_add,
     RatQuadratic3.evalReal_scale, eval_numeratorQuadratic,
-    Noperthedron.SnubCube.CayleyEdgeCertificate.eval_denomQuadratic,
+    Noperthedron.Atlas.CayleyEdgeCertificate.eval_denomQuadratic,
     Fin.sum_univ_three]
 
 def edgeQ (start finish : VertexIndex) : Fin 3 → ℚ :=

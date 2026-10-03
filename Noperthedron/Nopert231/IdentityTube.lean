@@ -21,7 +21,7 @@ namespace Noperthedron.Nopert231.IdentityTube
 variable {P : C5Model}
 
 open AtlasProjectiveView AtlasProjectiveLocalViewTree WedgeCover
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 /-- The tables match the code triangles: table `t` is rooted at the upper
 signed root, has triangle `codeTriangles[t]`, shares the symmetry index `s`,

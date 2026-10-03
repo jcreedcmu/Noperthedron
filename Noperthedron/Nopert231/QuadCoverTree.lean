@@ -3,12 +3,12 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Data.Fin.VecNotation
-public import Noperthedron.SnubCube.ProjectiveLocalCertificate
+public import Noperthedron.Atlas.ProjectiveLocalCertificate
 
 @[expose] public section
 
 open scoped BigOperators RealInnerProductSpace
-open Noperthedron.SnubCube.ProjectiveLocalCertificate
+open Noperthedron.Atlas.ProjectiveLocalCertificate
 
 namespace Noperthedron.Nopert231
 

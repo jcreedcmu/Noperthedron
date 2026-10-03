@@ -1,7 +1,7 @@
 module
 
 public import Noperthedron.Nopert231.Symmetry
-public import Noperthedron.SnubCube.LocalRigidity
+public import Noperthedron.Atlas.LocalRigidity
 
 @[expose] public section
 
@@ -30,9 +30,9 @@ noncomputable def symmetry (g : OrbitIndex) : SO3 :=
   fin_cases i <;> fin_cases j <;> simp [symmetry, Rz_mat]
 
 @[simp] theorem so3CLM_symmetry_zero :
-    Noperthedron.SnubCube.so3CLM (symmetry 0) = 1 := by
+    Noperthedron.Atlas.so3CLM (symmetry 0) = 1 := by
   ext v
-  simp [Noperthedron.SnubCube.so3CLM]
+  simp [Noperthedron.Atlas.so3CLM]
 
 def symmetryAction (g : OrbitIndex) (i : VertexIndex) : VertexIndex :=
   vertexIndex
@@ -58,43 +58,43 @@ inner-versus-symmetry mismatch.  This formulation is independent of Euler
 coordinates and therefore remains well behaved at their poles. -/
 theorem norm_relativeRotationAtSymmetry_one_le_inner_mismatch
     (p : MatrixPose) (g : OrbitIndex) :
-    ‖Noperthedron.SnubCube.so3CLM (relativeRotationAtSymmetry p g) - 1‖ ≤
-      ‖Noperthedron.SnubCube.so3CLM p.innerRot -
-        Noperthedron.SnubCube.so3CLM (p.outerRot * symmetry g)‖ := by
+    ‖Noperthedron.Atlas.so3CLM (relativeRotationAtSymmetry p g) - 1‖ ≤
+      ‖Noperthedron.Atlas.so3CLM p.innerRot -
+        Noperthedron.Atlas.so3CLM (p.outerRot * symmetry g)‖ := by
   let q := equalityPose p.outerRot g
-  have hrelative := Noperthedron.SnubCube.norm_relativeRotation_sub_le p q
+  have hrelative := Noperthedron.Atlas.norm_relativeRotation_sub_le p q
   have hadjusted :
-      ‖Noperthedron.SnubCube.so3CLM (relativeRotationAtSymmetry p g) -
-          Noperthedron.SnubCube.so3CLM (relativeRotationAtSymmetry q g)‖ ≤
-        ‖Noperthedron.SnubCube.so3CLM (relativeRotation p) -
-          Noperthedron.SnubCube.so3CLM (relativeRotation q)‖ := by
+      ‖Noperthedron.Atlas.so3CLM (relativeRotationAtSymmetry p g) -
+          Noperthedron.Atlas.so3CLM (relativeRotationAtSymmetry q g)‖ ≤
+        ‖Noperthedron.Atlas.so3CLM (relativeRotation p) -
+          Noperthedron.Atlas.so3CLM (relativeRotation q)‖ := by
     rw [relativeRotationAtSymmetry, relativeRotationAtSymmetry,
-      Noperthedron.SnubCube.so3CLM_mul,
-      Noperthedron.SnubCube.so3CLM_mul,
+      Noperthedron.Atlas.so3CLM_mul,
+      Noperthedron.Atlas.so3CLM_mul,
       ← ContinuousLinearMap.sub_comp]
     calc
-      ‖(Noperthedron.SnubCube.so3CLM (relativeRotation p) -
-          Noperthedron.SnubCube.so3CLM (relativeRotation q)) ∘L
-            Noperthedron.SnubCube.so3CLM (symmetry g)⁻¹‖ ≤
-        ‖Noperthedron.SnubCube.so3CLM (relativeRotation p) -
-          Noperthedron.SnubCube.so3CLM (relativeRotation q)‖ *
-            ‖Noperthedron.SnubCube.so3CLM (symmetry g)⁻¹‖ :=
+      ‖(Noperthedron.Atlas.so3CLM (relativeRotation p) -
+          Noperthedron.Atlas.so3CLM (relativeRotation q)) ∘L
+            Noperthedron.Atlas.so3CLM (symmetry g)⁻¹‖ ≤
+        ‖Noperthedron.Atlas.so3CLM (relativeRotation p) -
+          Noperthedron.Atlas.so3CLM (relativeRotation q)‖ *
+            ‖Noperthedron.Atlas.so3CLM (symmetry g)⁻¹‖ :=
         ContinuousLinearMap.opNorm_comp_le _ _
-      _ = _ := by rw [Noperthedron.SnubCube.so3CLM_norm, mul_one]
-  have hone : Noperthedron.SnubCube.so3CLM (1 : SO3) = 1 := by
+      _ = _ := by rw [Noperthedron.Atlas.so3CLM_norm, mul_one]
+  have hone : Noperthedron.Atlas.so3CLM (1 : SO3) = 1 := by
     ext v
-    simp [Noperthedron.SnubCube.so3CLM]
+    simp [Noperthedron.Atlas.so3CLM]
   calc
-    ‖Noperthedron.SnubCube.so3CLM (relativeRotationAtSymmetry p g) - 1‖ =
-        ‖Noperthedron.SnubCube.so3CLM (relativeRotationAtSymmetry p g) -
-          Noperthedron.SnubCube.so3CLM (relativeRotationAtSymmetry q g)‖ := by
+    ‖Noperthedron.Atlas.so3CLM (relativeRotationAtSymmetry p g) - 1‖ =
+        ‖Noperthedron.Atlas.so3CLM (relativeRotationAtSymmetry p g) -
+          Noperthedron.Atlas.so3CLM (relativeRotationAtSymmetry q g)‖ := by
       rw [relativeRotationAtSymmetry_equalityPose, hone]
-    _ ≤ ‖Noperthedron.SnubCube.so3CLM (relativeRotation p) -
-          Noperthedron.SnubCube.so3CLM (relativeRotation q)‖ := hadjusted
-    _ ≤ ‖Noperthedron.SnubCube.so3CLM p.innerRot -
-          Noperthedron.SnubCube.so3CLM q.innerRot‖ +
-        ‖Noperthedron.SnubCube.so3CLM p.outerRot -
-          Noperthedron.SnubCube.so3CLM q.outerRot‖ := hrelative
+    _ ≤ ‖Noperthedron.Atlas.so3CLM (relativeRotation p) -
+          Noperthedron.Atlas.so3CLM (relativeRotation q)‖ := hadjusted
+    _ ≤ ‖Noperthedron.Atlas.so3CLM p.innerRot -
+          Noperthedron.Atlas.so3CLM q.innerRot‖ +
+        ‖Noperthedron.Atlas.so3CLM p.outerRot -
+          Noperthedron.Atlas.so3CLM q.outerRot‖ := hrelative
     _ = _ := by simp [q, equalityPose]
 
 /-- Division-free local-angle test from a certified matrix mismatch to one
@@ -102,10 +102,10 @@ of the exact fivefold equality strata. -/
 theorem AxisAngle.ratio_of_inner_mismatch_bound
     (p : MatrixPose) (g : OrbitIndex)
     (a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM (relativeRotationAtSymmetry p g)))
+      (Noperthedron.Atlas.so3CLM (relativeRotationAtSymmetry p g)))
     (c r : ℝ) (hc : 0 ≤ c) (hr : 0 ≤ r)
-    (hmismatch : ‖Noperthedron.SnubCube.so3CLM p.innerRot -
-      Noperthedron.SnubCube.so3CLM (p.outerRot * symmetry g)‖ ≤ r)
+    (hmismatch : ‖Noperthedron.Atlas.so3CLM p.innerRot -
+      Noperthedron.Atlas.so3CLM (p.outerRot * symmetry g)‖ ≤ r)
     (hsmall : r ^ 2 * (1 + c ^ 2) ≤ 4 * c ^ 2) :
     1 - Real.cos a.angle ≤ |Real.sin a.angle| * c := by
   apply a.ratio_of_norm_bound c r hc hr
@@ -141,7 +141,7 @@ private lemma RzL_nat_mod_five (x : ℕ) :
     RzL_periodic]
 
 theorem symmetry_apply_exactVertex (g : OrbitIndex) (i : VertexIndex) :
-    Noperthedron.SnubCube.so3CLM (symmetry g) (P.vertex i) =
+    Noperthedron.Atlas.so3CLM (symmetry g) (P.vertex i) =
       P.vertex (symmetryAction g i) := by
   let k := orbitIndex i
   let s := seedIndex i
@@ -226,7 +226,7 @@ theorem not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation
     (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
       ∃ j, c + δ ≤ ⟪axis, centerNormalizedA j⟫)
     (hmove : ∀ j, ‖normalizedA j - centerNormalizedA j‖ ≤ δ)
-    (hA_eq : ∀ j, A j = Noperthedron.SnubCube.firstVariationVector p
+    (hA_eq : ∀ j, A j = Noperthedron.Atlas.firstVariationVector p
       (weight j) (direction j)
       (fun i => P.vertex (symmetryAction g (index j i))))
     (hB_bound : ∀ j, ∑ i, weight j i *
@@ -256,7 +256,7 @@ theorem not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation
         (1 - Real.cos a.angle) * B j :=
     mul_le_mul_of_nonneg_left (hB_bound j)
       (sub_nonneg.mpr (Real.cos_le_one a.angle))
-  rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a p
+  rw [Noperthedron.Atlas.axisAngle_weighted_first_identity a p
     (weight j) (direction j)
     (fun i => P.vertex (symmetryAction g (index j i)))]
   rw [← hA_eq j]
@@ -312,7 +312,7 @@ theorem not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation_w
     (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
       ∃ j, c + δ ≤ ⟪axis, centerNormalizedA j⟫)
     (hmove : ∀ j, ‖normalizedA j - centerNormalizedA j‖ ≤ δ)
-    (hA_eq : ∀ j, A j = Noperthedron.SnubCube.firstVariationVector p
+    (hA_eq : ∀ j, A j = Noperthedron.Atlas.firstVariationVector p
       (weight j) (direction j)
       (fun i => P.vertex (symmetryAction g (index j i))))
     (hB_bound : ∀ j, ∑ i, weight j i *
@@ -344,7 +344,7 @@ theorem not_rupertPose_of_axisFree_symmetry_certificates_of_cover_perturbation_w
         (1 - Real.cos a.angle) * B j + D j := by
     linarith [mul_le_mul_of_nonneg_left (hB_bound j)
       (sub_nonneg.mpr (Real.cos_le_one a.angle)), hD_bound j]
-  rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a p
+  rw [Noperthedron.Atlas.axisAngle_weighted_first_identity a p
     (weight j) (direction j)
     (fun i => P.vertex (symmetryAction g (index j i)))]
   rw [← hA_eq j]
@@ -368,7 +368,7 @@ theorem not_rupertPose_of_decomposed_symmetry_certificates
     (hcover : ∀ axis : ℝ³, ‖axis‖ = 1 →
       (∃ j, c + δ ≤ ⟪axis, centerNormalizedA j⟫) ∨ exceptional axis)
     (hmove : ∀ j, ‖normalizedA j - centerNormalizedA j‖ ≤ δ)
-    (hA_eq : ∀ j, A j = Noperthedron.SnubCube.firstVariationVector p
+    (hA_eq : ∀ j, A j = Noperthedron.Atlas.firstVariationVector p
       (weight j) (direction j)
       (fun i => P.vertex (symmetryAction g (index j i))))
     (hB_bound : ∀ j, ∑ i, weight j i *
@@ -398,7 +398,7 @@ theorem not_rupertPose_of_decomposed_symmetry_certificates
           (1 - Real.cos a.angle) * B j :=
       mul_le_mul_of_nonneg_left (hB_bound j)
         (sub_nonneg.mpr (Real.cos_le_one a.angle))
-    rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a p
+    rw [Noperthedron.Atlas.axisAngle_weighted_first_identity a p
       (weight j) (direction j)
       (fun i => P.vertex (symmetryAction g (index j i)))]
     rw [← hA_eq j]

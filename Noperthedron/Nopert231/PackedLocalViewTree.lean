@@ -23,7 +23,7 @@ namespace Noperthedron.Nopert231.PackedLocalViewTree
 
 open AtlasProjectiveView AtlasProjectiveLocalCertificate
 open AtlasProjectiveLocalViewTree
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 structure Cursor where
   data : ByteArray

@@ -38,7 +38,7 @@ variable {P : C5Model}
 
 open scoped BigOperators Real RealInnerProductSpace
 open Noperthedron.BalancedSupport
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 open AtlasProjectiveView AtlasProjectiveEdgeCertificate
 open Matrix
 open AtlasProjectiveLocalRigidity
@@ -102,7 +102,7 @@ theorem TwoZoneBox.valid_imp_not_translated_rupert (box : TwoZoneBox) (h : box.V
   let g := box.innerBox.symmetryIndex
   let relative := relativeRotationAtSymmetry
     (p.matrixPoseWithOffset chart offset) g
-  let Q := Noperthedron.SnubCube.so3CLM relative
+  let Q := Noperthedron.Atlas.so3CLM relative
   let normQ := ‖Q - 1‖
   rcases le_total normQ (box.r0 : ℝ) with h_case1 | h_case2
   · -- Case 1: Inner disk ‖Q - 1‖ ≤ r0. Strict 2D hull contacts rule out the pose.
@@ -187,21 +187,21 @@ theorem TwoZoneBox.valid_imp_not_translated_rupert (box : TwoZoneBox) (h : box.V
       have hrel_le := norm_relativeRotationAtSymmetry_one_le_inner_mismatch
         (p.matrixPoseWithOffset box.outerBox.chart offset)
         box.outerBox.symmetryIndex
-      have hQ_eq : Q = Noperthedron.SnubCube.so3CLM
+      have hQ_eq : Q = Noperthedron.Atlas.so3CLM
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.outerBox.chart offset)
             box.outerBox.symmetryIndex) := by
         dsimp [Q, relative]
         rw [hchart_eq, h.compatible_symmetry]
       have hnorm_lower : (box.r0 : ℝ) ≤
-          ‖Noperthedron.SnubCube.so3CLM
+          ‖Noperthedron.Atlas.so3CLM
             (relativeRotationAtSymmetry
               (p.matrixPoseWithOffset box.outerBox.chart offset)
               box.outerBox.symmetryIndex) - 1‖ := by
         rw [← hQ_eq]
         exact h_case2
       have hnorm_upper :
-          ‖Noperthedron.SnubCube.so3CLM
+          ‖Noperthedron.Atlas.so3CLM
             (relativeRotationAtSymmetry
               (p.matrixPoseWithOffset box.outerBox.chart offset)
               box.outerBox.symmetryIndex) - 1‖ ≤ (box.outerBox.r : ℝ) :=
@@ -317,10 +317,10 @@ theorem not_rupertPose_of_decomposed_two_zone
       1 ≤ viewScale outerBox.root p →
       InTriangle (toReal outerBox.triangle) (AtlasProjectiveView.normalizedView outerBox.root p) →
       ∀ a : AxisAngle
-        (Noperthedron.SnubCube.so3CLM
+        (Noperthedron.Atlas.so3CLM
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset outerBox.chart offset) outerBox.symmetryIndex)),
-      ‖Noperthedron.SnubCube.so3CLM
+      ‖Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset outerBox.chart offset) outerBox.symmetryIndex) - 1‖ ≤ (r0 : ℝ) →
       exceptional a.signedAxis →
@@ -336,7 +336,7 @@ theorem not_rupertPose_of_decomposed_two_zone
   let g := outerBox.symmetryIndex
   let relative := relativeRotationAtSymmetry
     (p.matrixPoseWithOffset chart offset) g
-  let Q := Noperthedron.SnubCube.so3CLM relative
+  let Q := Noperthedron.Atlas.so3CLM relative
   let normQ := ‖Q - 1‖
   rcases le_total normQ (r0 : ℝ) with h_case1 | h_case2
   · -- Case 1: Inner disk ‖Q - 1‖ ≤ r0. Directional decomposition rules out the pose.
@@ -396,12 +396,12 @@ theorem not_rupertPose_of_decomposed_two_zone
         (p.matrixPoseWithOffset outerBox.chart offset)
         outerBox.symmetryIndex
       have hnorm_lower : (r0 : ℝ) ≤
-          ‖Noperthedron.SnubCube.so3CLM
+          ‖Noperthedron.Atlas.so3CLM
             (relativeRotationAtSymmetry
               (p.matrixPoseWithOffset outerBox.chart offset)
               outerBox.symmetryIndex) - 1‖ := h_case2
       have hnorm_upper :
-          ‖Noperthedron.SnubCube.so3CLM
+          ‖Noperthedron.Atlas.so3CLM
             (relativeRotationAtSymmetry
               (p.matrixPoseWithOffset outerBox.chart offset)
               outerBox.symmetryIndex) - 1‖ ≤ (outerBox.r : ℝ) :=
@@ -534,7 +534,7 @@ theorem not_rupertPose_of_exceptional_cone_certificate
       linarith [mul_le_mul_of_nonneg_left hbudget_bound (sub_nonneg.mpr (Real.cos_le_one a.angle)), hD_bound]
     have hweight_def : (fun i => (box.certificate j).exactWeight (P := P) box p i) =
         weight box.root p (fun i => (box.certificate j).exactEdge (P := P) i) := rfl
-    rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
+    rw [Noperthedron.Atlas.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
       (fun i => (box.certificate j).exactWeight box p i)
       (fun i => direction box.root p ((box.certificate j).exactEdge i))
       (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i)))]
@@ -619,7 +619,7 @@ theorem not_rupertPose_of_annular_exceptional_cone_certificate
       ((relativeRotationAtSymmetry
         (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex).val.toEuclideanLin.toContinuousLinearMap))
     (hnorm_lower : (r_min : ℝ) ≤
-      ‖Noperthedron.SnubCube.so3CLM
+      ‖Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖)
     (hexc : exceptional a.signedAxis) :
@@ -631,7 +631,7 @@ theorem not_rupertPose_of_annular_exceptional_cone_certificate
   have hrel_le := norm_relativeRotationAtSymmetry_one_le_inner_mismatch
     (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex
   have hnorm_upper :
-      ‖Noperthedron.SnubCube.so3CLM
+      ‖Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (box.r : ℝ) :=
     hrel_le.trans hmismatch_bound
@@ -665,25 +665,25 @@ theorem not_rupertPose_of_three_way_split
     (exceptional : ℝ³ → Prop)
     {p : AtlasPose ℝ} (offset : ℝ²)
     (h_annular_cone : ∀ a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM
+      (Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
-      (r_min : ℝ) ≤ ‖Noperthedron.SnubCube.so3CLM
+      (r_min : ℝ) ≤ ‖Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ →
       exceptional a.signedAxis →
       ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull)
     (h_complement : ∀ a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM
+      (Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
       ¬ exceptional a.signedAxis →
       ¬ RupertPose (p.matrixPoseWithOffset box.chart offset) P.polyhedron.hull)
     (h_inner_core : ∀ a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM
+      (Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
-      ‖Noperthedron.SnubCube.so3CLM
+      ‖Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
       exceptional a.signedAxis →
@@ -693,7 +693,7 @@ theorem not_rupertPose_of_three_way_split
     (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex
   obtain ⟨a⟩ := exists_axisAngle relative.val relative.property
   by_cases hexc : exceptional a.signedAxis
-  · by_cases h_inner : ‖Noperthedron.SnubCube.so3CLM relative - 1‖ ≤ (r_min : ℝ)
+  · by_cases h_inner : ‖Noperthedron.Atlas.so3CLM relative - 1‖ ≤ (r_min : ℝ)
     · exact h_inner_core a h_inner hexc
     · push_neg at h_inner
       exact h_annular_cone a h_inner.le hexc
@@ -712,10 +712,10 @@ theorem valid_imp_not_translated_rupert_of_three_way_split
       1 ≤ viewScale box.root p →
       InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
       ∀ a : AxisAngle
-        (Noperthedron.SnubCube.so3CLM
+        (Noperthedron.Atlas.so3CLM
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
-        (r_min : ℝ) ≤ ‖Noperthedron.SnubCube.so3CLM
+        (r_min : ℝ) ≤ ‖Noperthedron.Atlas.so3CLM
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ →
         exceptional a.signedAxis →
@@ -724,7 +724,7 @@ theorem valid_imp_not_translated_rupert_of_three_way_split
       1 ≤ viewScale box.root p →
       InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
       ∀ a : AxisAngle
-        (Noperthedron.SnubCube.so3CLM
+        (Noperthedron.Atlas.so3CLM
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
         ¬ exceptional a.signedAxis →
@@ -733,10 +733,10 @@ theorem valid_imp_not_translated_rupert_of_three_way_split
       1 ≤ viewScale box.root p →
       InTriangle (toReal box.triangle) (AtlasProjectiveView.normalizedView box.root p) →
       ∀ a : AxisAngle
-        (Noperthedron.SnubCube.so3CLM
+        (Noperthedron.Atlas.so3CLM
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex)),
-        ‖Noperthedron.SnubCube.so3CLM
+        ‖Noperthedron.Atlas.so3CLM
           (relativeRotationAtSymmetry
             (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ) →
         exceptional a.signedAxis →
@@ -778,7 +778,7 @@ theorem not_rupertPose_of_inner_core_cone_axis
       ((relativeRotationAtSymmetry
         (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex).val.toEuclideanLin.toContinuousLinearMap))
     (hnorm_upper :
-      ‖Noperthedron.SnubCube.so3CLM
+      ‖Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (r_min : ℝ))
     (hexc : exceptional a.signedAxis) :
@@ -863,7 +863,7 @@ theorem not_rupertPose_of_inner_core_cone_axis
       exact mul_le_mul_of_nonneg_left hbudget_bound (sub_nonneg.mpr (Real.cos_le_one a.angle))
     have hweight_def : (fun i => (box.certificate 0).exactWeight (P := P) box p i) =
         weight box.root p (fun i => (box.certificate 0).exactEdge (P := P) i) := rfl
-    rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
+    rw [Noperthedron.Atlas.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
       (fun i => (box.certificate 0).exactWeight box p i)
       (fun i => direction box.root p ((box.certificate 0).exactEdge i))
       (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate 0).index i)))]
@@ -957,7 +957,7 @@ theorem not_rupertPose_of_single_complement_axis
   have hrel_le := norm_relativeRotationAtSymmetry_one_le_inner_mismatch
     (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex
   have hnorm_upper :
-      ‖Noperthedron.SnubCube.so3CLM
+      ‖Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex) - 1‖ ≤ (box.r : ℝ) :=
     hrel_le.trans hmismatch_bound
@@ -1029,7 +1029,7 @@ theorem not_rupertPose_of_single_complement_axis
       exact mul_le_mul_of_nonneg_left hbudget_bound (sub_nonneg.mpr (Real.cos_le_one a.angle))
     have hweight_def : (fun i => (box.certificate j).exactWeight (P := P) box p i) =
         weight box.root p (fun i => (box.certificate j).exactEdge (P := P) i) := rfl
-    rw [Noperthedron.SnubCube.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
+    rw [Noperthedron.Atlas.axisAngle_weighted_first_identity a (p.matrixPoseWithOffset box.chart offset)
       (fun i => (box.certificate j).exactWeight box p i)
       (fun i => direction box.root p ((box.certificate j).exactEdge i))
       (fun i => P.vertex (symmetryAction box.symmetryIndex ((box.certificate j).index i)))]

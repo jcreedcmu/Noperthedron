@@ -22,7 +22,7 @@ open Noperthedron.Checker Noperthedron.BalancedSupport
 open CayleyAtlas AtlasProjectiveView
 open AtlasProjectiveGlobalCertificate
 open AtlasProjectiveLocalCertificate
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 structure Component where
   certificate : AxisCertificate

@@ -26,7 +26,7 @@ namespace Noperthedron.Nopert231.AtlasProjectiveSolutionTree
 variable {P : C5Model}
 
 open CayleyAtlas AtlasProjectiveView
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 abbrev Interval := AtlasInterval ℚ
 abbrev Triangle := AtlasProjectiveView.Triangle ℚ

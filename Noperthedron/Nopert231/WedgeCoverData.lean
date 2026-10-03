@@ -8,7 +8,7 @@ public import Noperthedron.Nopert231.WedgeCover
 
 namespace Noperthedron.Nopert231.WedgeCover
 
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 /-- The projective triangles of all face-visibility code cells, in
 code order (as exported to the code packs). -/

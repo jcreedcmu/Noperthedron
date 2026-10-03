@@ -17,7 +17,7 @@ array-backed generated data.
 namespace Noperthedron.Nopert231.FundamentalChart3
 
 open AtlasProjectiveSolutionTree AtlasProjectiveView
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 def root : AtlasProjectiveSolutionTree.Interval :=
   AtlasFundamentalPrune.restrictedRootInterval 3

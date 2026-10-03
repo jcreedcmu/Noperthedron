@@ -1,24 +1,25 @@
 module
 
-public import Noperthedron.SnubCube.CayleyEdgeCertificate
+public import Noperthedron.Atlas.CayleyEdgeCertificate
 
 @[expose] public section
 
 
 /-!
-# Rational projective viewing triangles
+# Projective view triangles
 
-After outer snub-cube symmetry reduction, the viewing vector has nonnegative
-coordinates and its first coordinate is maximal.  Dividing by the positive
-coordinate sum places it in a rational quadrilateral in the affine simplex.
-That quadrilateral is the union of two triangles.  Repeated midpoint
-subdivision gives an exact, adaptive replacement for trigonometric angle
-boxes.
+Viewing directions are represented by projective triangles on the plane
+x + y + z = 1 (`Triangle`, `InTriangle`), subdivided by `split` (three corner
+triangles and the central one). `linearValue` bounds linear functionals
+over a triangle by their corner values.
+
+(Extracted, with only what the #231 proof uses, from the earlier snub-cube
+proof attempt.)
 -/
 
-namespace Noperthedron.SnubCube.ProjectiveView
+namespace Noperthedron.Atlas.ProjectiveView
 
-open Noperthedron.SnubCube
+open Noperthedron.Atlas
 open CayleyEdgeCertificate
 
 abbrev Vector (R : Type) := Fin 3 → R
@@ -206,140 +207,6 @@ theorem mem_split {triangle : Triangle ℚ} {point : Vector ℝ}
       · exact ⟨3, central hnonneg hsum (le_of_not_ge h0)
           (le_of_not_ge h1) (le_of_not_ge h2) hpoint⟩
 
-def e0 : Vector ℚ := ![1, 0, 0]
-def e1 : Vector ℚ := ![0, 1, 0]
-def e2 : Vector ℚ := ![0, 0, 1]
-def chamberCenter : Vector ℚ := ![1 / 3, 1 / 3, 1 / 3]
-
-/-- The two rational triangles covering the first-coordinate-maximal part of
-the positive projective simplex. -/
-def chamberRoot : Fin 2 → Triangle ℚ := ![
-  ![e0, midpoint e0 e1, chamberCenter],
-  ![e0, chamberCenter, midpoint e0 e2]]
-
-def InSimplex (point : Vector ℝ) : Prop :=
-  (∀ i, 0 ≤ point i) ∧ (∑ i, point i) = 1
-
-def InChamber (point : Vector ℝ) : Prop :=
-  InSimplex point ∧ point 1 ≤ point 0 ∧ point 2 ≤ point 0
-
-/-- The rational two-triangle root exactly covers the normalized outer-view
-chamber. -/
-theorem mem_chamberRoot {point : Vector ℝ} (h : InChamber point) :
-    ∃ root : Fin 2, InTriangle (toReal (chamberRoot root)) point := by
-  obtain ⟨⟨hnonneg, hsum⟩, h10, h20⟩ := h
-  have hsum3 : point 0 + point 1 + point 2 = 1 := by
-    simpa [Fin.sum_univ_three] using hsum
-  by_cases h21 : point 2 ≤ point 1
-  · let weight : Vector ℝ :=
-      ![1 - 2 * point 1 - point 2, 2 * (point 1 - point 2), 3 * point 2]
-    refine ⟨0, weight, ?_, ?_, ?_⟩
-    · intro i
-      fin_cases i <;> simp [weight] <;>
-        linarith [hnonneg 0, hnonneg 1, hnonneg 2, hsum3]
-    · simp [weight, Fin.sum_univ_three]
-      linarith
-    · funext c
-      fin_cases c <;>
-        simp [affinePoint, chamberRoot, e0, e1, midpoint, chamberCenter,
-          toReal, weight, Fin.sum_univ_three] <;> linarith
-  · let weight : Vector ℝ :=
-      ![1 - point 1 - 2 * point 2, 3 * point 1, 2 * (point 2 - point 1)]
-    refine ⟨1, weight, ?_, ?_, ?_⟩
-    · intro i
-      fin_cases i <;> simp [weight] <;>
-        linarith [hnonneg 0, hnonneg 1, hnonneg 2, hsum3]
-    · simp [weight, Fin.sum_univ_three]
-      linarith
-    · funext c
-      fin_cases c <;>
-        simp [affinePoint, chamberRoot, e0, e2, midpoint, chamberCenter,
-          toReal, weight, Fin.sum_univ_three] <;> linarith
-
-noncomputable def viewSum (p : CayleyPose ℝ) : ℝ :=
-  viewVector p 0 + viewVector p 1 + viewVector p 2
-
-noncomputable def normalizedView (p : CayleyPose ℝ) : Vector ℝ :=
-  fun c => viewVector p c / viewSum p
-
-theorem viewVector_eq_outer_row (p : CayleyPose ℝ) (offset : ℝ²)
-    (c : Fin 3) :
-    viewVector p c = (p.matrixPoseWithOffset offset).outerRot.val 2 c := by
-  fin_cases c <;>
-    simp [viewVector, CayleyPose.matrixPoseWithOffset_outerRot_val,
-      rotRM_mat, Matrix.mul_apply, Fin.sum_univ_three, Rz_mat, Ry_mat,
-      Real.sin_neg, Real.cos_neg, Real.sin_pi_div_two,
-      Real.cos_pi_div_two] <;> ring
-
-theorem viewSum_pos {p : CayleyPose ℝ} {offset : ℝ²}
-    (h : (p.matrixPoseWithOffset offset).InOuterViewChamber) :
-    0 < viewSum p := by
-  unfold MatrixPose.InOuterViewChamber at h
-  have hview : ViewInChamber (viewVector p) := by
-    change ViewInChamber (fun c => viewVector p c)
-    simpa only [viewVector_eq_outer_row p offset] using h
-  have hnorm := CayleyEdgeCertificate.viewVector_norm p
-  unfold viewSum
-  by_contra hnot
-  have hs : viewVector p 0 + viewVector p 1 + viewVector p 2 ≤ 0 :=
-    le_of_not_gt hnot
-  have h0 : viewVector p 0 = 0 := by
-    linarith [hview.1, hview.2.1, hview.2.2.1]
-  have h1 : viewVector p 1 = 0 := by
-    linarith [hview.1, hview.2.1, hview.2.2.1]
-  have h2 : viewVector p 2 = 0 := by
-    linarith [hview.1, hview.2.1, hview.2.2.1]
-  have hz : viewVector p = 0 := by
-    rw [WithLp.ext_iff]
-    funext c
-    fin_cases c <;> simp [h0, h1, h2]
-  rw [hz, norm_zero] at hnorm
-  norm_num at hnorm
-
-theorem one_le_viewSum {p : CayleyPose ℝ} {offset : ℝ²}
-    (h : (p.matrixPoseWithOffset offset).InOuterViewChamber) :
-    1 ≤ viewSum p := by
-  unfold MatrixPose.InOuterViewChamber at h
-  have hview : ViewInChamber (viewVector p) := by
-    change ViewInChamber (fun c => viewVector p c)
-    simpa only [viewVector_eq_outer_row p offset] using h
-  have hnorm := CayleyEdgeCertificate.viewVector_norm p
-  have hnormsq := congrArg (fun x : ℝ => x ^ 2) hnorm
-  simp only [PiLp.norm_sq_eq_of_L2, Real.norm_eq_abs, sq_abs,
-    Fin.sum_univ_three] at hnormsq
-  have hsumpos := viewSum_pos h
-  unfold viewSum at hsumpos ⊢
-  nlinarith [mul_nonneg hview.1 hview.2.1,
-    mul_nonneg hview.1 hview.2.2.1,
-    mul_nonneg hview.2.1 hview.2.2.1]
-
-theorem normalizedView_inChamber {p : CayleyPose ℝ} {offset : ℝ²}
-    (h : (p.matrixPoseWithOffset offset).InOuterViewChamber) :
-    InChamber (normalizedView p) := by
-  unfold MatrixPose.InOuterViewChamber at h
-  have hview : ViewInChamber (viewVector p) := by
-    change ViewInChamber (fun c => viewVector p c)
-    simpa only [viewVector_eq_outer_row p offset] using h
-  have hsum := viewSum_pos h
-  refine ⟨⟨?_, ?_⟩, ?_, ?_⟩
-  · intro c
-    exact div_nonneg (by
-      fin_cases c
-      · exact hview.1
-      · exact hview.2.1
-      · exact hview.2.2.1) hsum.le
-  · simp [normalizedView, viewSum, Fin.sum_univ_three]
-    rw [← add_div, ← add_div]
-    exact div_self hsum.ne'
-  · exact (div_le_div_iff_of_pos_right hsum).mpr hview.2.2.2.1
-  · exact (div_le_div_iff_of_pos_right hsum).mpr hview.2.2.2.2
-
-theorem normalizedView_mem_root {p : CayleyPose ℝ} {offset : ℝ²}
-    (h : (p.matrixPoseWithOffset offset).InOuterViewChamber) :
-    ∃ root : Fin 2,
-      InTriangle (toReal (chamberRoot root)) (normalizedView p) :=
-  mem_chamberRoot (normalizedView_inChamber h)
-
-end Noperthedron.SnubCube.ProjectiveView
+end Noperthedron.Atlas.ProjectiveView
 
 end

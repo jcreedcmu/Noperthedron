@@ -2,7 +2,7 @@ module
 
 public import Noperthedron.Nopert231.AtlasEdgeCertificate
 public import Noperthedron.Nopert231.AtlasFundamentalPrune
-public import Noperthedron.SnubCube.ProjectiveView
+public import Noperthedron.Atlas.ProjectiveView
 
 @[expose] public section
 
@@ -20,7 +20,7 @@ namespace Noperthedron.Nopert231.AtlasProjectiveView
 
 open scoped RealInnerProductSpace
 open AtlasEdgeCertificate
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 abbrev Vector (R : Type) := Fin 3 → R
 abbrev Triangle (R : Type) := Fin 3 → Vector R

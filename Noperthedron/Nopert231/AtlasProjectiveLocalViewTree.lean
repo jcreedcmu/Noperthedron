@@ -19,7 +19,7 @@ namespace Noperthedron.Nopert231.AtlasProjectiveLocalViewTree
 variable {P : C5Model}
 
 open AtlasProjectiveView AtlasProjectiveLocalCertificate
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 structure Tube where
   interval : AtlasInterval ℚ
@@ -88,7 +88,7 @@ def Row.ValidAt (symmetryIndex : OrbitIndex) (r : ℚ)
       id < children child ∧ children child < size ∧
       (get (children child)).root = root ∧
       (get (children child)).triangle =
-        Noperthedron.SnubCube.ProjectiveView.split triangle child ∧
+        Noperthedron.Atlas.ProjectiveView.split triangle child ∧
       rLower ≤ (get (children child)).rLower
   | .certificate _ box =>
       box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧ box.ViewValid
@@ -376,12 +376,12 @@ split further by some digits. -/
 def splitPath (triangle : AtlasProjectiveView.Triangle ℚ) :
     List (Fin 4) → AtlasProjectiveView.Triangle ℚ
   | [] => triangle
-  | c :: cs => splitPath (Noperthedron.SnubCube.ProjectiveView.split triangle c) cs
+  | c :: cs => splitPath (Noperthedron.Atlas.ProjectiveView.split triangle c) cs
 
 /-- A sub-triangle of the four-way split lies inside its parent. -/
 theorem inTriangle_of_split {triangle : AtlasProjectiveView.Triangle ℚ} {child : Fin 4}
     {point : Fin 3 → ℝ}
-    (h : InTriangle (toReal (Noperthedron.SnubCube.ProjectiveView.split triangle child)) point) :
+    (h : InTriangle (toReal (Noperthedron.Atlas.ProjectiveView.split triangle child)) point) :
     InTriangle (toReal triangle) point := by
   obtain ⟨w, hnonneg, hsum, hpoint⟩ := h
   have h0 := hnonneg 0
@@ -393,25 +393,25 @@ theorem inTriangle_of_split {triangle : AtlasProjectiveView.Triangle ℚ} {child
     · intro i; fin_cases i <;> simp <;> positivity
     · simp [Fin.sum_univ_three]; linarith
     · rw [hpoint]; funext c
-      simp [affinePoint, Fin.sum_univ_three, Noperthedron.SnubCube.ProjectiveView.split, toReal]
+      simp [affinePoint, Fin.sum_univ_three, Noperthedron.Atlas.ProjectiveView.split, toReal]
       ring
   · refine ⟨![w 0 / 2, w 0 / 2 + w 1 + w 2 / 2, w 2 / 2], ?_, ?_, ?_⟩
     · intro i; fin_cases i <;> simp <;> positivity
     · simp [Fin.sum_univ_three]; linarith
     · rw [hpoint]; funext c
-      simp [affinePoint, Fin.sum_univ_three, Noperthedron.SnubCube.ProjectiveView.split, toReal]
+      simp [affinePoint, Fin.sum_univ_three, Noperthedron.Atlas.ProjectiveView.split, toReal]
       ring
   · refine ⟨![w 0 / 2, w 1 / 2, w 0 / 2 + w 1 / 2 + w 2], ?_, ?_, ?_⟩
     · intro i; fin_cases i <;> simp <;> positivity
     · simp [Fin.sum_univ_three]; linarith
     · rw [hpoint]; funext c
-      simp [affinePoint, Fin.sum_univ_three, Noperthedron.SnubCube.ProjectiveView.split, toReal]
+      simp [affinePoint, Fin.sum_univ_three, Noperthedron.Atlas.ProjectiveView.split, toReal]
       ring
   · refine ⟨![w 0 / 2 + w 2 / 2, w 0 / 2 + w 1 / 2, w 1 / 2 + w 2 / 2], ?_, ?_, ?_⟩
     · intro i; fin_cases i <;> simp <;> positivity
     · simp [Fin.sum_univ_three]; linarith
     · rw [hpoint]; funext c
-      simp [affinePoint, Fin.sum_univ_three, Noperthedron.SnubCube.ProjectiveView.split, toReal]
+      simp [affinePoint, Fin.sum_univ_three, Noperthedron.Atlas.ProjectiveView.split, toReal]
       ring
 
 theorem inTriangle_of_splitPath {triangle : AtlasProjectiveView.Triangle ℚ}

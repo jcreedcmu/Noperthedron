@@ -20,7 +20,7 @@ open AtlasProjectiveSolutionTree AtlasProjectiveView
 open AtlasProjectiveEdgeCertificate AtlasProjectiveGlobalCertificate
 open AtlasProjectiveLocalCertificate
 open PackedLocalViewTree
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 
 abbrev Decoder := PackedLocalViewTree.Decoder
 

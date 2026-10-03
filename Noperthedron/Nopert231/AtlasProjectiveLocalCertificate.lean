@@ -4,7 +4,7 @@ public import Noperthedron.Nopert231.AtlasLocalCertificate
 public import Noperthedron.Nopert231.AtlasProjectiveLocalRigidity
 public import Noperthedron.Nopert231.AtlasProjectiveEdgeCertificate
 public import Noperthedron.Nopert231.TightApproximation
-public import Noperthedron.SnubCube.ProjectiveLocalCertificate
+public import Noperthedron.Atlas.ProjectiveLocalCertificate
 
 @[expose] public section
 
@@ -17,7 +17,7 @@ variable {P : C5Model}
 open scoped RealInnerProductSpace
 open Noperthedron.Checker
 open Noperthedron.BalancedSupport
-open Noperthedron.SnubCube.ProjectiveView
+open Noperthedron.Atlas.ProjectiveView
 open AtlasProjectiveView AtlasProjectiveEdgeCertificate
 open AtlasProjectiveLocalRigidity
 
@@ -111,13 +111,13 @@ def AxisCertificate.crossLiftCoefficient (box : Box)
 
 def AxisCertificate.variationPolynomial (box : Box)
     (cert : AxisCertificate) (coordinate : Fin 3) : RatQuadratic3 :=
-  Noperthedron.SnubCube.ProjectiveLocalCertificate.mulLinear
+  Noperthedron.Atlas.ProjectiveLocalCertificate.mulLinear
       (cert.weightCoefficient 0)
       (cert.crossLiftCoefficient box 0 coordinate) +
-    Noperthedron.SnubCube.ProjectiveLocalCertificate.mulLinear
+    Noperthedron.Atlas.ProjectiveLocalCertificate.mulLinear
       (cert.weightCoefficient 1)
       (cert.crossLiftCoefficient box 1 coordinate) +
-    Noperthedron.SnubCube.ProjectiveLocalCertificate.mulLinear
+    Noperthedron.Atlas.ProjectiveLocalCertificate.mulLinear
       (cert.weightCoefficient 2)
       (cert.crossLiftCoefficient box 2 coordinate)
 
@@ -435,7 +435,7 @@ theorem AxisCertificate.eval_variationPolynomial (box : Box)
   fin_cases coordinate <;>
     simp [AxisCertificate.variationPolynomial,
       AxisCertificate.approxVariation, Fin.sum_univ_three,
-      Noperthedron.SnubCube.ProjectiveLocalCertificate.evalReal_mulLinear,
+      Noperthedron.Atlas.ProjectiveLocalCertificate.evalReal_mulLinear,
       AxisCertificate.weightCoefficient,
       AxisCertificate.crossLiftCoefficient,
       AxisCertificate.liftCoefficient, LocalCertificate.crossQ,
@@ -446,7 +446,7 @@ theorem Box.triangleBalls_hold (box : Box)
     ∀ coordinate, (box.triangleBalls coordinate).Holds (n coordinate) := by
   intro coordinate
   exact RatBall.holds_of_mem_Icc
-    (Noperthedron.SnubCube.ProjectiveLocalCertificate.coordinate_mem_triangleBounds
+    (Noperthedron.Atlas.ProjectiveLocalCertificate.coordinate_mem_triangleBounds
       hmem coordinate)
 
 theorem Box.variationBall_holds (box : Box)
@@ -1683,7 +1683,7 @@ theorem Box.exactVariation_sub_center_norm_le (box : Box)
       (fun i => (box.certificate j).exactEdge (P := P) i)
       (fun i => (box.certificate j).exactSelectedVertex (P := P) box i) -
     box.variationCenter j
-  apply (Noperthedron.SnubCube.ProjectiveLocalCertificate.norm_le_sum_abs_coordinates
+  apply (Noperthedron.Atlas.ProjectiveLocalCertificate.norm_le_sum_abs_coordinates
     diff).trans
   have h0 := box.exactVariation_coordinate_error (P := P) hscale hmem j 0
   have h1 := box.exactVariation_coordinate_error (P := P) hscale hmem j 1
@@ -1912,7 +1912,7 @@ theorem AxisCertificate.direction_norm_le_two (box : Box)
         rw [Bounding.rotM_norm_one, one_mul]
       _ ≤ 2 := cert.exactEdge_norm_le_two i
   rw [direction, norm_smul,
-    Noperthedron.SnubCube.ProjectiveLocalCertificate.norm_quarterTurn,
+    Noperthedron.Atlas.ProjectiveLocalCertificate.norm_quarterTurn,
     Real.norm_eq_abs, abs_inv, abs_of_pos hscalePos]
   exact (mul_le_mul hinv hrot (norm_nonneg _) (by norm_num)).trans
     (by norm_num)
@@ -1997,39 +1997,39 @@ theorem Box.valid_budget (box : Box) (h : box.Valid)
 theorem Box.valid_mismatch_bound_of_radius (box : Box)
     (h_mismatch : box.mismatchRadius ≤ box.r)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²) :
-    ‖Noperthedron.SnubCube.so3CLM
+    ‖Noperthedron.Atlas.so3CLM
         (p.matrixPoseWithOffset box.chart offset).innerRot -
-      Noperthedron.SnubCube.so3CLM
+      Noperthedron.Atlas.so3CLM
         ((p.matrixPoseWithOffset box.chart offset).outerRot *
           symmetry box.symmetryIndex)‖ ≤ (box.r : ℝ) := by
   have heq :
-      Noperthedron.SnubCube.so3CLM
+      Noperthedron.Atlas.so3CLM
           (p.matrixPoseWithOffset box.chart offset).innerRot -
-        Noperthedron.SnubCube.so3CLM
+        Noperthedron.Atlas.so3CLM
           ((p.matrixPoseWithOffset box.chart offset).outerRot *
             symmetry box.symmetryIndex) =
-        Noperthedron.SnubCube.so3CLM
+        Noperthedron.Atlas.so3CLM
             (p.matrixPoseWithOffset box.chart offset).outerRot ∘L
           box.mismatchShell.exactRelativeMismatchCLM p := by
     simpa [Box.mismatchShell] using
       box.mismatchShell.poseMismatch_eq_outer_comp p offset
   rw [heq]
   calc
-    _ ≤ ‖Noperthedron.SnubCube.so3CLM
+    _ ≤ ‖Noperthedron.Atlas.so3CLM
           (p.matrixPoseWithOffset box.chart offset).outerRot‖ *
         ‖box.mismatchShell.exactRelativeMismatchCLM p‖ :=
       ContinuousLinearMap.opNorm_comp_le _ _
     _ = ‖box.mismatchShell.exactRelativeMismatchCLM p‖ := by
-      rw [Noperthedron.SnubCube.so3CLM_norm, one_mul]
+      rw [Noperthedron.Atlas.so3CLM_norm, one_mul]
     _ ≤ (box.mismatchRadius : ℝ) :=
       box.mismatchShell.exactRelativeMismatchCLM_norm_le hp
     _ ≤ (box.r : ℝ) := by exact_mod_cast h_mismatch
 
 theorem Box.valid_mismatch_bound (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²) :
-    ‖Noperthedron.SnubCube.so3CLM
+    ‖Noperthedron.Atlas.so3CLM
         (p.matrixPoseWithOffset box.chart offset).innerRot -
-      Noperthedron.SnubCube.so3CLM
+      Noperthedron.Atlas.so3CLM
         ((p.matrixPoseWithOffset box.chart offset).outerRot *
           symmetry box.symmetryIndex)‖ ≤ (box.r : ℝ) :=
   box.valid_mismatch_bound_of_radius h.mismatch_bound hp offset
@@ -2037,7 +2037,7 @@ theorem Box.valid_mismatch_bound (box : Box) (h : box.Valid)
 theorem Box.valid_axisAngle_ratio (box : Box) (h : box.Valid)
     {p : AtlasPose ℝ} (hp : p ∈ box.interval.toReal) (offset : ℝ²)
     (a : AxisAngle
-      (Noperthedron.SnubCube.so3CLM
+      (Noperthedron.Atlas.so3CLM
         (relativeRotationAtSymmetry
           (p.matrixPoseWithOffset box.chart offset) box.symmetryIndex))) :
     1 - Real.cos a.angle ≤ |Real.sin a.angle| * (box.c : ℝ) := by
