@@ -85,7 +85,7 @@ def triangleAt (triangles : Array AtlasProjectiveSolutionTree.Triangle)
   (triangles[index]?).getD (rootTriangle 0)
 
 def vertexAt (values : Array Nat) (index : Nat) : VertexIndex :=
-  fin20 ((values[index]?).getD 0)
+  finMod ((values[index]?).getD 0)
 
 def readRegion (triangles : Array AtlasProjectiveSolutionTree.Triangle) :
     Decoder Region := do

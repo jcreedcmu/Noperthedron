@@ -1,5 +1,4 @@
 import Noperthedron.Nopert231.FundamentalChart3
-import Noperthedron.Nopert231.Ideal231
 import Noperthedron.Nopert231.NativeExecutable
 import Noperthedron.Nopert231.PackedSolutionTree
 
@@ -73,8 +72,7 @@ def main (args : List String) : IO Unit := do
     (by intro shared chart; fin_cases chart <;> rfl)
     (by intro shared chart; fin_cases chart <;> rfl)
   let proof : ∀ P : C5Model, ¬ IsRupert P.verts := checked.down
-  -- The verified model (exact rotations of the rational seeds) and idealized
-  -- #231 (exactly planar quads, `Ideal231.quad_planar`).
+  -- The verified model (exact rotations of the rational seeds). The true snub
+  -- dodecahedron is instantiated by the ideal snub module (S.md §4 step 10).
   let _exact : ¬ IsRupert exactVerts := exactModel_verts ▸ proof exactModel
-  let _ideal : ¬ IsRupert Ideal231.model.verts := proof Ideal231.model
-  IO.println "instantiated: the exact model (exactVerts) and idealized #231 are not Rupert"
+  IO.println "instantiated: the exact model (exactVerts) is not Rupert"

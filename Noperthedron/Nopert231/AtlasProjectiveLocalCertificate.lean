@@ -205,7 +205,7 @@ theorem Box.supportListOK_iff (box : Box) (j : Fin 4) (i : Fin 3) (ks : List Ver
 
 instance (priority := high) (box : Box) (j : Fin 4) (i : Fin 3) :
     Decidable (∀ k : VertexIndex, box.supportUpper j i k ≤ 0) :=
-  decidable_of_iff (box.supportListOK j i (List.finRange 20) = true)
+  decidable_of_iff (box.supportListOK j i (List.finRange _) = true)
     (by simp [Box.supportListOK_iff, List.mem_finRange])
 
 def Box.weightAt (box : Box) (j : Fin 4) (corner : Fin 3)

@@ -54,7 +54,8 @@ def fin3 (n : Nat) : Fin 3 := ⟨n % 3, by omega⟩
 def fin4 (n : Nat) : Fin 4 := ⟨n % 4, by omega⟩
 def fin5 (n : Nat) : Fin 5 := ⟨n % 5, by omega⟩
 def fin8 (n : Nat) : Fin 8 := ⟨n % 8, by omega⟩
-def fin20 (n : Nat) : Fin 20 := ⟨n % 20, by omega⟩
+/-- `n` reduced into `Fin m`; used for vertex indices, whose count comes from the model. -/
+def finMod {m : Nat} [NeZero m] (n : Nat) : Fin m := ⟨n % m, Nat.mod_lt _ (Nat.pos_of_neZero m)⟩
 def fin1001 (n : Nat) : Fin 1001 := ⟨n % 1001, by omega⟩
 
 def zigzagInt (n : Nat) : Int :=
@@ -69,7 +70,7 @@ def readVertices : Decoder (Fin 3 → VertexIndex) := do
   let a ← readNat
   let b ← readNat
   let c ← readNat
-  pure ![fin20 a, fin20 b, fin20 c]
+  pure ![finMod a, finMod b, finMod c]
 
 def readMix : Decoder (Fin 3 → Fin 1001) := do
   let a ← readNat
