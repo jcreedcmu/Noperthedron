@@ -16,6 +16,8 @@ Emitted, besides the 60 matrices (entries in units of 1/20, IcoField.IcoZ):
   icoNeighborIndex  the 12 rotations by +-72 deg about the six 5-fold axes, in
                     the order of nopert229/symmetry_neighbors.h (the C++ search
                     journals refer to neighbor n)
+  icoInverseIndex   each element's inverse (its transpose)
+  elementVertexIndex  the inverse of vertexElementIndex
   vertexElementIndex  the element g with vertex i = g * vertex 0, from the
                     model's vertices (nopert229/snub_model.txt); the snub
                     dodecahedron's vertices are a free I-orbit
@@ -262,6 +264,12 @@ def main():
     w("def icoNeighborIndex : List Nat := " + nat_list(neighbors) + "\n")
     w("/-- vertex i = icoEntry (vertexElement[i]) / 20 * vertex 0. -/")
     w("def vertexElementIndex : List Nat := " + nat_list(elem) + "\n")
+    inv_elem = [elem.index(k) for k in range(60)]
+    w("/-- The inverse of `vertexElementIndex`. -/")
+    w("def elementVertexIndex : List Nat := " + nat_list(inv_elem) + "\n")
+    inverse = [index[transpose(g)] for g in group]
+    w("/-- The inverse (transpose) of each element. -/")
+    w("def icoInverseIndex : List Nat := " + nat_list(inverse) + "\n")
     w("end Noperthedron.Nopert231")
     args.out.write_text("\n".join(out) + "\n", encoding="utf-8")
     den = 1
