@@ -1,6 +1,7 @@
 module
 
 public import Noperthedron.Nopert231.IcoReduction
+public import Noperthedron.Nopert231.AtlasProjectiveView
 
 @[expose] public section
 
@@ -186,5 +187,154 @@ theorem exists_view_dirichlet (v : Fin 3 → ℝ) :
   rw [hval]
   have : viewCandidate v (!s) k ⬝ᵥ viewCenter ≤ viewCandidate v s g ⬝ᵥ viewCenter := hle
   linarith
+
+/-! ### Realizing the reduced view by a pose -/
+
+/-- Compose both rotations on the right with a rotation of I. -/
+noncomputable def _root_.MatrixPose.bothRightIco (p : MatrixPose) (g : IcoIndex) : MatrixPose where
+  innerRot := p.innerRot * icoSO3 g
+  outerRot := p.outerRot * icoSO3 g
+  innerOffset := p.innerOffset
+
+/-- The view of a pose: the third row of its outer rotation. -/
+noncomputable def _root_.MatrixPose.view (p : MatrixPose) : Fin 3 → ℝ :=
+  fun k => p.outerRot.val 2 k
+
+theorem view_bothRightIco (p : MatrixPose) (g : IcoIndex) :
+    (p.bothRightIco g).view = viewCandidate p.view true g := by
+  funext k
+  simp [MatrixPose.view, MatrixPose.bothRightIco, icoSO3, viewCandidate, Matrix.mul_apply,
+    Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.transpose_apply]
+  ring
+
+theorem view_viewAntipode (p : MatrixPose) : p.viewAntipode.view = -p.view := by
+  funext k
+  simp [MatrixPose.view, MatrixPose.viewAntipode, MatrixPose.viewAntipodeRotation,
+    Matrix.mul_apply, Rx_mat, Fin.sum_univ_three]
+
+namespace IModel
+
+variable (P : IModel)
+
+theorem outerShadow_bothRightIco (p : MatrixPose) (g : IcoIndex) :
+    outerShadow (p.bothRightIco g) P.toC5.polyhedron.hull =
+      outerShadow p P.toC5.polyhedron.hull := by
+  ext w
+  constructor
+  · rintro ⟨v, hv, rfl⟩
+    have hgv : (icoMatrix g).toEuclideanLin v ∈ P.toC5.polyhedron.hull := by
+      rw [← P.icoMatrix_image_hull g]
+      exact ⟨v, hv, rfl⟩
+    refine ⟨(icoMatrix g).toEuclideanLin v, hgv, ?_⟩
+    simp [MatrixPose.bothRightIco, icoSO3, PoseLike.outer, Matrix.toLpLin_apply,
+      Matrix.mulVec_mulVec]
+  · rintro ⟨v, hv, rfl⟩
+    have hv' : v ∈ (icoMatrix g).toEuclideanLin '' P.toC5.polyhedron.hull := by
+      rwa [P.icoMatrix_image_hull g]
+    obtain ⟨u, hu, rfl⟩ := hv'
+    refine ⟨u, hu, ?_⟩
+    simp [MatrixPose.bothRightIco, icoSO3, PoseLike.outer, Matrix.toLpLin_apply,
+      Matrix.mulVec_mulVec]
+
+theorem innerShadow_bothRightIco (p : MatrixPose) (g : IcoIndex) :
+    innerShadow (p.bothRightIco g) P.toC5.polyhedron.hull =
+      innerShadow p P.toC5.polyhedron.hull := by
+  ext w
+  constructor
+  · rintro ⟨v, hv, rfl⟩
+    have hgv : (icoMatrix g).toEuclideanLin v ∈ P.toC5.polyhedron.hull := by
+      rw [← P.icoMatrix_image_hull g]
+      exact ⟨v, hv, rfl⟩
+    refine ⟨(icoMatrix g).toEuclideanLin v, hgv, ?_⟩
+    simp [MatrixPose.inner_apply, MatrixPose.bothRightIco, icoSO3,
+      Matrix.toLpLin_apply, Matrix.mulVec_mulVec]
+  · rintro ⟨v, hv, rfl⟩
+    have hv' : v ∈ (icoMatrix g).toEuclideanLin '' P.toC5.polyhedron.hull := by
+      rwa [P.icoMatrix_image_hull g]
+    obtain ⟨u, hu, rfl⟩ := hv'
+    refine ⟨u, hu, ?_⟩
+    simp [MatrixPose.inner_apply, MatrixPose.bothRightIco, icoSO3,
+      Matrix.toLpLin_apply, Matrix.mulVec_mulVec]
+
+theorem RupertPose_bothRightIco_iff (p : MatrixPose) (g : IcoIndex) :
+    RupertPose (p.bothRightIco g) P.toC5.polyhedron.hull ↔
+      RupertPose p P.toC5.polyhedron.hull := by
+  simp only [RupertPose, P.innerShadow_bothRightIco, P.outerShadow_bothRightIco]
+
+/-- Every pose is equivalent to one whose view lies in cone(T). -/
+theorem exists_viewCone_pose (p : MatrixPose) :
+    ∃ p' : MatrixPose, InViewCone p'.view ∧
+      (RupertPose p' P.toC5.polyhedron.hull ↔ RupertPose p P.toC5.polyhedron.hull) := by
+  obtain ⟨s, g, hwalls⟩ := exists_view_dirichlet p.view
+  have hcone := inViewCone_of_walls hwalls
+  cases s
+  · refine ⟨(p.bothRightIco g).viewAntipode, ?_, ?_⟩
+    · rw [view_viewAntipode, view_bothRightIco]
+      convert hcone using 1
+      funext k
+      simp [viewCandidate]
+    · rw [MatrixPose.RupertPose_viewAntipode_iff, P.RupertPose_bothRightIco_iff]
+  · exact ⟨p.bothRightIco g, by rwa [view_bothRightIco], P.RupertPose_bothRightIco_iff p g⟩
+
+end IModel
+
+/-! ### cone(T) as a view triangle -/
+
+open AtlasProjectiveView AtlasEdgeCertificate Noperthedron.Atlas.ProjectiveView in
+/-- The rational view triangle T (`icoViewTriangleCorners`), in the root-0 face. -/
+def icoViewTriangle : AtlasProjectiveView.Triangle ℚ :=
+  fun k c => (icoViewTriangleCorners.getD k.val []).getD c.val 0
+
+/-- Wall `(k + 1) % 3` of cone(T) is the one opposite corner `k`. -/
+def oppositeWall (k : Fin 3) : Fin 3 := ⟨(k.val + 1) % 3, Nat.mod_lt _ (by omega)⟩
+
+theorem viewCone_coords_nonneg {w : Fin 3 → ℝ} (h : InViewCone w) : ∀ c, 0 ≤ w c := by
+  have h0 := h 0
+  have h1 := h 1
+  have h2 := h 2
+  simp [triNormal, viewTriangleNormal, Fin.sum_univ_three] at h0 h1 h2
+  intro c
+  fin_cases c <;> simp <;> linarith
+
+open AtlasProjectiveView AtlasEdgeCertificate Noperthedron.Atlas.ProjectiveView in
+theorem viewCone_mem_icoViewTriangle (p : AtlasPose ℝ)
+    (h : InViewCone fun c => viewVector p c) :
+    1 ≤ viewScale 0 p ∧ InTriangle (toReal icoViewTriangle) (normalizedView 0 p) := by
+  have hnn := viewCone_coords_nonneg h
+  have hsign : ∀ c, 0 ≤ (rootSign 0 c : ℝ) * viewVector p c := by
+    intro c
+    fin_cases c <;> simpa [rootSign] using hnn _
+  have hscale := one_le_viewScale_of_sign hsign
+  have hscale0 : 0 < viewScale 0 p := lt_of_lt_of_le (by norm_num) hscale
+  refine ⟨hscale, ?_⟩
+  have hscaleEq : viewScale 0 p = viewVector p 0 + viewVector p 1 + viewVector p 2 := by
+    simp [viewScale, rootSign, Fin.sum_univ_three]
+  have h0 := h 0
+  have h1 := h 1
+  have h2 := h 2
+  simp [triNormal, viewTriangleNormal, Fin.sum_univ_three] at h0 h1 h2
+  set x := viewVector p 0
+  set y := viewVector p 1
+  set z := viewVector p 2
+  -- Barycentric weights: corner k gets its opposite wall's value, normalized.
+  let weight : Fin 3 → ℝ := ![
+    (-19 * x - 26 * y + 20 * z) / 20 / viewScale 0 p,
+    (69 * x - 50 * y) / (26500 / 1343) / viewScale 0 p,
+    (-8 * x + 25 * y) / (6625 / 1281) / viewScale 0 p]
+  refine ⟨weight, ?_, ?_, ?_⟩
+  · intro k
+    fin_cases k <;> simp [weight] <;> apply div_nonneg <;> try positivity
+    all_goals first | linarith | exact hscale0.le
+  · have hne : x + y + z ≠ 0 := hscaleEq ▸ hscale0.ne'
+    simp only [weight, Fin.sum_univ_three]
+    simp
+    rw [hscaleEq]
+    field_simp
+    ring
+  · funext c
+    fin_cases c <;>
+      simp [normalizedView, affinePoint, icoViewTriangle, icoViewTriangleCorners,
+        Noperthedron.Atlas.ProjectiveView.toReal, weight, Fin.sum_univ_three] <;>
+      field_simp <;> ring
 
 end Noperthedron.Nopert231
