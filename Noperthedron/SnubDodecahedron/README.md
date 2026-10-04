@@ -1,9 +1,9 @@
-# The snub dodecahedron is not Rupert (Lean)
+# The snub dodecahedron is a Nopert (Lean)
 
-The main theorems are in `Statement.lean`:
+A *Nopert* is a polyhedron that is not Rupert (`¬ IsRupert`). The main theorems are in `Statement.lean`:
 
-- `wikipediaSnubDodecahedron_not_rupert`: Wikipedia's snub dodecahedron (`snubDodecahedron`) is not Rupert.
-- `snubDodecahedron_not_rupert`: neither is any similar copy (`IsSnubDodecahedron`).
+- `wikipediaSnubDodecahedron_not_rupert`: Wikipedia's snub dodecahedron (`snubDodecahedron`) is a Nopert.
+- `snubDodecahedron_not_rupert`: so is every similar copy (`IsSnubDodecahedron`).
 
 Both take as hypothesis the statement that no `IModel` is Rupert. The executable `constructSnubDodecahedron` (repository root) checks the certificate packs natively and constructs that statement. The C++ pipeline that produces the packs, and the instructions to reproduce everything, are in the companion repository; see its `README.md`.
 
