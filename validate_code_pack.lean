@@ -1,9 +1,9 @@
-import Noperthedron.SnubDodecahedron.NativeExecutable
-import Noperthedron.SnubDodecahedron.PackedLocalViewTree
+import Noperthedron.PentagonalHexecontahedron.NativeExecutable
+import Noperthedron.PentagonalHexecontahedron.PackedLocalViewTree
 
-open Noperthedron.SnubDodecahedron
-open Noperthedron.SnubDodecahedron.AtlasProjectiveLocalViewTree
-open Noperthedron.SnubDodecahedron.NativeExecutable
+open Noperthedron.PentagonalHexecontahedron
+open Noperthedron.PentagonalHexecontahedron.AtlasProjectiveLocalViewTree
+open Noperthedron.PentagonalHexecontahedron.NativeExecutable
 
 private def taskCount : Nat := 16
 

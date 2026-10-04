@@ -3,7 +3,7 @@
 WedgeCoverData.lean: an independent check of the view cover (which the
 verifier evaluates natively).
 
-Usage: python3 scripts/check_wedge_cover.py Noperthedron/SnubDodecahedron/WedgeCoverData.lean"""
+Usage: python3 scripts/check_wedge_cover.py Noperthedron/PentagonalHexecontahedron/WedgeCoverData.lean"""
 import re, sys
 from fractions import Fraction as F
 sys.setrecursionlimit(100000)

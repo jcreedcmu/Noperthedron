@@ -1,7 +1,7 @@
-import Noperthedron.SnubDodecahedron.FundamentalChart3
-import Noperthedron.SnubDodecahedron.Statement
-import Noperthedron.SnubDodecahedron.NativeExecutable
-import Noperthedron.SnubDodecahedron.PackedSolutionTree
+import Noperthedron.PentagonalHexecontahedron.FundamentalChart3
+import Noperthedron.PentagonalHexecontahedron.Statement
+import Noperthedron.PentagonalHexecontahedron.NativeExecutable
+import Noperthedron.PentagonalHexecontahedron.PackedSolutionTree
 
 /-!
 Native executable that reads and checks exact certificate data, then constructs
@@ -12,9 +12,9 @@ as parallel native code, while kernel-proved bridge theorems turn success into
 the semantic proof consumed by the public theorem.
 -/
 
-open Noperthedron.SnubDodecahedron
-open Noperthedron.SnubDodecahedron.AtlasProjectiveSolutionTree
-open Noperthedron.SnubDodecahedron.NativeExecutable
+open Noperthedron.PentagonalHexecontahedron
+open Noperthedron.PentagonalHexecontahedron.AtlasProjectiveSolutionTree
+open Noperthedron.PentagonalHexecontahedron.NativeExecutable
 
 /-- A completed local-table audit found 64 chunks materially faster than 512
 for these comparatively expensive exact-rational rows. -/

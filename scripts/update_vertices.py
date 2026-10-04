@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install new exact rational vertices into Noperthedron/SnubDodecahedron/Vertices.lean.
+"""Install new exact rational vertices into Noperthedron/PentagonalHexecontahedron/Vertices.lean.
 
 Reads the rational vertex list exported by the C++ tool codebdd
 (model_vertices.lean, by default next to this repository) and rewrites
@@ -47,7 +47,7 @@ def main() -> None:
     parser.add_argument("--exported", type=Path, default=None,
                         help="codebdd's model_vertices.lean (default: $MODEL_DIR/model_vertices.lean)")
     parser.add_argument("--vertices", type=Path,
-                        default=REPO / "Noperthedron" / "SnubDodecahedron" / "Vertices.lean")
+                        default=REPO / "Noperthedron" / "PentagonalHexecontahedron" / "Vertices.lean")
     args = parser.parse_args()
     if args.exported is None:
         if not os.environ.get("MODEL_DIR"):
