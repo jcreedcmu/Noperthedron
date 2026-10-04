@@ -1,4 +1,5 @@
 import Noperthedron.Nopert231.FundamentalChart3
+import Noperthedron.Nopert231.SnubDodecahedron
 import Noperthedron.Nopert231.NativeExecutable
 import Noperthedron.Nopert231.PackedSolutionTree
 
@@ -72,7 +73,8 @@ def main (args : List String) : IO Unit := do
     (by intro shared chart; fin_cases chart <;> rfl)
     (by intro shared chart; fin_cases chart <;> rfl)
   let proof : ∀ P : IModel, ¬ IsRupert P.toC5.verts := checked.down
-  -- The true snub dodecahedron is instantiated by the ideal snub module
-  -- (S.md §4 step 10).
-  let _ := proof
-  IO.println "constructed: no IModel is Rupert"
+  -- Every snub dodecahedron (Wikipedia's coordinates, any similar copy,
+  -- either chirality) is an `IModel` up to similarity.
+  let _snub : ∀ V : Finset ℝ³, IsSnubDodecahedron V → ¬ IsRupert V :=
+    snubDodecahedron_not_rupert proof
+  IO.println "instantiated: no snub dodecahedron is Rupert"
