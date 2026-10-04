@@ -388,6 +388,8 @@ def lean_k(x: K) -> str:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model_dir", type=Path, default=Path(os.environ["MODEL_DIR"]) if os.environ.get("MODEL_DIR") else None)
+    ap.add_argument("--model_file", default="ph_model.txt",
+                    help="the solid's model file, in --model_dir (vertex slots and seeds)")
     ap.add_argument("--out", type=Path, default=REPO / "Noperthedron/SnubDodecahedron/IcoGroupData.lean")
     args = ap.parse_args()
     if args.model_dir is None:
@@ -437,6 +439,78 @@ def main():
                 want = table[rz][want]
             if elem[12 * k + s] != want:
                 raise SystemExit("vertex order is not rotation-major under Rz")
+
+    # The solid's vertex slots (the model file), as I-orbits. Orbit o has a
+    # base slot b_o (its first slot) and stabilizer Stab_o = {h : h b_o = b_o};
+    # slot i is g_i * b_{orbit i}, with g_i = slotElem[i]. A point on the C5
+    # axis is listed in several slots, one per C5 orbit.
+    seeds = None
+    pts = []
+    for line in (args.model_dir / args.model_file).read_text().splitlines():
+        t = line.split()
+        if t and t[0] == "seeds":
+            seeds = int(t[1])
+        elif t and t[0] == "vertex":
+            pts.append([float(x) for x in t[2:5]])
+    nslots = len(pts)
+    if seeds is None or nslots != 5 * seeds:
+        raise SystemExit(f"{args.model_file}: expected 5 * seeds vertex slots")
+
+    def act(k, v):
+        m = numeric(group[k])
+        return [sum(m[3 * i + j] * v[j] for j in range(3)) for i in range(3)]
+
+    def same(u, v):
+        return max(abs(a - b) for a, b in zip(u, v)) < 1e-12
+
+    slot_orbit = [None] * nslots
+    bases, stabs = [], []
+    for i in range(nslots):
+        if slot_orbit[i] is not None:
+            continue
+        o = len(bases)
+        bases.append(i)
+        stabs.append([k for k in range(60) if same(act(k, pts[i]), pts[i])])
+        for k in range(60):
+            q = act(k, pts[i])
+            for j in range(nslots):
+                if same(q, pts[j]):
+                    if slot_orbit[j] not in (None, o):
+                        raise SystemExit("orbits overlap")
+                    slot_orbit[j] = o
+    if any(o is None for o in slot_orbit):
+        raise SystemExit("a slot is in no orbit")
+    distinct = sum(1 for i in range(nslots) if not any(same(pts[i], pts[j]) for j in range(i)))
+    if sum(60 // len(st) for st in stabs) != distinct:
+        raise SystemExit("orbit sizes do not add up to the number of points")
+    slot_elem = []
+    for i in range(nslots):
+        if i < seeds:
+            b = pts[bases[slot_orbit[i]]]
+            hits = [k for k in range(60) if same(act(k, b), pts[i])]
+            if not hits:
+                raise SystemExit(f"slot {i}: no element")
+            slot_elem.append(hits[0])
+        else:
+            slot_elem.append(table[rz][slot_elem[i - seeds]])
+            if slot_orbit[i] != slot_orbit[i - seeds] or not same(
+                    act(slot_elem[i], pts[bases[slot_orbit[i]]]), pts[i]):
+                raise SystemExit(f"slot {i} is not Rz * slot {i - seeds}")
+    # For each orbit o and element k: a slot j of o and h in Stab_o with
+    # G_k = G_{slotElem j} * G_h (so G_k b_o is slot j).
+    orbit_slot, orbit_stab = [], []
+    for o, b in enumerate(bases):
+        sl, st = [], []
+        for k in range(60):
+            q = act(k, pts[b])
+            j = next(j for j in range(nslots) if slot_orbit[j] == o and same(q, pts[j]))
+            h = index[mm(transpose(group[slot_elem[j]]), group[k])]
+            if h not in stabs[o]:
+                raise SystemExit("slot table: not a stabilizer element")
+            sl.append(j)
+            st.append(h)
+        orbit_slot.append(sl)
+        orbit_stab.append(st)
 
     gens = [index[RZ], index[RX], index[tilted_rotation()]]
     # BFS parents: element h > 0 was found as parent * generator, parent < h.
@@ -500,11 +574,22 @@ def main():
       "icosahedral prune), row-major numerators over 10^12. -/")
     w("def icoNeighborNum : List (List Int) := [\n" +
       ",\n".join("  [" + ", ".join(str(x) for x in r) + "]" for r in nums) + "]\n")
-    w("/-- vertex i = icoEntry (vertexElement[i]) / 20 * vertex 0. -/")
-    w("def vertexElementIndex : List Nat := " + nat_list(elem) + "\n")
-    inv_elem = [elem.index(k) for k in range(60)]
-    w("/-- The inverse of `vertexElementIndex`. -/")
-    w("def elementVertexIndex : List Nat := " + nat_list(inv_elem) + "\n")
+    w(f"/-! ### The solid's vertex slots as I-orbits ({args.model_file}) -/\n")
+    w(f"/-- The number of I-orbits. -/\ndef orbitCount : Nat := {len(bases)}\n")
+    w("/-- The I-orbit of each vertex slot. -/")
+    w("def vertexOrbitIndex : List Nat := " + nat_list(slot_orbit) + "\n")
+    w("/-- The base slot of each orbit. -/")
+    w("def orbitBaseSlot : List Nat := " + nat_list(bases) + "\n")
+    w("/-- The stabilizer of each orbit's base point. -/")
+    w("def orbitStabilizer : List (List Nat) := [" + ", ".join(nat_list(st) for st in stabs) + "]\n")
+    w("/-- slot i = icoEntry (vertexElement[i]) / 20 * (the base point of its orbit). -/")
+    w("def vertexElementIndex : List Nat := " + nat_list(slot_elem) + "\n")
+    w("/-- `orbitSlot[o][k]`: a slot j of orbit o with element k = vertexElement[j] *\n"
+      "`orbitStab[o][k]`, a stabilizer element. -/")
+    w("def orbitSlot : List (List Nat) := [\n" +
+      ",\n".join("  " + nat_list(r) for r in orbit_slot) + "]\n")
+    w("def orbitStab : List (List Nat) := [\n" +
+      ",\n".join("  " + nat_list(r) for r in orbit_stab) + "]\n")
     inverse = [index[transpose(g)] for g in group]
     w("/-- The inverse (transpose) of each element. -/")
     w("def icoInverseIndex : List Nat := " + nat_list(inverse) + "\n")
@@ -580,7 +665,8 @@ def main():
                 for q in x.v:
                     den = math.lcm(den, q.denominator)
     print(f"wrote {args.out}: 60 elements, Rz = {rz}, Rx = {rx}, neighbors {neighbors}, "
-          f"common denominator {den}")
+          f"common denominator {den}; {args.model_file}: {nslots} slots, orbits of sizes "
+          f"{[60 // len(st) for st in stabs]} (bases {bases})")
 
 
 if __name__ == "__main__":
