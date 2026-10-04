@@ -5,11 +5,11 @@ public import Noperthedron.Nopert231.AtlasProjectiveLocalCertificate
 @[expose] public section
 
 /-!
-# Sparse support checks for Nopert #229
+# Sparse support checks for Nopert #231
 
 For a linear functional to be maximized at a vertex of a polytope, it is
 enough to compare that vertex with the generators of its tangent cone.  The
-rational checker model of Nopert #229 has at most seven such generators at
+rational checker model of Nopert #231 has at most seven such generators at
 each vertex.  This reduces the repeated local-certificate support check from
 twenty vertices to seven (with padding entries equal to the selected vertex).
 -/

@@ -62,9 +62,6 @@ name = "validate_code_pack"
 root = "validate_code_pack"
 buildType = "release"
 
-
-
-
 [[lean_exe]]
 name = "check_identity_tube"
 root = "check_identity_tube"
@@ -83,9 +80,4 @@ buildType = "release"
 [[lean_exe]]
 name = "check_global_rows"
 root = "check_global_rows"
-buildType = "release"
-
-[[lean_exe]]
-name = "time_global_rows"
-root = "time_global_rows"
 buildType = "release"

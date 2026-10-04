@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Emit exact tangent-cone certificates for the Nopert #229 checker model.
+"""Emit exact tangent-cone certificates for the rational model's vertices.
 
 For each ordered pair of distinct vertices ``(base, target)``, find at most
 three incident edge directions at ``base`` whose nonnegative rational
@@ -18,7 +18,10 @@ import itertools
 from fractions import Fraction
 from pathlib import Path
 
-from nopert231_vertices import VERTICES_Q
+from model_vertices import add_model_dir_argument, load_model_vertices
+
+# Set by main() from --model_dir / $MODEL_DIR.
+VERTICES_Q = ()
 
 
 ADJACENCY = (
@@ -228,9 +231,12 @@ def emit(destination: Path):
 
 
 def main():
+    global VERTICES_Q
     parser = argparse.ArgumentParser()
+    add_model_dir_argument(parser)
     parser.add_argument("output", type=Path)
     args = parser.parse_args()
+    VERTICES_Q = load_model_vertices(args.model_dir)
     emit(args.output)
 
 

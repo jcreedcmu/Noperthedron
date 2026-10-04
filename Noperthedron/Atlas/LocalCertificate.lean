@@ -13,8 +13,7 @@ public import Noperthedron.Atlas.LocalRigidity
 Rational approximations `rotRMQ` of the pose rotation matrices and the bound
 `rotRMQ_difference_norm_bounded` on their distance from the exact ones.
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
-proof attempt.)
+(Generic; contains only what the Nopert #231 proof uses.)
 -/
 
 namespace Noperthedron.Atlas.LocalCertificate

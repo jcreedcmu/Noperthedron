@@ -10,8 +10,7 @@ public import Noperthedron.Atlas.ProjectiveView
 
 Three-way minima and maxima over rationals, with their basic bounds.
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
-proof attempt.)
+(Generic; contains only what the Nopert #231 proof uses.)
 -/
 
 namespace Noperthedron.Atlas.ProjectiveEdgeCertificate

@@ -8,7 +8,7 @@ public import Noperthedron.Atlas.ProjectiveLocalCertificate
 
 @[expose] public section
 
-/-! # Rational projective local certificates for Nopert #229 -/
+/-! # Rational projective local certificates for Nopert #231 -/
 
 namespace Noperthedron.Nopert231.AtlasProjectiveLocalCertificate
 

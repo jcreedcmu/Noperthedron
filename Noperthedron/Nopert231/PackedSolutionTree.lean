@@ -6,7 +6,7 @@ public import Noperthedron.Nopert231.PackedLocalViewTree
 @[expose] public section
 
 /-!
-# Packed runtime data for Nopert #229 global solution trees
+# Packed runtime data for Nopert #231 global solution trees
 
 The final native executable reads compact ignored artifacts instead of asking
 Lean to elaborate hundreds of thousands of generated row declarations. The
@@ -323,7 +323,7 @@ def shiftRow (k : Nat) : Row → Row
   | .regionRelax id ch iv root tri outer => .regionRelax (id + k) (ch + k) iv root tri outer
   | .cayleySplitAt id l u c cut iv r => .cayleySplitAt (id + k) (l + k) (u + k) c cut iv r
 
-/-- Decode a chart table from per-code packs (nopert229 `pack5d --per_code`),
+/-- Decode a chart table from per-code packs (the C++ `pack5d --per_code`),
 one per code triangle in order, each with its job's root as row 0. Row 0 of
 the result is a `codeRoot` over the restricted root interval, followed by each
 code's rows with their ids shifted. Like `decodeTable`, this is untrusted

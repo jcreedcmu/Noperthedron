@@ -6,7 +6,7 @@ public import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
 @[expose] public section
 
 /-!
-# The public non-Rupert conclusion for Nopert #229
+# The public non-Rupert conclusion for Nopert #231
 
 This file contains the small, certificate-independent bridge from four valid
 Cayley-chart tables to the usual vertex-set formulation of the Rupert
@@ -34,8 +34,9 @@ private lemma rupert_set_implies_matrix_pose {S : Set ℝ³}
   repeat rw [← proj_xy_eq_proj_xyL]
   exact hshadow
 
-/-- Valid exclusion tables for all four Cayley charts prove that the exact
-fivefold-symmetric version of Nopert #229 is not Rupert. -/
+/-- Valid exclusion tables for all four Cayley charts prove that the model
+`P` (any fivefold-symmetric polyhedron close to the rational vertices) is not
+Rupert. -/
 theorem not_rupert_of_valid_tables
     (table : ChartIndex → AtlasProjectiveSolutionTree.Table)
     (hchart : ∀ chart, (table chart).chart = chart)

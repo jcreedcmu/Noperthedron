@@ -3,7 +3,7 @@ import Noperthedron.Nopert231.AtlasProjectiveMixedGlobalCertificate
 import Noperthedron.Nopert231.PackedSolutionTree
 
 /-!
-Golden values for the C++ port `nopert229/exact5d.{h,cc}`: reads boxes, one
+Golden values for the C++ port `exact5d.{h,cc}`: reads boxes, one
 per line, and prints Lean's values of the checker quantities so that
 `exact5d_test` can compare them exactly.
 

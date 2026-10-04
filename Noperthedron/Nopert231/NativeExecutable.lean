@@ -6,7 +6,7 @@ public import Noperthedron.Nopert231.SparseLocalViewTree
 @[expose] public section
 
 /-!
-# Native executable proof construction for Nopert #229
+# Native executable proof construction for Nopert #231
 
 This module is the executable counterpart of the generated `native_decide`
 proofs. A release-mode program can check data-only local and global tables in

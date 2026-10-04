@@ -15,8 +15,7 @@ public import Noperthedron.Checker.RatTrigBall
 The quadratic numerators and denominator of the Cayley parametrization of
 rotations, and their evaluation lemmas.
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
-proof attempt.)
+(Generic; contains only what the Nopert #231 proof uses.)
 -/
 
 namespace Noperthedron.Atlas.CayleyEdgeCertificate

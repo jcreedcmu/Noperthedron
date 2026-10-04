@@ -7,7 +7,7 @@ public import Noperthedron.RealMod
 @[expose] public section
 
 /-!
-# Fivefold symmetry of Nopert #229
+# Fivefold symmetry of Nopert #231
 
 The exact model is invariant under rotation by `2π/5` around the z axis.
 Consequently either Euler azimuth may be reduced modulo `2π/5` without

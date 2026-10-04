@@ -5,10 +5,10 @@ public import Noperthedron.Nopert231.Vertices
 @[expose] public section
 
 /-!
-# The published coordinates approximate the intended Nopert #229
+# The rational coordinates approximate the exact fivefold model
 
 The exact object has fivefold rotational symmetry.  This file proves that the
-decimal vertices from the published STL are within the checker's `κ = 10⁻¹⁰`
+rational vertices (`stlVertices`, i.e. `rationalVertices`) are within the checker's `κ = 10⁻¹⁰`
 budget of that exact object.  A rational Taylor vertex is used as a bridge.
 -/
 
@@ -195,7 +195,7 @@ theorem taylorVertex_close (i : VertexIndex) :
         mul_le_mul (by linarith) hab (by positivity) (by positivity)
     _ ≤ (κ / 2) ^ 2 := by norm_num [κ]
 
-/-- The printed STL decimals agree with the rational Taylor bridge much more
+/-- The rational vertices agree with the rational Taylor bridge much more
 closely than required.  This finite arithmetic statement is kernel checked. -/
 theorem stl_taylor_sq_close : ∀ i : VertexIndex,
     (rationalVertex i 0 - taylorVertex i 0) ^ 2 +

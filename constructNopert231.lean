@@ -35,7 +35,7 @@ def main (args : List String) : IO Unit := do
         "usage: constructNopert231 <code-pack manifest.txt> <chart directory>; " ++
         "the manifest lists the identity-tube code packs in code order, and the " ++
         "directory holds chart0.pack through chart2.pack, or per-code packs " ++
-        "c<chart>/t<t>.pack (nopert229 pack5d --per_code)"))
+        "c<chart>/t<t>.pack (C++ pack5d --per_code)"))
   let packDir := (System.FilePath.mk manifestPath).parent.getD "."
   let mut localTables : SharedLocalTables := #[]
   for line in ← IO.FS.lines manifestPath do

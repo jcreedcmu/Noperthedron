@@ -6,7 +6,7 @@ public import Noperthedron.Nopert231.QuadraticBernstein
 @[expose] public section
 
 /-!
-# Projective edge-cycle certificates for the Nopert #229 atlas
+# Projective edge-cycle certificates for the Nopert #231 atlas
 
 The two outer viewing angles are replaced by a signed rational projective
 triangle.  Support and denominator-cleared displacement are linear in the

@@ -7,7 +7,7 @@ public import Noperthedron.Checker.RatTrigBall
 @[expose] public section
 
 /-!
-# Executable edge-cycle rows for the Nopert #229 Cayley atlas
+# Executable edge-cycle rows for the Nopert #231 Cayley atlas
 
 The clockwise normals of a cyclic outer-vertex list balance identically.
 Each row combines its selected inner contacts as exact rational quadratics

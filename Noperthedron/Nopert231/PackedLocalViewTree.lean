@@ -6,7 +6,7 @@ public import Noperthedron.Nopert231.QuadCoverTree
 @[expose] public section
 
 /-!
-# Packed native certificates for the Nopert #229 local view tree
+# Packed native certificates for the Nopert #231 local view tree
 
 Large generated local certificates contain very little repeated axis data.
 Representing every integer in that data as a separate Lean declaration makes

@@ -7,10 +7,10 @@ public import Noperthedron.Atlas.ProjectiveView
 @[expose] public section
 
 /-!
-# A signed projective atlas for Nopert #229 viewing directions
+# A signed projective atlas for Nopert #231 viewing directions
 
-Unlike the snub cube, Nopert #229 does not have enough symmetry to move
-every outer view into one positive chamber.  Eight signed coordinate
+Nopert #231 does not have enough symmetry to move every outer view into one
+positive chamber.  Eight signed coordinate
 triangles cover the whole sphere.  Dividing a unit view by its signed
 coordinate sum puts it in the appropriate rational triangle, and that sum
 is at least one.

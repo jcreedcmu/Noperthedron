@@ -22,7 +22,7 @@ def validateFile (path : String) (force : Bool := false) : IO Unit := do
     throw (IO.userError s!"{path}: packed table has an invalid first row id {firstId}")
   let checked ← checkLocal path taskCount table
   let _semanticProof : table.Valid := checked.down
-  let stampText := s!"# Nopert #229 Lean 4 Validation Witness\nfile: {(System.FilePath.mk path).fileName.getD path}\nsize_bytes: {data.size}\nrows: {table.size}\nr: {table.r}\nstatus: table.Valid PROVED\n"
+  let stampText := s!"# Lean 4 validation witness for a code pack\nfile: {(System.FilePath.mk path).fileName.getD path}\nsize_bytes: {data.size}\nrows: {table.size}\nr: {table.r}\nstatus: table.Valid PROVED\n"
   IO.FS.writeFile stampPath stampText
   IO.println s!"[LEAN VALIDATED] {path} | rows: {table.size} | r: {table.r} -> table.Valid PROVED (wrote {stampPath})"
 

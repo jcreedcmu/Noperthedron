@@ -7,10 +7,10 @@ public import Noperthedron.Nopert231.Approximation
 
 
 /-!
-# Balanced-global certificates for Nopert #229
+# Balanced-global certificates for Nopert #231
 
 The checker is the generic rational balanced-support checker instantiated
-with the printed STL coordinates.  `Approximation.lean` connects those
+with the rational vertices.  `Approximation.lean` connects those
 rational coordinates to the intended exact fivefold-symmetric vertices.
 -/
 

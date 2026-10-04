@@ -7,7 +7,7 @@ public import Noperthedron.BalancedSupport.ViewAntipode
 @[expose] public section
 
 /-!
-# A symmetry-reduced pose domain for Nopert #229
+# A symmetry-reduced pose domain for Nopert #231
 
 Both azimuths can be reduced modulo `2π/5`.  We retain the shape-independent
 bounds for the other three Euler parameters.  The resulting rational box is

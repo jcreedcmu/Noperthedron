@@ -5,7 +5,7 @@ public import Noperthedron.Nopert231.CayleyAtlas
 @[expose] public section
 
 /-!
-# Nopert #229 poses in the bounded Cayley atlas
+# Nopert #231 poses in the bounded Cayley atlas
 
 An atlas pose retains only the two outer viewing angles.  Its relative
 rotation is represented in one of the four rational Cayley charts.  Thus the

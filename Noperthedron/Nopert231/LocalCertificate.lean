@@ -16,7 +16,7 @@ public import Noperthedron.Atlas.LocalRigidity
 
 
 /-!
-# Rational symmetry-local certificates for Nopert #229
+# Rational symmetry-local certificates for Nopert #231
 
 A row carries its own equality-stratum center, independently of the midpoint
 of the tree interval it covers.  This is important for adaptive subdivision:

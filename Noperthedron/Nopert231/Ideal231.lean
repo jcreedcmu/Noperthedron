@@ -18,7 +18,7 @@ rotations (`quad_planar`).
 `rationalVertex` (in fact `4.1e-16`), so the certificates cover it. The bound
 goes through `vertexH`, the same construction with 40-digit rational
 enclosures of the rotations and of `z1`; `vertexH` is compared with
-`rationalVertex` exactly by `decide +kernel`. See nopert229/notes/IDEAL231.md.
+`rationalVertex` exactly by `decide +kernel`.
 -/
 
 open Real

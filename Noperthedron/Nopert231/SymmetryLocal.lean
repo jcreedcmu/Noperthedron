@@ -6,7 +6,7 @@ public import Noperthedron.Atlas.LocalRigidity
 @[expose] public section
 
 /-!
-# Local rigidity at the five symmetry strata of Nopert #229
+# Local rigidity at the five symmetry strata of Nopert #231
 
 This specializes the reindexed balanced-support theorem to the exact
 fivefold action.  It is the mathematical layer needed to cover the

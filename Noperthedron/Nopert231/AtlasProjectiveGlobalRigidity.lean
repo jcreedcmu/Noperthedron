@@ -5,7 +5,7 @@ public import Noperthedron.Nopert231.AtlasProjectiveLocalRigidity
 @[expose] public section
 
 /-!
-# Projective moving-direction global obstruction for Nopert #229
+# Projective moving-direction global obstruction for Nopert #231
 
 A single determinant-balanced triple of moving outer support directions rules
 out a translated Rupert pose whenever its weighted inner-minus-outer

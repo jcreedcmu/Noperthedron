@@ -5,7 +5,7 @@ public import Noperthedron.Nopert231.AtlasPose
 
 @[expose] public section
 
-/-! # Rational boxes for Nopert #229 atlas poses -/
+/-! # Rational boxes for Nopert #231 atlas poses -/
 
 namespace Noperthedron.Nopert231
 

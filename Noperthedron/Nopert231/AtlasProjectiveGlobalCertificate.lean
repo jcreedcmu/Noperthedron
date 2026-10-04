@@ -7,7 +7,7 @@ public import Noperthedron.Nopert231.QuadraticBernstein
 @[expose] public section
 
 /-!
-# Rational projective balanced-triple certificates for Nopert #229
+# Rational projective balanced-triple certificates for Nopert #231
 
 This checker fills the gap between a full silhouette-cycle certificate and
 the symmetry-local theorem.  Three cone-interior moving support directions
@@ -551,11 +551,11 @@ def Box.dBound (box : Box) : ℚ :=
         box.interval.min.z box.interval.max.z ^ 2
 
 /-!
-Displacement error bound for Nopert #229.
+Displacement error bound for the model.
 
 Why this term was tightened:
 Earlier formalizations used the looser legacy bound `RationalApprox.κℚ = 1 / 10^10`,
-giving `displacementError = 300 * box.dBound * 10^-10 ≈ 6e-8`. However, Nopert #229
+giving `displacementError = 300 * box.dBound * 10^-10 ≈ 6e-8`. However, the model
 exhibits several "difficult" near-contact configurations where the true physical clearance
 margin between inner and outer polyhedra is extremely narrow (on the order of 10^-8 to 10^-7).
 Under the 10^-10 bound, `displacementError` alone consumed virtually all available clearance,
@@ -578,7 +578,7 @@ Tradeoffs:
 2. Algebraic isolation dependency:
    The 6/10^16 bound relies on degree-16 polynomial root isolating intervals certified to
    16 digits in `TightApproximation.lean`. A looser bound like 10^-10 is more generic and
-   cheaper to establish for arbitrary polyhedra, but for #229 the tight bound was already
+   cheaper to establish for arbitrary polyhedra, but for this model the tight bound is
    formally verified.
 3. Search sensitivity:
    A smaller `displacementError` allows the search solver to accept certificates with

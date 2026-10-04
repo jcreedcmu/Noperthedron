@@ -9,7 +9,7 @@ public import Noperthedron.Atlas.BernsteinCertificate
 # Bernstein bounds for rational quadratics on three-dimensional boxes
 
 This specializes the tensor Bernstein convex-hull theorem to the ten-field
-quadratic representation used by the Nopert #229 atlas checker.
+quadratic representation used by the Nopert #231 atlas checker.
 -/
 
 namespace Noperthedron.Nopert231.QuadraticBernstein

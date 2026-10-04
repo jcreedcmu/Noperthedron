@@ -7,9 +7,9 @@ public import Noperthedron.Nopert231.Approximation
 /-!
 # Tight rational approximation for the fivefold orbit
 
-The general Nopert #229 checker uses a deliberately loose `10⁻¹⁰` vertex
-allowance.  Near an outer silhouette transition that allowance is much larger
-than the actual rounding error in the published coordinates.  This module
+The general checker uses a deliberately loose `10⁻¹⁰` vertex allowance.
+Near an outer silhouette transition that allowance is much larger than the
+actual rounding error in the rational coordinates.  This module
 uses the exact trigonometric values at 72 and 144 degrees, together with a
 kernel-checked rational bridge for all twenty vertices, to prove the sharper
 `5 * 10⁻¹⁶` bound used by the projective local certificate.

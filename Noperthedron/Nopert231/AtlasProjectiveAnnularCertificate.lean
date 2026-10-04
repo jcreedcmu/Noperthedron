@@ -16,7 +16,7 @@ public import Mathlib.Data.Matrix.Mul
 # Two-Zone Annular Projective Local Certificates
 
 This module implements the two-zone annular certificate method for ruling out
-adversary Rupert poses across challenging projective cells on Candidate #229.
+adversary Rupert poses across challenging projective cells.
 
 In regions where a single 2D hull contact cannot simultaneously certify the
 entire spherical zone because an inner contact develops support defect, we split

@@ -6,10 +6,10 @@ public import Noperthedron.Nopert231.SymmetryLocal
 @[expose] public section
 
 /-!
-# Projective moving-direction local rigidity for Nopert #229
+# Projective moving-direction local rigidity for Nopert #231
 
-This is the signed-atlas analogue of the snub-cube projective local theorem.
-The support directions, determinant weights, and first-variation vectors vary
+This is the signed-atlas version of the projective local theorem in
+`Noperthedron.Atlas.LocalRigidity`. The support directions, determinant weights, and first-variation vectors vary
 polynomially with the normalized projective view.  The finite-rotation ratio
 is supplied separately by the atlas-local Cayley mismatch certificate.
 -/
