@@ -1,6 +1,6 @@
-# Nopert #231 is not Rupert
+# Candidate #231 is a Nopert
 
-This directory, with the generic `Noperthedron/Atlas/` library, formalizes the proof that Nopert #231 is not Rupert. Nopert #231 is a convex polyhedron with 20 vertices and 27 faces (2 pentagons, 20 triangles, 5 planar quadrilaterals) and fivefold symmetry about the z axis. The certificate data is produced by the C++ pipeline (the `nopert231` branch of the companion C++ repository); its `README.md` explains how the proof works and how to rebuild it with `rebuild.sh`.
+This directory, with the generic `Noperthedron/Atlas/` library, formalizes the proof that Candidate #231 is a Nopert (not Rupert, `¬ IsRupert`). Candidate #231 is a convex polyhedron with 20 vertices and 27 faces (2 pentagons, 20 triangles, 5 planar quadrilaterals) and fivefold symmetry about the z axis. The certificate data is produced by the C++ pipeline (the `nopert231` branch of the companion C++ repository); its `README.md` explains how the proof works and how to rebuild it with `rebuild.sh`.
 
 ## The main result
 
