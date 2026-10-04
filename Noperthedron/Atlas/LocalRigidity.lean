@@ -17,7 +17,7 @@ public import Mathlib.Analysis.InnerProductSpace.Adjoint
 first-variation vectors, and the norm bounds used to compare exact and
 rational first variations. Generic: no particular polyhedron.
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
+(Extracted, with only what the certificates use, from the earlier snub-cube
 proof attempt.)
 -/
 

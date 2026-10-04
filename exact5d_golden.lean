@@ -1,9 +1,9 @@
-import Noperthedron.Nopert231.AtlasProjectiveGlobalCertificate
-import Noperthedron.Nopert231.AtlasProjectiveMixedGlobalCertificate
-import Noperthedron.Nopert231.PackedSolutionTree
+import Noperthedron.SnubDodecahedron.AtlasProjectiveGlobalCertificate
+import Noperthedron.SnubDodecahedron.AtlasProjectiveMixedGlobalCertificate
+import Noperthedron.SnubDodecahedron.PackedSolutionTree
 
 /-!
-Golden values for the C++ port `nopert229/exact5d.{h,cc}`: reads boxes, one
+Golden values for the C++ port `exact5d.{h,cc}`: reads boxes, one
 per line, and prints Lean's values of the checker quantities so that
 `exact5d_test` can compare them exactly.
 
@@ -28,8 +28,8 @@ direction positive and negative, their validity (0/1 each), the chart-0
 identity tube's mismatchRadius, and Tube.Valid for radius r (0/1).
 -/
 
-open Noperthedron.Nopert231
-open Noperthedron.Nopert231.AtlasProjectiveLocalCertificate
+open Noperthedron.SnubDodecahedron
+open Noperthedron.SnubDodecahedron.AtlasProjectiveLocalCertificate
 
 deriving instance Inhabited for AxisCertificate
 deriving instance Inhabited for AtlasProjectiveMixedGlobalCertificate.Component
@@ -42,7 +42,6 @@ def parseRat (s : String) : ℚ :=
 
 def fin3 (n : Nat) : Fin 3 := ⟨n % 3, by omega⟩
 def fin4 (n : Nat) : Fin 4 := ⟨n % 4, by omega⟩
-def fin20 (n : Nat) : Fin 20 := ⟨n % 20, by omega⟩
 def fin1001 (n : Nat) : Fin 1001 := ⟨n % 1001, by omega⟩
 
 structure Toks where
@@ -57,7 +56,7 @@ def Toks.vertices (t : Toks) : (Fin 3 → VertexIndex) × Toks :=
   let (a, t) := t.nat
   let (b, t) := t.nat
   let (c, t) := t.nat
-  (![fin20 a, fin20 b, fin20 c], t)
+  (![PackedLocalViewTree.finMod a, PackedLocalViewTree.finMod b, PackedLocalViewTree.finMod c], t)
 
 def Toks.axis (t : Toks) : AxisCertificate × Toks :=
   let (es, t) := t.vertices
@@ -105,12 +104,12 @@ def globalLine (t : Toks) : String := Id.run do
   let (lam, _) := t.rat
   let box : AtlasProjectiveGlobalCertificate.Box := {
     interval := iv, root := 0, triangle := tri, chart := fin4 chart,
-    certificate := cert, innerIndex := ![fin20 i0, fin20 i1, fin20 i2],
+    certificate := cert, innerIndex := ![PackedLocalViewTree.finMod i0, PackedLocalViewTree.finMod i1, PackedLocalViewTree.finMod i2],
     ballMultiplier := lam }
   let mut out : Array String := #[]
   for i in [0:3] do
     for k in [0:20] do
-      out := out.push (toString (box.supportUpper (fin3 i) (fin20 k)))
+      out := out.push (toString (box.supportUpper (fin3 i) (PackedLocalViewTree.finMod k)))
   for i in [0:3] do out := out.push (toString (box.weightLower (fin3 i)))
   for i in [0:3] do out := out.push (toString (box.weightUpper (fin3 i)))
   out := out.push (toString box.weightedDefectUpper)
@@ -136,7 +135,7 @@ def mixedLine (t : Toks) : String := Id.run do
     let (i1, t1) := t1.nat
     let (i2, t1) := t1.nat
     let (lam, t1) := t1.rat
-    comps := comps.push { certificate := cert, innerIndex := ![fin20 i0, fin20 i1, fin20 i2],
+    comps := comps.push { certificate := cert, innerIndex := ![PackedLocalViewTree.finMod i0, PackedLocalViewTree.finMod i1, PackedLocalViewTree.finMod i2],
                           ballMultiplier := lam }
     t := t1
   let mut w : Array ℚ := #[]

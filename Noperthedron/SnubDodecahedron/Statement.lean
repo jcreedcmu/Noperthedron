@@ -1,0 +1,473 @@
+module
+
+public import Noperthedron.SnubDodecahedron.IcoInstance
+public import Mathlib.Topology.Order.IntermediateValue
+public import Mathlib.Topology.Algebra.Polynomial
+
+@[expose] public section
+
+/-!
+# The snub dodecahedron
+
+Wikipedia's definition (Snub dodecahedron, Cartesian coordinates): with φ
+the golden ratio and ξ ≈ 0.94315 the real zero of x³ + 2x² − φ², the 60
+vertices are the images of
+
+  p = (φ² − φ²ξ, −φ³ + φξ + 2φξ², ξ)
+
+under repeated multiplication by M₁ (the rotation by 2π/5 about (0, 1, φ))
+and M₂ (the cyclic shift of coordinates, the rotation by 2π/3 about
+(1, 1, 1)). `SnubOrbit` is that set, literally; `snubDodecahedron` is the
+same 60 points as a `Finset` (`mem_snubDodecahedron_iff`). A polyhedron is
+*a* snub dodecahedron (`IsSnubDodecahedron`) when its vertices are the image
+of these under a similarity: a rotation or reflection, a positive scaling
+and a translation. Both mirror images are included.
+
+The same solid is cc-lib's `SnubDodecahedron()` (polyhedra.cc), checked
+numerically: its normalized vertices are a rotation of these.
+-/
+
+namespace Noperthedron.SnubDodecahedron
+
+open IcoZ
+open scoped Matrix
+
+/-! ### φ and ξ -/
+
+/-- The golden ratio. -/
+noncomputable def goldenPhi : ℝ := (1 + sqrt5) / 2
+
+noncomputable def snubCubicW (x : ℝ) : ℝ := x ^ 3 + 2 * x ^ 2 - goldenPhi ^ 2
+
+def xiWLo : ℚ := (xiWLoNum : ℚ) / 10 ^ 24
+def xiWHi : ℚ := ((xiWLoNum + 3 : ℕ) : ℚ) / 10 ^ 24
+
+theorem goldenPhi_sq_bounds :
+    (((3 + sqrt5Lo) / 2 : ℚ) : ℝ) ≤ goldenPhi ^ 2 ∧ goldenPhi ^ 2 ≤ (((3 + sqrt5Hi) / 2 : ℚ) : ℝ) := by
+  obtain ⟨hlo, hhi⟩ := sqrt5_bounds
+  have hsq := sqrt5_sq
+  have hphi : goldenPhi ^ 2 = (3 + sqrt5) / 2 := by
+    unfold goldenPhi
+    nlinarith
+  rw [hphi]
+  push_cast
+  constructor <;> linarith
+
+theorem snubCubicW_lo_neg : snubCubicW (xiWLo : ℝ) < 0 := by
+  obtain ⟨h, -⟩ := goldenPhi_sq_bounds
+  unfold snubCubicW
+  have : ((xiWLo : ℚ) : ℝ) ^ 3 + 2 * (xiWLo : ℝ) ^ 2 - (((3 + sqrt5Lo) / 2 : ℚ) : ℝ) < 0 := by
+    norm_num [xiWLo, xiWLoNum, sqrt5Lo]
+  linarith
+
+theorem snubCubicW_hi_pos : 0 < snubCubicW (xiWHi : ℝ) := by
+  obtain ⟨-, h⟩ := goldenPhi_sq_bounds
+  unfold snubCubicW
+  have : 0 < ((xiWHi : ℚ) : ℝ) ^ 3 + 2 * (xiWHi : ℝ) ^ 2 - (((3 + sqrt5Hi) / 2 : ℚ) : ℝ) := by
+    norm_num [xiWHi, xiWLoNum, sqrt5Hi]
+  linarith
+
+theorem exists_snubCubicW_root : ∃ x ∈ Set.Icc (xiWLo : ℝ) (xiWHi : ℝ), snubCubicW x = 0 := by
+  have hcont : ContinuousOn snubCubicW (Set.Icc (xiWLo : ℝ) (xiWHi : ℝ)) := by
+    unfold snubCubicW
+    fun_prop
+  have hle : (xiWLo : ℝ) ≤ xiWHi := by
+    unfold xiWLo xiWHi
+    push_cast
+    exact div_le_div_of_nonneg_right (by linarith) (by positivity)
+  exact intermediate_value_Icc hle hcont ⟨snubCubicW_lo_neg.le, snubCubicW_hi_pos.le⟩
+
+/-- ξ: the real zero of x³ + 2x² − φ² (unique, `snubXiW_unique`). -/
+noncomputable def snubXiW : ℝ := Classical.choose exists_snubCubicW_root
+
+theorem snubXiW_bounds : (xiWLo : ℝ) ≤ snubXiW ∧ snubXiW ≤ xiWHi :=
+  (Classical.choose_spec exists_snubCubicW_root).1
+
+theorem snubXiW_cubic : snubXiW ^ 3 + 2 * snubXiW ^ 2 = goldenPhi ^ 2 := by
+  have h := (Classical.choose_spec exists_snubCubicW_root).2
+  change snubXiW ^ 3 + 2 * snubXiW ^ 2 - goldenPhi ^ 2 = 0 at h
+  linarith
+
+theorem snubXiW_pos : 0 < snubXiW :=
+  lt_of_lt_of_le (by norm_num [xiWLo, xiWLoNum]) snubXiW_bounds.1
+
+/-- ξ is the only real zero of x³ + 2x² − φ². -/
+theorem snubXiW_unique {x : ℝ} (hx : x ^ 3 + 2 * x ^ 2 = goldenPhi ^ 2) : x = snubXiW := by
+  have hxi := snubXiW_cubic
+  have hlo : (9 / 10 : ℝ) ≤ snubXiW := le_trans (by norm_num [xiWLo, xiWLoNum]) snubXiW_bounds.1
+  -- x³ + 2x² − (ξ³ + 2ξ²) = (x − ξ)(x² + (ξ + 2) x + ξ² + 2ξ); the quadratic
+  -- has discriminant 4 − 4ξ − 3ξ² < 0 for ξ ≥ 0.9.
+  have hfactor : (x - snubXiW) * (x ^ 2 + (snubXiW + 2) * x + snubXiW ^ 2 + 2 * snubXiW) = 0 := by
+    linear_combination hx - hxi
+  have hq : 0 < x ^ 2 + (snubXiW + 2) * x + snubXiW ^ 2 + 2 * snubXiW := by
+    nlinarith [sq_nonneg (2 * x + snubXiW + 2), hlo]
+  rcases mul_eq_zero.mp hfactor with h | h
+  · linarith
+  · linarith
+
+/-! ### Wikipedia's point and rotations -/
+
+/-- p = (φ² − φ²ξ, −φ³ + φξ + 2φξ², ξ). -/
+noncomputable def snubP : ℝ³ :=
+  WithLp.toLp 2 ![goldenPhi ^ 2 - goldenPhi ^ 2 * snubXiW,
+    -goldenPhi ^ 3 + goldenPhi * snubXiW + 2 * goldenPhi * snubXiW ^ 2, snubXiW]
+
+/-- The rotation by 2π/5 about (0, 1, φ). -/
+noncomputable def snubM1 : Matrix (Fin 3) (Fin 3) ℝ :=
+  !![1 / (2 * goldenPhi), -goldenPhi / 2, 1 / 2;
+     goldenPhi / 2, 1 / 2, 1 / (2 * goldenPhi);
+     -1 / 2, 1 / (2 * goldenPhi), goldenPhi / 2]
+
+/-- The cyclic shift of coordinates, the rotation by 2π/3 about (1, 1, 1). -/
+def snubM2 : Matrix (Fin 3) (Fin 3) ℝ := !![0, 0, 1; 1, 0, 0; 0, 1, 0]
+
+/-- The images of p under repeated multiplication by M₁ and M₂. -/
+inductive SnubOrbit : ℝ³ → Prop
+  | base : SnubOrbit snubP
+  | m1 {v : ℝ³} : SnubOrbit v → SnubOrbit (snubM1.toEuclideanLin v)
+  | m2 {v : ℝ³} : SnubOrbit v → SnubOrbit (snubM2.toEuclideanLin v)
+
+/-- Element `n` of the group generated by M₁ and M₂ (`wikiEntry`, times 20). -/
+noncomputable def wiki (n : Nat) : Matrix (Fin 3) (Fin 3) ℝ := (1 / 20 : ℝ) • (wikiEntry n).toMatrix
+
+/-- The snub dodecahedron's 60 vertices. -/
+noncomputable def snubDodecahedron : Finset ℝ³ :=
+  (Finset.range 60).image fun g => (wiki g).toEuclideanLin snubP
+
+/-- A snub dodecahedron: the image of `snubDodecahedron` under a similarity
+(an orthogonal map, possibly a reflection, a positive scaling and a
+translation). -/
+def IsSnubDodecahedron (V : Finset ℝ³) : Prop :=
+  ∃ (c : ℝ³) (s : ℝ) (M : Matrix (Fin 3) (Fin 3) ℝ), 0 < s ∧
+    M ∈ Matrix.orthogonalGroup (Fin 3) ℝ ∧
+    V = snubDodecahedron.image fun x => c + s • M.toEuclideanLin x
+
+/-! ### `snubDodecahedron` is Wikipedia's orbit -/
+
+def wikiParent (h : Nat) : Nat := wikiBfsParent.getD h 0
+def wikiGenOf (h : Nat) : Nat := wikiBfsGen.getD h 0
+def wikiLeft (k g : Nat) : Nat := (wikiLeftMul.getD k []).getD g 0
+
+/-- Decided over K: element 0 is the identity, elements 1 and 2 are M₁ and M₂
+(times 20: `wikiGenEntry`), every element h > 0 is generator · parent with a
+smaller parent, and left multiplication by the generators stays in the set. -/
+def wikiGenEntry : Nat → M3
+  | 0 => ⟨⟨-5, 5, 0, 0⟩, ⟨-5, -5, 0, 0⟩, ⟨10, 0, 0, 0⟩,
+          ⟨5, 5, 0, 0⟩, ⟨10, 0, 0, 0⟩, ⟨-5, 5, 0, 0⟩,
+          ⟨-10, 0, 0, 0⟩, ⟨-5, 5, 0, 0⟩, ⟨5, 5, 0, 0⟩⟩
+  | _ => ⟨⟨0, 0, 0, 0⟩, ⟨0, 0, 0, 0⟩, ⟨20, 0, 0, 0⟩,
+          ⟨20, 0, 0, 0⟩, ⟨0, 0, 0, 0⟩, ⟨0, 0, 0, 0⟩,
+          ⟨0, 0, 0, 0⟩, ⟨20, 0, 0, 0⟩, ⟨0, 0, 0, 0⟩⟩
+
+def wikiCheck : Bool :=
+  decide (wikiEntry 0 = M3.scalar 20) && decide (wikiEntry 1 = wikiGenEntry 0) &&
+    decide (wikiEntry 2 = wikiGenEntry 1) &&
+    ((List.range 59).all fun i =>
+      decide (wikiParent (i + 1) < i + 1) && decide (wikiGenOf (i + 1) < 2) &&
+        decide (M3.mul8 (wikiGenEntry (wikiGenOf (i + 1))) (wikiEntry (wikiParent (i + 1))) =
+          M3.scale 160 (wikiEntry (i + 1)))) &&
+    ((List.range 60).all fun g => (List.range 2).all fun k =>
+      decide (wikiLeft k g < 60) &&
+        decide (M3.mul8 (wikiGenEntry k) (wikiEntry g) = M3.scale 160 (wikiEntry (wikiLeft k g))))
+
+theorem wikiCheck_eq : wikiCheck = true := by decide +kernel
+
+theorem goldenPhi_ne : goldenPhi ≠ 0 := by
+  unfold goldenPhi
+  have := sqrt5_nonneg
+  positivity
+
+theorem inv_one_add_sqrt5 : (1 + sqrt5)⁻¹ = (sqrt5 - 1) / 4 := by
+  have hsq := sqrt5_sq
+  have hpos : 0 < 1 + sqrt5 := by have := sqrt5_nonneg; linarith
+  rw [inv_eq_iff_eq_inv, eq_comm, inv_eq_iff_eq_inv]
+  field_simp
+  nlinarith
+
+theorem inv_two_goldenPhi : 1 / (2 * goldenPhi) = (sqrt5 - 1) / 4 := by
+  have hsq := sqrt5_sq
+  have hne := goldenPhi_ne
+  field_simp
+  unfold goldenPhi
+  nlinarith
+
+/-- The real matrix of `wikiGenEntry k` is M₁ (k = 0) or M₂. -/
+theorem wikiGen_real (k : Nat) :
+    (1 / 20 : ℝ) • (wikiGenEntry k).toMatrix = if k = 0 then snubM1 else snubM2 := by
+  have h5 := sqrt5_sq
+  have hp : (1 + sqrt5) ≠ 0 := by have := sqrt5_nonneg; positivity
+  rcases k with _ | k
+  · ext i j
+    fin_cases i <;> fin_cases j <;>
+      simp [wikiGenEntry, M3.toMatrix, M3.entry, IcoZ.val, snubM1, goldenPhi] <;>
+      first | ring1 | (field_simp; nlinarith)
+  · ext i j
+    fin_cases i <;> fin_cases j <;>
+      simp [wikiGenEntry, M3.toMatrix, M3.entry, IcoZ.val, snubM2]
+
+theorem wiki_mul_of_mul8 {a b c : Nat}
+    (h : M3.mul8 (wikiGenEntry a) (wikiEntry b) = M3.scale 160 (wikiEntry c)) :
+    ((1 / 20 : ℝ) • (wikiGenEntry a).toMatrix) * wiki b = wiki c := by
+  have h' := congrArg M3.toMatrix h
+  rw [M3.toMatrix_mul8, M3.toMatrix_scale] at h'
+  have hab : (wikiGenEntry a).toMatrix * (wikiEntry b).toMatrix =
+      (20 : ℝ) • (wikiEntry c).toMatrix := by
+    have := congrArg (fun M => (1 / 8 : ℝ) • M) h'
+    simp only [smul_smul] at this
+    norm_num at this
+    exact this
+  rw [wiki, wiki, Matrix.smul_mul, Matrix.mul_smul, hab, smul_smul, smul_smul]
+  norm_num
+
+theorem toEuclideanLin_mul' (A B : Matrix (Fin 3) (Fin 3) ℝ) (v : ℝ³) :
+    (A * B).toEuclideanLin v = A.toEuclideanLin (B.toEuclideanLin v) := by
+  simp [Matrix.toLpLin_apply, Matrix.mulVec_mulVec]
+
+theorem snubOrbit_wiki (h : Nat) (hh : h < 60) : SnubOrbit ((wiki h).toEuclideanLin snubP) := by
+  have hc := wikiCheck_eq
+  simp only [wikiCheck, List.all_eq_true, List.mem_range, Bool.and_eq_true,
+    decide_eq_true_eq] at hc
+  obtain ⟨⟨⟨⟨h0, -⟩, -⟩, hbfs⟩, -⟩ := hc
+  induction h using Nat.strong_induction_on with
+  | _ h ih =>
+    rcases Nat.eq_zero_or_pos h with rfl | hpos
+    · have : wiki 0 = 1 := by
+        rw [wiki, h0, M3.toMatrix_scalar, smul_smul]
+        norm_num
+      rw [this]
+      simpa using SnubOrbit.base
+    · obtain ⟨i, rfl⟩ : ∃ i, h = i + 1 := ⟨h - 1, by omega⟩
+      obtain ⟨⟨hp, hg⟩, hmul⟩ := hbfs i (by omega)
+      have hstep := wiki_mul_of_mul8 hmul
+      have hpar := ih (wikiParent (i + 1)) hp (by omega)
+      rw [← hstep, toEuclideanLin_mul', wikiGen_real]
+      split_ifs
+      · exact SnubOrbit.m1 hpar
+      · exact SnubOrbit.m2 hpar
+
+theorem mem_snubDodecahedron_iff (v : ℝ³) : v ∈ snubDodecahedron ↔ SnubOrbit v := by
+  have hc := wikiCheck_eq
+  simp only [wikiCheck, List.all_eq_true, List.mem_range, Bool.and_eq_true,
+    decide_eq_true_eq] at hc
+  obtain ⟨⟨⟨⟨h0, h1⟩, h2⟩, -⟩, hleft⟩ := hc
+  constructor
+  · intro hv
+    simp only [snubDodecahedron, Finset.mem_image, Finset.mem_range] at hv
+    obtain ⟨g, hg, rfl⟩ := hv
+    exact snubOrbit_wiki g hg
+  · intro hv
+    simp only [snubDodecahedron, Finset.mem_image, Finset.mem_range]
+    induction hv with
+    | base =>
+      refine ⟨0, by norm_num, ?_⟩
+      have : wiki 0 = 1 := by
+        rw [wiki, h0, M3.toMatrix_scalar, smul_smul]
+        norm_num
+      rw [this]
+      simp
+    | m1 _ ih =>
+      obtain ⟨g, hg, rfl⟩ := ih
+      obtain ⟨hlt, hmul⟩ := hleft g hg 0 (by norm_num)
+      refine ⟨wikiLeft 0 g, hlt, ?_⟩
+      rw [← wiki_mul_of_mul8 hmul, toEuclideanLin_mul', wikiGen_real]
+      simp
+    | m2 _ ih =>
+      obtain ⟨g, hg, rfl⟩ := ih
+      obtain ⟨hlt, hmul⟩ := hleft g hg 1 (by norm_num)
+      refine ⟨wikiLeft 1 g, hlt, ?_⟩
+      rw [← wiki_mul_of_mul8 hmul, toEuclideanLin_mul', wikiGen_real]
+      simp
+
+/-! ### The snub dodecahedron is an `IModel` -/
+
+/-- The rotation from Wikipedia's frame to the 5-fold frame (`snubFrameT`, /20). -/
+noncomputable def snubFrame : Matrix (Fin 3) (Fin 3) ℝ := (1 / 20 : ℝ) • snubFrameT.toMatrix
+
+/-- (1 − 10⁻⁹)/|p|, rounded: the rational model is the unit-circumradius solid
+scaled by 1 − 10⁻⁹. -/
+def snubScale : ℚ := (snubScaleNum : ℚ) / 10 ^ 40
+
+/-- Vertex 0 of the model: Wikipedia's p, rotated into the 5-fold frame and scaled. -/
+noncomputable def snubV0 : ℝ³ := (snubScale : ℝ) • snubFrame.toEuclideanLin snubP
+
+def vertexWiki (i : Nat) : Nat := vertexWikiIndex.getD i 0
+def wikiVertex (k : Nat) : Nat := wikiVertexIndex.getD k 0
+
+/-- Decided over K: T is a rotation, `vertexWiki` is a bijection of range 60, and
+g_i T = T S_{vertexWiki i} (our vertex i is the image of Wikipedia's). -/
+def bridgeCheck : Bool :=
+  decide (M3.mul8 (M3.transpose snubFrameT) snubFrameT = M3.scalar 3200) &&
+    (List.range 60).all fun i =>
+      decide (vertexWiki i < 60) && decide (wikiVertex i < 60) &&
+        decide (vertexWiki (wikiVertex i) = i) &&
+        decide (M3.mul8 (icoEntry (vElem i)) snubFrameT = M3.mul8 snubFrameT (wikiEntry (vertexWiki i)))
+
+theorem bridgeCheck_eq : bridgeCheck = true := by decide +kernel
+
+theorem snubFrame_orthogonal : snubFrame ∈ Matrix.orthogonalGroup (Fin 3) ℝ := by
+  have hc := bridgeCheck_eq
+  simp only [bridgeCheck, Bool.and_eq_true, decide_eq_true_eq] at hc
+  have h' := congrArg M3.toMatrix hc.1
+  rw [M3.toMatrix_mul8, M3.toMatrix_transpose, M3.toMatrix_scalar] at h'
+  rw [Matrix.mem_orthogonalGroup_iff', snubFrame, Matrix.transpose_smul, Matrix.smul_mul,
+    Matrix.mul_smul, smul_smul]
+  have := congrArg (fun M => (1 / 3200 : ℝ) • M) h'
+  simp only [smul_smul] at this
+  norm_num at this ⊢
+  exact this
+
+theorem ico_mul_snubFrame {i : Nat} (hi : i < 60) :
+    ico (vElem i) * snubFrame = snubFrame * wiki (vertexWiki i) := by
+  have hc := bridgeCheck_eq
+  simp only [bridgeCheck, Bool.and_eq_true, List.all_eq_true, List.mem_range,
+    decide_eq_true_eq] at hc
+  have h' := congrArg M3.toMatrix (hc.2 i hi).2
+  rw [M3.toMatrix_mul8, M3.toMatrix_mul8] at h'
+  have h8 : (icoEntry (vElem i)).toMatrix * snubFrameT.toMatrix =
+      snubFrameT.toMatrix * (wikiEntry (vertexWiki i)).toMatrix := by
+    have := congrArg (fun M => (1 / 8 : ℝ) • M) h'
+    simp only [smul_smul] at this
+    norm_num at this
+    exact this
+  rw [ico, snubFrame, wiki, Matrix.smul_mul, Matrix.mul_smul, Matrix.smul_mul,
+    Matrix.mul_smul, h8]
+
+/-! #### A rational box around `snubV0` -/
+
+/-- p_c = (A_c + B_c ξ + C_c ξ²)/20 with coefficients in ℚ(√5) (`IcoZ`, times 20). -/
+def snubPA : Fin 3 → IcoZ := ![⟨30, 10, 0, 0⟩, ⟨-40, -20, 0, 0⟩, ⟨0, 0, 0, 0⟩]
+def snubPB : Fin 3 → IcoZ := ![⟨-30, -10, 0, 0⟩, ⟨10, 10, 0, 0⟩, ⟨20, 0, 0, 0⟩]
+def snubPC : Fin 3 → IcoZ := ![⟨0, 0, 0, 0⟩, ⟨20, 20, 0, 0⟩, ⟨0, 0, 0, 0⟩]
+
+theorem snubP_eq (c : Fin 3) :
+    snubP c = (IcoZ.val (snubPA c) + IcoZ.val (snubPB c) * snubXiW +
+      IcoZ.val (snubPC c) * snubXiW ^ 2) / 20 := by
+  have h5 := sqrt5_sq
+  fin_cases c <;> simp [snubP, snubPA, snubPB, snubPC, IcoZ.val, goldenPhi] <;>
+    ring_nf <;> simp only [h5] <;> ring_nf <;>
+    (try (have h53 : sqrt5 ^ 3 = 5 * sqrt5 := by rw [pow_succ, h5]
+          rw [h53]; ring))
+
+/-- `Σ_c 8 T_rc K_c` for coefficient vectors K. -/
+def frameDot (K : Fin 3 → IcoZ) (r : Fin 3) : IcoZ :=
+  IcoZ.add (IcoZ.add (IcoZ.mul8 (snubFrameT.entry r 0) (K 0))
+    (IcoZ.mul8 (snubFrameT.entry r 1) (K 1))) (IcoZ.mul8 (snubFrameT.entry r 2) (K 2))
+
+theorem snubV0_eq (r : Fin 3) :
+    snubV0 r = (snubScale : ℝ) / 3200 * (IcoZ.val (frameDot snubPA r) +
+      IcoZ.val (frameDot snubPB r) * snubXiW + IcoZ.val (frameDot snubPC r) * snubXiW ^ 2) := by
+  simp only [snubV0, snubFrame, PiLp.smul_apply, smul_eq_mul, Matrix.toLpLin_apply,
+    Matrix.mulVec, dotProduct, Fin.sum_univ_three, Matrix.smul_apply, M3.toMatrix,
+    Matrix.of_apply, frameDot, IcoZ.val_add, IcoZ.val_mul8, snubP_eq]
+  simp
+  ring
+
+def xiWLoSq : ℚ := xiWLo ^ 2
+def xiWHiSq : ℚ := xiWHi ^ 2
+
+def snubBox : RatBox where
+  lo r := snubScale / 3200 * (IcoZ.lo (frameDot snubPA r) +
+    mulLo (IcoZ.lo (frameDot snubPB r)) (IcoZ.hi (frameDot snubPB r)) xiWLo xiWHi +
+    mulLo (IcoZ.lo (frameDot snubPC r)) (IcoZ.hi (frameDot snubPC r)) xiWLoSq xiWHiSq)
+  hi r := snubScale / 3200 * (IcoZ.hi (frameDot snubPA r) +
+    mulHi (IcoZ.lo (frameDot snubPB r)) (IcoZ.hi (frameDot snubPB r)) xiWLo xiWHi +
+    mulHi (IcoZ.lo (frameDot snubPC r)) (IcoZ.hi (frameDot snubPC r)) xiWLoSq xiWHiSq)
+
+theorem snubV0_mem : snubBox.Mem snubV0 := by
+  intro r
+  obtain ⟨hxlo, hxhi⟩ := snubXiW_bounds
+  have hxpos := snubXiW_pos
+  have hxi : ((xiWLo : ℚ) : ℝ) ≤ snubXiW ∧ snubXiW ≤ ((xiWHi : ℚ) : ℝ) := ⟨hxlo, hxhi⟩
+  have hxlo0 : (0 : ℝ) ≤ (xiWLo : ℝ) := by unfold xiWLo; positivity
+  have hxi2 : ((xiWLoSq : ℚ) : ℝ) ≤ snubXiW ^ 2 ∧ snubXiW ^ 2 ≤ ((xiWHiSq : ℚ) : ℝ) := by
+    simp only [xiWLoSq, xiWHiSq, Rat.cast_pow]
+    exact ⟨pow_le_pow_left₀ hxlo0 hxlo 2, pow_le_pow_left₀ hxpos.le hxhi 2⟩
+  have hencl : ∀ x : IcoZ, ((IcoZ.lo x : ℚ) : ℝ) ≤ IcoZ.val x ∧ IcoZ.val x ≤ ((IcoZ.hi x : ℚ) : ℝ) :=
+    fun x => ⟨IcoZ.lo_le_val x, IcoZ.val_le_hi x⟩
+  have hB := mulLo_le (hencl (frameDot snubPB r)) hxi
+  have hB' := le_mulHi (hencl (frameDot snubPB r)) hxi
+  have hC := mulLo_le (hencl (frameDot snubPC r)) hxi2
+  have hC' := le_mulHi (hencl (frameDot snubPC r)) hxi2
+  have hA := hencl (frameDot snubPA r)
+  have hq : (0 : ℝ) < (snubScale : ℝ) / 3200 := by norm_num [snubScale, snubScaleNum]
+  rw [snubV0_eq]
+  simp only [snubBox]
+  push_cast
+  constructor
+  · exact mul_le_mul_of_nonneg_left (by linarith [hA.1]) hq.le
+  · exact mul_le_mul_of_nonneg_left (by linarith [hA.2]) hq.le
+
+theorem snubBox_close : closeCheck snubBox = true := by decide +kernel
+
+/-- The snub dodecahedron (scaled and rotated into the 5-fold frame) as an `IModel`. -/
+noncomputable def snubIModel : IModel := IModel.ofBox snubBox snubBox_close snubV0 snubV0_mem
+
+theorem snubIModel_verts :
+    snubIModel.toC5.verts =
+      snubDodecahedron.image fun x => (0 : ℝ³) + (snubScale : ℝ) • snubFrame.toEuclideanLin x := by
+  have hc := bridgeCheck_eq
+  simp only [bridgeCheck, Bool.and_eq_true, List.all_eq_true, List.mem_range,
+    decide_eq_true_eq] at hc
+  have hvert : ∀ i : VertexIndex, snubIModel.toC5.vertex i =
+      (snubScale : ℝ) • snubFrame.toEuclideanLin ((wiki (vertexWiki i.val)).toEuclideanLin snubP) := by
+    intro i
+    rw [IModel.toC5_vertex, IModel.orbit]
+    change (ico (vElem i.val)).toEuclideanLin snubV0 = _
+    rw [snubV0, map_smul, ← IModel.toEuclideanLin_mul, ico_mul_snubFrame i.isLt,
+      IModel.toEuclideanLin_mul]
+  ext v
+  simp only [C5Model.verts, snubDodecahedron, Finset.mem_image, Finset.mem_univ, true_and,
+    Finset.mem_range, zero_add]
+  constructor
+  · rintro ⟨i, rfl⟩
+    exact ⟨_, ⟨vertexWiki i.val, ((hc.2 i.val i.isLt).1.1.1), rfl⟩, (hvert i).symm⟩
+  · rintro ⟨_, ⟨g, hg, rfl⟩, rfl⟩
+    obtain ⟨⟨⟨-, hlt⟩, hinv⟩, -⟩ := hc.2 g hg
+    refine ⟨⟨wikiVertex g, hlt⟩, ?_⟩
+    rw [hvert]
+    simp only [hinv]
+
+/-! ### Main theorem -/
+
+/-- If no `IModel` is Rupert (what `constructSnubDodecahedron` checks), then no snub
+dodecahedron is Rupert. -/
+theorem snubDodecahedron_not_rupert (h : ∀ P : IModel, ¬ IsRupert P.toC5.verts) :
+    ∀ V : Finset ℝ³, IsSnubDodecahedron V → ¬ IsRupert V := by
+  have hsnub : ¬ IsRupert snubDodecahedron := by
+    intro hr
+    have hq : (0 : ℝ) < (snubScale : ℝ) := by norm_num [snubScale, snubScaleNum]
+    have := isRupert_image_similarity 0 _ hq snubFrame snubFrame_orthogonal _ hr
+    rw [← snubIModel_verts] at this
+    exact h snubIModel this
+  rintro V ⟨c, s, M, hs, hM, rfl⟩ hV
+  apply hsnub
+  -- Undo the similarity: x ↦ s⁻¹ Mᵀ (x − c).
+  have hMt : Mᵀ ∈ Matrix.orthogonalGroup (Fin 3) ℝ := by
+    rw [Matrix.mem_orthogonalGroup_iff']
+    simpa using (Matrix.mem_orthogonalGroup_iff (Fin 3) ℝ).mp hM
+  have hMM : Mᵀ * M = 1 := (Matrix.mem_orthogonalGroup_iff' (Fin 3) ℝ).mp hM
+  have := isRupert_image_similarity (-(s⁻¹ • Mᵀ.toEuclideanLin c)) s⁻¹ (inv_pos.mpr hs) Mᵀ hMt _ hV
+  convert this using 1
+  rw [Finset.image_image]
+  conv_lhs => rw [← Finset.image_id (s := snubDodecahedron)]
+  congr 1
+  funext x
+  simp only [Function.comp, id, map_add, map_smul, smul_add, smul_smul, inv_mul_cancel₀ hs.ne',
+    one_smul]
+  rw [← IModel.toEuclideanLin_mul, hMM]
+  simp
+
+/-- Wikipedia's vertices are themselves a snub dodecahedron (the identity
+similarity). -/
+theorem isSnubDodecahedron_snubDodecahedron : IsSnubDodecahedron snubDodecahedron := by
+  refine ⟨0, 1, 1, one_pos, Submonoid.one_mem _, ?_⟩
+  ext v
+  simp
+
+/-- **Main theorem.** The snub dodecahedron (Wikipedia's vertices) is not
+Rupert, given that no `IModel` is (what `constructSnubDodecahedron` checks). -/
+theorem wikipediaSnubDodecahedron_not_rupert (h : ∀ P : IModel, ¬ IsRupert P.toC5.verts) :
+    ¬ IsRupert snubDodecahedron :=
+  snubDodecahedron_not_rupert h _ isSnubDodecahedron_snubDodecahedron
+
+end Noperthedron.SnubDodecahedron

@@ -13,7 +13,7 @@ public import Mathlib.Data.Nat.Choose.Basic
 
 The univariate Bernstein basis polynomials and their nonnegativity on [0, 1].
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
+(Extracted, with only what the certificates use, from the earlier snub-cube
 proof attempt.)
 -/
 

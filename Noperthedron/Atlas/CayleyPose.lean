@@ -11,7 +11,7 @@ public import Noperthedron.Atlas.FundamentalDomain
 The outer rotation of a pose composed with the relative rotation gives the
 inner rotation.
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
+(Extracted, with only what the certificates use, from the earlier snub-cube
 proof attempt.)
 -/
 

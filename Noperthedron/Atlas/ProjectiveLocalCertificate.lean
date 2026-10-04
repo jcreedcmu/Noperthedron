@@ -13,7 +13,7 @@ public import Noperthedron.Atlas.ProjectiveEdgeCertificate
 `VectorQ`, `mulLinear` and coordinate bounds for linear forms evaluated over
 projective view triangles.
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
+(Extracted, with only what the certificates use, from the earlier snub-cube
 proof attempt.)
 -/
 

@@ -13,7 +13,7 @@ x + y + z = 1 (`Triangle`, `InTriangle`), subdivided by `split` (three corner
 triangles and the central one). `linearValue` bounds linear functionals
 over a triangle by their corner values.
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
+(Extracted, with only what the certificates use, from the earlier snub-cube
 proof attempt.)
 -/
 

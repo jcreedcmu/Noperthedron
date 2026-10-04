@@ -1,9 +1,9 @@
-import Noperthedron.Nopert231.NativeExecutable
-import Noperthedron.Nopert231.PackedLocalViewTree
+import Noperthedron.SnubDodecahedron.NativeExecutable
+import Noperthedron.SnubDodecahedron.PackedLocalViewTree
 
-open Noperthedron.Nopert231
-open Noperthedron.Nopert231.AtlasProjectiveLocalViewTree
-open Noperthedron.Nopert231.NativeExecutable
+open Noperthedron.SnubDodecahedron
+open Noperthedron.SnubDodecahedron.AtlasProjectiveLocalViewTree
+open Noperthedron.SnubDodecahedron.NativeExecutable
 
 private def taskCount : Nat := 16
 
@@ -22,7 +22,7 @@ def validateFile (path : String) (force : Bool := false) : IO Unit := do
     throw (IO.userError s!"{path}: packed table has an invalid first row id {firstId}")
   let checked ← checkLocal path taskCount table
   let _semanticProof : table.Valid := checked.down
-  let stampText := s!"# Nopert #229 Lean 4 Validation Witness\nfile: {(System.FilePath.mk path).fileName.getD path}\nsize_bytes: {data.size}\nrows: {table.size}\nr: {table.r}\nstatus: table.Valid PROVED\n"
+  let stampText := s!"# Lean 4 validation witness\nfile: {(System.FilePath.mk path).fileName.getD path}\nsize_bytes: {data.size}\nrows: {table.size}\nr: {table.r}\nstatus: table.Valid PROVED\n"
   IO.FS.writeFile stampPath stampText
   IO.println s!"[LEAN VALIDATED] {path} | rows: {table.size} | r: {table.r} -> table.Valid PROVED (wrote {stampPath})"
 

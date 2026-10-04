@@ -12,7 +12,7 @@ public import Noperthedron.Atlas.Tightening
 
 The relative rotation of a matrix pose lies in SO(3).
 
-(Extracted, with only what the #231 proof uses, from the earlier snub-cube
+(Extracted, with only what the certificates use, from the earlier snub-cube
 proof attempt.)
 -/
 
