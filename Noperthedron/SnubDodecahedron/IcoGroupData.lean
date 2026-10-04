@@ -277,7 +277,7 @@ def icoRxIndex : Nat := 2
 the C++ search's symmetry_neighbors.h. -/
 def icoNeighborIndex : List Nat := [43, 37, 57, 20, 46, 3, 36, 23, 48, 53, 1, 45]
 
-/-- The rounded neighbors of the C++ search's symmetry_neighbors.h (the C++ search's
+/-- The rounded neighbors of the C++ search's symmetry_neighbors.h (its
 icosahedral prune), row-major numerators over 10^12. -/
 def icoNeighborNum : List (List Int) := [
   [809016994375, 587785252292, 0, -262865556060, 361803398875, -894427191000, -525731112119, 723606797750, 447213595500],
