@@ -108,7 +108,7 @@ def globalLine (t : Toks) : String := Id.run do
     ballMultiplier := lam }
   let mut out : Array String := #[]
   for i in [0:3] do
-    for k in [0:20] do
+    for k in [0:Fintype.card VertexIndex] do
       out := out.push (toString (box.supportUpper (fin3 i) (PackedLocalViewTree.finMod k)))
   for i in [0:3] do out := out.push (toString (box.weightLower (fin3 i)))
   for i in [0:3] do out := out.push (toString (box.weightUpper (fin3 i)))
