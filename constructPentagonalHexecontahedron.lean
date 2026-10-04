@@ -1,4 +1,5 @@
 import Noperthedron.SnubDodecahedron.FundamentalChart3
+import Noperthedron.SnubDodecahedron.Statement
 import Noperthedron.SnubDodecahedron.NativeExecutable
 import Noperthedron.SnubDodecahedron.PackedSolutionTree
 
@@ -72,4 +73,11 @@ def main (args : List String) : IO Unit := do
     (by intro shared chart; fin_cases chart <;> rfl)
     (by intro shared chart; fin_cases chart <;> rfl)
   let proof : ∀ P : IModel, ¬ IsRupert P.toC5.verts := checked.down
-  let _ := proof
+  -- Every pentagonal hexecontahedron (the polar dual of Wikipedia's snub
+  -- dodecahedron, any similar copy, either chirality) is an `IModel` up to similarity.
+  let _ph : ∀ V : Finset ℝ³, IsPentagonalHexecontahedron V → ¬ IsRupert V :=
+    pentagonalHexecontahedron_not_rupert proof
+  let _dual : ∀ V : Finset ℝ³, (V : Set ℝ³) = pentagonalHexecontahedron → ¬ IsRupert V :=
+    polarDualSnubDodecahedron_not_rupert proof
+  IO.println "instantiated: no pentagonal hexecontahedron is Rupert"
+  IO.println "instantiated: the polar dual of Wikipedia's snub dodecahedron is not Rupert"

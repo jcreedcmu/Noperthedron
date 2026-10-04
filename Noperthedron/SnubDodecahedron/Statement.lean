@@ -74,7 +74,7 @@ def wikiGroupCheck : Bool :=
     decide (wikiInv g < 60) && decide (wikiEntry (wikiInv g) = M3.transpose (wikiEntry g)) &&
       decide (M3.mul8 (M3.transpose (wikiEntry g)) (wikiEntry g) = M3.scalar 3200)
 
-theorem wikiGroupCheck_eq : wikiGroupCheck = true := by sorry
+theorem wikiGroupCheck_eq : wikiGroupCheck = true := by decide +kernel
 
 theorem wiki_zero : wiki 0 = 1 := by
   have hc := wikiCheck_eq
@@ -249,17 +249,20 @@ theorem imageK_mem (A : M3) (B : RatBox) {v : ℝ³} (hv : B.Mem v) :
     push_cast
     exact Finset.sum_le_sum fun c _ => le_mulHi (hentry c) (hv c)
 
-/-- The generated box around vertex g. -/
+/-- The generated box around vertex g (endpoints `snubBoxLoZ`, `snubBoxHiZ` / 2^64). -/
+def boxLoZ (g : Nat) (r : Fin 3) : Int := (snubBoxLoZ.getD g []).getD r.val 0
+def boxHiZ (g : Nat) (r : Fin 3) : Int := (snubBoxHiZ.getD g []).getD r.val 0
+
 def vBox (g : Nat) : RatBox where
-  lo r := (snubBoxLo.getD g []).getD r.val 0
-  hi r := (snubBoxHi.getD g []).getD r.val 0
+  lo r := (boxLoZ g r : ℚ) / 2 ^ 64
+  hi r := (boxHiZ g r : ℚ) / 2 ^ 64
 
 def vBoxCheck : Bool :=
   (List.range 60).all fun g => (List.finRange 3).all fun r =>
     decide ((vBox g).lo r ≤ imageLoK (wikiEntry g) pBox r) &&
       decide (imageHiK (wikiEntry g) pBox r ≤ (vBox g).hi r)
 
-theorem vBoxCheck_eq : vBoxCheck = true := by sorry
+theorem vBoxCheck_eq : vBoxCheck = true := by decide +kernel
 
 theorem snubV_mem {g : Nat} (hg : g < 60) : (vBox g).Mem (snubV g) := by
   have hc := vBoxCheck_eq
@@ -368,6 +371,113 @@ theorem Iv.ne_zero_of {I : Iv} {x : ℝ} (h : I.ExcludesZero) (hx : I.Mem x) : x
   · have : (I.hi : ℝ) < 0 := by exact_mod_cast h
     linarith
 
+/-! ### Integer interval arithmetic (scaled by 2^64), for the pair checks
+
+The kernel evaluates integer products much faster than rational ones (no
+gcd). Only signs matter for the pair certificates, so these determinants are
+computed on the vertex boxes times 2^64, in integers. -/
+
+/-- A closed integer interval. -/
+structure IvZ where
+  lo : Int
+  hi : Int
+
+def IvZ.Mem (I : IvZ) (x : ℝ) : Prop := (I.lo : ℝ) ≤ x ∧ x ≤ I.hi
+
+def IvZ.add (I J : IvZ) : IvZ := ⟨I.lo + J.lo, I.hi + J.hi⟩
+def IvZ.sub (I J : IvZ) : IvZ := ⟨I.lo - J.hi, I.hi - J.lo⟩
+def IvZ.mul (I J : IvZ) : IvZ :=
+  ⟨min (min (I.lo * J.lo) (I.lo * J.hi)) (min (I.hi * J.lo) (I.hi * J.hi)),
+   max (max (I.lo * J.lo) (I.lo * J.hi)) (max (I.hi * J.lo) (I.hi * J.hi))⟩
+
+theorem IvZ.add_mem {I J : IvZ} {x y : ℝ} (hx : I.Mem x) (hy : J.Mem y) : (I.add J).Mem (x + y) := by
+  simp only [IvZ.Mem, IvZ.add] at *; push_cast; constructor <;> linarith [hx.1, hx.2, hy.1, hy.2]
+
+theorem IvZ.sub_mem {I J : IvZ} {x y : ℝ} (hx : I.Mem x) (hy : J.Mem y) : (I.sub J).Mem (x - y) := by
+  simp only [IvZ.Mem, IvZ.sub] at *; push_cast; constructor <;> linarith [hx.1, hx.2, hy.1, hy.2]
+
+theorem IvZ.mul_mem {I J : IvZ} {x y : ℝ} (hx : I.Mem x) (hy : J.Mem y) : (I.mul J).Mem (x * y) := by
+  have h1 := mulLo_le (a := (I.lo : ℚ)) (b := (I.hi : ℚ)) (c := (J.lo : ℚ)) (d := (J.hi : ℚ))
+    (x := x) (y := y) (by exact_mod_cast hx) (by exact_mod_cast hy)
+  have h2 := le_mulHi (a := (I.lo : ℚ)) (b := (I.hi : ℚ)) (c := (J.lo : ℚ)) (d := (J.hi : ℚ))
+    (x := x) (y := y) (by exact_mod_cast hx) (by exact_mod_cast hy)
+  simp only [mulLo, mulHi] at h1 h2
+  simp only [IvZ.Mem, IvZ.mul]
+  push_cast at h1 h2 ⊢
+  exact ⟨h1, h2⟩
+
+def det3Z (u v w : Fin 3 → IvZ) : IvZ :=
+  ((u 0).mul (((v 1).mul (w 2)).sub ((v 2).mul (w 1)))).sub
+    ((u 1).mul (((v 0).mul (w 2)).sub ((v 2).mul (w 0)))) |>.add
+    ((u 2).mul (((v 0).mul (w 1)).sub ((v 1).mul (w 0))))
+
+theorem det3Z_mem {u v w : Fin 3 → IvZ} {a b c : ℝ³} (ha : ∀ r, (u r).Mem (a r))
+    (hb : ∀ r, (v r).Mem (b r)) (hc : ∀ r, (w r).Mem (c r)) : (det3Z u v w).Mem (det3 a b c) := by
+  unfold det3Z det3
+  exact IvZ.add_mem (IvZ.sub_mem
+    (IvZ.mul_mem (ha 0) (IvZ.sub_mem (IvZ.mul_mem (hb 1) (hc 2)) (IvZ.mul_mem (hb 2) (hc 1))))
+    (IvZ.mul_mem (ha 1) (IvZ.sub_mem (IvZ.mul_mem (hb 0) (hc 2)) (IvZ.mul_mem (hb 2) (hc 0)))))
+    (IvZ.mul_mem (ha 2) (IvZ.sub_mem (IvZ.mul_mem (hb 0) (hc 1)) (IvZ.mul_mem (hb 1) (hc 0))))
+
+/-- Vertex g's coordinates times 2^64, and differences. -/
+def vZ (g : Nat) (r : Fin 3) : IvZ := ⟨boxLoZ g r, boxHiZ g r⟩
+def dZ (g h : Nat) (r : Fin 3) : IvZ := (vZ g r).sub (vZ h r)
+
+/-- 2^64 · v. -/
+noncomputable def scale64 (v : ℝ³) : ℝ³ := ((2 : ℝ) ^ 64) • v
+
+theorem vZ_mem {g : Nat} (hg : g < 60) (r : Fin 3) : (vZ g r).Mem (scale64 (snubV g) r) := by
+  obtain ⟨h1, h2⟩ := snubV_mem hg r
+  simp only [vBox] at h1 h2
+  push_cast at h1 h2
+  simp only [IvZ.Mem, vZ, scale64, PiLp.smul_apply, smul_eq_mul]
+  have hp : (0 : ℝ) < 2 ^ 64 := by positivity
+  constructor
+  · rw [div_le_iff₀ hp] at h1; linarith
+  · rw [le_div_iff₀ hp] at h2; linarith
+
+theorem dZ_mem {g h : Nat} (hg : g < 60) (hh : h < 60) (r : Fin 3) :
+    (dZ g h r).Mem (scale64 (snubV g - snubV h) r) := by
+  have : scale64 (snubV g - snubV h) r = scale64 (snubV g) r - scale64 (snubV h) r := by
+    simp [scale64, mul_sub]
+  rw [this]
+  exact IvZ.sub_mem (vZ_mem hg r) (vZ_mem hh r)
+
+theorem det3_scale64 (a b c : ℝ³) : det3 (scale64 a) (scale64 b) (scale64 c) = (2 ^ 64) ^ 3 * det3 a b c := by
+  simp only [det3, scale64, PiLp.smul_apply, smul_eq_mul]
+  ring
+
+/-- det(S_b − S_a, S_c − S_a, S_x − S_a) times 2^192, enclosed. -/
+def sideZ (a b c x : Nat) : IvZ := det3Z (dZ b a) (dZ c a) (dZ x a)
+
+theorem sideZ_mem {a b c x : Nat} (ha : a < 60) (hb : b < 60) (hc : c < 60) (hx : x < 60) :
+    (sideZ a b c x).Mem ((2 ^ 64) ^ 3 *
+      det3 (snubV b - snubV a) (snubV c - snubV a) (snubV x - snubV a)) := by
+  rw [← det3_scale64]
+  exact det3Z_mem (dZ_mem hb ha) (dZ_mem hc ha) (dZ_mem hx ha)
+
+/-- det(S_a, S_b, S_c) times 2^192, enclosed. -/
+def detZ (a b c : Nat) : IvZ := det3Z (vZ a) (vZ b) (vZ c)
+
+theorem detZ_mem {a b c : Nat} (ha : a < 60) (hb : b < 60) (hc : c < 60) :
+    (detZ a b c).Mem ((2 ^ 64) ^ 3 * det3 (snubV a) (snubV b) (snubV c)) := by
+  rw [← det3_scale64]
+  exact det3Z_mem (vZ_mem ha) (vZ_mem hb) (vZ_mem hc)
+
+theorem pos_of_scaled {x : ℝ} {l : Int} (hl : 0 < l) (h : (l : ℝ) ≤ (2 ^ 64) ^ 3 * x) : 0 < x := by
+  have : (0 : ℝ) < (l : ℝ) := by exact_mod_cast hl
+  have hp : (0 : ℝ) < (2 ^ 64) ^ 3 := by positivity
+  by_contra hx
+  push_neg at hx
+  nlinarith
+
+theorem neg_of_scaled {x : ℝ} {u : Int} (hu : u < 0) (h : (2 ^ 64) ^ 3 * x ≤ (u : ℝ)) : x < 0 := by
+  have : (u : ℝ) < 0 := by exact_mod_cast hu
+  have hp : (0 : ℝ) < (2 ^ 64) ^ 3 := by positivity
+  by_contra hx
+  push_neg at hx
+  nlinarith
+
 /-! ### The base faces and their poles -/
 
 def baseFaceOf (o : Nat) : List Nat := baseFace.getD o []
@@ -397,7 +507,7 @@ def baseCheck : Bool :=
           (decide ((detIv (fv o 0) (fv o 1) (fv o 2)).hi < 0) &&
             decide (0 < (sideIv (fv o 0) (fv o 1) (fv o 2) m).lo))
 
-theorem baseCheck_eq : baseCheck = true := by sorry
+theorem baseCheck_eq : baseCheck = true := by decide +kernel
 
 theorem baseCheck_spec {o : Nat} (ho : o < 3) :
     (∀ m ∈ baseFaceOf o, m < 60) ∧ 3 ≤ (baseFaceOf o).length ∧
@@ -565,7 +675,7 @@ def baseStabCheck : Bool :=
       (baseFaceOf o).any fun m =>
         decide (M3.mul8 (wikiEntry (wikiInv τ)) (wikiEntry (fv o i)) = M3.scale 160 (wikiEntry m))
 
-theorem baseStabCheck_eq : baseStabCheck = true := by sorry
+theorem baseStabCheck_eq : baseStabCheck = true := by decide +kernel
 
 theorem baseStab_fix {o τ : Nat} (ho : o < 3) (hτ : τ ∈ baseStabOf o) :
     τ < 60 ∧ (wiki τ).toEuclideanLin (basePole o) = basePole o := by
@@ -594,19 +704,46 @@ def faceVertexOK (o h a m : Nat) : Bool :=
   (baseFaceOf o).contains m &&
     decide (M3.mul8 (wikiEntry (wikiInv h)) (wikiEntry a) = M3.scale 160 (wikiEntry m))
 
-def pairOK (j k : Nat) : Bool :=
-  match pairCertOf j k with
-  | [0] => decide (j = 0) || decide (k = 0) || decide (j = k)
+/-- The check of one pair's certificate `c`. -/
+def pairOKc (j k : Nat) (c : List Nat) : Bool :=
+  match c with
+  | [0] => decide (j = 0) || decide (k = 0) || decide (k ≤ j)
   | [1, x₁, x₂] => decide (x₁ < 60) && decide (x₂ < 60) &&
-      decide (0 < (sideIv 0 j k x₁).lo) && decide ((sideIv 0 j k x₂).hi < 0)
+      decide (0 < (sideZ 0 j k x₁).lo) && decide ((sideZ 0 j k x₂).hi < 0)
   | [2, o, h, m₀, m₁, m₂] => decide (o < 3) && decide (h < 60) &&
       faceVertexOK o h 0 m₀ && faceVertexOK o h j m₁ && faceVertexOK o h k m₂ &&
-      decide (detIv 0 j k).ExcludesZero
+      (decide (0 < (detZ 0 j k).lo) || decide ((detZ 0 j k).hi < 0))
   | _ => false
 
-def pairCheck : Bool := (List.range 60).all fun j => (List.range 60).all fun k => pairOK j k
+def pairOK (j k : Nat) : Bool := pairOKc j k (pairCertOf j k)
 
-theorem pairCheck_eq : pairCheck = true := by sorry
+/-- Walks the certificate list once (entry n is the pair (n / 60, n % 60)). -/
+def pairCheckFrom : List (List Nat) → Nat → Bool
+  | [], n => decide (n = 3600)
+  | c :: cs, n => pairOKc (n / 60) (n % 60) c && pairCheckFrom cs (n + 1)
+
+def pairCheck : Bool := pairCheckFrom pairCert 0
+
+theorem pairCheck_eq : pairCheck = true := by decide +kernel
+
+theorem pairCheckFrom_spec : ∀ (l : List (List Nat)) (n : Nat), pairCheckFrom l n = true →
+    n + l.length = 3600 ∧ ∀ i < l.length, pairOKc ((n + i) / 60) ((n + i) % 60) (l.getD i []) = true
+  | [], n, h => by simp [pairCheckFrom] at h; simp [h]
+  | c :: cs, n, h => by
+    simp only [pairCheckFrom, Bool.and_eq_true] at h
+    obtain ⟨hc, hcs⟩ := pairCheckFrom_spec cs (n + 1) h.2
+    refine ⟨by simp; omega, fun i hi => ?_⟩
+    rcases i with _ | i
+    · simpa using h.1
+    · have := hcs i (by simpa using hi)
+      simpa [show n + (i + 1) = n + 1 + i by omega] using this
+
+theorem pairOK_of {j k : Nat} (hj : j < 60) (hk : k < 60) : pairOK j k = true := by
+  obtain ⟨hlen, hall⟩ := pairCheckFrom_spec pairCert 0 pairCheck_eq
+  have := hall (60 * j + k) (by omega)
+  simp only [zero_add] at this
+  rw [show (60 * j + k) / 60 = j by omega, show (60 * j + k) % 60 = k by omega] at this
+  exact this
 
 theorem faceVertexOK_spec {o h a m : Nat} (ho : o < 3) (hh : h < 60) (ha : a < 60)
     (hok : faceVertexOK o h a m = true) :
@@ -618,41 +755,61 @@ theorem faceVertexOK_spec {o h a m : Nat} (ho : o < 3) (hh : h < 60) (ha : a < 6
   exact baseFace_level ho hok.1
 
 /-- A facet pole with vertex 0 and vertices j, k at level 1 is a rotated base pole. -/
-theorem facetPole_at_p {y : ℝ³} (hy : y ∈ pentagonalHexecontahedron) {j k : Nat} (hj : j < 60)
-    (hk : k < 60) (hind : AffineIndependent ℝ ![snubV 0, snubV j, snubV k])
+theorem facetPole_at_p_lt {y : ℝ³} (hy : y ∈ pentagonalHexecontahedron) {j k : Nat} (hj : j < 60)
+    (hk : k < 60) (hjk : j < k) (hind : AffineIndependent ℝ ![snubV 0, snubV j, snubV k])
     (h0 : ⟪snubV 0, y⟫ = 1) (hjy : ⟪snubV j, y⟫ = 1) (hky : ⟪snubV k, y⟫ = 1) :
     ∃ h < 60, ∃ o < 3, y = (wiki h).toEuclideanLin (basePole o) := by
-  have hc := pairCheck_eq
-  simp only [pairCheck, List.all_eq_true, List.mem_range] at hc
-  have hok := hc j hj k hk
+  have hok := pairOK_of hj hk
   have hle := hy.1
   have hmem : ∀ x < 60, ⟪snubV x, y⟫ ≤ 1 := fun x hx => hle _ ((mem_snub_iff _).mpr ⟨x, hx, rfl⟩)
-  unfold pairOK at hok
+  unfold pairOK pairOKc at hok
   split at hok
   · -- Degenerate: two of the three points coincide.
     simp only [Bool.or_eq_true, decide_eq_true_eq] at hok
     exfalso
     have hinj := hind.injective
-    rcases hok with (rfl | rfl) | rfl
+    rcases hok with (rfl | rfl) | hkj
     · exact absurd (hinj (a₁ := 0) (a₂ := 1) rfl) (by decide)
     · exact absurd (hinj (a₁ := 0) (a₂ := 2) rfl) (by decide)
-    · exact absurd (hinj (a₁ := 1) (a₂ := 2) rfl) (by decide)
+    · omega
   · rename_i x₁ x₂ _
     simp only [Bool.and_eq_true, decide_eq_true_eq] at hok
     obtain ⟨⟨⟨hx₁, hx₂⟩, hpos⟩, hneg⟩ := hok
     exfalso
-    have h1 := sideIv_mem (show 0 < 60 by norm_num) hj hk hx₁
-    have h2 := sideIv_mem (show 0 < 60 by norm_num) hj hk hx₂
+    have h1 := sideZ_mem (show 0 < 60 by norm_num) hj hk hx₁
+    have h2 := sideZ_mem (show 0 < 60 by norm_num) hj hk hx₂
     exact not_two_sided h0 hjy hky (hmem x₁ hx₁) (hmem x₂ hx₂)
-      (lt_of_lt_of_le (by exact_mod_cast hpos) h1.1) (lt_of_le_of_lt h2.2 (by exact_mod_cast hneg))
+      (pos_of_scaled hpos h1.1) (neg_of_scaled hneg h2.2)
   · rename_i o h m₀ m₁ m₂ _
-    simp only [Bool.and_eq_true, decide_eq_true_eq] at hok
+    simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq] at hok
     obtain ⟨⟨⟨⟨⟨ho, hh⟩, hf0⟩, hfj⟩, hfk⟩, hdet⟩ := hok
     refine ⟨h, hh, o, ho, ?_⟩
-    have hd := Iv.ne_zero_of hdet (detIv_mem (show 0 < 60 by norm_num) hj hk)
+    have hdm := detZ_mem (show 0 < 60 by norm_num) hj hk
+    have hd : det3 (snubV 0) (snubV j) (snubV k) ≠ 0 := by
+      rcases hdet with hpos | hneg
+      · exact (pos_of_scaled hpos hdm.1).ne'
+      · exact (neg_of_scaled hneg hdm.2).ne
     exact eq_of_level hd h0 hjy hky (faceVertexOK_spec ho hh (by norm_num) hf0)
       (faceVertexOK_spec ho hh hj hfj) (faceVertexOK_spec ho hh hk hfk)
   · simp at hok
+
+/-- `facetPole_at_p_lt` for any two other vertices. -/
+theorem facetPole_at_p {y : ℝ³} (hy : y ∈ pentagonalHexecontahedron) {j k : Nat} (hj : j < 60)
+    (hk : k < 60) (hind : AffineIndependent ℝ ![snubV 0, snubV j, snubV k])
+    (h0 : ⟪snubV 0, y⟫ = 1) (hjy : ⟪snubV j, y⟫ = 1) (hky : ⟪snubV k, y⟫ = 1) :
+    ∃ h < 60, ∃ o < 3, y = (wiki h).toEuclideanLin (basePole o) := by
+  rcases lt_trichotomy j k with hjk | rfl | hkj
+  · exact facetPole_at_p_lt hy hj hk hjk hind h0 hjy hky
+  · exact absurd (hind.injective (a₁ := 1) (a₂ := 2) rfl) (by decide)
+  · have hswap : AffineIndependent ℝ ![snubV 0, snubV k, snubV j] := by
+      have h := hind.comp_embedding (Equiv.swap (1 : Fin 3) 2).toEmbedding
+      have e : ![snubV 0, snubV k, snubV j] =
+          ![snubV 0, snubV j, snubV k] ∘ (Equiv.swap (1 : Fin 3) 2).toEmbedding := by
+        funext i
+        fin_cases i <;> rfl
+      rw [e]
+      exact h
+    exact facetPole_at_p_lt hy hk hj hkj hswap h0 hky hjy
 
 /-- The rotated base poles: 92 points (with repetitions in this description). -/
 noncomputable def phPoles : Finset ℝ³ :=
@@ -790,7 +947,7 @@ theorem phV0_mem (o : Fin orbitCount) : (phV0Box o).Mem (phV0 o) := by
   push_cast
   exact ⟨mul_le_mul_of_nonneg_left hl hs.le, mul_le_mul_of_nonneg_left hh hs.le⟩
 
-theorem phClose : closeCheck phV0Box = true := by sorry
+theorem phClose : closeCheck phV0Box = true := by decide +kernel
 
 /-- Decided: for each orbit o and model stabilizer element h, with
 [σ, q, τ] = stabConj[o][h]: ico h T = T S_σ, S_σ S_{g_o} = S_q = S_{g_o} S_τ,
@@ -810,7 +967,7 @@ def stabConjCheck : Bool :=
               (baseStabOf o).contains τ
           | _ => false
 
-theorem stabConjCheck_eq : stabConjCheck = true := by sorry
+theorem stabConjCheck_eq : stabConjCheck = true := by decide +kernel
 
 theorem ico_mul_snubFrame_of {h σ : Nat}
     (hc : M3.mul8 (icoEntry h) snubFrameT = M3.mul8 snubFrameT (wikiEntry σ)) :
@@ -874,7 +1031,7 @@ def slotCheck : Bool :=
         (baseStabOf o).contains τ
     | _ => false)
 
-theorem slotCheck_eq : slotCheck = true := by sorry
+theorem slotCheck_eq : slotCheck = true := by decide +kernel
 
 theorem phIModel_vertex (i : VertexIndex) :
     phIModel.toC5.vertex i = (phScale : ℝ) • snubFrame.toEuclideanLin
