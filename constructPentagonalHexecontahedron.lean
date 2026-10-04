@@ -1,11 +1,10 @@
 import Noperthedron.SnubDodecahedron.FundamentalChart3
-import Noperthedron.SnubDodecahedron.Statement
 import Noperthedron.SnubDodecahedron.NativeExecutable
 import Noperthedron.SnubDodecahedron.PackedSolutionTree
 
 /-!
 Native executable that reads and checks exact certificate data, then constructs
-a proof that no snub dodecahedron is Rupert (`snubDodecahedron_not_rupert`).
+a proof that no pentagonal hexecontahedron is Rupert.
 
 This is analogous to `constructValidTable`: the expensive Boolean checks run
 as parallel native code, while kernel-proved bridge theorems turn success into
@@ -32,7 +31,7 @@ def main (args : List String) : IO Unit := do
   let (manifestPath, directory) ← match args with
     | [m, d] => pure (m, d)
     | _ => throw (IO.userError (
-        "usage: constructSnubDodecahedron <code-pack manifest.txt> <chart directory>; " ++
+        "usage: constructPentagonalHexecontahedron <code-pack manifest.txt> <chart directory>; " ++
         "the manifest lists the identity-tube code packs in code order, and the " ++
         "directory holds chart0.pack through chart2.pack, or per-code packs " ++
         "c<chart>/t<t>.pack (pack5d --per_code)"))
@@ -73,10 +72,4 @@ def main (args : List String) : IO Unit := do
     (by intro shared chart; fin_cases chart <;> rfl)
     (by intro shared chart; fin_cases chart <;> rfl)
   let proof : ∀ P : IModel, ¬ IsRupert P.toC5.verts := checked.down
-  -- Every snub dodecahedron (Wikipedia's coordinates, any similar copy,
-  -- either chirality) is an `IModel` up to similarity.
-  let _snub : ∀ V : Finset ℝ³, IsSnubDodecahedron V → ¬ IsRupert V :=
-    snubDodecahedron_not_rupert proof
-  let _wikipedia : ¬ IsRupert snubDodecahedron := wikipediaSnubDodecahedron_not_rupert proof
-  IO.println "instantiated: no snub dodecahedron is Rupert"
-  IO.println "instantiated: Wikipedia's snub dodecahedron is not Rupert"
+  let _ := proof

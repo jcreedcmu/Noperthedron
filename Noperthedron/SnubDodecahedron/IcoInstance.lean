@@ -6,11 +6,12 @@ public import Noperthedron.MainTheorem
 @[expose] public section
 
 /-!
-# Instantiating `IModel` from a rational enclosure of vertex 0
+# Instantiating `IModel` from rational enclosures of the base points
 
-`IModel.ofBox`: if a point `v0` lies in a rational box `B`, and the decided
-check `closeCheck B` passes, then the I-orbit of `v0` is an `IModel`. The
-check pushes the box through each rotation g_i = `vElem i` by interval
+`IModel.ofBoxes`: if each orbit's base point `v0 o` lies in a rational box
+`B o` and is fixed by the orbit's stabilizer, and the decided check
+`closeCheck B` passes, then the base points define an `IModel`. The check
+pushes the boxes through each slot's rotation g_i = `vElem i` by interval
 arithmetic (entries enclosed by `IcoZ.lo`/`IcoZ.hi`) and bounds the distance
 of the image box to `rationalVertex i` by `modelErrorQ`.
 -/
@@ -82,9 +83,11 @@ def imageHi (g : Nat) (B : RatBox) (r : Fin 3) : ℚ :=
 /-- A bound on `(x − q)²` for x in [lo, hi]. -/
 def sqDistBound (lo hi q : ℚ) : ℚ := max ((lo - q) ^ 2) ((hi - q) ^ 2)
 
-def closeCheck (B : RatBox) : Bool :=
-  (List.finRange 60).all fun i =>
-    decide (∑ r, sqDistBound (imageLo (vElem i.val) B r) (imageHi (vElem i.val) B r)
+def closeCheck (B : Fin orbitCount → RatBox) : Bool :=
+  (List.finRange (Fintype.card VertexIndex)).all fun n =>
+    let i : VertexIndex := Fin.cast (by simp) n
+    let b := B (vOrbit i.val)
+    decide (∑ r, sqDistBound (imageLo (vElem i.val) b r) (imageHi (vElem i.val) b r)
       (rationalVertex i r) ≤ modelErrorQ ^ 2)
 
 theorem image_mem (g : Nat) (B : RatBox) {v : ℝ³} (hv : B.Mem v) (r : Fin 3) :
@@ -121,22 +124,27 @@ theorem sq_le_sqDistBound {lo hi q : ℚ} {x : ℝ} (hx : (lo : ℝ) ≤ x ∧ x
   · exact (by nlinarith : (x - q) ^ 2 ≤ ((hi : ℝ) - q) ^ 2).trans (le_max_right _ _)
   · exact (by nlinarith : (x - q) ^ 2 ≤ ((lo : ℝ) - q) ^ 2).trans (le_max_left _ _)
 
-/-- The I-orbit of a point in a checked box is an `IModel`. -/
-noncomputable def IModel.ofBox (B : RatBox) (hcheck : closeCheck B = true) (v0 : ℝ³)
-    (hv : B.Mem v0) : IModel where
+/-- Base points in checked boxes, fixed by their stabilizers, are an `IModel`. -/
+noncomputable def IModel.ofBoxes (B : Fin orbitCount → RatBox) (hcheck : closeCheck B = true)
+    (v0 : Fin orbitCount → ℝ³) (hv : ∀ o, (B o).Mem (v0 o))
+    (hfixed : ∀ o : Fin orbitCount, ∀ h ∈ icoStab o.val, (ico h).toEuclideanLin (v0 o) = v0 o) :
+    IModel where
   v0 := v0
+  fixed := hfixed
   close i := by
     simp only [closeCheck, List.all_eq_true, List.mem_finRange, forall_true_left,
       decide_eq_true_eq] at hcheck
-    have hi := hcheck i
-    set w := (ico (vElem i.val)).toEuclideanLin v0
+    have hi := hcheck (Fin.cast (by simp) i)
+    simp only [Fin.cast_cast, Fin.cast_eq_self] at hi
+    set b := B (vOrbit i.val)
+    set w := (ico (vElem i.val)).toEuclideanLin (v0 (vOrbit i.val))
     have hsq : ‖w - toR3 (rationalVertex i)‖ ^ 2 ≤ ((modelErrorQ : ℚ) : ℝ) ^ 2 := by
       rw [EuclideanSpace.norm_eq, Real.sq_sqrt (by positivity)]
       have hb : ∀ r, (w r - rationalVertex i r) ^ 2 ≤
-          (sqDistBound (imageLo (vElem i.val) B r) (imageHi (vElem i.val) B r)
+          (sqDistBound (imageLo (vElem i.val) b r) (imageHi (vElem i.val) b r)
             (rationalVertex i r) : ℝ) :=
-        fun r => sq_le_sqDistBound (image_mem _ B hv r)
-      have hiR : ((∑ r, sqDistBound (imageLo (vElem i.val) B r) (imageHi (vElem i.val) B r)
+        fun r => sq_le_sqDistBound (image_mem _ b (hv _) r)
+      have hiR : ((∑ r, sqDistBound (imageLo (vElem i.val) b r) (imageHi (vElem i.val) b r)
           (rationalVertex i r) : ℚ) : ℝ) ≤ ((modelErrorQ ^ 2 : ℚ) : ℝ) := by exact_mod_cast hi
       push_cast at hiR
       calc ∑ r, ‖(w - toR3 (rationalVertex i)) r‖ ^ 2

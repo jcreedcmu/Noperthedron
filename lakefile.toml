@@ -53,8 +53,8 @@ root = "benchRows"
 buildType = "release"
 
 [[lean_exe]]
-name = "constructSnubDodecahedron"
-root = "constructSnubDodecahedron"
+name = "constructPentagonalHexecontahedron"
+root = "constructPentagonalHexecontahedron"
 buildType = "release"
 
 [[lean_exe]]

@@ -1,23 +1,21 @@
 module
 
 public import Noperthedron.SnubDodecahedron.AtlasProjectiveLocalViewTree
-public import Noperthedron.SnubDodecahedron.GeneratedTangentCones
 
 @[expose] public section
 
 /-!
-# Sparse validation for projective local-view trees
+# Row validation for projective local-view trees
 
-The semantic tree and its final theorem remain unchanged.  This module only
-provides a cheaper decidable predicate for generated certificate rows.  A
-proof of the sparse predicate is converted to the original `Table.Valid`
-hypothesis using the exact tangent-cone certificates.
+The semantic tree and its final theorem remain unchanged. This module
+provides the decidable predicate checked for generated rows, and its
+parallel native checker. A certificate row's support conditions are checked
+against every vertex (`Box.ViewValid`; the identity tube has few rows).
 -/
 
 namespace Noperthedron.SnubDodecahedron.SparseLocalViewTree
 
 open AtlasProjectiveLocalViewTree
-open SparseSupport
 
 def SparseRowValidAt (symmetryIndex : OrbitIndex) (r : ℚ)
     (get : ℕ → Row) (size : ℕ) : Row → Prop
@@ -28,8 +26,7 @@ def SparseRowValidAt (symmetryIndex : OrbitIndex) (r : ℚ)
         Noperthedron.Atlas.ProjectiveView.split triangle child ∧
       rLower ≤ (get (children child)).rLower
   | .certificate _ box =>
-      box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧
-        SparseSupport.Box.SparseViewValid box
+      box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧ box.ViewValid
   | .decomposed _ box coreAxis defect0 D0 r_min c_cone c_core lam w =>
       box.symmetryIndex = symmetryIndex ∧ r ≤ box.r ∧
       box.DecomposedViewValid coreAxis defect0 D0 r_min c_cone c_core lam w
@@ -95,10 +92,7 @@ theorem Row.ValidAt.of_sparse {symmetryIndex : OrbitIndex} {r : ℚ}
   cases row with
   | split => exact h
   | certificate id box =>
-      exact ⟨h.1, h.2.1,
-        SparseSupport.Box.SparseViewValid.toViewValid h.2.2
-          GeneratedTangentCones.table
-          GeneratedTangentCones.table_valid_kernel⟩
+      exact h
   | decomposed => exact h
   | flockDecomposed => exact h
 
