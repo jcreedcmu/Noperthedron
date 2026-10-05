@@ -79,16 +79,6 @@ buildType = "release"
 
 
 [[lean_exe]]
-name = "capBench"
-root = "capBench"
-buildType = "release"
-
-[[lean_exe]]
-name = "capBench2"
-root = "capBench2"
-buildType = "release"
-
-[[lean_exe]]
 name = "dhBench"
 root = "dhBench"
 buildType = "release"
