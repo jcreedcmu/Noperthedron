@@ -53,8 +53,8 @@ root = "benchRows"
 buildType = "release"
 
 [[lean_exe]]
-name = "constructPentagonalHexecontahedron"
-root = "constructPentagonalHexecontahedron"
+name = "constructDeltoidalHexecontahedron"
+root = "constructDeltoidalHexecontahedron"
 buildType = "release"
 
 [[lean_exe]]
@@ -77,3 +77,18 @@ name = "check_global_rows"
 root = "check_global_rows"
 buildType = "release"
 
+
+[[lean_exe]]
+name = "capBench"
+root = "capBench"
+buildType = "release"
+
+[[lean_exe]]
+name = "capBench2"
+root = "capBench2"
+buildType = "release"
+
+[[lean_exe]]
+name = "dhBench"
+root = "dhBench"
+buildType = "release"

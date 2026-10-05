@@ -45,11 +45,14 @@ def nodeOk (C : TieCerts) (k : ℕ) (e : TieNode) : Bool :=
       | none => false
   | _ => false
 
+/-- Node k's check (vacuously true past the last node, for the parallel chunks). -/
+def nodePred (C : TieCerts) (k : ℕ) : Bool :=
+  match dhTieNodes[k]? with
+  | some e => nodeOk C k e
+  | none => true
+
 def tiesCheck (C : TieCerts) : Bool :=
-  sameSlots C.V.toList && (List.range dhTieNodes.size).all fun k =>
-    match dhTieNodes[k]? with
-    | some e => nodeOk C k e
-    | none => false
+  sameSlots C.V.toList && (List.range dhTieNodes.size).all (nodePred C)
 
 theorem tieClaimT_mono {S : Set ℝ³} {x : Fin 3 → ℝ} {T : Triangle} {ρ ρ' : ℚ} (h : TieClaimT S x T ρ)
     (h0 : 0 ≤ ρ') (hle : ρ' ≤ ρ) : TieClaimT S x T ρ' := by
@@ -72,6 +75,7 @@ theorem node_claim (C : TieCerts) (h : tiesCheck C = true) :
     intro k hk e he
     have hk' : k < dhTieNodes.size := (Array.getElem?_eq_some_iff.mp he).1
     have hok := hnodes k hk'
+    unfold nodePred at hok
     rw [he] at hok
     simp only at hok
     unfold nodeOk at hok

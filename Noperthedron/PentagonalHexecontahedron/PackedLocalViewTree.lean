@@ -196,6 +196,8 @@ def readRow (base : AtlasProjectiveView.Triangle Rat) : Decoder Row := do
     let d ← readNat
     let rLower ← readRat
     pure (.split id ![a, b, c, d] (fin8 root) triangle rLower)
+  else if tag = 4 then
+    pure (.empty id (fin8 root) triangle)
   else if tag = 2 then
     let symmetryIndex ← readNat
     let certificate ← readCertificate
