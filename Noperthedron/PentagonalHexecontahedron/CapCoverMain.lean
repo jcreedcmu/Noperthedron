@@ -133,8 +133,14 @@ theorem coneScale_pos (st : Setup) (hS : 2 ≤ st.strongScale) (hm : 1 ≤ st.mc
     nlinarith
   exact_mod_cast this
 
+/-- The tie scheme's parameters are admissible (faces with a strong axis ≠ 0, K ≥ Z + Z₂, K' > K). -/
+def TieOK (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) : Prop :=
+  ∀ b p, st.tieOf b = some p → b.1 = .face →
+    b.2.2.1 ≠ 0 ∧ zOf b + p.1 ≤ p.2.1 ∧ p.2.1 < p.2.2 ∧ pr.ratioOn = true ∧ st.strong b.2.2.1 = true
+
 /-- The covering of the cap domain by the charts. -/
 theorem cap_cover (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (hz : ∀ b, 0 < zOf b)
+    (htie : TieOK st pr zOf)
     (hF : FrameOK st) (hS : 2 ≤ st.strongScale) (hmcm : 1 ≤ st.mcm) (ht0 : 0 ≤ (pr.t0 : ℝ))
     (ht0m : 0 ≤ (pr.t0m : ℝ))
     (wmax : ℝ) (hw0 : 0 ≤ wmax) (hw1 : wmax ≤ 2 * pr.mu0) (hw2 : wmax ≤ st.strongScale * (pr.mu0 : ℝ) ^ 2)
@@ -318,8 +324,17 @@ theorem cap_cover (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool �
       by_cases h : 0 ≤ sv k
       · simp only [h, decide_true, if_true, one_mul]; rw [abs_of_nonneg h] at hk; exact hk
       · simp only [h, decide_false, Bool.false_eq_true, if_false]; rw [abs_of_neg (lt_of_not_ge h)] at hk; linarith
-    obtain ⟨id, hid, hk', hsd, y, hy, hy0, hy1, hres⟩ := realize_face st pr zOf side k k.isLt (decide (0 ≤ sv k))
-      (hz _) μ τ e hμ0 hμ1' hτ he0 he1 sv hsb (fun i hi => by rw [show i = k from Fin.ext hi]; exact hsk) A B
+    obtain ⟨id, hid, hk', hsd, y, hy, hy0, hy1, hres⟩ :
+        ∃ id ∈ expandChart st pr zOf (.face, side, k, decide (0 ≤ sv k)), id.kind = .face ∧ id.side = side ∧
+          ∃ y, InBoxR (rootBox st pr id) y ∧ y 0 = μ ∧ y 1 = τ ∧ rES st id A B y = (e, sv) := by
+      by_cases htb : IsTie st (.face, side, k, decide (0 ≤ sv k))
+      · obtain ⟨-, hsome⟩ := htb
+        obtain ⟨⟨z2, kk, kp⟩, hp⟩ := Option.isSome_iff_exists.mp hsome
+        obtain ⟨hax0, hK, hKp, hro, hstr⟩ := htie _ _ hp rfl
+        exact realize_tie st pr zOf side k k.isLt hax0 (decide (0 ≤ sv k)) z2 kk kp hp hK hKp hro hstr
+          μ τ e hμ0 hμ1' hτ he0 he1 sv hsb (fun i hi => by rw [show i = k from Fin.ext hi]; exact hsk) A B
+      · exact realize_face st pr zOf side k k.isLt (decide (0 ≤ sv k)) (hz _) htb μ τ e hμ0 hμ1' hτ he0 he1 sv hsb
+          (fun i hi => by rw [show i = k from Fin.ext hi]; exact hsk) A B
     refine ⟨id, mem_chartList st pr zOf (face_mem_base pr hside k.isLt _) hid, y, hy, ?_, ?_, ?_⟩
     · exact hU id y hsd hy0 hy1 (by rw [hsd, hres])
     · exact hW id y hsd hy0 hy1 (by rw [hsd, hres])

@@ -72,7 +72,7 @@ theorem eval_chart_witnessPoly (st : Setup) (id : ChartId) (vk c vj : KVec) (y :
   rfl
 
 theorem rootLoHi_zero (st : Setup) (pr : Params) (id : ChartId) : rootLoHi st pr id 0 = (0, pr.mu0) := by
-  unfold rootLoHi; simp [baseLoHi]
+  rw [rootLoHi_std' st pr id 0 (tieLoHiOf_of_v st id 0 (by norm_num))]; unfold rootLoHiStd; simp [baseLoHi]
 
 theorem rootLoHi_two_cone (st : Setup) (pr : Params) (id : ChartId) (hk : id.kind = .cone ∨ id.kind = .mcone)
     (hax : id.axis < 3) : rootLoHi st pr id 2 = (0, pr.coneT id.kind) := by
@@ -89,7 +89,8 @@ theorem rootLoHi_two_cone (st : Setup) (pr : Params) (id : ChartId) (hk : id.kin
       rintro ⟨-, hp⟩
       have := pvarOf_ne_zero_of_ne_fe id hnfe hp
       omega
-  · unfold rootLoHi; simp only [show (2 : ℕ) ≤ 2 from le_refl _, if_true]
+  · rw [rootLoHi_std' st pr id 2 (tieLoHiOf_of_ne_face st id (by rcases hk with h | h <;> rw [h] <;> simp) 2)]
+    unfold rootLoHiStd; simp only [show (2 : ℕ) ≤ 2 from le_refl _, if_true]
     rw [if_neg (by omega), if_neg (by omega), hb]
 
 theorem y0_nonneg_of_root (st : Setup) (pr : Params) (id : ChartId) (y : Fin 5 → ℝ)

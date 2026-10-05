@@ -44,6 +44,8 @@ structure Setup where
   x : KVec
   e1 : KVec
   e2 : KVec
+  /-- Base charts using the tie scheme (capcert `--tie_charts`) and their (Z₂, K, K'). -/
+  tieCharts : List ((Kind × ℕ × ℕ × Bool) × (ℕ × ℕ × ℕ)) := []
 
 structure ChartId where
   kind : Kind
@@ -99,6 +101,40 @@ def ratioVar (st : Setup) (id : ChartId) (k : ℕ) : NPoly 5 :=
     if id.ratioSign then inner else NPoly.scale 5 (-1) inner
   else pv k
 
+def Setup.tieOf (st : Setup) (b : Kind × ℕ × ℕ × Bool) : Option (ℕ × ℕ × ℕ) :=
+  (st.tieCharts.find? (fun e => decide (e.1 = b))).map (·.2)
+
+/-- (e, s₀) of chart m of the tie scheme (capcert ratio 10–17; p₀ = pv 0, s₀'s variable q = pv 1):
+10: (μ p₀, μ q); 11/12: (μ p₀, ±(K' μ + q)); 13: (K μ + p₀, μ q); 14: (K μ + p₀, −(Z μ + q));
+15: (e, e + μ q); 16: (e, e + Z₂ μ + q); 17: (e, Z μ + q (p₀ + (K − Z − Z₂) μ)), e = K μ + p₀. -/
+def tieES (m Z Z2 K Kp : ℕ) : NPoly 5 × NPoly 5 :=
+  let p0 := pv 0
+  let q := pv 1
+  let am (a : ℕ) : NPoly 5 := NPoly.mul 5 (pint a) mu
+  let neg (x : NPoly 5) : NPoly 5 := NPoly.scale 5 (-1) x
+  let eK := NPoly.add 5 (am K) p0
+  if m = 10 then (NPoly.mul 5 mu p0, NPoly.mul 5 mu q)
+  else if m = 11 then (NPoly.mul 5 mu p0, NPoly.add 5 (am Kp) q)
+  else if m = 12 then (NPoly.mul 5 mu p0, neg (NPoly.add 5 (am Kp) q))
+  else if m = 13 then (eK, NPoly.mul 5 mu q)
+  else if m = 14 then (eK, neg (NPoly.add 5 (am Z) q))
+  else if m = 15 then (eK, NPoly.add 5 eK (NPoly.mul 5 mu q))
+  else if m = 16 then (eK, NPoly.add 5 (NPoly.add 5 eK (am Z2)) q)
+  else (eK, NPoly.add 5 (am Z) (NPoly.mul 5 q (NPoly.add 5 p0 (am (K - Z - Z2)))))
+
+/-- The tie scheme's (e, s₀) of a chart, if it is one. -/
+def Setup.tieChartES (st : Setup) (id : ChartId) : Option (NPoly 5 × NPoly 5) :=
+  if 10 ≤ id.ratio ∧ id.kind = .face then
+    (st.tieOf (id.kind, id.side, id.axis, id.sign)).map fun p => tieES id.ratio id.z p.1 p.2.1 p.2.2
+  else none
+
+/-- A face chart's s (before the tie scheme's s₀). -/
+def faceS (st : Setup) (id : ChartId) : Fin 3 → NPoly 5 := fun i =>
+  if (i : ℕ) = id.axis then pint ((if id.sign then 1 else -1) * st.range i) else
+    match pvarOf id i with
+    | some k => ratioVar st id k
+    | none => NPoly.zero 5
+
 /-- (e, s₀, s₁, s₂). -/
 def eAndS (st : Setup) (id : ChartId) (A B : KVec) : NPoly 5 × (Fin 3 → NPoly 5) :=
   let sgn : ℤ := if id.sign then 1 else -1
@@ -122,11 +158,9 @@ def eAndS (st : Setup) (id : ChartId) (A B : KVec) : NPoly 5 × (Fin 3 → NPoly
         | none => NPoly.zero 5
       NPoly.add 5 (center i) (NPoly.mul 5 (NPoly.mul 5 (pint (st.coneScale id.kind i)) (pv 0)) sig))
   | .face =>
-    (pv 0, fun i =>
-      if (i : ℕ) = id.axis then pint (sgn * st.range i) else
-        match pvarOf id i with
-        | some k => ratioVar st id k
-        | none => NPoly.zero 5)
+    match st.tieChartES id with
+    | some es => (es.1, fun i => if (i : ℕ) = 0 then es.2 else faceS st id i)
+    | none => (pv 0, faceS st id)
 
 structure Chart where
   u : PVec
@@ -188,6 +222,7 @@ def expandChart (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool →
   let (kind, side, axis, sign) := b
   let base : ChartId := ⟨kind, side, axis, sign, 0, 0, true, zOf b⟩
   if pr.ratioOn && (kind = .fe || st.strong axis) then
+    if kind = .face ∧ (st.tieOf b).isSome then (List.range 8).map fun m => { base with ratio := 10 + m } else
     { base with ratio := 1 } ::
       ((List.range 3).flatMap fun i =>
         if !st.strong i && (pvarOf base i).isSome then
@@ -212,14 +247,55 @@ def baseLoHi (st : Setup) (pr : Params) (kind : Kind) (axis : ℕ) (v : ℕ) : �
   | _, 2 => (0, pr.t0)
   | _, _ => (-1, 1)
 
-/-- A chart's coordinate bounds (lo, hi), as capcert's ChartId box. -/
-def rootLoHi (st : Setup) (pr : Params) (id : ChartId) (v : ℕ) : ℚ × ℚ :=
+/-- The tie scheme's bounds of (p₀, p₁) (v = 2, 3) for chart m. -/
+def tieLoHi (m Z Z2 K Kp : ℕ) (v : ℕ) : Option (ℚ × ℚ) :=
+  if v = 2 then some (if m ≤ 12 then (0, (K : ℚ)) else (0, 1))
+  else if v = 3 then some
+    (if m = 10 then (-(Kp : ℚ), (Kp : ℚ)) else if m = 13 then (-(Z : ℚ), (Z : ℚ))
+     else if m = 15 then (-(Z2 : ℚ), (Z2 : ℚ)) else if m = 17 then (0, 1) else (0, 2))
+  else none
+
+def Setup.tieLoHiOf (st : Setup) (id : ChartId) (v : ℕ) : Option (ℚ × ℚ) :=
+  if 10 ≤ id.ratio ∧ id.kind = .face then
+    match st.tieOf (id.kind, id.side, id.axis, id.sign) with
+    | some p => tieLoHi id.ratio id.z p.1 p.2.1 p.2.2 v
+    | none => none
+  else none
+
+/-- The coordinate bounds of a chart outside the tie scheme. -/
+def rootLoHiStd (st : Setup) (pr : Params) (id : ChartId) (v : ℕ) : ℚ × ℚ :=
   if 2 ≤ v then
     if id.ratio = 1 ∧ (List.range 3).any (fun i => !st.strong i && pvarOf id i = some (v - 2)) then
       (-(id.z : ℚ), (id.z : ℚ))
     else if id.ratio = 2 ∧ pvarOf id id.ratioCoord = some (v - 2) then (0, (baseLoHi st pr id.kind id.axis v).2)
     else baseLoHi st pr id.kind id.axis v
   else baseLoHi st pr id.kind id.axis v
+
+/-- A chart's coordinate bounds (lo, hi), as capcert's ChartId box. -/
+def rootLoHi (st : Setup) (pr : Params) (id : ChartId) (v : ℕ) : ℚ × ℚ :=
+  match st.tieLoHiOf id v with
+  | some r => r
+  | none => rootLoHiStd st pr id v
+
+theorem rootLoHi_std' (st : Setup) (pr : Params) (id : ChartId) (v : ℕ) (h : st.tieLoHiOf id v = none) :
+    rootLoHi st pr id v = rootLoHiStd st pr id v := by
+  simp [rootLoHi, h]
+
+theorem rootLoHi_std (st : Setup) (pr : Params) (id : ChartId) (h : id.ratio < 10) (v : ℕ) :
+    rootLoHi st pr id v = rootLoHiStd st pr id v := by
+  apply rootLoHi_std'
+  simp [Setup.tieLoHiOf]; omega
+
+theorem tieLoHiOf_of_ne_face (st : Setup) (id : ChartId) (h : id.kind ≠ .face) (v : ℕ) : st.tieLoHiOf id v = none := by
+  simp [Setup.tieLoHiOf, h]
+
+theorem tieLoHiOf_of_v (st : Setup) (id : ChartId) (v : ℕ) (h : v ≠ 2 ∧ v ≠ 3) : st.tieLoHiOf id v = none := by
+  unfold Setup.tieLoHiOf
+  split_ifs
+  · split
+    · simp [tieLoHi, h.1, h.2]
+    · rfl
+  · rfl
 
 /-- The root box of a chart (lo, width). -/
 def rootBox (st : Setup) (pr : Params) (id : ChartId) : Fin 5 → ℚ × ℚ :=

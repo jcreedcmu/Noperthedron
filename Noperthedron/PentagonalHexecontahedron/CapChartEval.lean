@@ -62,6 +62,46 @@ theorem eval_ratioVar (st : Setup) (id : ChartId) (y : Fin 5 → ℝ) (k : ℕ) 
   unfold ratioVar rRatioVar
   split_ifs <;> simp [NPoly.eval_mul, NPoly.eval_add, NPoly.eval_scale, eval_mu, eval_pv, eval_pint, rpv]
 
+/-- The real (e, s₀) of tie-scheme chart m. -/
+noncomputable def rTieES (m Z Z2 K Kp : ℕ) (y : Fin 5 → ℝ) : ℝ × ℝ :=
+  let μ := y 0
+  let p0 := rpv y 0
+  let q := rpv y 1
+  let eK := (K : ℝ) * μ + p0
+  if m = 10 then (μ * p0, μ * q)
+  else if m = 11 then (μ * p0, (Kp : ℝ) * μ + q)
+  else if m = 12 then (μ * p0, -((Kp : ℝ) * μ + q))
+  else if m = 13 then (eK, μ * q)
+  else if m = 14 then (eK, -((Z : ℝ) * μ + q))
+  else if m = 15 then (eK, eK + μ * q)
+  else if m = 16 then (eK, eK + (Z2 : ℝ) * μ + q)
+  else (eK, (Z : ℝ) * μ + q * (p0 + ((K - Z - Z2 : ℕ) : ℝ) * μ))
+
+theorem eval_tieES (m Z Z2 K Kp : ℕ) (y : Fin 5 → ℝ) :
+    NPoly.eval 5 (tieES m Z Z2 K Kp).1 y = (rTieES m Z Z2 K Kp y).1 ∧
+      NPoly.eval 5 (tieES m Z Z2 K Kp).2 y = (rTieES m Z Z2 K Kp y).2 := by
+  unfold tieES rTieES
+  split_ifs <;> simp [NPoly.eval_mul, NPoly.eval_add, NPoly.eval_scale, eval_mu, eval_pv, eval_pint, rpv] <;> ring
+
+noncomputable def Setup.rTieChartES (st : Setup) (id : ChartId) (y : Fin 5 → ℝ) : Option (ℝ × ℝ) :=
+  if 10 ≤ id.ratio ∧ id.kind = .face then
+    (st.tieOf (id.kind, id.side, id.axis, id.sign)).map fun p => rTieES id.ratio id.z p.1 p.2.1 p.2.2 y
+  else none
+
+noncomputable def rFaceS (st : Setup) (id : ChartId) (y : Fin 5 → ℝ) : Fin 3 → ℝ := fun i =>
+  if (i : ℕ) = id.axis then (if id.sign then (1 : ℝ) else -1) * (st.range i : ℝ) else
+    match pvarOf id i with
+    | some k => rRatioVar st id y k
+    | none => 0
+
+theorem eval_faceS (st : Setup) (id : ChartId) (y : Fin 5 → ℝ) (i : Fin 3) :
+    NPoly.eval 5 (faceS st id i) y = rFaceS st id y i := by
+  unfold faceS rFaceS
+  by_cases ha : (i : ℕ) = id.axis
+  · simp only [ha, if_true, eval_pint]; cases id.sign <;> simp
+  · simp only [ha, if_false]
+    rcases h : pvarOf id i with _ | k <;> simp [eval_ratioVar, NPoly.eval_zero]
+
 /-- The real (e, s). -/
 noncomputable def rES (st : Setup) (id : ChartId) (A B : KVec) (y : Fin 5 → ℝ) : ℝ × (Fin 3 → ℝ) :=
   let sgn : ℝ := if id.sign then 1 else -1
@@ -83,11 +123,9 @@ noncomputable def rES (st : Setup) (id : ChartId) (A B : KVec) (y : Fin 5 → �
         | none => 0
       center i + ((st.coneScale id.kind i : ℤ) : ℝ) * rpv y 0 * sig)
   | .face =>
-    (rpv y 0, fun i =>
-      if (i : ℕ) = id.axis then sgn * (st.range i : ℝ) else
-        match pvarOf id i with
-        | some k => rRatioVar st id y k
-        | none => 0)
+    match st.rTieChartES id y with
+    | some es => (es.1, fun i => if (i : ℕ) = 0 then es.2 else rFaceS st id y i)
+    | none => (rpv y 0, rFaceS st id y)
 
 theorem eval_eAndS (st : Setup) (id : ChartId) (A B : KVec) (y : Fin 5 → ℝ) :
     NPoly.eval 5 (eAndS st id A B).1 y = (rES st id A B y).1 ∧
@@ -95,6 +133,27 @@ theorem eval_eAndS (st : Setup) (id : ChartId) (A B : KVec) (y : Fin 5 → ℝ) 
   unfold eAndS rES
   rcases hk : id.kind with _ | _ | _ | _
   · simp [eval_pint, eval_ratioVar]
+  rotate_left 2
+  · -- Faces (possibly tie-scheme charts).
+    by_cases hr : 10 ≤ id.ratio ∧ id.kind = .face
+    · have e1 : st.tieChartES id = (st.tieOf (id.kind, id.side, id.axis, id.sign)).map
+          (fun p => tieES id.ratio id.z p.1 p.2.1 p.2.2) := by simp [Setup.tieChartES, hr]
+      have e2 : st.rTieChartES id y = (st.tieOf (id.kind, id.side, id.axis, id.sign)).map
+          (fun p => rTieES id.ratio id.z p.1 p.2.1 p.2.2 y) := by simp [Setup.rTieChartES, hr]
+      rw [e1, e2]
+      cases ht : st.tieOf (id.kind, id.side, id.axis, id.sign) with
+      | none => exact ⟨by simp [eval_pv, rpv], eval_faceS st id y⟩
+      | some p =>
+        simp only [Option.map_some]
+        obtain ⟨h1, h2⟩ := eval_tieES id.ratio id.z p.1 p.2.1 p.2.2 y
+        refine ⟨h1, fun i => ?_⟩
+        by_cases h0 : (i : ℕ) = 0
+        · rw [if_pos h0, if_pos h0]; exact h2
+        · rw [if_neg h0, if_neg h0]; exact eval_faceS st id y i
+    · have e1 : st.tieChartES id = none := by simp [Setup.tieChartES, hr]
+      have e2 : st.rTieChartES id y = none := by simp [Setup.rTieChartES, hr]
+      rw [e1, e2]
+      exact ⟨by simp [eval_pv, rpv], eval_faceS st id y⟩
   all_goals
     refine ⟨by simp [eval_pint, eval_pv, rpv], fun i => ?_⟩
     simp only [hk]

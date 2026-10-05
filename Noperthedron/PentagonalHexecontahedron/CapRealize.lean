@@ -106,7 +106,8 @@ open Classical in
 theorem rootLoHi_ratio1 (st : Setup) (pr : Params) (id : ChartId) (h1 : id.ratio = 1) (v : ℕ) :
     rootLoHi st pr id v = if 2 ≤ v ∧ IsWeakP st id (v - 2) then (-(id.z : ℚ), (id.z : ℚ))
       else baseLoHi st pr id.kind id.axis v := by
-  unfold rootLoHi
+  rw [rootLoHi_std st pr id (by omega)]
+  unfold rootLoHiStd
   by_cases h2 : 2 ≤ v
   · by_cases hw : IsWeakP st id (v - 2)
     · rw [if_pos h2, if_pos ⟨h1, (any_weak_iff st id _).mpr hw⟩, if_pos ⟨h2, hw⟩]
@@ -119,7 +120,8 @@ open Classical in
 theorem rootLoHi_ratio2 (st : Setup) (pr : Params) (id : ChartId) (h2' : id.ratio = 2) (v : ℕ) :
     rootLoHi st pr id v = if 2 ≤ v ∧ pvarOf id id.ratioCoord = some (v - 2) then
       (0, (baseLoHi st pr id.kind id.axis v).2) else baseLoHi st pr id.kind id.axis v := by
-  unfold rootLoHi
+  rw [rootLoHi_std st pr id (by omega)]
+  unfold rootLoHiStd
   by_cases h2 : 2 ≤ v
   · rw [if_pos h2, if_neg (by rw [h2']; omega)]
     by_cases hp : pvarOf id id.ratioCoord = some (v - 2)
@@ -129,25 +131,31 @@ theorem rootLoHi_ratio2 (st : Setup) (pr : Params) (id : ChartId) (h2' : id.rati
 
 theorem rootLoHi_ratio0 (st : Setup) (pr : Params) (id : ChartId) (h0 : id.ratio = 0) (v : ℕ) :
     rootLoHi st pr id v = baseLoHi st pr id.kind id.axis v := by
-  unfold rootLoHi
+  rw [rootLoHi_std st pr id (by omega)]
+  unfold rootLoHiStd
   split_ifs with h2 ha hb <;> first | rfl | (exfalso; rw [h0] at ha; exact absurd ha.1 (by norm_num)) |
     (exfalso; rw [h0] at hb; exact absurd hb.1 (by norm_num))
 
+/-- A base chart using the tie scheme. -/
+def IsTie (st : Setup) (b : Kind × ℕ × ℕ × Bool) : Prop := b.1 = .face ∧ (st.tieOf b).isSome = true
+
 theorem mem_expand_inner (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ)
-    (b : Kind × ℕ × ℕ × Bool) (hr : (pr.ratioOn && (b.1 = .fe || st.strong b.2.2.1)) = true) :
+    (b : Kind × ℕ × ℕ × Bool) (hr : (pr.ratioOn && (b.1 = .fe || st.strong b.2.2.1)) = true) (hnt : ¬ IsTie st b) :
     ({ baseId zOf b with ratio := 1 } : ChartId) ∈ expandChart st pr zOf b := by
   obtain ⟨kind, side, axis, sign⟩ := b
   simp only at hr
   simp only [expandChart, hr, if_true, baseId]
+  rw [if_neg (show ¬(kind = Kind.face ∧ (st.tieOf (kind, side, axis, sign)).isSome = true) from hnt)]
   exact List.mem_cons_self
 
 theorem mem_expand_outer (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ)
-    (b : Kind × ℕ × ℕ × Bool) (hr : (pr.ratioOn && (b.1 = .fe || st.strong b.2.2.1)) = true)
+    (b : Kind × ℕ × ℕ × Bool) (hr : (pr.ratioOn && (b.1 = .fe || st.strong b.2.2.1)) = true) (hnt : ¬ IsTie st b)
     {i k : ℕ} (hi : i < 3) (hs : st.strong i = false) (hp : pvarOf (baseId zOf b) i = some k) (sg : Bool) :
     ({ baseId zOf b with ratio := 2, ratioCoord := i, ratioSign := sg } : ChartId) ∈ expandChart st pr zOf b := by
   obtain ⟨kind, side, axis, sign⟩ := b
   simp only at hr
   simp only [expandChart, hr, if_true]
+  rw [if_neg (show ¬(kind = Kind.face ∧ (st.tieOf (kind, side, axis, sign)).isSome = true) from hnt)]
   apply List.mem_cons_of_mem
   rw [List.mem_flatMap]
   refine ⟨i, List.mem_range.mpr hi, ?_⟩
@@ -164,10 +172,10 @@ theorem mem_expand_outer (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ ×
 open Classical in
 /-- The ratio blow-up realizes every point of the base chart. -/
 theorem realize_ratio (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ)
-    (b : Kind × ℕ × ℕ × Bool) (hax : b.2.2.1 < 3) (hz : 0 < zOf b)
+    (b : Kind × ℕ × ℕ × Bool) (hax : b.2.2.1 < 3) (hz : 0 < zOf b) (hnt : ¬ IsTie st b)
     (y₀ : Fin 5 → ℝ) (hy₀ : InBoxR (rootBox st pr (baseId zOf b)) y₀) (hμ : 0 ≤ y₀ 0) :
     ∃ id ∈ expandChart st pr zOf b, id.kind = b.1 ∧ id.side = b.2.1 ∧ id.axis = b.2.2.1 ∧
-      id.sign = b.2.2.2 ∧ ∃ y, InBoxR (rootBox st pr id) y ∧ y 0 = y₀ 0 ∧ y 1 = y₀ 1 ∧
+      id.sign = b.2.2.2 ∧ id.ratio < 10 ∧ ∃ y, InBoxR (rootBox st pr id) y ∧ y 0 = y₀ 0 ∧ y 1 = y₀ 1 ∧
         (∀ k < 3, rRatioVar st id y k = rpv y₀ k) ∧ (b.1 ≠ .fe → rpv y 0 = rpv y₀ 0) := by
   set base := baseId zOf b with hbase
   have hbk : base.kind = b.1 := rfl
@@ -182,7 +190,7 @@ theorem realize_ratio (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bo
   by_cases hr : (pr.ratioOn && (b.1 = .fe || st.strong b.2.2.1)) = true
   swap
   · -- No ratio blow-up: the base chart itself.
-    refine ⟨base, ?_, rfl, rfl, rfl, rfl, y₀, hy₀, rfl, rfl, ?_, fun _ => rfl⟩
+    refine ⟨base, ?_, rfl, rfl, rfl, rfl, by simp [base, baseId], y₀, hy₀, rfl, rfl, ?_, fun _ => rfl⟩
     · obtain ⟨kind, side, axis, sign⟩ := b
       simp only at hr
       simp only [expandChart, Bool.not_eq_true] at hr ⊢
@@ -213,7 +221,7 @@ theorem realize_ratio (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bo
       split_ifs
       · rfl
       · exact (hcoord y₀ k hk).symm
-    refine ⟨id1, mem_expand_inner st pr zOf b hr, rfl, rfl, rfl, rfl, y, ?_, hy0, hy1, ?_, ?_⟩
+    refine ⟨id1, mem_expand_inner st pr zOf b hr hnt, rfl, rfl, rfl, rfl, by simp [id1], y, ?_, hy0, hy1, ?_, ?_⟩
     · rw [inBoxR_iff]
       intro v
       rw [rootLoHi_ratio1 st pr id1 rfl]
@@ -263,7 +271,8 @@ theorem realize_ratio (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bo
       by_cases h : k' = k
       · rw [if_pos (by simp [h]), if_pos h]
       · rw [if_neg (by simp; omega), if_neg h]
-    refine ⟨id2, mem_expand_outer st pr zOf b hr hi3 hstrong hpk sg, rfl, rfl, rfl, rfl, y, ?_, hy0, hy1, ?_, ?_⟩
+    refine ⟨id2, mem_expand_outer st pr zOf b hr hnt hi3 hstrong hpk sg, rfl, rfl, rfl, rfl, by simp [id2], y, ?_, hy0,
+      hy1, ?_, ?_⟩
     · rw [inBoxR_iff]
       intro v
       rw [rootLoHi_ratio2 st pr id2 rfl]
@@ -358,8 +367,9 @@ theorem realize_fe (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool 
     have h0 := abs_le.mp (hs 0); have h1 := abs_le.mp (hs 1); have h2 := abs_le.mp (hs 2)
     simp only [Fin.isValue, Fin.val_zero, Fin.val_one, Fin.val_two] at h0 h1 h2
     fin_cases v <;> simp [baseLoHi, baseId, y₀] <;> constructor <;> linarith
-  obtain ⟨id, hid, hk, hsd, -, -, y, hy, hy0, hy1, hrr, -⟩ :=
-    realize_ratio st pr zOf (.fe, side, 0, true) (by norm_num) hz y₀ hbox hμ0
+  obtain ⟨id, hid, hk, hsd, -, -, -, y, hy, hy0, hy1, hrr, -⟩ :=
+    realize_ratio st pr zOf (.fe, side, 0, true) (by norm_num) hz (fun h => Kind.noConfusion h.1)
+      y₀ hbox hμ0
   refine ⟨id, hid, hk, hsd, y, hy, by rw [hy0]; rfl, by rw [hy1]; rfl, ?_⟩
   simp only [rES, hk]
   congr 1
@@ -369,7 +379,7 @@ theorem realize_fe (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool 
 
 /-- Faces: (μ, τ, e, s) with s_axis = ±R_axis is realized by a chart of the face base chart. -/
 theorem realize_face (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (side axis : ℕ)
-    (hax : axis < 3) (sign : Bool) (hz : 0 < zOf (.face, side, axis, sign)) (μ τ e : ℝ) (hμ0 : 0 ≤ μ)
+    (hax : axis < 3) (sign : Bool) (hz : 0 < zOf (.face, side, axis, sign)) (hnt : ¬ IsTie st (.face, side, axis, sign)) (μ τ e : ℝ) (hμ0 : 0 ≤ μ)
     (hμ1 : μ ≤ pr.mu0) (hτ : |τ| ≤ 1) (he0 : 0 ≤ e) (he1 : e ≤ 1)
     (s : Fin 3 → ℝ) (hs : ∀ i : Fin 3, |s i| ≤ st.range i)
     (haxis : ∀ i : Fin 3, (i : ℕ) = axis → s i = (if sign then 1 else -1) * st.range i) (A B : KVec) :
@@ -390,17 +400,19 @@ theorem realize_face (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Boo
       interval_cases axis <;> simp [free0, List.range_succ] at h0 ⊢ <;> constructor <;> linarith
     · simp only [baseLoHi, baseId, y₀]
       interval_cases axis <;> simp [free1, List.range_succ] at h1 ⊢ <;> constructor <;> linarith
-  obtain ⟨id, hid, hk, hsd, hax', hsg, y, hy, hy0, hy1, hrr, hp0⟩ :=
-    realize_ratio st pr zOf (.face, side, axis, sign) hax hz y₀ hbox hμ0
+  obtain ⟨id, hid, hk, hsd, hax', hsg, hr10, y, hy, hy0, hy1, hrr, hp0⟩ :=
+    realize_ratio st pr zOf (.face, side, axis, sign) hax hz hnt y₀ hbox hμ0
   refine ⟨id, hid, hk, hsd, y, hy, by rw [hy0]; rfl, by rw [hy1]; rfl, ?_⟩
   have hnfe : id.kind ≠ .fe := by rw [hk]; simp
   obtain ⟨hp1, hp2, hpa⟩ := pvarOf_free id hnfe (by rw [hax']; exact hax)
   simp only at hax' hsg
   rw [hax'] at hp1 hp2 hpa
-  simp only [rES, hk]
+  have hT : st.rTieChartES id y = none := by simp [Setup.rTieChartES]; omega
+  simp only [rES, hk, hT]
   congr 1
   · rw [hp0 (by simp)]; simp [y₀, rpv]
   · funext i
+    simp only [rFaceS]
     rcases fin3_cases_axis axis hax i with h | h | h
     · rw [if_pos (by rw [hax']; exact h), haxis i h, hsg]
     · rw [if_neg (by rw [hax']; omega)]
@@ -417,6 +429,112 @@ theorem realize_face (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Boo
       simp only [y₀, rpv]
       have : i = ⟨free1 axis, hf1l⟩ := Fin.ext h
       subst this; simp
+
+theorem tieLoHi_box (m Z Z2 K Kp : ℕ) :
+    tieLoHi m Z Z2 K Kp 2 = some (tieBox m Z Z2 K Kp).1 ∧ tieLoHi m Z Z2 K Kp 3 = some (tieBox m Z Z2 K Kp).2 ∧
+      ∀ v, v ≠ 2 → v ≠ 3 → tieLoHi m Z Z2 K Kp v = none := by
+  refine ⟨by simp [tieLoHi, tieBox], by simp [tieLoHi, tieBox], fun v h2 h3 => by simp [tieLoHi, h2, h3]⟩
+
+theorem free_getD (axis : ℕ) (hax : axis < 3) :
+    ((List.range 3).filter (· ≠ axis)).getD 1 0 = free1 axis := by
+  interval_cases axis <;> rfl
+
+theorem rTieES_eq (m Z Z2 K Kp : ℕ) (y : Fin 5 → ℝ) :
+    rTieES m Z Z2 K Kp y = tieE m Z Z2 K Kp (y 0) (rpv y 0) (rpv y 1) := rfl
+
+/-- Tie-scheme faces: (μ, τ, e, s) with s_axis = ±R_axis is realized by one of the base chart's eight
+tie-scheme charts. -/
+theorem realize_tie (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (side axis : ℕ)
+    (hax : axis < 3) (hax0 : axis ≠ 0) (sign : Bool) (z2 k kp : ℕ)
+    (ht : st.tieOf (.face, side, axis, sign) = some (z2, k, kp))
+    (hK : zOf (.face, side, axis, sign) + z2 ≤ k) (hKp : k < kp)
+    (hro : pr.ratioOn = true) (hstr : st.strong axis = true)
+    (μ τ e : ℝ) (hμ0 : 0 ≤ μ) (hμ1 : μ ≤ pr.mu0) (hτ : |τ| ≤ 1) (he0 : 0 ≤ e) (he1 : e ≤ 1)
+    (s : Fin 3 → ℝ) (hs : ∀ i : Fin 3, |s i| ≤ st.range i)
+    (haxis : ∀ i : Fin 3, (i : ℕ) = axis → s i = (if sign then 1 else -1) * st.range i) (A B : KVec) :
+    ∃ id ∈ expandChart st pr zOf (.face, side, axis, sign), id.kind = .face ∧ id.side = side ∧
+      ∃ y, InBoxR (rootBox st pr id) y ∧ y 0 = μ ∧ y 1 = τ ∧ rES st id A B y = (e, s) := by
+  obtain ⟨hf0, hf1, h01, hf0l, hf1l⟩ := free_ne axis hax
+  have hfree0 : free0 axis = 0 := by simp [free0, hax0]
+  have hr0 : (st.range 0 : ℝ) = 2 := by
+    have : st.strong 0 = false := by unfold Setup.strong; split_ifs <;> simp
+    simp [Setup.range, this]
+  have hs0 : |s 0| ≤ 2 := by have := hs 0; simp only [Fin.val_zero] at this; rwa [hr0] at this
+  set Z := zOf (.face, side, axis, sign)
+  obtain ⟨m, hm10, hm18, p0, p1, hb0l, hb0h, hb1l, hb1h, heq⟩ := tie_decomp Z z2 k kp hK hKp μ e (s 0) hμ0 he0 he1 hs0
+  let b : Kind × ℕ × ℕ × Bool := (.face, side, axis, sign)
+  let id : ChartId := { baseId zOf b with ratio := m }
+  have hidk : id.kind = .face := rfl
+  have hidr : id.ratio = m := rfl
+  have hidz : id.z = Z := rfl
+  have hida : id.axis = axis := rfl
+  have hidt : st.tieOf (id.kind, id.side, id.axis, id.sign) = some (z2, k, kp) := ht
+  let y : Fin 5 → ℝ := ![μ, τ, p0, p1, s ⟨free1 axis, hf1l⟩]
+  have hy2 : rpv y 0 = p0 := by simp [y, rpv]
+  have hy3 : rpv y 1 = p1 := by simp [y, rpv]
+  have hy4 : rpv y 2 = s ⟨free1 axis, hf1l⟩ := by simp [y, rpv]
+  refine ⟨id, ?_, rfl, rfl, y, ?_, rfl, rfl, ?_⟩
+  · -- Membership: the tie branch of expandChart.
+    simp only [expandChart, hro, hstr, Bool.true_and, Bool.or_true, if_true]
+    rw [if_pos (by simp [ht])]
+    rw [List.mem_map]
+    exact ⟨m - 10, List.mem_range.mpr (by omega), by simp only [id, baseId, b]; congr 1; omega⟩
+  · -- The box.
+    obtain ⟨hl2, hl3, hlo⟩ := tieLoHi_box m Z z2 k kp
+    rw [inBoxR_iff]
+    intro v
+    have htl : ∀ v, st.tieLoHiOf id v = tieLoHi m Z z2 k kp v := by
+      intro v
+      unfold Setup.tieLoHiOf
+      rw [if_pos ⟨by rw [hidr]; exact hm10, hidk⟩, hidt]
+      rfl
+    fin_cases v
+    · rw [rootLoHi_std' st pr id 0 (by rw [htl]; exact hlo 0 (by norm_num) (by norm_num))]
+      simp [rootLoHiStd, baseLoHi, y]; exact ⟨hμ0, hμ1⟩
+    · rw [rootLoHi_std' st pr id 1 (by rw [htl]; exact hlo 1 (by norm_num) (by norm_num))]
+      simp [rootLoHiStd, baseLoHi, y]; exact abs_le.mp hτ
+    · simp only [rootLoHi, Fin.val_two, htl, hl2]
+      exact ⟨by simpa [y] using hb0l, by simpa [y] using hb0h⟩
+    · simp only [rootLoHi, htl, hl3]
+      exact ⟨by simpa [y] using hb1l, by simpa [y] using hb1h⟩
+    · rw [rootLoHi_std' st pr id 4 (by rw [htl]; exact hlo 4 (by norm_num) (by norm_num))]
+      have h1 : id.ratio ≠ 1 := by omega
+      have h2 : id.ratio ≠ 2 := by omega
+      simp only [rootLoHiStd, h1, h2, false_and, if_false, show (2 : ℕ) ≤ 4 by norm_num, if_true]
+      have hb := abs_le.mp (hs ⟨free1 axis, hf1l⟩)
+      simp only [baseLoHi, hidk, hida, show (4 : ℕ) - 3 = 1 from rfl, free_getD axis hax]
+      simp only [y, Fin.isValue]
+      push_cast
+      exact ⟨by simpa using hb.1, by simpa using hb.2⟩
+  · -- (e, s).
+    have hT : st.rTieChartES id y = some (rTieES m Z z2 k kp y) := by
+      unfold Setup.rTieChartES
+      rw [if_pos ⟨by rw [hidr]; exact hm10, hidk⟩, hidt]
+      rfl
+    have hy0 : y 0 = μ := rfl
+    simp only [rES, hidk, hT]
+    rw [rTieES_eq, hy0, hy2, hy3, heq]
+    congr 1
+    funext i
+    split_ifs with hi0
+    · have : i = 0 := Fin.ext hi0
+      rw [this]
+    · obtain ⟨hp1, hp2, hpa⟩ := pvarOf_free id (by rw [hidk]; simp) (by rw [hida]; exact hax)
+      rw [hida] at hp1 hp2 hpa
+      simp only [rFaceS, hida]
+      rcases fin3_cases_axis axis hax i with h | h | h
+      · rw [if_pos h, haxis i h]; rfl
+      · exfalso; rw [hfree0] at h; exact hi0 h
+      · rw [if_neg (by omega), show (i : ℕ) = free1 axis from h, hp2]
+        simp only
+        have h1 : id.ratio ≠ 1 := by omega
+        simp only [rRatioVar, h1, if_false, hidr]
+        have h2 : ¬(m = 2 ∧ pvarOf id id.ratioCoord = some 2) := fun h => by omega
+        rw [if_neg h2, hy4]
+        have : i = ⟨free1 axis, hf1l⟩ := Fin.ext h
+        rw [this]
+        have h1' : ¬ m = 1 := by omega
+        rw [if_neg h1']
 
 /-- The cone chart center (as in `rES`). -/
 noncomputable def rCenter (st : Setup) (kind : Kind) (A B : KVec) (τ : ℝ) (i : Fin 3) : ℝ :=
@@ -449,8 +567,9 @@ theorem realize_cone (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Boo
     have h0 := abs_le.mp (hσ ⟨free0 axis, hf0l⟩); have h1 := abs_le.mp (hσ ⟨free1 axis, hf1l⟩)
     rcases hkind with hk | hk <;> subst hk <;> simp only [Params.coneT, if_true, if_false, reduceCtorEq] at ht1 <;>
       fin_cases v <;> simp [baseLoHi, baseId, y₀] <;> constructor <;> linarith
-  obtain ⟨id, hid, hk, hsd, hax', hsg, y, hy, hy0, hy1, hrr, hp0⟩ :=
-    realize_ratio st pr zOf (kind, side, axis, sign) hax hz y₀ hbox hμ0
+  obtain ⟨id, hid, hk, hsd, hax', hsg, -, y, hy, hy0, hy1, hrr, hp0⟩ :=
+    realize_ratio st pr zOf (kind, side, axis, sign) hax hz
+      (fun h => by rcases hkind with hk | hk <;> subst hk <;> exact Kind.noConfusion h.1) y₀ hbox hμ0
   refine ⟨id, hid, hk, hsd, y, hy, by rw [hy0]; rfl, by rw [hy1]; rfl, ?_⟩
   have hnfe' : id.kind ≠ .fe := by rw [hk]; exact hnfe
   obtain ⟨hp1, hp2, hpa⟩ := pvarOf_free id hnfe' (by rw [hax']; exact hax)

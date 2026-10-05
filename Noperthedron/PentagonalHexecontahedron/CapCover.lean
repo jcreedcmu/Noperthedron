@@ -246,3 +246,125 @@ theorem ratio_decomp (Z μ B v : ℝ) (hZ : 0 < Z) (hμ : 0 ≤ μ) (hv : |v| �
       · simp
 
 end Noperthedron.PentagonalHexecontahedron.Cap
+
+namespace Noperthedron.PentagonalHexecontahedron.Cap
+
+/-- (e, s₀) of tie-scheme chart m at (μ, p₀, p₁) (as `rTieES`). -/
+noncomputable def tieE (m Z Z2 K Kp : ℕ) (μ p0 q : ℝ) : ℝ × ℝ :=
+  let eK := (K : ℝ) * μ + p0
+  if m = 10 then (μ * p0, μ * q)
+  else if m = 11 then (μ * p0, (Kp : ℝ) * μ + q)
+  else if m = 12 then (μ * p0, -((Kp : ℝ) * μ + q))
+  else if m = 13 then (eK, μ * q)
+  else if m = 14 then (eK, -((Z : ℝ) * μ + q))
+  else if m = 15 then (eK, eK + μ * q)
+  else if m = 16 then (eK, eK + (Z2 : ℝ) * μ + q)
+  else (eK, (Z : ℝ) * μ + q * (p0 + ((K - Z - Z2 : ℕ) : ℝ) * μ))
+
+/-- The bounds of (p₀, p₁) of tie-scheme chart m (as `tieLoHi`). -/
+def tieBox (m Z Z2 K Kp : ℕ) : (ℚ × ℚ) × (ℚ × ℚ) :=
+  ((if m ≤ 12 then (0, (K : ℚ)) else (0, 1)),
+   (if m = 10 then (-(Kp : ℚ), (Kp : ℚ)) else if m = 13 then (-(Z : ℚ), (Z : ℚ))
+     else if m = 15 then (-(Z2 : ℚ), (Z2 : ℚ)) else if m = 17 then (0, 1) else (0, 2)))
+
+/-- Closes a tie-box bound goal. -/
+macro "tie_bound" : tactic => `(tactic| (simp only [tieBox]; norm_num <;> first
+  | linarith
+  | positivity
+  | (rw [div_le_iff₀ (by assumption)]; linarith)
+  | (rw [le_div_iff₀ (by assumption)]; linarith)
+  | nlinarith))
+
+/-- Closes a tie-chart (e, s₀) goal. -/
+macro "tie_eq" : tactic => `(tactic| (refine Prod.ext ?_ ?_ <;> simp [tieE] <;> (try field_simp) <;> (try ring)))
+
+/-- **The tie scheme covers** every (μ, e, s₀) with μ ≥ 0, e ∈ [0, 1], |s₀| ≤ 2. -/
+theorem tie_decomp (Z Z2 K Kp : ℕ) (hK : Z + Z2 ≤ K) (hKp : K < Kp)
+    (μ e s0 : ℝ) (hμ : 0 ≤ μ) (he0 : 0 ≤ e) (he1 : e ≤ 1) (hs : |s0| ≤ 2) :
+    ∃ m, 10 ≤ m ∧ m < 18 ∧ ∃ p0 p1 : ℝ,
+      ((tieBox m Z Z2 K Kp).1.1 : ℝ) ≤ p0 ∧ p0 ≤ (tieBox m Z Z2 K Kp).1.2 ∧
+      ((tieBox m Z Z2 K Kp).2.1 : ℝ) ≤ p1 ∧ p1 ≤ (tieBox m Z Z2 K Kp).2.2 ∧
+      tieE m Z Z2 K Kp μ p0 p1 = (e, s0) := by
+  have hZ : (0 : ℝ) ≤ Z := Nat.cast_nonneg _
+  have hZ2 : (0 : ℝ) ≤ Z2 := Nat.cast_nonneg _
+  have hK0 : (0 : ℝ) ≤ K := Nat.cast_nonneg _
+  have hKr : (Z : ℝ) + Z2 ≤ K := by exact_mod_cast hK
+  have hKpr : (K : ℝ) < Kp := by exact_mod_cast hKp
+  have hsub : ((K - Z - Z2 : ℕ) : ℝ) = K - Z - Z2 := by
+    rw [Nat.cast_sub (by omega), Nat.cast_sub (by omega)]
+  have hZmu := mul_nonneg hZ hμ
+  have hZ2mu := mul_nonneg hZ2 hμ
+  have hKmu := mul_nonneg hK0 hμ
+  rw [abs_le] at hs
+  by_cases hA : e ≤ K * μ
+  · rcases eq_or_lt_of_le hμ with h0 | hpos
+    · subst h0
+      have he : e = 0 := by simp at hA; linarith
+      subst he
+      rcases lt_trichotomy s0 0 with hn | hz | hp
+      · refine ⟨12, by norm_num, by norm_num, 0, -s0, ?_, ?_, ?_, ?_, ?_⟩ <;> first | tie_bound | tie_eq
+      · subst hz
+        refine ⟨10, by norm_num, by norm_num, 0, 0, ?_, ?_, ?_, ?_, ?_⟩ <;> first | tie_bound | tie_eq
+      · refine ⟨11, by norm_num, by norm_num, 0, s0, ?_, ?_, ?_, ?_, ?_⟩ <;> first | tie_bound | tie_eq
+    · have hε : e / μ ≤ K := by rw [div_le_iff₀ hpos]; linarith
+      have hε0 : 0 ≤ e / μ := div_nonneg he0 hpos.le
+      by_cases hB : |s0| ≤ Kp * μ
+      · rw [abs_le] at hB
+        refine ⟨10, by norm_num, by norm_num, e / μ, s0 / μ, ?_, ?_, ?_, ?_, ?_⟩ <;> first | tie_bound | tie_eq
+      · rw [abs_le, not_and_or] at hB
+        rcases hB with hB | hB
+        · push Not at hB
+          refine ⟨12, by norm_num, by norm_num, e / μ, -s0 - Kp * μ, ?_, ?_, ?_, ?_, ?_⟩ <;>
+            first | tie_bound | tie_eq
+        · push Not at hB
+          refine ⟨11, by norm_num, by norm_num, e / μ, s0 - Kp * μ, ?_, ?_, ?_, ?_, ?_⟩ <;>
+            first | tie_bound | tie_eq
+  · push Not at hA
+    have hp0 : 0 ≤ e - K * μ := by linarith
+    have hp1 : e - K * μ ≤ 1 := by linarith
+    by_cases hI : |s0| ≤ Z * μ
+    · rw [abs_le] at hI
+      rcases eq_or_lt_of_le hμ with h0 | hpos
+      · subst h0
+        have : s0 = 0 := by simp at hI; linarith
+        subst this
+        refine ⟨13, by norm_num, by norm_num, e, 0, ?_, ?_, ?_, ?_, ?_⟩ <;> first | tie_bound | tie_eq
+      · refine ⟨13, by norm_num, by norm_num, e - K * μ, s0 / μ, ?_, ?_, ?_, ?_, ?_⟩ <;>
+          first | tie_bound | tie_eq
+    · rw [abs_le, not_and_or] at hI
+      rcases hI with hI | hI
+      · push Not at hI
+        refine ⟨14, by norm_num, by norm_num, e - K * μ, -s0 - Z * μ, ?_, ?_, ?_, ?_, ?_⟩ <;>
+          first | tie_bound | tie_eq
+      · push Not at hI
+        by_cases hT : |s0 - e| ≤ Z2 * μ
+        · rw [abs_le] at hT
+          rcases eq_or_lt_of_le hμ with h0 | hpos
+          · subst h0
+            have : s0 = e := by simp at hT; linarith
+            subst this
+            refine ⟨15, by norm_num, by norm_num, s0, 0, ?_, ?_, ?_, ?_, ?_⟩ <;> first | tie_bound | tie_eq
+          · refine ⟨15, by norm_num, by norm_num, e - K * μ, (s0 - e) / μ, ?_, ?_, ?_, ?_, ?_⟩ <;>
+              first | tie_bound | tie_eq
+        · rw [abs_le, not_and_or] at hT
+          rcases hT with hT | hT
+          · push Not at hT
+            have hD : s0 - Z * μ < e - (Z + Z2) * μ := by linarith
+            have hDpos : 0 < e - (Z + Z2) * μ := by linarith
+            refine ⟨17, by norm_num, by norm_num, e - K * μ, (s0 - Z * μ) / (e - (Z + Z2) * μ),
+              ?_, ?_, ?_, ?_, ?_⟩
+            · tie_bound
+            · tie_bound
+            · simp only [tieBox]; norm_num; exact div_nonneg (by linarith) hDpos.le
+            · simp only [tieBox]; norm_num; exact (div_le_one hDpos).mpr hD.le
+            · refine Prod.ext ?_ ?_
+              · simp [tieE]
+              · simp only [tieE]; norm_num
+                rw [hsub, show e - K * μ + (K - Z - Z2) * μ = e - (Z + Z2) * μ by ring,
+                  div_mul_cancel₀ _ hDpos.ne']
+                ring
+          · push Not at hT
+            refine ⟨16, by norm_num, by norm_num, e - K * μ, s0 - e - Z2 * μ, ?_, ?_, ?_, ?_, ?_⟩ <;>
+              first | tie_bound | tie_eq
+
+end Noperthedron.PentagonalHexecontahedron.Cap

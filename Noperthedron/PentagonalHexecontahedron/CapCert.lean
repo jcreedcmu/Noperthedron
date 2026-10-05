@@ -71,9 +71,30 @@ def frameCheck (st : Setup) : Bool :=
   decide (kdot st.e1 st.e1 = IcoQ.one) && decide (kdot st.e2 st.e2 = IcoQ.one) && decide (kdot st.x st.x = IcoQ.one) &&
   decide (kdot st.e1 st.e2 = IcoQ.zero) && decide (kdot st.e1 st.x = IcoQ.zero) && decide (kdot st.e2 st.x = IcoQ.zero)
 
+/-- The tie scheme's parameters are admissible (`TieOK`). -/
+def CapCert.tieCheck (c : CapCert) : Bool :=
+  c.st.tieCharts.all fun e => (e.1.1 != .face) ||
+    (decide (e.1.2.2.1 ≠ 0) && decide (c.zOf e.1 + e.2.1 ≤ e.2.2.1) && decide (e.2.2.1 < e.2.2.2) &&
+      c.pr.ratioOn && c.st.strong e.1.2.2.1)
+
 def CapCert.check (c : CapCert) : Bool :=
   decide (0 < c.verts.size) && c.zList.all (fun e => decide (0 < e.2)) && frameCheck c.st &&
-    (c.charts.map (·.1) == chartList c.st c.pr c.zOf) && c.charts.all (fun e => chartCheck c e.1 e.2)
+    (c.charts.map (·.1) == chartList c.st c.pr c.zOf) && c.charts.all (fun e => chartCheck c e.1 e.2) &&
+    c.tieCheck
+
+theorem CapCert.tieOK (c : CapCert) (h : c.tieCheck = true) : TieOK c.st c.pr c.zOf := by
+  intro b p hp hface
+  unfold Setup.tieOf at hp
+  obtain ⟨e, hfind, rfl⟩ := Option.map_eq_some_iff.mp hp
+  have hmem := List.mem_of_find?_eq_some hfind
+  have heq : e.1 = b := by simpa using List.find?_some hfind
+  have he := List.all_eq_true.mp h e hmem
+  simp only [Bool.or_eq_true, bne_iff_ne, ne_eq, Bool.and_eq_true, decide_eq_true_eq] at he
+  rcases he with he | he
+  · exact absurd (heq ▸ hface) he
+  · rw [← heq]
+    obtain ⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩ := he
+    exact ⟨h1, h2, h3, h4, h5⟩
 
 theorem frameCheck_sound (st : Setup) (h : frameCheck st = true) : FrameOK st := by
   simp only [frameCheck, Bool.and_eq_true, decide_eq_true_eq] at h
@@ -120,13 +141,13 @@ theorem witData_spec (c : CapCert) (id : ChartId) (wi : ℕ) (d : WitData) (h : 
 set_option maxHeartbeats 1000000 in
 /-- **Certificate soundness**: a checked cap certificate makes every chart point good. -/
 theorem CapCert.check_sound (c : CapCert) (h : c.check = true) :
-    FrameOK c.st ∧ (∀ b, 0 < c.zOf b) ∧
+    FrameOK c.st ∧ (∀ b, 0 < c.zOf b) ∧ TieOK c.st c.pr c.zOf ∧
       ∀ id ∈ chartList c.st c.pr c.zOf, ∀ y, InBoxR (rootBox c.st c.pr id) y →
         ChartGood c.st c.pr (c.verts.toList.map kv) c.usePrune (gMat c.Gcol) id y := by
   simp only [CapCert.check, Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq] at h
-  obtain ⟨⟨⟨⟨hV, hz⟩, hF⟩, hlist⟩, hall⟩ := h
+  obtain ⟨⟨⟨⟨⟨hV, hz⟩, hF⟩, hlist⟩, hall⟩, htc⟩ := h
   have hF' := frameCheck_sound c.st hF
-  refine ⟨hF', c.zOf_pos hz, ?_⟩
+  refine ⟨hF', c.zOf_pos hz, c.tieOK htc, ?_⟩
   intro id hid y hy
   rw [← hlist] at hid
   obtain ⟨⟨id', t⟩, hmem, rfl⟩ := List.mem_map.mp hid
@@ -200,8 +221,8 @@ theorem CapCert.not_rupert (c : CapCert) (hc : c.check = true) (hS : 2 ≤ c.st.
     (hcell : c.usePrune = true →
       Matrix.trace (halfTurnMat p.view * p.relativeRotation * gMat c.Gcol) ≤ Matrix.trace p.relativeRotation) :
     ¬ RupertPose p S := by
-  obtain ⟨hF, hz, hgood⟩ := c.check_sound hc
-  exact cap_pose_not_rupert c.st c.pr c.zOf hz hF hS hmcm ht0 ht0m wmax hw0 hw1 hw2 _ c.usePrune (gMat c.Gcol) hgood κ hκ S
+  obtain ⟨hF, hz, htie, hgood⟩ := c.check_sound hc
+  exact cap_pose_not_rupert c.st c.pr c.zOf hz htie hF hS hmcm ht0 ht0m wmax hw0 hw1 hw2 _ c.usePrune (gMat c.Gcol) hgood κ hκ S
     hSdef hSsym p hx he1 he2 w hR hw hcell
 
 end Noperthedron.PentagonalHexecontahedron.Cap

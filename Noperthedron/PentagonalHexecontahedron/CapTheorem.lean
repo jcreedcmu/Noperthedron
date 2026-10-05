@@ -68,6 +68,7 @@ theorem rdot_rcross_self (u c : Fin 3 → ℝ) : rdot u (rcross u c) = 0 := by
 
 /-- **The cap theorem**, given that every chart point is good. -/
 theorem cap_pose_not_rupert (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (hz : ∀ b, 0 < zOf b)
+    (htie : TieOK st pr zOf)
     (hF : FrameOK st) (hS : 2 ≤ st.strongScale) (hmcm : 1 ≤ st.mcm) (ht0 : 0 ≤ (pr.t0 : ℝ))
     (ht0m : 0 ≤ (pr.t0m : ℝ)) (wmax : ℝ) (hw0 : 0 ≤ wmax) (hw1 : wmax ≤ 2 * pr.mu0) (hw2 : wmax ≤ st.strongScale * (pr.mu0 : ℝ) ^ 2)
     (V : List (Fin 3 → ℝ)) (usePrune : Bool) (G : Matrix (Fin 3) (Fin 3) ℝ)
@@ -99,7 +100,7 @@ theorem cap_pose_not_rupert (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ
     field_simp
     ring
   obtain ⟨id, hid, y, hy, hU, hW, hFe⟩ :=
-    cap_cover st pr zOf hz hF hS hmcm ht0 ht0m wmax hw0 hw1 hw2 t₁ t₂ ht₁ ht₂ w hw
+    cap_cover st pr zOf hz htie hF hS hmcm ht0 ht0m wmax hw0 hw1 hw2 t₁ t₂ ht₁ ht₂ w hw
   rw [hu] at hU
   rcases hgood id hid y hy with ⟨hfe, hcone⟩ | ⟨hp, htr⟩ | ⟨vk, hvk, c, hd, hwit⟩
   · exact absurd hcone (hFe hfe)
