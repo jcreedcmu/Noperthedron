@@ -433,4 +433,49 @@ theorem pruneOk_sound (st : Setup) (id : ChartId) (Gcol : Fin 3 → KVec) (box :
   have := (mul_pos_iff_of_pos_left (mul_pos hD hU)).mp hcell
   linarith
 
+/-! ### Chart points: u ≠ 0, and w = 0 at μ = 0 or at the identity cone's tip -/
+
+theorem rChartU_dot_x (st : Setup) (hF : FrameOK st) (id : ChartId) (hside : id.side < 4) (y : Fin 5 → ℝ) :
+    rdot (rChartU st id y) (kv st.x) = 1 := by
+  obtain ⟨h11, h22, hxx, h12, h1x, h2x⟩ := hF
+  obtain ⟨hA, hB⟩ := frameAB_val st id.side hside
+  rw [rChartU_eq, hA, hB]
+  simp only [rdot, Pi.add_apply, Pi.smul_apply, smul_eq_mul] at hxx h1x h2x ⊢
+  have e1 : kv st.e1 0 * kv st.x 0 + kv st.e1 1 * kv st.x 1 + kv st.e1 2 * kv st.x 2 = 0 := h1x
+  have e2 : kv st.e2 0 * kv st.x 0 + kv st.e2 1 * kv st.x 1 + kv st.e2 2 * kv st.x 2 = 0 := h2x
+  linear_combination hxx + (y 0 * (rES st id (st.frameAB id.side).1 (st.frameAB id.side).2 y).1 *
+    ((sideA id.side).1 + y 1 * (sideB id.side).1)) * e1 +
+    (y 0 * (rES st id (st.frameAB id.side).1 (st.frameAB id.side).2 y).1 *
+    ((sideA id.side).2 + y 1 * (sideB id.side).2)) * e2
+
+theorem rChartU_ne_zero (st : Setup) (hF : FrameOK st) (id : ChartId) (hside : id.side < 4) (y : Fin 5 → ℝ) :
+    rChartU st id y ≠ 0 := by
+  intro h
+  have := rChartU_dot_x st hF id hside y
+  rw [h] at this
+  simp [rdot] at this
+
+theorem rdot_self_ne_zero_of_ne {u : Fin 3 → ℝ} (hu : u ≠ 0) : rdot u u ≠ 0 := by
+  intro h
+  apply hu
+  simp only [rdot] at h
+  have h0 : u 0 = 0 := by nlinarith [mul_self_nonneg (u 0), mul_self_nonneg (u 1), mul_self_nonneg (u 2)]
+  have h1 : u 1 = 0 := by nlinarith [mul_self_nonneg (u 0), mul_self_nonneg (u 1), mul_self_nonneg (u 2)]
+  have h2 : u 2 = 0 := by nlinarith [mul_self_nonneg (u 0), mul_self_nonneg (u 1), mul_self_nonneg (u 2)]
+  funext k; fin_cases k <;> simp [h0, h1, h2]
+
+theorem rChartW_mu_zero (st : Setup) (id : ChartId) (y : Fin 5 → ℝ) (h0 : y 0 = 0) : rChartW st id y = 0 := by
+  rw [rChartW_eq]
+  simp only [h0, zero_mul, zero_smul, add_zero]
+  split_ifs <;> rfl
+
+theorem rChartW_cone_tip (st : Setup) (id : ChartId) (hk : id.kind = .cone) (y : Fin 5 → ℝ) (h2 : y 2 = 0) :
+    rChartW st id y = 0 := by
+  have hs : (rES st id (st.frameAB id.side).1 (st.frameAB id.side).2 y).2 = 0 := by
+    funext i
+    simp [rES, hk, rpv, h2]
+  rw [rChartW_eq]
+  simp only [hs, Pi.zero_apply, mul_zero, zero_smul, add_zero]
+  split_ifs <;> rfl
+
 end Noperthedron.PentagonalHexecontahedron.Cap
