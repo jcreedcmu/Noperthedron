@@ -408,6 +408,99 @@ theorem lower_le_eval : ∀ (k : ℕ) (p : NPoly k) (box : Fin k → ℚ × ℚ)
     calc _ ≤ ((lower k (bern k q i) (Fin.tail box) : ℚ) : ℝ) := by exact_mod_cast h1
       _ ≤ _ := h2
 
+/-! ### Uniform degrees, padding, and the bound at given degrees -/
+
+/-- The largest index with a nonzero coefficient plus one (0 for the zero list). -/
+def trimLen {α : Type} (Z : α → Bool) : List α → ℕ
+  | [] => 0
+  | a :: as => let n := trimLen Z as; if n = 0 && Z a then 0 else n + 1
+
+/-- The degree of p in variable i, ignoring zero coefficients (0 for the zero polynomial). -/
+def degIn : (k : ℕ) → Fin k → NPoly k → ℕ
+  | k + 1, i, p => Fin.cases (motive := fun _ => ℕ)
+      (trimLen (isZero k) (p : List (NPoly k)) - 1)
+      (fun j => ((p : List (NPoly k)).map (degIn k j)).foldr max 0) i
+
+/-- Pads a coefficient list with zeros to length n. -/
+def pad (k : ℕ) (n : ℕ) (p : List (NPoly k)) : List (NPoly k) :=
+  p ++ List.replicate (n - p.length) (zero k)
+
+theorem horner_pad (k : ℕ) (n : ℕ) (p : List (NPoly k)) (y : Fin k → ℝ) (x : ℝ) :
+    horner (fun q => eval k q y) x (pad k n p) = horner (fun q => eval k q y) x p := by
+  rw [pad, horner_append]
+  have : horner (fun q => eval k q y) x (List.replicate (n - p.length) (zero k)) = 0 := by
+    induction (n - p.length) with
+    | zero => rfl
+    | succ m ih => rw [List.replicate_succ, horner_cons, eval_zero, ih]; ring
+  rw [this]; ring
+
+/-- `lower` with every coefficient list padded to the given degrees (so that the
+Bernstein degree in each variable is the same in every branch, as in capcert's
+dense tensors). -/
+def lowerDeg : (k : ℕ) → (Fin k → ℕ) → NPoly k → (Fin k → ℚ × ℚ) → ℚ
+  | 0, _, c, _ => IcoQ.lo c
+  | k + 1, deg, p, box =>
+    let q := shift k (box 0).1 (box 0).2 (pad k (deg 0 + 1) (p : List (NPoly k)))
+    minList ((List.range q.length).map fun i => lowerDeg k (Fin.tail deg) (bern k q i) (Fin.tail box))
+
+theorem lowerDeg_le_eval : ∀ (k : ℕ) (deg : Fin k → ℕ) (p : NPoly k) (box : Fin k → ℚ × ℚ) (y : Fin k → ℝ),
+    (∀ i, 0 ≤ (box i).2) → InBox box y → (lowerDeg k deg p box : ℝ) ≤ eval k p y
+  | 0, _, c, _, _, _, _ => IcoQ.lo_le_val c
+  | k + 1, deg, p, box, y, hh, hy => by
+    set lo := (box 0).1
+    set h := (box 0).2
+    have h0 : (0 : ℝ) ≤ h := by exact_mod_cast hh 0
+    obtain ⟨hlo, hhi⟩ := hy 0
+    obtain ⟨t, ht0, ht1, hx⟩ : ∃ t : ℝ, 0 ≤ t ∧ t ≤ 1 ∧ y 0 = lo + h * t := by
+      rcases h0.lt_or_eq with hp | hz
+      · refine ⟨(y 0 - lo) / h, div_nonneg (by linarith) hp.le, (div_le_one hp).mpr (by linarith), ?_⟩
+        field_simp
+        ring
+      · exact ⟨0, le_refl _, zero_le_one, by rw [← hz] at hhi; linarith⟩
+    have hyt : InBox (Fin.tail box) (Fin.tail y) := fun i => hy i.succ
+    have hht : ∀ i, 0 ≤ (Fin.tail box i).2 := fun i => hh i.succ
+    set q := shift k lo h (pad k (deg 0 + 1) (p : List (NPoly k)))
+    show (minList ((List.range q.length).map fun i => lowerDeg k (Fin.tail deg) (bern k q i) (Fin.tail box)) : ℝ) ≤
+      horner (fun q => eval k q (Fin.tail y)) (y 0) (p : List (NPoly k))
+    rw [← horner_pad k (deg 0 + 1), hx, horner_shift, horner_eq_sum]
+    rcases Nat.eq_zero_or_pos q.length with hq | hq
+    · rw [hq]
+      simp [minList]
+    obtain ⟨d, hd⟩ : ∃ d, q.length = d + 1 := ⟨q.length - 1, by omega⟩
+    rw [hd]
+    apply Bernstein.bernstein_lower d _ _ _ ht0 ht1
+    intro i hi
+    have hmem : lowerDeg k (Fin.tail deg) (bern k q i) (Fin.tail box) ∈
+        (List.range q.length).map fun i => lowerDeg k (Fin.tail deg) (bern k q i) (Fin.tail box) :=
+      List.mem_map.mpr ⟨i, List.mem_range.mpr (by omega), rfl⟩
+    have h1 := minList_le _ _ hmem
+    rw [hd] at h1
+    have h2 := lowerDeg_le_eval k (Fin.tail deg) (bern k q i) (Fin.tail box) (Fin.tail y) hht hyt
+    rw [eval_bern, hd, Nat.add_sub_cancel] at h2
+    calc _ ≤ ((lowerDeg k (Fin.tail deg) (bern k q i) (Fin.tail box) : ℚ) : ℝ) := by exact_mod_cast h1
+      _ ≤ _ := h2
+
+/-- Divides out the largest power of y_i (at most `fuel`) that divides p. -/
+def divOut (k : ℕ) (i : Fin k) : ℕ → NPoly k → NPoly k
+  | 0, p => p
+  | fuel + 1, p => if isZero k p then p else
+      match divVar k i 1 p with
+      | some q => divOut k i fuel q
+      | none => p
+
+theorem eval_divOut (k : ℕ) (i : Fin k) (y : Fin k → ℝ) :
+    ∀ (fuel : ℕ) (p : NPoly k), ∃ m : ℕ, eval k p y = y i ^ m * eval k (divOut k i fuel p) y
+  | 0, p => ⟨0, by simp [divOut]⟩
+  | fuel + 1, p => by
+    unfold divOut
+    split_ifs with hz
+    · exact ⟨0, by simp⟩
+    · split
+      · next q hq =>
+        obtain ⟨m, hm⟩ := eval_divOut k i y fuel q
+        exact ⟨m + 1, by rw [eval_divVar k i 1 p q y hq, hm, pow_succ]; ring⟩
+      · exact ⟨0, by simp⟩
+
 end NPoly
 
 end Noperthedron.PentagonalHexecontahedron
