@@ -117,4 +117,46 @@ theorem exists_halfTurn_atlas_translated_pose (P : IModel)
 
 end IModel
 
+/-! ### The half-turn cell at views given by a projective region -/
+
+theorem halfTurnMat_smul (κ : ℝ) (hκ : κ ≠ 0) (u : Fin 3 → ℝ) : halfTurnMat (κ • u) = halfTurnMat u := by
+  ext i j
+  simp only [halfTurnMat, Pi.smul_apply, smul_eq_mul]
+  congr 1
+  rw [show ∑ k, (κ * u k) ^ 2 = κ ^ 2 * ∑ k, u k ^ 2 by rw [Finset.mul_sum]; congr 1; ext k; ring]
+  by_cases hs : ∑ k, u k ^ 2 = 0
+  · rw [hs]; simp
+  · field_simp
+
+theorem inHalfTurnCell_smul {u : Fin 3 → ℝ} {κ : ℝ} (hκ : κ ≠ 0) {R : Matrix (Fin 3) (Fin 3) ℝ}
+    (h : InHalfTurnCell (κ • u) R) : InHalfTurnCell u R := by
+  intro g
+  have := h g
+  rwa [halfTurnMat_smul κ hκ] at this
+
+/-- A pose whose normalized view lies in a projective triangle has view
+viewScale · Σ w_c T_c, so its half-turn cell is the one at the triangle point. -/
+theorem inHalfTurnCell_of_region {p : AtlasPose ℝ} {chart : ChartIndex} {root : Fin 8}
+    {T : AtlasProjectiveView.Triangle ℚ}
+    (hcell : p.InHalfTurnCell chart) (hscale : 1 ≤ AtlasProjectiveView.viewScale root p)
+    {w : Fin 3 → ℝ} (hw : AtlasProjectiveView.normalizedView root p =
+      Noperthedron.Atlas.ProjectiveView.affinePoint (Noperthedron.Atlas.ProjectiveView.toReal T) w) :
+    InHalfTurnCell (AtlasHalfTurnPrune.viewOf T w) (chartMatrix chart * cayleyMatrix p.x p.y p.z) := by
+  have hκ : AtlasProjectiveView.viewScale root p ≠ 0 := by linarith
+  apply inHalfTurnCell_smul hκ
+  have hview : AtlasProjectiveView.viewScale root p • AtlasHalfTurnPrune.viewOf T w =
+      fun k => rotRM_mat p.θ p.φ 0 2 k := by
+    funext k
+    have hk := congrFun hw k
+    simp only [AtlasProjectiveView.normalizedView] at hk
+    rw [rotRM_mat_row2]
+    simp only [Pi.smul_apply, smul_eq_mul, AtlasHalfTurnPrune.viewOf]
+    have : (∑ c, w c * (T c k : ℝ)) =
+        Noperthedron.Atlas.ProjectiveView.affinePoint (Noperthedron.Atlas.ProjectiveView.toReal T) w k := by
+      simp [Noperthedron.Atlas.ProjectiveView.affinePoint, Noperthedron.Atlas.ProjectiveView.toReal]
+    rw [this, ← hk, mul_div_cancel₀ _ hκ]
+    fin_cases k <;> simp [eulerView, AtlasEdgeCertificate.viewVector]
+  rw [hview]
+  exact hcell
+
 end Noperthedron.PentagonalHexecontahedron

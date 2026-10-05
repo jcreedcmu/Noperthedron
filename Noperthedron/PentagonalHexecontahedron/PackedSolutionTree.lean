@@ -253,6 +253,13 @@ def readRow (chart : CayleyAtlas.ChartIndex)
     let neighbor ← readNat
     let region ← readRegion triangles
     pure (.icoPrune id { interval, chart, neighbor := finMod neighbor } region)
+  else if tag = 14 then
+    let element ← readNat
+    let region ← readRegion triangles
+    match region with
+    | .triangle root triangle =>
+        pure (.halfTurnPrune id { interval, chart, triangle, element := finMod element } root)
+    | .sphere => pure (.radiusPrune id interval region)
   else if tag = 10 then
     let count ← readNat
     let children ← readNats count #[]
@@ -325,6 +332,7 @@ def shiftRow (k : Nat) : Row → Row
   | .radiusPrune id iv r => .radiusPrune (id + k) iv r
   | .fundamentalPrune id b r => .fundamentalPrune (id + k) b r
   | .icoPrune id b r => .icoPrune (id + k) b r
+  | .halfTurnPrune id b root => .halfTurnPrune (id + k) b root
   | .regionRelax id ch iv root tri outer => .regionRelax (id + k) (ch + k) iv root tri outer
   | .cayleySplitAt id l u c cut iv r => .cayleySplitAt (id + k) (l + k) (u + k) c cut iv r
 

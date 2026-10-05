@@ -285,6 +285,10 @@ inductive Row where
   into its range); `cayleySplit` is the midpoint case. -/
   | cayleySplitAt (id lowerChild upperChild : ℕ) (coordinate : Fin 5) (cut : ℚ)
       (interval : Interval) (region : Region)
+  /-- Half-turn prune (centrally symmetric solids, pack tag 14): over the view
+  triangle and the box, trace(H_u R g) > trace(R) for the element g, so the
+  poses are outside the half-turn cell (`AtlasHalfTurnPrune.Box.Valid`). -/
+  | halfTurnPrune (id : ℕ) (box : AtlasHalfTurnPrune.Box) (root : Fin 8)
 
 def Row.id : Row → ℕ
   | .cayleySplit id .. | .viewRoot id .. | .viewSplit id .. |
@@ -292,7 +296,7 @@ def Row.id : Row → ℕ
       .projectiveMixedGlobal id .. |
       .symmetryLocal id .. | .radiusPrune id .. |
       .fundamentalPrune id .. | .icoPrune id .. | .symmetryTube id .. | .codeRoot id ..
-      | .regionRelax id .. | .cayleySplitAt id .. => id
+      | .regionRelax id .. | .cayleySplitAt id .. | .halfTurnPrune id .. => id
   | .projectiveLocal id .. => id
 
 def Row.interval : Row → Interval
@@ -311,6 +315,7 @@ def Row.interval : Row → Interval
   | .icoPrune _ box _ => box.interval
   | .regionRelax _ _ interval _ _ _ => interval
   | .cayleySplitAt _ _ _ _ _ interval _ => interval
+  | .halfTurnPrune _ box _ => box.interval
 
 def Row.region : Row → Region
   | .cayleySplit _ _ _ _ _ region => region
@@ -328,6 +333,7 @@ def Row.region : Row → Region
   | .icoPrune _ _ region => region
   | .regionRelax _ _ _ root triangle _ => .triangle root triangle
   | .cayleySplitAt _ _ _ _ _ _ region => region
+  | .halfTurnPrune _ box root => .triangle root box.triangle
 
 instance : Inhabited Row where
   default := .viewRoot 0 0 (AtlasPose.rootInterval ℚ)
@@ -394,6 +400,7 @@ def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
       (get child).interval = interval ∧
       (get child).region = .triangle root outer ∧
       triangleWithinB outer triangle = true
+  | .halfTurnPrune _ box _ => box.chart = chart ∧ box.Valid
   | .codeRoot id children interval =>
       children.size = WedgeCover.codeTriangles.size ∧
       ∀ t (ht : t < children.size),
@@ -610,6 +617,14 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       obtain ⟨hchart, hbox⟩ := hvalid
       subst hchart
       exact box.valid_imp_not_inIcoFundamentalDomain hbox hp hbounded hfund.1
+  | halfTurnPrune id box root =>
+      unfold NoRupert
+      rintro ⟨p, hp, hbounded, hfund, -, -, offset, hregion, -⟩
+      obtain ⟨hchart, hbox⟩ := hvalid
+      obtain ⟨w, hw0, hw1, hw⟩ := hregion.2
+      subst hchart
+      exact box.valid_imp_not_inHalfTurnCell hbox hp hbounded w hw0 (by rw [hw1]; norm_num)
+        (inHalfTurnCell_of_region hfund.2 hregion.1 hw)
 termination_by size - i
 decreasing_by
   all_goals
