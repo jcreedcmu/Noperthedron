@@ -153,7 +153,7 @@ structure CheckedChartTables where
 tables and view cover exclude every centrally symmetric `IModel` (I-orbits within
 `modelErrorQ` of the rational vertices) at once. -/
 theorem CheckedChartTables.notRupert (checked : CheckedChartTables) :
-    ∀ P : IModel, P.CentrallySymmetric → AtlasProjectiveSolutionTree.CapsHold P.toC5.polyhedron.hull → ¬ IsRupert P.toC5.verts :=
+    ∀ P : IModel, P.CentrallySymmetric → AtlasProjectiveSolutionTree.ExactClaims P.toC5.polyhedron.hull → ¬ IsRupert P.toC5.verts :=
   fun P hsym hcaps => not_rupert_of_valid_tables P hsym checked.tables checked.charts checked.valid
     checked.cover hcaps
 
@@ -169,7 +169,7 @@ def constructProof (localTaskCount globalTaskCount : Nat)
     (hchart : ∀ shared chart, (globalTables shared chart).chart = chart)
     (hshared : ∀ shared chart,
       (globalTables shared chart).sharedLocal = shared) :
-    IO (PLift (∀ P : IModel, P.CentrallySymmetric → AtlasProjectiveSolutionTree.CapsHold P.toC5.polyhedron.hull → ¬ IsRupert P.toC5.verts)) := do
+    IO (PLift (∀ P : IModel, P.CentrallySymmetric → AtlasProjectiveSolutionTree.ExactClaims P.toC5.polyhedron.hull → ¬ IsRupert P.toC5.verts)) := do
   -- The cover of T by the code triangles (too large for the kernel; see
   -- WedgeCoverData), checked natively like the tables.
   let coverStart ← IO.monoNanosNow

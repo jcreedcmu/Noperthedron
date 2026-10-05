@@ -12,6 +12,7 @@ public import Noperthedron.ParallelBool
 public import Noperthedron.PentagonalHexecontahedron.IcoView
 public import Noperthedron.PentagonalHexecontahedron.HalfTurnPose
 public import Noperthedron.PentagonalHexecontahedron.DHCapData
+public import Noperthedron.PentagonalHexecontahedron.TieRow
 
 @[expose] public section
 
@@ -293,6 +294,10 @@ inductive Row where
   /-- Cap leaf (deltoidal hexecontahedron, pack tag 16): a chart-0 box and view triangle
   inside the cap image `cap` (`Cap.dhCapImgs`), certified by the cap theorems. -/
   | capLeaf (id : ℕ) (interval : Interval) (root : Fin 8) (triangle : Triangle) (cap : ℕ)
+  /-- Tie leaf (deltoidal hexecontahedron, pack tag 15): over the box and view triangle,
+  H_u R H_x is within the box's radius of I (`AtlasTiePrune.Box.Valid`), and the triangle and
+  radius lie within tie node `node` (`Tie.dhTieNodes`), certified by the tie theorems. -/
+  | tieLeaf (id : ℕ) (box : AtlasTiePrune.Box) (root : Fin 8) (node : ℕ)
 
 def Row.id : Row → ℕ
   | .cayleySplit id .. | .viewRoot id .. | .viewSplit id .. |
@@ -300,7 +305,7 @@ def Row.id : Row → ℕ
       .projectiveMixedGlobal id .. |
       .symmetryLocal id .. | .radiusPrune id .. |
       .fundamentalPrune id .. | .icoPrune id .. | .symmetryTube id .. | .codeRoot id ..
-      | .regionRelax id .. | .cayleySplitAt id .. | .halfTurnPrune id .. | .capLeaf id .. => id
+      | .regionRelax id .. | .cayleySplitAt id .. | .halfTurnPrune id .. | .capLeaf id .. | .tieLeaf id .. => id
   | .projectiveLocal id .. => id
 
 def Row.interval : Row → Interval
@@ -321,6 +326,7 @@ def Row.interval : Row → Interval
   | .cayleySplitAt _ _ _ _ _ interval _ => interval
   | .halfTurnPrune _ box _ => box.interval
   | .capLeaf _ interval _ _ _ => interval
+  | .tieLeaf _ box _ _ => box.interval
 
 def Row.region : Row → Region
   | .cayleySplit _ _ _ _ _ region => region
@@ -340,6 +346,7 @@ def Row.region : Row → Region
   | .cayleySplitAt _ _ _ _ _ _ region => region
   | .halfTurnPrune _ box root => .triangle root box.triangle
   | .capLeaf _ _ root triangle _ => .triangle root triangle
+  | .tieLeaf _ box root _ => .triangle root box.triangle
 
 instance : Inhabited Row where
   default := .viewRoot 0 0 (AtlasPose.rootInterval ℚ)
@@ -350,10 +357,20 @@ def capLeafValidB (interval : Interval) (triangle : Triangle) (cap : ℕ) : Bool
   | some img => Cap.capLeafOk Cap.dhCapBases img interval triangle
   | none => false
 
+/-- A tie leaf's node: same normal, its triangle contains the leaf's, and its radius is at least the leaf's. -/
+def tieLeafValidB (box : AtlasTiePrune.Box) (node : ℕ) : Bool :=
+  match Tie.dhTieNodes[node]? with
+  | some e => decide (e.normal = box.normal) && triangleWithinB e.tri box.triangle &&
+      decide (0 ≤ box.rho) && decide (box.rho ≤ e.rho)
+  | none => false
+
 /-- The cap claims for all cap images (proved from the checked cap certificates). -/
 def CapsHold (S : Set ℝ³) : Prop :=
   ∀ (cap : ℕ) (img : Cap.CapImg), Cap.dhCapImgs[cap]? = some img →
     ∀ b, Cap.dhCapBases[img.base]? = some b → Cap.ImgClaim S b img
+
+/-- The exact solid's claims: the caps and the tie nodes. -/
+def ExactClaims (S : Set ℝ³) : Prop := CapsHold S ∧ Tie.TiesHold S
 
 def SymmetryTubeMatches (tube : AtlasProjectiveLocalViewTree.Tube)
     (path : List (Fin 4)) (region : Region) : Option AtlasProjectiveLocalViewTree.Table → Prop
@@ -419,6 +436,7 @@ def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
       triangleWithinB outer triangle = true
   | .halfTurnPrune _ box _ => box.chart = chart ∧ box.Valid
   | .capLeaf _ interval _ triangle cap => chart = 0 ∧ capLeafValidB interval triangle cap = true
+  | .tieLeaf _ box _ node => box.chart = chart ∧ box.Valid ∧ tieLeafValidB box node = true
   | .codeRoot id children interval =>
       children.size = WedgeCover.codeTriangles.size ∧
       ∀ t (ht : t < children.size),
@@ -494,7 +512,7 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
     (size : ℕ) (shared : SharedLocalTables)
     (sharedValid : SharedLocalValid shared)
     (hcover : WedgeCover.coverValid = true)
-    (hcaps : CapsHold P.polyhedron.hull)
+    (hcaps : ExactClaims P.polyhedron.hull)
     (rowsValid : RowsValidAt chart get size shared)
     (i : ℕ) (hi : i < size) :
     NoRupert (P := P) chart (get i).interval (get i).region := by
@@ -645,7 +663,23 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       split at hok
       · next img himg =>
         exact Cap.capLeaf_sound P.polyhedron.hull Cap.dhCapBases img
-          (fun b hb => hcaps cap img himg b hb) interval root triangle hok p hp hfund.2 hregion.1 hregion.2
+          (fun b hb => hcaps.1 cap img himg b hb) interval root triangle hok p hp hfund.2 hregion.1 hregion.2
+          offset hrupert
+      · exact absurd hok (by simp)
+  | tieLeaf id box root node =>
+      unfold NoRupert
+      rintro ⟨p, hp, hbounded, -, -, -, offset, hregion, hrupert⟩
+      obtain ⟨hchart, hbox, hok⟩ := hvalid
+      subst hchart
+      unfold tieLeafValidB at hok
+      split at hok
+      · next e he =>
+        simp only [Bool.and_eq_true, decide_eq_true_eq] at hok
+        obtain ⟨⟨⟨hn, hwithin⟩, hρ0⟩, hρ⟩ := hok
+        have hclaim := hcaps.2 node e he
+        rw [hn] at hclaim
+        exact Tie.tieLeaf_sound P.polyhedron.hull box hbox e.tri e.rho hclaim hρ0 hρ
+          (fun pt h => inTriangle_of_triangleWithinB hwithin h) root p hp hbounded hregion.1 hregion.2
           offset hrupert
       · exact absurd hok (by simp)
   | halfTurnPrune id box root =>
@@ -761,7 +795,7 @@ theorem Table.Valid.of_withTasksB {table : Table} {taskCount : ℕ}
 
 theorem Table.valid_imp_no_chart_translated_pose
     (table : Table) (h : table.Valid) (hcover : WedgeCover.coverValid = true)
-    (hcaps : CapsHold P.polyhedron.hull) :
+    (hcaps : ExactClaims P.polyhedron.hull) :
     ¬ ∃ p ∈ AtlasPose.rootInterval ℝ,
       p.CayleyBounded ∧ (p.InIcoFundamentalDomain table.chart ∧ p.InHalfTurnCell table.chart) ∧
       p.InViewWedge ∧ (p.InUpperView ∧ p.InIcoView) ∧ ∃ offset : ℝ²,
@@ -784,7 +818,7 @@ theorem no_matrixPose_of_valid_tables (Q : IModel)
     (table : ChartIndex → Table)
     (hchart : ∀ chart, (table chart).chart = chart)
     (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true)
-    (hcaps : CapsHold Q.toC5.polyhedron.hull) :
+    (hcaps : ExactClaims Q.toC5.polyhedron.hull) :
     ¬ ∃ p : MatrixPose, RupertPose p Q.toC5.polyhedron.hull := by
   rintro ⟨p, hrupert⟩
   obtain ⟨chart, q, offset, hq, hbounded, hview, hupper, hfund, hcell, heq⟩ :=

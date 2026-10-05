@@ -42,7 +42,7 @@ theorem not_rupert_of_valid_tables (Q : IModel)
     (table : ChartIndex → AtlasProjectiveSolutionTree.Table)
     (hchart : ∀ chart, (table chart).chart = chart)
     (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true)
-    (hcaps : CapsHold Q.toC5.polyhedron.hull) :
+    (hcaps : ExactClaims Q.toC5.polyhedron.hull) :
     ¬ IsRupert Q.toC5.verts := by
   intro hrupert
   have hset : IsRupertSet (convexHull ℝ Q.toC5.verts) :=
