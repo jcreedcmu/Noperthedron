@@ -259,4 +259,39 @@ theorem coneOk_sound (st : Setup) (pr : Params) (id : ChartId) (box : Box) (h : 
     · rw [hs]; simpa using hw 1 0 h1
     · rw [hs]; simpa using hw 2 0 h2
 
+/-! ### The identity pose -/
+
+theorem rcayleyNum_zero (v : Fin 3 → ℝ) : rcayleyNum 0 v = v := by
+  funext k; fin_cases k <;> simp [rcayleyNum, rdot, rcross]
+
+theorem exists_basis_cross_ne (u : Fin 3 → ℝ) (hu : u ≠ 0) : ∃ c : Fin 3 → ℝ, rcross u c ≠ 0 := by
+  by_contra h
+  push Not at h
+  apply hu
+  have h0 := h (Pi.single 0 1); have h1 := h (Pi.single 1 1); have h2 := h (Pi.single 2 1)
+  have e0 := congrFun h0 1; have e0' := congrFun h0 2
+  have e1 := congrFun h1 0; have e1' := congrFun h1 2
+  have e2 := congrFun h2 0
+  simp [rcross] at e0 e0' e1 e1' e2
+  funext k; fin_cases k <;> simp_all
+
+/-- A chart point with w = 0 (the identity rotation) is good: a support witness. -/
+theorem chartGood_of_w_zero (st : Setup) (pr : Params) (V : List (Fin 3 → ℝ)) (hV : V ≠ [])
+    (usePrune : Bool) (G : Matrix (Fin 3) (Fin 3) ℝ) (id : ChartId) (y : Fin 5 → ℝ)
+    (hu : rChartU st id y ≠ 0) (hw : rChartW st id y = 0) : ChartGood st pr V usePrune G id y := by
+  right; right
+  obtain ⟨c, hc⟩ := exists_basis_cross_ne _ hu
+  set d := rcross (rChartU st id y) c
+  classical
+  have hne : V.toFinset.Nonempty := by
+    obtain ⟨v, hv⟩ := List.exists_mem_of_ne_nil V hV
+    exact ⟨v, List.mem_toFinset.mpr hv⟩
+  obtain ⟨vk, hvk, hmax⟩ := Finset.exists_max_image V.toFinset (fun v => rdot v d) hne
+  refine ⟨vk, List.mem_toFinset.mp hvk, c, hc, fun vj hvj => ?_⟩
+  unfold witnessValue
+  rw [hw, rcayleyNum_zero]
+  have := hmax vj (List.mem_toFinset.mpr hvj)
+  simp only [rdot, Pi.zero_apply, mul_zero, add_zero] at this ⊢
+  linarith
+
 end Noperthedron.PentagonalHexecontahedron.Cap
