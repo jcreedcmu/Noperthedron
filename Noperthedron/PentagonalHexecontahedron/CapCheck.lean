@@ -294,4 +294,143 @@ theorem chartGood_of_w_zero (st : Setup) (pr : Params) (V : List (Fin 3 → ℝ)
   simp only [rdot, Pi.zero_apply, mul_zero, add_zero] at this ⊢
   linarith
 
+/-! ### Half-turn prune leaves -/
+
+/-- The unit vectors of K³. -/
+def kbasis (j : Fin 3) : KVec := fun i => if i = j then IcoQ.one else IcoQ.zero
+
+/-- capcert's cell polynomial 2 u·(N G u) − |u|² (tr(N G) + tr N), N = N(w) the Cayley numerator,
+for G given by its columns. -/
+def cellPoly (st : Setup) (id : ChartId) (Gcol : Fin 3 → KVec) : NPoly 5 :=
+  let ch := makeChart st id
+  let NG : Fin 3 → PVec := fun j => cayleyNum ch.w (Gcol j)
+  let Ncol : Fin 3 → PVec := fun j => cayleyNum ch.w (kbasis j)
+  let NGu : PVec := PVec.add (PVec.smul (ch.u 0) (NG 0)) (PVec.add (PVec.smul (ch.u 1) (NG 1)) (PVec.smul (ch.u 2) (NG 2)))
+  let tr : NPoly 5 := NPoly.add 5 (NPoly.add 5 (NG 0 0) (NG 1 1)) (NPoly.add 5 (NG 2 2)
+    (NPoly.add 5 (NPoly.add 5 (Ncol 0 0) (Ncol 1 1)) (Ncol 2 2)))
+  NPoly.sub 5 (NPoly.mul 5 npTwo (PVec.dot ch.u NGu)) (NPoly.mul 5 (PVec.dot ch.u ch.u) tr)
+
+/-- The real matrix of G's columns. -/
+noncomputable def gMat (Gcol : Fin 3 → KVec) : Matrix (Fin 3) (Fin 3) ℝ := fun i j => (Gcol j i).val
+
+theorem rcayleyNum_eq (w v : Fin 3 → ℝ) :
+    rcayleyNum w v = (cayleyNumeratorMatrix (w 0) (w 1) (w 2)).mulVec v := by
+  funext k
+  fin_cases k <;> simp [rcayleyNum, rdot, rcross, cayleyNumeratorMatrix, Matrix.mulVec, dotProduct,
+    Fin.sum_univ_three] <;> ring
+
+theorem eval_cellPoly (st : Setup) (id : ChartId) (Gcol : Fin 3 → KVec) (y : Fin 5 → ℝ) :
+    let u := rChartU st id y
+    let w := rChartW st id y
+    let N := cayleyNumeratorMatrix (w 0) (w 1) (w 2)
+    NPoly.eval 5 (cellPoly st id Gcol) y =
+      2 * rdot u ((N * gMat Gcol).mulVec u) - rdot u u * (Matrix.trace (N * gMat Gcol) + Matrix.trace N) := by
+  have hb : ∀ j i : Fin 3, (kbasis j i).val = if i = j then 1 else 0 := by
+    intro j i; unfold kbasis; split_ifs <;> simp [IcoQ.val, IcoQ.one, IcoQ.zero]
+  simp only [cellPoly, NPoly.eval_sub, NPoly.eval_mul, PVec.eval_dot, NPoly.eval_add, npTwo, NPoly.eval_const,
+    IcoQ.val_ofRat]
+  simp only [PVec.eval_add, PVec.eval_smul, eval_cayleyNum, eval_makeChart_u, eval_makeChart_w]
+  have e : ∀ j : Fin 3, NPoly.eval 5 (cayleyNum (makeChart st id).w (Gcol j) j) y =
+      rcayleyNum (rChartW st id y) (kv (Gcol j)) j := by
+    intro j
+    have := congrFun (eval_cayleyNum (makeChart st id).w (Gcol j) y) j
+    rw [eval_makeChart_w] at this; exact this
+  have e2 : ∀ j k : Fin 3, NPoly.eval 5 (cayleyNum (makeChart st id).w (kbasis j) k) y =
+      rcayleyNum (rChartW st id y) (kv (kbasis j)) k := by
+    intro j k
+    have := congrFun (eval_cayleyNum (makeChart st id).w (kbasis j) y) k
+    rw [eval_makeChart_w] at this; exact this
+  have eu : ∀ k, NPoly.eval 5 ((makeChart st id).u k) y = rChartU st id y k :=
+    fun k => congrFun (eval_makeChart_u st id y) k
+  simp only [eu, e, e2]
+  generalize rChartU st id y = u
+  generalize rChartW st id y = w
+  simp only [rcayleyNum_eq, gMat, kv, PVec.kval, hb, rdot, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
+    Matrix.mul_apply, Matrix.trace, Matrix.diag, Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+  push_cast
+  simp
+  ring
+
+theorem trace_halfTurnMat_mul (u : Fin 3 → ℝ) (hu : rdot u u ≠ 0) (M : Matrix (Fin 3) (Fin 3) ℝ) :
+    Matrix.trace (halfTurnMat u * M) = 2 * rdot u (M.mulVec u) / rdot u u - Matrix.trace M := by
+  have hsum : (∑ k, u k ^ 2) = rdot u u := by simp [rdot, Fin.sum_univ_three]; ring
+  simp only [halfTurnMat, hsum, Matrix.trace, Matrix.diag, Matrix.mul_apply, Fin.sum_univ_three, Matrix.mulVec,
+    dotProduct, Matrix.one_apply, Matrix.of_apply]
+  simp only [rdot] at hu ⊢
+  have hu2 : u 0 ^ 2 + u 1 ^ 2 + u 2 ^ 2 ≠ 0 := by convert hu using 1; ring
+  field_simp
+  simp only [Matrix.mulVec, dotProduct, Fin.sum_univ_three]
+  norm_num [Fin.ext_iff]
+  ring
+
+theorem trace_halfTurn_sub (u w : Fin 3 → ℝ) (hu : rdot u u ≠ 0) (G : Matrix (Fin 3) (Fin 3) ℝ) :
+    let N := cayleyNumeratorMatrix (w 0) (w 1) (w 2)
+    (1 + rdot w w) * rdot u u * (Matrix.trace (halfTurnMat u * cayleyMatrix (w 0) (w 1) (w 2) * G) -
+      Matrix.trace (cayleyMatrix (w 0) (w 1) (w 2))) =
+      2 * rdot u ((N * G).mulVec u) - rdot u u * (Matrix.trace (N * G) + Matrix.trace N) := by
+  have hD : (1 + rdot w w) = cayleyDenom (w 0) (w 1) (w 2) := by simp [rdot, cayleyDenom]; ring
+  have hne := cayleyDenom_ne (w 0) (w 1) (w 2)
+  set N := cayleyNumeratorMatrix (w 0) (w 1) (w 2)
+  set D := cayleyDenom (w 0) (w 1) (w 2)
+  have hR : cayleyMatrix (w 0) (w 1) (w 2) = D⁻¹ • N := by
+    rw [cayleyMatrix_eq_div_numerator]; ext i j; simp [N, D, div_eq_inv_mul]
+  simp only []
+  rw [Matrix.mul_assoc, trace_halfTurnMat_mul u hu, hR, hD]
+  rw [Matrix.smul_mul, Matrix.smul_mulVec, Matrix.trace_smul, Matrix.trace_smul]
+  have hrd : ∀ (k : ℝ) (v : Fin 3 → ℝ), rdot u (k • v) = k * rdot u v := by
+    intro k v; simp only [rdot, Pi.smul_apply, smul_eq_mul]; ring
+  rw [hrd]
+  simp only [smul_eq_mul]
+  field_simp
+  ring
+
+/-- A half-turn prune leaf: the divided cell polynomial is positive on the box (identity cones
+and F_e/face charts; never the tie cone). -/
+def cellQ (st : Setup) (id : ChartId) (Gcol : Fin 3 → KVec) : NPoly 5 :=
+  let q := NPoly.divOut 5 0 64 (cellPoly st id Gcol)
+  if isCone id then NPoly.divOut 5 2 64 q else q
+
+def pruneOk (st : Setup) (id : ChartId) (Gcol : Fin 3 → KVec) (box : Box) : Bool :=
+  let q := cellQ st id Gcol
+  decide (id.kind ≠ .mcone) && decide (0 < NPoly.lowerDeg 5 (degs q) q box)
+
+theorem pruneOk_sound (st : Setup) (id : ChartId) (Gcol : Fin 3 → KVec) (box : Box)
+    (h : pruneOk st id Gcol box = true) (hbw : ∀ i, 0 ≤ (box i).2) (y : Fin 5 → ℝ) (hy : InBoxR box y)
+    (hμ : 0 < y 0) (ht : isCone id = true → 0 < y 2) (hu : rdot (rChartU st id y) (rChartU st id y) ≠ 0) :
+    Matrix.trace (cayleyMatrix (rChartW st id y 0) (rChartW st id y 1) (rChartW st id y 2)) <
+      Matrix.trace (halfTurnMat (rChartU st id y) *
+        cayleyMatrix (rChartW st id y 0) (rChartW st id y 1) (rChartW st id y 2) * gMat Gcol) := by
+  simp only [pruneOk, Bool.and_eq_true, decide_eq_true_eq] at h
+  obtain ⟨-, hpos⟩ := h
+  have hl := lowerDeg_le_eval 5 (degs (cellQ st id Gcol)) (cellQ st id Gcol) box y hbw hy
+  have hq : 0 < NPoly.eval 5 (cellQ st id Gcol) y := lt_of_lt_of_le (by exact_mod_cast hpos) hl
+  -- cell = μ^m t^n Q > 0.
+  have hcell : 0 < NPoly.eval 5 (cellPoly st id Gcol) y := by
+    obtain ⟨m, hm⟩ := eval_divOut 5 0 y 64 (cellPoly st id Gcol)
+    rw [hm]
+    apply mul_pos (pow_pos hμ m)
+    unfold cellQ at hq
+    by_cases hc : isCone id = true
+    · simp only [hc, if_true] at hq
+      obtain ⟨n, hn⟩ := eval_divOut 5 2 y 64 (NPoly.divOut 5 0 64 (cellPoly st id Gcol))
+      rw [hn]
+      exact mul_pos (pow_pos (ht hc) n) hq
+    · simp only [hc] at hq
+      simpa using hq
+  rw [eval_cellPoly] at hcell
+  have hid := trace_halfTurn_sub (rChartU st id y) (rChartW st id y) hu (gMat Gcol)
+  simp only [] at hid
+  rw [← hid] at hcell
+  have hD : 0 < 1 + rdot (rChartW st id y) (rChartW st id y) := by
+    simp only [rdot]; nlinarith [mul_self_nonneg (rChartW st id y 0), mul_self_nonneg (rChartW st id y 1),
+      mul_self_nonneg (rChartW st id y 2)]
+  have hU : 0 < rdot (rChartU st id y) (rChartU st id y) := by
+    rcases lt_or_gt_of_ne hu with h | h
+    · exfalso; simp only [rdot] at h
+      nlinarith [mul_self_nonneg (rChartU st id y 0), mul_self_nonneg (rChartU st id y 1),
+        mul_self_nonneg (rChartU st id y 2)]
+    · exact h
+  have := (mul_pos_iff_of_pos_left (mul_pos hD hU)).mp hcell
+  linarith
+
 end Noperthedron.PentagonalHexecontahedron.Cap
