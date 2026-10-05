@@ -124,6 +124,139 @@ theorem sum_map_range {β : Type} [AddCommMonoid β] (n : ℕ) (f : ℕ → β) 
   | zero => simp
   | succ n ih => simp [List.range_succ, Finset.sum_range_succ, ih]
 
+/-! ### Constants, variables, products -/
+
+def const : (k : ℕ) → IcoQ → NPoly k
+  | 0, c => c
+  | k + 1, c => [const k c]
+
+theorem eval_const : ∀ (k : ℕ) (c : IcoQ) (y : Fin k → ℝ), eval k (const k c) y = c.val
+  | 0, _, _ => rfl
+  | k + 1, c, y => by
+    show horner _ _ [const k c] = _
+    simp [eval_const k c]
+
+/-- The variable y_i. -/
+def var : (k : ℕ) → Fin k → NPoly k
+  | k + 1, i => Fin.cases (motive := fun _ => NPoly (k + 1))
+      ([zero k, const k 1] : List (NPoly k)) (fun j => ([var k j] : List (NPoly k))) i
+
+theorem eval_var : ∀ (k : ℕ) (i : Fin k) (y : Fin k → ℝ), eval k (var k i) y = y i
+  | k + 1, i, y => by
+    cases i using Fin.cases with
+    | zero =>
+      show horner _ _ [zero k, const k 1] = _
+      simp [eval_zero, eval_const]
+    | succ j =>
+      show horner _ _ [var k j] = _
+      simp [eval_var k j, Fin.tail]
+
+def mulL {α : Type} (addf mulf : α → α → α) (z : α) : List α → List α → List α
+  | [], _ => []
+  | x :: xs, b => ladd addf (b.map (mulf x)) (z :: mulL addf mulf z xs b)
+
+def mul : (k : ℕ) → NPoly k → NPoly k → NPoly k
+  | 0, a, b => IcoQ.mul a b
+  | k + 1, a, b => mulL (add k) (mul k) (zero k) (a : List (NPoly k)) b
+
+theorem horner_map {α : Type} (v : α → ℝ) (x : ℝ) (f : α → α) (c : ℝ) (hf : ∀ a, v (f a) = c * v a)
+    (l : List α) : horner v x (l.map f) = c * horner v x l := by
+  induction l with
+  | nil => simp
+  | cons a as ih => simp only [List.map_cons, horner_cons, hf, ih]; ring
+
+theorem horner_mulL {α : Type} (v : α → ℝ) (x : ℝ) (addf mulf : α → α → α) (z : α)
+    (ha : ∀ a b, v (addf a b) = v a + v b) (hm : ∀ a b, v (mulf a b) = v a * v b) (hz : v z = 0) :
+    ∀ a b : List α, horner v x (mulL addf mulf z a b) = horner v x a * horner v x b
+  | [], b => by simp [mulL]
+  | p :: ps, b => by
+    rw [mulL, horner_ladd v x addf ha, horner_map v x (mulf p) (v p) (fun a => hm p a), horner_cons, hz,
+      horner_mulL v x addf mulf z ha hm hz ps b, horner_cons]
+    ring
+
+theorem eval_mul : ∀ (k : ℕ) (a b : NPoly k) (y : Fin k → ℝ), eval k (mul k a b) y = eval k a y * eval k b y
+  | 0, a, b, _ => IcoQ.val_mul a b
+  | k + 1, a, b, y =>
+    horner_mulL _ _ _ _ _ (fun p q => eval_add k p q _) (fun p q => eval_mul k p q _) (eval_zero k _) _ _
+
+def sub (k : ℕ) (a b : NPoly k) : NPoly k := add k a (scale k (-1) b)
+
+theorem eval_sub (k : ℕ) (a b : NPoly k) (y : Fin k → ℝ) : eval k (sub k a b) y = eval k a y - eval k b y := by
+  simp [sub, eval_add, eval_scale]; ring
+
+/-! ### Exact division by a variable -/
+
+def isZero : (k : ℕ) → NPoly k → Bool
+  | 0, c => decide ((show IcoQ from c) = IcoQ.zero)
+  | k + 1, p => (p : List (NPoly k)).all (isZero k)
+
+theorem horner_zero_of_all {α : Type} (v : α → ℝ) (x : ℝ) (Z : α → Bool) (hZ : ∀ a, Z a = true → v a = 0) :
+    ∀ l : List α, l.all Z = true → horner v x l = 0
+  | [], _ => rfl
+  | a :: as, h => by
+    simp only [List.all_cons, Bool.and_eq_true] at h
+    rw [horner_cons, hZ a h.1, horner_zero_of_all v x Z hZ as h.2]
+    ring
+
+theorem eval_of_isZero : ∀ (k : ℕ) (p : NPoly k) (y : Fin k → ℝ), isZero k p = true → eval k p y = 0
+  | 0, c, _, h => by
+    have : (show IcoQ from c) = IcoQ.zero := of_decide_eq_true h
+    show IcoQ.val c = 0
+    rw [this]; simp [IcoQ.val, IcoQ.zero]
+  | k + 1, p, y, h => horner_zero_of_all _ _ (isZero k) (fun a ha => eval_of_isZero k a _ ha) _ h
+
+theorem horner_append {α : Type} (v : α → ℝ) (x : ℝ) (l₁ l₂ : List α) :
+    horner v x (l₁ ++ l₂) = horner v x l₁ + x ^ l₁.length * horner v x l₂ := by
+  induction l₁ with
+  | nil => simp
+  | cons a as ih => simp only [List.cons_append, horner_cons, ih, List.length_cons, pow_succ]; ring
+
+theorem horner_mapM {α : Type} (v : α → ℝ) (x : ℝ) (f : α → Option α) (c : ℝ)
+    (hf : ∀ a b, f a = some b → v a = c * v b) :
+    ∀ (l l' : List α), l.mapM f = some l' → horner v x l = c * horner v x l'
+  | [], l', h => by
+    simp only [List.mapM_nil] at h
+    cases h; simp
+  | a :: as, l', h => by
+    cases hfa : f a with
+    | none => simp [List.mapM_cons, hfa] at h
+    | some b =>
+      cases hm : as.mapM f with
+      | none => simp [List.mapM_cons, hfa, hm] at h
+      | some bs =>
+        simp only [List.mapM_cons, hfa, hm] at h
+        cases h
+        rw [horner_cons, horner_cons, hf a b hfa, horner_mapM v x f c hf as bs hm]
+        ring
+
+/-- p / y_i^m when every term of p has y_i-degree ≥ m. -/
+def divVar : (k : ℕ) → Fin k → ℕ → NPoly k → Option (NPoly k)
+  | k + 1, i, m, p => Fin.cases (motive := fun _ => Option (NPoly (k + 1)))
+      (if ((p : List (NPoly k)).take m).all (isZero k) then some ((p : List (NPoly k)).drop m) else none)
+      (fun j => ((p : List (NPoly k)).mapM (divVar k j m)).map fun l => (l : NPoly (k + 1))) i
+
+theorem eval_divVar : ∀ (k : ℕ) (i : Fin k) (m : ℕ) (p q : NPoly k) (y : Fin k → ℝ),
+    divVar k i m p = some q → eval k p y = y i ^ m * eval k q y
+  | k + 1, i, m, p, q, y, h => by
+    cases i using Fin.cases with
+    | zero =>
+      simp only [divVar, Fin.cases_zero] at h
+      split_ifs at h with hz
+      cases h
+      show horner _ _ (p : List (NPoly k)) = _ * horner _ _ ((p : List (NPoly k)).drop m)
+      conv_lhs => rw [← List.take_append_drop m (p : List (NPoly k))]
+      rw [horner_append, horner_zero_of_all _ _ (isZero k) (fun a ha => eval_of_isZero k a _ ha) _ hz,
+        zero_add]
+      rcases Nat.lt_or_ge (p : List (NPoly k)).length m with hl | hl
+      · rw [List.drop_eq_nil_of_le hl.le]; simp
+      · rw [List.length_take_of_le hl]
+    | succ j =>
+      simp only [divVar, Fin.cases_succ, Option.map_eq_some_iff] at h
+      obtain ⟨l, hl, rfl⟩ := h
+      show horner _ _ (p : List (NPoly k)) = y j.succ ^ m * horner _ _ (l : List (NPoly k))
+      exact horner_mapM (fun q => eval k q (Fin.tail y)) (y 0) (divVar k j m) (Fin.tail y j ^ m)
+        (fun a b hab => eval_divVar k j m a b (Fin.tail y) hab) _ _ hl
+
 /-! ### Taylor shift and Bernstein transform in the first variable -/
 
 /-- The real identity behind `shift`: Σ_{f<L} a_f (lo + h t)^f =
