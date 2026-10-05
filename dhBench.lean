@@ -1,4 +1,6 @@
 import Noperthedron.PentagonalHexecontahedron.DHDecode
+import Noperthedron.PentagonalHexecontahedron.PackedLocalViewTree
+import Noperthedron.PentagonalHexecontahedron.PackedSolutionTree
 
 open Noperthedron.PentagonalHexecontahedron
 open Noperthedron.PentagonalHexecontahedron.Cap
@@ -45,4 +47,30 @@ def main (args : List String) : IO Unit := do
     let c := decodeCert (← readLines file)
     let t0 ← IO.monoMsNow
     IO.println s!"{c.charts.length} charts; capCheckPar: {capCheckPar c} ({(← IO.monoMsNow) - t0} ms)"
-  | _ => IO.println "usage: dhBench ties <dir> | cap <file>"
+  | "rows" :: chartStr :: packPath :: manifestPath :: idx =>
+    let chart : CayleyAtlas.ChartIndex := ⟨chartStr.toNat! % 4, by omega⟩
+    let packDir := (System.FilePath.mk manifestPath).parent.getD "."
+    let mut shared : AtlasProjectiveSolutionTree.SharedLocalTables := #[]
+    for line in ← IO.FS.lines manifestPath do
+      if let filename :: _ := line.splitOn " " then
+        if filename.endsWith ".pack" then
+          shared := shared.push (PackedLocalViewTree.decodePackedCodeTriangle (← IO.FS.readBinFile s!"{packDir}/{filename}"))
+    let table := PackedSolutionTree.decodeTable chart shared (← IO.FS.readFile packPath)
+    for s in idx do
+      let i := s.toNat!
+      let row := table.get i
+      let kind : String := match row with
+        | .tieLeaf _ box root node =>
+          s!"tieLeaf normal {box.normal} rho {box.rho} node {node} root {root} chart {box.chart}: boxValid {decide box.Valid} nodeOk {AtlasProjectiveSolutionTree.tieLeafValidB box node}"
+        | .capLeaf _ iv root tri cap => s!"capLeaf cap {cap} root {root}: valid {AtlasProjectiveSolutionTree.capLeafValidB iv tri cap}"
+        | .halfTurnPrune _ box root => s!"halfTurnPrune g {box.element} root {root}: valid {decide box.Valid}"
+        | .symmetryTube _ tube si path _ => s!"symmetryTube shared {si} path {path.length} r {tube.r}"
+        | .regionRelax .. => "regionRelax"
+        | .cayleySplit .. => "cayleySplit" | .cayleySplitAt .. => "cayleySplitAt"
+        | .viewSplit .. => "viewSplit" | .viewRoot .. => "viewRoot" | .codeRoot .. => "codeRoot"
+        | .projective .. => "projective" | .projectiveGlobal .. => "projectiveGlobal"
+        | .projectiveMixedGlobal .. => "mixedGlobal" | .symmetryLocal .. => "symmetryLocal"
+        | .projectiveLocal .. => "projectiveLocal" | .radiusPrune .. => "radiusPrune"
+        | .fundamentalPrune .. => "fundamentalPrune" | .icoPrune .. => "icoPrune"
+      IO.println s!"row {i} (id {row.id}): {kind}"
+  | _ => IO.println "usage: dhBench ties <dir> | cap <file> | rows <chart> <pack> <manifest> <i>..."
