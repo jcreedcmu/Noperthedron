@@ -81,7 +81,7 @@ noncomputable def rES (st : Setup) (id : ChartId) (A B : KVec) (y : Fin 5 → �
         match pvarOf id i with
         | some k => rRatioVar st id y k
         | none => 0
-      center i + (((st.range i : ℤ) / 2 : ℤ) : ℝ) * rpv y 0 * sig)
+      center i + ((st.coneScale id.kind i : ℤ) : ℝ) * rpv y 0 * sig)
   | .face =>
     (rpv y 0, fun i =>
       if (i : ℕ) = id.axis then sgn * (st.range i : ℝ) else

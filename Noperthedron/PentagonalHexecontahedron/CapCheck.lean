@@ -75,12 +75,12 @@ theorem rootLoHi_zero (st : Setup) (pr : Params) (id : ChartId) : rootLoHi st pr
   unfold rootLoHi; simp [baseLoHi]
 
 theorem rootLoHi_two_cone (st : Setup) (pr : Params) (id : ChartId) (hk : id.kind = .cone ∨ id.kind = .mcone)
-    (hax : id.axis < 3) : rootLoHi st pr id 2 = (0, pr.t0) := by
+    (hax : id.axis < 3) : rootLoHi st pr id 2 = (0, pr.coneT id.kind) := by
   have hnfe : id.kind ≠ .fe := by rcases hk with h | h <;> rw [h] <;> simp
   have hnw : ¬ IsWeakP st id 0 := by
     rintro ⟨i, -, -, hi⟩; have := pvarOf_ne_zero_of_ne_fe id hnfe hi; omega
-  have hb : baseLoHi st pr id.kind id.axis 2 = (0, pr.t0) := by
-    rcases hk with h | h <;> simp [baseLoHi, h]
+  have hb : baseLoHi st pr id.kind id.axis 2 = (0, pr.coneT id.kind) := by
+    rcases hk with h | h <;> simp [baseLoHi, h, Params.coneT]
   rcases Nat.lt_or_ge id.ratio 3 with hr | hr
   · interval_cases hr2 : id.ratio
     · rw [rootLoHi_ratio0 st pr id hr2, hb]
@@ -228,8 +228,9 @@ theorem within_sound {r : ℚ × ℚ} {c bound : ℚ} (h : within r c bound = tr
 
 /-- An F_e box inside the cone region (identity cone, or the tie cone at (1, 0, 0)). -/
 def coneOk (st : Setup) (pr : Params) (id : ChartId) (box : Box) : Bool :=
-  let w (i : Fin 3) (c : ℚ) := within (sRange st id box i) c (pr.t0 * halfRange st i)
-  decide (id.kind = .fe) && ((w 0 0 && w 1 0 && w 2 0) || (st.aniso && pr.tieCones && w 0 1 && w 1 0 && w 2 0))
+  let w (i : Fin 3) (c : ℚ) := within (sRange st id box i) c (pr.t0 * st.coneScale .cone i)
+  let wm (i : Fin 3) (c : ℚ) := within (sRange st id box i) c (pr.t0m * st.coneScale .mcone i)
+  decide (id.kind = .fe) && ((w 0 0 && w 1 0 && w 2 0) || (st.aniso && pr.tieCones && wm 0 1 && wm 1 0 && wm 2 0))
 
 theorem coneOk_sound (st : Setup) (pr : Params) (id : ChartId) (box : Box) (h : coneOk st pr id box = true)
     (y : Fin 5 → ℝ) (hy : InBoxR box y) :
@@ -239,9 +240,9 @@ theorem coneOk_sound (st : Setup) (pr : Params) (id : ChartId) (box : Box) (h : 
   refine ⟨hfe, ?_⟩
   have hs : ∀ i : Fin 3, (rES st id (st.frameAB id.side).1 (st.frameAB id.side).2 y).2 i = rRatioVar st id y i := by
     intro i; simp [rES, hfe]
-  have hw : ∀ (i : Fin 3) (c : ℚ), within (sRange st id box i) c (pr.t0 * halfRange st i) = true →
-      |rRatioVar st id y i - c| ≤ (pr.t0 : ℝ) * halfRange st i := by
-    intro i c hc
+  have hw : ∀ (i : Fin 3) (c t : ℚ) (k : Kind), within (sRange st id box i) c (t * st.coneScale k i) = true →
+      |rRatioVar st id y i - c| ≤ (t : ℝ) * st.coneScale k i := by
+    intro i c t k hc
     have := within_sound hc (sRange_sound st id box y hy i)
     push_cast at this; exact this
   unfold InConeRegion
@@ -250,14 +251,14 @@ theorem coneOk_sound (st : Setup) (pr : Params) (id : ChartId) (box : Box) (h : 
     intro i
     rw [hs]
     fin_cases i
-    · simpa using hw 0 0 h0
-    · simpa using hw 1 0 h1
-    · simpa using hw 2 0 h2
+    · simpa using hw 0 0 _ _ h0
+    · simpa using hw 1 0 _ _ h1
+    · simpa using hw 2 0 _ _ h2
   · right
     refine ⟨han, htie, ?_, ?_, ?_⟩
-    · rw [hs]; simpa using hw 0 1 h0
-    · rw [hs]; simpa using hw 1 0 h1
-    · rw [hs]; simpa using hw 2 0 h2
+    · rw [hs]; simpa using hw 0 1 _ _ h0
+    · rw [hs]; simpa using hw 1 0 _ _ h1
+    · rw [hs]; simpa using hw 2 0 _ _ h2
 
 /-! ### The identity pose -/
 

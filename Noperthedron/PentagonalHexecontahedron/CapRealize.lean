@@ -332,8 +332,8 @@ theorem free_ne (axis : ℕ) (hax : axis < 3) :
   interval_cases axis <;> simp [free0, free1]
 
 
-/-- The cone charts' half range ⌊Rᵢ/2⌋ (as in the polynomial chart). -/
-def halfRange (st : Setup) (i : ℕ) : ℤ := (st.range i : ℤ) / 2
+/-- The cone charts' radius in t (identity cone t₀, tie cone t₀ₘ). -/
+def Params.coneT (pr : Params) (k : Kind) : ℚ := if k = .mcone then pr.t0m else pr.t0
 
 theorem rpv_vec (a b c d e : ℝ) : rpv ![a, b, c, d, e] 0 = c ∧ rpv ![a, b, c, d, e] 1 = d ∧
     rpv ![a, b, c, d, e] 2 = e := by
@@ -433,12 +433,12 @@ s = center + ⌊R/2⌋ t σ. -/
 theorem realize_cone (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (kind : Kind)
     (hkind : kind = .cone ∨ kind = .mcone) (side axis : ℕ)
     (hax : axis < 3) (sign : Bool) (hz : 0 < zOf (kind, side, axis, sign)) (μ τ t : ℝ) (hμ0 : 0 ≤ μ)
-    (hμ1 : μ ≤ pr.mu0) (hτ : |τ| ≤ 1) (ht0 : 0 ≤ t) (ht1 : t ≤ pr.t0)
+    (hμ1 : μ ≤ pr.mu0) (hτ : |τ| ≤ 1) (ht0 : 0 ≤ t) (ht1 : t ≤ pr.coneT kind)
     (σ : Fin 3 → ℝ) (hσ : ∀ i : Fin 3, |σ i| ≤ 1)
     (haxis : ∀ i : Fin 3, (i : ℕ) = axis → σ i = (if sign then 1 else -1)) (A B : KVec) :
     ∃ id ∈ expandChart st pr zOf (kind, side, axis, sign), id.kind = kind ∧ id.side = side ∧
       ∃ y, InBoxR (rootBox st pr id) y ∧ y 0 = μ ∧ y 1 = τ ∧
-        rES st id A B y = (1, fun i => rCenter st kind A B τ i + (halfRange st i : ℝ) * t * σ i) := by
+        rES st id A B y = (1, fun i => rCenter st kind A B τ i + (st.coneScale kind i : ℝ) * t * σ i) := by
   obtain ⟨hf0, hf1, h01, hf0l, hf1l⟩ := free_ne axis hax
   let y₀ : Fin 5 → ℝ := ![μ, τ, t, σ ⟨free0 axis, hf0l⟩, σ ⟨free1 axis, hf1l⟩]
   have hnfe : kind ≠ .fe := by rcases hkind with h | h <;> rw [h] <;> simp
@@ -447,8 +447,8 @@ theorem realize_cone (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Boo
     intro v
     rw [abs_le] at hτ
     have h0 := abs_le.mp (hσ ⟨free0 axis, hf0l⟩); have h1 := abs_le.mp (hσ ⟨free1 axis, hf1l⟩)
-    rcases hkind with hk | hk <;> subst hk <;> fin_cases v <;>
-      simp [baseLoHi, baseId, y₀] <;> constructor <;> linarith
+    rcases hkind with hk | hk <;> subst hk <;> simp only [Params.coneT, if_true, if_false, reduceCtorEq] at ht1 <;>
+      fin_cases v <;> simp [baseLoHi, baseId, y₀] <;> constructor <;> linarith
   obtain ⟨id, hid, hk, hsd, hax', hsg, y, hy, hy0, hy1, hrr, hp0⟩ :=
     realize_ratio st pr zOf (kind, side, axis, sign) hax hz y₀ hbox hμ0
   refine ⟨id, hid, hk, hsd, y, hy, by rw [hy0]; rfl, by rw [hy1]; rfl, ?_⟩
@@ -463,7 +463,7 @@ theorem realize_cone (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Boo
     congr 1
     funext i
     rw [hy1', hrpv0]
-    simp only [rCenter, halfRange]
+    simp only [rCenter]
     congr 1
     congr 1
     rcases fin3_cases_axis axis hax i with h | h | h

@@ -41,7 +41,7 @@ theorem rdot_cayley_bound {w : Fin 3 → ℝ} {wmax : ℝ} (hw0 : 0 ≤ wmax)
   nlinarith
 
 theorem CapCert.claim (c : CapCert) (hc : c.check = true) (hS : 2 ≤ c.st.strongScale)
-    (ht0 : 0 ≤ (c.pr.t0 : ℝ)) (wmax : ℝ) (hw0 : 0 ≤ wmax) (hw3 : wmax ^ 2 ≤ 3) (hw1 : wmax ≤ 2 * c.pr.mu0)
+    (hmcm : 1 ≤ c.st.mcm) (ht0 : 0 ≤ (c.pr.t0 : ℝ)) (ht0m : 0 ≤ (c.pr.t0m : ℝ)) (wmax : ℝ) (hw0 : 0 ≤ wmax) (hw3 : wmax ^ 2 ≤ 3) (hw1 : wmax ≤ 2 * c.pr.mu0)
     (hw2 : wmax ≤ c.st.strongScale * (c.pr.mu0 : ℝ) ^ 2)
     (κ : ℝ) (hκ : 0 < κ) (S : Set ℝ³) (hSdef : S = convexHull ℝ {v | ∃ vj ∈ c.verts.toList.map kv, v = κ • toEuc vj})
     (hSsym : ∀ v ∈ S, -v ∈ S) :
@@ -53,7 +53,7 @@ theorem CapCert.claim (c : CapCert) (hc : c.check = true) (hS : 2 ≤ c.st.stron
     (Noperthedron.Atlas.MatrixPose.relativeRotation_mem_SO3 p) (le_trans hτ htr)
   let w : Fin 3 → ℝ := ![wx, wy, wz]
   have hRw : p.relativeRotation = cayleyMatrix (w 0) (w 1) (w 2) := hR
-  apply c.not_rupert hc hS ht0 wmax hw0 hw1 hw2 κ hκ S hSdef hSsym p hx he1 he2 w hRw
+  apply c.not_rupert hc hS hmcm ht0 ht0m wmax hw0 hw1 hw2 κ hκ S hSdef hSsym p hx he1 he2 w hRw
   · apply rdot_cayley_bound hw0
     rw [← hRw]; exact htr
   · intro hp

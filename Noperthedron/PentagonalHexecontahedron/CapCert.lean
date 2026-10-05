@@ -189,7 +189,7 @@ theorem CapCert.check_sound (c : CapCert) (h : c.check = true) :
 open scoped Matrix in
 /-- **The cap theorem from a checked certificate.** -/
 theorem CapCert.not_rupert (c : CapCert) (hc : c.check = true) (hS : 2 ≤ c.st.strongScale)
-    (ht0 : 0 ≤ (c.pr.t0 : ℝ)) (wmax : ℝ) (hw0 : 0 ≤ wmax) (hw1 : wmax ≤ 2 * c.pr.mu0)
+    (hmcm : 1 ≤ c.st.mcm) (ht0 : 0 ≤ (c.pr.t0 : ℝ)) (ht0m : 0 ≤ (c.pr.t0m : ℝ)) (wmax : ℝ) (hw0 : 0 ≤ wmax) (hw1 : wmax ≤ 2 * c.pr.mu0)
     (hw2 : wmax ≤ c.st.strongScale * (c.pr.mu0 : ℝ) ^ 2)
     (κ : ℝ) (hκ : 0 < κ) (S : Set ℝ³) (hSdef : S = convexHull ℝ {v | ∃ vj ∈ c.verts.toList.map kv, v = κ • toEuc vj})
     (hSsym : ∀ v ∈ S, -v ∈ S) (p : MatrixPose)
@@ -201,7 +201,7 @@ theorem CapCert.not_rupert (c : CapCert) (hc : c.check = true) (hS : 2 ≤ c.st.
       Matrix.trace (halfTurnMat p.view * p.relativeRotation * gMat c.Gcol) ≤ Matrix.trace p.relativeRotation) :
     ¬ RupertPose p S := by
   obtain ⟨hF, hz, hgood⟩ := c.check_sound hc
-  exact cap_pose_not_rupert c.st c.pr c.zOf hz hF hS ht0 wmax hw0 hw1 hw2 _ c.usePrune (gMat c.Gcol) hgood κ hκ S
+  exact cap_pose_not_rupert c.st c.pr c.zOf hz hF hS hmcm ht0 ht0m wmax hw0 hw1 hw2 _ c.usePrune (gMat c.Gcol) hgood κ hκ S
     hSdef hSsym p hx he1 he2 w hR hw hcell
 
 end Noperthedron.PentagonalHexecontahedron.Cap

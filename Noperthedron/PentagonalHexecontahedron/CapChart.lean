@@ -39,6 +39,8 @@ structure Setup where
   aniso : Bool
   halfTurn : Bool
   strongScale : ℕ
+  /-- The tie cone's strong-coordinate scale multiplier (capcert `--mcone_strong_mul`). -/
+  mcm : ℕ
   x : KVec
   e1 : KVec
   e2 : KVec
@@ -57,6 +59,9 @@ deriving DecidableEq, Repr
 
 def Setup.strong (st : Setup) (i : ℕ) : Bool := if st.aniso then 1 ≤ i else i = 2
 def Setup.range (st : Setup) (i : ℕ) : ℕ := if st.strong i then st.strongScale else 2
+/-- The cone charts' coordinate scale ⌊Rᵢ/2⌋ (times `mcm` for the tie cone's strong coordinates). -/
+def Setup.coneScale (st : Setup) (k : Kind) (i : ℕ) : ℤ :=
+  ((st.range i : ℤ) / 2) * (if k = .mcone ∧ st.strong i = true then (st.mcm : ℤ) else 1)
 
 def kint (n : ℤ) : IcoQ := IcoQ.ofRat n
 def pint (n : ℤ) : NPoly 5 := NPoly.const 5 (kint n)
@@ -115,7 +120,7 @@ def eAndS (st : Setup) (id : ChartId) (A B : KVec) : NPoly 5 × (Fin 3 → NPoly
         match pvarOf id i with
         | some k => ratioVar st id k
         | none => NPoly.zero 5
-      NPoly.add 5 (center i) (NPoly.mul 5 (NPoly.mul 5 (pint (st.range i / 2)) (pv 0)) sig))
+      NPoly.add 5 (center i) (NPoly.mul 5 (NPoly.mul 5 (pint (st.coneScale id.kind i)) (pv 0)) sig))
   | .face =>
     (pv 0, fun i =>
       if (i : ℕ) = id.axis then pint (sgn * st.range i) else
@@ -163,6 +168,8 @@ def boxOk (Q : Array (NPoly 5)) (box : Fin 5 → ℚ × ℚ) : Bool :=
 structure Params where
   mu0 : ℚ
   t0 : ℚ
+  /-- The tie cone's radius (capcert `--t0_mcone`). -/
+  t0m : ℚ
   tieCones : Bool
   ratioOn : Bool
 
@@ -201,6 +208,7 @@ def baseLoHi (st : Setup) (pr : Params) (kind : Kind) (axis : ℕ) (v : ℕ) : �
   | .fe, k => (-r (k - 2), r (k - 2))
   | .face, 2 => (0, 1)
   | .face, k => let free := (List.range 3).filter (· ≠ axis); (-r (free.getD (k - 3) 0), r (free.getD (k - 3) 0))
+  | .mcone, 2 => (0, pr.t0m)
   | _, 2 => (0, pr.t0)
   | _, _ => (-1, 1)
 

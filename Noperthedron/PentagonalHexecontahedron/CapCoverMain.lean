@@ -28,9 +28,9 @@ theorem rdot_self_nonneg (w : Fin 3 → ℝ) : 0 ≤ rdot w w := by
 
 /-- The F_e chart's cone region (identity cone; tie cone at (1, 0, 0) for ux). -/
 def InConeRegion (st : Setup) (pr : Params) (s : Fin 3 → ℝ) : Prop :=
-  (∀ i : Fin 3, |s i| ≤ pr.t0 * halfRange st i) ∨
-    (st.aniso = true ∧ pr.tieCones = true ∧ |s 0 - 1| ≤ pr.t0 * halfRange st 0 ∧
-      |s 1| ≤ pr.t0 * halfRange st 1 ∧ |s 2| ≤ pr.t0 * halfRange st 2)
+  (∀ i : Fin 3, |s i| ≤ pr.t0 * st.coneScale .cone i) ∨
+    (st.aniso = true ∧ pr.tieCones = true ∧ |s 0 - 1| ≤ pr.t0m * st.coneScale .mcone 0 ∧
+      |s 1| ≤ pr.t0m * st.coneScale .mcone 1 ∧ |s 2| ≤ pr.t0m * st.coneScale .mcone 2)
 
 /-- The frame of a cap (real values orthonormal). -/
 def FrameOK (st : Setup) : Prop := Orthonormal3 (kv st.e1) (kv st.e2) (kv st.x)
@@ -121,16 +121,22 @@ theorem rChartW_eq (st : Setup) (id : ChartId) (y : Fin 5 → ℝ) :
 theorem range_pos (st : Setup) (hS : 2 ≤ st.strongScale) (i : ℕ) : (2 : ℝ) ≤ st.range i := by
   unfold Setup.range; split_ifs <;> [exact_mod_cast hS; norm_num]
 
-theorem halfRange_pos (st : Setup) (hS : 2 ≤ st.strongScale) (i : ℕ) : (1 : ℝ) ≤ halfRange st i := by
-  unfold halfRange
+theorem coneScale_pos (st : Setup) (hS : 2 ≤ st.strongScale) (hm : 1 ≤ st.mcm) (k : Kind) (i : ℕ) :
+    (1 : ℝ) ≤ st.coneScale k i := by
+  unfold Setup.coneScale
   have h : (2 : ℤ) ≤ (st.range i : ℤ) := by exact_mod_cast (show 2 ≤ st.range i by
     unfold Setup.range; split_ifs <;> omega)
-  have : (1 : ℤ) ≤ (st.range i : ℤ) / 2 := by omega
+  have h1 : (1 : ℤ) ≤ (st.range i : ℤ) / 2 := by omega
+  have h2 : (1 : ℤ) ≤ (if k = .mcone ∧ st.strong i = true then (st.mcm : ℤ) else 1) := by
+    split_ifs <;> omega
+  have : (1 : ℤ) ≤ (st.range i : ℤ) / 2 * (if k = .mcone ∧ st.strong i = true then (st.mcm : ℤ) else 1) := by
+    nlinarith
   exact_mod_cast this
 
 /-- The covering of the cap domain by the charts. -/
 theorem cap_cover (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (hz : ∀ b, 0 < zOf b)
-    (hF : FrameOK st) (hS : 2 ≤ st.strongScale) (ht0 : 0 ≤ (pr.t0 : ℝ))
+    (hF : FrameOK st) (hS : 2 ≤ st.strongScale) (hmcm : 1 ≤ st.mcm) (ht0 : 0 ≤ (pr.t0 : ℝ))
+    (ht0m : 0 ≤ (pr.t0m : ℝ))
     (wmax : ℝ) (hw0 : 0 ≤ wmax) (hw1 : wmax ≤ 2 * pr.mu0) (hw2 : wmax ≤ st.strongScale * (pr.mu0 : ℝ) ^ 2)
     (t₁ t₂ : ℝ) (ht₁ : |t₁| ≤ pr.mu0) (ht₂ : |t₂| ≤ pr.mu0) (w : Fin 3 → ℝ) (hw : rdot w w ≤ wmax ^ 2) :
     ∃ id ∈ chartList st pr zOf, ∃ y, InBoxR (rootBox st pr id) y ∧
@@ -249,8 +255,10 @@ theorem cap_cover (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool �
       simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
       ring
   have hsb : ∀ i : Fin 3, |sv i| ≤ st.range i := fun i => (hωs i).2
-  have hhalf : ∀ i : Fin 3, (0 : ℝ) < 2 * (halfRange st i : ℝ) := fun i => by
-    linarith [halfRange_pos st hS i]
+  have hhalf : ∀ i : Fin 3, (0 : ℝ) < 2 * (st.coneScale .cone i : ℝ) := fun i => by
+    linarith [coneScale_pos st hS hmcm .cone i]
+  have hhalfm : ∀ i : Fin 3, (0 : ℝ) < 2 * (st.coneScale .mcone i : ℝ) := fun i => by
+    linarith [coneScale_pos st hS hmcm .mcone i]
   -- Sign of a unit coordinate.
   have hsgn : ∀ (x : ℝ), |x| = 1 → x = (if decide (0 ≤ x) then 1 else -1) := by
     intro x hx
@@ -260,11 +268,11 @@ theorem cap_cover (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool �
   have hμ1' : μ ≤ (pr.mu0 : ℝ) := hμ1
   rcases hcase with he | ⟨k, hk⟩
   · -- The F_e face (e = 1).
-    by_cases hc1 : ∀ i : Fin 3, |sv i| ≤ pr.t0 * halfRange st i
-    · obtain ⟨t, σ, k, htn, htt, hσk, hσ, hseq⟩ := cone_decomp (fun i => 2 * (halfRange st i : ℝ)) hhalf pr.t0 0 sv
+    by_cases hc1 : ∀ i : Fin 3, |sv i| ≤ pr.t0 * st.coneScale .cone i
+    · obtain ⟨t, σ, k, htn, htt, hσk, hσ, hseq⟩ := cone_decomp (fun i => 2 * (st.coneScale .cone i : ℝ)) hhalf pr.t0 0 sv
         (by intro i; have := hc1 i; simp only [Pi.zero_apply, sub_zero]; linarith)
       obtain ⟨id, hid, hk', hsd, y, hy, hy0, hy1, hres⟩ := realize_cone st pr zOf .cone (Or.inl rfl) side k k.isLt
-        (decide (0 ≤ σ k)) (hz _) μ τ t hμ0 hμ1' hτ htn htt σ hσ
+        (decide (0 ≤ σ k)) (hz _) μ τ t hμ0 hμ1' hτ htn (by simpa [Params.coneT] using htt) σ hσ
         (fun i hi => by rw [show i = k from Fin.ext hi]; exact hsgn _ hσk) A B
       refine ⟨id, mem_chartList st pr zOf (cone_mem_base pr hside k.isLt _) hid, y, hy, ?_, ?_, ?_⟩
       · exact hU id y hsd hy0 hy1 (by rw [hsd, hres, he])
@@ -274,18 +282,18 @@ theorem cap_cover (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool �
         rw [hseq i]
         simp [rCenter]
       · intro hfe; rw [hk'] at hfe; exact absurd hfe (by decide)
-    · by_cases hc2 : st.aniso = true ∧ pr.tieCones = true ∧ |sv 0 - 1| ≤ pr.t0 * halfRange st 0 ∧
-          |sv 1| ≤ pr.t0 * halfRange st 1 ∧ |sv 2| ≤ pr.t0 * halfRange st 2
+    · by_cases hc2 : st.aniso = true ∧ pr.tieCones = true ∧ |sv 0 - 1| ≤ pr.t0m * st.coneScale .mcone 0 ∧
+          |sv 1| ≤ pr.t0m * st.coneScale .mcone 1 ∧ |sv 2| ≤ pr.t0m * st.coneScale .mcone 2
       · obtain ⟨han, htie, hb0, hb1, hb2⟩ := hc2
-        obtain ⟨t, σ, k, htn, htt, hσk, hσ, hseq⟩ := cone_decomp (fun i => 2 * (halfRange st i : ℝ)) hhalf pr.t0
-          ![1, 0, 0] sv (by
+        obtain ⟨t, σ, k, htn, htt, hσk, hσ, hseq⟩ := cone_decomp (fun i => 2 * (st.coneScale .mcone i : ℝ)) hhalfm
+          pr.t0m ![1, 0, 0] sv (by
             intro i
             fin_cases i
             · simp; linarith
             · simp; linarith
             · simp; linarith)
         obtain ⟨id, hid, hk', hsd, y, hy, hy0, hy1, hres⟩ := realize_cone st pr zOf .mcone (Or.inr rfl) side k
-          k.isLt (decide (0 ≤ σ k)) (hz _) μ τ t hμ0 hμ1' hτ htn htt σ hσ
+          k.isLt (decide (0 ≤ σ k)) (hz _) μ τ t hμ0 hμ1' hτ htn (by simpa [Params.coneT] using htt) σ hσ
           (fun i hi => by rw [show i = k from Fin.ext hi]; exact hsgn _ hσk) A B
         refine ⟨id, mem_chartList st pr zOf (mcone_mem_base pr htie hside k.isLt _) hid, y, hy, ?_, ?_, ?_⟩
         · exact hU id y hsd hy0 hy1 (by rw [hsd, hres, he])
