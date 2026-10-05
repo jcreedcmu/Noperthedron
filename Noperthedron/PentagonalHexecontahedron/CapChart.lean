@@ -156,4 +156,62 @@ def degs (p : NPoly 5) : Fin 5 → ℕ := fun i => NPoly.degIn 5 i p
 def boxOk (Q : Array (NPoly 5)) (box : Fin 5 → ℚ × ℚ) : Bool :=
   Q.all fun q => decide (0 ≤ NPoly.lowerDeg 5 (degs q) q box)
 
+/-! ### The chart list (capcert's enumeration) -/
+
+/-- The cap's numeric parameters (exported by capcert). -/
+structure Params where
+  mu0 : ℚ
+  t0 : ℚ
+  tieCones : Bool
+  ratioOn : Bool
+
+/-- The base charts: per side, F_e, then per axis and sign the identity cone, the tie cone (if
+any) and the face. -/
+def baseCharts (pr : Params) : List (Kind × ℕ × ℕ × Bool) :=
+  (List.range 4).flatMap fun side =>
+    (Kind.fe, side, 0, true) ::
+      ((List.range 3).flatMap fun ax => [true, false].flatMap fun sg =>
+        [(Kind.cone, side, ax, sg)] ++ (if pr.tieCones then [(Kind.mcone, side, ax, sg)] else []) ++
+          [(Kind.face, side, ax, sg)])
+
+/-- A base chart's ratio blow-ups (when dominated by a strong coordinate). -/
+def expandChart (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ)
+    (b : Kind × ℕ × ℕ × Bool) : List ChartId :=
+  let (kind, side, axis, sign) := b
+  let base : ChartId := ⟨kind, side, axis, sign, 0, 0, true, zOf b⟩
+  if pr.ratioOn && (kind = .fe || st.strong axis) then
+    { base with ratio := 1 } ::
+      ((List.range 3).flatMap fun i =>
+        if !st.strong i && (pvarOf base i).isSome then
+          [{ base with ratio := 2, ratioCoord := i, ratioSign := true },
+           { base with ratio := 2, ratioCoord := i, ratioSign := false }]
+        else [])
+  else [base]
+
+def chartList (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) : List ChartId :=
+  (baseCharts pr).flatMap (expandChart st pr zOf)
+
+/-- The root box of a chart (lo, width), as capcert's ChartId box. -/
+def rootBox (st : Setup) (pr : Params) (id : ChartId) : Fin 5 → ℚ × ℚ :=
+  let r : ℕ → ℚ := fun i => (st.range i : ℚ)
+  let base : Fin 5 → ℚ × ℚ := fun v =>
+    match id.kind, (v : ℕ) with
+    | _, 0 => (0, pr.mu0)
+    | _, 1 => (-1, 1)
+    | .fe, k => (-r (k - 2), r (k - 2))
+    | .face, 2 => (0, 1)
+    | .face, k => let free := (List.range 3).filter (· ≠ id.axis); (-r (free.getD (k - 3) 0), r (free.getD (k - 3) 0))
+    | _, 2 => (0, pr.t0)
+    | _, _ => (-1, 1)
+  let lohi : Fin 5 → ℚ × ℚ := fun v =>
+    let k := (v : ℕ)
+    if 2 ≤ k then
+      let pk := k - 2
+      if id.ratio = 1 ∧ (List.range 3).any (fun i => !st.strong i && pvarOf id i = some pk) then
+        (-(id.z : ℚ), (id.z : ℚ))
+      else if id.ratio = 2 ∧ pvarOf id id.ratioCoord = some pk then (0, (base v).2)
+      else base v
+    else base v
+  fun v => ((lohi v).1, (lohi v).2 - (lohi v).1)
+
 end Noperthedron.PentagonalHexecontahedron.Cap
