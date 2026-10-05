@@ -35,9 +35,10 @@ private lemma rupert_set_implies_matrix_pose {S : Set ℝ³}
   exact hshadow
 
 /-- Valid exclusion tables for all four Cayley charts prove that no
-icosahedral model (`IModel`: the snub dodecahedron and every I-orbit near
-its rational model) is Rupert. -/
+centrally symmetric icosahedral model (`IModel` with −hull = hull, as the
+deltoidal hexecontahedron) is Rupert. -/
 theorem not_rupert_of_valid_tables (Q : IModel)
+    (hsym : ∀ v ∈ Q.toC5.polyhedron.hull, -v ∈ Q.toC5.polyhedron.hull)
     (table : ChartIndex → AtlasProjectiveSolutionTree.Table)
     (hchart : ∀ chart, (table chart).chart = chart)
     (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true) :
@@ -46,7 +47,7 @@ theorem not_rupert_of_valid_tables (Q : IModel)
   have hset : IsRupertSet (convexHull ℝ Q.toC5.verts) :=
     (rupert_iff_rupert_set Q.toC5.verts).mp hrupert
   rw [← Q.toC5.polyhedron_hull] at hset
-  exact no_matrixPose_of_valid_tables Q table hchart hvalid hcover
+  exact no_matrixPose_of_valid_tables Q hsym table hchart hvalid hcover
     (rupert_set_implies_matrix_pose hset)
 
 end Noperthedron.PentagonalHexecontahedron

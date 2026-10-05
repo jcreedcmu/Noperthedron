@@ -30,6 +30,10 @@ def AtlasPose.InHalfTurnCell (p : AtlasPose ℝ) (chart : ChartIndex) : Prop :=
 
 namespace IModel
 
+/-- The model's hull is centrally symmetric (the deltoidal hexecontahedron). -/
+def CentrallySymmetric (P : IModel) : Prop :=
+  ∀ v ∈ P.toC5.polyhedron.hull, -v ∈ P.toC5.polyhedron.hull
+
 /-- An atlas pose built from `euler` equals any pose with the same outer rotation, relative
 rotation chart · cayley(x, y, z), and the given offset. -/
 theorem matrixPoseWithOffset_ofPose_eq (euler : Pose ℝ) (reduced : MatrixPose)

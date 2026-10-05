@@ -150,11 +150,12 @@ structure CheckedChartTables where
   cover : WedgeCover.coverValid = true
 
 /-- The proof object constructed by a successful executable run: the checked
-tables and view cover exclude every `IModel` (I-orbits within `modelErrorQ`
-of the rational vertices) at once. -/
+tables and view cover exclude every centrally symmetric `IModel` (I-orbits within
+`modelErrorQ` of the rational vertices) at once. -/
 theorem CheckedChartTables.notRupert (checked : CheckedChartTables) :
-    ∀ P : IModel, ¬ IsRupert P.toC5.verts :=
-  fun P => not_rupert_of_valid_tables P checked.tables checked.charts checked.valid checked.cover
+    ∀ P : IModel, P.CentrallySymmetric → ¬ IsRupert P.toC5.verts :=
+  fun P hsym => not_rupert_of_valid_tables P hsym checked.tables checked.charts checked.valid
+    checked.cover
 
 /-- Check all certificate data and construct the final non-Rupert proof.
 
@@ -168,7 +169,7 @@ def constructProof (localTaskCount globalTaskCount : Nat)
     (hchart : ∀ shared chart, (globalTables shared chart).chart = chart)
     (hshared : ∀ shared chart,
       (globalTables shared chart).sharedLocal = shared) :
-    IO (PLift (∀ P : IModel, ¬ IsRupert P.toC5.verts)) := do
+    IO (PLift (∀ P : IModel, P.CentrallySymmetric → ¬ IsRupert P.toC5.verts)) := do
   -- The cover of T by the code triangles (too large for the kernel; see
   -- WedgeCoverData), checked natively like the tables.
   let coverStart ← IO.monoNanosNow

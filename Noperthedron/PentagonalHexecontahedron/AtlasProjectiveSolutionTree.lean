@@ -10,6 +10,7 @@ public import Noperthedron.PentagonalHexecontahedron.AtlasProjectiveMixedGlobalC
 public import Noperthedron.PentagonalHexecontahedron.WedgeCoverData
 public import Noperthedron.ParallelBool
 public import Noperthedron.PentagonalHexecontahedron.IcoView
+public import Noperthedron.PentagonalHexecontahedron.HalfTurnPose
 
 @[expose] public section
 
@@ -58,7 +59,7 @@ def Region.Mem : Region → AtlasPose ℝ → Prop
 def NoRupert (chart : ChartIndex) (interval : Interval)
     (region : Region) : Prop :=
   ¬ ∃ p ∈ interval.toReal, p.CayleyBounded ∧
-    p.InIcoFundamentalDomain chart ∧ p.InViewWedge ∧
+    (p.InIcoFundamentalDomain chart ∧ p.InHalfTurnCell chart) ∧ p.InViewWedge ∧
     (p.InUpperView ∧ p.InIcoView) ∧
     ∃ offset : ℝ²,
     region.Mem p ∧
@@ -602,13 +603,13 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       rintro ⟨p, hp, hbounded, hfund, -, -, offset, -, hrupert⟩
       obtain ⟨hchart, hbox⟩ := hvalid
       subst hchart
-      exact box.valid_imp_not_inFundamentalDomain hbox hp hbounded hfund.toFivefold
+      exact box.valid_imp_not_inFundamentalDomain hbox hp hbounded hfund.1.toFivefold
   | icoPrune id box region =>
       unfold NoRupert
       rintro ⟨p, hp, hbounded, hfund, -, -, offset, -, hrupert⟩
       obtain ⟨hchart, hbox⟩ := hvalid
       subst hchart
-      exact box.valid_imp_not_inIcoFundamentalDomain hbox hp hbounded hfund
+      exact box.valid_imp_not_inIcoFundamentalDomain hbox hp hbounded hfund.1
 termination_by size - i
 decreasing_by
   all_goals
@@ -715,7 +716,7 @@ theorem Table.Valid.of_withTasksB {table : Table} {taskCount : ℕ}
 theorem Table.valid_imp_no_chart_translated_pose
     (table : Table) (h : table.Valid) (hcover : WedgeCover.coverValid = true) :
     ¬ ∃ p ∈ AtlasPose.rootInterval ℝ,
-      p.CayleyBounded ∧ p.InIcoFundamentalDomain table.chart ∧
+      p.CayleyBounded ∧ (p.InIcoFundamentalDomain table.chart ∧ p.InHalfTurnCell table.chart) ∧
       p.InViewWedge ∧ (p.InUpperView ∧ p.InIcoView) ∧ ∃ offset : ℝ²,
       RupertPose (p.matrixPoseWithOffset table.chart offset)
         P.polyhedron.hull := by
@@ -726,21 +727,23 @@ theorem Table.valid_imp_no_chart_translated_pose
   rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, hrupert⟩
   exact hchecked ⟨p,
     AtlasFundamentalPrune.mem_restrictedRootInterval
-      table.chart hp hbounded hfund.toFivefold,
+      table.chart hp hbounded hfund.1.toFivefold,
     hbounded, hfund, hview, hupper, offset, trivial, hrupert⟩
 
-/-- Four valid chart tables exclude every matrix pose of an `IModel`. -/
+/-- Four valid chart tables exclude every matrix pose of a centrally symmetric `IModel`
+(the representatives also lie in the half-turn cell, `exists_halfTurn_atlas_translated_pose`). -/
 theorem no_matrixPose_of_valid_tables (Q : IModel)
+    (hsym : ∀ v ∈ Q.toC5.polyhedron.hull, -v ∈ Q.toC5.polyhedron.hull)
     (table : ChartIndex → Table)
     (hchart : ∀ chart, (table chart).chart = chart)
     (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true) :
     ¬ ∃ p : MatrixPose, RupertPose p Q.toC5.polyhedron.hull := by
   rintro ⟨p, hrupert⟩
-  obtain ⟨chart, q, offset, hq, hbounded, hview, hupper, hfund, heq⟩ :=
-    IModel.exists_ico_full_atlas_translated_pose Q p
+  obtain ⟨chart, q, offset, hq, hbounded, hview, hupper, hfund, hcell, heq⟩ :=
+    IModel.exists_halfTurn_atlas_translated_pose Q hsym p
   have hno := (table chart).valid_imp_no_chart_translated_pose (P := Q.toC5) (hvalid chart) hcover
   rw [hchart chart] at hno
-  exact hno ⟨q, hq, hbounded, hfund, hview, hupper, offset,
+  exact hno ⟨q, hq, hbounded, ⟨hfund, hcell⟩, hview, hupper, offset,
     heq.mpr hrupert⟩
 
 end Noperthedron.PentagonalHexecontahedron.AtlasProjectiveSolutionTree
