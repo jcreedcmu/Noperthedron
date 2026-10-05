@@ -418,4 +418,67 @@ theorem realize_face (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Boo
       have : i = ⟨free1 axis, hf1l⟩ := Fin.ext h
       subst this; simp
 
+/-- The cone chart center (as in `rES`). -/
+noncomputable def rCenter (st : Setup) (kind : Kind) (A B : KVec) (τ : ℝ) (i : Fin 3) : ℝ :=
+  if kind = .mcone then
+    if st.aniso then (if (i : ℕ) = 0 then 1 else 0)
+    else
+      if (i : ℕ) = 0 then rdot (rcross (kv st.x) (kv A)) (kv st.e1) + rdot (rcross (kv st.x) (kv B)) (kv st.e1) * τ
+      else if (i : ℕ) = 1 then rdot (rcross (kv st.x) (kv A)) (kv st.e2) + rdot (rcross (kv st.x) (kv B)) (kv st.e2) * τ
+      else 0
+  else 0
+
+/-- Cones: (μ, τ, t, σ) with σ_axis = ±1, |σ| ≤ 1 is realized by a chart of the cone base chart, with
+s = center + ⌊R/2⌋ t σ. -/
+theorem realize_cone (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (kind : Kind)
+    (hkind : kind = .cone ∨ kind = .mcone) (side axis : ℕ)
+    (hax : axis < 3) (sign : Bool) (hz : 0 < zOf (kind, side, axis, sign)) (μ τ t : ℝ) (hμ0 : 0 ≤ μ)
+    (hμ1 : μ ≤ pr.mu0) (hτ : |τ| ≤ 1) (ht0 : 0 ≤ t) (ht1 : t ≤ pr.t0)
+    (σ : Fin 3 → ℝ) (hσ : ∀ i : Fin 3, |σ i| ≤ 1)
+    (haxis : ∀ i : Fin 3, (i : ℕ) = axis → σ i = (if sign then 1 else -1)) (A B : KVec) :
+    ∃ id ∈ expandChart st pr zOf (kind, side, axis, sign), id.kind = kind ∧ id.side = side ∧
+      ∃ y, InBoxR (rootBox st pr id) y ∧ y 0 = μ ∧ y 1 = τ ∧
+        rES st id A B y = (1, fun i => rCenter st kind A B τ i + (halfRange st i : ℝ) * t * σ i) := by
+  obtain ⟨hf0, hf1, h01, hf0l, hf1l⟩ := free_ne axis hax
+  let y₀ : Fin 5 → ℝ := ![μ, τ, t, σ ⟨free0 axis, hf0l⟩, σ ⟨free1 axis, hf1l⟩]
+  have hnfe : kind ≠ .fe := by rcases hkind with h | h <;> rw [h] <;> simp
+  have hbox : InBoxR (rootBox st pr (baseId zOf (kind, side, axis, sign))) y₀ := by
+    apply inBoxR_vec _ _ _ _ _ rfl
+    intro v
+    rw [abs_le] at hτ
+    have h0 := abs_le.mp (hσ ⟨free0 axis, hf0l⟩); have h1 := abs_le.mp (hσ ⟨free1 axis, hf1l⟩)
+    rcases hkind with hk | hk <;> subst hk <;> fin_cases v <;>
+      simp [baseLoHi, baseId, y₀] <;> constructor <;> linarith
+  obtain ⟨id, hid, hk, hsd, hax', hsg, y, hy, hy0, hy1, hrr, hp0⟩ :=
+    realize_ratio st pr zOf (kind, side, axis, sign) hax hz y₀ hbox hμ0
+  refine ⟨id, hid, hk, hsd, y, hy, by rw [hy0]; rfl, by rw [hy1]; rfl, ?_⟩
+  have hnfe' : id.kind ≠ .fe := by rw [hk]; exact hnfe
+  obtain ⟨hp1, hp2, hpa⟩ := pvarOf_free id hnfe' (by rw [hax']; exact hax)
+  simp only at hax' hsg hk
+  rw [hax'] at hp1 hp2 hpa
+  have hy1' : y 1 = τ := by rw [hy1]; rfl
+  have hrpv0 : rpv y 0 = t := by rw [hp0 hnfe]; simp [y₀, rpv]
+  rcases hkind with hk2 | hk2 <;> subst hk2 <;>
+  · simp only [rES, hk]
+    congr 1
+    funext i
+    rw [hy1', hrpv0]
+    simp only [rCenter, halfRange]
+    congr 1
+    congr 1
+    rcases fin3_cases_axis axis hax i with h | h | h
+    · rw [if_pos (by rw [hax']; exact h), hsg, haxis i h]
+    · rw [if_neg (by rw [hax']; omega), show (i : ℕ) = free0 axis from h, hp1]
+      simp only
+      rw [hrr 1 (by norm_num)]
+      simp only [y₀, rpv]
+      have : i = ⟨free0 axis, hf0l⟩ := Fin.ext h
+      subst this; simp
+    · rw [if_neg (by rw [hax']; omega), show (i : ℕ) = free1 axis from h, hp2]
+      simp only
+      rw [hrr 2 (by norm_num)]
+      simp only [y₀, rpv]
+      have : i = ⟨free1 axis, hf1l⟩ := Fin.ext h
+      subst this; simp
+
 end Noperthedron.PentagonalHexecontahedron.Cap
