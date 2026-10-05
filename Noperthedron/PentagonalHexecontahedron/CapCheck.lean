@@ -71,4 +71,60 @@ theorem eval_chart_witnessPoly (st : Setup) (id : ChartId) (vk c vj : KVec) (y :
   rw [eval_witnessPoly, eval_makeChart_u, eval_makeChart_w]
   rfl
 
+theorem rootLoHi_zero (st : Setup) (pr : Params) (id : ChartId) : rootLoHi st pr id 0 = (0, pr.mu0) := by
+  unfold rootLoHi; simp [baseLoHi]
+
+theorem rootLoHi_two_cone (st : Setup) (pr : Params) (id : ChartId) (hk : id.kind = .cone ∨ id.kind = .mcone)
+    (hax : id.axis < 3) : rootLoHi st pr id 2 = (0, pr.t0) := by
+  have hnfe : id.kind ≠ .fe := by rcases hk with h | h <;> rw [h] <;> simp
+  have hnw : ¬ IsWeakP st id 0 := by
+    rintro ⟨i, -, -, hi⟩; have := pvarOf_ne_zero_of_ne_fe id hnfe hi; omega
+  have hb : baseLoHi st pr id.kind id.axis 2 = (0, pr.t0) := by
+    rcases hk with h | h <;> simp [baseLoHi, h]
+  rcases Nat.lt_or_ge id.ratio 3 with hr | hr
+  · interval_cases hr2 : id.ratio
+    · rw [rootLoHi_ratio0 st pr id hr2, hb]
+    · rw [rootLoHi_ratio1 st pr id hr2, if_neg (by simpa using hnw), hb]
+    · rw [rootLoHi_ratio2 st pr id hr2, if_neg, hb]
+      rintro ⟨-, hp⟩
+      have := pvarOf_ne_zero_of_ne_fe id hnfe hp
+      omega
+  · unfold rootLoHi; simp only [show (2 : ℕ) ≤ 2 from le_refl _, if_true]
+    rw [if_neg (by omega), if_neg (by omega), hb]
+
+theorem y0_nonneg_of_root (st : Setup) (pr : Params) (id : ChartId) (y : Fin 5 → ℝ)
+    (hy : InBoxR (rootBox st pr id) y) : 0 ≤ y 0 := by
+  have := ((inBoxR_iff st pr id y).mp hy 0).1
+  rw [show ((0 : Fin 5) : ℕ) = 0 from rfl, rootLoHi_zero] at this
+  simpa using this
+
+theorem y2_nonneg_of_root_cone (st : Setup) (pr : Params) (id : ChartId) (hk : isCone id = true)
+    (hax : id.axis < 3) (y : Fin 5 → ℝ) (hy : InBoxR (rootBox st pr id) y) : 0 ≤ y 2 := by
+  have hk' : id.kind = .cone ∨ id.kind = .mcone := by
+    unfold isCone at hk; simpa using hk
+  have := ((inBoxR_iff st pr id y).mp hy 2).1
+  rw [show ((2 : Fin 5) : ℕ) = 2 from rfl, rootLoHi_two_cone st pr id hk' hax] at this
+  simpa using this
+
+/-- A witness leaf: u × c ≠ 0 on the root box, and the screened divided witness polynomials
+are ≥ 0 on the leaf box. -/
+def witnessLeafOk (st : Setup) (pr : Params) (id : ChartId) (V : Array KVec) (vk c : KVec) (box : Box) : Bool :=
+  dOk st pr id c && boxOk (screened (witnessPolys (makeChart st id) id V vk c) (rootBox st pr id)) box
+
+theorem witnessLeafOk_sound (st : Setup) (pr : Params) (id : ChartId) (hax : id.axis < 3) (V : Array KVec)
+    (vk c : KVec) (box : Box) (h : witnessLeafOk st pr id V vk c box = true)
+    (hrw : ∀ i, 0 ≤ (rootBox st pr id i).2) (hbw : ∀ i, 0 ≤ (box i).2)
+    (y : Fin 5 → ℝ) (hyb : InBoxR box y) (hyr : InBoxR (rootBox st pr id) y) :
+    rcross (rChartU st id y) (kv c) ≠ 0 ∧
+      ∀ vj ∈ V, 0 ≤ witnessValue (rChartU st id y) (rChartW st id y) (kv vk) (kv c) (kv vj) := by
+  simp only [witnessLeafOk, Bool.and_eq_true] at h
+  refine ⟨dOk_sound st pr id c h.1 hrw y hyr, ?_⟩
+  have hs := boxOk_sound hbw h.2 hyb
+  have hall := screened_sound _ _ hrw y hyr hs
+  have hnn := witnessPoly_nonneg (makeChart st id) id V vk c y (y0_nonneg_of_root st pr id y hyr)
+    (fun hc => y2_nonneg_of_root_cone st pr id hc hax y hyr) hall
+  intro vj hvj
+  have := hnn vj hvj
+  rwa [eval_chart_witnessPoly] at this
+
 end Noperthedron.PentagonalHexecontahedron.Cap
