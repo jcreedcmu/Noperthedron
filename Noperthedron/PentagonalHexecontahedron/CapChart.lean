@@ -191,27 +191,29 @@ def expandChart (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool →
 def chartList (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) : List ChartId :=
   (baseCharts pr).flatMap (expandChart st pr zOf)
 
-/-- The root box of a chart (lo, width), as capcert's ChartId box. -/
-def rootBox (st : Setup) (pr : Params) (id : ChartId) : Fin 5 → ℚ × ℚ :=
+/-- The base chart's coordinate bounds (lo, hi), before the ratio substitution. -/
+def baseLoHi (st : Setup) (pr : Params) (kind : Kind) (axis : ℕ) (v : ℕ) : ℚ × ℚ :=
   let r : ℕ → ℚ := fun i => (st.range i : ℚ)
-  let base : Fin 5 → ℚ × ℚ := fun v =>
-    match id.kind, (v : ℕ) with
-    | _, 0 => (0, pr.mu0)
-    | _, 1 => (-1, 1)
-    | .fe, k => (-r (k - 2), r (k - 2))
-    | .face, 2 => (0, 1)
-    | .face, k => let free := (List.range 3).filter (· ≠ id.axis); (-r (free.getD (k - 3) 0), r (free.getD (k - 3) 0))
-    | _, 2 => (0, pr.t0)
-    | _, _ => (-1, 1)
-  let lohi : Fin 5 → ℚ × ℚ := fun v =>
-    let k := (v : ℕ)
-    if 2 ≤ k then
-      let pk := k - 2
-      if id.ratio = 1 ∧ (List.range 3).any (fun i => !st.strong i && pvarOf id i = some pk) then
-        (-(id.z : ℚ), (id.z : ℚ))
-      else if id.ratio = 2 ∧ pvarOf id id.ratioCoord = some pk then (0, (base v).2)
-      else base v
-    else base v
-  fun v => ((lohi v).1, (lohi v).2 - (lohi v).1)
+  match kind, v with
+  | _, 0 => (0, pr.mu0)
+  | _, 1 => (-1, 1)
+  | .fe, k => (-r (k - 2), r (k - 2))
+  | .face, 2 => (0, 1)
+  | .face, k => let free := (List.range 3).filter (· ≠ axis); (-r (free.getD (k - 3) 0), r (free.getD (k - 3) 0))
+  | _, 2 => (0, pr.t0)
+  | _, _ => (-1, 1)
+
+/-- A chart's coordinate bounds (lo, hi), as capcert's ChartId box. -/
+def rootLoHi (st : Setup) (pr : Params) (id : ChartId) (v : ℕ) : ℚ × ℚ :=
+  if 2 ≤ v then
+    if id.ratio = 1 ∧ (List.range 3).any (fun i => !st.strong i && pvarOf id i = some (v - 2)) then
+      (-(id.z : ℚ), (id.z : ℚ))
+    else if id.ratio = 2 ∧ pvarOf id id.ratioCoord = some (v - 2) then (0, (baseLoHi st pr id.kind id.axis v).2)
+    else baseLoHi st pr id.kind id.axis v
+  else baseLoHi st pr id.kind id.axis v
+
+/-- The root box of a chart (lo, width). -/
+def rootBox (st : Setup) (pr : Params) (id : ChartId) : Fin 5 → ℚ × ℚ :=
+  fun v => ((rootLoHi st pr id v).1, (rootLoHi st pr id v).2 - (rootLoHi st pr id v).1)
 
 end Noperthedron.PentagonalHexecontahedron.Cap
