@@ -147,24 +147,28 @@ theorem exists_icoMatrix_conj (g g₀ : IcoIndex) : ∃ h : IcoIndex,
   obtain ⟨h, hh⟩ := exists_icoMatrix_mul k ⟨icoInv g, hi⟩
   exact ⟨h, by rw [hk, hinv, hh]⟩
 
+/-- The claim of a cap image: its frame s·g·(x, e₁, e₂), and the half-turn element g G gᵀ. -/
+def ImgClaim (S : Set ℝ³) (b : CapBase) (img : CapImg) : Prop :=
+  CapClaim S (imgVec img.g img.sgn (kv b.x)) (imgVec img.g img.sgn (kv b.e1)) (imgVec img.g img.sgn (kv b.e2))
+    b.mu0 ((3 - b.wmax2) / (1 + b.wmax2))
+    ((b.prune.map icoMatrix).map fun G₀ => icoMatrix img.g * G₀ * (icoMatrix img.g)ᵀ)
+
 /-- **Cap leaves are sound**: given the base caps' claims, no pose of the box (chart 0) whose view
 lies over the triangle and whose relative rotation is in the half-turn cell is Rupert. -/
-theorem capLeaf_sound (P : IModel) (bases : Array CapBase)
-    (hclaims : ∀ b ∈ bases, CapClaim P.toC5.polyhedron.hull (kv b.x) (kv b.e1) (kv b.e2) b.mu0
-      ((3 - b.wmax2) / (1 + b.wmax2)) (b.prune.map icoMatrix))
-    (img : CapImg) (iv : AtlasInterval ℚ) (root : Fin 8) (T : AtlasProjectiveView.Triangle ℚ)
+theorem capLeaf_sound (S : Set ℝ³) (bases : Array CapBase)
+    (img : CapImg) (hclaims : ∀ b, bases[img.base]? = some b → ImgClaim S b img)
+    (iv : AtlasInterval ℚ) (root : Fin 8) (T : AtlasProjectiveView.Triangle ℚ)
     (h : capLeafOk bases img iv T = true) (p : AtlasPose ℝ) (hp : p ∈ iv.toReal)
     (hcell : p.InHalfTurnCell 0) (hscale : 1 ≤ AtlasProjectiveView.viewScale root p)
     (htri : Noperthedron.Atlas.ProjectiveView.InTriangle (Noperthedron.Atlas.ProjectiveView.toReal T)
       (AtlasProjectiveView.normalizedView root p)) (offset : ℝ²) :
-    ¬ RupertPose (p.matrixPoseWithOffset 0 offset) P.toC5.polyhedron.hull := by
+    ¬ RupertPose (p.matrixPoseWithOffset 0 offset) S := by
   unfold capLeafOk at h
   split at h
   swap; · exact absurd h (by simp)
   rename_i b hb
   simp only [Bool.and_eq_true, List.all_eq_true, List.mem_finRange, true_implies] at h
   obtain ⟨hball, hcorners⟩ := h
-  have hbmem : b ∈ bases := Array.mem_of_getElem? hb
   set pose := p.matrixPoseWithOffset 0 offset
   -- The view: viewScale · Σ w_c T_c.
   obtain ⟨w, hw0, hw1, hwT⟩ := htri
@@ -232,7 +236,7 @@ theorem capLeaf_sound (P : IModel) (bases : Array CapBase)
     simp only [cayleyDenom]
     nlinarith
   -- Apply the image claim.
-  apply CapClaim.image P (hclaims b hbmem) img.g img.sgn pose hx (hcone _ fun c => (hc c).2.1)
+  apply hclaims b hb pose hx (hcone _ fun c => (hc c).2.1)
     (hcone _ fun c => (hc c).2.2) (by push_cast at htr ⊢; exact htr)
   intro G₀ hG₀
   rcases hpr : b.prune with _ | g₀
@@ -247,5 +251,10 @@ theorem capLeaf_sound (P : IModel) (bases : Array CapBase)
     rw [show cayleyMatrix p.x p.y p.z = CayleyAtlas.chartMatrix 0 * cayleyMatrix p.x p.y p.z by
       rw [CayleyAtlas.chartMatrix_zero, Matrix.one_mul]]
     exact this
+
+theorem imgClaim_of_base (P : IModel) (b : CapBase)
+    (h : CapClaim P.toC5.polyhedron.hull (kv b.x) (kv b.e1) (kv b.e2) b.mu0 ((3 - b.wmax2) / (1 + b.wmax2))
+      (b.prune.map icoMatrix)) (img : CapImg) : ImgClaim P.toC5.polyhedron.hull b img :=
+  CapClaim.image P h img.g img.sgn
 
 end Noperthedron.PentagonalHexecontahedron.Cap
