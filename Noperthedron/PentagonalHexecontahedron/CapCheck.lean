@@ -127,4 +127,136 @@ theorem witnessLeafOk_sound (st : Setup) (pr : Params) (id : ChartId) (hax : id.
   have := hnn vj hvj
   rwa [eval_chart_witnessPoly] at this
 
+/-! ### Cone-region leaves (F_e charts) -/
+
+def ivl (box : Box) (v : Fin 5) : ℚ × ℚ := ((box v).1, (box v).1 + (box v).2)
+
+def mulIvl (a b : ℚ × ℚ) : ℚ × ℚ :=
+  let p := [a.1 * b.1, a.1 * b.2, a.2 * b.1, a.2 * b.2]
+  (p.foldr min (a.1 * b.1), p.foldr max (a.1 * b.1))
+
+theorem le_mul_of_corners {a1 a2 b1 b2 x y m : ℝ} (hx : a1 ≤ x ∧ x ≤ a2) (hy : b1 ≤ y ∧ y ≤ b2)
+    (h11 : m ≤ a1 * b1) (h12 : m ≤ a1 * b2) (h21 : m ≤ a2 * b1) (h22 : m ≤ a2 * b2) : m ≤ x * y := by
+  rcases le_total 0 y with hy0 | hy0
+  · have hxy : a1 * y ≤ x * y := mul_le_mul_of_nonneg_right hx.1 hy0
+    rcases le_total 0 a1 with ha | ha
+    · have : a1 * b1 ≤ a1 * y := mul_le_mul_of_nonneg_left hy.1 ha
+      linarith
+    · have : a1 * b2 ≤ a1 * y := mul_le_mul_of_nonpos_left hy.2 ha
+      linarith
+  · have hxy : a2 * y ≤ x * y := mul_le_mul_of_nonpos_right hx.2 hy0
+    rcases le_total 0 a2 with ha | ha
+    · have : a2 * b1 ≤ a2 * y := mul_le_mul_of_nonneg_left hy.1 ha
+      linarith
+    · have : a2 * b2 ≤ a2 * y := mul_le_mul_of_nonpos_left hy.2 ha
+      linarith
+
+theorem mul_le_of_corners {a1 a2 b1 b2 x y M : ℝ} (hx : a1 ≤ x ∧ x ≤ a2) (hy : b1 ≤ y ∧ y ≤ b2)
+    (h11 : a1 * b1 ≤ M) (h12 : a1 * b2 ≤ M) (h21 : a2 * b1 ≤ M) (h22 : a2 * b2 ≤ M) : x * y ≤ M := by
+  have := le_mul_of_corners (m := -M) (x := x) (y := -y) (b1 := -b2) (b2 := -b1) hx ⟨by linarith, by linarith⟩
+    (by linarith) (by linarith) (by linarith) (by linarith)
+  linarith
+
+theorem mem_mulIvl {a b : ℚ × ℚ} {x y : ℝ} (hx : (a.1 : ℝ) ≤ x ∧ x ≤ a.2) (hy : (b.1 : ℝ) ≤ y ∧ y ≤ b.2) :
+    ((mulIvl a b).1 : ℝ) ≤ x * y ∧ x * y ≤ (mulIvl a b).2 := by
+  obtain ⟨a1, a2⟩ := a; obtain ⟨b1, b2⟩ := b
+  simp only [mulIvl, List.foldr_cons, List.foldr_nil] at *
+  push_cast
+  constructor
+  · apply le_mul_of_corners hx hy
+    · exact min_le_left _ _
+    · exact le_trans (min_le_right _ _) (min_le_left _ _)
+    · exact le_trans (min_le_right _ _) (le_trans (min_le_right _ _) (min_le_left _ _))
+    · exact le_trans (min_le_right _ _) (le_trans (min_le_right _ _) (le_trans (min_le_right _ _) (min_le_left _ _)))
+  · apply mul_le_of_corners hx hy
+    · exact le_max_left _ _
+    · exact le_trans (le_max_left _ _) (le_max_right _ _)
+    · exact le_trans (le_trans (le_max_left _ _) (le_max_right _ _)) (le_max_right _ _)
+    · exact le_trans (le_trans (le_trans (le_max_left _ _) (le_max_right _ _)) (le_max_right _ _)) (le_max_right _ _)
+
+/-- The interval of the F_e chart's s_i over the box (after the ratio substitution). -/
+def sRange (st : Setup) (id : ChartId) (box : Box) (i : Fin 3) : ℚ × ℚ :=
+  let v : Fin 5 := ⟨2 + i, by omega⟩
+  if id.ratio = 1 ∧ (List.range 3).any (fun j => !st.strong j && pvarOf id j = some (i : ℕ)) = true then
+    mulIvl (ivl box 0) (ivl box v)
+  else if id.ratio = 2 ∧ pvarOf id id.ratioCoord = some (i : ℕ) then
+    let l := (id.z : ℚ) * (ivl box 0).1 + (ivl box v).1
+    let h := (id.z : ℚ) * (ivl box 0).2 + (ivl box v).2
+    if id.ratioSign then (l, h) else (-h, -l)
+  else ivl box v
+
+theorem mem_ivl {box : Box} {y : Fin 5 → ℝ} (hy : InBoxR box y) (v : Fin 5) :
+    ((ivl box v).1 : ℝ) ≤ y v ∧ y v ≤ (ivl box v).2 := by
+  obtain ⟨h1, h2⟩ := hy v
+  simp only [ivl]; push_cast; exact ⟨h1, h2⟩
+
+theorem sRange_sound (st : Setup) (id : ChartId) (box : Box) (y : Fin 5 → ℝ) (hy : InBoxR box y) (i : Fin 3) :
+    ((sRange st id box i).1 : ℝ) ≤ rRatioVar st id y i ∧ rRatioVar st id y i ≤ (sRange st id box i).2 := by
+  have hv : rpv y i = y ⟨2 + i, by omega⟩ := rpv_eq y i i.isLt
+  have h0 := mem_ivl hy 0
+  have hvv := mem_ivl hy ⟨2 + i, by omega⟩
+  unfold sRange rRatioVar
+  by_cases h1 : id.ratio = 1
+  · by_cases hw : (List.range 3).any (fun j => !st.strong j && pvarOf id j = some (i : ℕ)) = true
+    · rw [if_pos ⟨h1, hw⟩, if_pos h1, if_pos hw, hv]
+      exact mem_mulIvl h0 hvv
+    · rw [if_neg (fun h => hw h.2), if_neg (by rw [h1]; omega), if_pos h1, if_neg hw, hv]
+      exact hvv
+  · rw [if_neg (fun h => h1 h.1), if_neg h1]
+    by_cases h2 : id.ratio = 2 ∧ pvarOf id id.ratioCoord = some (i : ℕ)
+    · rw [if_pos h2, if_pos h2]
+      have hz : (0 : ℝ) ≤ id.z := by positivity
+      simp only
+      rw [hv]
+      split_ifs
+      · push_cast; constructor <;> nlinarith [h0.1, h0.2, hvv.1, hvv.2]
+      · push_cast; constructor <;> nlinarith [h0.1, h0.2, hvv.1, hvv.2]
+    · rw [if_neg h2, if_neg h2, hv]; exact hvv
+
+/-- |s − c| ≤ bound on the whole interval. -/
+def within (r : ℚ × ℚ) (c bound : ℚ) : Bool := decide (max |r.1 - c| |r.2 - c| ≤ bound)
+
+theorem within_sound {r : ℚ × ℚ} {c bound : ℚ} (h : within r c bound = true) {x : ℝ}
+    (hx : (r.1 : ℝ) ≤ x ∧ x ≤ r.2) : |x - c| ≤ bound := by
+  have hb := of_decide_eq_true h
+  have h1 : |(r.1 : ℝ) - c| ≤ bound := by
+    have := le_trans (le_max_left _ _) hb; exact_mod_cast this
+  have h2 : |(r.2 : ℝ) - c| ≤ bound := by
+    have := le_trans (le_max_right _ _) hb; exact_mod_cast this
+  rw [abs_le] at h1 h2 ⊢
+  constructor <;> linarith [hx.1, hx.2, h1.1, h1.2, h2.1, h2.2]
+
+/-- An F_e box inside the cone region (identity cone, or the tie cone at (1, 0, 0)). -/
+def coneOk (st : Setup) (pr : Params) (id : ChartId) (box : Box) : Bool :=
+  let w (i : Fin 3) (c : ℚ) := within (sRange st id box i) c (pr.t0 * halfRange st i)
+  decide (id.kind = .fe) && ((w 0 0 && w 1 0 && w 2 0) || (st.aniso && pr.tieCones && w 0 1 && w 1 0 && w 2 0))
+
+theorem coneOk_sound (st : Setup) (pr : Params) (id : ChartId) (box : Box) (h : coneOk st pr id box = true)
+    (y : Fin 5 → ℝ) (hy : InBoxR box y) :
+    id.kind = .fe ∧ InConeRegion st pr (rES st id (st.frameAB id.side).1 (st.frameAB id.side).2 y).2 := by
+  simp only [coneOk, Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq] at h
+  obtain ⟨hfe, h⟩ := h
+  refine ⟨hfe, ?_⟩
+  have hs : ∀ i : Fin 3, (rES st id (st.frameAB id.side).1 (st.frameAB id.side).2 y).2 i = rRatioVar st id y i := by
+    intro i; simp [rES, hfe]
+  have hw : ∀ (i : Fin 3) (c : ℚ), within (sRange st id box i) c (pr.t0 * halfRange st i) = true →
+      |rRatioVar st id y i - c| ≤ (pr.t0 : ℝ) * halfRange st i := by
+    intro i c hc
+    have := within_sound hc (sRange_sound st id box y hy i)
+    push_cast at this; exact this
+  unfold InConeRegion
+  rcases h with ⟨⟨h0, h1⟩, h2⟩ | ⟨⟨⟨⟨han, htie⟩, h0⟩, h1⟩, h2⟩
+  · left
+    intro i
+    rw [hs]
+    fin_cases i
+    · simpa using hw 0 0 h0
+    · simpa using hw 1 0 h1
+    · simpa using hw 2 0 h2
+  · right
+    refine ⟨han, htie, ?_, ?_, ?_⟩
+    · rw [hs]; simpa using hw 0 1 h0
+    · rw [hs]; simpa using hw 1 0 h1
+    · rw [hs]; simpa using hw 2 0 h2
+
 end Noperthedron.PentagonalHexecontahedron.Cap
