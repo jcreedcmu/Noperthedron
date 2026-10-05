@@ -53,6 +53,7 @@ structure ChartId where
   ratioSign : Bool
   /-- The ratio blow-up's Z (capcert `--ratio_z`/`--z_override`, exported per chart). -/
   z : ℕ
+deriving DecidableEq, Repr
 
 def Setup.strong (st : Setup) (i : ℕ) : Bool := if st.aniso then 1 ≤ i else i = 2
 def Setup.range (st : Setup) (i : ℕ) : ℕ := if st.strong i then st.strongScale else 2
