@@ -11,6 +11,7 @@ public import Noperthedron.PentagonalHexecontahedron.WedgeCoverData
 public import Noperthedron.ParallelBool
 public import Noperthedron.PentagonalHexecontahedron.IcoView
 public import Noperthedron.PentagonalHexecontahedron.HalfTurnPose
+public import Noperthedron.PentagonalHexecontahedron.DHCapData
 
 @[expose] public section
 
@@ -289,6 +290,9 @@ inductive Row where
   triangle and the box, trace(H_u R g) > trace(R) for the element g, so the
   poses are outside the half-turn cell (`AtlasHalfTurnPrune.Box.Valid`). -/
   | halfTurnPrune (id : ℕ) (box : AtlasHalfTurnPrune.Box) (root : Fin 8)
+  /-- Cap leaf (deltoidal hexecontahedron, pack tag 16): a chart-0 box and view triangle
+  inside the cap image `cap` (`Cap.dhCapImgs`), certified by the cap theorems. -/
+  | capLeaf (id : ℕ) (interval : Interval) (root : Fin 8) (triangle : Triangle) (cap : ℕ)
 
 def Row.id : Row → ℕ
   | .cayleySplit id .. | .viewRoot id .. | .viewSplit id .. |
@@ -296,7 +300,7 @@ def Row.id : Row → ℕ
       .projectiveMixedGlobal id .. |
       .symmetryLocal id .. | .radiusPrune id .. |
       .fundamentalPrune id .. | .icoPrune id .. | .symmetryTube id .. | .codeRoot id ..
-      | .regionRelax id .. | .cayleySplitAt id .. | .halfTurnPrune id .. => id
+      | .regionRelax id .. | .cayleySplitAt id .. | .halfTurnPrune id .. | .capLeaf id .. => id
   | .projectiveLocal id .. => id
 
 def Row.interval : Row → Interval
@@ -316,6 +320,7 @@ def Row.interval : Row → Interval
   | .regionRelax _ _ interval _ _ _ => interval
   | .cayleySplitAt _ _ _ _ _ interval _ => interval
   | .halfTurnPrune _ box _ => box.interval
+  | .capLeaf _ interval _ _ _ => interval
 
 def Row.region : Row → Region
   | .cayleySplit _ _ _ _ _ region => region
@@ -334,9 +339,21 @@ def Row.region : Row → Region
   | .regionRelax _ _ _ root triangle _ => .triangle root triangle
   | .cayleySplitAt _ _ _ _ _ _ region => region
   | .halfTurnPrune _ box root => .triangle root box.triangle
+  | .capLeaf _ _ root triangle _ => .triangle root triangle
 
 instance : Inhabited Row where
   default := .viewRoot 0 0 (AtlasPose.rootInterval ℚ)
+
+/-- The cap-leaf check against the deltoidal hexecontahedron's cap table. -/
+def capLeafValidB (interval : Interval) (triangle : Triangle) (cap : ℕ) : Bool :=
+  match Cap.dhCapImgs[cap]? with
+  | some img => Cap.capLeafOk Cap.dhCapBases img interval triangle
+  | none => false
+
+/-- The cap claims for all cap images (proved from the checked cap certificates). -/
+def CapsHold (S : Set ℝ³) : Prop :=
+  ∀ (cap : ℕ) (img : Cap.CapImg), Cap.dhCapImgs[cap]? = some img →
+    ∀ b, Cap.dhCapBases[img.base]? = some b → Cap.ImgClaim S b img
 
 def SymmetryTubeMatches (tube : AtlasProjectiveLocalViewTree.Tube)
     (path : List (Fin 4)) (region : Region) : Option AtlasProjectiveLocalViewTree.Table → Prop
@@ -401,6 +418,7 @@ def Row.ValidAt (chart : ChartIndex) (get : ℕ → Row)
       (get child).region = .triangle root outer ∧
       triangleWithinB outer triangle = true
   | .halfTurnPrune _ box _ => box.chart = chart ∧ box.Valid
+  | .capLeaf _ interval _ triangle cap => chart = 0 ∧ capLeafValidB interval triangle cap = true
   | .codeRoot id children interval =>
       children.size = WedgeCover.codeTriangles.size ∧
       ∀ t (ht : t < children.size),
@@ -476,6 +494,7 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
     (size : ℕ) (shared : SharedLocalTables)
     (sharedValid : SharedLocalValid shared)
     (hcover : WedgeCover.coverValid = true)
+    (hcaps : CapsHold P.polyhedron.hull)
     (rowsValid : RowsValidAt chart get size shared)
     (i : ℕ) (hi : i < size) :
     NoRupert (P := P) chart (get i).interval (get i).region := by
@@ -545,7 +564,7 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       obtain ⟨hsize, hall⟩ := hvalid
       have ht : t < children.size := hsize ▸ htlt
       obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion⟩ := hall t ht
-      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover hcaps rowsValid
         children[t] hchildSize
       rw [hchildInterval, hchildRegion] at hchild
       have hgetD : WedgeCover.codeTriangles.getD t 0 = tri := by
@@ -558,17 +577,17 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
         hlowerInterval, hupperInterval, hlowerRegion, hupperRegion⟩ := hvalid
       apply noRupert_halves chart interval region coordinate
       · rw [← hlowerInterval, ← hlowerRegion]
-        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
+        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover hcaps rowsValid
           lowerChild hlowerSize
       · rw [← hupperInterval, ← hupperRegion]
-        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
+        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover hcaps rowsValid
           upperChild hupperSize
   | viewRoot id child interval =>
       unfold NoRupert
       rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, -, hrupert⟩
       obtain ⟨hscale, hmem⟩ := upperView_mem_wedgeTriangle p hview hupper.1
       obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion⟩ := hvalid
-      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover hcaps rowsValid
         child hchildSize
       rw [hchildInterval, hchildRegion] at hchild
       exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
@@ -579,7 +598,7 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       obtain ⟨child, hchildMem⟩ := mem_split hregion.2
       obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion⟩ :=
         hvalid child
-      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover hcaps rowsValid
         (children child) hchildSize
       rw [hchildInterval, hchildRegion] at hchild
       exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
@@ -589,16 +608,16 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
         hlowerInterval, hupperInterval, hlowerRegion, hupperRegion⟩ := hvalid
       apply noRupert_cut chart interval region coordinate cut
       · rw [← hlowerInterval, ← hlowerRegion]
-        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
+        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover hcaps rowsValid
           lowerChild hlowerSize
       · rw [← hupperInterval, ← hupperRegion]
-        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
+        exact valid_imp_noRupert_ix chart get size shared sharedValid hcover hcaps rowsValid
           upperChild hupperSize
   | regionRelax id child interval root triangle outer =>
       unfold NoRupert
       rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, hregion, hrupert⟩
       obtain ⟨hforward, hchildSize, hchildInterval, hchildRegion, hwithin⟩ := hvalid
-      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover rowsValid
+      have hchild := valid_imp_noRupert_ix chart get size shared sharedValid hcover hcaps rowsValid
         child hchildSize
       rw [hchildInterval, hchildRegion] at hchild
       exact hchild ⟨p, hp, hbounded, hfund, hview, hupper, offset,
@@ -617,6 +636,18 @@ theorem valid_imp_noRupert_ix (chart : ChartIndex) (get : ℕ → Row)
       obtain ⟨hchart, hbox⟩ := hvalid
       subst hchart
       exact box.valid_imp_not_inIcoFundamentalDomain hbox hp hbounded hfund.1
+  | capLeaf id interval root triangle cap =>
+      unfold NoRupert
+      rintro ⟨p, hp, hbounded, hfund, -, -, offset, hregion, hrupert⟩
+      obtain ⟨hchart, hok⟩ := hvalid
+      subst hchart
+      unfold capLeafValidB at hok
+      split at hok
+      · next img himg =>
+        exact Cap.capLeaf_sound P.polyhedron.hull Cap.dhCapBases img
+          (fun b hb => hcaps cap img himg b hb) interval root triangle hok p hp hfund.2 hregion.1 hregion.2
+          offset hrupert
+      · exact absurd hok (by simp)
   | halfTurnPrune id box root =>
       unfold NoRupert
       rintro ⟨p, hp, hbounded, hfund, -, -, offset, hregion, -⟩
@@ -729,7 +760,8 @@ theorem Table.Valid.of_withTasksB {table : Table} {taskCount : ℕ}
   exact h
 
 theorem Table.valid_imp_no_chart_translated_pose
-    (table : Table) (h : table.Valid) (hcover : WedgeCover.coverValid = true) :
+    (table : Table) (h : table.Valid) (hcover : WedgeCover.coverValid = true)
+    (hcaps : CapsHold P.polyhedron.hull) :
     ¬ ∃ p ∈ AtlasPose.rootInterval ℝ,
       p.CayleyBounded ∧ (p.InIcoFundamentalDomain table.chart ∧ p.InHalfTurnCell table.chart) ∧
       p.InViewWedge ∧ (p.InUpperView ∧ p.InIcoView) ∧ ∃ offset : ℝ²,
@@ -737,7 +769,7 @@ theorem Table.valid_imp_no_chart_translated_pose
         P.polyhedron.hull := by
   obtain ⟨hnonempty, hrows, hrootInterval, hrootRegion, hshared⟩ := h
   have hchecked := valid_imp_noRupert_ix (P := P) table.chart table.get table.size
-    table.sharedLocal hshared hcover hrows 0 hnonempty
+    table.sharedLocal hshared hcover hcaps hrows 0 hnonempty
   rw [hrootInterval, hrootRegion] at hchecked
   rintro ⟨p, hp, hbounded, hfund, hview, hupper, offset, hrupert⟩
   exact hchecked ⟨p,
@@ -751,12 +783,13 @@ theorem no_matrixPose_of_valid_tables (Q : IModel)
     (hsym : ∀ v ∈ Q.toC5.polyhedron.hull, -v ∈ Q.toC5.polyhedron.hull)
     (table : ChartIndex → Table)
     (hchart : ∀ chart, (table chart).chart = chart)
-    (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true) :
+    (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true)
+    (hcaps : CapsHold Q.toC5.polyhedron.hull) :
     ¬ ∃ p : MatrixPose, RupertPose p Q.toC5.polyhedron.hull := by
   rintro ⟨p, hrupert⟩
   obtain ⟨chart, q, offset, hq, hbounded, hview, hupper, hfund, hcell, heq⟩ :=
     IModel.exists_halfTurn_atlas_translated_pose Q hsym p
-  have hno := (table chart).valid_imp_no_chart_translated_pose (P := Q.toC5) (hvalid chart) hcover
+  have hno := (table chart).valid_imp_no_chart_translated_pose (P := Q.toC5) (hvalid chart) hcover hcaps
   rw [hchart chart] at hno
   exact hno ⟨q, hq, hbounded, ⟨hfund, hcell⟩, hview, hupper, offset,
     heq.mpr hrupert⟩

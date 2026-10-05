@@ -41,13 +41,14 @@ theorem not_rupert_of_valid_tables (Q : IModel)
     (hsym : ∀ v ∈ Q.toC5.polyhedron.hull, -v ∈ Q.toC5.polyhedron.hull)
     (table : ChartIndex → AtlasProjectiveSolutionTree.Table)
     (hchart : ∀ chart, (table chart).chart = chart)
-    (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true) :
+    (hvalid : ∀ chart, (table chart).Valid) (hcover : WedgeCover.coverValid = true)
+    (hcaps : CapsHold Q.toC5.polyhedron.hull) :
     ¬ IsRupert Q.toC5.verts := by
   intro hrupert
   have hset : IsRupertSet (convexHull ℝ Q.toC5.verts) :=
     (rupert_iff_rupert_set Q.toC5.verts).mp hrupert
   rw [← Q.toC5.polyhedron_hull] at hset
-  exact no_matrixPose_of_valid_tables Q hsym table hchart hvalid hcover
+  exact no_matrixPose_of_valid_tables Q hsym table hchart hvalid hcover hcaps
     (rupert_set_implies_matrix_pose hset)
 
 end Noperthedron.PentagonalHexecontahedron
