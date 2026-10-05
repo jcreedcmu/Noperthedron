@@ -153,4 +153,96 @@ theorem weighted_cube (wt : Fin 3 → ℕ) (hw : ∀ i, wt i = 1 ∨ wt i = 2) (
       · exact ⟨1, face_of_eq 1 h⟩
       · exact ⟨2, face_of_eq 2 h⟩
 
+/-- The cone charts: a point within t₀ Rᵢ/2 of the center in every coordinate is
+c + (Rᵢ/2) t σ with t ∈ [0, t₀] and σ on a face of the unit cube (|σ_k| = 1, |σᵢ| ≤ 1). -/
+theorem cone_decomp (R : Fin 3 → ℝ) (hR : ∀ i, 0 < R i) (t₀ : ℝ) (c s : Fin 3 → ℝ)
+    (hs : ∀ i, |s i - c i| ≤ t₀ * R i / 2) :
+    ∃ t : ℝ, ∃ σ : Fin 3 → ℝ, ∃ k : Fin 3, 0 ≤ t ∧ t ≤ t₀ ∧ |σ k| = 1 ∧ (∀ i, |σ i| ≤ 1) ∧
+      ∀ i, s i = c i + R i / 2 * t * σ i := by
+  have hR2 : ∀ i, 0 < R i / 2 := fun i => by linarith [hR i]
+  set ρ : Fin 3 → ℝ := fun i => |s i - c i| / (R i / 2)
+  have hρ0 : ∀ i, 0 ≤ ρ i := fun i => div_nonneg (abs_nonneg _) (hR2 i).le
+  have hρt : ∀ i, ρ i ≤ t₀ := fun i => by
+    rw [div_le_iff₀ (hR2 i)]; linarith [hs i]
+  set t := max (ρ 0) (max (ρ 1) (ρ 2))
+  have hρle : ∀ i, ρ i ≤ t := by
+    intro i; fin_cases i
+    · exact le_max_left _ _
+    · exact le_trans (le_max_left _ _) (le_max_right _ _)
+    · exact le_trans (le_max_right _ _) (le_max_right _ _)
+  have ht0 : 0 ≤ t := le_trans (hρ0 0) (hρle 0)
+  have htt : t ≤ t₀ := max_le (hρt 0) (max_le (hρt 1) (hρt 2))
+  rcases eq_or_lt_of_le ht0 with hz | hpos
+  · -- t = 0: s = c.
+    have hsc : ∀ i, s i = c i := by
+      intro i
+      have h := hρle i
+      rw [← hz] at h
+      have : |s i - c i| / (R i / 2) = 0 := le_antisymm h (hρ0 i)
+      rw [div_eq_zero_iff] at this
+      rcases this with h1 | h1
+      · linarith [abs_eq_zero.mp h1]
+      · linarith [hR2 i]
+    refine ⟨0, fun i => if i = 0 then 1 else 0, 0, le_refl _, hz ▸ htt, by simp, ?_, ?_⟩
+    · intro i; by_cases h : i = 0 <;> simp [h]
+    · intro i; rw [hsc i]; ring
+  · refine ⟨t, fun i => (s i - c i) / (R i / 2 * t), ?_⟩
+    have hcases : t = ρ 0 ∨ t = ρ 1 ∨ t = ρ 2 := by
+      simp only [t, max_def]; split_ifs <;> simp
+    have hk : ∃ k, t = ρ k := by
+      rcases hcases with h | h | h
+      · exact ⟨0, h⟩
+      · exact ⟨1, h⟩
+      · exact ⟨2, h⟩
+    obtain ⟨k, hk⟩ := hk
+    refine ⟨k, ht0, htt, ?_, ?_, ?_⟩
+    · have hpos' : 0 < R k / 2 * t := mul_pos (hR2 k) hpos
+      have hne : |s k - c k| ≠ 0 := by
+        intro h0
+        have : ρ k = 0 := by simp [ρ, h0]
+        linarith
+      have hRk : R k ≠ 0 := (hR k).ne'
+      rw [abs_div, abs_of_pos hpos', hk]
+      simp only [ρ]
+      field_simp
+    · intro i
+      have hpos' : 0 < R i / 2 * t := mul_pos (hR2 i) hpos
+      rw [abs_div, abs_of_pos hpos', div_le_one hpos']
+      have := hρle i
+      simp only [ρ] at this
+      rw [div_le_iff₀ (hR2 i)] at this
+      linarith
+    · intro i
+      have hpos' : 0 < R i / 2 * t := mul_pos (hR2 i) hpos
+      have := hpos'.ne'
+      have hRi : R i ≠ 0 := (hR i).ne'
+      field_simp
+      ring
+
+/-- The ratio blow-up of one weak coordinate: |v| ≤ Z μ (inner: v = μ v', |v'| ≤ Z) or
+v = ±(Z μ + v') with v' ∈ [0, B] (outer), when |v| ≤ B and μ ≥ 0. -/
+theorem ratio_decomp (Z μ B v : ℝ) (hZ : 0 < Z) (hμ : 0 ≤ μ) (hv : |v| ≤ B) :
+    (|v| ≤ Z * μ ∧ ∃ v', v = μ * v' ∧ |v'| ≤ Z) ∨
+      ∃ sg : Bool, ∃ v', 0 ≤ v' ∧ v' ≤ B ∧ v = (if sg then 1 else -1) * (Z * μ + v') := by
+  by_cases h : |v| ≤ Z * μ
+  · left
+    refine ⟨h, ?_⟩
+    rcases eq_or_lt_of_le hμ with h0 | hpos
+    · refine ⟨0, ?_, by simp [hZ.le]⟩
+      rw [← h0, mul_zero] at h
+      rw [← h0]; simpa using abs_nonpos_iff.mp h
+    · refine ⟨v / μ, by field_simp, ?_⟩
+      rw [abs_div, abs_of_pos hpos, div_le_iff₀ hpos]; exact h
+  · right
+    push Not at h
+    rcases le_or_gt 0 v with hv0 | hv0
+    · refine ⟨true, v - Z * μ, ?_, ?_, ?_⟩
+      · rw [abs_of_nonneg hv0] at h; linarith
+      · rw [abs_of_nonneg hv0] at hv; nlinarith [mul_nonneg hZ.le hμ]
+      · simp
+    · refine ⟨false, -v - Z * μ, ?_, ?_, ?_⟩
+      · rw [abs_of_neg hv0] at h; linarith
+      · rw [abs_of_neg hv0] at hv; nlinarith [mul_nonneg hZ.le hμ]
+      · simp
+
 end Noperthedron.PentagonalHexecontahedron.Cap
