@@ -307,3 +307,115 @@ theorem realize_ratio (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bo
       rw [hyk 0 (by norm_num), if_neg (by omega)]
 
 end Noperthedron.PentagonalHexecontahedron.Cap
+
+namespace Noperthedron.PentagonalHexecontahedron.Cap
+
+open NPoly PVec
+
+/-- The first and second free coordinates of an axis. -/
+def free0 (axis : ℕ) : ℕ := if axis = 0 then 1 else 0
+def free1 (axis : ℕ) : ℕ := if axis = 2 then 1 else 2
+
+theorem pvarOf_free (id : ChartId) (hk : id.kind ≠ .fe) (hax : id.axis < 3) :
+    pvarOf id (free0 id.axis) = some 1 ∧ pvarOf id (free1 id.axis) = some 2 ∧ pvarOf id id.axis = none := by
+  obtain ⟨kind, side, axis, sign, ratio, rc, rs, z⟩ := id
+  simp only at hk hax ⊢
+  interval_cases axis <;> simp [pvarOf, hk, free0, free1, List.range_succ]
+
+/-- Every coordinate is the axis or one of its two free coordinates. -/
+theorem fin3_cases_axis (axis : ℕ) (hax : axis < 3) (i : Fin 3) :
+    (i : ℕ) = axis ∨ (i : ℕ) = free0 axis ∨ (i : ℕ) = free1 axis := by
+  fin_cases i <;> interval_cases axis <;> simp [free0, free1]
+
+theorem free_ne (axis : ℕ) (hax : axis < 3) :
+    free0 axis ≠ axis ∧ free1 axis ≠ axis ∧ free0 axis ≠ free1 axis ∧ free0 axis < 3 ∧ free1 axis < 3 := by
+  interval_cases axis <;> simp [free0, free1]
+
+
+/-- The cone charts' half range ⌊Rᵢ/2⌋ (as in the polynomial chart). -/
+def halfRange (st : Setup) (i : ℕ) : ℤ := (st.range i : ℤ) / 2
+
+theorem rpv_vec (a b c d e : ℝ) : rpv ![a, b, c, d, e] 0 = c ∧ rpv ![a, b, c, d, e] 1 = d ∧
+    rpv ![a, b, c, d, e] 2 = e := by
+  simp [rpv]
+
+theorem inBoxR_vec (st : Setup) (pr : Params) (id : ChartId) (y : Fin 5 → ℝ)
+    (h : ∀ v : Fin 5, ((baseLoHi st pr id.kind id.axis v).1 : ℝ) ≤ y v ∧ y v ≤ (baseLoHi st pr id.kind id.axis v).2)
+    (h0 : id.ratio = 0) : InBoxR (rootBox st pr id) y := by
+  rw [inBoxR_iff]; intro v; rw [rootLoHi_ratio0 st pr id h0]; exact h v
+
+/-- F_e: every (μ, τ, s) in the box is realized by a chart of the F_e base chart. -/
+theorem realize_fe (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (side : ℕ)
+    (hz : 0 < zOf (.fe, side, 0, true)) (μ τ : ℝ) (hμ0 : 0 ≤ μ) (hμ1 : μ ≤ pr.mu0) (hτ : |τ| ≤ 1)
+    (s : Fin 3 → ℝ) (hs : ∀ i : Fin 3, |s i| ≤ st.range i) (A B : KVec) :
+    ∃ id ∈ expandChart st pr zOf (.fe, side, 0, true), id.kind = .fe ∧ id.side = side ∧
+      ∃ y, InBoxR (rootBox st pr id) y ∧ y 0 = μ ∧ y 1 = τ ∧ rES st id A B y = (1, s) := by
+  let y₀ : Fin 5 → ℝ := ![μ, τ, s 0, s 1, s 2]
+  have hbox : InBoxR (rootBox st pr (baseId zOf (.fe, side, 0, true))) y₀ := by
+    apply inBoxR_vec _ _ _ _ _ rfl
+    intro v
+    rw [abs_le] at hτ
+    have h0 := abs_le.mp (hs 0); have h1 := abs_le.mp (hs 1); have h2 := abs_le.mp (hs 2)
+    simp only [Fin.isValue, Fin.val_zero, Fin.val_one, Fin.val_two] at h0 h1 h2
+    fin_cases v <;> simp [baseLoHi, baseId, y₀] <;> constructor <;> linarith
+  obtain ⟨id, hid, hk, hsd, -, -, y, hy, hy0, hy1, hrr, -⟩ :=
+    realize_ratio st pr zOf (.fe, side, 0, true) (by norm_num) hz y₀ hbox hμ0
+  refine ⟨id, hid, hk, hsd, y, hy, by rw [hy0]; rfl, by rw [hy1]; rfl, ?_⟩
+  simp only [rES, hk]
+  congr 1
+  funext i
+  rw [hrr i i.isLt]
+  fin_cases i <;> simp [y₀, rpv]
+
+/-- Faces: (μ, τ, e, s) with s_axis = ±R_axis is realized by a chart of the face base chart. -/
+theorem realize_face (st : Setup) (pr : Params) (zOf : Kind × ℕ × ℕ × Bool → ℕ) (side axis : ℕ)
+    (hax : axis < 3) (sign : Bool) (hz : 0 < zOf (.face, side, axis, sign)) (μ τ e : ℝ) (hμ0 : 0 ≤ μ)
+    (hμ1 : μ ≤ pr.mu0) (hτ : |τ| ≤ 1) (he0 : 0 ≤ e) (he1 : e ≤ 1)
+    (s : Fin 3 → ℝ) (hs : ∀ i : Fin 3, |s i| ≤ st.range i)
+    (haxis : ∀ i : Fin 3, (i : ℕ) = axis → s i = (if sign then 1 else -1) * st.range i) (A B : KVec) :
+    ∃ id ∈ expandChart st pr zOf (.face, side, axis, sign), id.kind = .face ∧ id.side = side ∧
+      ∃ y, InBoxR (rootBox st pr id) y ∧ y 0 = μ ∧ y 1 = τ ∧ rES st id A B y = (e, s) := by
+  obtain ⟨hf0, hf1, h01, hf0l, hf1l⟩ := free_ne axis hax
+  let y₀ : Fin 5 → ℝ := ![μ, τ, e, s ⟨free0 axis, hf0l⟩, s ⟨free1 axis, hf1l⟩]
+  have hbox : InBoxR (rootBox st pr (baseId zOf (.face, side, axis, sign))) y₀ := by
+    apply inBoxR_vec _ _ _ _ _ rfl
+    intro v
+    rw [abs_le] at hτ
+    have h0 := abs_le.mp (hs ⟨free0 axis, hf0l⟩); have h1 := abs_le.mp (hs ⟨free1 axis, hf1l⟩)
+    fin_cases v
+    · simp [baseLoHi, baseId, y₀]; constructor <;> linarith
+    · simp [baseLoHi, baseId, y₀]; constructor <;> linarith
+    · simp [baseLoHi, baseId, y₀]; constructor <;> linarith
+    · simp only [baseLoHi, baseId, y₀]
+      interval_cases axis <;> simp [free0, List.range_succ] at h0 ⊢ <;> constructor <;> linarith
+    · simp only [baseLoHi, baseId, y₀]
+      interval_cases axis <;> simp [free1, List.range_succ] at h1 ⊢ <;> constructor <;> linarith
+  obtain ⟨id, hid, hk, hsd, hax', hsg, y, hy, hy0, hy1, hrr, hp0⟩ :=
+    realize_ratio st pr zOf (.face, side, axis, sign) hax hz y₀ hbox hμ0
+  refine ⟨id, hid, hk, hsd, y, hy, by rw [hy0]; rfl, by rw [hy1]; rfl, ?_⟩
+  have hnfe : id.kind ≠ .fe := by rw [hk]; simp
+  obtain ⟨hp1, hp2, hpa⟩ := pvarOf_free id hnfe (by rw [hax']; exact hax)
+  simp only at hax' hsg
+  rw [hax'] at hp1 hp2 hpa
+  simp only [rES, hk]
+  congr 1
+  · rw [hp0 (by simp)]; simp [y₀, rpv]
+  · funext i
+    rcases fin3_cases_axis axis hax i with h | h | h
+    · rw [if_pos (by rw [hax']; exact h), haxis i h, hsg]
+    · rw [if_neg (by rw [hax']; omega)]
+      rw [show (i : ℕ) = free0 axis from h, hp1]
+      simp only
+      rw [hrr 1 (by norm_num)]
+      simp only [y₀, rpv]
+      have : i = ⟨free0 axis, hf0l⟩ := Fin.ext h
+      subst this; simp
+    · rw [if_neg (by rw [hax']; omega)]
+      rw [show (i : ℕ) = free1 axis from h, hp2]
+      simp only
+      rw [hrr 2 (by norm_num)]
+      simp only [y₀, rpv]
+      have : i = ⟨free1 axis, hf1l⟩ := Fin.ext h
+      subst this; simp
+
+end Noperthedron.PentagonalHexecontahedron.Cap
