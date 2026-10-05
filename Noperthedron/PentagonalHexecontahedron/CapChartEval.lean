@@ -53,7 +53,7 @@ noncomputable def rRatioVar (st : Setup) (id : ChartId) (y : Fin 5 → ℝ) (k :
   if id.ratio = 1 then
     if (List.range 3).any (fun i => !st.strong i && pvarOf id i = some k) then y 0 * rpv y k else rpv y k
   else if id.ratio = 2 ∧ pvarOf id id.ratioCoord = some k then
-    let inner := (st.z id.kind : ℝ) * y 0 + rpv y k
+    let inner := (id.z : ℝ) * y 0 + rpv y k
     if id.ratioSign then inner else -inner
   else rpv y k
 

@@ -39,8 +39,6 @@ structure Setup where
   aniso : Bool
   halfTurn : Bool
   strongScale : ℕ
-  ratioZ : ℕ
-  ratioZFace : ℕ
   x : KVec
   e1 : KVec
   e2 : KVec
@@ -53,10 +51,11 @@ structure ChartId where
   ratio : ℕ
   ratioCoord : ℕ
   ratioSign : Bool
+  /-- The ratio blow-up's Z (capcert `--ratio_z`/`--z_override`, exported per chart). -/
+  z : ℕ
 
 def Setup.strong (st : Setup) (i : ℕ) : Bool := if st.aniso then 1 ≤ i else i = 2
 def Setup.range (st : Setup) (i : ℕ) : ℕ := if st.strong i then st.strongScale else 2
-def Setup.z (st : Setup) (k : Kind) : ℕ := if k = .face ∧ 0 < st.ratioZFace then st.ratioZFace else st.ratioZ
 
 def kint (n : ℤ) : IcoQ := IcoQ.ofRat n
 def pint (n : ℤ) : NPoly 5 := NPoly.const 5 (kint n)
@@ -90,7 +89,7 @@ def ratioVar (st : Setup) (id : ChartId) (k : ℕ) : NPoly 5 :=
   if id.ratio = 1 then
     if (List.range 3).any (fun i => !st.strong i && pvarOf id i = some k) then NPoly.mul 5 mu (pv k) else pv k
   else if id.ratio = 2 ∧ pvarOf id id.ratioCoord = some k then
-    let inner := NPoly.add 5 (NPoly.mul 5 (pint (st.z id.kind)) mu) (pv k)
+    let inner := NPoly.add 5 (NPoly.mul 5 (pint id.z) mu) (pv k)
     if id.ratioSign then inner else NPoly.scale 5 (-1) inner
   else pv k
 
