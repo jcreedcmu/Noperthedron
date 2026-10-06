@@ -223,7 +223,7 @@ def constructProof (localTaskCount globalTaskCount : Nat)
       · exact valid2.down
       · exact valid3.down
     cover := cover.down }
-  log "constructed proof: no IModel (I-orbit within 6e-16 of the rational vertices) is Rupert"
+  log "constructed proof: no centrally symmetric IModel whose exact claims (caps, ties) hold is Rupert"
   pure ⟨checkedCharts.notRupert⟩
 
 end Noperthedron.PentagonalHexecontahedron.NativeExecutable

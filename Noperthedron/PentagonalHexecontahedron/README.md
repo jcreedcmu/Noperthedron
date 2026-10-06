@@ -1,7 +1,8 @@
 # The deltoidal hexecontahedron is a Nopert (Lean)
 
-**Status (2026-10-05): all modules build without `sorry` (axioms: propext, Classical.choice, Quot.sound); the
-end-to-end run of `constructDeltoidalHexecontahedron` on the certificate data is in progress.**
+**Status (2026-10-06): verified.** All modules build without `sorry` (axioms: propext, Classical.choice,
+Quot.sound), and `constructDeltoidalHexecontahedron` checked all certificate data (3 h 05 min on 64 cores) and
+instantiated the main theorem.
 
 The directory keeps its historical name: this branch reuses the pentagonal hexecontahedron's icosahedral pipeline
 (models as I-orbits, the projective view atlas, the 5D solution tree) with the deltoidal hexecontahedron's data
