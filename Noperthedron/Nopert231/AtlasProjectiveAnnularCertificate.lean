@@ -1799,7 +1799,7 @@ theorem Box.valid_imp_not_translated_rupert_of_flockDecomposedViewValid
       ∃ m : Fin flockAxes.size, (c_core : ℝ) ≤ inner ℝ axis (toR3 ((box.withCoreAxis (flockAxes[m]) c_core r_min).approxNormalizedCenter 0)) := by
     intro axis ha_norm ha_cone
     have hcov := QuadCoverTree.covers_of_valid
-      (box.quadBasis c_cone) (box.flockCenters flockAxes c_core r_min)
+      (box.approxNormalizedCenter 0) (box.flockCenters flockAxes c_core r_min)
       c_cone c_core S_max T_max tree hview.tree_valid
       hview.c_cone_pos hview.c_core_nonneg
       axis ha_norm ha_cone
