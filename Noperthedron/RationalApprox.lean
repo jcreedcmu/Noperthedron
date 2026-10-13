@@ -3,7 +3,7 @@ module
 public import Mathlib.Algebra.Order.Ring.Star
 public import Mathlib.Analysis.Calculus.Taylor
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
-public import Mathlib.Data.Int.Star
+public import Mathlib.Algebra.Order.Star.Int
 public import Mathlib.Algebra.Order.Star.Real
 public import Noperthedron.RationalApprox.Basic
 public import Noperthedron.RationalApprox.Lemma39

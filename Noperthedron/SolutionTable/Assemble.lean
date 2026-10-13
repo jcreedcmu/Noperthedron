@@ -95,7 +95,7 @@ theorem validIxAtB_eq_true_iff (get : ℕ → Row) (size i : ℕ)
 `Fin.foldl` loop. -/
 def chunkValidIxAtB (get : ℕ → Row) (size start cnt : ℕ)
     [DecidablePred (Row.ValidIxAt get size)] : Bool :=
-  Fin.foldl cnt (init := true) fun acc j => acc && validIxAtB get size (start + j.val)
+  Fin.foldl cnt (fun acc j => acc && validIxAtB get size (start + j.val)) true
 
 theorem chunkValidIxAtB_eq_true_iff (get : ℕ → Row) (size start cnt : ℕ)
     [DecidablePred (Row.ValidIxAt get size)] :

@@ -6,6 +6,7 @@ Authors: Cameron Freer
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Mathlib.Analysis.Calculus.ContDiff.WithLp
 public import Noperthedron.PoseInterval
 public import Noperthedron.Vertices.Exact
 

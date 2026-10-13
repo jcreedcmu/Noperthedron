@@ -1,6 +1,7 @@
 module
 
 public import Mathlib.Analysis.Normed.Affine.AddTorsorBases
+public import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
 public import Noperthedron.Vertices.Exact
 
 @[expose] public section

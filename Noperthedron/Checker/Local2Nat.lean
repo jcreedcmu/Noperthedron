@@ -1107,7 +1107,7 @@ theorem beCheckN_eq (Qi : Fin 3 → VertexIndex) (p : Pose ℚ) {εθ εφ : ℚ
             * (pythonVertexA (Qi i) 1 - pythonVertexA k 1)
           + (pythonVertexA (Qi i) 2 - pythonVertexA k 2)
             * (pythonVertexA (Qi i) 2 - pythonVertexA k 2))
-      positivity
+      rw [upper_f_eq]; positivity
     have h2 : (0:ℚ) ≤ Local2Fast.dRotMs RationalApprox.sqrtApprox16.upper_sqrt (5 * κℚ)
         (app6QofN Y) εθ εφ _ :=
       dRotMs_nonneg _ εθ εφ (by norm_num [κℚ]) hnrm_nn hεθ hεφ
