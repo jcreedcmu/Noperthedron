@@ -1,85 +1,109 @@
 # Noperthedron
 
-This project formalizes the main result of
+This project proves, using the Lean 4 theorem prover, that the Noperthedron of
 ["A convex polyhedron without Rupert's property"](https://arxiv.org/abs/2508.18475)
-by Jakob Steininger & Sergey Yurkevich (cited as `[SY25]` herein).
-
-We prove, using the Lean 4 theorem prover, that the Noperthedron does not "[fit through itself](https://en.wikipedia.org/wiki/Prince_Rupert%27s_cube)".
+by Jakob Steininger & Sergey Yurkevich (`[SY25]`) does not
+"[fit through itself](https://en.wikipedia.org/wiki/Prince_Rupert%27s_cube)".
 
 <p align="center">
 <img src="./home_page/assets/noperthedron.png" width="200" alt="noperthedron">
 </p>
 
-The definition of the main theorem's *proposition* lives in [MainTheorem.lean](Noperthedron/MainTheorem.lean).
+The proof is checked by the Lean kernel alone and depends only on the standard axioms
+`[propext, Classical.choice, Quot.sound]`. It takes about 7.5 minutes (1.8 CPU-hours) on a
+16-core machine.
 
-The proof of the main theorem, given existence of a valid solution table, lives in
-[ProofOfMainTheoremWithHole.lean](Noperthedron/ProofOfMainTheoremWithHole.lean).
+Unlike [SY25], every pose coordinate is rational (Cayley coordinates for rotations) and every
+case of the case analysis is exact polynomial arithmetic. There are no trigonometric
+approximations of pose angles, no derivative bounds and no separate local theorem: poses near
+the aligned configurations are handled by an exact blow-up. See
+[cayley/DESIGN.md](cayley/DESIGN.md) for the mathematics.
 
-Construction of a valid solution table requires a large case analysis. We provide
-three different versions:
+An earlier proof that follows [SY25] closely (angular coordinates, the global and local
+theorems, and a solution table checked by the kernel, by `native_decide`, or by a native
+executable) is preserved at the tag
+[`lean-v4.35.0`](https://github.com/jcreedcmu/Noperthedron/tree/lean-v4.35.0), the most
+recent version of that proof.
 
-1. A kernel-only proof [KernelCaseAnalysis/ProofOfMainTheorem.lean](KernelCaseAnalysis/ProofOfMainTheorem.lean) that depends only on the standard 3 axioms `[propext, Classical.choice, Quot.sound]`. This proof takes ~70 minutes to check on a 16-core machine.
+## Statement
 
-2. A `native_decide` proof [NativeCaseAnalysis/ProofOfMainTheorem.lean](NativeCaseAnalysis/ProofOfMainTheorem.lean) that takes ~2.5 minutes on a 16-core machine.
+The statement uses only Mathlib definitions and lives in
+[Noperthedron/MainTheorem.lean](Noperthedron/MainTheorem.lean). The theorems are in
+[CayleyKernel/Main.lean](CayleyKernel/Main.lean):
 
-3. A native executable [`constructValidTable`](constructValidTable.lean) that takes ~30 seconds to run on a 16-core machine.
-
-A second, independent kernel-only proof uses rational (Cayley) coordinates; see
-[cayley/DESIGN.md](cayley/DESIGN.md). Its case analysis has 245,484 leaves and its kernel check
-takes about 7.5 minutes (1.8 CPU-hours) on a 16-core machine:
-
+```lean
+theorem Cayley.KProof.noperthedron_not_rupert : ¬ IsRupert exactVerts
+theorem Cayley.KProof.exists_not_rupert : ExistsNonRupertPolyhedron
 ```
-cd cayley/search && cargo build --release
-LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../../.cayley-data/v4
-cd ../.. && lake build cayleyCheck
-.lake/build/bin/cayleyCheck kgen .cayley-data/v4/cover.txt .cayley-data/kernel CayleyKernel/Gen 64 100
-lake build CayleyKernel.Main
-```
 
-## Getting Started
+## Layout
 
-[Install Lean](https://lean-lang.org/install/manual/), clone this project, then build it with:
+| Path | Library | Contents |
+| --- | --- | --- |
+| `Noperthedron/` | `Noperthedron` | the statement, the exact vertices, and the reduction to rotation-only poses |
+| `Cayley/Checker/` | `CayleyChecker` (Mathlib-free) | the checker the kernel runs: Kronecker-packed polynomial bounds, gap and domain leaf tests, tree walk |
+| `Cayley/Soundness/` | `Cayley` | `Cayley.Pack.kernel_sound`: if the checker accepts a tree for each of the 15 root boxes, the Noperthedron is not Rupert |
+| `CayleyKernel/` | `CayleyKernel` (not a default target) | the elaboration-time loader, the generated chunk modules, and the main theorem |
+| `cayley/search/` | Rust | the floating-point search that produces the certificate tree |
+| `cayleyCheck.lean` | executable | native validation of a tree, and generation of the kernel chunks |
+
+Soundness, file by file:
+
+* `Shadow`, `Moves`, `Reduction`, `Pose`, `CayleyMatrix`, `Rodrigues`: from
+  `IsRupert exactVerts` to a Rupert pair `(s(u,v), s(u,v)·B_j·Cay(r))` in the reduced domain
+  (a wedge of outer views, an orbit-maximal relative rotation, a 5-chart Cayley atlas).
+* `Trig`, `TrigTable`, `Approx`, `QIReal`: the checker's tables of `cos/sin(2πk/15)`, the
+  vertices and the symmetries are within explicit errors of the true values.
+* `Pack`, `PackLayout`, `PackPoly`, `PackDecode`, `PackSound`, `PackBern`, `KVtx`: the packed
+  polynomial arithmetic and its lower bounds (coefficient bounds and quadratic Bernstein
+  bounds) are sound on `[-1,1]⁵`.
+* `KSem`, `KGapPoly`, `KGapSound`, `KDomPoly`, `KDomSound`: each leaf kind is sound (gap
+  separation, the blown-up paired test, disk, wedge, chart and orbit exclusions).
+* `KTreeSound`, `KMain`: the tree walk, the coverage of the reduced domain by the 15 root boxes,
+  and `kernel_sound`.
+
+`Rodrigues.lean` and `CayleyMatrix.lean` are ported from
+[NopertTriakisTetrahedron](https://github.com/dwrensha/NopertTriakisTetrahedron) (Apache-2.0).
+
+## Building
+
+[Install Lean](https://lean-lang.org/install/manual/), clone this project, then build the
+statement, the checker and its soundness proof (no data needed):
 
 ```
 lake exe cache get
 lake build
 ```
 
-To check the solution table, first make sure that you have `git-lfs`. Then unzip the table:
+The certificate tree (245,484 leaves, 3.5 MB) is not committed. To generate it (about
+8 minutes on 16 cores) and cut it into kernel chunks:
 
 ```
-unzip solution_tree_v8.zip
+cd cayley/search && cargo build --release
+LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../../.cayley-data/v4
+cd ../..
+lake build cayleyCheck
+.lake/build/bin/cayleyCheck kwalk .cayley-data/v4/cover.txt     # optional native check
+.lake/build/bin/cayleyCheck kgen .cayley-data/v4/cover.txt .cayley-data/kernel CayleyKernel/Gen 64 100
 ```
 
-To run the expensive kernel check (~15 core hours):
-```
-lake build KernelCaseAnalysis
-```
-
-To run the less expensive `native_decide` check (~40 core minutes):
-```
-lake build NativeCaseAnalysis
-```
-
-To run the even less expensive native executable check (~7 core minutes) :
+The export is deterministic, so `kgen` reproduces the committed `CayleyKernel/Gen` modules.
+Then run the kernel check:
 
 ```
-lake exe constructValidTable solution_tree_v8.csv
+lake build CayleyKernel.Main
 ```
 
+## Blueprint
 
-To build the blueprint, install [leanblueprint](https://github.com/PatrickMassot/leanblueprint) with something like
+The [blueprint](blueprint/src) describes the mathematics of the proof and links each step
+to its Lean declaration. To build it, install
+[leanblueprint](https://github.com/PatrickMassot/leanblueprint) (`pip install leanblueprint`)
+and run
+
 ```
-pip install leanblueprint
-```
-Then you can build all HTML and PDF content and check correspondence of blueprint decls (i.e. uses of `\lean`) with
-actual lean identifiers by doing
-```
-leanblueprint all
-```
-To run a server hosting the html, run
-```
-leanblueprint serve
+leanblueprint all      # HTML and PDF, and check that every \lean{} name exists
+leanblueprint serve    # serve the HTML locally
 ```
 
 ## License Information

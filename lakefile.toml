@@ -22,37 +22,20 @@ name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
 rev = "v4.35.0"
 
+# Shared definitions: the Noperthedron, the Rupert property, and the reduction to
+# rotation-only poses.
 [[lean_lib]]
 name = "Noperthedron"
 
-# Build-on-demand verification of the expensive computational step; not in
-# defaultTargets so CI never pays for it. See Noperthedron/ComputationalStep.lean.
-[[lean_lib]]
-name = "NativeCaseAnalysis"
-
-[[lean_lib]]
-name = "KernelCaseAnalysis"
-
 # Patched copy of the `checkdecls` dependency's executable (see CheckDecls.lean):
 # checks blueprint declarations against the defaultTargets libraries only, so
-# the build-on-demand NativeCaseAnalysis/KernelCaseAnalysis libs don't break CI.
+# the build-on-demand CayleyKernel lib (which needs generated data) doesn't break CI.
 # Defined in the root package so `lake exe checkdecls` resolves to it.
 [[lean_exe]]
 name = "checkdecls"
 root = "CheckDecls"
 supportInterpreter = true
 weakLinkArgs = ["-lLake"]
-
-[[lean_exe]]
-name = "constructValidTable"
-root = "constructValidTable"
-buildType = "release"
-
-# Per-row timing of the live checkers; see the docstring in benchRows.lean.
-[[lean_exe]]
-name = "benchRows"
-root = "benchRows"
-buildType = "release"
 
 # The rational-coordinate (Cayley) proof; see cayley/DESIGN.md.
 # The Mathlib-free checker that the kernel runs (precompiled for the elaboration-time loader

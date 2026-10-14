@@ -4,12 +4,11 @@ import Lake.CLI.Main
 Vendored, patched copy of https://github.com/PatrickMassot/checkdecls.
 
 The upstream version imports the roots of *every* `lean_lib` in the root
-package, which fails when the build-on-demand libraries (`NativeCaseAnalysis`,
-`KernelCaseAnalysis` — deliberately kept out of `defaultTargets` so CI never pays
-for them) have not been built. This copy imports only the libraries listed in
-`defaultTargets` — i.e. it checks the blueprint's declarations against what
-CI actually builds — and falls back to upstream behavior when
-`defaultTargets` names no library.
+package, which fails when the build-on-demand library `CayleyKernel` (kept out
+of `defaultTargets` because it needs generated data) has not been built. This
+copy imports only the libraries listed in `defaultTargets` — i.e. it checks the
+blueprint's declarations against what CI actually builds — and falls back to
+upstream behavior when `defaultTargets` names no library.
 
 Because this executable is defined in the root package under the same name,
 `lake exe checkdecls` resolves to it rather than to the dependency's.
