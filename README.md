@@ -24,6 +24,18 @@ three different versions:
 
 3. A native executable [`constructValidTable`](constructValidTable.lean) that takes ~30 seconds to run on a 16-core machine.
 
+A second, independent kernel-only proof uses rational (Cayley) coordinates; see
+[cayley/DESIGN.md](cayley/DESIGN.md). Its case analysis has 245,484 leaves and its kernel check
+takes about 7.5 minutes (1.8 CPU-hours) on a 16-core machine:
+
+```
+cd cayley/search && cargo build --release
+LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../../.cayley-data/v4
+cd ../.. && lake build cayleyCheck
+.lake/build/bin/cayleyCheck kgen .cayley-data/v4/cover.txt .cayley-data/kernel CayleyKernel/Gen 64 100
+lake build CayleyKernel.Main
+```
+
 ## Getting Started
 
 [Install Lean](https://lean-lang.org/install/manual/), clone this project, then build it with:

@@ -29,3 +29,5 @@ home_page/.bundle
 home_page/.ruby-version
 home_page/_site
 home_page/vendor
+
+.cayley-data/

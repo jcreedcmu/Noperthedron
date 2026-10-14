@@ -1,5 +1,5 @@
 name = "Noperthedron"
-defaultTargets = ["Noperthedron"]
+defaultTargets = ["Noperthedron", "CayleyChecker", "Cayley"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -52,4 +52,29 @@ buildType = "release"
 [[lean_exe]]
 name = "benchRows"
 root = "benchRows"
+buildType = "release"
+
+# The rational-coordinate (Cayley) proof; see cayley/DESIGN.md.
+# The Mathlib-free checker that the kernel runs (precompiled for the elaboration-time loader
+# and `cayleyCheck`).
+[[lean_lib]]
+name = "CayleyChecker"
+globs = ["CayleyChecker", "Cayley.Checker.+"]
+precompileModules = true
+
+# Soundness of the kernel checker (`Cayley.Pack.kernel_sound`). Builds without any
+# generated data.
+[[lean_lib]]
+name = "Cayley"
+globs = ["Cayley", "Cayley.Soundness.+"]
+
+# The kernel-only proof: elaboration-time loader and generated chunk modules
+# (`cayleyCheck kgen`). Not a default target.
+[[lean_lib]]
+name = "CayleyKernel"
+globs = ["CayleyKernel.+"]
+
+[[lean_exe]]
+name = "cayleyCheck"
+root = "cayleyCheck"
 buildType = "release"
