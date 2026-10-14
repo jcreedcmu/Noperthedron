@@ -1,6 +1,11 @@
 module
 
-public import Mathlib
+public import Mathlib.Algebra.BigOperators.ModEq
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Data.Nat.Bitwise
+public import Mathlib.Tactic.NormNum.Ineq
+public import Mathlib.Algebra.BigOperators.Ring.Finset
+public import Mathlib.Tactic.Ring
 
 @[expose] public section
 

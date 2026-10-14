@@ -2,6 +2,8 @@ module
 
 public import Cayley.Soundness.Trig
 public import Cayley.Soundness.QIReal
+public import Mathlib.Analysis.CStarAlgebra.Classes
+public import Mathlib.Tactic.IntervalCases
 
 @[expose] public section
 

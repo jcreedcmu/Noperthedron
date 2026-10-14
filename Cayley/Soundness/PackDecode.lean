@@ -2,6 +2,7 @@ module
 
 public import Cayley.Soundness.PackLayout
 public import Cayley.Checker.KPack
+public import Mathlib.Algebra.Order.Star.Real
 
 @[expose] public section
 

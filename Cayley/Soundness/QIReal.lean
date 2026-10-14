@@ -1,7 +1,11 @@
 module
 
 public import Cayley.Checker.Geometry
-public import Mathlib
+public import Mathlib.Algebra.Order.Archimedean.Real.Basic
+public import Mathlib.Data.Fin.VecNotation
+public import Mathlib.LinearAlgebra.Matrix.Notation
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Positivity
 
 @[expose] public section
 

@@ -41,11 +41,13 @@ jobs:
 
       - name: Don't 'import Mathlib'
         run: |
-          ! (find Noperthedron -type f -name "*.lean" -exec grep -Hn '^import Mathlib$' {} +)
+          ! (find Noperthedron Cayley CayleyKernel -type f -name "*.lean" \
+               -exec grep -Hn 'import Mathlib$' {} + )
 
       - name: Don't '#exit'
         run: |
-          ! (find Noperthedron -type f -name "*.lean" -exec grep -Hn '^#exit$' {} +)
+          ! (find Noperthedron Cayley CayleyKernel -type f -name "*.lean" \
+               -exec grep -Hn '^#exit$' {} + )
 
       - name: Build the project
         uses: leanprover/lean-action@c544e89643240c6b398f14a431bcdc6309e36b3e # v1.4.0
