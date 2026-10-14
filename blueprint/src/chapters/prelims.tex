@@ -1,54 +1,111 @@
-\chapter{Preliminaries}
+\chapter{Rupert pairs}
+\label{chap:prelims}
 
-TODO: This whole chapter needs organization, it's just a grab bag of miscellaneous results for now.
+Write $\pi \colon \R^3 \to \R^2$ for the projection $(x_0, x_1, x_2) \mapsto (x_0, x_1)$
+onto the screen.
 
-\section{Rupert Sets}
+\begin{definition}
+\label{def:rupert}
+\lean{IsRupert}
+\leanok
+A convex polyhedron with vertex set $V$ is \emph{Rupert} if there are rotations
+$R_i, R_o \in SO(3)$ and an offset $o \in \R^2$ such that
+\[
+  o + \pi(R_i \hull{V}) \subseteq \operatorname{int} \pi(R_o \hull{V}).
+\]
+\end{definition}
+
+\begin{definition}
+\label{def:exists_non_rupert}
+\lean{ExistsNonRupertPolyhedron}
+\leanok
+\uses{def:rupert}
+The main statement: there is a finite set $V \subseteq \R^3$ whose convex hull has
+nonempty interior and which is not Rupert.
+\end{definition}
+
+\section{Rupert sets}
 
 \begin{theorem}[Rupert Polyhedron iff Rupert Set]
 \label{thm:rupert_iff_rupert_set}
 \lean{rupert_iff_rupert_set}
 \leanok
-The following are equivalent:
-\begin{itemize}
-\item The convex polyhedron with vertex set $v$ is Rupert.
-\item The convex closure of $v$ is a Rupert set.
-\end{itemize}
+\uses{def:rupert}
+The convex polyhedron with vertex set $V$ is Rupert if and only if the convex hull of
+$V$ is a Rupert set, i.e.\ there is a pose (two rotations and an offset) under which
+the closure of the inner shadow lies in the interior of the outer shadow.
 \end{theorem}
 \begin{proof}
 \leanok
-TODO: import this from the other repo
+The convex hull of a finite set is compact, so its shadow is closed.
 \end{proof}
-
-
-\section{Poses}
-
-TODO
-
-\begin{theorem}
-\label{thm:pose_of_matrix_pose}
-\lean{pose_of_matrix_pose, converted_pose_rupert_iff}
-\leanok
-Given a pose with zero offset, there exists a 5-parameter pose that is equivalent to it.
-\end{theorem}
-
-\begin{proof}
-By putting the pose into a canonical form as a Z rotation followed by a Y followed by a Z.
-\leanok
-\end{proof}
-
-\section{Pointsymmetry and Rupertness}
 
 \begin{theorem}
 \label{thm:rupert_implies_rot_rupert}
 \lean{rupert_implies_rot_rupert}
 \leanok
-If a set is point symmetric and convex, then it being Rupert implies
-it being purely rotationally Rupert.
+\uses{def:pointsymmetric}
+Let $S \subseteq \R^3$ be point-symmetric and convex. If a pose with offset $o$
+passes $S$ through itself, then so does the same pose with offset $0$.
 \end{theorem}
-
 \begin{proof}
 \leanok
-TODO: informalize proof
+Write $K$ for the closure of the inner shadow and $L$ for the interior of the outer
+shadow; both are point-symmetric and $L$ is convex. From $o + K \subseteq L$ and
+symmetry, $-o + K = -(o + K) \subseteq L$. Every $k \in K$ is the midpoint of
+$o + k \in L$ and $-o + k \in L$, so $k \in L$ by convexity.
 \end{proof}
 
+\section{Shadows and the separation criterion}
 
+From now on $\PPP$ denotes the Noperthedron (Definition~\ref{def:noperthedron}).
+
+\begin{definition}
+\label{def:shadow}
+\lean{Cayley.shadow, Cayley.RupPair}
+\leanok
+\uses{def:noperthedron}
+The \emph{shadow} of a $3 \times 3$ matrix $R$ is $\mathrm{Sh}(R) = \pi(R\,\PPP)$.
+A pair of matrices $(R_o, R_i)$ is a \emph{Rupert pair} if
+$\overline{\mathrm{Sh}(R_i)} \subseteq \operatorname{int} \mathrm{Sh}(R_o)$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:exists_rup_pair}
+\lean{Cayley.exists_rupPair}
+\leanok
+\uses{def:shadow, thm:rupert_iff_rupert_set, thm:rupert_implies_rot_rupert, lemma:nopert_point_symmetric}
+If $\PPP$ is Rupert, then there is a Rupert pair $(R_o, R_i)$ with
+$R_o, R_i \in SO(3)$.
+\end{lemma}
+\begin{proof}
+\leanok
+Combine Theorem~\ref{thm:rupert_iff_rupert_set} and
+Theorem~\ref{thm:rupert_implies_rot_rupert}; $\PPP$ is point-symmetric
+(Lemma~\ref{lemma:nopert_point_symmetric}) and convex.
+\end{proof}
+
+For $w = (w_0, w_1) \in \R^2$ write $\langle w, x \rangle = w_0 x_0 + w_1 x_1$ for
+$x \in \R^3$ (only the screen coordinates enter).
+
+\begin{theorem}[Separation criterion]
+\label{thm:separation}
+\lean{Cayley.not_rupPair_of_sep}
+\leanok
+\uses{def:shadow}
+Let $S$ be a vertex of $\PPP$ and $w \ne 0$. If
+\[
+  \langle w, R_o T \rangle \le \langle w, R_i S \rangle
+\]
+for every vertex $T$ of $\PPP$, then $(R_o, R_i)$ is not a Rupert pair.
+\end{theorem}
+\begin{proof}
+\leanok
+The outer shadow is the convex hull of the points $\pi(R_o T)$, so it lies in the
+closed half-plane $\{ z : \langle w, z \rangle \le \langle w, R_i S \rangle \}$. The
+point $\pi(R_i S)$ of the inner shadow lies on the boundary line of this half-plane,
+so it is not an interior point of the outer shadow.
+\end{proof}
+
+Only a non-strict inequality is needed, so poses in which the two shadows touch need
+no special treatment.

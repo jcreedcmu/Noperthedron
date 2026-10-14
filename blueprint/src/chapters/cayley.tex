@@ -1,0 +1,142 @@
+\chapter{Cayley coordinates}
+\label{chap:cayley}
+
+Angles make rotation matrices transcendental functions of the coordinates. Cayley
+coordinates make them rational, so that every quantity in the case analysis becomes a
+polynomial after clearing positive denominators.
+
+\begin{definition}
+\label{def:cayley}
+\lean{Cayley.cayleyDenom, Cayley.cayleyNumeratorMatrix, Cayley.cayleyMatrix}
+\leanok
+For $r = (x, y, z) \in \R^3$ let $D(r) = 1 + x^2 + y^2 + z^2$ and
+\[
+  N(r) = \begin{pmatrix}
+    1 + x^2 - y^2 - z^2 & 2(xy - z) & 2(xz + y) \\
+    2(xy + z) & 1 - x^2 + y^2 - z^2 & 2(yz - x) \\
+    2(xz - y) & 2(yz + x) & 1 - x^2 - y^2 + z^2
+  \end{pmatrix}.
+\]
+The \emph{Cayley rotation} of $r$ is $\mathrm{Cay}(r) = N(r) / D(r)$. It is the
+rotation by the unit quaternion proportional to $(1, x, y, z)$.
+\end{definition}
+
+The numerator $N(r)$ is a polynomial with integer coefficients, defined over any
+commutative ring, and the denominator is positive.
+
+\begin{lemma}
+\label{lem:cayley_so3}
+\lean{Cayley.cayleyMatrix_mem_SO3, Cayley.cayleyDenom_pos}
+\leanok
+\uses{def:cayley}
+$D(r) > 0$ and $\mathrm{Cay}(r) \in SO(3)$ for every $r \in \R^3$.
+\end{lemma}
+\begin{proof}
+\leanok
+Direct computation: $N(r) N(r)^T = D(r)^2 I$ and $\det N(r) = D(r)^3$.
+\end{proof}
+
+\begin{lemma}[Rodrigues form]
+\label{lem:cayley_rodrigues}
+\lean{Cayley.cayleyMatrix_apply_sub, Cayley.num_sub_denom}
+\leanok
+\uses{def:cayley}
+For every $S \in \R^3$,
+\[
+  N(r) S - D(r) S = 2\,\bigl(r \times S + r \times (r \times S)\bigr).
+\]
+Equivalently $\mathrm{Cay}(r) S - S = \frac{2}{D(r)} \bigl(r \times S + r \times (r \times S)\bigr)$.
+\end{lemma}
+\begin{proof}
+\leanok
+Expand $N(r) S = (1 - |r|^2) S + 2 r (r \cdot S) + 2 r \times S$ and use
+$r \times (r \times S) = r (r \cdot S) - |r|^2 S$.
+\end{proof}
+
+The Rodrigues form is the source of the blow-up identity
+(Lemma~\ref{lem:blowup_identity}): the difference $\mathrm{Cay}(r) S - S$ is divisible
+by $r$.
+
+\begin{lemma}
+\label{lem:cayley_trace}
+\lean{Cayley.trace_cayleyMatrix}
+\leanok
+\uses{def:cayley}
+$\tr \mathrm{Cay}(r) = (3 - |r|^2) / (1 + |r|^2)$.
+\end{lemma}
+\begin{proof}
+\leanok
+Direct computation.
+\end{proof}
+
+\begin{theorem}
+\label{thm:cayley_surj}
+\lean{Cayley.exists_cayleyMatrix_of_trace_nonneg}
+\leanok
+\uses{lem:cayley_so3}
+Every $A \in SO(3)$ with $\tr A \ge 0$ is $\mathrm{Cay}(r)$ for some $r$ with
+$|r|^2 \le 3$.
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{lem:axis_angle}
+Write $A$ as a rotation by angle $\gamma \in (-\pi, \pi]$ about a unit axis $a$
+(Lemma~\ref{lem:axis_angle}). Then $\tr A = 1 + 2 \cos\gamma \ge 0$ gives
+$\cos\gamma \ge -1/2$. Put $c = \sin\gamma / (1 + \cos\gamma) = \tan(\gamma/2)$ and
+$r = c\,a$. Then $c^2 = (1 - \cos\gamma)/(1 + \cos\gamma) \le 3$, and comparing the
+Rodrigues forms of $A$ and of $\mathrm{Cay}(r)$ gives $A = \mathrm{Cay}(r)$.
+\end{proof}
+
+\begin{lemma}[Axis-angle form]
+\label{lem:axis_angle}
+\lean{Cayley.BalancedSupport.exists_axisAngle, Cayley.BalancedSupport.AxisAngle.matrix_trace_eq}
+\leanok
+Every $A \in SO(3)$ is a rotation by some angle $\gamma \in (-\pi, \pi]$ about some unit
+axis $a$:
+$A v - v = \sin\gamma\; a \times v + (1 - \cos\gamma)\; a \times (a \times v)$.
+Its trace is $1 + 2\cos\gamma$.
+\end{lemma}
+\begin{proof}
+\leanok
+Every element of $SO(3)$ is orthogonally conjugate to a rotation $R_z(\gamma)$ about the
+$z$-axis; transport the formula for $R_z(\gamma)$ along the conjugating frame.
+\end{proof}
+
+\section{Outer views}
+
+\begin{definition}
+\label{def:outer_rot}
+\lean{Cayley.outerRot}
+\leanok
+\uses{def:cayley}
+For $(u, v) \in \R^2$ let $s(u, v) = \mathrm{Cay}(v, -u, 0)$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:outer_view}
+\lean{Cayley.outerRot_row2}
+\leanok
+\uses{def:outer_rot}
+The third row of $s(u, v)$, the \emph{view} $s(u,v)^T e_z$, is the inverse
+stereographic image
+\[
+  \frac{(2u,\ 2v,\ 1 - u^2 - v^2)}{1 + u^2 + v^2}.
+\]
+\end{lemma}
+\begin{proof}
+\leanok
+Direct computation.
+\end{proof}
+
+\begin{lemma}
+\label{lem:outer_unique}
+\lean{Cayley.eq_Rz_mul_outerRot}
+\leanok
+\uses{lem:outer_view}
+If $R \in SO(3)$ has the same third row as $s(u, v)$, then
+$R = R_z(\gamma)\, s(u, v)$ for some $\gamma$.
+\end{lemma}
+\begin{proof}
+\leanok
+$R\, s(u,v)^T$ fixes $e_z$, so it is a rotation about the $z$-axis.
+\end{proof}

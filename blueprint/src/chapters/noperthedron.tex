@@ -1,4 +1,5 @@
 \chapter{The Noperthedron}
+\label{chap:noperthedron}
 
 \section{Definition of the Noperthedron}
 
@@ -62,7 +63,7 @@ are defined in the usual way:
         \end{pmatrix}.
     \]
 
-We define a 30-element set $C_{30}$
+We define a 30-element set $\mathcal{C}_{30}$
 \[
     \mathcal{C}_{30} \coloneqq \left\{(-1)^\ell R_z\left(\frac{2\pi k}{15}\right) \colon k=0,\dots,14; \ell=0,1\right\}.
 \]
@@ -74,7 +75,7 @@ We write $\mathcal{C}_{30} \cdot P = \{c P \,\text{ for } \, c \in \mathcal{C}_{
 \label{def:noperthedron}
 \lean{Noperthedron.exactVertex}
 \leanok
-The Noperthedron is polyhedron given by the vertex set
+The Noperthedron $\NOP$ is the convex polyhedron given by the vertex set
 \[\mathcal{C}_{30} \cdot C_1 \cup \mathcal{C}_{30} \cdot C_2 \cup \mathcal{C}_{30} \cdot C_3\]
 \end{definition}
 
@@ -105,48 +106,17 @@ The noperthedron is point-symmetric.
 \end{lemma}
 \begin{proof}
 \leanok
-\uses{lemma:pointsymmetrization_is_pointsym}
-Follows from Lemma~\ref{lemma:pointsymmetrization_is_pointsym}.
+The set $\mathcal{C}_{30}$ contains $-\id$.
 \end{proof}
 
-\section{Refined Rupert's property for the Noperthedron}
-
-\begin{lemma} \label{lem:symmetries}
+\begin{lemma}
+\label{lemma:nopert_interior}
+\lean{Noperthedron.interior_exactVerts_hull_nonempty}
 \leanok
-\lean{Noperthedron.Tightening.lemma7_1,Noperthedron.Tightening.lemma7_2,Noperthedron.Tightening.lemma7_3}
-Let $\PPP = \NOP$, then for all $\theta, \varphi, \alpha \in \R$, the following three identities hold (as sets):
-\begin{align*}
-    M({\theta+2\pi/15,\varphi})\cdot \PPP &=M(\theta, \phi) \cdot \PPP,\\
-    R(\alpha+\pi)M(\theta, \phi) \cdot \PPP &=R(\alpha)M(\theta, \phi) \cdot \PPP,\\
-    \begin{pmatrix}
-        1&0\\
-        0&-1
-    \end{pmatrix}
-    M(\theta, \phi) \cdot \PPP&=
-    M({\theta+\pi/15,\pi-\varphi}) \cdot \PPP.
-\end{align*}
+\uses{def:noperthedron}
+The Noperthedron has nonempty interior.
 \end{lemma}
 \begin{proof}
 \leanok
-See \cite{polyhedron.without.rupert}, Lemma 7.
-\end{proof}
-
-
-\begin{corollary}
-\label{cor:rupert_tightening}
-\lean{Noperthedron.Tightening.rupert_tightening}
-\leanok
-If the noperthedron is Rupert, then there exists a solution with
-\begin{align*}
-\theta_1,\theta_2&\in[0,2\pi/15] \subset [0,0.42], \\
-\varphi_1&\in [0,\pi] \subset [0,3.15],\\
-\varphi_2&\in [0,\pi/2] \subset [0,1.58],\\
-\alpha &\in [-\pi/2,\pi/2] \subset [-1.58,1.58].
-\end{align*}
-\end{corollary}
-
-\begin{proof}
-\uses{lem:symmetries}
-\leanok
-See \cite{polyhedron.without.rupert}, Lemma 8.
+Four of its vertices are affinely independent.
 \end{proof}

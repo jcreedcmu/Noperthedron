@@ -1,0 +1,222 @@
+\chapter{Boxes and leaf certificates}
+\label{chap:certificates}
+
+\section{Boxes}
+
+\begin{definition}
+\label{def:box}
+\lean{Cayley.K.KBox, Cayley.kpt}
+\leanok
+\uses{def:faces}
+A \emph{box} consists of a chart $j \in \{0, \dots, 4\}$, a face $f \in \{0, \dots, 5\}$
+(used only in charts 0 and 4), a scale $K \in \N$, and integer centres $c_i$ and radii
+$h_i \ge 0$ for $i = 0, \dots, 4$. The point of the box at normalized coordinates
+$t \in [-1,1]^5$ is $X(t)$ with $X_i = (c_i + h_i t_i) / 2^K$.
+\end{definition}
+
+Normalizing every box to $[-1,1]^5$ means that every polynomial below is bounded
+on the same cube.
+
+\begin{definition}
+\label{def:bad}
+\lean{Cayley.Bad, Cayley.PtOK}
+\leanok
+\uses{def:box, def:reduced}
+A point $X$ of a box is \emph{bad} if, with $r$ the Cayley vector of $X$
+(Definition~\ref{def:faces}), the tuple $(X_0, X_1, j, r)$ is reduced and
+$\bigl(s(X_0, X_1),\ s(X_0, X_1)\, Q_j(r)\bigr)$ is a Rupert pair. A box is
+\emph{covered} if none of its points with $X_0^2 + X_1^2 \le 1$ and $|r_i| \le 2$ is bad.
+\end{definition}
+
+The certificate is a binary tree for each root box. Each internal node halves the box
+along one coordinate; each leaf is either a \emph{gap leaf}, which shows that no
+point of the box gives a Rupert pair, or a \emph{domain leaf}, which shows that no point
+of the box is reduced.
+
+\section{The gap polynomial}
+
+Fix a box in chart $j$, an inner vertex $S$, an outer vertex $T$ and a direction
+$w \in \Z^2 \setminus \{0\}$. The separation criterion
+(Theorem~\ref{thm:separation}) asks for
+\[
+  \mathrm{gap}_T(X) = \langle w, s\, Q_j(r)\, S \rangle - \langle w, s\, T \rangle \ge 0,
+  \qquad s = s(X_0, X_1).
+\]
+Multiplying by the positive denominators $D_o = 1 + u^2 + v^2$ and $D_r = D(r)$ and by an
+integer $\kappa_j \ge 1$ that makes $M_j = \kappa_j B_j$ an integer matrix
+($\kappa_j = 1$ for $j \le 3$, and $\kappa_4 = x^2 + y^2$ in the notation of
+Definition~\ref{def:tau}, after scaling $C_3$ to integers) clears every denominator.
+
+\begin{lemma}[Gap polynomial]
+\label{lem:gap_poly}
+\lean{Cayley.gap_identity, Cayley.Pack.Fp_real, Cayley.Pack.Fp_split}
+\leanok
+\uses{def:box, def:cayley, def:outer_rot, def:charts, thm:separation}
+\[
+  D_o\,\kappa_j\,D_r\,\mathrm{gap}_T
+  = \bigl\langle w,\ N_o\, M_j\, N(r)\, S \bigr\rangle - \kappa_j D_r \bigl\langle w,\ N_o\, T \bigr\rangle,
+\]
+where $N_o$ is the numerator of $s(u, v)$. As a function of the normalized coordinates
+$t$, this is (up to a fixed power of two) a polynomial with integer coefficients of
+degree at most $2$ in each variable. Writing $\alpha_k = w_0 (N_o)_{0k} + w_1 (N_o)_{1k}$,
+it equals $A - \sum_k T_k E_k$ with $A = \sum_k \alpha_k (M_j N(r) S)_k$ and
+$E_k = \alpha_k \kappa_j D_r$, which do not depend on $T$.
+\end{lemma}
+\begin{proof}
+\leanok
+$D_o\, s = N_o$ and $D_r \mathrm{Cay}(r) = N(r)$; the entries of $N_o$ have degree at most
+$2$ in each of $u, v$, and the entries of $N(r)$ and $D_r$ have degree at most $2$ in each
+of $r_0, r_1, r_2$ (or of $s_0, s_1, \rho$ in the blown-up charts, where
+$r = \rho\, c_f(s_0, s_1)$). The product is bilinear in these two groups of variables.
+\end{proof}
+
+The checker uses dyadic approximations $\hat S$, $\hat T$ of the vertices with error
+at most $2^{-60}$ per coordinate (Lemma~\ref{lem:vertex_approx}). The error is absorbed
+by an explicit allowance $\mathrm{err} = 128\, \kappa_j\, 2^{-60} (|w_0| + |w_1|)$; this
+uses $u^2 + v^2 \le 1$, $|r_i| \le 2$ and the fact that orthogonal matrices do not enlarge
+vectors.
+
+\section{The blow-up}
+\label{sec:blowup}
+
+In charts 0 and 4 each inner vertex $S$ has a \emph{paired} outer vertex
+$\sigma(S)$: $\sigma(S) = S$ in chart 0, and in chart 4 $\sigma(S) = \tau S$ for the 30
+copies of $C_3$ (Lemma~\ref{lem:tau_pair}). At $r = 0$ the pair has
+$Q_j(0) S = B_j S = \sigma(S)$, so $\mathrm{gap}_{\sigma(S)}$ vanishes identically on
+$\rho = 0$, and no box touching $\rho = 0$ can have a positive lower bound for it.
+
+\begin{lemma}[Blow-up identity]
+\label{lem:blowup_identity}
+\lean{Cayley.num_sub_denom, Cayley.Pack.Lp_real}
+\leanok
+\uses{lem:cayley_rodrigues, lem:gap_poly, lem:tau_pair}
+In charts 0 and 4, with $r = \rho\, c$,
+\[
+  D_o\, \kappa_j\, D_r\, \mathrm{gap}_{\sigma(S)}
+  = 2 \rho\, \bigl\langle w,\ N_o\, M_j \bigl(c \times S + \rho\, c \times (c \times S)\bigr) \bigr\rangle
+  = 2\rho\, L(X).
+\]
+\end{lemma}
+\begin{proof}
+\leanok
+$Q_j(r) S - \sigma(S) = B_j(\mathrm{Cay}(r) S - S)$ in both charts (for chart 4,
+$\sigma(S) = \tau S = B_4 S$). Apply Lemma~\ref{lem:cayley_rodrigues} and
+$r = \rho c$.
+\end{proof}
+
+The bracket $L$ is again a polynomial of degree at most $2$ in each variable. It does
+not vanish at $\rho = 0$, so it can be bounded below on boxes that touch $\rho = 0$.
+Since $\rho \ge 0$, $L \ge 0$ implies $\mathrm{gap}_{\sigma(S)} \ge 0$.
+
+\begin{theorem}[Gap core]
+\label{thm:gap_core}
+\lean{Cayley.gap_core}
+\leanok
+\uses{thm:separation, lem:gap_poly, lem:blowup_identity, lem:vertex_approx}
+Let $X$ be a point of a box in chart $j$ with $u^2 + v^2 \le 1$ and $|r_i| \le 2$, let $S$
+be an inner vertex and $w \ne 0$. Suppose that for every outer vertex $T$, either
+\[
+  \mathrm{err} \le D_o\, \kappa_j\, D_r \bigl(\langle w, s Q_j(r) \hat S\rangle - \langle w, s \hat T\rangle\bigr),
+\]
+or $j \in \{0, 4\}$, $T = \sigma(S)$ and $\mathrm{err} \le 2 \hat L(X)$, where $\hat L$ is $L$
+computed with $\hat S$. Then $\bigl(s, s\, Q_j(r)\bigr)$ is not a Rupert pair.
+\end{theorem}
+\begin{proof}
+\leanok
+In both cases the true gap $\mathrm{gap}_T(X)$ is nonnegative once the approximation
+error is accounted for, so the separation criterion (Theorem~\ref{thm:separation})
+applies with the inner vertex $S$ and direction $w$.
+\end{proof}
+
+\section{Gap leaves}
+
+\begin{definition}
+\label{def:gap_leaf}
+\lean{Cayley.K.pGapOK, Cayley.K.vtestG, Cayley.K.fullOK, Cayley.K.pairOK}
+\leanok
+\uses{lem:gap_poly, lem:blowup_identity}
+A gap leaf names an inner vertex $S$ and a direction $(w_0, w_1) \ne 0$. It passes if the
+coefficients of the polynomials involved are small enough for the packed arithmetic of
+Chapter~\ref{chap:polybounds}, and for every one of the 90 outer vertices $T$ one of the
+following succeeds:
+\begin{enumerate}
+\item the \emph{quick test}: a lower bound of $A - \sum_k T_k E_k$ built from the constant
+  terms and coefficient sums of $A$ and the $E_k$, evaluated for all 90 vertices at once;
+\item the \emph{full test}: the coefficient lower bound or the Bernstein lower bound of
+  the polynomial $A - \sum_k \hat T_k E_k$ is at least $\mathrm{err}$;
+\item for the paired vertex $T = \sigma(S)$ in charts 0 and 4: the coefficient or
+  Bernstein lower bound of $2L$ is at least $\mathrm{err}$ (or $\rho > 0$ on the whole box
+  and the full test succeeds).
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}
+\label{thm:gap_leaf_sound}
+\lean{Cayley.Pack.pGapOK_sound}
+\leanok
+\uses{def:gap_leaf, thm:gap_core, thm:coef_bound, thm:bern_bound}
+If a gap leaf passes on a box, then no point of the box with $u^2 + v^2 \le 1$ and
+$|r_i| \le 2$ gives a Rupert pair $(s, s\, Q_j(r))$.
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{lem:quick_test}
+Each test that succeeds gives the corresponding hypothesis of
+Theorem~\ref{thm:gap_core} at every point of the box: the quick test by
+Lemma~\ref{lem:quick_test}, the others by Theorems~\ref{thm:coef_bound}
+and~\ref{thm:bern_bound}.
+\end{proof}
+
+\begin{lemma}[Quick test]
+\label{lem:quick_test}
+\lean{Cayley.Pack.quick_real, Cayley.Pack.quick_G1}
+\leanok
+\uses{lem:gap_poly, thm:coef_bound}
+Suppose $A \ge c_0 - \mathrm{sl}$ and $|E_k - e_k| \le a_k$ on the box, where $c_0$, $e_k$
+are constant terms and $\mathrm{sl}$, $a_k$ are coefficient sums. If
+\[
+  c_0 - \mathrm{sl} - \mathrm{err} - \sum_k T_k e_k - \sum_k |T_k|\, a_k \ge 0,
+\]
+then $\mathrm{err} \le A - \sum_k T_k E_k$ on the box.
+\end{lemma}
+\begin{proof}
+\leanok
+Linear arithmetic.
+\end{proof}
+
+\section{Domain leaves}
+
+\begin{definition}
+\label{def:dom_leaf}
+\lean{Cayley.K.pDomOK}
+\leanok
+\uses{def:reduced, def:box}
+A domain leaf names one condition of Definition~\ref{def:reduced} that fails on the whole
+box:
+\begin{enumerate}
+\item (disk) $u^2 + v^2 > 1$, tested at the lower corner of the box;
+\item (wedge) $v > \frac{57}{128} u$, tested at the corners of the box;
+\item (chart $k$) $\tr(B_j^T Q_j(r)) < \tr(B_k^T Q_j(r))$, a polynomial inequality after
+  clearing $D_r$;
+\item (orbit $e, g, a$) $F(Q_j(r)) < F(H^e Q_j(r) g_g)$, established through the term
+  $\tr(B_a^T H^e Q_j(r) g_g) - [a = 4]\,\frac18$ with $a \in \{0, 4\}$, again a polynomial
+  inequality after clearing denominators, with the tabulated $\hat g_g$ in place of $g_g$
+  and an explicit error allowance.
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}
+\label{thm:dom_leaf_sound}
+\lean{Cayley.Pack.pDomOK_sound, Cayley.Pack.pChartOK_sound, Cayley.Pack.pOrbitOK_sound}
+\leanok
+\uses{def:dom_leaf, thm:coef_bound, lem:group_approx}
+If a domain leaf passes on a box, then no point of the box with $u^2 + v^2 \le 1$ and
+$|r_i| \le 2$ is reduced.
+\end{theorem}
+\begin{proof}
+\leanok
+The disk and wedge tests are monotonicity arguments on the box. The chart and orbit
+tests bound polynomials from below with Theorem~\ref{thm:coef_bound}; for the orbit test,
+the error of the tabulated rotations is bounded with Lemma~\ref{lem:group_approx} and the
+fact that the entries of a rotation are at most $1$ in absolute value.
+\end{proof}
