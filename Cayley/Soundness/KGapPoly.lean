@@ -77,11 +77,6 @@ def svec (S : ℤ × ℤ × ℤ) : Fin 3 → ℝ := ![(S.1 : ℝ), S.2.1, S.2.2]
 
 theorem p2_cast (k : ℕ) : ((p2 k : ℤ) : ℝ) = 2 ^ k := by simp [p2]
 
-/-- The box coordinate in units of `2^-K`. -/
-theorem kpt_mul (b : KBox) (t : Fin 5 → ℝ) (i : Fin 5) :
-    ((b.c.getD i 0 : ℤ) : ℝ) + ((b.h.getD i 0 : ℤ) : ℝ) * t i = 2 ^ b.K * kpt b t i := by
-  simp only [kpt]; field_simp
-
 theorem gapR_alpha (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) (y : Fin 3 → ℝ) :
     let g := gapR b S w0 w1 t
     g.a0 * y 0 + g.a1 * y 1 + g.a2 * y 2 = (2 ^ b.K) ^ 2 * lin w0 w1 (NoR (kpt b t) *ᵥ y) := by
@@ -114,16 +109,6 @@ theorem gChart_real3 (chart : ℕ) (hj : chart < 5) (y0 y1 y2 : ℝ) :
       ∑ j : Fin 3, chartMR chart 2 j * ![y0, y1, y2] j := by
   interval_cases chart <;> simp [gChart, chartMR, K.chartMI, Fin.sum_univ_three]
 
-theorem gChart_real (chart : ℕ) (hj : chart < 5) (y0 y1 y2 : ℝ) :
-    (gChart (· - ·) (· * ·) (fun z : ℤ => (z : ℝ)) (· + ·) chart y0 y1 y2).1 =
-        (chartMR chart *ᵥ ![y0, y1, y2]) 0 ∧
-      (gChart (· - ·) (· * ·) (fun z : ℤ => (z : ℝ)) (· + ·) chart y0 y1 y2).2.1 =
-        (chartMR chart *ᵥ ![y0, y1, y2]) 1 ∧
-      (gChart (· - ·) (· * ·) (fun z : ℤ => (z : ℝ)) (· + ·) chart y0 y1 y2).2.2 =
-        (chartMR chart *ᵥ ![y0, y1, y2]) 2 := by
-  interval_cases chart <;>
-    simp [gChart, chartMR, K.chartMI, mulVec, dotProduct, Fin.sum_univ_three]
-
 /-- The scale of `β`: `U⁴` (blown up) or `U²`. -/
 noncomputable def betaSc (b : KBox) : ℝ :=
   if b.chart = 0 ∨ b.chart = 4 then ((2 : ℝ) ^ b.K) ^ 4 else ((2 : ℝ) ^ b.K) ^ 2
@@ -140,10 +125,6 @@ theorem kptm4 (b : KBox) (t : Fin 5 → ℝ) :
     ((b.c.getD 4 0 : ℤ) : ℝ) + ((b.h.getD 4 0 : ℤ) : ℝ) * t 4 = 2 ^ b.K * kpt b t 4 := by
   show _ = 2 ^ b.K * ((((b.c.getD 4 0 : ℤ) : ℝ) + ((b.h.getD 4 0 : ℤ) : ℝ) * t 4) / 2 ^ b.K)
   field_simp
-
-theorem kptm (b : KBox) (t : Fin 5 → ℝ) (i : ℕ) (hi : i < 5) :
-    ((b.c.getD i 0 : ℤ) : ℝ) + ((b.h.getD i 0 : ℤ) : ℝ) * t ⟨i, hi⟩ = 2 ^ b.K * kpt b t ⟨i, hi⟩ := by
-  simp only [kpt]; field_simp
 
 theorem gFace_real (face : ℕ) (U x2 x3 : ℝ) :
     (gFace face (if face % 2 = 0 then U else ((0 : ℤ) : ℝ) - U) (U * x2) (U * x3)).1 =

@@ -4,7 +4,6 @@ public import Noperthedron.Basic
 
 @[expose] public section
 
-
 def PointSym {n : ℕ} (A : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
  ∀ x ∈ A, -x ∈ A
 
@@ -51,14 +50,6 @@ theorem interior_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin
     (fun x => -x) '' interior S = interior ((fun x => -x) '' S) :=
       Homeomorph.image_interior (Homeomorph.neg _) S
     _ = interior S := by rw [neg_image_eq_if_pointsym S s_sym]
-
-/--
-Rotation preserves the property of being pointsymmetric.
--/
-theorem rotation_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
-    (s_sym : PointSym S) (rot : Matrix.specialOrthogonalGroup (Fin n) ℝ) :
-    PointSym (rot.1.toEuclideanLin '' S) :=
-  continuousLinearMap_preserves_point_sym rot.1.toEuclideanLin.toContinuousLinearMap s_sym
 
 /--
 Taking the convex hull preserves point symmetry.

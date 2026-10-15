@@ -33,8 +33,6 @@ def dig (j : ℕ) (i : Fin 5) : ℕ := j / L.s i % L.r i
 /-- The exponent vector of slot `j`. -/
 noncomputable def digF (j : ℕ) : Fin 5 →₀ ℕ := Finsupp.equivFunOnFinite.symm (L.dig j)
 
-theorem digF_apply (j : ℕ) (i : Fin 5) : L.digF j i = L.dig j i := rfl
-
 /-- The mixed-radix facts, checked by `decide` for each concrete layout. -/
 structure Good : Prop where
   idx_dig : ∀ j < L.n, L.idx (L.dig j) = j

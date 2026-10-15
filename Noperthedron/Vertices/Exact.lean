@@ -7,7 +7,6 @@ public import Noperthedron.Vertices.Index
 
 @[expose] public section
 
-
 /-!
 This file covers [SY25] §2.1, defining the Noperthedron vertices.
 
@@ -114,10 +113,6 @@ lemma exactVertex_eq_vec (k : Fin 15) (ℓ : Fin 2) (i : Fin 3) :
 
 noncomputable
 def exactVerts : Finset ℝ³ := Finset.image exactVertex Finset.univ
-
-lemma exactVerts_nonempty : exactVerts.Nonempty := by
-  use exactVertex 0
-  simp [exactVerts]
 
 theorem exactVerts_pointsym : PointSym (exactVerts : Set ℝ³) := by
   intro x hx

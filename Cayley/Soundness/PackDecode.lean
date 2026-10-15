@@ -207,8 +207,6 @@ theorem negC_lt {L : Layout} {e : PE} {j : ℕ} (hc : |L.cf e j| < O) : negC L e
 
 theorem oddI_le (L : Layout) (j : ℕ) : oddI L j ≤ 1 := by simp only [oddI]; split_ifs <;> simp
 theorem nzI_le (j : ℕ) : nzI j ≤ 1 := by simp only [nzI]; split_ifs <;> simp
-theorem evI_le (L : Layout) (j : ℕ) : evI L j ≤ 1 := by simp only [evI]; split_ifs <;> simp
-
 /-- The slack of the lower bound. -/
 noncomputable def slackC (L : Layout) (e : PE) : ℕ :=
   ∑ j ∈ Finset.range L.n, (oddI L j * posC L e j + nzI j * negC L e j)

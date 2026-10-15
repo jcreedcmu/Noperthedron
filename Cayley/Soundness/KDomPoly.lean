@@ -93,13 +93,6 @@ def dMul (a c : Fin 5 → ℕ) : Fin 5 → ℕ := fun i => a i + c i
 abbrev dC : ℤ → Fin 5 → ℕ := fun _ _ => 0
 def dX (j : Fin 5) : Fin 5 → ℕ := fun i => if j = i then 1 else 0
 
-theorem pe_deg_map :
-    (∀ a c : PE, (fun i => (PE.add a c).deg i) = dAdd (fun i => a.deg i) (fun i => c.deg i)) ∧
-    (∀ a c : PE, (fun i => (PE.sub a c).deg i) = dAdd (fun i => a.deg i) (fun i => c.deg i)) ∧
-    (∀ a c : PE, (fun i => (PE.mul a c).deg i) = dMul (fun i => a.deg i) (fun i => c.deg i)) ∧
-    (∀ z, (fun i => (PE.c z).deg i) = dC z) ∧ (∀ j, (fun i => (PE.x j).deg i) = dX j) :=
-  ⟨fun _ _ => rfl, fun _ _ => rfl, fun _ _ => rfl, fun _ => rfl, fun _ => rfl⟩
-
 /-- The degree instance only sees the chart and the face. -/
 theorem numGen_deg (b : KBox) :
     numGen dAdd dAdd dMul dC dX b = numGen dAdd dAdd dMul dC dX ⟨b.chart, b.face, 0, [], []⟩ := by
@@ -256,7 +249,6 @@ theorem imat_orbC (g a : ℕ) (hg : g < 15) :
     simp [imat, gHat, htab, M3.toR, hcD, hsD, p2_cast] <;> field_simp
 
 theorem kapJ_zero : kapJ 0 = 1 := by simp [kapJ, K.chartKI]
-theorem kapJ_four : kapJ 4 = (kappaTau : ℝ) := rfl
 theorem chartB_zero_eq : chartB 0 = 1 := by ext i j; fin_cases i <;> fin_cases j <;> simp [chartB]
 
 /-- The orbit polynomials for `e = 0` at a real point. -/
