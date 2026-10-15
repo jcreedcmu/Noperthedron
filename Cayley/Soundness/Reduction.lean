@@ -287,7 +287,7 @@ theorem trace_diag_mul_cay (a b c x y z : ℝ) :
     Matrix.trace (!![a, 0, 0; 0, b, 0; 0, 0, c] * cayleyMatrix x y z) =
       (a * (1 + x ^ 2 - y ^ 2 - z ^ 2) + b * (1 - x ^ 2 + y ^ 2 - z ^ 2) +
         c * (1 - x ^ 2 - y ^ 2 + z ^ 2)) / cayleyDenom x y z := by
-  simp [Matrix.trace, cayleyMatrix, Matrix.mul_apply, Fin.sum_univ_three]
+  simp [Matrix.trace, cayleyMatrix, Fin.sum_univ_three]
   ring
 
 theorem step_chart (Q : Matrix (Fin 3) (Fin 3) ℝ) (hQ : Q ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :

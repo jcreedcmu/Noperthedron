@@ -16,17 +16,19 @@ mask computation `pLowerL` applied to `e` evaluated at the Kronecker point is a 
 
 namespace Cayley.Pack
 
+set_option exponentiation.threshold 1024
+
 open Cayley.K
 
 /-! ## Masks on packed numbers -/
 
 variable {W : ℕ} {n : ℕ}
 
-theorem land_mask {d m : ℕ → ℕ} (hd : ∀ j < n, d j < 2 ^ W) (hm : ∀ j < n, m j ≤ 1) (hW : 0 < W) :
+theorem land_mask {d m : ℕ → ℕ} (hd : ∀ j < n, d j < 2 ^ W) (hm : ∀ j < n, m j ≤ 1) :
     packN W d n &&& packN W (fun j => (2 ^ W - 1) * m j) n = packN W (fun j => m j * d j) n := by
   have hmask : ∀ j < n, (2 ^ W - 1) * m j < 2 ^ W := fun j hj => by
     rcases Nat.le_one_iff_eq_zero_or_eq_one.1 (hm j hj) with h | h <;> rw [h] <;> simp
-  rw [packN_land hW hd hmask]
+  rw [packN_land hd hmask]
   refine packN_congr fun j hj => ?_
   rcases Nat.le_one_iff_eq_zero_or_eq_one.1 (hm j hj) with h | h <;> rw [h]
   · simp
@@ -108,8 +110,8 @@ theorem pParts_eq {n : ℕ} (c : ℕ → ℤ) (hc : ∀ j < n, |c j| < O) :
     rw [packN_mul_left]; simp [O]
   have hO : ∀ j < n, (fun _ => O) j < 2 ^ PW := fun _ _ => O_lt
   simp only [pParts, nat_land, nat_shiftRight, nat_mul, nat_sub, hpm, hnm, hoff,
-    land_mask hd hσ1 PW_pos, land_mask hO hσ1 PW_pos, land_mask hd hσ1' PW_pos,
-    land_mask hO hσ1' PW_pos]
+    land_mask hd hσ1, land_mask hO hσ1, land_mask hd hσ1',
+    land_mask hO hσ1']
   have key : ∀ j < n, σ j * O ≤ σ j * odig c j ∧ (1 - σ j) * odig c j ≤ (1 - σ j) * O := by
     intro j hj
     have := (abs_lt.1 (hc j hj))
@@ -239,9 +241,9 @@ theorem pLowerL_eq {L : Layout} (hL : L.Good) {e : PE} (h : L.Fits e) (hn : 0 < 
   unfold pLowerL
   simp only [nat_mul]
   simp only [enc_eq hL h hc, hP, nat_land, nat_sub, nat_add, nat_mod]
-  rw [mask_odd L, mask_nz L hn, land_mask hpos (fun j _ => oddI_le L j) PW_pos,
-    land_mask hneg (fun j _ => nzI_le j) PW_pos, ← packN_add, pM_eq,
-    packN_mod (by simpa [slackC, posC, negC] using hsl), packN_land_low PW_pos (odig_lt hc) hn]
+  rw [mask_odd L, mask_nz L hn, land_mask hpos (fun j _ => oddI_le L j),
+    land_mask hneg (fun j _ => nzI_le j), ← packN_add, pM_eq,
+    packN_mod (by simpa [slackC, posC, negC] using hsl), packN_land_low (odig_lt hc) hn]
   have h0 := abs_lt.1 (hc 0 hn)
   have hO : (2 : ℤ) ^ (PW - 1) = O := by simp [O]
   rw [Int.subNatNat_eq_coe, odig, Int.toNat_of_nonneg (by omega)]
@@ -368,14 +370,14 @@ theorem pStatsL_eq {L : Layout} (hL : L.Good) {e : PE} (h : L.Fits e) (hn : 0 < 
   refine ⟨?_, ?_, ?_⟩
   · simp only [st, pStatsL, nat_mul]
     simp only [enc_eq hL h hc, nat_land]
-    rw [pM_eq, packN_land_low PW_pos (odig_lt hc) hn, Int.subNatNat_eq_coe, odig,
+    rw [pM_eq, packN_land_low (odig_lt hc) hn, Int.subNatNat_eq_coe, odig,
       Int.toNat_of_nonneg (by have := abs_lt.1 (hc 0 hn); omega)]
     simp [O]
   · simp only [st, pStatsL, nat_mul]
     simp only [enc_eq hL h hc, hP, nat_land, nat_sub, nat_add, nat_mod]
     rw [← packN_add, mask_odd L, mask_evnz L hn (evSlot_zero L),
-      land_mask hab (fun j _ => oddI_le L j) PW_pos]
-    rw [land_mask hneg (fun j _ => by simp only [evI, nzI]; split_ifs <;> simp) PW_pos, ← packN_add, pM_eq,
+      land_mask hab (fun j _ => oddI_le L j)]
+    rw [land_mask hneg (fun j _ => by simp only [evI, nzI]; split_ifs <;> simp), ← packN_add, pM_eq,
       packN_mod (hle _ fun j => ?_)]
     · simp only [slackC, posC, negC]
       refine Finset.sum_congr rfl fun j _ => ?_
@@ -386,7 +388,7 @@ theorem pStatsL_eq {L : Layout} (hL : L.Good) {e : PE} (h : L.Fits e) (hn : 0 < 
       split_ifs <;> omega
   · simp only [st, pStatsL, nat_mul]
     simp only [enc_eq hL h hc, hP, nat_land, nat_sub, nat_add, nat_mod]
-    rw [← packN_add, mask_nz L hn, land_mask hab (fun j _ => nzI_le j) PW_pos, pM_eq,
+    rw [← packN_add, mask_nz L hn, land_mask hab (fun j _ => nzI_le j), pM_eq,
       packN_mod (hle _ fun j => by simp only [nzI]; split_ifs <;> simp [posC, negC])]
     rfl
 

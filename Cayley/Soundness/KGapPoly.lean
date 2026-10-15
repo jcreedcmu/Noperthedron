@@ -212,7 +212,7 @@ theorem gapR_L (b : KBox) (hj : b.chart < 5) (hbl : b.chart = 0 ∨ b.chart = 4)
   generalize kpt b t 4 = ρ
   generalize (2 : ℝ) ^ b.K = U
   simp only [mulVec, dotProduct, Fin.sum_univ_three, crossR, Pi.add_apply, Pi.smul_apply,
-    smul_eq_mul, cons_val', cons_val_zero, cons_val_one, cons_val_two, empty_val',
+    smul_eq_mul, cons_val_zero, cons_val_one, cons_val_two,
     cons_val_fin_one, vecHead, vecTail, Function.comp_apply, Fin.succ_zero_eq_one, Fin.isValue]
   refine ⟨by ring, by ring, by ring⟩
 

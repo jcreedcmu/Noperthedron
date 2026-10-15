@@ -67,7 +67,7 @@ theorem testBit_packN (hd : ∀ j < n, d j < 2 ^ W) (k : ℕ) :
         calc d n < 2 ^ W := hd n (by omega)
           _ ≤ 2 ^ (k - W * n) := Nat.pow_le_pow_right (by norm_num) (by rw [Nat.mul_succ] at hk2; omega)
 
-theorem packN_land (hW : 0 < W) (hd : ∀ j < n, d j < 2 ^ W) (he : ∀ j < n, e j < 2 ^ W) :
+theorem packN_land (hd : ∀ j < n, d j < 2 ^ W) (he : ∀ j < n, e j < 2 ^ W) :
     packN W d n &&& packN W e n = packN W (fun j => d j &&& e j) n := by
   have hde : ∀ j < n, (d j &&& e j) < 2 ^ W := fun j hj => Nat.and_lt_two_pow _ (he j hj)
   apply Nat.eq_of_testBit_eq
@@ -95,7 +95,7 @@ theorem packN_congr (h : ∀ j < n, d j = e j) : packN W d n = packN W e n := by
   exact Finset.sum_congr rfl fun j hj => by rw [h j (Finset.mem_range.1 hj)]
 
 /-- Slot `0` of a packed number. -/
-theorem packN_land_low (hW : 0 < W) (hd : ∀ j < n, d j < 2 ^ W) (hn : 0 < n) :
+theorem packN_land_low (hd : ∀ j < n, d j < 2 ^ W) (hn : 0 < n) :
     packN W d n &&& (2 ^ W - 1) = d 0 := by
   apply Nat.eq_of_testBit_eq
   intro k

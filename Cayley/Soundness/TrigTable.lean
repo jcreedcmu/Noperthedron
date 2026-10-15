@@ -119,7 +119,7 @@ theorem step_small (k : ℕ) (hk : k < 14) :
 theorem trig_err (k : ℕ) (hk : k < 15) : ‖zc k - zt k‖ ≤ k / 2 ^ 75 := by
   induction k with
   | zero =>
-    have : zc 0 - zt 0 = 0 := by apply Complex.ext <;> simp [zc, zt, cosM, sinM] <;> norm_num
+    have : zc 0 - zt 0 = 0 := by apply Complex.ext <;> simp [zc, zt, cosM, sinM]; norm_num
     simp [this]
   | succ k ih =>
     have := step_err k _ (ih (by omega))

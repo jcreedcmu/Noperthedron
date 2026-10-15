@@ -11,6 +11,8 @@ public import Cayley.Soundness.KGapSound
 
 namespace Cayley.Pack
 
+set_option exponentiation.threshold 1024
+
 open Cayley.K Matrix
 
 /-! ## The chart test -/
@@ -229,7 +231,6 @@ theorem pOrbitOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : 
     Fsc (Qm b.chart (rOf (kblow b.chart) b.face (kpt b t))) <
       Fsc (orbY b e t * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t)) * gR g) := by
   obtain ⟨h0, h4⟩ := orbit_bounds b hj hf he hg ha h ht
-  try simp only at h0 h4
   set r := rOf (kblow b.chart) b.face (kpt b t)
   set Q := Qm b.chart r
   set K := orbK b e t

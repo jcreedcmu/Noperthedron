@@ -34,7 +34,7 @@ theorem getD_set_eq (l : List ℤ) (d : ℕ) (x : ℤ) (hd : d < l.length) : (l.
   simp [List.getD_eq_getElem?_getD, hd]
 
 theorem getD_set_ne (l : List ℤ) (d i : ℕ) (x : ℤ) (h : i ≠ d) : (l.set d x).getD i 0 = l.getD i 0 := by
-  simp [List.getD_eq_getElem?_getD, List.getElem?_set, Ne.symm h]
+  simp [List.getD_eq_getElem?_getD, Ne.symm h]
 
 theorem getD_map2 (l : List ℤ) (i : ℕ) : (l.map (2 * ·)).getD i 0 = 2 * l.getD i 0 := by
   simp only [List.getD_eq_getElem?_getD, List.getElem?_map]

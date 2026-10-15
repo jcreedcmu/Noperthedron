@@ -15,6 +15,8 @@ Bernstein coefficients, so it is at least `m` there.
 
 namespace Cayley.Pack
 
+set_option exponentiation.threshold 1024
+
 open Cayley.K
 
 /-! ## Digits of layout `L3` -/
@@ -161,12 +163,12 @@ theorem enc_pv {c : ℕ → ℤ} (hc : ∀ j < 243, |c j| < O) :
 theorem zL3_eq : ∀ i < 5, zL3 i = packN PW (fun j => if dg i j = 0 then 1 else 0) 243 := by
   decide +kernel
 
-theorem land_ite {W n : ℕ} {d : ℕ → ℕ} (hd : ∀ j < n, d j < 2 ^ W) (hW : 0 < W) (q : ℕ → Prop)
+theorem land_ite {W n : ℕ} {d : ℕ → ℕ} (hd : ∀ j < n, d j < 2 ^ W) (q : ℕ → Prop)
     [DecidablePred q] :
     packN W d n &&& packN W (fun j => if q j then 2 ^ W - 1 else 0) n =
       packN W (fun j => if q j then d j else 0) n := by
   have h := land_mask hd (m := fun j => if q j then 1 else 0)
-    (fun j _ => by split_ifs <;> simp) hW
+    (fun j _ => by split_ifs <;> simp)
   have hm : packN W (fun j => if q j then 2 ^ W - 1 else 0) n =
       packN W (fun j => (2 ^ W - 1) * (if q j then 1 else 0)) n :=
     packN_congr fun j _ => by split_ifs <;> simp
@@ -213,7 +215,7 @@ theorem shiftRight_part {i e : ℕ} (hi : i < 5) (he : e < 3) {c : ℕ → ℤ} 
     rw [nat_shiftLeft, Nat.shiftLeft_eq, nat_mul, zL3_eq i hi, packN_mul_left, pM_eq, hs,
       packN_shift hi he (fun _ => 2 ^ PW - 1), mul_comm]
     exact congrArg (2 ^ (PW * (e * 3 ^ i)) * ·) (packN_congr fun j _ => by split_ifs <;> simp)
-  rw [nat_land, hm, land_ite hd PW_pos, packN_shift hi he, nat_shiftRight, Nat.shiftRight_eq_div_pow,
+  rw [nat_land, hm, land_ite hd, packN_shift hi he, nat_shiftRight, Nat.shiftRight_eq_div_pow,
     hs, Nat.mul_div_cancel_left _ (Nat.two_pow_pos _)]
 
 /-- **One axis.** `baxis` applies the Bernstein transform along digit `i`. -/
@@ -346,7 +348,7 @@ noncomputable def bβ (κ : ℕ) (x : ℝ) : ℝ :=
 theorem bβ_nonneg (κ : ℕ) {x : ℝ} (hx : |x| ≤ 1) : 0 ≤ bβ κ x := by
   unfold bβ
   have : x ^ 2 ≤ 1 := by rw [← sq_abs]; nlinarith [abs_nonneg x]
-  split_ifs <;> first | positivity | linarith
+  split_ifs <;> positivity
 
 theorem bβ_sum (x : ℝ) {e : ℕ} (he : e < 3) :
     (bM 0 e : ℝ) * bβ 0 x + bM 1 e * bβ 1 x + bM 2 e * bβ 2 x = x ^ e := by
@@ -413,7 +415,7 @@ theorem bern_real (c : ℕ → ℤ) (t : ℕ → ℝ) :
     rw [← φk_succ]
     apply axis_real hk
     intro e he
-    simp only [φk, lt_irrefl, if_false]
+    simp only [φk, lt_irrefl, ite_false]
     exact bβ_sum (t k) he
   have e5 : ∀ j, ∏ a ∈ Finset.range 5, bβ (dg a j) (t a) = ∏ a ∈ Finset.range 5, φk t 5 a (dg a j) :=
     fun j => Finset.prod_congr rfl fun a ha => by simp [φk, Finset.mem_range.1 ha]

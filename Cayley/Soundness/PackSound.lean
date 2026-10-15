@@ -13,6 +13,8 @@ expressions that fit the layout and have coefficient norm below `2^(PW-1)`.
 
 namespace Cayley.Pack
 
+set_option exponentiation.threshold 1024
+
 open Cayley.K
 
 /-- Radix 3 in every variable. -/

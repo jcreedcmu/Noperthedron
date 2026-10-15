@@ -14,6 +14,8 @@ vertices whose slot sign bit is set.
 
 namespace Cayley.Pack
 
+set_option exponentiation.threshold 1024
+
 open Cayley.K
 
 /-- Vertex `t` of the kernel table. -/
@@ -66,7 +68,7 @@ theorem testBit_signT {t : ℕ} (ht : t < 90) : signT.testBit (640 * t + 639) = 
   change (onesT <<< 639).testBit _ = true
   rw [Nat.testBit_shiftLeft, onesT_eq, testBit_packN h1]
   have h2 : 640 * t + 639 - 639 = 640 * t := by omega
-  simp [h2, Nat.mul_div_cancel_left t (by norm_num : 0 < 640), Nat.mul_mod_right]
+  simp [h2, Nat.mul_mod_right]
   omega
 
 /-- A vertex either passes the packed test or its fail bit is set. -/

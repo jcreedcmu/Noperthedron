@@ -37,7 +37,7 @@ theorem numGen_map (b : KBox) :
   simp only [numGen]
   split_ifs <;> simp only [NM.map, hf1, hf2, hf3, hadd, hsub, hmul, hc, hx]
 
-omit hx in
+omit hx hsub in
 theorem trGen_map (X : I9) (N : NM R) :
     f (trGen addR mulR cR X N) = trGen addS mulS cS X (N.map f) := by
   obtain ⟨x00, x01, x02, x10, x11, x12, x20, x21, x22⟩ := X
@@ -46,7 +46,7 @@ theorem trGen_map (X : I9) (N : NM R) :
 theorem chartGen_map (b : KBox) (k : ℕ) :
     f (chartGen addR subR mulR cR xR b k) = chartGen addS subS mulS cS xS b k := by
   simp only [chartGen, hsub, hmul, hc,
-    trGen_map addR subR mulR cR addS subS mulS cS f hadd hsub hmul hc,
+    trGen_map addR mulR cR addS mulS cS f hadd hmul hc,
     numGen_map addR subR mulR cR xR addS subS mulS cS xS f hadd hsub hmul hc hx]
 
 omit hx hsub in
@@ -70,13 +70,10 @@ theorem hGen_map (u v U : R) :
 theorem orbGen_map (b : KBox) (e g a : ℕ) :
     f (orbGen addR subR mulR cR xR b e g a).1 = (orbGen addS subS mulS cS xS b e g a).1 ∧
       f (orbGen addR subR mulR cR xR b e g a).2 = (orbGen addS subS mulS cS xS b e g a).2 := by
-  have ht := trGen_map addR subR mulR cR addS subS mulS cS f hadd hsub hmul hc
+  have ht := trGen_map addR mulR cR addS mulS cS f hadd hmul hc
   have hn := numGen_map addR subR mulR cR xR addS subS mulS cS xS f hadd hsub hmul hc hx b
-  have e := fun (P : NM S → S) => congrArg P hn
-  have h00 := e NM.n00; have h01 := e NM.n01; have h02 := e NM.n02; have h10 := e NM.n10
-  have h11 := e NM.n11; have h12 := e NM.n12; have h20 := e NM.n20; have h21 := e NM.n21
-  have h22 := e NM.n22; have hd := e NM.d
-  simp only [NM.map] at h00 h01 h02 h10 h11 h12 h20 h21 h22 hd
+  have hd := congrArg NM.d hn
+  simp only [NM.map] at hd
   have hm := m3_map (addR := addR) (mulR := mulR) (cR := cR) (addS := addS) (mulS := mulS) (cS := cS)
     (f := f) (hadd := hadd) (hmul := hmul) (hc := hc)
   have hf := frob_map (addR := addR) (mulR := mulR) (addS := addS) (mulS := mulS) (f := f)
@@ -84,8 +81,7 @@ theorem orbGen_map (b : KBox) (e g a : ℕ) :
   have hh := hGen_map (addR := addR) (subR := subR) (mulR := mulR) (cR := cR) (addS := addS)
     (subS := subS) (mulS := mulS) (cS := cS) (f := f) (hadd := hadd) (hsub := hsub) (hmul := hmul) (hc := hc)
   simp only [orbGen]
-  split_ifs <;> simp only [ht, hn, h00, h01, h02, h10, h11, h12, h20, h21, h22, hd, hadd, hsub, hmul,
-    hc, hx, and_self, hf, hh, hm, m3t_map]
+  split_ifs <;> simp only [ht, hn, hd, hadd, hsub, hmul, hc, hx, and_self, hf, hh, hm, m3t_map]
 
 end map
 
@@ -177,7 +173,7 @@ theorem numR_eq (b : KBox) (t : Fin 5 → ℝ) :
     generalize (2 : ℝ) ^ b.K = U
     refine ⟨?_, ?_⟩
     · ext i j; fin_cases i <;> fin_cases j <;>
-        simp [nmat, cayleyNumeratorMatrix] <;> push_cast <;> ring
+        simp [nmat, cayleyNumeratorMatrix] <;> ring
     · simp [cayleyDenom]; ring
   · have hk : kblow b.chart = false := by simp [kblow]; tauto
     simp only [hbl, ↓reduceIte, betaSc, rOf, hk, Bool.false_eq_true]
@@ -187,7 +183,7 @@ theorem numR_eq (b : KBox) (t : Fin 5 → ℝ) :
     generalize (2 : ℝ) ^ b.K = U
     refine ⟨?_, ?_⟩
     · ext i j; fin_cases i <;> fin_cases j <;>
-        simp [nmat, cayleyNumeratorMatrix] <;> push_cast <;> ring
+        simp [nmat, cayleyNumeratorMatrix] <;> ring
     · simp [cayleyDenom]; ring
 
 /-- The real matrix of an integer matrix. -/
@@ -205,7 +201,7 @@ theorem trR (X : I9) (N : NM ℝ) :
 theorem imat_mtm (A B : I9) : imat (mtm A B) = (imat A)ᵀ * imat B := by
   obtain ⟨a00, a01, a02, a10, a11, a12, a20, a21, a22⟩ := A
   obtain ⟨b00, b01, b02, b10, b11, b12, b20, b21, b22⟩ := B
-  ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mtm, mul_apply, Fin.sum_univ_three] <;> ring
+  ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mtm, mul_apply, Fin.sum_univ_three]
 
 /-- The chart-test polynomial at a real point. -/
 theorem chartR_eq (b : KBox) (hj : b.chart < 5) (k : ℕ) (hk : k < 5) (t : Fin 5 → ℝ) :
@@ -231,7 +227,7 @@ theorem chartR_eq (b : KBox) (hj : b.chart < 5) (k : ℕ) (hk : k < 5) (t : Fin 
 theorem imat_mmI (A B : I9) : imat (mmI A B) = imat A * imat B := by
   obtain ⟨a00, a01, a02, a10, a11, a12, a20, a21, a22⟩ := A
   obtain ⟨b00, b01, b02, b10, b11, b12, b20, b21, b22⟩ := B
-  ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mmI, mul_apply, Fin.sum_univ_three] <;> ring
+  ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mmI, mul_apply, Fin.sum_univ_three]
 
 /-- The tabulated symmetry `ĝ`. -/
 noncomputable def gHat (g : ℕ) : Matrix (Fin 3) (Fin 3) ℝ := (groupTab[g]!).toR
@@ -299,12 +295,12 @@ theorem orbR0 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (h
       simp
       ring
   · rw [h4] at *
-    simp only [eq_self_iff_true, if_true, hB4]
+    simp only [hB4]
     push_cast [p2_cast, hk4, hkj]
-    simp only [Q, Qm, F, K, hB4, eq_self_iff_true, if_true]
+    simp only [Q, Qm, F, K, hB4, ite_true]
     constructor <;>
     · simp only [trace, diag, mul_apply, transpose_apply, Matrix.smul_apply, smul_eq_mul,
-        Fin.sum_univ_three, one_apply, Matrix.one_mul, Matrix.mul_one, one_smul]
+        Fin.sum_univ_three, Matrix.mul_one, one_smul]
       simp
       ring
 
@@ -404,10 +400,9 @@ theorem orbR1 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (h
   -- the code as traces
   simp only [orbGen, one_ne_zero, ↓reduceIte, trR, frob_real, nmat_m3, nmat_m3t, imat_mtm,
     imat_chartMI, imat_orbC g a hg, p2_cast, hu, hv, hGen_real, hHc, hD, ← hU]
-  have hD' : (numGen (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t b).d = βD := hD
   rcases ha with rfl | rfl
   · rw [hW 0 (by norm_num), htr 0 (by norm_num), htr 4 (by norm_num)]
-    simp only [transpose_smul, Matrix.smul_mul, Matrix.mul_smul, trace_smul, smul_eq_mul, key, hdo, hD']
+    simp only [transpose_smul, Matrix.smul_mul, Matrix.mul_smul, trace_smul, smul_eq_mul, key, hdo]
     simp only [F, K, chartB_zero_eq, kapJ_zero, show ((0 : ℕ) = 4) = False by decide, ↓reduceIte,
       transpose_one, Matrix.one_mul]
     push_cast [hk4]
@@ -415,12 +410,12 @@ theorem orbR1 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (h
     simp only [p2_cast, hB4, hkj, U, βD, Hm]
     constructor <;> ring
   · rw [hW 4 (by norm_num), htr 0 (by norm_num), htr 4 (by norm_num)]
-    simp only [transpose_smul, Matrix.smul_mul, Matrix.mul_smul, trace_smul, smul_eq_mul, key, hdo, hD']
-    simp only [F, K, chartB_zero_eq, kapJ_zero, hB4, eq_self_iff_true, if_true, transpose_one,
+    simp only [transpose_smul, Matrix.smul_mul, Matrix.mul_smul, trace_smul, smul_eq_mul, key, hdo]
+    simp only [F, K, chartB_zero_eq, kapJ_zero, hB4, ite_true, transpose_one,
       Matrix.one_mul]
     push_cast [hk4, p2_cast]
     have hkj : ((chartKI b.chart : ℤ) : ℝ) = kapJ b.chart := rfl
-    simp only [p2_cast, hB4, hkj, U, βD, Hm]
+    simp only [hkj, U, βD, Hm]
     constructor <;> ring
 
 end Cayley.Pack

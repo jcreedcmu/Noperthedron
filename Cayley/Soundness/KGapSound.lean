@@ -14,6 +14,8 @@ public import Cayley.Soundness.PackBern
 
 namespace Cayley.Pack
 
+set_option exponentiation.threshold 1024
+
 open Cayley.K Noperthedron
 open scoped Matrix
 
@@ -268,7 +270,7 @@ theorem nrm_all (h : gapNrmOK b (vt s) w0 w1 = true) (T : ℤ × ℤ × ℤ)
 theorem bern_room {n : ℕ} (h : n < 2 ^ 390) : 243 * (n : ℤ) + 2 ^ 390 ≤ O ∧
     243 * ((2 * n : ℕ) : ℤ) + 2 ^ 390 ≤ O := by
   have hO : (O : ℤ) = 512 * 2 ^ 390 := by
-    rw [O_eq]; push_cast; rw [show (399 : ℕ) = 9 + 390 from rfl, pow_add]; norm_num
+    rw [O_eq]; push_cast
   have h' : (n : ℤ) < 2 ^ 390 := by exact_mod_cast h
   rw [hO]; push_cast
   generalize (2 : ℤ) ^ 390 = Q at *
@@ -651,7 +653,7 @@ theorem pGapOK_vertex (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {s : ℕ} 
   have hn' : gapNrmOK b (vt s) w0 w1 = true := hn
   refine ⟨hw, hn', fun tt htt t ht => ?_⟩
   split_ifs at hrest with hpk
-  · simp only [Bool.and_eq_true, decide_eq_true_eq] at hpk
+  · simp only [decide_eq_true_eq] at hpk
     obtain ⟨hC, hC2⟩ := hpk
     set V := (quickV (p2 639 + quickQ b (vt s) w0 w1 - p2 170 *
         ((((quickE b (vt s) w0 w1).1.c0.natAbs : ℤ) + (quickE b (vt s) w0 w1).2.1.c0.natAbs +

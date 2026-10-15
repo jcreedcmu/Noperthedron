@@ -54,7 +54,7 @@ noncomputable def screenRefl : ℝ² →L[ℝ] ℝ² :=
   (Matrix.toEuclideanLin !![(1 : ℝ), 0; 0, -1]).toContinuousLinearMap
 
 theorem screenRefl_apply (z : ℝ²) : screenRefl z = !₂[z 0, -z 1] := by
-  ext i; fin_cases i <;> simp [screenRefl, Matrix.toLpLin_apply, Matrix.mulVec, dotProduct]
+  ext i; fin_cases i <;> simp [screenRefl, Matrix.toLpLin_apply, dotProduct]
 
 noncomputable def screenReflEquiv : ℝ² ≃L[ℝ] ℝ² :=
   ContinuousLinearEquiv.equivOfInverse screenRefl screenRefl
@@ -67,7 +67,7 @@ theorem rupPair_RxPi {Ro Ri : Matrix (Fin 3) (Fin 3) ℝ} (h : RupPair Ro Ri) :
   change _ = screenRefl _
   rw [screenRefl_apply]
   ext i; fin_cases i <;>
-    simp [RxPi, proj_xyL, proj_xy_mat, Matrix.toLpLin_apply, Matrix.mulVec, dotProduct,
+    simp [RxPi, proj_xyL, proj_xy_mat, Matrix.toLpLin_apply, dotProduct,
       Fin.sum_univ_three]
 
 /-! ## Symmetries of the Noperthedron -/
@@ -130,8 +130,8 @@ theorem shadow_RzPi_mul (R : Matrix (Fin 3) (Fin 3) ℝ) : shadow (Rz_mat π * R
       proj_xyL (R.toEuclideanLin (-p)) := by
     intro p
     ext i; fin_cases i <;>
-      simp [proj_xyL, proj_xy_mat, Matrix.toLpLin_apply, Matrix.mulVec, dotProduct,
-        Fin.sum_univ_three, Rz_mat, Matrix.mul_apply, Matrix.vecMul] <;> ring
+      simp [proj_xyL, proj_xy_mat, Matrix.toLpLin_apply, dotProduct,
+        Fin.sum_univ_three, Rz_mat, Matrix.vecMul]
   have hsym : ∀ p ∈ exactHull, -p ∈ exactHull := by
     intro p hp
     have := exactPolyhedron_point_symmetric
