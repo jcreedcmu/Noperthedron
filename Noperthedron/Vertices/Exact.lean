@@ -1,7 +1,7 @@
 module
 
-public import Noperthedron.Basic
-public import Noperthedron.Bounding
+public import Mathlib.Tactic.Positivity.Finset
+public import Noperthedron.Bounding.OpNorm
 public import Noperthedron.PointSym
 public import Noperthedron.Vertices.Index
 

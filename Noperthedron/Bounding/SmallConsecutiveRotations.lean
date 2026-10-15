@@ -2,17 +2,11 @@ module
 
 public import Mathlib.LinearAlgebra.Trace
 public import Noperthedron.Basic
-public import Noperthedron.Bounding.OpNorm
-public import Noperthedron.Bounding.BoundingUtil
-public import Noperthedron.Bounding.OrthEquivRotz
 
 @[expose] public section
 
-
 /-!
-
-Material for [SY25] Lemma 12.
-
+Traces of rotations.
 -/
 
 namespace Bounding
@@ -21,17 +15,6 @@ open Real
 noncomputable abbrev tr := LinearMap.trace ℝ ℝ³
 noncomputable abbrev tr' := LinearMap.trace ℝ (Fin 3 → ℝ)
 
-lemma tr_rot3_rot3 {d d' : Fin 3} {α β : ℝ} : d ≠ d' → tr (rot3 d α ∘L rot3 d' β) = cos α + cos β + cos α * cos β := by
-  intro d_ne_d'
-  calc tr (rot3 d α ∘L rot3 d' β)
-  _ = tr ((rot3_mat d α).toEuclideanLin.toContinuousLinearMap ∘L (rot3_mat d' β).toEuclideanLin.toContinuousLinearMap) := by simp [rot3_eq_rot3_mat_toEuclideanLin]
-  _ = tr ((rot3_mat d α * rot3_mat d' β).toEuclideanLin) := by simp
-  _ = Matrix.trace (rot3_mat d α * rot3_mat d' β) := by simp only [Matrix.toLpLin_eq_toLin, Matrix.trace_toLin_eq]
-  _ = cos α + cos β + cos α * cos β := by
-    fin_cases d <;> fin_cases d'
-    all_goals try contradiction
-    all_goals (simp [rot3_mat]; try ring_nf)
-
 lemma tr_RzL {α : ℝ} : tr (RzL α) = 1 + 2 * Real.cos α :=
   calc tr (RzL α)
   _ = tr' ((Rz_mat α).toLin') := by simp [RzL, Matrix.toLpLin_eq_toLin]
@@ -39,73 +22,6 @@ lemma tr_RzL {α : ℝ} : tr (RzL α) = 1 + 2 * Real.cos α :=
   _ = 1 + 2 * cos α := by
     simp [Matrix.trace, Fin.sum_univ_three]
     ring_nf
-
-section AristotleLemmas
-
-/-
-The squared norm of the difference between the composition of two rotations and the identity is related to the trace of the composition.
--/
-theorem norm_rot3_comp_rot3_sq {d d' : Fin 3} {α β : ℝ} (h : d ≠ d') :
-    ‖rot3 d α ∘L rot3 d' β - 1‖^2 = 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) := by
-  obtain ⟨u, γ, h_comp⟩ := rot3_rot3_orth_equiv_rotz (α := α) (β := β) (d := d) (d' := d')
-  have h_norm : ‖rot3 d α ∘L rot3 d' β - 1‖ = 2 * |Real.sin (γ / 2)| := by
-    have h_conj : rot3 d α ∘L rot3 d' β - 1 = u.toLinearIsometry.toContinuousLinearMap ∘L
-        (RzL γ - 1) ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
-      rw [h_comp]; ext x; simp
-    rw [h_conj, LinearIsometry.norm_toContinuousLinearMap_comp]
-    refine (ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ u.symm).trans ?_
-    rw [← RzC_coe]
-    have hdist := dist_rot3 (d := 2) (α := γ) (α' := 0)
-    simp only [rot3, AddChar.map_zero_eq_one, sub_zero] at hdist
-    exact hdist
-  have h_tr : Real.cos α + Real.cos β + Real.cos α * Real.cos β = 1 + 2 * Real.cos γ := by
-    rw [← tr_rot3_rot3 h, ← tr_RzL (α := γ), h_comp]
-    exact LinearMap.trace_conj' (RzL γ : ℝ³ →ₗ[ℝ] ℝ³) u.toLinearEquiv
-  rw [h_norm, h_tr, mul_pow, sq_abs, Real.sin_sq, Real.cos_sq]
-  ring_nf
-
-end AristotleLemmas
-
-lemma two_mul_one_sub_cos_le (x : ℝ) : 2 * (1 - Real.cos x) ≤ x^2 := by
-  have h_trig (x : ℝ) : 2 * (1 - Real.cos x) = 4 * Real.sin (x / 2) ^ 2 := by
-    rw [Real.sin_sq, Real.cos_sq]
-    ring_nf
-  rw [h_trig x, ←sq_abs]
-  grw [abs_sin_le_abs]
-  rw [sq_abs]
-  linarith only
-
-lemma two_mul_one_sub_cos_eq_imp {x : ℝ} (hx : 2 * (1 - Real.cos x) = x^2) : x = 0 := by
-  by_contra hx_zero
-  have h_cos_sq : 1 - Real.cos x = 2 * Real.sin (x / 2) ^ 2 := by
-    rw [Real.sin_sq, Real.cos_sq]; ring_nf
-  linarith [sin_sq_lt_sq (div_ne_zero hx_zero two_ne_zero)]
-
-theorem lemma12 {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') :
-  ‖rot3 d α ∘L rot3 d' β - 1‖ ≤ √(α^2 + β^2) := by
-    have h := norm_rot3_comp_rot3_sq (α := α) (β := β) d_ne_d'
-    have hle : ‖rot3 d α ∘L rot3 d' β - 1‖^2 ≤ α^2 + β^2 := by
-      rw [h]
-      have h2 : 0 ≤ (1 - Real.cos α) * (1 - Real.cos β) :=
-        mul_nonneg (sub_nonneg.mpr (Real.cos_le_one α)) (sub_nonneg.mpr (Real.cos_le_one β))
-      have h3 : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) =
-          2 * (1 - Real.cos α) + 2 * (1 - Real.cos β) - (1 - Real.cos α) * (1 - Real.cos β) := by
-        ring
-      linarith [two_mul_one_sub_cos_le α, two_mul_one_sub_cos_le β]
-    exact le_sqrt_of_sq_le hle
-
-/-- The bound of `lemma12` is strict unless both angles vanish. -/
-theorem lemma12_lt_of_ne {d d' : Fin 3} {α β : ℝ} (d_ne_d' : d ≠ d') (h : ¬ (α = 0 ∧ β = 0)) :
-    ‖rot3 d α ∘L rot3 d' β - 1‖ < √(α^2 + β^2) := by
-  refine lt_of_le_of_ne (lemma12 d_ne_d') fun h_eq ↦ h ?_
-  have h1 : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) = α^2 + β^2 := by
-    rw [←norm_rot3_comp_rot3_sq d_ne_d', h_eq, Real.sq_sqrt (by positivity)]
-  have h2 : 0 ≤ (1 - Real.cos α) * (1 - Real.cos β) :=
-    mul_nonneg (by linarith [Real.cos_le_one α]) (by linarith [Real.cos_le_one β])
-  have h3 : 3 - (Real.cos α + Real.cos β + Real.cos α * Real.cos β) =
-      2 * (1 - Real.cos α) + 2 * (1 - Real.cos β) - (1 - Real.cos α) * (1 - Real.cos β) := by ring
-  constructor <;> apply two_mul_one_sub_cos_eq_imp <;>
-    linarith [two_mul_one_sub_cos_le α, two_mul_one_sub_cos_le β]
 
 end Bounding
 

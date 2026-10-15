@@ -6,7 +6,6 @@ public import Mathlib.Geometry.Euclidean.Angle.Unoriented.CrossProduct
 
 @[expose] public section
 
-
 /-!
 # Exact axis-angle decomposition
 
@@ -28,27 +27,6 @@ noncomputable def zRemainder (v : ℝ³) : ℝ³ := !₂[-v 0, -v 1, 0]
 product. -/
 noncomputable def cross3 (v w : ℝ³) : ℝ³ :=
   WithLp.toLp 2 (v.ofLp ⨯₃ w.ofLp)
-
-theorem cross3_norm_le (v w : ℝ³) : ‖cross3 v w‖ ≤ ‖v‖ * ‖w‖ := by
-  rw [cross3, InnerProductGeometry.norm_ofLp_crossProduct]
-  exact (mul_le_mul_of_nonneg_left (Real.sin_le_one _)
-    (mul_nonneg (norm_nonneg v) (norm_nonneg w))).trans_eq (mul_one _)
-
-theorem cross3_sub_right (u v w : ℝ³) :
-    cross3 u (v - w) = cross3 u v - cross3 u w := by
-  ext i
-  fin_cases i <;> simp [cross3, cross_apply] <;> ring
-
-theorem cross3_sub_left (u v w : ℝ³) :
-    cross3 (u - v) w = cross3 u w - cross3 v w := by
-  ext i
-  fin_cases i <;> simp [cross3, cross_apply]
-
-theorem cross3_sub_cross3 (u u' v v' : ℝ³) :
-    cross3 u v - cross3 u' v' =
-      cross3 u (v - v') + cross3 (u - u') v' := by
-  rw [cross3_sub_right, cross3_sub_left]
-  abel
 
 /-- The standard unit z vector. -/
 noncomputable def zAxis : ℝ³ := !₂[0, 0, 1]
@@ -126,12 +104,6 @@ theorem Rz_apply_sub_exact (s : ℝ) (v : ℝ³) :
     simp [RzL, Rz_mat, zFirst, zRemainder, Matrix.vecHead, Matrix.vecTail] <;>
     ring
 
-theorem zRemainder_norm_le (v : ℝ³) : ‖zRemainder v‖ ≤ ‖v‖ := by
-  rw [← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)]
-  simp only [PiLp.norm_sq_eq_of_L2, Fin.sum_univ_three, Real.norm_eq_abs, sq_abs]
-  simp [zRemainder]
-  nlinarith [sq_nonneg (v 2)]
-
 /-- An axis-angle presentation of a three-dimensional rotation.  The axis is
 encoded by the orthonormal frame taking the standard z axis to that axis. -/
 structure AxisAngle (Q : ℝ³ →L[ℝ] ℝ³) where
@@ -159,30 +131,6 @@ theorem AxisAngle.first_inner_eq {Q : ℝ³ →L[ℝ] ℝ³}
     ⟪d, a.first v⟫ = ⟪a.axis, cross3 v d⟫ := by
   exact a.first_inner v d
 
-/-- Orient the axis so that the coefficient of its first variation is
-`|sin angle|`, independently of the sign convention for the angle. -/
-noncomputable def AxisAngle.signedAxis {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) : ℝ³ :=
-  if 0 ≤ Real.sin a.angle then a.axis else -a.axis
-
-theorem AxisAngle.signedAxis_norm {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) : ‖a.signedAxis‖ = 1 := by
-  by_cases h : 0 ≤ Real.sin a.angle
-  · simp [AxisAngle.signedAxis, h, a.axis_norm]
-  · simp [AxisAngle.signedAxis, h, a.axis_norm]
-
-theorem AxisAngle.sin_mul_first_inner {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) (v d : ℝ³) :
-    Real.sin a.angle * ⟪d, a.first v⟫ =
-      |Real.sin a.angle| * ⟪a.signedAxis, cross3 v d⟫ := by
-  rw [a.first_inner_eq]
-  by_cases h : 0 ≤ Real.sin a.angle
-  · simp [AxisAngle.signedAxis, h, abs_of_nonneg h]
-  · have h' : Real.sin a.angle < 0 := lt_of_not_ge h
-    rw [AxisAngle.signedAxis, ite_eq_right h, abs_of_neg h']
-    simp only [inner_neg_left]
-    ring
-
 theorem AxisAngle.apply_sub_exact {Q : ℝ³ →L[ℝ] ℝ³}
     (a : AxisAngle Q) (v : ℝ³) :
     Q v - v = (Real.sin a.angle) • a.first v +
@@ -204,75 +152,6 @@ theorem AxisAngle.apply_sub_exact {Q : ℝ³ →L[ℝ] ℝ³}
     _ = (Real.sin a.angle) • a.frame (zFirst (a.frame.symm v)) +
         (1 - Real.cos a.angle) • a.frame (zRemainder (a.frame.symm v)) := by
       rw [map_add, map_smul, map_smul]
-
-theorem AxisAngle.remainder_norm_le {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) (v : ℝ³) : ‖a.remainder v‖ ≤ ‖v‖ := by
-  rw [AxisAngle.remainder, a.frame.norm_map]
-  exact (zRemainder_norm_le _).trans_eq (a.frame.symm.norm_map v)
-
-/-- Operator-norm distance from the identity determines the half-angle. -/
-theorem AxisAngle.norm_sub_id {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) :
-    ‖Q - 1‖ = 2 * |Real.sin (a.angle / 2)| := by
-  have hconj : Q - 1 =
-      a.frame.toLinearIsometry.toContinuousLinearMap ∘L (RzL a.angle - 1) ∘L
-        a.frame.symm.toLinearIsometry.toContinuousLinearMap := by
-    ext x
-    have hrot := congrArg (fun f : ℝ³ →L[ℝ] ℝ³ => f x) a.rotation_eq
-    simp only [ContinuousLinearMap.comp_apply] at hrot
-    simp only [sub_apply, one_apply_eq_self,
-      ContinuousLinearMap.comp_apply]
-    rw [hrot]
-    simp
-  rw [hconj, LinearIsometry.norm_toContinuousLinearMap_comp]
-  refine (ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ a.frame.symm).trans ?_
-  rw [← RzC_coe]
-  have hdist := Bounding.dist_rot3 (d := 2) (α := a.angle) (α' := 0)
-  simpa only [rot3, AddChar.map_zero_eq_one, sub_zero] using hdist
-
-/-- A squared operator-norm test implies the bend/first coefficient ratio
-needed by the axis-free finite-rotation theorem.  This form has no division
-and is convenient for rational interval certificates. -/
-theorem AxisAngle.ratio_of_norm_sq {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) (c : ℝ) (hc : 0 ≤ c)
-    (hsmall : ‖Q - 1‖ ^ 2 * (1 + c ^ 2) ≤ 4 * c ^ 2) :
-    1 - Real.cos a.angle ≤ |Real.sin a.angle| * c := by
-  let sh := Real.sin (a.angle / 2)
-  let ch := Real.cos (a.angle / 2)
-  have hnormsq : ‖Q - 1‖ ^ 2 = 4 * sh ^ 2 := by
-    rw [a.norm_sub_id, mul_pow, sq_abs]
-    ring
-  have hcircle : sh ^ 2 + ch ^ 2 = 1 := by
-    exact Real.sin_sq_add_cos_sq (a.angle / 2)
-  have hsquare : sh ^ 2 ≤ c ^ 2 * ch ^ 2 := by
-    nlinarith
-  have habs : |sh| ≤ c * |ch| := by
-    rw [← sq_le_sq₀ (abs_nonneg sh) (mul_nonneg hc (abs_nonneg ch))]
-    rw [sq_abs, mul_pow, sq_abs]
-    exact hsquare
-  have hmul := mul_le_mul_of_nonneg_left habs
-    (mul_nonneg (by norm_num : (0 : ℝ) ≤ 2) (abs_nonneg sh))
-  have hbend : 1 - Real.cos a.angle = 2 * sh ^ 2 := by
-    dsimp [sh]
-    rw [Real.sin_sq, Real.cos_sq]
-    ring_nf
-  have hsin : Real.sin a.angle = 2 * sh * ch := by
-    dsimp [sh, ch]
-    conv_lhs => rw [show a.angle = 2 * (a.angle / 2) by ring]
-    rw [Real.sin_two_mul]
-  rw [hbend, hsin, abs_mul, abs_mul]
-  norm_num at hmul ⊢
-  nlinarith [sq_abs sh]
-
-theorem AxisAngle.ratio_of_norm_bound {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) (c r : ℝ) (hc : 0 ≤ c) (hr : 0 ≤ r)
-    (hnorm : ‖Q - 1‖ ≤ r)
-    (hsmall : r ^ 2 * (1 + c ^ 2) ≤ 4 * c ^ 2) :
-    1 - Real.cos a.angle ≤ |Real.sin a.angle| * c := by
-  apply a.ratio_of_norm_sq c hc
-  have hsq : ‖Q - 1‖ ^ 2 ≤ r ^ 2 := by
-    exact (sq_le_sq₀ (norm_nonneg _) hr).2 hnorm
-  exact (mul_le_mul_of_nonneg_right hsq (by positivity)).trans hsmall
 
 theorem Rz_mod_two_pi (γ : ℝ) : ∃ γ' ∈ Set.Ioc (-π) π, Rz_mat γ = Rz_mat γ' := by
   refine ⟨toIocMod Real.two_pi_pos (-π) γ, ?_, ?_⟩

@@ -2,15 +2,11 @@ module
 
 public import Noperthedron.Basic
 public import Noperthedron.Bounding.OpNorm
-public import Noperthedron.Bounding.BoundingUtil
 
 public section
 
-
 /-!
-
-A crucial lemma for [SY25] Lemma 12.
-
+Rotations in `SO(3)`: one fixing `e_z` is some `Rz`, and every rotation is conjugate to some `Rz`.
 -/
 
 namespace Bounding
@@ -44,30 +40,10 @@ lemma Rz_mat_transpose (θ : ℝ) : (Rz_mat θ).transpose = Rz_mat (-θ) := by
   ext i j
   fin_cases i <;> fin_cases j <;> simp [Rz_mat, Matrix.transpose_apply, Real.cos_neg, Real.sin_neg]
 
-/-- Ry_mat transpose equals Ry_mat of negative angle. -/
-lemma Ry_mat_transpose (θ : ℝ) : (Ry_mat θ).transpose = Ry_mat (-θ) := by
-  ext i j
-  fin_cases i <;> fin_cases j <;> simp [Ry_mat, Matrix.transpose_apply, Real.cos_neg, Real.sin_neg]
-
 /-- Rz(θ) * Rz(-θ) = 1. -/
 lemma Rz_mat_mul_neg (θ : ℝ) : Rz_mat θ * Rz_mat (-θ) = 1 := by
   rw [← Rz_mat_transpose]
   exact (rot3_mat_mem_O3 2 θ).2
-
-/-- Ry(θ) * Ry(-θ) = 1. -/
-lemma Ry_mat_mul_neg (θ : ℝ) : Ry_mat θ * Ry_mat (-θ) = 1 := by
-  rw [← Ry_mat_transpose]
-  exact (rot3_mat_mem_O3 1 θ).2
-
-/-- Rz(-θ) * Rz(θ) = 1. -/
-lemma neg_Rz_mat_mul (θ : ℝ) : Rz_mat (-θ) * Rz_mat θ = 1 := by
-  rw [← Rz_mat_transpose]
-  exact (rot3_mat_mem_O3 2 θ).1
-
-/-- Ry(-θ) * Ry(θ) = 1. -/
-lemma neg_Ry_mat_mul (θ : ℝ) : Ry_mat (-θ) * Ry_mat θ = 1 := by
-  rw [← Ry_mat_transpose]
-  exact (rot3_mat_mem_O3 1 θ).1
 
 /-- Rz(α) * Rz(β) = Rz(α + β). -/
 lemma Rz_mat_mul_Rz_mat (α β : ℝ) : Rz_mat α * Rz_mat β = Rz_mat (α + β) := by
@@ -138,59 +114,6 @@ lemma exists_SO3_mulVec_ez_eq (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 1
   · simp only [rot3_mat]
     ext i; fin_cases i <;> simp [hθϕ, Matrix.mulVec] <;> ring
 
-/-- Rz(-α) applied to spherical vector removes azimuthal angle. -/
-lemma Rz_neg_mulVec_spherical (α β : ℝ) :
-    Rz_mat (-α) *ᵥ ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] =
-    ![Real.sin β, 0, Real.cos β] := by
-  ext i; fin_cases i <;> simp [Rz_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
-    Real.cos_neg, Real.sin_neg]
-  · have h := Real.cos_sq_add_sin_sq α; ring_nf; linear_combination Real.sin β * h
-  · ring
-
-/-- Ry(β) applied to xz-plane vector brings it to z-axis. -/
-lemma Ry_mulVec_to_z (β : ℝ) :
-    Ry_mat β *ᵥ ![Real.sin β, 0, Real.cos β] = ![(0:ℝ), 0, 1] := by
-  ext i; fin_cases i <;> simp [Ry_mat, Matrix.mulVec, dotProduct, Fin.sum_univ_three]
-  · ring
-  · linear_combination Real.sin_sq_add_cos_sq β
-
-/--
-ZYZ Euler decomposition: Any SO3 matrix can be written as Rz(α) * Ry(β) * Rz(γ).
-
-Uses the fact that SO3 matrices preserve unit vectors and spherical coordinates.
--/
-lemma SO3_ZYZ_decomposition (M : Matrix (Fin 3) (Fin 3) ℝ)
-    (hM : M ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
-    ∃ α β γ : ℝ, M = Rz_mat α * Ry_mat β * Rz_mat γ := by
-  -- `v = M · e_z` is a unit vector; read off its spherical coordinates.
-  let v : EuclideanSpace ℝ (Fin 3) := M.toEuclideanLin !₂[0, 0, 1]
-  have hv_norm : ‖v‖ = 1 := by
-    have h1 : v = OrthogonalGroup.toLinearIsometryEquiv ⟨M, hM.1⟩ !₂[0, 0, 1] := rfl
-    rw [h1, LinearIsometryEquiv.norm_map]
-    simp [EuclideanSpace.norm_eq, Fin.sum_univ_three]
-  obtain ⟨β, α, hv_eq⟩ := exists_spherical_coords v hv_norm
-  have hMz : M *ᵥ ![0, 0, 1] =
-      ![Real.sin β * Real.cos α, Real.sin β * Real.sin α, Real.cos β] := by
-    ext i; simpa only [v, Matrix.toLpLin_apply] using congrFun hv_eq i
-  -- `N = Ry(β)·Rz(-α)·M` fixes `e_z` (Rz(-α) kills the azimuth, Ry(β) tilts to the pole),
-  -- so it is some `Rz(γ)`.
-  let N := Ry_mat β * Rz_mat (-α) * M
-  have hN_SO3 : N ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
-    Submonoid.mul_mem _ (Submonoid.mul_mem _ (rot3_mat_mem_SO3 1 β) (rot3_mat_mem_SO3 2 (-α))) hM
-  have hN_fixes_z : N.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1] := by
-    simp only [N, Matrix.toLpLin_apply, ← Matrix.mulVec_mulVec, hMz,
-      Rz_neg_mulVec_spherical, Ry_mulVec_to_z]
-  obtain ⟨γ, hγ⟩ := SO3_fixing_z_is_Rz N hN_SO3 hN_fixes_z
-  -- Inverting `N = Ry(β)·Rz(-α)·M`: `M = Rz(α)·Ry(-β)·N = Rz(α)·Ry(-β)·Rz(γ)`.
-  refine ⟨α, -β, γ, ?_⟩
-  have hinv : Rz_mat α * Ry_mat (-β) * (Ry_mat β * Rz_mat (-α)) = 1 := by
-    rw [Matrix.mul_assoc, ← Matrix.mul_assoc (Ry_mat (-β)), neg_Ry_mat_mul, Matrix.one_mul,
-      Rz_mat_mul_neg]
-  have hMN : Rz_mat α * Ry_mat (-β) * N = M := by
-    show Rz_mat α * Ry_mat (-β) * (Ry_mat β * Rz_mat (-α) * M) = M
-    rw [← Matrix.mul_assoc, hinv, Matrix.one_mul]
-  rw [← hMN, hγ]
-
 lemma specialOrthogonalGroup_mem_inv {n : ℕ} {U : Matrix (Fin n) (Fin n) ℝ}
     (U_SO3 : U ∈ Matrix.specialOrthogonalGroup (Fin n) ℝ) :
     U⁻¹ ∈ Matrix.specialOrthogonalGroup (Fin n) ℝ := by
@@ -227,37 +150,6 @@ lemma SO3_is_conj_Rz (A : Matrix (Fin 3) (Fin 3) ℝ) (hA : A ∈ Matrix.special
   simp only [← γb, B, ← mul_assoc, Matrix.mul_nonsing_inv U U_det_unit, one_mul]
   exact (U.mul_nonsing_inv_cancel_right A U_det_unit).symm
 
-lemma rot3_rot3_orth_equiv_rotz {d d' : Fin 3} {α β : ℝ} :
-    ∃ (u : ℝ³ ≃ₗᵢ[ℝ] ℝ³) (γ : ℝ),
-    rot3 d α ∘L rot3 d' β =
-      u.toLinearIsometry.toContinuousLinearMap ∘L RzL γ ∘L u.symm.toLinearIsometry.toContinuousLinearMap := by
-  have dd'_so3 : rot3_mat d α * rot3_mat d' β ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
-    Submonoid.mul_mem _ (rot3_mat_mem_SO3 d α) (rot3_mat_mem_SO3 d' β)
-  obtain ⟨U, hU, γ, h⟩ := SO3_is_conj_Rz (rot3_mat d α * rot3_mat d' β) dd'_so3
-  let u : Euc(3) ≃ₗᵢ[ℝ] Euc(3) := OrthogonalGroup.toLinearIsometryEquiv ⟨U, hU⟩
-  have hu : ∀ x : Euc(3), (u x).ofLp = U *ᵥ x.ofLp :=
-    OrthogonalGroup.toLinearIsometryEquiv_apply ⟨U, hU⟩
-  have hU_det : IsUnit U.det := Matrix.isUnit_det_of_left_inverse hU.1
-  have hu_symm : ∀ x : Euc(3), (u.symm x).ofLp = U⁻¹ *ᵥ x.ofLp := fun x => by
-    have h2 := hu (u.symm x)
-    rw [LinearIsometryEquiv.apply_symm_apply] at h2
-    rw [h2, Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ hU_det, Matrix.one_mulVec]
-  -- The map `M ↦ M.toEuclideanLin.toContinuousLinearMap` turns matrix products into composition.
-  have toCLM_mul : ∀ A B : Matrix (Fin 3) (Fin 3) ℝ,
-      (A * B).toEuclideanLin.toContinuousLinearMap
-        = A.toEuclideanLin.toContinuousLinearMap ∘L B.toEuclideanLin.toContinuousLinearMap := by
-    intro A B; ext v; simp
-  -- `u` and `u.symm` are exactly the continuous linear maps of `U` and `U⁻¹`.
-  have hU_clm : u.toLinearIsometry.toContinuousLinearMap = U.toEuclideanLin.toContinuousLinearMap := by
-    ext x; simp [hu]
-  have hUinv_clm :
-      u.symm.toLinearIsometry.toContinuousLinearMap = U⁻¹.toEuclideanLin.toContinuousLinearMap := by
-    ext x; simp [hu_symm]
-  refine ⟨u, γ, ?_⟩
-  have lhs_eq : rot3 d α ∘L rot3 d' β
-      = (rot3_mat d α * rot3_mat d' β).toEuclideanLin.toContinuousLinearMap := by
-    rw [toCLM_mul]; fin_cases d <;> fin_cases d' <;> rfl
-  rw [lhs_eq, h, toCLM_mul, toCLM_mul, hU_clm, hUinv_clm, RzL, ContinuousLinearMap.comp_assoc]
-
 end Bounding
+
 end
