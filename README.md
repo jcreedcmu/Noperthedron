@@ -94,6 +94,12 @@ Then run the kernel check:
 lake build CayleyKernel.Main
 ```
 
+The build ends by printing the axioms the main theorem depends on:
+
+```
+info: CayleyKernel/Main.lean:66:0: 'Cayley.KProof.exists_not_rupert' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
 ## Blueprint
 
 The [blueprint](blueprint/src) describes the mathematics of the proof and links each step

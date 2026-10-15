@@ -62,3 +62,5 @@ theorem exists_not_rupert : ExistsNonRupertPolyhedron :=
 end Cayley.KProof
 
 end
+
+#print axioms Cayley.KProof.exists_not_rupert
