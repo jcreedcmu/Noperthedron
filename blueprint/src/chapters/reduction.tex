@@ -1,0 +1,259 @@
+\chapter{The reduction}
+\label{chap:reduction}
+
+This chapter shows that if $\PPP$ is Rupert, then there is a Rupert pair of a special
+form, described by five real parameters in a bounded set. Throughout,
+$g_k = R_z(2\pi k/15)$ for $k = 0, \dots, 14$; these are the rotations in
+$\mathcal{C}_{30}$, and $\PPP = -\PPP$.
+
+\section{Moves that preserve Rupert pairs}
+
+\begin{lemma}[Common left factor]
+\label{lem:move_left}
+\lean{Cayley.rupPair_left, Cayley.rupPair_Rz, Cayley.rupPair_RxPi}
+\leanok
+\uses{def:shadow}
+Let $L \in SO(3)$ with $L e_z = \pm e_z$. If $(R_o, R_i)$ is a Rupert pair, then so is
+$(L R_o, L R_i)$. In particular this holds for $L = R_z(\gamma)$ and for the half-turn
+$L = R_x(\pi)$.
+\end{lemma}
+\begin{proof}
+\leanok
+Such an $L$ satisfies $\pi \circ L = \ell \circ \pi$ for a linear isometry $\ell$ of
+the screen, so $\mathrm{Sh}(L R) = \ell(\mathrm{Sh}(R))$, and $\ell$ is a homeomorphism.
+\end{proof}
+
+\begin{lemma}[Symmetries]
+\label{lem:move_sym}
+\lean{Cayley.rupPair_inner_gR, Cayley.rupPair_outer_gR, Cayley.shadow_mul_gR}
+\leanok
+\uses{def:shadow, def:noperthedron}
+If $(R_o, R_i)$ is a Rupert pair, then so are $(R_o g_k, R_i)$ and $(R_o, R_i g_k)$.
+\end{lemma}
+\begin{proof}
+\leanok
+$g_k$ permutes the vertices of $\PPP$, so $g_k \PPP = \PPP$ and
+$\mathrm{Sh}(R g_k) = \mathrm{Sh}(R)$.
+\end{proof}
+
+\begin{lemma}[Inner half-turn]
+\label{lem:move_halfturn}
+\lean{Cayley.rupPair_inner_RzPi, Cayley.shadow_RzPi_mul}
+\leanok
+\uses{def:shadow, lemma:nopert_point_symmetric}
+If $(R_o, R_i)$ is a Rupert pair, then so is $(R_o, R_z(\pi) R_i)$.
+\end{lemma}
+\begin{proof}
+\leanok
+$R_z(\pi)$ negates the screen and $\PPP = -\PPP$, so
+$\mathrm{Sh}(R_z(\pi) R) = -\mathrm{Sh}(R) = \mathrm{Sh}(R)$.
+\end{proof}
+
+\section{Step A: the outer view}
+
+\begin{lemma}
+\label{lem:step_outer}
+\lean{Cayley.step_flip, Cayley.step_azimuth, Cayley.step_outer}
+\leanok
+\uses{lem:move_left, lem:move_sym, lem:outer_unique, lem:sin_wedge}
+If there is a Rupert pair in $SO(3)$, then there is one of the form
+$(s(u, v), R_i)$ with
+\[
+  u \ge 0, \qquad 0 \le v \le \tfrac{57}{128}\, u, \qquad u^2 + v^2 \le 1.
+\]
+\end{lemma}
+\begin{proof}
+\leanok
+Let $n$ be the view (third row) of $R_o$. Applying $R_x(\pi)$ on the left if necessary
+(Lemma~\ref{lem:move_left}) makes $n_z \ge 0$. Replacing $R_o$ by $R_o g_k$ for a
+suitable $k$ (Lemma~\ref{lem:move_sym}) rotates the azimuth of $n$ into
+$[0, 2\pi/15]$, a wedge in which $n_y \le \frac{57}{128} n_x$ because
+$\tan(2\pi/15) \le 57/128$ (Lemma~\ref{lem:sin_wedge}). A view with $n_z \ge 0$ in this
+wedge is the view of $s(u, v)$ for $(u, v)$ in the stated set
+(Lemma~\ref{lem:outer_view}). Then $R_o = R_z(\gamma) s(u, v)$
+(Lemma~\ref{lem:outer_unique}), and the left factor $R_z(-\gamma)$ removes $R_z(\gamma)$.
+\end{proof}
+
+\section{Step B: the relative rotation}
+
+Fix the outer rotation $s = s(u, v)$ and write the inner rotation as $s\,Q$, so that
+$Q = s^T R_i$ is the \emph{relative rotation}. The moves of Lemma~\ref{lem:move_sym}
+(inner) and Lemma~\ref{lem:move_halfturn} act on $Q$ without changing $s$:
+$Q \mapsto Q g_k$ and $Q \mapsto H Q$, where $H = s^T R_z(\pi) s$ is the half-turn about
+the view. The orbit $\{ H^e Q g_k : e \in \{0, 1\},\ 0 \le k < 15 \}$ has at most 30
+elements.
+
+The poses that are hardest to exclude are the \emph{aligned} ones, where the inner
+and outer shadows coincide. The obvious ones have $Q = I$. A second family comes from the
+following rotation, which is not a symmetry of $\PPP$.
+
+\begin{definition}
+\label{def:tau}
+\lean{Cayley.tauR}
+\leanok
+Let $(x, y)$ be the first two coordinates of $C_3$. The matrix
+\[
+  \tau = \begin{pmatrix}
+    -\frac{x^2 - y^2}{x^2 + y^2} & -\frac{2xy}{x^2 + y^2} & 0 \\
+    -\frac{2xy}{x^2 + y^2} & \frac{x^2 - y^2}{x^2 + y^2} & 0 \\
+    0 & 0 & -1
+  \end{pmatrix}
+\]
+is minus the reflection in the vertical plane through $C_3$; it is a half-turn about a
+horizontal axis, and it has rational entries.
+\end{definition}
+
+\begin{lemma}
+\label{lem:tau_pair}
+\lean{Cayley.tau_pair}
+\leanok
+\uses{def:tau, def:noperthedron}
+$\tau$ maps the 30 points $\mathcal{C}_{30} \cdot C_3$ onto themselves.
+\end{lemma}
+\begin{proof}
+\leanok
+$\tau\, (-1)^\ell R_z(2\pi k/15)\, C_3 = (-1)^{1-\ell} R_z(-2\pi k/15)\, C_3$, using
+$\tau R_z(\alpha) = R_z(-\alpha) \tau$ and $\tau C_3 = -C_3$.
+\end{proof}
+
+The view straight down the $z$-axis shows only the copies of $C_3$ on the boundary of
+the shadow, and so do nearby views. For such views the pose with $Q = \tau$ is
+therefore aligned, even though $\tau \PPP \ne \PPP$. To handle both families, choose the
+representative of the orbit that is closest to $I$ or to $\tau$.
+
+\begin{definition}
+\label{def:orbit_score}
+\lean{Cayley.Fsc}
+\leanok
+\uses{def:tau}
+The \emph{orbit score} of a matrix $X$ is
+$F(X) = \max\bigl(\tr X,\ \tr(\tau^T X) - \tfrac18\bigr)$.
+\end{definition}
+
+The bias $1/8$ breaks the ties at the isolated horizontal views where $H g_k = \tau$, in
+favour of $I$.
+
+\begin{lemma}
+\label{lem:step_orbit}
+\lean{Cayley.step_orbit}
+\leanok
+\uses{lem:move_sym, lem:move_halfturn, def:orbit_score}
+If $(s, R_i)$ is a Rupert pair with $R_i \in SO(3)$, then there is a Rupert pair
+$(s, s\,Q)$ with $Q \in SO(3)$ and $F(H^e Q g_k) \le F(Q)$ for all $e$ and $k$.
+\end{lemma}
+\begin{proof}
+\leanok
+Take the element of the finite orbit of $s^T R_i$ with the largest score; it is reached
+by the moves of Lemmas~\ref{lem:move_sym} and~\ref{lem:move_halfturn}, and the orbit of
+a member of the orbit is the same orbit.
+\end{proof}
+
+\section{Step C: the chart}
+
+\begin{definition}
+\label{def:charts}
+\lean{Cayley.chartB, Cayley.Qm}
+\leanok
+\uses{def:tau, def:cayley}
+The \emph{chart bases} are $B_0 = I$, $B_1 = \mathrm{diag}(1, -1, -1)$,
+$B_2 = \mathrm{diag}(-1, 1, -1)$, $B_3 = \mathrm{diag}(-1, -1, 1)$ (the Klein four-group)
+and $B_4 = \tau$. In chart $j$ the relative rotation with coordinates $r \in \R^3$ is
+$Q_j(r) = B_j\, \mathrm{Cay}(r)$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:klein_sum}
+\lean{Cayley.klein_trace_sum, Cayley.trace_diag_mul_cay}
+\leanok
+\uses{def:charts}
+$\sum_{k=0}^{3} \tr(B_k^T X) = 0$ for every $3 \times 3$ matrix $X$, and
+\[
+  \tr\bigl(\mathrm{diag}(a, b, c)\,\mathrm{Cay}(x, y, z)\bigr) =
+  \frac{a(1 + x^2 - y^2 - z^2) + b(1 - x^2 + y^2 - z^2) + c(1 - x^2 - y^2 + z^2)}{1 + x^2 + y^2 + z^2}.
+\]
+\end{lemma}
+\begin{proof}
+\leanok
+The diagonal entries of $\sum_k B_k$ vanish; the second identity is a direct
+computation.
+\end{proof}
+
+\begin{lemma}
+\label{lem:step_chart}
+\lean{Cayley.step_chart}
+\leanok
+\uses{lem:klein_sum, thm:cayley_surj}
+Let $Q \in SO(3)$ and let $j$ maximize $\tr(B_k^T Q)$ over $k \in \{0, \dots, 4\}$. Then
+$Q = Q_j(r)$ for some $r$ with $|r_i| \le 1$ (if $j \le 3$) or $|r_i| \le 2$ (if $j = 4$).
+\end{lemma}
+\begin{proof}
+\leanok
+By Lemma~\ref{lem:klein_sum} the four Klein traces sum to $0$, so the largest trace is
+nonnegative, and Theorem~\ref{thm:cayley_surj} gives $B_j^T Q = \mathrm{Cay}(r)$ with
+$|r|^2 \le 3$. This settles $j = 4$. For $j \le 3$, maximality against the other three
+Klein charts and the trace formula of Lemma~\ref{lem:klein_sum} give
+$4 - 4 r_i^2 \ge 0$ for each $i$.
+\end{proof}
+
+\section{The reduced domain}
+
+\begin{definition}
+\label{def:reduced}
+\lean{Cayley.Reduced}
+\leanok
+\uses{def:charts, def:orbit_score, def:outer_rot}
+A tuple $(u, v, j, r)$ with $j \in \{0, \dots, 4\}$ is \emph{reduced} if
+\begin{enumerate}
+\item (wedge and disk) $u \ge 0$, $0 \le v \le \frac{57}{128} u$, $u^2 + v^2 \le 1$;
+\item (chart) $\tr(B_k^T Q_j(r)) \le \tr(B_j^T Q_j(r))$ for all $k \le 4$;
+\item (orbit) $F(H^e Q_j(r) g_k) \le F(Q_j(r))$ for all $e \in \{0,1\}$ and $k$, where
+  $H = s(u,v)^T R_z(\pi) s(u,v)$;
+\item (bounds) $|r_i| \le 1$ if $j \le 3$ and $|r_i| \le 2$ if $j = 4$.
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}[Reduction]
+\label{thm:reduction}
+\lean{Cayley.reduction}
+\leanok
+\uses{lem:exists_rup_pair, lem:step_outer, lem:step_orbit, lem:step_chart, def:reduced}
+If $\PPP$ is Rupert, then there is a reduced $(u, v, j, r)$ such that
+$\bigl(s(u, v),\ s(u, v)\, Q_j(r)\bigr)$ is a Rupert pair.
+\end{theorem}
+\begin{proof}
+\leanok
+Lemma~\ref{lem:exists_rup_pair} gives a Rupert pair in $SO(3)$. Apply Step~A
+(Lemma~\ref{lem:step_outer}), then Step~B (Lemma~\ref{lem:step_orbit}) to the
+relative rotation, then Step~C (Lemma~\ref{lem:step_chart}) to the orbit-maximal $Q$.
+Step~C does not change $Q$, so the orbit condition persists.
+\end{proof}
+
+\section{Blowing up charts 0 and 4}
+
+The aligned poses of the reduced domain are exactly those with $r = 0$ in charts 0
+and 4 (where $Q = I$ or $Q = \tau$). Near $r = 0$ the separation margin tends to zero, so
+these two charts are blown up: $r$ is written as $\rho\, c$ with $c$ on a face of the
+cube $[-1,1]^3$ and $\rho = \max_i |r_i|$.
+
+\begin{definition}
+\label{def:faces}
+\lean{Cayley.faceR, Cayley.rOf}
+\leanok
+For a face index $f \in \{0, \dots, 5\}$ and $(s_0, s_1) \in [-1,1]^2$, $c_f(s_0, s_1)$ is
+the point of face $f$ of $[-1,1]^3$ with free coordinates $(s_0, s_1)$. A point of a
+blown-up chart has coordinates $X = (u, v, s_0, s_1, \rho)$ and Cayley vector
+$r = \rho\, c_f(s_0, s_1)$; a point of charts 1--3 has coordinates $X = (u, v, r_0, r_1, r_2)$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:exists_face}
+\lean{Cayley.Pack.exists_face}
+\leanok
+\uses{def:faces}
+Every $r$ with $|r_i| \le R$ for all $i$ is $\rho\, c_f(s_0, s_1)$ for some face $f$,
+some $0 \le \rho \le R$ and some $|s_0|, |s_1| \le 1$.
+\end{lemma}
+\begin{proof}
+\leanok
+Take $\rho = \max_i |r_i|$ and $f$ the face through $r / \rho$ (any face if $r = 0$).
+\end{proof}
