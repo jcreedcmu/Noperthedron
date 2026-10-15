@@ -1,3 +1,3 @@
 module
 
-public import Cayley.Checker.Check
+public import Cayley.Checker.KTree

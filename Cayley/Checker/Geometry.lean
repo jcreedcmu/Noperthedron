@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Checker.Poly
+public import Cayley.Checker.QI
 
 @[expose] public section
 
@@ -8,12 +8,11 @@ public import Cayley.Checker.Poly
 # Exact data for the Cayley checker
 
 Dyadic approximations (error at most `2⁻⁶⁰` per coordinate) of the Noperthedron
-vertices and of the symmetry rotations `Rz(2πk/15)`, and the exact integer chart
-bases. Mathlib-free.
+vertices and of the symmetry rotations `Rz(2πk/15)`, the half-turn `τ` data, and the
+paired vertices of the blown-up charts. Mathlib-free.
 -/
 
 namespace Cayley
-
 
 /-- Three-vectors. -/
 structure V3 (α : Type) where
@@ -85,21 +84,6 @@ def c3y : Int := 5298215096
 /-- The denominator `κ = x'² + y'²` of the half-turn `τ`. -/
 def kappaTau : Int := c3x * c3x + c3y * c3y
 
-/-- Chart bases `B_j = M_j / κ_j`: the Klein four-group (κ = 1) and `τ`. -/
-def chartM : Nat → M3 QI
-  | 0 => ⟨1, 0, 0, 0, 1, 0, 0, 0, 1⟩
-  | 1 => ⟨1, 0, 0, 0, -1, 0, 0, 0, -1⟩
-  | 2 => ⟨-1, 0, 0, 0, 1, 0, 0, 0, -1⟩
-  | 3 => ⟨-1, 0, 0, 0, -1, 0, 0, 0, 1⟩
-  | _ =>
-    let a : QI := ((c3x * c3x - c3y * c3y : Int) : QI)
-    let b : QI := ((2 * c3x * c3y : Int) : QI)
-    ⟨-a, -b, 0, -b, a, 0, 0, 0, -((kappaTau : Int) : QI)⟩
-
-def chartK : Nat → QI
-  | 4 => ((kappaTau : Int) : QI)
-  | _ => 1
-
 /-- The vertex that `τ` maps vertex `j` to, for the 30 copies of `C3`. -/
 def tauPair (j : Nat) : Option Nat :=
   if j % 3 = 2 then
@@ -111,12 +95,6 @@ def tauPair (j : Nat) : Option Nat :=
 /-- The paired vertex for the blown-up charts. -/
 def pairOf (chart j : Nat) : Option Nat :=
   if chart = 0 then some j else if chart = 4 then tauPair j else none
-
-/-- Slope bound `m ≥ tan(2π/15)` for the wedge. -/
-def wedgeM : QI := QI.mk 57 7
-
-/-- The tie-breaking bias `δ` of the orbit reduction. -/
-def biasδ : QI := QI.mk 1 3
 
 /-- Componentwise error bound `ε = 2⁻⁶⁰` of the approximations. -/
 def errε : QI := QI.mk 1 60
