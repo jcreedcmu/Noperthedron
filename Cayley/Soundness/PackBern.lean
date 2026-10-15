@@ -145,18 +145,24 @@ def pv (c : ℕ → ℤ) : ℤ := ∑ j ∈ Finset.range 243, c j * 2 ^ (PW * j)
 
 theorem onesL3_n : onesL3 = packN PW (fun _ => 1) 243 := onesL3_eq
 
+/-- The offset encoding of slot coefficients `c`. -/
+abbrev enc (c : ℕ → ℤ) : ℕ := packN PW (odig c) 243
+
+theorem enc_cast {c : ℕ → ℤ} (hc : ∀ j < 243, |c j| < O) :
+    ((enc c : ℕ) : ℤ) = pv c + ((Nat.mul (2 ^ (PW - 1)) onesL3 : ℕ) : ℤ) := by
+  show ((packN PW (odig c) 243 : ℕ) : ℤ) = _
+  rw [nat_mul, onesL3_n, pv, packN_eq_sum, packN_eq_sum]
+  push_cast
+  rw [Finset.mul_sum, ← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun j hj => ?_
+  have hj' := abs_lt.1 (hc j (Finset.mem_range.1 hj))
+  have hO : ((2 : ℤ) ^ (PW - 1)) = (O : ℤ) := by simp only [O, Nat.cast_pow, Nat.cast_ofNat]
+  rw [odig, Int.toNat_of_nonneg (by omega), hO]
+  ring
+
 theorem enc_pv {c : ℕ → ℤ} (hc : ∀ j < 243, |c j| < O) :
     Int.toNat (pv c + ((Nat.mul (2 ^ (PW - 1)) onesL3 : ℕ) : ℤ)) = packN PW (odig c) 243 := by
-  have hsum : pv c + ((2 ^ (PW - 1) * onesL3 : ℕ) : ℤ) = ((packN PW (odig c) 243 : ℕ) : ℤ) := by
-    rw [onesL3_n, pv, packN_eq_sum, packN_eq_sum]
-    push_cast
-    rw [Finset.mul_sum, ← Finset.sum_add_distrib]
-    refine Finset.sum_congr rfl fun j hj => ?_
-    have hj' := abs_lt.1 (hc j (Finset.mem_range.1 hj))
-    have hO : ((2 : ℤ) ^ (PW - 1)) = (O : ℤ) := by simp only [O, Nat.cast_pow, Nat.cast_ofNat]
-    rw [odig, Int.toNat_of_nonneg (by omega), hO]
-    ring
-  rw [nat_mul, hsum, Int.toNat_natCast]
+  rw [← enc_cast hc, Int.toNat_natCast]
 
 /-! ## Decoding one axis -/
 
@@ -218,30 +224,21 @@ theorem shiftRight_part {i e : ℕ} (hi : i < 5) (he : e < 3) {c : ℕ → ℤ} 
   rw [nat_land, hm, land_ite hd, packN_shift hi he, nat_shiftRight, Nat.shiftRight_eq_div_pow,
     hs, Nat.mul_div_cancel_left _ (Nat.two_pow_pos _)]
 
-/-- **One axis.** `baxis` applies the Bernstein transform along digit `i`. -/
-theorem baxis_pv {i : ℕ} (hi : i < 5) {c : ℕ → ℤ} (hc : ∀ j < 243, |c j| < O) :
-    baxis i (pv c) = pv (axT i c) := by
-  have hN := enc_pv hc
-  have p0 : Nat.land (packN PW (odig c) 243) (Nat.mul pM (zL3 i)) =
-      packN PW (fun j => if dg i j = 0 then odig c (j + 0 * 3 ^ i) else 0) 243 := by
-    have := shiftRight_part hi (by norm_num : 0 < 3) hc 0 (by simp)
-    rw [nat_shiftLeft, Nat.shiftLeft_zero, nat_shiftRight, Nat.shiftRight_zero] at this
-    exact this
-  have p1 := shiftRight_part hi (by norm_num : 1 < 3) hc (Nat.mul PW (3 ^ i)) (by rw [nat_mul, one_mul])
-  have p2 := shiftRight_part hi (by norm_num : 2 < 3) hc (Nat.add (Nat.mul PW (3 ^ i)) (Nat.mul PW (3 ^ i)))
-    (by rw [nat_add, nat_mul]; ring)
-  have q0 := odig_shift hi (by norm_num : 0 < 3) hc
-  have q1 := odig_shift hi (by norm_num : 1 < 3) hc
-  have q2 := odig_shift hi (by norm_num : 2 < 3) hc
-  unfold baxis
-  simp only [int_add, int_sub, int_mul, Int.subNatNat_eq_coe]
-  rw [hN, p0, p1, p2, q0, q1, q2]
-  -- the target, grouped along digit `i`
-  conv_rhs => rw [pv, sum_split hi (fun j => axT i c j * 2 ^ (PW * j))]
-  have hsh : ((2 ^ Nat.mul PW (3 ^ i) : ℕ) : ℤ) = 2 ^ (PW * 3 ^ i) := by push_cast; rfl
-  have hsh2 : ((2 ^ Nat.add (Nat.mul PW (3 ^ i)) (Nat.mul PW (3 ^ i)) : ℕ) : ℤ) =
-      2 ^ (PW * 3 ^ i) * 2 ^ (PW * 3 ^ i) := by push_cast; rw [nat_add, nat_mul, pow_add]
-  rw [hsh, hsh2]
+/-- The digit-`i` grouping of `pv (axT i c)`: the three Bernstein combinations of the
+digit-`0`, `1`, `2` parts, shifted into place. -/
+theorem pv_axT {i : ℕ} (hi : i < 5) (c : ℕ → ℤ) :
+    pv (axT i c) =
+      ((∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 0 * 3 ^ i) else 0) * 2 ^ (PW * j)) -
+        (∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 1 * 3 ^ i) else 0) * 2 ^ (PW * j)) +
+        (∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 2 * 3 ^ i) else 0) * 2 ^ (PW * j))) +
+      2 ^ (PW * 3 ^ i) *
+        ((∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 0 * 3 ^ i) else 0) * 2 ^ (PW * j)) -
+          (∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 2 * 3 ^ i) else 0) * 2 ^ (PW * j))) +
+      2 ^ (PW * 3 ^ i) * 2 ^ (PW * 3 ^ i) *
+        ((∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 0 * 3 ^ i) else 0) * 2 ^ (PW * j)) +
+          (∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 1 * 3 ^ i) else 0) * 2 ^ (PW * j)) +
+          (∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 2 * 3 ^ i) else 0) * 2 ^ (PW * j))) := by
+  rw [pv, sum_split hi (fun j => axT i c j * 2 ^ (PW * j))]
   simp only [← Finset.sum_sub_distrib, ← Finset.sum_add_distrib, Finset.mul_sum]
   refine Finset.sum_congr rfl fun j hj => ?_
   have hj' := Finset.mem_range.1 hj
@@ -257,21 +254,132 @@ theorem baxis_pv {i : ℕ} (hi : i < 5) {c : ℕ → ℤ} (hc : ∀ j < 243, |c 
     ring
   · simp
 
+/-- The offsets of one digit group, as a signed sum. -/
+theorem off_sum {i : ℕ} (hi : i < 5) :
+    ((Nat.mul (2 ^ (PW - 1)) (zL3 i) : ℕ) : ℤ) =
+      ∑ j ∈ Finset.range 243, (if dg i j = 0 then (O : ℤ) else 0) * 2 ^ (PW * j) := by
+  rw [nat_mul, zL3_eq i hi, packN_eq_sum]
+  push_cast
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  have hO : ((2 : ℤ) ^ (PW - 1)) = (O : ℤ) := by simp only [O, Nat.cast_pow, Nat.cast_ofNat]
+  split_ifs <;> simp [hO]
+
+theorem zL3_geo : ∀ i < 5, zL3 i * (1 + 2 ^ (PW * 3 ^ i) + 2 ^ (PW * 3 ^ i) * 2 ^ (PW * 3 ^ i)) = onesL3 := by
+  decide +kernel
+
+/-- A digit-`0` signed sum plus the offsets is nonnegative when every coefficient is above `-O`. -/
+theorem sum_off_nonneg {i : ℕ} (f : ℕ → ℤ) (hf : ∀ j < 243, dg i j = 0 → -(O : ℤ) < f j) :
+    0 ≤ ∑ j ∈ Finset.range 243, (if dg i j = 0 then f j else 0) * 2 ^ (PW * j) +
+      ∑ j ∈ Finset.range 243, (if dg i j = 0 then (O : ℤ) else 0) * 2 ^ (PW * j) := by
+  rw [← Finset.sum_add_distrib]
+  refine Finset.sum_nonneg fun j hj => ?_
+  split_ifs with h0
+  · have := hf j (Finset.mem_range.1 hj) h0
+    nlinarith [pow_pos (by norm_num : (0 : ℤ) < 2) (PW * j)]
+  · simp
+
+/-- **One axis.** `baxis` applies the Bernstein transform along digit `i` to the encoding. -/
+theorem baxis_enc {i : ℕ} (hi : i < 5) {c : ℕ → ℤ} (hc : ∀ j < 243, |c j| < O)
+    (hT : ∀ j < 243, |axT i c j| < O) : baxis i (enc c) = enc (axT i c) := by
+  have p0 : Nat.land (enc c) (Nat.mul pM (zL3 i)) =
+      packN PW (fun j => if dg i j = 0 then odig c (j + 0 * 3 ^ i) else 0) 243 := by
+    have := shiftRight_part hi (by norm_num : 0 < 3) hc 0 (by simp)
+    rw [nat_shiftLeft, Nat.shiftLeft_zero, nat_shiftRight, Nat.shiftRight_zero] at this
+    exact this
+  have p1 := shiftRight_part hi (by norm_num : 1 < 3) hc (Nat.mul PW (3 ^ i)) (by rw [nat_mul, one_mul])
+  have p2 := shiftRight_part hi (by norm_num : 2 < 3) hc (Nat.add (Nat.mul PW (3 ^ i)) (Nat.mul PW (3 ^ i)))
+    (by rw [nat_add, nat_mul]; ring)
+  have q0 := odig_shift hi (by norm_num : 0 < 3) hc
+  have q1 := odig_shift hi (by norm_num : 1 < 3) hc
+  have q2 := odig_shift hi (by norm_num : 2 < 3) hc
+  set S0 := ∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 0 * 3 ^ i) else 0) * 2 ^ (PW * j)
+  set S1 := ∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 1 * 3 ^ i) else 0) * 2 ^ (PW * j)
+  set S2 := ∑ j ∈ Finset.range 243, (if dg i j = 0 then c (j + 2 * 3 ^ i) else 0) * 2 ^ (PW * j)
+  set n0 := packN PW (fun j => if dg i j = 0 then odig c (j + 0 * 3 ^ i) else 0) 243
+  set n1 := packN PW (fun j => if dg i j = 0 then odig c (j + 1 * 3 ^ i) else 0) 243
+  set n2 := packN PW (fun j => if dg i j = 0 then odig c (j + 2 * 3 ^ i) else 0) 243
+  set off := Nat.mul (2 ^ (PW - 1)) (zL3 i)
+  have hoff := off_sum hi
+  -- the three Bernstein combinations, coefficientwise
+  have hb : ∀ e < 3, ∀ j < 243, dg i j = 0 →
+      -(O : ℤ) < bM e 0 * c j + bM e 1 * c (j + 3 ^ i) + bM e 2 * c (j + 2 * 3 ^ i) := by
+    intro e he j hj h0
+    rw [← axT_shift hi he hj h0 c]
+    exact (abs_lt.1 (hT _ (dg_shift i hi e he j hj h0).1)).1
+  have hA : (n1 : ℤ) ≤ n0 + n2 := by
+    have := sum_off_nonneg (i := i) (fun j => c j - c (j + 3 ^ i) + c (j + 2 * 3 ^ i))
+      (fun j hj h0 => by have := hb 0 (by norm_num) j hj h0; simp [bM] at this; linarith)
+    have e : ∑ j ∈ Finset.range 243, (if dg i j = 0 then c j - c (j + 3 ^ i) + c (j + 2 * 3 ^ i) else 0) *
+        2 ^ (PW * j) = S0 - S1 + S2 := by
+      simp only [S0, S1, S2, ← Finset.sum_sub_distrib, ← Finset.sum_add_distrib]
+      refine Finset.sum_congr rfl fun j _ => ?_; split_ifs <;> simp; ring
+    rw [e, ← hoff] at this
+    linarith
+  have hB : (n2 : ℤ) ≤ n0 + off := by
+    have := sum_off_nonneg (i := i) (fun j => c j - c (j + 2 * 3 ^ i))
+      (fun j hj h0 => by have := hb 1 (by norm_num) j hj h0; simp [bM] at this; linarith)
+    have e : ∑ j ∈ Finset.range 243, (if dg i j = 0 then c j - c (j + 2 * 3 ^ i) else 0) *
+        2 ^ (PW * j) = S0 - S2 := by
+      simp only [S0, S2, ← Finset.sum_sub_distrib]
+      refine Finset.sum_congr rfl fun j _ => ?_; split_ifs <;> simp; ring
+    rw [e, ← hoff] at this
+    linarith
+  have hC : ((off + off : ℕ) : ℤ) ≤ n0 + n1 + n2 := by
+    have := sum_off_nonneg (i := i) (fun j => c j + c (j + 3 ^ i) + c (j + 2 * 3 ^ i))
+      (fun j hj h0 => by have := hb 2 (by norm_num) j hj h0; simp [bM] at this; linarith)
+    have e : ∑ j ∈ Finset.range 243, (if dg i j = 0 then c j + c (j + 3 ^ i) + c (j + 2 * 3 ^ i) else 0) *
+        2 ^ (PW * j) = S0 + S1 + S2 := by
+      simp only [S0, S1, S2, ← Finset.sum_add_distrib]
+      refine Finset.sum_congr rfl fun j _ => ?_; split_ifs <;> simp; ring
+    rw [e, ← hoff] at this
+    push_cast
+    linarith
+  have hA' : n1 ≤ n0 + n2 := by exact_mod_cast hA
+  have hB' : n2 ≤ n0 + off := by exact_mod_cast hB
+  have hC' : off + off ≤ n0 + n1 + n2 := by exact_mod_cast hC
+  have hL : baxis i (enc c) = (n0 + n2 - n1) + (n0 + off - n2) * 2 ^ (PW * 3 ^ i) +
+      (n0 + n1 + n2 - (off + off)) * 2 ^ (PW * 3 ^ i + PW * 3 ^ i) := by
+    rw [show enc c = packN PW (odig c) 243 from rfl] at *
+    unfold baxis
+    simp only [nat_add, nat_mul, nat_sub, nat_shiftLeft, nat_shiftRight, nat_land,
+      Nat.shiftLeft_eq] at p0 p1 p2 ⊢
+    rw [p0, p1, p2]
+    rfl
+  apply Int.ofNat_inj.1
+  rw [enc_cast hT, pv_axT hi c, hL]
+  push_cast [Nat.cast_sub hA', Nat.cast_sub hB', Nat.cast_sub hC']
+  have gZ : ((zL3 i : ℕ) : ℤ) * (1 + 2 ^ (PW * 3 ^ i) + 2 ^ (PW * 3 ^ i) * 2 ^ (PW * 3 ^ i)) =
+      onesL3 := by exact_mod_cast zL3_geo i hi
+  have r0 : (n0 : ℤ) = S0 + off := by linarith [q0]
+  have r1 : (n1 : ℤ) = S1 + off := by linarith [q1]
+  have r2 : (n2 : ℤ) = S2 + off := by linarith [q2]
+  have hoffZ : ((off : ℕ) : ℤ) = 2 ^ (PW - 1) * (zL3 i : ℤ) := by
+    simp only [off, nat_mul]; push_cast; ring
+  have honesZ : ((Nat.mul (2 ^ (PW - 1)) onesL3 : ℕ) : ℤ) = 2 ^ (PW - 1) * (onesL3 : ℤ) := by
+    rw [nat_mul]; push_cast; ring
+  rw [r0, r1, r2, honesZ, ← gZ, hoffZ, pow_add]
+  simp only [S0, S1, S2]
+  ring
+
 /-! ## All axes and the sign test -/
 
 theorem bern3_pv {c : ℕ → ℤ} {B : ℤ} (hc : ∀ j < 243, |c j| ≤ B) (hB : 243 * B < O) :
-    bern3 (pv c) = pv (bT c) := by
+    bern3 (enc c) = enc (bT c) := by
   have hB0 : 0 ≤ B := le_trans (abs_nonneg _) (hc 0 (by norm_num))
   have c1 := axT_bound (by norm_num : 0 < 5) hc
   have c2 := axT_bound (by norm_num : 1 < 5) c1
   have c3 := axT_bound (by norm_num : 2 < 5) c2
   have c4 := axT_bound (by norm_num : 3 < 5) c3
+  have c5 := axT_bound (by norm_num : 4 < 5) c4
   have lt : ∀ {k : ℤ} {f : ℕ → ℤ}, (∀ j < 243, |f j| ≤ k) → k ≤ 243 * B → ∀ j < 243, |f j| < O :=
     fun h hk j hj => by have := h j hj; omega
   unfold bern3 bT
-  rw [baxis_pv (by norm_num) (lt hc (by omega)), baxis_pv (by norm_num) (lt c1 (by omega)),
-    baxis_pv (by norm_num) (lt c2 (by omega)), baxis_pv (by norm_num) (lt c3 (by omega)),
-    baxis_pv (by norm_num) (lt c4 (by omega))]
+  rw [baxis_enc (by norm_num) (lt hc (by omega)) (lt c1 (by omega)),
+    baxis_enc (by norm_num) (lt c1 (by omega)) (lt c2 (by omega)),
+    baxis_enc (by norm_num) (lt c2 (by omega)) (lt c3 (by omega)),
+    baxis_enc (by norm_num) (lt c3 (by omega)) (lt c4 (by omega)),
+    baxis_enc (by norm_num) (lt c4 (by omega)) (lt c5 (by omega))]
 
 theorem bT_bound {c : ℕ → ℤ} {B : ℤ} (hc : ∀ j < 243, |c j| ≤ B) : ∀ j < 243, |bT c j| ≤ 243 * B := by
   have c1 := axT_bound (by norm_num : 0 < 5) hc
@@ -321,13 +429,23 @@ theorem bernGE_spec {c : ℕ → ℤ} {B m : ℤ} (hc : ∀ j < 243, |c j| ≤ B
     have := hb j hj
     calc _ ≤ |bT c j| + |m| := abs_sub _ _
       _ < O := by linarith
-  have hpv : bern3 (pv c) - (onesL3 : ℤ) * m = pv (fun j => bT c j - m) := by
-    have h390 : (0 : ℤ) < 2 ^ 390 := by positivity
-    rw [bern3_pv hc (lt_of_lt_of_le (lt_add_of_pos_right _ h390) hB), pv, pv, ones_sum, Finset.sum_mul, ← Finset.sum_sub_distrib]
-    exact Finset.sum_congr rfl fun j _ => by ring
-  have he := enc_pv hc'
-  rw [int_add, int_sub, int_mul, hpv] at hs
-  simp only [he] at hs
+  have h390 : (0 : ℤ) < 2 ^ 390 := by positivity
+  have hbern : bern3 (Int.toNat (Int.add (pv c) ((Nat.mul (2 ^ (PW - 1)) onesL3 : ℕ) : ℤ))) =
+      enc (bT c) := by
+    rw [int_add, enc_pv (fun j hj => by have := hc j hj; omega)]
+    exact bern3_pv hc (lt_of_lt_of_le (lt_add_of_pos_right _ h390) hB)
+  have hbT : ∀ j < 243, |bT c j| < O := fun j hj => by have := hb j hj; omega
+  have hpv : ((enc (bT c) : ℕ) : ℤ) - (onesL3 : ℤ) * m =
+      pv (fun j => bT c j - m) + ((Nat.mul (2 ^ (PW - 1)) onesL3 : ℕ) : ℤ) := by
+    rw [enc_cast hbT, pv, pv, ones_sum, Finset.sum_mul]
+    have : ∑ j ∈ Finset.range 243, bT c j * 2 ^ (PW * j) - ∑ j ∈ Finset.range 243, 2 ^ (PW * j) * m =
+        ∑ j ∈ Finset.range 243, (bT c j - m) * 2 ^ (PW * j) := by
+      rw [← Finset.sum_sub_distrib]; exact Finset.sum_congr rfl fun j _ => by ring
+    linarith [this]
+  have hN : Int.toNat (Int.sub ((enc (bT c) : ℕ) : ℤ) (Int.mul (onesL3 : ℤ) m)) =
+      packN PW (odig fun j => bT c j - m) 243 := by
+    rw [int_sub, int_mul, hpv]; exact enc_pv hc'
+  simp only [hbern, hN] at hs
   rw [nat_land, nat_shiftRight, onesL3_n, packN_signs PW_pos (odig_lt hc')] at hs
   have hd1 : ∀ j < 243, odig (fun j => bT c j - m) j / 2 ^ (PW - 1) < 2 ^ PW := fun j hj =>
     lt_of_le_of_lt (Nat.div_le_self _ _) (odig_lt hc' j hj)

@@ -96,33 +96,34 @@ def qLower (P : Int) : Int := pLowerL onesL5 evensL5 P
 
 On `[-1,1]` the quadratic Bernstein coefficients of `a₀ + a₁t + a₂t²` are
 `(a₀ − a₁ + a₂, a₀ − a₂, a₀ + a₁ + a₂)`; `baxis i` applies this along variable `i` to every
-slot of a packed polynomial, and a polynomial is at least its least Bernstein coefficient. -/
+slot, and a polynomial is at least its least Bernstein coefficient. The transform works on the
+offset encoding (every slot holds `coeff + 2^(PW-1)`) in `Nat` arithmetic only, which the
+kernel evaluates much faster than `Int`. -/
 
 /-- Slot indicator of the slots whose digit `i` is `0`. -/
 def zL3 (i : Nat) : Nat := Nat.div onesL3 (geo3 (pX i).toNat)
 
-/-- The Bernstein transform along variable `i` of a packed polynomial. -/
-def baxis (i : Nat) (P : Int) : Int :=
+/-- The Bernstein transform along variable `i` of an offset-encoded packed polynomial. -/
+def baxis (i : Nat) (N : Nat) : Nat :=
   let z := zL3 i
   let sh := Nat.mul PW (3 ^ i)
   let sh2 := Nat.add sh sh
   let off : Nat := Nat.mul (2 ^ (PW - 1)) z
-  let N : Nat := Int.toNat (Int.add P (Nat.mul (2 ^ (PW - 1)) onesL3 : Nat))
   let mz : Nat := Nat.mul pM z
-  let n0 : Int := Int.subNatNat (Nat.land N mz) off
-  let n1 : Int := Int.subNatNat (Nat.shiftRight (Nat.land N (Nat.shiftLeft mz sh)) sh) off
-  let n2 : Int := Int.subNatNat (Nat.shiftRight (Nat.land N (Nat.shiftLeft mz sh2)) sh2) off
-  Int.add (Int.add (Int.add (Int.sub n0 n1) n2) (Int.mul ((2 ^ sh : Nat) : Int) (Int.sub n0 n2)))
-    (Int.mul ((2 ^ sh2 : Nat) : Int) (Int.add (Int.add n0 n1) n2))
+  let n0 := Nat.land N mz
+  let n1 := Nat.shiftRight (Nat.land N (Nat.shiftLeft mz sh)) sh
+  let n2 := Nat.shiftRight (Nat.land N (Nat.shiftLeft mz sh2)) sh2
+  Nat.add (Nat.add (Nat.sub (Nat.add n0 n2) n1) (Nat.shiftLeft (Nat.sub (Nat.add n0 off) n2) sh))
+    (Nat.shiftLeft (Nat.sub (Nat.add (Nat.add n0 n1) n2) (Nat.add off off)) sh2)
 
-/-- The Bernstein coefficients of a packed polynomial. -/
-def bern3 (P : Int) : Int := baxis 4 (baxis 3 (baxis 2 (baxis 1 (baxis 0 P))))
+/-- The Bernstein coefficients of an offset-encoded packed polynomial. -/
+def bern3 (N : Nat) : Nat := baxis 4 (baxis 3 (baxis 2 (baxis 1 (baxis 0 N))))
 
 /-- Every Bernstein coefficient of the packed polynomial `P` is at least `m`. -/
 def bernGE (P m : Int) : Bool :=
-  let N : Nat := Int.toNat (Int.add (Int.sub (bern3 P) (Int.mul (onesL3 : Int) m))
-    (Nat.mul (2 ^ (PW - 1)) onesL3 : Nat))
-  Nat.blt m.natAbs (2 ^ 390) && Nat.beq (Nat.land (Nat.shiftRight N (PW - 1)) onesL3) onesL3
+  let N : Nat := bern3 (Int.toNat (Int.add P (Nat.mul (2 ^ (PW - 1)) onesL3 : Nat)))
+  let N' : Nat := Int.toNat (Int.sub (N : Int) (Int.mul (onesL3 : Int) m))
+  Nat.blt m.natAbs (2 ^ 390) && Nat.beq (Nat.land (Nat.shiftRight N' (PW - 1)) onesL3) onesL3
 
 /-- The per-box polynomials of a gap leaf, over any arithmetic: `α₀, α₁, α₂` (outer rows,
 weighted by `w`), `β = M N(r) S`, `κD`, and the paired inner vector `L` (blown-up charts). -/
@@ -266,12 +267,16 @@ def pairOK (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
 /-- The paired vertex of inner vertex `s` (blown-up charts). -/
 def gPair (b : KBox) (s : Nat) : Option Nat := if b.chart = 0 ∨ b.chart = 4 then kPair b.chart s else none
 
-/-- The test of outer vertex `t` after the packed quick test. -/
-def vtestG (b : KBox) (s : Nat) (w0 w1 : Int) (t : Nat) (tx ty tz : Int) : Bool :=
+/-- The test of outer vertex `t` after the packed quick test (`S` is inner vertex `s`). -/
+def vtestG (b : KBox) (s : Nat) (S : Int × Int × Int) (w0 w1 : Int) (t : Nat) (tx ty tz : Int) :
+    Bool :=
   if gPair b s = some t then
-    pairOK b (vtxI.getD s (0, 0, 0)) w0 w1 ||
-      (!decide (b.c.getD 4 0 - b.h.getD 4 0 ≤ 0) && fullOK b (vtxI.getD s (0, 0, 0)) w0 w1 tx ty tz)
-  else fullOK b (vtxI.getD s (0, 0, 0)) w0 w1 tx ty tz
+    pairOK b S w0 w1 || (!decide (b.c.getD 4 0 - b.h.getD 4 0 ≤ 0) && fullOK b S w0 w1 tx ty tz)
+  else fullOK b S w0 w1 tx ty tz
+
+/-- Vertex `s`, read from the packed tables (cheaper in the kernel than indexing `vtxI`). -/
+def vS (s : Nat) : Int × Int × Int :=
+  (slot tpx s - (2 ^ 170 : Nat), slot tpy s - (2 ^ 170 : Nat), slot tpz s - (2 ^ 170 : Nat))
 
 /-- The quick test's constant part `c₀(A) − slack(A) − err`, and the statistics of `Eₖ`. -/
 def quickQ (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : Int :=
@@ -291,7 +296,7 @@ def quickV (C e00 e01 e02 : Int) (n0 n1 n2 : Nat) : Nat :=
 /-- Packed kernel gap leaf. -/
 def pGapOK (b : KBox) (s : Nat) (w0 w1 : Int) : Bool :=
   if s < 90 then
-    let S := vtxI.getD s (0, 0, 0)
+    let S := vS s
     let (E0, E1, E2) := quickE b S w0 w1
     let tot : Int := ((E0.c0.natAbs : Int) + E1.c0.natAbs + E2.c0.natAbs) +
       ((E0.abs : Int) + E1.abs + E2.abs)
@@ -299,9 +304,9 @@ def pGapOK (b : KBox) (s : Nat) (w0 w1 : Int) : Bool :=
     let packOK : Bool := decide (0 ≤ C) && decide (C + 2 * p2 170 * tot < p2 640)
     (w0 != 0 || w1 != 0) && gapNrmOK b S w0 w1 &&
       if packOK then
-        vtxSplit (fun t tx ty tz _ _ _ => vtestG b s w0 w1 t tx ty tz) 8 0 90
+        vtxSplit (fun t tx ty tz _ _ _ => vtestG b s S w0 w1 t tx ty tz) 8 0 90
           (Nat.xor signT (Nat.land (quickV C E0.c0 E1.c0 E2.c0 E0.abs E1.abs E2.abs) signT))
-      else vtxIdx.all fun (t, (tx, ty, tz), _) => vtestG b s w0 w1 t tx ty tz
+      else vtxIdx.all fun (t, (tx, ty, tz), _) => vtestG b s S w0 w1 t tx ty tz
   else false
 
 /-! ### Domain leaves -/

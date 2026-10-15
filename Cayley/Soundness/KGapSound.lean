@@ -589,7 +589,7 @@ end leaf
 
 theorem vtestG_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (s : ℕ) (w0 w1 : ℤ)
     (hn : gapNrmOK b (vt s) w0 w1 = true) {tt : ℕ} (htt : tt < 90)
-    (h : vtestG b s w0 w1 tt (vt tt).1 (vt tt).2.1 (vt tt).2.2 = true) {t : Fin 5 → ℝ}
+    (h : vtestG b s (vt s) w0 w1 tt (vt tt).1 (vt tt).2.1 (vt tt).2.2 = true) {t : Fin 5 → ℝ}
     (ht : ∀ i, |t i| ≤ 1) :
     G1 b s w0 w1 t tt ∨ (gPair b s = some tt ∧ pairOK b (vt s) w0 w1 = true) := by
   unfold vtestG at h
@@ -629,6 +629,10 @@ theorem slot_vals {t : ℕ} (ht : t < 90) :
   · rw [Int.toNat_of_nonneg (by linarith [(abs_lt.1 b2).1])]; ring
   · rw [Int.toNat_of_nonneg (by linarith [(abs_lt.1 b3).1])]; ring
 
+theorem vS_eq {s : ℕ} (hs : s < 90) : vS s = vt s := by
+  obtain ⟨h1, h2, h3⟩ := slot_vals hs
+  simp only [vS, h1, h2, h3]
+
 theorem vtxIdx_all {P : ℕ × (ℤ × ℤ × ℤ) × (ℤ × ℤ × ℤ) → Bool} (h : vtxIdx.all P = true)
     {t : ℕ} (ht : t < 90) :
     P (t, vt t, (((vt t).1.natAbs : ℤ), ((vt t).2.1.natAbs : ℤ), ((vt t).2.2.natAbs : ℤ))) = true := by
@@ -647,6 +651,7 @@ theorem pGapOK_vertex (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {s : ℕ} 
       G1 b s w0 w1 t tt ∨ (gPair b s = some tt ∧ pairOK b (vt s) w0 w1 = true) := by
   unfold pGapOK at h
   split_ifs at h with hs
+  rw [vS_eq hs] at h
   refine ⟨hs, ?_⟩
   simp only [Bool.and_eq_true, Bool.or_eq_true, bne_iff_ne, ne_eq] at h
   obtain ⟨⟨hw, hn⟩, hrest⟩ := h
