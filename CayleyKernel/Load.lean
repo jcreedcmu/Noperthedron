@@ -3,7 +3,6 @@ module
 public import Lean
 public import Cayley.Checker.KTree
 public meta import Lean
-public meta import Cayley.Checker.KTree
 
 @[expose] public section
 

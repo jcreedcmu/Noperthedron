@@ -38,12 +38,10 @@ supportInterpreter = true
 weakLinkArgs = ["-lLake"]
 
 # The rational-coordinate (Cayley) proof; see cayley/DESIGN.md.
-# The Mathlib-free checker that the kernel runs (precompiled for the elaboration-time loader
-# and `cayleyCheck`).
+# The Mathlib-free checker that the kernel runs.
 [[lean_lib]]
 name = "CayleyChecker"
 globs = ["CayleyChecker", "Cayley.Checker.+"]
-precompileModules = true
 
 # Soundness of the kernel checker (`Cayley.Pack.kernel_sound`). Builds without any
 # generated data.
