@@ -22,6 +22,7 @@ structure Inv (b : KBox) : Prop where
   lenc : b.c.length = 5
   lenh : b.h.length = 5
   hpos : ∀ i : Fin 5, 0 ≤ b.h.getD i 0
+  mag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K
 
 /-- No point of the box is a reduced Rupert pose. -/
 def Covered (b : KBox) : Prop :=
@@ -48,20 +49,48 @@ theorem split_snd (b : KBox) (d : ℕ) : (b.split d).2.chart = b.chart ∧ (b.sp
 theorem split_inv (b : KBox) (hb : Inv b) (d : ℕ) (hd : d < 5) :
     Inv (b.split d).1 ∧ Inv (b.split d).2 := by
   have h0 := hb.hpos ⟨d, hd⟩
-  simp only at h0
+  have m0 := hb.mag ⟨d, hd⟩
+  simp only at h0 m0
+  have hlc : d < b.c.length := by rw [hb.lenc]; exact hd
+  have hlh : d < b.h.length := by rw [hb.lenh]; exact hd
+  have hK : (2 : ℤ) * 2 ^ (b.K + 1) = 2 * (2 * 2 ^ b.K) := by ring
   unfold KBox.split; dsimp only
   split_ifs with he
   · have hh : 0 ≤ b.h.getD d 0 / 2 := Int.ediv_nonneg h0 (by norm_num)
-    refine ⟨⟨hb.chart, hb.face, by simp [hb.lenc], by simp [hb.lenh], fun i => ?_⟩,
-      ⟨hb.chart, hb.face, by simp [hb.lenc], by simp [hb.lenh], fun i => ?_⟩⟩ <;>
-    · by_cases hi : (i : ℕ) = d
-      · rw [hi, getD_set_eq _ _ _ (by rw [hb.lenh]; exact hd)]; exact hh
-      · rw [getD_set_ne _ _ _ _ hi]; exact hb.hpos i
-  · refine ⟨⟨hb.chart, hb.face, by simp [hb.lenc], by simp [hb.lenh], fun i => ?_⟩,
-      ⟨hb.chart, hb.face, by simp [hb.lenc], by simp [hb.lenh], fun i => ?_⟩⟩ <;>
-    · by_cases hi : (i : ℕ) = d
-      · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenh]; exact hd)]; exact h0
-      · rw [getD_set_ne _ _ _ _ hi, getD_map2]; have := hb.hpos i; omega
+    have h2 : 2 * (b.h.getD d 0 / 2) = b.h.getD d 0 := by omega
+    have a1 := abs_sub (b.c.getD d 0) (b.h.getD d 0 / 2)
+    have a2 := abs_add_le (b.c.getD d 0) (b.h.getD d 0 / 2)
+    rw [abs_of_nonneg hh] at a1 a2
+    rw [abs_of_nonneg h0] at m0
+    refine ⟨⟨hb.chart, hb.face, by simp [hb.lenc], by simp [hb.lenh], fun i => ?_, fun i => ?_⟩,
+      ⟨hb.chart, hb.face, by simp [hb.lenc], by simp [hb.lenh], fun i => ?_, fun i => ?_⟩⟩ <;>
+    by_cases hi : (i : ℕ) = d
+    · rw [hi, getD_set_eq _ _ _ hlh]; exact hh
+    · rw [getD_set_ne _ _ _ _ hi]; exact hb.hpos i
+    · rw [hi, getD_set_eq _ _ _ hlh, getD_set_eq _ _ _ hlc, abs_of_nonneg hh]; linarith
+    · rw [getD_set_ne _ _ _ _ hi, getD_set_ne _ _ _ _ hi]; exact hb.mag i
+    · rw [hi, getD_set_eq _ _ _ hlh]; exact hh
+    · rw [getD_set_ne _ _ _ _ hi]; exact hb.hpos i
+    · rw [hi, getD_set_eq _ _ _ hlh, getD_set_eq _ _ _ hlc, abs_of_nonneg hh]; linarith
+    · rw [getD_set_ne _ _ _ _ hi, getD_set_ne _ _ _ _ hi]; exact hb.mag i
+  · have a1 := abs_sub (2 * b.c.getD d 0) (b.h.getD d 0)
+    have a2 := abs_add_le (2 * b.c.getD d 0) (b.h.getD d 0)
+    rw [abs_mul, abs_two] at a1 a2
+    refine ⟨⟨hb.chart, hb.face, by simp [hb.lenc], by simp [hb.lenh], fun i => ?_, fun i => ?_⟩,
+      ⟨hb.chart, hb.face, by simp [hb.lenc], by simp [hb.lenh], fun i => ?_, fun i => ?_⟩⟩ <;>
+    by_cases hi : (i : ℕ) = d
+    · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenh]; exact hd)]; exact h0
+    · rw [getD_set_ne _ _ _ _ hi, getD_map2]; have := hb.hpos i; omega
+    · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenc, hb.lenh]; exact hd),
+        getD_set_eq _ _ _ (by simp [hb.lenc, hb.lenh]; exact hd), hK]; linarith
+    · rw [getD_set_ne _ _ _ _ hi, getD_set_ne _ _ _ _ hi, getD_map2, getD_map2, abs_mul, abs_mul,
+        abs_two, hK]; linarith [hb.mag i]
+    · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenh]; exact hd)]; exact h0
+    · rw [getD_set_ne _ _ _ _ hi, getD_map2]; have := hb.hpos i; omega
+    · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenc, hb.lenh]; exact hd),
+        getD_set_eq _ _ _ (by simp [hb.lenc, hb.lenh]; exact hd), hK]; linarith
+    · rw [getD_set_ne _ _ _ _ hi, getD_set_ne _ _ _ _ hi, getD_map2, getD_map2, abs_mul, abs_mul,
+        abs_two, hK]; linarith [hb.mag i]
 
 /-- Every point of a box is a point of one of its two halves. -/
 theorem split_cover (b : KBox) (hb : Inv b) (d : ℕ) (hd : d < 5) (t : Fin 5 → ℝ)
@@ -161,7 +190,7 @@ theorem walk (hok : Bool) (tr : KTree) : ∀ b, Inv b → kCheck hok b tr = true
     exact absurd hbad.1 (pDomOK_sound b hb.chart hb.face hb.hpos h ht hpt)
   | gap s w0 w1 =>
     intro b hb h t ht hpt hbad
-    exact absurd hbad.2 (pGapOK_sound b hb.chart hb.face h ht hpt)
+    exact absurd hbad.2 (pGapOK_sound b hb.chart hb.face hb.lenc hb.lenh hb.mag h ht hpt)
   | split d l r ihl ihr =>
     intro b hb h t ht hpt hbad
     simp only [kCheck, Bool.and_eq_true] at h

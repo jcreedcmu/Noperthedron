@@ -111,7 +111,8 @@ theorem rootK_blow4 (f : ℕ) (hf : f < 6) :
 
 theorem rootK_inv (i : ℕ) (hi : i < 15) : Inv (rootK i) := by
   interval_cases i <;>
-    exact ⟨by decide, by decide, rfl, rfl, fun k => by fin_cases k <;> decide⟩
+    exact ⟨by decide, by decide, rfl, rfl, fun k => by fin_cases k <;> decide,
+      fun k => by fin_cases k <;> decide⟩
 
 /-! ## Coverage -/
 

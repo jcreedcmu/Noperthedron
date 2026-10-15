@@ -156,3 +156,21 @@ Induction on $n$.
 
 The checker uses slot width $W = 400$ and requires coefficient norms below $2^{390}$,
 which leaves room for the Bernstein transform.
+
+\begin{lemma}[Norm guard]
+\label{lem:norm_guard}
+\lean{Cayley.Pack.gapNrm_mono, Cayley.Pack.gapNrmOK_worst, Cayley.Pack.gapNrmOK_box}
+\leanok
+\uses{lem:packed_bounds}
+If a gap leaf's box has scale $2^K$ with $K \le 16$ and its direction has
+$|w_0|, |w_1| \le 1024$, then every polynomial the leaf decodes has coefficient norm below
+$2^{390}$.
+\end{lemma}
+\begin{proof}
+\leanok
+The norm bounds are computed by the same formulas as the polynomials, with each operation
+acting on norms; this only adds and multiplies, so it is monotone in the magnitudes of the
+inputs. Every box of the walk has $|c_i| + |h_i| \le 2 \cdot 2^K$ and the vertex coordinates
+are below $2^{161}$, so the norms are at most those of the worst box (scale $2^{16}$, all centres
+and radii $2^{17}$), which are below $2^{390}$ by direct computation.
+\end{proof}

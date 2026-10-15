@@ -10,7 +10,7 @@ by Jakob Steininger & Sergey Yurkevich (`[SY25]`) does not
 </p>
 
 The proof is checked by the Lean kernel alone and depends only on the standard axioms
-`[propext, Classical.choice, Quot.sound]`. It takes about 5.5 minutes (1.4 CPU-hours) on a
+`[propext, Classical.choice, Quot.sound]`. It takes about 5.5 minutes (1.3 CPU-hours) on a
 16-core machine.
 
 Unlike [SY25], every pose coordinate is rational (Cayley coordinates for rotations) and every

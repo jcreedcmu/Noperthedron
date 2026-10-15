@@ -157,13 +157,13 @@ def gChart {R : Type} (sub mul : R → R → R) (c : Int → R) (add : R → R �
 def gFace {R : Type} (face : Nat) (sg s0 s1 : R) : R × R × R :=
   if face / 2 = 0 then (sg, s0, s1) else if face / 2 = 1 then (s1, sg, s0) else (s0, s1, sg)
 
-/-- The gap-leaf polynomials, generic in the arithmetic (`x i` is the variable `tᵢ`). -/
-def gapGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R)
-    (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : GData R :=
-  let U := c (p2 b.K)
+/-- The gap-leaf polynomials, generic in the arithmetic (`x i` is the variable `tᵢ`), with the
+box data (scale `U`, centres `cc`, radii `hh`), the inner vertex and the direction as inputs. -/
+def gapCore {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R)
+    (chart face : Nat) (U : R) (cc hh : Nat → R) (sx sy sz w0 w1 : R) : GData R :=
   let U2 := mul U U
-  let u := add (c (b.c.getD 0 0)) (mul (c (b.h.getD 0 0)) (x 0))
-  let v := add (c (b.c.getD 1 0)) (mul (c (b.h.getD 1 0)) (x 1))
+  let u := add (cc 0) (mul (hh 0) (x 0))
+  let v := add (cc 1) (mul (hh 1) (x 1))
   let uu := mul u u
   let vv := mul v v
   let uv := mul u v
@@ -173,19 +173,16 @@ def gapGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 �
   let n02 := mul (mul (c (-2)) U) u
   let n11 := add (sub U2 vv) uu
   let n12 := mul (mul (c (-2)) U) v
-  let a0 := add (mul (c w0) n00) (mul (c w1) n01)
-  let a1 := add (mul (c w0) n01) (mul (c w1) n11)
-  let a2 := add (mul (c w0) n02) (mul (c w1) n12)
-  let sx := c S.1
-  let sy := c S.2.1
-  let sz := c S.2.2
-  let κ := c (chartKI b.chart)
-  if b.chart = 0 ∨ b.chart = 4 then
-    let sg : R := if b.face % 2 = 0 then U else sub (c 0) U
-    let s0 := add (c (b.c.getD 2 0)) (mul (c (b.h.getD 2 0)) (x 2))
-    let s1 := add (c (b.c.getD 3 0)) (mul (c (b.h.getD 3 0)) (x 3))
-    let (cx, cy, cz) : R × R × R := gFace b.face sg s0 s1
-    let ρ := add (c (b.c.getD 4 0)) (mul (c (b.h.getD 4 0)) (x 4))
+  let a0 := add (mul w0 n00) (mul w1 n01)
+  let a1 := add (mul w0 n01) (mul w1 n11)
+  let a2 := add (mul w0 n02) (mul w1 n12)
+  let κ := c (chartKI chart)
+  if chart = 0 ∨ chart = 4 then
+    let sg : R := if face % 2 = 0 then U else sub (c 0) U
+    let s0 := add (cc 2) (mul (hh 2) (x 2))
+    let s1 := add (cc 3) (mul (hh 3) (x 3))
+    let (cx, cy, cz) : R × R × R := gFace face sg s0 s1
+    let ρ := add (cc 4) (mul (hh 4) (x 4))
     let ρ2 := mul ρ ρ
     let c2 := add (add (mul cx cx) (mul cy cy)) (mul cz cz)
     let cS := add (add (mul sx cx) (mul sy cy)) (mul sz cz)
@@ -197,46 +194,45 @@ def gapGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 �
     let nk (s cc xx : R) : R :=
       add (add (mul s U4) (mul (sub (mul (mul (c 2) cc) cS) (mul s c2)) ρ2))
         (mul (mul (mul (c 2) U2) xx) ρ)
-    let (b0, b1, b2) := gChart sub mul c add b.chart (nk sx cx x0) (nk sy cy x1) (nk sz cz x2)
+    let (b0, b1, b2) := gChart sub mul c add chart (nk sx cx x0) (nk sy cy x1) (nk sz cz x2)
     let d := add U4 (mul c2 ρ2)
     -- paired inner vector U² (c×S) + ρ c×(c×S), over U³
     let k0 := sub (mul cy x2) (mul cz x1)
     let k1 := sub (mul cz x0) (mul cx x2)
     let k2 := sub (mul cx x1) (mul cy x0)
-    let (l0, l1, l2) := gChart sub mul c add b.chart (add (mul U2 x0) (mul k0 ρ))
+    let (l0, l1, l2) := gChart sub mul c add chart (add (mul U2 x0) (mul k0 ρ))
       (add (mul U2 x1) (mul k1 ρ)) (add (mul U2 x2) (mul k2 ρ))
     { a0, a1, a2, b0, b1, b2, kd := mul κ d, l0, l1, l2 }
   else
-    let r0 := add (c (b.c.getD 2 0)) (mul (c (b.h.getD 2 0)) (x 2))
-    let r1 := add (c (b.c.getD 3 0)) (mul (c (b.h.getD 3 0)) (x 3))
-    let r2 := add (c (b.c.getD 4 0)) (mul (c (b.h.getD 4 0)) (x 4))
+    let r0 := add (cc 2) (mul (hh 2) (x 2))
+    let r1 := add (cc 3) (mul (hh 3) (x 3))
+    let r2 := add (cc 4) (mul (hh 4) (x 4))
     let r2s := add (add (mul r0 r0) (mul r1 r1)) (mul r2 r2)
     let rS := add (add (mul sx r0) (mul sy r1)) (mul sz r2)
     let base := sub U2 r2s
     let nk (s r xx : R) : R :=
       add (add (mul s base) (mul (mul (c 2) r) rS)) (mul (mul (c 2) U) xx)
-    let (b0, b1, b2) := gChart sub mul c add b.chart
+    let (b0, b1, b2) := gChart sub mul c add chart
       (nk sx r0 (sub (mul sz r1) (mul sy r2)))
       (nk sy r1 (sub (mul sx r2) (mul sz r0)))
       (nk sz r2 (sub (mul sy r0) (mul sx r1)))
     { a0, a1, a2, b0, b1, b2, kd := mul κ (add U2 r2s), l0 := c 0, l1 := c 0, l2 := c 0 }
 
+/-- The gap-leaf polynomials of box `b`, inner vertex `S` and direction `(w0, w1)`. -/
+def gapGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R)
+    (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : GData R :=
+  gapCore add sub mul c x b.chart b.face (c (p2 b.K)) (fun i => c (b.c.getD i 0))
+    (fun i => c (b.h.getD i 0)) (c S.1) (c S.2.1) (c S.2.2) (c w0) (c w1)
+
 /-- The gap-leaf data in packed integers. -/
 def pGapData (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : GData Int :=
   gapGen Int.add Int.sub Int.mul (fun z => z) (fun i => pX i.val) b S w0 w1
 
-/-- Coefficient-norm bounds of the gap-leaf polynomials (the `Nat` instance of `gapGen`). -/
-def gapNrm (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : GData Nat :=
-  gapGen Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) b S w0 w1
-
-/-- The packed polynomials stay decodable: every polynomial the gap test decodes has
-coefficient norm below `2^390` (room for the Bernstein transform) (outer vertices have coordinates below `2^161`). -/
-def gapNrmOK (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
-  let nb := gapNrm b S w0 w1
-  let nA := Nat.add (Nat.add (Nat.mul nb.a0 nb.b0) (Nat.mul nb.a1 nb.b1)) (Nat.mul nb.a2 nb.b2)
-  let nX := Nat.mul (2 ^ 161) (Nat.add (Nat.add nb.a0 nb.a1) nb.a2)
-  Nat.blt (Nat.add nA (Nat.mul nX nb.kd)) (2 ^ 390) &&
-    Nat.blt (Nat.add (Nat.add (Nat.mul nb.a0 nb.l0) (Nat.mul nb.a1 nb.l1)) (Nat.mul nb.a2 nb.l2)) (2 ^ 390)
+/-- The norm guard of a gap leaf: the box scale and the direction are small enough that the
+coefficient norms of every polynomial the leaf decodes stay below `2^390` (proved once, on the
+worst box, in `Cayley.Pack.gapNrmOK_worst`). -/
+def nrmOK (b : KBox) (w0 w1 : Int) : Bool :=
+  Nat.ble b.K 16 && Nat.ble w0.natAbs 1024 && Nat.ble w1.natAbs 1024
 
 /-- Scale exponents of `A` and of `L` beyond `2^160`. -/
 def gapSc (b : KBox) : Nat := if b.chart = 0 ∨ b.chart = 4 then 6 * b.K else 4 * b.K
@@ -302,7 +298,7 @@ def pGapOK (b : KBox) (s : Nat) (w0 w1 : Int) : Bool :=
       ((E0.abs : Int) + E1.abs + E2.abs)
     let C : Int := p2 639 + quickQ b S w0 w1 - p2 170 * tot
     let packOK : Bool := decide (0 ≤ C) && decide (C + 2 * p2 170 * tot < p2 640)
-    (w0 != 0 || w1 != 0) && gapNrmOK b S w0 w1 &&
+    (w0 != 0 || w1 != 0) && nrmOK b w0 w1 &&
       if packOK then
         vtxSplit (fun t tx ty tz _ _ _ => vtestG b s S w0 w1 t tx ty tz) 8 0 90
           (Nat.xor signT (Nat.land (quickV C E0.c0 E1.c0 E2.c0 E0.abs E1.abs E2.abs) signT))

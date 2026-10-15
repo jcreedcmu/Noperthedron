@@ -221,6 +221,82 @@ theorem gapNrmOK_spec {b : KBox} {S : ℤ × ℤ × ℤ} {w0 w1 : ℤ} (h : gapN
   simp only [Bool.and_eq_true, Nat.blt_eq] at h
   exact h
 
+/-! ### The norm guard from the cheap check `nrmOK` -/
+
+theorem gapNrmOK_of_le {b b' : KBox} {S S' : ℤ × ℤ × ℤ} {w0 w1 w0' w1' : ℤ}
+    (h : ∀ k, (gapNrm b S w0 w1).get k ≤ (gapNrm b' S' w0' w1').get k)
+    (h' : gapNrmOK b' S' w0' w1' = true) : gapNrmOK b S w0 w1 = true := by
+  obtain ⟨hA, hL⟩ := gapNrmOK_spec h'
+  have e0 := h 0; have e1 := h 1; have e2 := h 2; have e3 := h 3; have e4 := h 4
+  have e5 := h 5; have e6 := h 6; have e7 := h 7; have e8 := h 8; have e9 := h 9
+  simp only [GData.get] at e0 e1 e2 e3 e4 e5 e6 e7 e8 e9
+  unfold gapNrmOK
+  simp only [Bool.and_eq_true, Nat.blt_eq]
+  refine ⟨lt_of_le_of_lt ?_ hA, lt_of_le_of_lt ?_ hL⟩ <;> simp only [nat_add, nat_mul] <;> gcongr
+
+/-- The worst box of a chart and face: scale `2^16`, every centre and radius `2^17`. -/
+def worstBox (chart face : ℕ) : KBox :=
+  ⟨chart, face, 16, List.replicate 5 ((2 ^ 17 : ℕ) : ℤ), List.replicate 5 ((2 ^ 17 : ℕ) : ℤ)⟩
+
+/-- Every coordinate at the vertex bound. -/
+def S161 : ℤ × ℤ × ℤ := (((2 ^ 161 : ℕ) : ℤ), ((2 ^ 161 : ℕ) : ℤ), ((2 ^ 161 : ℕ) : ℤ))
+
+theorem gapNrmOK_worst : ∀ chart < 5, ∀ face < 6,
+    gapNrmOK (worstBox chart face) S161 1024 1024 = true := by
+  decide +kernel
+
+theorem worstBox_getD (chart face i : ℕ) (hi : i < 5) :
+    (worstBox chart face).c.getD i 0 = ((2 ^ 17 : ℕ) : ℤ) ∧
+      (worstBox chart face).h.getD i 0 = ((2 ^ 17 : ℕ) : ℤ) := by
+  interval_cases i <;> exact ⟨rfl, rfl⟩
+
+/-- A box with the walk's magnitude bound that passes `nrmOK` passes the norm guard. -/
+theorem gapNrmOK_box (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
+    (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
+    {s : ℕ} (hs : s < 90) {w0 w1 : ℤ} (hn : nrmOK b w0 w1 = true) :
+    gapNrmOK b (vt s) w0 w1 = true := by
+  simp only [nrmOK, Bool.and_eq_true, Nat.ble_eq] at hn
+  obtain ⟨⟨hK, hw0⟩, hw1⟩ := hn
+  have h17 : (2 : ℤ) * 2 ^ b.K ≤ ((2 ^ 17 : ℕ) : ℤ) := by
+    have : (2 : ℕ) ^ b.K ≤ 2 ^ 16 := Nat.pow_le_pow_right (by norm_num) hK
+    have : (2 : ℤ) ^ b.K ≤ 2 ^ 16 := by exact_mod_cast this
+    push_cast; linarith
+  have coord : ∀ (l : List ℤ) (hl : l.length = 5) (f : ℕ → ℤ)
+      (hb : ∀ i : Fin 5, |l.getD i 0| ≤ 2 * 2 ^ b.K) (hf : ∀ i < 5, f i = ((2 ^ 17 : ℕ) : ℤ)),
+      ∀ i, (l.getD i 0).natAbs ≤ (if i < 5 then f i else 0).natAbs := by
+    intro l hl f hb hf i
+    by_cases hi : i < 5
+    · rw [if_pos hi, hf i hi, Int.natAbs_natCast]
+      have := hb ⟨i, hi⟩
+      rw [Int.abs_eq_natAbs] at this
+      exact_mod_cast le_trans this h17
+    · simp [List.getD_eq_getElem?_getD, hl, hi]
+  have bv := vt_bound s hs
+  apply gapNrmOK_of_le _ (gapNrmOK_worst _ hj _ hf)
+  intro k
+  apply gapNrm_mono b (worstBox b.chart b.face) rfl rfl
+  · simp only [p2, Int.natAbs_natCast, worstBox]
+    exact Nat.pow_le_pow_right (by norm_num) hK
+  · intro i
+    have := coord b.c hlc (fun i => (worstBox b.chart b.face).c.getD i 0)
+      (fun i => le_trans (le_add_of_nonneg_right (abs_nonneg _)) (hmag i))
+      (fun i hi => (worstBox_getD _ _ i hi).1) i
+    split_ifs at this with hi
+    · exact this
+    · simp only [Int.natAbs_zero, nonpos_iff_eq_zero] at this; omega
+  · intro i
+    have := coord b.h hlh (fun i => (worstBox b.chart b.face).h.getD i 0)
+      (fun i => le_trans (le_add_of_nonneg_left (abs_nonneg _)) (hmag i))
+      (fun i hi => (worstBox_getD _ _ i hi).2) i
+    split_ifs at this with hi
+    · exact this
+    · simp only [Int.natAbs_zero, nonpos_iff_eq_zero] at this; omega
+  · simp only [S161, Int.natAbs_natCast]; exact bv.1.le
+  · simp only [S161, Int.natAbs_natCast]; exact bv.2.1.le
+  · simp only [S161, Int.natAbs_natCast]; exact bv.2.2.le
+  · simpa using hw0
+  · simpa using hw1
+
 theorem nrm_all390 (h : gapNrmOK b (vt s) w0 w1 = true) (T : ℤ × ℤ × ℤ)
     (hT : T.1.natAbs < 2 ^ 161 ∧ T.2.1.natAbs < 2 ^ 161 ∧ T.2.2.natAbs < 2 ^ 161) :
     (Ap b s w0 w1).nrm < 2 ^ 390 ∧ (Ep0 b s w0 w1).nrm < 2 ^ 390 ∧ (Ep1 b s w0 w1).nrm < 2 ^ 390 ∧
@@ -644,8 +720,9 @@ theorem vtxIdx_all {P : ℕ × (ℤ × ℤ × ℤ) × (ℤ × ℤ × ℤ) → Bo
   convert this using 1
   simp [vtxIdx, vt, List.getD_eq_getElem?_getD, hlen, ht]
 
-theorem pGapOK_vertex (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {s : ℕ} {w0 w1 : ℤ}
-    (h : pGapOK b s w0 w1 = true) :
+theorem pGapOK_vertex (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
+    (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
+    {s : ℕ} {w0 w1 : ℤ} (h : pGapOK b s w0 w1 = true) :
     s < 90 ∧ (w0 ≠ 0 ∨ w1 ≠ 0) ∧ gapNrmOK b (vt s) w0 w1 = true ∧
       ∀ tt < 90, ∀ t : Fin 5 → ℝ, (∀ i, |t i| ≤ 1) →
       G1 b s w0 w1 t tt ∨ (gPair b s = some tt ∧ pairOK b (vt s) w0 w1 = true) := by
@@ -655,7 +732,7 @@ theorem pGapOK_vertex (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {s : ℕ} 
   refine ⟨hs, ?_⟩
   simp only [Bool.and_eq_true, Bool.or_eq_true, bne_iff_ne, ne_eq] at h
   obtain ⟨⟨hw, hn⟩, hrest⟩ := h
-  have hn' : gapNrmOK b (vt s) w0 w1 = true := hn
+  have hn' : gapNrmOK b (vt s) w0 w1 = true := gapNrmOK_box b hj hf hlc hlh hmag hs hn
   refine ⟨hw, hn', fun tt htt t ht => ?_⟩
   split_ifs at hrest with hpk
   · simp only [decide_eq_true_eq] at hpk
@@ -680,12 +757,14 @@ theorem pGapOK_vertex (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {s : ℕ} 
     exact vtestG_sound b hj hf s w0 w1 hn' htt hv ht
 
 /-- **Soundness of a kernel gap leaf.** -/
-theorem pGapOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {s : ℕ} {w0 w1 : ℤ}
+theorem pGapOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
+    (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
+    {s : ℕ} {w0 w1 : ℤ}
     (h : pGapOK b s w0 w1 = true) {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1)
     (hpt : PtOK b.chart b.face (kpt b t)) :
     ¬ RupPair (outerRot (kpt b t 0) (kpt b t 1))
       (outerRot (kpt b t 0) (kpt b t 1) * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t))) := by
-  obtain ⟨hs, hw, hn, hv⟩ := pGapOK_vertex b hj hf h
+  obtain ⟨hs, hw, hn, hv⟩ := pGapOK_vertex b hj hf hlc hlh hmag h
   apply gap_core b.chart b.face hj (kpt b t) hpt s hs w0 w1 hw (vR s) (vR_err hs) vR
     (fun tt htt => vR_err htt)
   intro tt htt

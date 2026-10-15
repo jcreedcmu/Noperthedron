@@ -59,7 +59,31 @@ theorem gapGen_map (b : KBox) (s : ℤ × ℤ × ℤ) (w0 w1 : ℤ) :
   have hf1 := fun face a b c => (gFace_map f face a b c).1
   have hf2 := fun face a b c => (gFace_map f face a b c).2.1
   have hf3 := fun face a b c => (gFace_map f face a b c).2.2
-  simp only [g, g', gapGen]
+  simp only [g, g', gapGen, gapCore]
+  split_ifs <;> simp only [h1, h2, h3, hf1, hf2, hf3, hadd, hsub, hmul, hc, hx, and_self]
+
+include hx in
+theorem gapCore_map (chart face : ℕ) (U : R) (cc hh : ℕ → R) (sx sy sz w0 w1 : R) :
+    let g := gapCore addR subR mulR cR xR chart face U cc hh sx sy sz w0 w1
+    let g' := gapCore addS subS mulS cS xS chart face (f U) (fun i => f (cc i)) (fun i => f (hh i))
+      (f sx) (f sy) (f sz) (f w0) (f w1)
+    f g.a0 = g'.a0 ∧ f g.a1 = g'.a1 ∧ f g.a2 = g'.a2 ∧ f g.b0 = g'.b0 ∧ f g.b1 = g'.b1 ∧
+      f g.b2 = g'.b2 ∧ f g.kd = g'.kd ∧ f g.l0 = g'.l0 ∧ f g.l1 = g'.l1 ∧ f g.l2 = g'.l2 := by
+  intro g g'
+  have hgc := gChart_map addR subR mulR cR addS subS mulS cS f hadd hsub hmul hc
+  have h1 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).1 =
+      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).1 := fun ch y0 y1 y2 => by
+    rw [← hgc]
+  have h2 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).2.1 =
+      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).2.1 := fun ch y0 y1 y2 => by
+    rw [← hgc]
+  have h3 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).2.2 =
+      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).2.2 := fun ch y0 y1 y2 => by
+    rw [← hgc]
+  have hf1 := fun face a b c => (gFace_map f face a b c).1
+  have hf2 := fun face a b c => (gFace_map f face a b c).2.1
+  have hf3 := fun face a b c => (gFace_map f face a b c).2.2
+  simp only [g, g', gapCore]
   split_ifs <;> simp only [h1, h2, h3, hf1, hf2, hf3, hadd, hsub, hmul, hc, hx, and_self]
 
 end map
@@ -85,7 +109,7 @@ theorem gapR_alpha (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 �
   have ha : g.a0 = (2 ^ b.K) ^ 2 * (w0 * NoR (kpt b t) 0 0 + w1 * NoR (kpt b t) 1 0) ∧
       g.a1 = (2 ^ b.K) ^ 2 * (w0 * NoR (kpt b t) 0 1 + w1 * NoR (kpt b t) 1 1) ∧
       g.a2 = (2 ^ b.K) ^ 2 * (w0 * NoR (kpt b t) 0 2 + w1 * NoR (kpt b t) 1 2) := by
-    simp only [g, gapR, gapGen]
+    simp only [g, gapR, gapGen, gapCore]
     split_ifs <;> simp only [p2_cast, kpt, NoR, cayleyNumeratorMatrix, of_apply, cons_val',
       cons_val_zero, cons_val_one, cons_val_two, empty_val', cons_val_fin_one, Fin.isValue,
       Fin.val_zero, Fin.val_one, vecHead, vecTail, Function.comp_apply, Fin.succ_zero_eq_one] <;> refine ⟨?_, ?_, ?_⟩ <;> field_simp <;> ring
@@ -152,7 +176,7 @@ theorem gapR_beta (b : KBox) (hj : b.chart < 5) (S : ℤ × ℤ × ℤ) (w0 w1 :
       g.kd = kapJ b.chart * betaSc b * cayleyDenom (r 0) (r 1) (r 2) := by
   intro g r v
   have hF := gFace_real b.face (2 ^ b.K) (kpt b t 2) (kpt b t 3)
-  simp only [g, gapR, gapGen, v, r, p2_cast, kptm2, kptm3, kptm4]
+  simp only [g, gapR, gapGen, gapCore, v, r, p2_cast, kptm2, kptm3, kptm4]
   by_cases hbl : b.chart = 0 ∨ b.chart = 4
   · have hk : kblow b.chart = true := by simp [kblow]; exact hbl
     simp only [hbl, ↓reduceIte, hF.1, hF.2.1, hF.2.2, gChart_real1 _ hj, gChart_real2 _ hj,
@@ -187,7 +211,7 @@ theorem gapR_L (b : KBox) (hj : b.chart < 5) (hbl : b.chart = 0 ∨ b.chart = 4)
       g.l2 = ((2 : ℝ) ^ b.K) ^ 3 * v 2 := by
   intro g c v
   have hF := gFace_real b.face (2 ^ b.K) (kpt b t 2) (kpt b t 3)
-  simp only [g, gapR, gapGen, v, c, p2_cast, kptm2, kptm3, kptm4, hbl, ↓reduceIte, hF.1, hF.2.1,
+  simp only [g, gapR, gapGen, gapCore, v, c, p2_cast, kptm2, kptm3, kptm4, hbl, ↓reduceIte, hF.1, hF.2.1,
     hF.2.2, gChart_real1 _ hj, gChart_real2 _ hj, gChart_real3 _ hj, svec]
   generalize faceR b.face (kpt b t 2) (kpt b t 3) = fv
   generalize kpt b t 4 = ρ
@@ -230,6 +254,19 @@ theorem gapPE_real (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 �
   gapGen_map' PE.add PE.sub PE.mul PE.c PE.x (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t
     (PE.ev t) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl)
     b S w0 w1 k
+
+/-- Coefficient-norm bounds of the gap-leaf polynomials (the `Nat` instance of `gapGen`). -/
+def _root_.Cayley.K.gapNrm (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : GData Nat :=
+  gapGen Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) b S w0 w1
+
+/-- Every polynomial the gap test decodes has coefficient norm below `2^390` (room for the
+Bernstein transform; outer vertices have coordinates below `2^161`). -/
+def _root_.Cayley.K.gapNrmOK (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
+  let nb := gapNrm b S w0 w1
+  let nA := Nat.add (Nat.add (Nat.mul nb.a0 nb.b0) (Nat.mul nb.a1 nb.b1)) (Nat.mul nb.a2 nb.b2)
+  let nX := Nat.mul (2 ^ 161) (Nat.add (Nat.add nb.a0 nb.a1) nb.a2)
+  Nat.blt (Nat.add nA (Nat.mul nX nb.kd)) (2 ^ 390) &&
+    Nat.blt (Nat.add (Nat.add (Nat.mul nb.a0 nb.l0) (Nat.mul nb.a1 nb.l1)) (Nat.mul nb.a2 nb.l2)) (2 ^ 390)
 
 theorem gapPE_nrm (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
     ((gapPE b S w0 w1).get k).nrm = (gapNrm b S w0 w1).get k :=
@@ -276,7 +313,7 @@ theorem gapGen_map2 {R S : Type} (addR subR mulR : R → R → R) (cR : ℤ → 
   have hf2 := fun face a b c => (gFace_map f face a b c).2.1
   have hf3 := fun face a b c => (gFace_map f face a b c).2.2
   have hcc : ∀ z z', cS z = cS z' := fun z z' => by rw [← hc z z', hc z z]
-  simp only [gapGen, hch, hfa]
+  simp only [gapGen, gapCore, hch, hfa]
   split_ifs <;> fin_cases k <;>
     simp only [K.GData.get, h1, h2, h3, hf1, hf2, hf3, hadd, hsub, hmul, hc', hx] <;>
     simp only [hcc _ 0]
@@ -298,5 +335,48 @@ theorem gapDeg_closed : ∀ chart < 5, ∀ face < 6, ∀ k : Fin 10, ∀ i : Fin
 theorem gapDeg_le (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ)
     (k : Fin 10) (i : Fin 5) : (gapDeg b S w0 w1).get k i ≤ degB k i := by
   rw [gapDeg_data]; exact gapDeg_closed _ hj _ hf k i
+
+/-! ## Monotonicity of the norm instance -/
+
+/-- Pairs `(a, b)` with `a ≤ b`. Running `gapCore` on them runs the norm instance on two inputs
+at once, and keeps every first component below the second. -/
+abbrev MP := {p : ℕ × ℕ // p.1 ≤ p.2}
+
+def mpAdd (a b : MP) : MP := ⟨(a.1.1 + b.1.1, a.1.2 + b.1.2), Nat.add_le_add a.2 b.2⟩
+def mpMul (a b : MP) : MP := ⟨(a.1.1 * b.1.1, a.1.2 * b.1.2), Nat.mul_le_mul a.2 b.2⟩
+def mpC (z : ℤ) : MP := ⟨(z.natAbs, z.natAbs), le_rfl⟩
+def mpX (_ : Fin 5) : MP := ⟨(1, 1), le_rfl⟩
+
+theorem gapCore_get {R : Type} (g : GData R) (f : R → ℕ) (g' : GData ℕ)
+    (h : f g.a0 = g'.a0 ∧ f g.a1 = g'.a1 ∧ f g.a2 = g'.a2 ∧ f g.b0 = g'.b0 ∧ f g.b1 = g'.b1 ∧
+      f g.b2 = g'.b2 ∧ f g.kd = g'.kd ∧ f g.l0 = g'.l0 ∧ f g.l1 = g'.l1 ∧ f g.l2 = g'.l2)
+    (k : Fin 10) : f (g.get k) = g'.get k := by
+  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9⟩ := h
+  fin_cases k <;> assumption
+
+/-- **Norm monotonicity.** The coefficient-norm bounds grow with the magnitudes of the inputs. -/
+theorem gapNrm_mono (b b' : KBox) (hch : b.chart = b'.chart) (hfa : b.face = b'.face)
+    (hK : (p2 b.K).natAbs ≤ (p2 b'.K).natAbs)
+    (hc : ∀ i, (b.c.getD i 0).natAbs ≤ (b'.c.getD i 0).natAbs)
+    (hh : ∀ i, (b.h.getD i 0).natAbs ≤ (b'.h.getD i 0).natAbs)
+    (S S' : ℤ × ℤ × ℤ) (h1 : S.1.natAbs ≤ S'.1.natAbs) (h2 : S.2.1.natAbs ≤ S'.2.1.natAbs)
+    (h3 : S.2.2.natAbs ≤ S'.2.2.natAbs) (w0 w1 w0' w1' : ℤ) (hw0 : w0.natAbs ≤ w0'.natAbs)
+    (hw1 : w1.natAbs ≤ w1'.natAbs) (k : Fin 10) :
+    (gapNrm b S w0 w1).get k ≤ (gapNrm b' S' w0' w1').get k := by
+  set P := gapCore mpAdd mpAdd mpMul mpC mpX b'.chart b'.face ⟨(_, _), hK⟩
+    (fun i => ⟨(_, _), hc i⟩) (fun i => ⟨(_, _), hh i⟩) ⟨(_, _), h1⟩ ⟨(_, _), h2⟩ ⟨(_, _), h3⟩
+    ⟨(_, _), hw0⟩ ⟨(_, _), hw1⟩ with hP
+  have e1 := gapCore_get P (fun p => p.1.1) _ (gapCore_map mpAdd mpAdd mpMul mpC mpX
+    Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) (fun p => p.1.1) (fun _ _ => rfl)
+    (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl) _ _ _ _ _ _ _ _ _ _) k
+  have e2 := gapCore_get P (fun p => p.1.2) _ (gapCore_map mpAdd mpAdd mpMul mpC mpX
+    Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) (fun p => p.1.2) (fun _ _ => rfl)
+    (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl) _ _ _ _ _ _ _ _ _ _) k
+  have l : (gapNrm b S w0 w1).get k = (P.get k).1.1 := by
+    rw [e1]; unfold gapNrm gapGen; rw [hch, hfa]; rfl
+  have r : (gapNrm b' S' w0' w1').get k = (P.get k).1.2 := by
+    rw [e2]; rfl
+  rw [l, r]
+  exact (P.get k).2
 
 end Cayley.Pack
