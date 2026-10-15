@@ -4,6 +4,7 @@ public import CayleyKernel.Load
 public meta import CayleyKernel.Load
 public import CayleyKernel.Gen.C76
 public import CayleyKernel.Gen.C77
+public import CayleyKernel.Gen.C78
 
 @[expose] public section
 

@@ -5,7 +5,7 @@ public meta import CayleyKernel.Load
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): kernel-checked chunks 2500–2599. -/
+/-! GENERATED (`cayleyCheck kgen`): kernel-checked chunks 9000–9359. -/
 
 set_option Elab.async false
 

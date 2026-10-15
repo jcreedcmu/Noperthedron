@@ -11,7 +11,6 @@ public import CayleyKernel.Gen.C14
 public import CayleyKernel.Gen.C15
 public import CayleyKernel.Gen.C16
 public import CayleyKernel.Gen.C17
-public import CayleyKernel.Gen.C18
 
 @[expose] public section
 

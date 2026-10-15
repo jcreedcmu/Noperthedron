@@ -2,6 +2,7 @@ module
 
 public import CayleyKernel.Load
 public meta import CayleyKernel.Load
+public import CayleyKernel.Gen.C30
 public import CayleyKernel.Gen.C31
 public import CayleyKernel.Gen.C32
 public import CayleyKernel.Gen.C33

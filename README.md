@@ -10,7 +10,7 @@ by Jakob Steininger & Sergey Yurkevich (`[SY25]`) does not
 </p>
 
 The proof is checked by the Lean kernel alone and depends only on the standard axioms
-`[propext, Classical.choice, Quot.sound]`. It takes about 7.5 minutes (1.8 CPU-hours) on a
+`[propext, Classical.choice, Quot.sound]`. It takes about 5.5 minutes (1.4 CPU-hours) on a
 16-core machine.
 
 Unlike [SY25], every pose coordinate is rational (Cayley coordinates for rotations) and every
@@ -84,7 +84,7 @@ LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../../.cayl
 cd ../..
 lake build cayleyCheck
 .lake/build/bin/cayleyCheck kwalk .cayley-data/v4/cover.txt     # optional native check
-.lake/build/bin/cayleyCheck kgen .cayley-data/v4/cover.txt .cayley-data/kernel CayleyKernel/Gen 64 100
+.lake/build/bin/cayleyCheck kgen .cayley-data/v4/cover.txt .cayley-data/kernel CayleyKernel/Gen 16 360
 ```
 
 The export is deterministic, so `kgen` reproduces the committed `CayleyKernel/Gen` modules.
