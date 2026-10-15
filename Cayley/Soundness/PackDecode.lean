@@ -223,17 +223,16 @@ theorem slackC_le (L : Layout) (e : PE) :
     rcases Nat.le_one_iff_eq_zero_or_eq_one.1 h1 with h | h <;> rw [h] <;> simp
   have : (nzI j : ℤ) * negC L e j ≤ negC L e j := by
     rcases Nat.le_one_iff_eq_zero_or_eq_one.1 h2 with h | h <;> rw [h] <;> simp
-  linarith
+  lia
 
 theorem pLowerL_eq {L : Layout} (hL : L.Good) {e : PE} (h : L.Fits e) (hn : 0 < L.n)
     (hc : ∀ j < L.n, |L.cf e j| < O) (hS : ∑ j ∈ Finset.range L.n, |L.cf e j| < (pM : ℤ)) :
     pLowerL (packN PW (fun _ => 1) L.n) (packN PW (evI L) L.n) (e.ev (kron L)) =
       L.cf e 0 - slackC L e := by
   have hsl : slackC L e < 2 ^ PW - 1 := by
-    have := slackC_le L e; rw [pM_eq] at hS
-    have : (2 : ℤ) ^ PW - 1 = ((2 ^ PW - 1 : ℕ) : ℤ) := by
-      rw [Nat.cast_sub Nat.one_le_two_pow]; push_cast; ring
-    omega
+    have := slackC_le L e
+    rw [pM_eq] at hS
+    lia
   have hpos := fun j hj => posC_lt (hc j hj)
   have hneg := fun j hj => negC_lt (hc j hj)
   have hP := pParts_eq (n := L.n) (L.cf e) hc
@@ -360,9 +359,7 @@ theorem pStatsL_eq {L : Layout} (hL : L.Good) {e : PE} (h : L.Fits e) (hn : 0 < 
         ∑ j ∈ Finset.range L.n, |L.cf e j| := by
       push_cast; exact Finset.sum_congr rfl fun j _ => by exact_mod_cast posC_add_negC L e j
     rw [pM_eq] at hS
-    have h2 : ((2 ^ PW - 1 : ℕ) : ℤ) = 2 ^ PW - 1 := by
-      rw [Nat.cast_sub Nat.one_le_two_pow]; push_cast; ring
-    omega
+    lia
   have hle : ∀ (f : ℕ → ℕ), (∀ j, f j ≤ posC L e j + negC L e j) →
       ∑ j ∈ Finset.range L.n, f j < 2 ^ PW - 1 :=
     fun f hf => lt_of_le_of_lt (Finset.sum_le_sum fun j _ => hf j) hsum

@@ -288,7 +288,7 @@ theorem gap_core (chart face : ℕ) (hj : chart < 5) (X : Fin 5 → ℝ) (hpt : 
       have hprod : 0 < Do * κ * Dr := by have := hDo.1; have := hDr.1; positivity
       have : 0 ≤ Do * κ * Dr * (lin w0 w1 (Ri *ᵥ Sv) - lin w0 w1 (Ro *ᵥ (B *ᵥ Sv))) := by
         rw [hid]; exact mul_nonneg hρ0 hLt
-      exact nonneg_of_mul_nonneg_right (by linarith) hprod
+      exact nonneg_of_mul_nonneg_right this hprod
     rw [hσ]
     linarith
   · have hTt := hT tt htt

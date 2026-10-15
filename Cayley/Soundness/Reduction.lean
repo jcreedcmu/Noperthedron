@@ -188,12 +188,8 @@ theorem step_outer {Ro Ri : Matrix (Fin 3) (Fin 3) ℝ}
 
 /-! ## Step B: the relative rotation's orbit -/
 
-theorem Rz_mat_add (a b : ℝ) : Rz_mat a * Rz_mat b = Rz_mat (a + b) := by
-  ext i j; fin_cases i <;> fin_cases j <;>
-    simp [Rz_mat, Matrix.mul_apply, Fin.sum_univ_three, cos_add, sin_add] <;> ring
-
 theorem gR_mul (k k' : ℕ) : gR k * gR k' = gR (k + k') := by
-  simp only [gR_eq, Rz_mat_add]; congr 1; push_cast; ring
+  simp only [gR_eq, Bounding.Rz_mat_mul_Rz_mat]; congr 1; push_cast; ring
 
 theorem gR_mod (k : ℕ) : gR (k % 15) = gR k := by
   rw [gR_eq, gR_eq]
