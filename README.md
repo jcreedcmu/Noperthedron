@@ -13,11 +13,17 @@ The proof is checked by the Lean kernel alone and depends only on the standard a
 `[propext, Classical.choice, Quot.sound]`. It takes about 5.5 minutes (1.3 CPU-hours) on a
 16-core machine.
 
-Unlike [SY25], every pose coordinate is rational (Cayley coordinates for rotations) and every
-case of the case analysis is exact polynomial arithmetic. There are no trigonometric
-approximations of pose angles, no derivative bounds and no separate local theorem: poses near
-the aligned configurations are handled by an exact blow-up. See
-[cayley/DESIGN.md](cayley/DESIGN.md) for the mathematics.
+The polyhedron is exactly the Noperthedron of [SY25]: its 90 vertices are `±Rz(2πk/15)·Cᵢ`
+for `k = 0..14` and the three rational points `C₁, C₂, C₃` of [SY25] §2.1, defined as
+`exactVerts` in [Noperthedron/Vertices/Exact.lean](Noperthedron/Vertices/Exact.lean). (The
+vertices themselves are not rational; the checker uses rational enclosures of them with proved
+error bounds.)
+
+What differs from [SY25] is how poses are parametrized. Every pose coordinate is rational
+(Cayley coordinates for rotations), and every case of the case analysis is exact polynomial
+arithmetic. There are no trigonometric approximations of pose angles, no derivative bounds and
+no separate local theorem: poses near the aligned configurations are handled by an exact
+blow-up. See [cayley/DESIGN.md](cayley/DESIGN.md) for the mathematics.
 
 An earlier proof that follows [SY25] closely (angular coordinates, the global and local
 theorems, and a solution table checked by the kernel, by `native_decide`, or by a native
