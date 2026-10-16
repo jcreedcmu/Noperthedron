@@ -24,7 +24,7 @@ An earlier proof that follows [SY25] closely is preserved at the tag
 
 ## Statement
 
-A full problem statement that uses only Mathlib definitions and lives in
+A full problem statement that uses only Mathlib definitions lives in
 [Noperthedron/MainTheorem.lean](Noperthedron/MainTheorem.lean).
 The vertices of the Noperthedron are defined as `exactVerts` in [Noperthedron/Vertices/Exact.lean](Noperthedron/Vertices/Exact.lean).
 The final top-level proof lives in
