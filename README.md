@@ -18,7 +18,6 @@ Doing so sidesteps the need for some of [SY25']s more involved calculations
 with approximate trigonomtry and vector calculus.
 Poses near the aligned configurations are handled via an "exact
 blow-up" instead of the Local Theorem of [SY25].
-See [cayley/DESIGN.md](cayley/DESIGN.md) for details.
 
 An earlier proof that follows [SY25] closely is preserved at the tag
 [`lean-v4.35.0`](https://github.com/jcreedcmu/Noperthedron/tree/lean-v4.35.0).
