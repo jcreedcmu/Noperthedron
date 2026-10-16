@@ -9,32 +9,26 @@ by Jakob Steininger & Sergey Yurkevich (`[SY25]`) does not
 <img src="./home_page/assets/noperthedron.png" width="200" alt="noperthedron">
 </p>
 
-The proof is checked by the Lean kernel alone and depends only on the standard axioms
-`[propext, Classical.choice, Quot.sound]`. It takes about 5.5 minutes (1.3 CPU-hours) on a
-16-core machine.
+The proof depends only on Lean's three standard axioms `[propext, Classical.choice, Quot.sound]`.
+Typechecking it takes about 5.5 minutes (1.3 CPU-hours) on a 16-core machine.
 
-The polyhedron is exactly the Noperthedron of [SY25]: its 90 vertices are `±Rz(2πk/15)·Cᵢ`
-for `k = 0..14` and the three rational points `C₁, C₂, C₃` of [SY25] §2.1, defined as
-`exactVerts` in [Noperthedron/Vertices/Exact.lean](Noperthedron/Vertices/Exact.lean). (The
-vertices themselves are not rational; the checker uses rational enclosures of them with proved
-error bounds.)
+Unlike with the proof from [SY25], this proof uses Cayley coordinates (closely related to quaternions)
+to parametrize rotations.
+Doing so sidesteps the need for some of [SY25']s more involved calculations
+with approximate trigonomtry and vector calculus.
+Poses near the aligned configurations are handled via an "exact
+blow-up" instead of the Local Theorem of [SY25].
+See [cayley/DESIGN.md](cayley/DESIGN.md) for details.
 
-What differs from [SY25] is how poses are parametrized. Every pose coordinate is rational
-(Cayley coordinates for rotations), and every case of the case analysis is exact polynomial
-arithmetic. There are no trigonometric approximations of pose angles, no derivative bounds and
-no separate local theorem: poses near the aligned configurations are handled by an exact
-blow-up. See [cayley/DESIGN.md](cayley/DESIGN.md) for the mathematics.
-
-An earlier proof that follows [SY25] closely (angular coordinates, the global and local
-theorems, and a solution table checked by the kernel, by `native_decide`, or by a native
-executable) is preserved at the tag
-[`lean-v4.35.0`](https://github.com/jcreedcmu/Noperthedron/tree/lean-v4.35.0), the most
-recent version of that proof.
+An earlier proof that follows [SY25] closely is preserved at the tag
+[`lean-v4.35.0`](https://github.com/jcreedcmu/Noperthedron/tree/lean-v4.35.0).
 
 ## Statement
 
-The statement uses only Mathlib definitions and lives in
-[Noperthedron/MainTheorem.lean](Noperthedron/MainTheorem.lean). The theorems are in
+A full problem statement that uses only Mathlib definitions and lives in
+[Noperthedron/MainTheorem.lean](Noperthedron/MainTheorem.lean).
+The vertices of the Noperthedron are defined as `exactVerts` in [Noperthedron/Vertices/Exact.lean](Noperthedron/Vertices/Exact.lean).
+The final top-level proof lives in
 [CayleyKernel/Main.lean](CayleyKernel/Main.lean):
 
 ```lean
