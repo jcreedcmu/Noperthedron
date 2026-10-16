@@ -1,6 +1,6 @@
 # Noperthedron
 
-This project proves, using the Lean 4 theorem prover, that the Noperthedron of
+This project formally proves that the Noperthedron of
 ["A convex polyhedron without Rupert's property"](https://arxiv.org/abs/2508.18475)
 by Jakob Steininger & Sergey Yurkevich (`[SY25]`) does not
 "[fit through itself](https://en.wikipedia.org/wiki/Prince_Rupert%27s_cube)".
@@ -9,7 +9,7 @@ by Jakob Steininger & Sergey Yurkevich (`[SY25]`) does not
 <img src="./home_page/assets/noperthedron.png" width="200" alt="noperthedron">
 </p>
 
-The proof depends only on Lean's three standard axioms `[propext, Classical.choice, Quot.sound]`.
+The proof is written in Lean 4 and depends only on the three standard axioms `[propext, Classical.choice, Quot.sound]`.
 Typechecking it takes about 5.5 minutes (1.3 CPU-hours) on a 16-core machine.
 
 Unlike with the proof from [SY25], this proof uses Cayley coordinates (closely related to quaternions)
