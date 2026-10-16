@@ -14,8 +14,7 @@ Typechecking it takes about 5.5 minutes on a 16-core machine (1.3 CPU-hours).
 
 Unlike the proof from [SY25], this one uses Cayley coordinates (closely related to quaternions)
 to parametrize rotations.
-Doing so sidesteps the need for some of [SY25']s more involved calculations
-with approximate trigonomtry and vector calculus.
+Doing so sidesteps the need for much of [SY25']s more intricate trigonometry and vector calculus.
 Poses near the aligned configurations are handled via an "exact
 blow-up" instead of the Local Theorem of [SY25].
 
