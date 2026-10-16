@@ -10,9 +10,9 @@ by Jakob Steininger & Sergey Yurkevich (`[SY25]`) does not
 </p>
 
 The proof is written in Lean 4 and depends only on the three standard axioms `[propext, Classical.choice, Quot.sound]`.
-Typechecking it takes about 5.5 minutes (1.3 CPU-hours) on a 16-core machine.
+Typechecking it takes about 5.5 minutes on a 16-core machine (1.3 CPU-hours).
 
-Unlike the proof from [SY25], this proof uses Cayley coordinates (closely related to quaternions)
+Unlike the proof from [SY25], this one uses Cayley coordinates (closely related to quaternions)
 to parametrize rotations.
 Doing so sidesteps the need for some of [SY25']s more involved calculations
 with approximate trigonomtry and vector calculus.
