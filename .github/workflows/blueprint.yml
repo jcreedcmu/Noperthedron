@@ -16,7 +16,10 @@ permissions:
 
 jobs:
   build_project:
-    runs-on: ubuntu-latest
+    # Pinned: on ubuntu-26.04 (the `ubuntu-latest` default since 2026-10-19) the docgen step
+    # fails with "resource exhausted (error code: 12, not enough memory)" when spawning git
+    # for the `srcUri.github` facets. ubuntu-24.04 runs it fine.
+    runs-on: ubuntu-24.04
     name: Build project
     steps:
       - name: Cleanup to free disk space
