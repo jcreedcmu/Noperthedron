@@ -266,7 +266,7 @@ theorem gapNrmOK_box (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.
       ∀ i, (l.getD i 0).natAbs ≤ (if i < 5 then f i else 0).natAbs := by
     intro l hl f hb hf i
     by_cases hi : i < 5
-    · rw [if_pos hi, hf i hi, Int.natAbs_natCast]
+    · rw [ite_eq_left hi, hf i hi, Int.natAbs_natCast]
       have := hb ⟨i, hi⟩
       rw [Int.abs_eq_natAbs] at this
       exact_mod_cast le_trans this h17

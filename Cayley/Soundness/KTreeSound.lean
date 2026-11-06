@@ -81,14 +81,14 @@ theorem split_inv (b : KBox) (hb : Inv b) (d : ℕ) (hd : d < 5) :
     by_cases hi : (i : ℕ) = d
     · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenh]; exact hd)]; exact h0
     · rw [getD_set_ne _ _ _ _ hi, getD_map2]; have := hb.hpos i; omega
-    · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenc, hb.lenh]; exact hd),
-        getD_set_eq _ _ _ (by simp [hb.lenc, hb.lenh]; exact hd), hK]; linarith
+    · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenc]; exact hd),
+        getD_set_eq _ _ _ (by simp [hb.lenh]; exact hd), hK]; linarith
     · rw [getD_set_ne _ _ _ _ hi, getD_set_ne _ _ _ _ hi, getD_map2, getD_map2, abs_mul, abs_mul,
         abs_two, hK]; linarith [hb.mag i]
     · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenh]; exact hd)]; exact h0
     · rw [getD_set_ne _ _ _ _ hi, getD_map2]; have := hb.hpos i; omega
-    · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenc, hb.lenh]; exact hd),
-        getD_set_eq _ _ _ (by simp [hb.lenc, hb.lenh]; exact hd), hK]; linarith
+    · rw [hi, getD_set_eq _ _ _ (by simp [hb.lenc]; exact hd),
+        getD_set_eq _ _ _ (by simp [hb.lenh]; exact hd), hK]; linarith
     · rw [getD_set_ne _ _ _ _ hi, getD_set_ne _ _ _ _ hi, getD_map2, getD_map2, abs_mul, abs_mul,
         abs_two, hK]; linarith [hb.mag i]
 
