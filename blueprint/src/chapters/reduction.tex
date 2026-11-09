@@ -31,14 +31,14 @@ $\mathcal{C}_{30}$, and $\PPP = -\PPP$.
 \lean{Cayley.rupPair_left, Cayley.rupPair_Rz, Cayley.rupPair_RxPi}
 \leanok
 \uses{def:shadow}
-Let $L \in SO(3)$ with $L e_z = \pm e_z$. If $(R_o, R_i)$ is a Rupert pair, then so is
+Let $L$ be a $3 \times 3$ matrix with $\pi \circ L = \ell \circ \pi$ for some invertible
+linear map $\ell$ of the screen. If $(R_o, R_i)$ is a Rupert pair, then so is
 $(L R_o, L R_i)$. In particular this holds for $L = R_z(\gamma)$ and for the half-turn
-$L = R_x(\pi)$.
+$L = R_x(\pi)$, since a rotation with $L e_z = \pm e_z$ has this property.
 \end{lemma}
 \begin{proof}
 \leanok
-Such an $L$ satisfies $\pi \circ L = \ell \circ \pi$ for a linear isometry $\ell$ of
-the screen, so $\mathrm{Sh}(L R) = \ell(\mathrm{Sh}(R))$, and $\ell$ is a homeomorphism.
+$\mathrm{Sh}(L R) = \ell(\mathrm{Sh}(R))$, and $\ell$ is a homeomorphism.
 \end{proof}
 
 \begin{lemma}[Symmetries]
@@ -123,16 +123,19 @@ horizontal axis, and it has rational entries.
 
 \begin{lemma}
 \label{lem:tau_pair}
-\lean{Cayley.tau_pair}
+\lean{Cayley.tauPair, Cayley.tau_pair}
 \leanok
 \uses{def:tau, def:noperthedron}
-$\tau$ maps the 30 points $\mathcal{C}_{30} \cdot C_3$ onto themselves.
+For a vertex $S = (-1)^\ell R_z(2\pi k/15)\, C_3$ let
+$\sigma(S) = (-1)^{1-\ell} R_z(-2\pi k/15)\, C_3$. Then $\tau S = \sigma(S)$.
 \end{lemma}
 \begin{proof}
 \leanok
-$\tau\, (-1)^\ell R_z(2\pi k/15)\, C_3 = (-1)^{1-\ell} R_z(-2\pi k/15)\, C_3$, using
-$\tau R_z(\alpha) = R_z(-\alpha) \tau$ and $\tau C_3 = -C_3$.
+Use $\tau R_z(\alpha) = R_z(-\alpha) \tau$ and $\tau C_3 = -C_3$.
 \end{proof}
+
+Since $\sigma$ is a bijection of the 30 points $\mathcal{C}_{30} \cdot C_3$, the rotation
+$\tau$ maps these points onto themselves.
 
 The view straight down the $z$-axis shows only the copies of $C_3$ on the boundary of
 the shadow, and so do nearby views. For such views the pose with $Q = \tau$ is
@@ -201,12 +204,14 @@ computation.
 \lean{Cayley.step_chart}
 \leanok
 \uses{lem:klein_sum, lem:cayley_trace, thm:cayley_surj}
-Let $Q \in SO(3)$ and let $j$ maximize $\tr(B_k^T Q)$ over $k \in \{0, \dots, 4\}$. Then
-$Q = Q_j(r)$ for some $r$ with $|r_i| \le 1$ (if $j \le 3$) or $|r_i| \le 2$ (if $j = 4$).
+Every $Q \in SO(3)$ is $Q_j(r)$ for some $j$ that maximizes $\tr(B_k^T Q)$ over
+$k \in \{0, \dots, 4\}$ and some $r$ with $|r_i| \le 1$ (if $j \le 3$) or $|r_i| \le 2$
+(if $j = 4$).
 \end{lemma}
 \begin{proof}
 \leanok
-By Lemma~\ref{lem:klein_sum} the four Klein traces sum to $0$, so the largest trace is
+Take any maximizing $j$. By Lemma~\ref{lem:klein_sum} the four Klein traces sum to $0$,
+so the largest trace is
 nonnegative, and Theorem~\ref{thm:cayley_surj} gives $B_j^T Q = \mathrm{Cay}(r)$ with
 $|r|^2 \le 3$. This settles $j = 4$. For $j \le 3$, maximality against the other three
 Klein charts and the trace formula of Lemma~\ref{lem:klein_sum} give

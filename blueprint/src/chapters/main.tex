@@ -22,8 +22,8 @@ There are 15 root boxes, all with $(u, v) \in [0, 1] \times [0, \frac12]$:
 \label{lem:cover}
 \lean{Cayley.Pack.cover, Cayley.Pack.rootK_inv}
 \leanok
-\uses{def:root_boxes, def:reduced, lem:exists_face}
-Every reduced $(u, v, j, r)$ is a point of one of the root boxes of chart $j$.
+\uses{def:root_boxes, def:reduced, def:bad, lem:exists_face}
+Every reduced $(u, v, j, r)$ is an admissible point of one of the root boxes of chart $j$.
 \end{lemma}
 \begin{proof}
 \leanok
@@ -45,11 +45,12 @@ every leaf passes on its sub-box.
 \end{definition}
 
 Splitting halves one radius $h_i$; if $h_i$ is odd, the scale $K$ is first increased by one
-and all centres and radii are doubled, so that box coordinates stay integers.
+and all centres and radii are doubled, so that box coordinates stay integers. The halves
+again satisfy the bounds of Definition~\ref{def:box}, and so do the root boxes.
 
 \begin{lemma}
 \label{lem:split_cover}
-\lean{Cayley.Pack.split_cover}
+\lean{Cayley.Pack.split_cover, Cayley.Pack.split_inv}
 \leanok
 \uses{def:kcheck}
 Every point of a box is a point of one of its two halves.
