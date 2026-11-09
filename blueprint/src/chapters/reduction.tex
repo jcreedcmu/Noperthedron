@@ -2,7 +2,25 @@
 \label{chap:reduction}
 
 This chapter shows that if $\PPP$ is Rupert, then there is a Rupert pair of a special
-form, described by five real parameters in a bounded set. Throughout,
+form, with coordinates in a bounded set.
+
+Theorem~\ref{thm:rupert_implies_rot_rupert} has already removed the translation,
+leaving two rotations with three parameters each. Rotating both shadows together
+in the screen preserves containment, so one of these six parameters is redundant.
+We use two parameters for the outer viewing direction and three for the relative
+rotation of the inner copy. Concretely, the coordinates reconstruct the pair as
+\[
+  R_o = s(u,v), \qquad R_i = s(u,v)\,B_j\,\mathrm{Cay}(r).
+\]
+Here $(u,v)$ specifies the outer view (Lemma~\ref{lem:outer_view}),
+$r=(r_0,r_1,r_2)$ specifies the relative rotation within a chart, and
+$j\in\{0,\dots,4\}$ is a discrete chart label
+(Definition~\ref{def:charts}), not an additional continuous parameter.
+The symmetries and chart choices below restrict these five coordinates to a bounded
+domain while preserving a representative of every possible Rupert pair; coordinates
+need not be unique on chart boundaries or at ties in the symmetry reduction.
+
+Throughout,
 $g_k = R_z(2\pi k/15)$ for $k = 0, \dots, 14$; these are the rotations in
 $\mathcal{C}_{30}$, and $\PPP = -\PPP$.
 
@@ -182,7 +200,7 @@ computation.
 \label{lem:step_chart}
 \lean{Cayley.step_chart}
 \leanok
-\uses{lem:klein_sum, thm:cayley_surj}
+\uses{lem:klein_sum, lem:cayley_trace, thm:cayley_surj}
 Let $Q \in SO(3)$ and let $j$ maximize $\tr(B_k^T Q)$ over $k \in \{0, \dots, 4\}$. Then
 $Q = Q_j(r)$ for some $r$ with $|r_i| \le 1$ (if $j \le 3$) or $|r_i| \le 2$ (if $j = 4$).
 \end{lemma}
@@ -234,6 +252,23 @@ The aligned poses of the reduced domain are exactly those with $r = 0$ in charts
 and 4 (where $Q = I$ or $Q = \tau$). Near $r = 0$ the separation margin tends to zero, so
 these two charts are blown up: $r$ is written as $\rho\, c$ with $c$ on a face of the
 cube $[-1,1]^3$ and $\rho = \max_i |r_i|$.
+
+The geometric idea of this real, directional \emph{blow-up} is to separate the size
+of $r$ from its direction, as in polar coordinates. For $r\ne0$, the direction is
+$c=r/\rho$. At $\rho=0$, all directions represent the same original vector $r=0$,
+but the blown-up space retains them as distinct boundary points. Thus, for each
+fixed outer view, the origin in the relative-rotation coordinates is replaced by
+the surface of a cube recording the possible directions of approach.
+
+For example, on the positive first-coordinate face, write
+\[
+  c=(1,s_0,s_1), \qquad r=(\rho,\rho s_0,\rho s_1),
+  \qquad -1\le s_0,s_1\le1.
+\]
+The other five faces cover the other directions. There are still five continuous
+parameters: $(u,v,s_0,s_1,\rho)$, together with the discrete chart and face labels.
+Using cube faces makes the direction coordinates range over squares and keeps the
+substitution polynomial, which suits the box certificates.
 
 \begin{definition}
 \label{def:faces}

@@ -25,12 +25,12 @@ We define three points $C_1,C_2,C_3\in \mathbb{Q}^3$.
 \]
 
 \begin{lemma}
-\label{c1_c2_c3_norms}
+\label{lem:c1_c2_c3_norms}
 \lean{Noperthedron.c1_norm_one, Noperthedron.c2_norm_bound, Noperthedron.c3_norm_bound}
 \leanok
 $\| C_1 \| = 1$,
-${98 \over 100} < \| C_2 \| < {99 \over 100}$, and
-${98 \over 100} < \| C_3 \| < {99 \over 100}$.
+$\frac{98}{100} < \| C_2 \| < \frac{99}{100}$, and
+$\frac{98}{100} < \| C_3 \| < \frac{99}{100}$.
 \end{lemma}
 \begin{proof}
 \leanok
@@ -83,6 +83,7 @@ The Noperthedron $\NOP$ is the convex polyhedron given by the vertex set
 \label{lemma:nopert_verts_norm_le_one}
 \lean{Noperthedron.exactVertex_norm_le_one}
 \leanok
+\uses{def:noperthedron, lem:c1_c2_c3_norms}
 The norm of any vertex in the Noperthedron is no more than 1.
 \end{lemma}
 \begin{proof}
@@ -101,7 +102,7 @@ A set $S \subseteq \R^3$ is {\em point-symmetric} if $x \in S$ implies $-x \in S
 \label{lemma:nopert_point_symmetric}
 \lean{Noperthedron.exactPoly_point_symmetric}
 \leanok
-\uses{def:pointsymmetric, def:noperthedron}
+\uses{def:pointsymmetric, def:noperthedron, lemma:nopert_verts_norm_le_one}
 The noperthedron is point-symmetric.
 \end{lemma}
 \begin{proof}

@@ -104,9 +104,23 @@ $\sigma(S) = \tau S = B_4 S$). Apply Lemma~\ref{lem:cayley_rodrigues} and
 $r = \rho c$.
 \end{proof}
 
-The bracket $L$ is again a polynomial of degree at most $2$ in each variable. It does
-not vanish at $\rho = 0$, so it can be bounded below on boxes that touch $\rho = 0$.
-Since $\rho \ge 0$, $L \ge 0$ implies $\mathrm{gap}_{\sigma(S)} \ge 0$.
+The bracket $L$ is again a polynomial of degree at most $2$ in each variable. Unlike
+the original paired gap, it is not forced to vanish at $\rho=0$: its boundary value is
+\[
+  L(u,v,s_0,s_1,0)=\bigl\langle w,\ N_o M_j(c\times S)\bigr\rangle.
+\]
+This value records the first-order separation in the direction $c$. It can still
+vanish, for example when $c$ is parallel to $S$, and for fixed $S$ and $w$ it is linear
+in $c$, so it takes both signs on opposite faces of the cube. Choosing the vertex and
+screen direction separately for each box can nevertheless give a positive lower bound
+on boxes touching $\rho=0$.
+
+The blow-up identity is an exact factorization, not a first-order approximation:
+the term $\rho\,c\times(c\times S)$ is retained in $L$. Since $\rho\ge0$ and the
+cleared denominators are positive, $L\ge0$ implies
+$\mathrm{gap}_{\sigma(S)}\ge0$. The checker bounds $L$ for the
+paired vertex and the ordinary gaps for the other outer vertices, allowing a single
+box certificate to handle both alignment and nearby poses.
 
 \begin{theorem}[Gap core]
 \label{thm:gap_core}
@@ -135,9 +149,10 @@ applies with the inner vertex $S$ and direction $w$.
 \lean{Cayley.K.pGapOK, Cayley.K.vtestG, Cayley.K.fullOK, Cayley.K.pairOK}
 \leanok
 \uses{lem:gap_poly, lem:blowup_identity}
-A gap leaf names an inner vertex $S$ and a direction $(w_0, w_1) \ne 0$. It passes if the
-coefficients of the polynomials involved are small enough for the packed arithmetic of
-Chapter~\ref{chap:polybounds}, and for every one of the 90 outer vertices $T$ one of the
+A gap leaf names an inner vertex $S$ and a direction $(w_0, w_1) \ne 0$. It passes if
+the box has scale $2^K$ with $K \le 16$ and $|w_0|, |w_1| \le 1024$ (which keeps the
+coefficients small enough for the packed arithmetic of Chapter~\ref{chap:polybounds}, by
+Lemma~\ref{lem:norm_guard}), and for every one of the 90 outer vertices $T$ one of the
 following succeeds:
 \begin{enumerate}
 \item the \emph{quick test}: a lower bound of $A - \sum_k T_k E_k$ built from the constant
@@ -154,7 +169,7 @@ following succeeds:
 \label{thm:gap_leaf_sound}
 \lean{Cayley.Pack.pGapOK_sound}
 \leanok
-\uses{def:gap_leaf, thm:gap_core, thm:coef_bound, thm:bern_bound}
+\uses{def:gap_leaf, thm:gap_core, thm:coef_bound, thm:bern_bound, lem:packed_bounds, lem:norm_guard}
 If a gap leaf passes on a box, then no point of the box with $u^2 + v^2 \le 1$ and
 $|r_i| \le 2$ gives a Rupert pair $(s, s\, Q_j(r))$.
 \end{theorem}
@@ -209,7 +224,7 @@ box:
 \label{thm:dom_leaf_sound}
 \lean{Cayley.Pack.pDomOK_sound, Cayley.Pack.pChartOK_sound, Cayley.Pack.pOrbitOK_sound}
 \leanok
-\uses{def:dom_leaf, thm:coef_bound, lem:group_approx}
+\uses{def:dom_leaf, thm:coef_bound, lem:packed_bounds, lem:group_approx}
 If a domain leaf passes on a box, then no point of the box with $u^2 + v^2 \le 1$ and
 $|r_i| \le 2$ is reduced.
 \end{theorem}

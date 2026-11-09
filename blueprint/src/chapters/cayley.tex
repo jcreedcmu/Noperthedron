@@ -24,6 +24,13 @@ rotation by the unit quaternion proportional to $(1, x, y, z)$.
 The numerator $N(r)$ is a polynomial with integer coefficients, defined over any
 commutative ring, and the denominator is positive.
 
+Geometrically, if $a$ is a unit vector and $-\pi < \theta < \pi$, then
+$r = \tan(\theta/2)\,a$ gives the rotation through angle $\theta$ about $a$.
+In particular, $r = 0$ gives the identity, and small $r$ describes a small rotation.
+A single Cayley chart misses rotations through angle $\pi$; the chart bases in
+Definition~\ref{def:charts} allow the reduction to cover all relative rotations
+using bounded Cayley coordinates.
+
 \begin{lemma}
 \label{lem:cayley_so3}
 \lean{Cayley.cayleyMatrix_mem_SO3, Cayley.cayleyDenom_pos}
@@ -79,7 +86,7 @@ $|r|^2 \le 3$.
 \end{theorem}
 \begin{proof}
 \leanok
-\uses{lem:axis_angle}
+\uses{lem:axis_angle, lem:cayley_rodrigues}
 Write $A$ as a rotation by angle $\gamma \in (-\pi, \pi]$ about a unit axis $a$
 (Lemma~\ref{lem:axis_angle}). Then $\tr A = 1 + 2 \cos\gamma \ge 0$ gives
 $\cos\gamma \ge -1/2$. Put $c = \sin\gamma / (1 + \cos\gamma) = \tan(\gamma/2)$ and
@@ -127,6 +134,12 @@ stereographic image
 \leanok
 Direct computation.
 \end{proof}
+
+Thus $(u,v)$ records the direction from which the outer polyhedron is viewed:
+$(0,0)$ gives the positive $z$-axis, and $u^2+v^2=1$ gives horizontal views.
+The rotation $s(u,v)$ chooses a particular orientation of the shadow in the screen;
+the following lemma says that any other rotation with the same view differs only
+by a rotation of the screen.
 
 \begin{lemma}
 \label{lem:outer_unique}
