@@ -98,6 +98,30 @@ The build ends by printing the axioms the main theorem depends on:
 info: CayleyKernel/Main.lean:66:0: 'Cayley.KProof.exists_not_rupert' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
+An optional optimizer searches for larger boxes that the existing checker can
+already certify. It first reuses witnesses from descendant leaves, then tries
+interpolating their separating directions. The exported certificate is an
+untrusted proposal; the following build checks every leaf in the kernel and
+audits the final theorem's axioms:
+
+```sh
+lake build nopertPrune
+.lake/build/bin/nopertPrune .cayley-data/v4/cover.txt .cayley-data/cover-pruned.txt 8 plain
+.lake/build/bin/nopertPrune .cayley-data/cover-pruned.txt .cayley-data/cover-optimized.txt 8 mix
+python3 scripts/cayley/build_certificate.py \
+  .cayley-data/cover-optimized.txt --directory /tmp/nopert-optimized-kernel \
+  --leaves 32 --chunks 180 --jobs 8
+```
+
+Use a fresh output directory for each build. The generated modules, arithmetic
+timings, and final axiom audit are saved there. This produces a 235,518-leaf
+certificate for the same polyhedron using the original mathematical checker.
+The generated `.olean` files measured 47.6 MB versus 67.2 MB for the standard
+build (about 29% smaller), with essentially unchanged kernel time: 68.3 versus
+68.0 CPU-minutes on the same machine. These measurements cover generated module
+checks with cached supporting proofs; they exclude proposal generation,
+supporting libraries, and Mathlib. The final axiom audit is unchanged.
+
 ## Blueprint
 
 The [blueprint](blueprint/src) describes the mathematics of the proof and links each step
