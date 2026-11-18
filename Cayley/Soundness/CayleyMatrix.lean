@@ -84,8 +84,7 @@ theorem cayleyMatrix_mem_SO3 (x y z : ℝ) :
   constructor
   · ext i j
     fin_cases i <;> fin_cases j <;>
-      simp [cayleyMatrix, Matrix.mul_apply, Matrix.transpose_apply,
-        Fin.sum_univ_three] <;>
+      simp [cayleyMatrix, Matrix.mul_apply, Fin.sum_univ_three] <;>
       field_simp [cayleyDenom_ne] <;>
       simp only [cayleyDenom] <;> ring
   · simp [cayleyMatrix, Matrix.det_fin_three]

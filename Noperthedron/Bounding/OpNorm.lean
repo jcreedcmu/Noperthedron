@@ -16,9 +16,8 @@ lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
   · constructor <;>
     · ext i j
       fin_cases i <;> fin_cases j <;>
-      · try simp [Matrix.mul_apply, Fin.sum_univ_succ]
-        try ring_nf
-        try simp [Real.sin_sq]
+      · simp [Matrix.mul_apply, Fin.sum_univ_succ, ← sq]
+        first | done | ring
 
 noncomputable def OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
     : Euc(n) ≃ₗ[ℝ] Euc(n) :=

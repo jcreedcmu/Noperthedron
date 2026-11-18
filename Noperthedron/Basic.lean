@@ -68,7 +68,7 @@ def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
     ext v i
     fin_cases i <;> {
       simp [RzL, Fin.sum_univ_succ, Matrix.toLpLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
-      try ring_nf
+      first | done | ring_nf
     }
 
 lemma RzC_coe : RzC = RzL := rfl

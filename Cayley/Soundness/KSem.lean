@@ -64,7 +64,7 @@ theorem chartMR_eq (j : ℕ) (hj : j < 5) : chartMR j = kapJ j • chartB j := b
   interval_cases j
   all_goals (ext a b; fin_cases a <;> fin_cases b <;>
     simp [chartMR, kapJ, K.chartMI, K.chartKI, chartB, tauR, kappaTau, c3x, c3y, kapR, c3xR, c3yR] <;>
-    try field_simp)
+    field_simp)
   all_goals norm_num
 
 theorem kapJ_ge (j : ℕ) : 1 ≤ kapJ j := by

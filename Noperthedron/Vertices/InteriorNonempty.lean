@@ -25,7 +25,7 @@ def affineIndVertsR : Fin 4 → Euc(3) := ![C1R, C2R, C3R, -C1R]
 theorem affineIndVertsRAffine : AffineIndependent ℝ affineIndVertsR := by
   rw [affineIndependent_iff_linearIndependent_vsub ℝ affineIndVertsR 3]
   rw [← linearIndependent_equiv (finSuccAboveEquiv 3)]
-  let M : Matrix (Fin 3) (Fin 3) ℝ := fun i j =>
+  let M : Matrix (Fin 3) (Fin 3) ℝ := Matrix.of fun i j =>
     (affineIndVertsR (Fin.castSucc i) - affineIndVertsR 3) j
   have hdet : M.det ≠ 0 := by
     rw [Matrix.det_fin_three]

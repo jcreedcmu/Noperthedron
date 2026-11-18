@@ -189,12 +189,12 @@ theorem imat_chartMI (j : ℕ) : imat (chartMI j) = chartMR j := rfl
 theorem trR (X : I9) (N : NM ℝ) :
     trGen (· + ·) (· * ·) (fun z => (z : ℝ)) X N = trace ((imat X)ᵀ * nmat N) := by
   obtain ⟨x00, x01, x02, x10, x11, x12, x20, x21, x22⟩ := X
-  simp [trGen, imat, nmat, trace, mul_apply, Fin.sum_univ_three]; ring
+  simp [trGen, imat, nmat, trace, Matrix.mul_apply, Fin.sum_univ_three]; ring
 
 theorem imat_mtm (A B : I9) : imat (mtm A B) = (imat A)ᵀ * imat B := by
   obtain ⟨a00, a01, a02, a10, a11, a12, a20, a21, a22⟩ := A
   obtain ⟨b00, b01, b02, b10, b11, b12, b20, b21, b22⟩ := B
-  ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mtm, mul_apply, Fin.sum_univ_three]
+  ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mtm, Matrix.mul_apply, Fin.sum_univ_three]
 
 /-- The chart-test polynomial at a real point. -/
 theorem chartR_eq (b : KBox) (hj : b.chart < 5) (k : ℕ) (hk : k < 5) (t : Fin 5 → ℝ) :
@@ -220,7 +220,7 @@ theorem chartR_eq (b : KBox) (hj : b.chart < 5) (k : ℕ) (hk : k < 5) (t : Fin 
 theorem imat_mmI (A B : I9) : imat (mmI A B) = imat A * imat B := by
   obtain ⟨a00, a01, a02, a10, a11, a12, a20, a21, a22⟩ := A
   obtain ⟨b00, b01, b02, b10, b11, b12, b20, b21, b22⟩ := B
-  ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mmI, mul_apply, Fin.sum_univ_three]
+  ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mmI, Matrix.mul_apply, Fin.sum_univ_three]
 
 /-- The tabulated symmetry `ĝ`. -/
 noncomputable def gHat (g : ℕ) : Matrix (Fin 3) (Fin 3) ℝ := (groupTab[g]!).toR
@@ -282,8 +282,8 @@ theorem orbR0 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (h
     push_cast [p2_cast, hk4, hkj]
     simp only [Q, Qm, F, K, chartB_zero_eq, show ((0 : ℕ) = 4) = False by decide, ↓reduceIte]
     constructor <;>
-    · simp only [trace, diag, mul_apply, transpose_apply, Matrix.smul_apply, smul_eq_mul,
-        Fin.sum_univ_three, one_apply, Matrix.one_mul, Matrix.mul_one, one_smul]
+    · simp only [trace, diag, Matrix.mul_apply, transpose_apply, Matrix.smul_apply, smul_eq_mul,
+        Fin.sum_univ_three, Matrix.one_apply, Matrix.one_mul, Matrix.mul_one, one_smul]
       simp
       ring
   · rw [h4] at *
@@ -291,7 +291,7 @@ theorem orbR0 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (h
     push_cast [p2_cast, hk4, hkj]
     simp only [Q, Qm, F, K, hB4, ite_true]
     constructor <;>
-    · simp only [trace, diag, mul_apply, transpose_apply, Matrix.smul_apply, smul_eq_mul,
+    · simp only [trace, diag, Matrix.mul_apply, transpose_apply, Matrix.smul_apply, smul_eq_mul,
         Fin.sum_univ_three, Matrix.mul_one, one_smul]
       simp
       ring
@@ -308,19 +308,19 @@ theorem kptm1 (b : KBox) (t : Fin 5 → ℝ) :
 theorem nmat_m3 (M : I9) (N : NM ℝ) :
     nmat (m3 (· + ·) (· * ·) (fun z => (z : ℝ)) M N) = imat M * nmat N := by
   obtain ⟨m00, m01, m02, m10, m11, m12, m20, m21, m22⟩ := M
-  ext i j; fin_cases i <;> fin_cases j <;> simp [m3, nmat, imat, mul_apply, Fin.sum_univ_three]
+  ext i j; fin_cases i <;> fin_cases j <;> simp [m3, nmat, imat, Matrix.mul_apply, Fin.sum_univ_three]
 
 theorem nmat_m3t {R : Type} (N : NM R) : nmat (m3t N) = (nmat N)ᵀ := by
   ext i j; fin_cases i <;> fin_cases j <;> rfl
 
 theorem frob_real (H W : NM ℝ) : frob (· + ·) (· * ·) H W = trace ((nmat H)ᵀ * nmat W) := by
-  simp [frob, nmat, trace, mul_apply, Fin.sum_univ_three]; ring
+  simp [frob, nmat, trace, Matrix.mul_apply, Fin.sum_univ_three]; ring
 
 theorem hGen_real (x : Fin 5 → ℝ) (U : ℝ) :
     nmat (hGen (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) (U * x 0) (U * x 1) U) =
       (U ^ 2 • NoR x)ᵀ * ZR * (U ^ 2 • NoR x) := by
   ext i j; fin_cases i <;> fin_cases j <;>
-    simp [hGen, nmat, NoR, cayleyNumeratorMatrix, ZR, mul_apply, Fin.sum_univ_three] <;> ring
+    simp [hGen, nmat, NoR, cayleyNumeratorMatrix, ZR, Matrix.mul_apply, Fin.sum_univ_three] <;> ring
 
 /-- The orbit polynomials for `e = 1` at a real point. -/
 theorem orbR1 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (ha : a = 0 ∨ a = 4)

@@ -15,12 +15,12 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "tryAtEachStep"
 git = "https://github.com/dwrensha/tryAtEachStep"
-rev = "lean-v4.35.0"
+rev = "lean-v4.36.0"
 
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
-rev = "v4.35.0"
+rev = "v4.36.0"
 
 # Shared definitions: the Noperthedron, the Rupert property, and the reduction to
 # rotation-only poses.
