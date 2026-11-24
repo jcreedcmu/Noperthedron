@@ -203,37 +203,18 @@ theorem imat_mmI (A B : I9) : imat (mmI A B) = imat A * imat B := by
   obtain ⟨b00, b01, b02, b10, b11, b12, b20, b21, b22⟩ := B
   ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mmI, Matrix.mul_apply, Fin.sum_univ_three]
 
-/-- The tabulated symmetry `ĝ`. -/
-noncomputable def gHat (g : ℕ) : Matrix (Fin 3) (Fin 3) ℝ := (groupTab[g]!).toR
-
-theorem cosTab_getD (g : ℕ) (hg : g < 15) : cosTab.getD g 0 = cosTab[g]! := by
-  have : g < cosTab.size := by simp [cosTab]; omega
-  simp [Array.getD, this, getElem!_pos]
-theorem sinTab_getD (g : ℕ) (hg : g < 15) : sinTab.getD g 0 = sinTab[g]! := by
-  have : g < sinTab.size := by simp [sinTab]; omega
-  simp [Array.getD, this, getElem!_pos]
-
-theorem tab_e80 : ∀ g < 15, (cosTab.getD g 0).e = 80 ∧ (sinTab.getD g 0).e = 80 := by decide +kernel
-
-theorem imat_orbC (g a : ℕ) (hg : g < 15) :
+theorem imat_orbC (g a : ℕ) :
     imat (orbC g a) = chartMR a * ((2 : ℝ) ^ 80 • (gHat g)ᵀ) := by
   rw [orbC, imat_mmI, imat_chartMI]
   congr 1
-  have htab : groupTab[g]! = ⟨cosTab[g]!, -sinTab[g]!, 0, sinTab[g]!, cosTab[g]!, 0, 0, 0, 1⟩ := by
-    simp [groupTab, getElem!_pos, hg]
-  obtain ⟨hc, hs⟩ := tab_e80 g hg
-  rw [cosTab_getD g hg] at hc ⊢
-  rw [sinTab_getD g hg] at hs ⊢
-  have hcD : D (cosTab[g]!) = ((cosTab[g]!).m : ℝ) / 2 ^ 80 := by rw [D, hc]
-  have hsD : D (sinTab[g]!) = ((sinTab[g]!).m : ℝ) / 2 ^ 80 := by rw [D, hs]
   ext i j; fin_cases i <;> fin_cases j <;>
-    simp [imat, gHat, htab, M3.toR, hcD, hsD, p2_cast] <;> field_simp
+    simp [imat, gHat, cosM, sinM, p2_cast] <;> field_simp
 
 theorem kapJ_zero : kapJ 0 = 1 := by simp [kapJ, K.chartKI]
 theorem chartB_zero_eq : chartB 0 = 1 := by ext i j; fin_cases i <;> fin_cases j <;> simp [chartB]
 
 /-- The orbit polynomials for `e = 0` at a real point. -/
-theorem orbR0 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (ha : a = 0 ∨ a = 4)
+theorem orbR0 (b : KBox) (hj : b.chart < 5) (g : ℕ) (a : ℕ) (ha : a = 0 ∨ a = 4)
     (t : Fin 5 → ℝ) :
     let r := rOf (kblow b.chart) b.face (kpt b t)
     let Q := Qm b.chart r
@@ -252,7 +233,7 @@ theorem orbR0 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (h
   have hM := chartMR_eq b.chart hj
   have h0 := chartMR_eq 0 (by norm_num)
   have h4 := chartMR_eq 4 (by norm_num)
-  simp only [orbGen, ↓reduceIte, trR, imat_mtm, imat_chartMI, imat_orbC g a hg, hN, hD, hC, hM, h0, h4,
+  simp only [orbGen, ↓reduceIte, trR, imat_mtm, imat_chartMI, imat_orbC g a, hN, hD, hC, hM, h0, h4,
     kapJ_zero, chartB_zero_eq]
   have hk4 : ((kappaTau : ℤ) : ℝ) = kapJ 4 := rfl
   have hkj : ((chartKI b.chart : ℤ) : ℝ) = kapJ b.chart := rfl
@@ -304,7 +285,7 @@ theorem hGen_real (x : Fin 5 → ℝ) (U : ℝ) :
     simp [hGen, nmat, NoR, cayleyNumeratorMatrix, ZR, Matrix.mul_apply, Fin.sum_univ_three] <;> ring
 
 /-- The orbit polynomials for `e = 1` at a real point. -/
-theorem orbR1 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (ha : a = 0 ∨ a = 4)
+theorem orbR1 (b : KBox) (hj : b.chart < 5) (g : ℕ) (a : ℕ) (ha : a = 0 ∨ a = 4)
     (t : Fin 5 → ℝ) :
     let r := rOf (kblow b.chart) b.face (kpt b t)
     let Q := Qm b.chart r
@@ -372,7 +353,7 @@ theorem orbR1 (b : KBox) (hj : b.chart < 5) (g : ℕ) (hg : g < 15) (a : ℕ) (h
     simp only [Do, cayleyDenom]; ring
   -- the code as traces
   simp only [orbGen, one_ne_zero, ↓reduceIte, trR, frob_real, nmat_m3, nmat_m3t, imat_mtm,
-    imat_chartMI, imat_orbC g a hg, p2_cast, hu, hv, hGen_real, hHc, hD, ← hU]
+    imat_chartMI, imat_orbC g a, p2_cast, hu, hv, hGen_real, hHc, hD, ← hU]
   rcases ha with rfl | rfl
   · rw [hW 0 (by norm_num), htr 0 (by norm_num), htr 4 (by norm_num)]
     simp only [transpose_smul, Matrix.smul_mul, Matrix.mul_smul, trace_smul, smul_eq_mul, key, hdo]

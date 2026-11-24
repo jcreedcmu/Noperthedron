@@ -18,7 +18,6 @@ public import Cayley.Soundness.PackLayout
 public import Cayley.Soundness.PackPoly
 public import Cayley.Soundness.PackSound
 public import Cayley.Soundness.Pose
-public import Cayley.Soundness.QIReal
 public import Cayley.Soundness.Reduction
 public import Cayley.Soundness.Shadow
 public import Cayley.Soundness.Trig

@@ -156,7 +156,7 @@ theorem L3_fits_of {e : PE} (h : ∀ i, e.deg i ≤ dBound 0 i) : L3.Fits e := b
 
 /-- A passing orbit test bounds both score differences from below. -/
 theorem orbit_bounds (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : ℕ} (he : e < 2)
-    (hg : g < 15) (ha : a = 0 ∨ a = 4) (h : pOrbitOK b e g a = true) {t : Fin 5 → ℝ}
+    (ha : a = 0 ∨ a = 4) (h : pOrbitOK b e g a = true) {t : Fin 5 → ℝ}
     (ht : ∀ i, |t i| ≤ 1) :
     let r := rOf (kblow b.chart) b.face (kpt b t)
     let Q := Qm b.chart r
@@ -188,7 +188,7 @@ theorem orbit_bounds (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : �
     change _ < pLower (orbGen Int.add Int.sub Int.mul (fun z => z) (fun i => pX i.val) b 0 g a).2 at q2
     rw [← i1] at q1
     rw [← i2] at q2
-    obtain ⟨e1, e2⟩ := orbR0 b hj g hg a ha t
+    obtain ⟨e1, e2⟩ := orbR0 b hj g a ha t
     have c1 : ((orbErr b 0 : ℤ) : ℝ) < ((pLower ((orbPE b 0 g a).1.ev pXv) : ℤ) : ℝ) := by exact_mod_cast q1
     have c2 : ((orbErr b 0 : ℤ) : ℝ) < ((pLower ((orbPE b 0 g a).2.ev pXv) : ℤ) : ℝ) := by exact_mod_cast q2
     rw [r1] at l1; rw [r2] at l2
@@ -207,7 +207,7 @@ theorem orbit_bounds (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : �
     change _ < qLower (orbGen Int.add Int.sub Int.mul (fun z => z) qXv b 1 g a).2 at q2
     rw [← i1] at q1
     rw [← i2] at q2
-    obtain ⟨e1, e2⟩ := orbR1 b hj g hg a ha t
+    obtain ⟨e1, e2⟩ := orbR1 b hj g a ha t
     have c1 : ((orbErr b 1 : ℤ) : ℝ) < ((qLower ((orbPE b 1 g a).1.ev qXv) : ℤ) : ℝ) := by exact_mod_cast q1
     have c2 : ((orbErr b 1 : ℤ) : ℝ) < ((qLower ((orbPE b 1 g a).2.ev qXv) : ℤ) : ℝ) := by exact_mod_cast q2
     rw [r1] at l1; rw [r2] at l2
@@ -222,7 +222,7 @@ theorem pOrbitOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : 
     (ht : ∀ i, |t i| ≤ 1) (hpt : PtOK b.chart b.face (kpt b t)) :
     Fsc (Qm b.chart (rOf (kblow b.chart) b.face (kpt b t))) <
       Fsc (orbY b e t * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t)) * gR g) := by
-  obtain ⟨h0, h4⟩ := orbit_bounds b hj hf he hg ha h ht
+  obtain ⟨h0, h4⟩ := orbit_bounds b hj hf he ha h ht
   set r := rOf (kblow b.chart) b.face (kpt b t)
   set Q := Qm b.chart r
   set K := orbK b e t
@@ -286,7 +286,7 @@ theorem pOrbitOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : 
     exact Submonoid.mul_mem _ hBt (Submonoid.mul_mem _ hY
       (Submonoid.mul_mem _ (chartB_mem_SO3 _) (cayV_mem_SO3 _)))
   have happ := trace_mul_approx hYQ (G := gR g) (G' := gHat g)
-    (fun a c => by have := group_approx g hg a c; rwa [D_errε] at this)
+    (group_approx g hg)
   set Ft := trace ((chartB a)ᵀ * (Y * Q) * gR g) - (if a = 4 then 1 / 8 else 0)
   set F' := trace ((chartB a)ᵀ * (Y * Q) * gHat g) - (if a = 4 then 1 / 8 else 0)
   have hFF : F' - 9 * ε ≤ Ft := by

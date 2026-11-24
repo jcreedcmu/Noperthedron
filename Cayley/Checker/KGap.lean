@@ -25,7 +25,8 @@ structure KBox where
   h : List Int
 deriving Inhabited
 
-/-- The vertices, exactly `vertexTab`, as integers over `2^160`. -/
+/-- The vertices as integers over `2^160` (`Cayley.Pack.vt_eq` says how they are computed from
+`cosTab`, `sinTab` and the points `C₁, C₂, C₃`). -/
 def vtxI : List (Int × Int × Int) := [
   (856614713349491466445980334776951882203105591296, 0, 1184144530365309185986056276372037852756722057216),
   (969375748790894420514575470810276029809469423616, 892531578867762540304363363123470820508784656384, 581816437168531777583991323662460237375659311104),

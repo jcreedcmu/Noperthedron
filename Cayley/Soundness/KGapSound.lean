@@ -21,47 +21,15 @@ open scoped Matrix
 
 /-! ## The vertex table -/
 
-/-- The kernel vertex table is the checker's `vertexTab`, scaled by `2^160`. -/
-theorem vt_scaled' : ∀ t < 90,
-    (vertexOf (t / 6) (t % 6 / 3) (t % 3)).x.e ≤ 160 ∧ (vertexOf (t / 6) (t % 6 / 3) (t % 3)).y.e ≤ 160 ∧
-      (vertexOf (t / 6) (t % 6 / 3) (t % 3)).z.e ≤ 160 ∧
-      (vertexOf (t / 6) (t % 6 / 3) (t % 3)).x.m *
-        2 ^ (160 - (vertexOf (t / 6) (t % 6 / 3) (t % 3)).x.e) = (vt t).1 ∧
-      (vertexOf (t / 6) (t % 6 / 3) (t % 3)).y.m *
-        2 ^ (160 - (vertexOf (t / 6) (t % 6 / 3) (t % 3)).y.e) = (vt t).2.1 ∧
-      (vertexOf (t / 6) (t % 6 / 3) (t % 3)).z.m *
-        2 ^ (160 - (vertexOf (t / 6) (t % 6 / 3) (t % 3)).z.e) = (vt t).2.2 := by
+/-- The kernel vertex table is the integer table `vtxZ`. -/
+theorem vt_eq : ∀ t < 90, vt t = vtxZ t := by
   decide +kernel
-
-theorem vertexTab_eq (t : ℕ) (ht : t < 90) : vertexTab[t]! = vertexOf (t / 6) (t % 6 / 3) (t % 3) := by
-  simp [vertexTab, getElem!_pos, ht]
-
-theorem vt_scaled (t : ℕ) (ht : t < 90) :
-    (vertexTab[t]!).x.e ≤ 160 ∧ (vertexTab[t]!).y.e ≤ 160 ∧ (vertexTab[t]!).z.e ≤ 160 ∧
-      (vertexTab[t]!).x.m * 2 ^ (160 - (vertexTab[t]!).x.e) = (vt t).1 ∧
-      (vertexTab[t]!).y.m * 2 ^ (160 - (vertexTab[t]!).y.e) = (vt t).2.1 ∧
-      (vertexTab[t]!).z.m * 2 ^ (160 - (vertexTab[t]!).z.e) = (vt t).2.2 := by
-  rw [vertexTab_eq t ht]; exact vt_scaled' t ht
-
-theorem D_scaled {q : QI} {m : ℤ} (he : q.e ≤ 160) (hm : q.m * 2 ^ (160 - q.e) = m) :
-    D q = (m : ℝ) / 2 ^ 160 := by
-  rw [← hm, D]
-  push_cast
-  rw [show (2 : ℝ) ^ 160 = 2 ^ q.e * 2 ^ (160 - q.e) by rw [← pow_add]; congr 1; omega]
-  field_simp
 
 /-- The tabulated vertex as a real vector. -/
 noncomputable def vR (t : ℕ) : Fin 3 → ℝ := fun i => svec (vt t) i / 2 ^ 160
 
-theorem vR_err {t : ℕ} (ht : t < 90) : ∀ i, |(vtx t - vR t) i| ≤ 1 / 2 ^ 60 := by
-  obtain ⟨h1, h2, h3, h4, h5, h6⟩ := vt_scaled t ht
-  have he : vR t = (vertexTab[t]!).toR := by
-    funext i
-    fin_cases i <;> simp [vR, svec, V3.toR, D_scaled h1 h4, D_scaled h2 h5, D_scaled h3 h6]
-  intro i
-  rw [he]
-  have := vertex_approx t ht i
-  rwa [D_errε] at this
+theorem vR_err {t : ℕ} (ht : t < 90) : ∀ i, |(vtx t - vR t) i| ≤ 1 / 2 ^ 60 := fun i => by
+  simpa only [vR, vt_eq t ht, Pi.sub_apply] using vertex_approx t ht i
 
 /-! ## The decoded polynomials -/
 

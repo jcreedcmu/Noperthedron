@@ -18,6 +18,10 @@ namespace Cayley
 open Noperthedron Real
 open scoped Matrix
 
+/-- The cross product of real vectors. -/
+def crossR (a b : Fin 3 → ℝ) : Fin 3 → ℝ :=
+  ![a 1 * b 2 - a 2 * b 1, a 2 * b 0 - a 0 * b 2, a 0 * b 1 - a 1 * b 0]
+
 /-- The blow-up direction on cube face . -/
 def faceR (face : ℕ) (s0 s1 : ℝ) : Fin 3 → ℝ :=
   let sg : ℝ := if face % 2 = 0 then 1 else -1

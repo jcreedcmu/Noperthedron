@@ -1,7 +1,11 @@
 module
 
 public import Cayley.Checker.Geometry
-public import Cayley.Soundness.QIReal
+public import Mathlib.Algebra.Order.Archimedean.Real.Basic
+public import Mathlib.Data.Fin.VecNotation
+public import Mathlib.LinearAlgebra.Matrix.Notation
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Positivity
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 public import Mathlib.Analysis.Complex.Trigonometric
 public import Mathlib.Analysis.SpecialFunctions.Sqrt

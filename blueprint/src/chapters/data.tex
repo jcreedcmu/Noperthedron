@@ -51,7 +51,7 @@ so $|z_k - \hat z_k| \le k\, 2^{-75}$.
 
 \begin{lemma}
 \label{lem:vertex_approx}
-\lean{Cayley.cTab_err, Cayley.vertex_approx, Cayley.Pack.vR_err}
+\lean{Cayley.cTab_err, Cayley.vtxZ, Cayley.vertex_approx, Cayley.Pack.vt_eq, Cayley.Pack.vR_err}
 \leanok
 \uses{lem:trig_table, def:noperthedron}
 Every coordinate of every tabulated vertex is within $2^{-60}$ of the corresponding
@@ -59,9 +59,11 @@ coordinate of the true vertex of $\PPP$.
 \end{lemma}
 \begin{proof}
 \leanok
-The points $C_1, C_2, C_3$ are rational and tabulated within $2^{-80}$. A vertex is
-$\pm R_z(2\pi k/15) C_i$; the error of a product of approximations is bounded by the sum
-of the errors, since all factors are bounded by $1$.
+The points $C_1, C_2, C_3$ are rational and are rounded to integers $\hat C_i$ over $2^{80}$.
+The checker's vertex table consists of integers over $2^{160}$, and it is exactly
+$\pm \hat R_z(2\pi k/15)\, \hat C_i$ computed from the integer tables (checked by
+evaluation). A vertex is $\pm R_z(2\pi k/15) C_i$; the error of a product of approximations
+is bounded by the sum of the errors, since all factors are bounded by $1$.
 \end{proof}
 
 \begin{lemma}

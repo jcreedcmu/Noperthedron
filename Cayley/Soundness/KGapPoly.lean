@@ -73,9 +73,6 @@ open Matrix
 noncomputable def gapR (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) : GData ℝ :=
   gapGen (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t b S w0 w1
 
-/-- The integer vertex as a real vector. -/
-def svec (S : ℤ × ℤ × ℤ) : Fin 3 → ℝ := ![(S.1 : ℝ), S.2.1, S.2.2]
-
 theorem p2_cast (k : ℕ) : ((p2 k : ℤ) : ℝ) = 2 ^ k := by simp [p2]
 
 theorem gapR_alpha (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) (y : Fin 3 → ℝ) :

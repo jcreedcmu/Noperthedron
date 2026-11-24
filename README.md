@@ -50,7 +50,7 @@ Soundness, file by file:
 * `Shadow`, `Moves`, `Reduction`, `Pose`, `CayleyMatrix`, `Rodrigues`: from
   `IsRupert exactVerts` to a Rupert pair `(s(u,v), s(u,v)·B_j·Cay(r))` in the reduced domain
   (a wedge of outer views, an orbit-maximal relative rotation, a 5-chart Cayley atlas).
-* `Trig`, `TrigTable`, `Approx`, `QIReal`: the checker's tables of `cos/sin(2πk/15)`, the
+* `Trig`, `TrigTable`, `Approx`: the checker's tables of `cos/sin(2πk/15)`, the
   vertices and the symmetries are within explicit errors of the true values.
 * `Pack`, `PackLayout`, `PackPoly`, `PackDecode`, `PackSound`, `PackBern`, `KVtx`: the packed
   polynomial arithmetic and its lower bounds (coefficient bounds and quadratic Bernstein

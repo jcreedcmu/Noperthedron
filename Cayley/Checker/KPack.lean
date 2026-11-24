@@ -375,8 +375,8 @@ def chartGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5
 
 /-- `C = M_a · 2^80 R̂z(g)ᵀ` (integer). -/
 def orbC (g a : Nat) : I9 :=
-  let cg := (cosTab.getD g 0).m
-  let sg := (sinTab.getD g 0).m
+  let cg := cosTab.getD g 0
+  let sg := sinTab.getD g 0
   mmI (chartMI a) (cg, sg, 0, -sg, cg, 0, 0, 0, p2 80)
 
 /-- `M N` for an integer matrix `M` (the scalar is kept). -/

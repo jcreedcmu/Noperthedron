@@ -1,7 +1,6 @@
 module
 
 public import Cayley.Soundness.Pose
-public import Cayley.Soundness.QIReal
 public import Cayley.Soundness.TrigTable
 
 @[expose] public section
@@ -9,9 +8,10 @@ public import Cayley.Soundness.TrigTable
 /-!
 # The checker's approximate data
 
-The checker's vertex table is within `ε = 2⁻⁶⁰` of the true vertices, its symmetry
-table within `ε` of the true rotations, and `τ` permutes the `C3` copies exactly as
-`tauPair` says.
+The integer vertices `vtxZ` (over `2^160`, computed from the integer trigonometric tables and
+the rounded points `C₁, C₂, C₃`) are within `ε = 2⁻⁶⁰` of the true vertices, the tabulated
+symmetries `gHat` are within `ε` of the true rotations, and `τ` permutes the `C3` copies
+exactly as `tauPair` says.
 -/
 
 namespace Cayley
@@ -60,16 +60,33 @@ theorem rot_err {c s ch sh x y xh yh e e' : ℝ} (hc : |c - ch| ≤ e) (hs : |s 
     rw [this]; calc _ ≤ |s * x - sh * xh| + |c * y - ch * yh| := abs_add_le _ _
       _ ≤ _ := by linarith
 
+/-- `2^80 Cᵢ`, rounded to integers. -/
+def cTab : ℕ → ℤ × ℤ × ℤ
+  | 0 => (708575083310368564287871, 0, 979501397978893732372791)
+  | 1 => (801848825678901923219191, 738284818130756748970184, 481267276890486254372654)
+  | _ => (990592611655862735853342, 640514902742640119587028, 148772163457966633721405)
+
 theorem cTab_err (i : ℕ) (hi : i < 3) :
-    |Cpt ⟨i, hi⟩ 0 - D (cTab[i]!).x| ≤ 1 / 2 ^ 80 ∧ |Cpt ⟨i, hi⟩ 1 - D (cTab[i]!).y| ≤ 1 / 2 ^ 80 ∧
-    |Cpt ⟨i, hi⟩ 2 - D (cTab[i]!).z| ≤ 1 / 2 ^ 80 ∧ |D (cTab[i]!).x| ≤ 1 ∧ |D (cTab[i]!).y| ≤ 1 := by
+    |Cpt ⟨i, hi⟩ 0 - ((cTab i).1 : ℝ) / 2 ^ 80| ≤ 1 / 2 ^ 80 ∧
+    |Cpt ⟨i, hi⟩ 1 - ((cTab i).2.1 : ℝ) / 2 ^ 80| ≤ 1 / 2 ^ 80 ∧
+    |Cpt ⟨i, hi⟩ 2 - ((cTab i).2.2 : ℝ) / 2 ^ 80| ≤ 1 / 2 ^ 80 ∧
+    |((cTab i).1 : ℝ) / 2 ^ 80| ≤ 1 ∧ |((cTab i).2.1 : ℝ) / 2 ^ 80| ≤ 1 := by
   interval_cases i <;>
-    simp [Cpt, C1R, C2R, C3R, C1, C2, C3, cTab, D_d80, abs_le] <;> norm_num
+    simp [Cpt, C1R, C2R, C3R, C1, C2, C3, cTab, abs_le] <;> norm_num
+
+/-- The integer vertex with checker index `t`, over `2^160`: `(-1)^ℓ R̂z(2πk/15) Ĉᵢ`. -/
+def vtxZ (t : ℕ) : ℤ × ℤ × ℤ :=
+  let c := cosM (t / 6)
+  let s := sinM (t / 6)
+  let p := cTab (t % 3)
+  let sg : ℤ := if t % 6 / 3 = 0 then 1 else -1
+  (sg * (c * p.1 - s * p.2.1), sg * (s * p.1 + c * p.2.1), sg * (p.2.2 * 2 ^ 80))
+
+/-- An integer triple as a real vector. -/
+def svec (S : ℤ × ℤ × ℤ) : Fin 3 → ℝ := ![(S.1 : ℝ), S.2.1, S.2.2]
 
 theorem vertex_approx (t : ℕ) (ht : t < 90) (i : Fin 3) :
-    |vtx t i - (vertexTab[t]!).toR i| ≤ D errε := by
-  have hε : D errε = 1 / 2 ^ 60 := D_errε
-  rw [hε]
+    |vtx t i - svec (vtxZ t) i / 2 ^ 160| ≤ 1 / 2 ^ 60 := by
   set k := t / 6
   set l := t % 6 / 3
   set ci := t % 3
@@ -78,7 +95,6 @@ theorem vertex_approx (t : ℕ) (ht : t < 90) (i : Fin 3) :
   have hci : ci < 3 := by omega
   have hidx : vIdx t = ⟨⟨k, hk⟩, ⟨l, hl⟩, ⟨ci, hci⟩⟩ := by
     simp only [vIdx, VertexIndex.mk.injEq, Fin.mk.injEq]; omega
-  have htab : vertexTab[t]! = vertexOf k l ci := by simp [vertexTab, getElem!_pos, ht, k, l, ci]
   have hcos := cos_tab_err k hk
   have hsin := sin_tab_err k hk
   have hcb : |cos (2 * π * k / 15)| ≤ 1 := abs_cos_le_one _
@@ -87,18 +103,31 @@ theorem vertex_approx (t : ℕ) (ht : t < 90) (i : Fin 3) :
   obtain ⟨r1, r2⟩ := rot_err hcos hsin h0 h1 hcb hsb hb0 hb1
   have hsmall : 2 * (1 / 2 ^ 71 + 1 / 2 ^ 80 : ℝ) ≤ 1 / 2 ^ 60 := by norm_num
   have hsmall' : (1 / 2 ^ 80 : ℝ) ≤ 1 / 2 ^ 60 := by norm_num
+  -- the tabulated vertex, coordinate by coordinate
+  set sg : ℝ := if l = 0 then 1 else -1
+  have e0 : svec (vtxZ t) 0 / 2 ^ 160 = sg * ((cosM k : ℝ) / 2 ^ 80 * ((cTab ci).1 / 2 ^ 80) -
+      (sinM k : ℝ) / 2 ^ 80 * ((cTab ci).2.1 / 2 ^ 80)) := by
+    simp only [svec, vtxZ, sg, Matrix.cons_val_zero]; split_ifs <;> push_cast <;> ring
+  have e1 : svec (vtxZ t) 1 / 2 ^ 160 = sg * ((sinM k : ℝ) / 2 ^ 80 * ((cTab ci).1 / 2 ^ 80) +
+      (cosM k : ℝ) / 2 ^ 80 * ((cTab ci).2.1 / 2 ^ 80)) := by
+    simp only [svec, vtxZ, sg, Matrix.cons_val_one, Matrix.cons_val_zero]
+    split_ifs <;> push_cast <;> ring
+  have e2 : svec (vtxZ t) 2 / 2 ^ 160 = sg * (((cTab ci).2.2 : ℝ) / 2 ^ 80) := by
+    simp only [svec, vtxZ, sg, Matrix.cons_val_two, Matrix.tail_cons, Matrix.head_cons]
+    split_ifs <;> push_cast <;> ring
+  have hv : ∀ a b c : ℝ, ((-1 : ℤ) ^ l • !₂[a, b, c] : ℝ³) = !₂[sg * a, sg * b, sg * c] := by
+    intro a b c
+    rcases (by omega : l = 0 ∨ l = 1) with h | h <;> ext j <;> fin_cases j <;> simp [sg, h]
+  have hsg : |sg| = 1 := by simp only [sg]; split_ifs <;> simp
+  have key : ∀ a b : ℝ, |a - b| ≤ 1 / 2 ^ 60 → |sg * a - sg * b| ≤ 1 / 2 ^ 60 := fun a b h => by
+    rw [← mul_sub, abs_mul, hsg, one_mul]; exact h
   unfold vtx
-  rw [hidx, exactVertex_eq_vec, htab]
-  simp only [vertexOf]
-  have hl01 : l = 0 ∨ l = 1 := by omega
-  rcases hl01 with h | h
-  · simp only [h, ite_true, pow_zero, one_smul]
-    fin_cases i <;> simp [V3.toR]
-    all_goals (rw [← one_div]; linarith)
-  · simp only [h, show (1 : ℕ) ≠ 0 by decide, ite_false, pow_one]
-    fin_cases i <;> simp [V3.toR]
-    all_goals rw [← one_div]
-    all_goals (rw [abs_le] at r1 r2 h2 ⊢; constructor <;> linarith [r1.1, r1.2, r2.1, r2.2, h2.1, h2.2])
+  rw [hidx, exactVertex_eq_vec]
+  simp only [hv]
+  fin_cases i
+  · rw [show (⟨0, by norm_num⟩ : Fin 3) = 0 from rfl, e0]; exact key _ _ (r1.trans hsmall)
+  · rw [show (⟨1, by norm_num⟩ : Fin 3) = 1 from rfl, e1]; exact key _ _ (r2.trans hsmall)
+  · rw [show (⟨2, by norm_num⟩ : Fin 3) = 2 from rfl, e2]; exact key _ _ (h2.trans hsmall')
 
 theorem cos_sin_reflect (k : ℕ) (hk : k < 15) :
     cos (2 * π * ((15 - k) % 15 : ℕ) / 15) = cos (2 * π * k / 15) ∧
@@ -145,20 +174,22 @@ theorem tau_pair (s t : ℕ) (hs : s < 90) (h : tauPair s = some t) :
       simp [hC, tauR, Matrix.mulVec, dotProduct, Fin.sum_univ_three] <;> field_simp <;>
       unfold kapR <;> ring
 
+/-- The tabulated symmetry `ĝ`. -/
+noncomputable def gHat (g : ℕ) : Matrix (Fin 3) (Fin 3) ℝ :=
+  !![(cosM g : ℝ) / 2 ^ 80, -((sinM g : ℝ) / 2 ^ 80), 0;
+     (sinM g : ℝ) / 2 ^ 80, (cosM g : ℝ) / 2 ^ 80, 0;
+     0, 0, 1]
+
 theorem group_approx (g : ℕ) (hg : g < 15) (i k : Fin 3) :
-    |gR g i k - (groupTab[g]!).toR i k| ≤ D errε := by
-  have hε : D errε = 1 / 2 ^ 60 := D_errε
-  have htab : groupTab[g]! = ⟨cosTab[g]!, -sinTab[g]!, 0, sinTab[g]!, cosTab[g]!, 0, 0, 0, 1⟩ := by
-    simp [groupTab, getElem!_pos, hg]
+    |gR g i k - gHat g i k| ≤ 1 / 2 ^ 60 := by
   have hcos := cos_tab_err g hg
   have hsin := sin_tab_err g hg
   have hs : (1 / 2 ^ 71 : ℝ) ≤ 1 / 2 ^ 60 := by norm_num
-  rw [hε, htab]
-  fin_cases i <;> fin_cases k <;> simp [gR, Rz_mat, M3.toR]
+  fin_cases i <;> fin_cases k <;> simp [gR, Rz_mat, gHat]
   all_goals first
     | linarith
-    | (rw [show -sin (2 * π * g / 15) + D (sinTab[g]!) = -(sin (2 * π * g / 15) - D (sinTab[g]!)) by ring,
-        abs_neg]; linarith)
+    | (rw [show -sin (2 * π * g / 15) + (sinM g : ℝ) / 2 ^ 80 =
+          -(sin (2 * π * g / 15) - (sinM g : ℝ) / 2 ^ 80) by ring, abs_neg]; linarith)
 
 end Cayley
 
