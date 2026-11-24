@@ -69,3 +69,22 @@ jobs:
         with:
           blueprint: true
           homepage: home_page
+          # Deployment is done by the steps below, with a pause before `deploy-pages`.
+          deploy: false
+
+      - name: Upload website
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: home_page/_site
+
+      # `deploy-pages` lists the run's artifacts as soon as it starts, and that listing can lag
+      # behind an upload finalized a moment earlier (actions/deploy-pages#451); it then fails
+      # with `No artifacts named "github-pages" were found`. Give the listing time to catch up.
+      - name: Wait for the uploaded artifact to be listed
+        if: github.event_name == 'push'
+        run: sleep 30
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push'
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
