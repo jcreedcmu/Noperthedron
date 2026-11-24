@@ -78,17 +78,9 @@ theorem pChartOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {k : ℕ}
 
 open Cayley
 
-theorem Hmat_mem_SO3 (u v : ℝ) : Hmat u v ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-  have hZ : ZR ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-    rw [mem_SO3_iff']
-    exact ⟨by ext a b; fin_cases a <;> fin_cases b <;> simp [ZR, Matrix.mul_apply, Fin.sum_univ_three],
-      by simp [ZR, Matrix.det_fin_three]⟩
-  have hS := outerRot_mem_SO3 u v
-  have hT : (outerRot u v)ᵀ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-    rw [mem_SO3_iff'] at hS ⊢
-    exact ⟨by rw [Matrix.transpose_transpose, SO3_transpose_mul (outerRot_mem_SO3 u v)],
-      by rw [Matrix.det_transpose]; exact hS.2⟩
-  exact Submonoid.mul_mem _ (Submonoid.mul_mem _ hT hZ) hS
+theorem Hmat_mem_SO3 (u v : ℝ) : Hmat u v ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+  Submonoid.mul_mem _ (Submonoid.mul_mem _ (SO3_transpose_mem (outerRot_mem_SO3 u v)) ZR_mem_SO3)
+    (outerRot_mem_SO3 u v)
 
 theorem entry_le_one {Z : Matrix (Fin 3) (Fin 3) ℝ} (hZ : Z ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (a c : Fin 3) : |Z a c| ≤ 1 := by
@@ -138,7 +130,7 @@ theorem orbPE_deg (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (e : ℕ) (he 
     (fun _ => rfl) b e g a
   have h1i := congrFun h1 i
   have h2i := congrFun h2 i
-  rw [orbGen_deg, orbGen_deg_g] at h1i h2i
+  rw [orbGen_deg] at h1i h2i
   obtain ⟨c1, c2, c3, c4⟩ := orb_deg_closed _ hj _ hf _ he i
   simp only [orbPE]
   rw [h1i, h2i]
@@ -286,11 +278,7 @@ theorem pOrbitOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : 
   -- the true score of the orbit element is within `9ε` of the checked one
   set Y := orbY b e t
   have hYQ : (chartB a)ᵀ * (Y * Q) ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-    have hBt : (chartB a)ᵀ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-      have hB' := chartB_mem_SO3 a
-      rw [mem_SO3_iff'] at hB' ⊢
-      exact ⟨by rw [Matrix.transpose_transpose, SO3_transpose_mul (chartB_mem_SO3 a)],
-        by rw [Matrix.det_transpose]; exact hB'.2⟩
+    have hBt := SO3_transpose_mem (chartB_mem_SO3 a)
     have hY : Y ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
       simp only [Y, orbY]; split_ifs
       · exact Submonoid.one_mem _

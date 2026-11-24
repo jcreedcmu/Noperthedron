@@ -93,34 +93,15 @@ def dMul (a c : Fin 5 → ℕ) : Fin 5 → ℕ := fun i => a i + c i
 abbrev dC : ℤ → Fin 5 → ℕ := fun _ _ => 0
 def dX (j : Fin 5) : Fin 5 → ℕ := fun i => if j = i then 1 else 0
 
-/-- The degree instance only sees the chart and the face. -/
-theorem numGen_deg (b : KBox) :
-    numGen dAdd dAdd dMul dC dX b = numGen dAdd dAdd dMul dC dX ⟨b.chart, b.face, 0, [], []⟩ := by
-  simp only [numGen]
-
+/-- The degree instance only sees the chart and the face (and not the symmetry `g`): every
+constant has degree `0`. -/
 theorem chartGen_deg (b : KBox) (k : ℕ) :
-    chartGen dAdd dAdd dMul dC dX b k = chartGen dAdd dAdd dMul dC dX ⟨b.chart, b.face, 0, [], []⟩ k := by
-  simp only [chartGen, numGen_deg b]
+    chartGen dAdd dAdd dMul dC dX b k =
+      chartGen dAdd dAdd dMul dC dX ⟨b.chart, b.face, 0, [], []⟩ k := rfl
 
 theorem orbGen_deg (b : KBox) (e g a : ℕ) :
-    orbGen dAdd dAdd dMul dC dX b e g a = orbGen dAdd dAdd dMul dC dX ⟨b.chart, b.face, 0, [], []⟩ e g a := by
-  simp only [orbGen, numGen_deg b]
-
-theorem trGen_dC (X X' : I9) (N : NM (Fin 5 → ℕ)) : trGen dAdd dMul dC X N = trGen dAdd dMul dC X' N := by
-  obtain ⟨x00, x01, x02, x10, x11, x12, x20, x21, x22⟩ := X
-  obtain ⟨y00, y01, y02, y10, y11, y12, y20, y21, y22⟩ := X'
-  rfl
-
-theorem m3_dC (X X' : I9) (N : NM (Fin 5 → ℕ)) : m3 dAdd dMul dC X N = m3 dAdd dMul dC X' N := by
-  obtain ⟨x00, x01, x02, x10, x11, x12, x20, x21, x22⟩ := X
-  obtain ⟨y00, y01, y02, y10, y11, y12, y20, y21, y22⟩ := X'
-  rfl
-
-theorem orbGen_deg_g (b : KBox) (e g a : ℕ) :
-    orbGen dAdd dAdd dMul dC dX b e g a = orbGen dAdd dAdd dMul dC dX b e 0 a := by
-  simp only [orbGen]
-  rw [trGen_dC (mtm (chartMI b.chart) (orbC g a)) (mtm (chartMI b.chart) (orbC 0 a)),
-    m3_dC (orbC g a) (orbC 0 a)]
+    orbGen dAdd dAdd dMul dC dX b e g a =
+      orbGen dAdd dAdd dMul dC dX ⟨b.chart, b.face, 0, [], []⟩ e 0 a := rfl
 
 /-- Degree bounds: `t₀, t₁` absent (chart, orbit `e = 0`) or of degree `≤ 4` (orbit `e = 1`). -/
 def dBound (e : ℕ) (i : Fin 5) : ℕ := if i.val < 2 then (if e = 0 then 0 else 4) else 2

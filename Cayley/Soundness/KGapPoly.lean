@@ -40,29 +40,6 @@ theorem gFace_map (face : ℕ) (a b c : R) :
   unfold gFace; split_ifs <;> simp
 
 include hx in
-theorem gapGen_map (b : KBox) (s : ℤ × ℤ × ℤ) (w0 w1 : ℤ) :
-    let g := gapGen addR subR mulR cR xR b s w0 w1
-    let g' := gapGen addS subS mulS cS xS b s w0 w1
-    f g.a0 = g'.a0 ∧ f g.a1 = g'.a1 ∧ f g.a2 = g'.a2 ∧ f g.b0 = g'.b0 ∧ f g.b1 = g'.b1 ∧
-      f g.b2 = g'.b2 ∧ f g.kd = g'.kd ∧ f g.l0 = g'.l0 ∧ f g.l1 = g'.l1 ∧ f g.l2 = g'.l2 := by
-  intro g g'
-  have hgc := gChart_map addR subR mulR cR addS subS mulS cS f hadd hsub hmul hc
-  have h1 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).1 =
-      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).1 := fun ch y0 y1 y2 => by
-    rw [← hgc]
-  have h2 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).2.1 =
-      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).2.1 := fun ch y0 y1 y2 => by
-    rw [← hgc]
-  have h3 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).2.2 =
-      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).2.2 := fun ch y0 y1 y2 => by
-    rw [← hgc]
-  have hf1 := fun face a b c => (gFace_map f face a b c).1
-  have hf2 := fun face a b c => (gFace_map f face a b c).2.1
-  have hf3 := fun face a b c => (gFace_map f face a b c).2.2
-  simp only [g, g', gapGen, gapCore]
-  split_ifs <;> simp only [h1, h2, h3, hf1, hf2, hf3, hadd, hsub, hmul, hc, hx, and_self]
-
-include hx in
 theorem gapCore_map (chart face : ℕ) (U : R) (cc hh : ℕ → R) (sx sy sz w0 w1 : R) :
     let g := gapCore addR subR mulR cR xR chart face U cc hh sx sy sz w0 w1
     let g' := gapCore addS subS mulS cS xS chart face (f U) (fun i => f (cc i)) (fun i => f (hh i))
@@ -232,6 +209,14 @@ def _root_.Cayley.K.GData.get {R : Type} (g : GData R) : Fin 10 → R
   | 0 => g.a0 | 1 => g.a1 | 2 => g.a2 | 3 => g.b0 | 4 => g.b1 | 5 => g.b2 | 6 => g.kd
   | 7 => g.l0 | 8 => g.l1 | 9 => g.l2
 
+theorem gapCore_get {R S : Type} (g : GData R) (f : R → S) (g' : GData S)
+    (h : f g.a0 = g'.a0 ∧ f g.a1 = g'.a1 ∧ f g.a2 = g'.a2 ∧ f g.b0 = g'.b0 ∧ f g.b1 = g'.b1 ∧
+      f g.b2 = g'.b2 ∧ f g.kd = g'.kd ∧ f g.l0 = g'.l0 ∧ f g.l1 = g'.l1 ∧ f g.l2 = g'.l2)
+    (k : Fin 10) : f (g.get k) = g'.get k := by
+  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9⟩ := h
+  fin_cases k <;> assumption
+
+/-- A map that commutes with the arithmetic commutes with `gapGen`. -/
 theorem gapGen_map' {R S : Type} (addR subR mulR : R → R → R) (cR : ℤ → R) (xR : Fin 5 → R)
     (addS subS mulS : S → S → S) (cS : ℤ → S) (xS : Fin 5 → S) (f : R → S)
     (hadd : ∀ a b, f (addR a b) = addS (f a) (f b)) (hsub : ∀ a b, f (subR a b) = subS (f a) (f b))
@@ -239,9 +224,11 @@ theorem gapGen_map' {R S : Type} (addR subR mulR : R → R → R) (cR : ℤ → 
     (hx : ∀ i, f (xR i) = xS i) (b : KBox) (s : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
     f ((gapGen addR subR mulR cR xR b s w0 w1).get k) =
       (gapGen addS subS mulS cS xS b s w0 w1).get k := by
-  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9⟩ :=
-    gapGen_map addR subR mulR cR xR addS subS mulS cS xS f hadd hsub hmul hc hx b s w0 w1
-  fin_cases k <;> assumption
+  have h := gapCore_map addR subR mulR cR xR addS subS mulS cS xS f hadd hsub hmul hc hx
+    b.chart b.face (cR (p2 b.K)) (fun i => cR (b.c.getD i 0)) (fun i => cR (b.h.getD i 0))
+    (cR s.1) (cR s.2.1) (cR s.2.2) (cR w0) (cR w1)
+  simp only [hc] at h
+  exact gapCore_get _ f _ h k
 
 theorem gapPE_int (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
     ((gapPE b S w0 w1).get k).ev (fun i => pX i.val) = (pGapData b S w0 w1).get k :=
@@ -292,41 +279,9 @@ theorem gapPE_deg (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) 
   gapGen_map' PE.add PE.sub PE.mul PE.c PE.x _ _ _ _ _ (fun e i => e.deg i)
     (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl) b S w0 w1 k
 
-/-- Two runs on boxes with the same chart and face, when every constant maps to the same value. -/
-theorem gapGen_map2 {R S : Type} (addR subR mulR : R → R → R) (cR : ℤ → R) (xR : Fin 5 → R)
-    (addS subS mulS : S → S → S) (cS : ℤ → S) (xS : Fin 5 → S) (f : R → S)
-    (hadd : ∀ a b, f (addR a b) = addS (f a) (f b)) (hsub : ∀ a b, f (subR a b) = subS (f a) (f b))
-    (hmul : ∀ a b, f (mulR a b) = mulS (f a) (f b)) (hc : ∀ z z', f (cR z) = cS z')
-    (hx : ∀ i, f (xR i) = xS i) (b b' : KBox) (hch : b.chart = b'.chart) (hfa : b.face = b'.face)
-    (s s' : ℤ × ℤ × ℤ) (w0 w1 w0' w1' : ℤ) (k : Fin 10) :
-    f ((gapGen addR subR mulR cR xR b s w0 w1).get k) =
-      (gapGen addS subS mulS cS xS b' s' w0' w1').get k := by
-  have hc' : ∀ z, f (cR z) = cS z := fun z => hc z z
-  have hgc := gChart_map addR subR mulR cR addS subS mulS cS f hadd hsub hmul hc'
-  have h1 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).1 =
-      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).1 := fun ch y0 y1 y2 => by rw [← hgc]
-  have h2 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).2.1 =
-      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).2.1 := fun ch y0 y1 y2 => by rw [← hgc]
-  have h3 : ∀ ch y0 y1 y2, f (gChart subR mulR cR addR ch y0 y1 y2).2.2 =
-      (gChart subS mulS cS addS ch (f y0) (f y1) (f y2)).2.2 := fun ch y0 y1 y2 => by rw [← hgc]
-  have hf1 := fun face a b c => (gFace_map f face a b c).1
-  have hf2 := fun face a b c => (gFace_map f face a b c).2.1
-  have hf3 := fun face a b c => (gFace_map f face a b c).2.2
-  have hcc : ∀ z z', cS z = cS z' := fun z z' => by rw [← hc z z', hc z z]
-  simp only [gapGen, gapCore, hch, hfa]
-  split_ifs <;> fin_cases k <;>
-    simp only [K.GData.get, h1, h2, h3, hf1, hf2, hf3, hadd, hsub, hmul, hc', hx] <;>
-    simp only [hcc _ 0]
-
-theorem gapDeg_data (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
-    (gapDeg b S w0 w1).get k = (gapDeg ⟨b.chart, b.face, 0, [], []⟩ (0, 0, 0) 0 0).get k := by
-  unfold gapDeg
-  exact gapGen_map2 (R := Fin 5 → ℕ) (S := Fin 5 → ℕ) (fun a c i => max (a i) (c i)) (fun a c i => max (a i) (c i)) (fun a c i => a i + c i)
-    (fun _ _ => 0) (fun j i => if j = i then 1 else 0)
-    (fun a c i => max (a i) (c i)) (fun a c i => max (a i) (c i)) (fun a c i => a i + c i)
-    (fun _ _ => 0) (fun j i => if j = i then 1 else 0) id (fun _ _ => rfl) (fun _ _ => rfl)
-    (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) b ⟨b.chart, b.face, 0, [], []⟩ rfl rfl S
-    (0, 0, 0) w0 w1 0 0 k
+/-- The degree instance only sees the chart and the face: every constant has degree `0`. -/
+theorem gapDeg_data (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) :
+    gapDeg b S w0 w1 = gapDeg ⟨b.chart, b.face, 0, [], []⟩ (0, 0, 0) 0 0 := rfl
 
 theorem gapDeg_closed : ∀ chart < 5, ∀ face < 6, ∀ k : Fin 10, ∀ i : Fin 5,
     (gapDeg ⟨chart, face, 0, [], []⟩ (0, 0, 0) 0 0).get k i ≤ degB k i := by
@@ -346,13 +301,6 @@ def mpAdd (a b : MP) : MP := ⟨(a.1.1 + b.1.1, a.1.2 + b.1.2), Nat.add_le_add a
 def mpMul (a b : MP) : MP := ⟨(a.1.1 * b.1.1, a.1.2 * b.1.2), Nat.mul_le_mul a.2 b.2⟩
 def mpC (z : ℤ) : MP := ⟨(z.natAbs, z.natAbs), le_rfl⟩
 def mpX (_ : Fin 5) : MP := ⟨(1, 1), le_rfl⟩
-
-theorem gapCore_get {R : Type} (g : GData R) (f : R → ℕ) (g' : GData ℕ)
-    (h : f g.a0 = g'.a0 ∧ f g.a1 = g'.a1 ∧ f g.a2 = g'.a2 ∧ f g.b0 = g'.b0 ∧ f g.b1 = g'.b1 ∧
-      f g.b2 = g'.b2 ∧ f g.kd = g'.kd ∧ f g.l0 = g'.l0 ∧ f g.l1 = g'.l1 ∧ f g.l2 = g'.l2)
-    (k : Fin 10) : f (g.get k) = g'.get k := by
-  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9⟩ := h
-  fin_cases k <;> assumption
 
 /-- **Norm monotonicity.** The coefficient-norm bounds grow with the magnitudes of the inputs. -/
 theorem gapNrm_mono (b b' : KBox) (hch : b.chart = b'.chart) (hfa : b.face = b'.face)
