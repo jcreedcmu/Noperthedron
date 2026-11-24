@@ -26,8 +26,7 @@ structure Inv (b : KBox) : Prop where
 
 /-- No point of the box is a reduced Rupert pose. -/
 def Covered (b : KBox) : Prop :=
-  ∀ t : Fin 5 → ℝ, (∀ i, |t i| ≤ 1) → PtOK b.chart b.face (kpt b t) → ¬ Bad b.chart b.face (kpt b t)
-
+  ∀ X ∈ b.pts, PtOK b.chart b.face X → ¬ Bad b.chart b.face X
 
 /-! ## Splitting -/
 
@@ -93,69 +92,57 @@ theorem split_inv (b : KBox) (hb : Inv b) (d : ℕ) (hd : d < 5) :
         abs_two, hK]; linarith [hb.mag i]
 
 /-- Every point of a box is a point of one of its two halves. -/
-theorem split_cover (b : KBox) (hb : Inv b) (d : ℕ) (hd : d < 5) (t : Fin 5 → ℝ)
-    (ht : ∀ i, |t i| ≤ 1) :
-    (∃ t', (∀ i, |t' i| ≤ 1) ∧ kpt (b.split d).1 t' = kpt b t) ∨
-      (∃ t', (∀ i, |t' i| ≤ 1) ∧ kpt (b.split d).2 t' = kpt b t) := by
+theorem split_cover (b : KBox) (hb : Inv b) (d : ℕ) (hd : d < 5) {X : Fin 5 → ℝ}
+    (hX : X ∈ b.pts) : X ∈ (b.split d).1.pts ∨ X ∈ (b.split d).2.pts := by
   set D : Fin 5 := ⟨d, hd⟩
-  have hD : (D : ℕ) = d := rfl
   have hlc : d < b.c.length := by rw [hb.lenc]; exact hd
   have hlh : d < b.h.length := by rw [hb.lenh]; exact hd
   have hlc2 : d < (b.c.map (2 * ·)).length := by simp [hb.lenc]; exact hd
   have hlh2 : d < (b.h.map (2 * ·)).length := by simp [hb.lenh]; exact hd
-  have hU : (0 : ℝ) < 2 ^ b.K := by positivity
-  have hunit : ∀ (s : ℝ), (∀ i, |t i| ≤ 1) → ∀ (v : ℝ), |v| ≤ 1 →
-      ∀ i, |Function.update t D v i| ≤ 1 := by
-    intro _ ht v hv i
-    by_cases hi : i = D
-    · subst hi; simpa using hv
-    · simp [hi, ht i]
-  by_cases hneg : t D ≤ 0
-  · left
-    refine ⟨Function.update t D (2 * t D + 1), hunit 0 ht _ ?_, ?_⟩
-    · have := abs_le.1 (ht D); rw [abs_le]; constructor <;> linarith
-    · funext i
-      unfold KBox.split; dsimp only
-      split_ifs with he
-      · have h2 : ((b.h.getD d 0 / 2 : ℤ) : ℝ) * 2 = b.h.getD d 0 := by
-          have : b.h.getD d 0 % 2 = 0 := by have := hb.hpos D; simp only [hD] at this; omega
-          exact_mod_cast Int.ediv_mul_cancel (Int.dvd_of_emod_eq_zero this)
-        by_cases hi : i = D
-        · subst hi
-          simp only [kpt, hD, getD_set_eq _ _ _ hlc, getD_set_eq _ _ _ hlh, Function.update_self]
-          push_cast; congr 1; linear_combination (t D) * h2
-        · have hi' : (i : ℕ) ≠ d := fun h => hi (Fin.ext h)
-          simp only [kpt, getD_set_ne _ _ _ _ hi', Function.update_of_ne hi]
-      · by_cases hi : i = D
-        · subst hi
-          simp only [kpt, hD, getD_set_eq _ _ _ hlc2, getD_set_eq _ _ _ hlh2, Function.update_self]
-          push_cast; rw [pow_succ]; field_simp; ring
-        · have hi' : (i : ℕ) ≠ d := fun h => hi (Fin.ext h)
-          simp only [kpt, getD_set_ne _ _ _ _ hi', getD_map2, Function.update_of_ne hi]
-          push_cast; rw [pow_succ]; field_simp
-  · right
-    push Not at hneg
-    refine ⟨Function.update t D (2 * t D - 1), hunit 0 ht _ ?_, ?_⟩
-    · have := abs_le.1 (ht D); rw [abs_le]; constructor <;> linarith
-    · funext i
-      unfold KBox.split; dsimp only
-      split_ifs with he
-      · have h2 : ((b.h.getD d 0 / 2 : ℤ) : ℝ) * 2 = b.h.getD d 0 := by
-          have : b.h.getD d 0 % 2 = 0 := by have := hb.hpos D; simp only [hD] at this; omega
-          exact_mod_cast Int.ediv_mul_cancel (Int.dvd_of_emod_eq_zero this)
-        by_cases hi : i = D
-        · subst hi
-          simp only [kpt, hD, getD_set_eq _ _ _ hlc, getD_set_eq _ _ _ hlh, Function.update_self]
-          push_cast; congr 1; linear_combination (t D) * h2
-        · have hi' : (i : ℕ) ≠ d := fun h => hi (Fin.ext h)
-          simp only [kpt, getD_set_ne _ _ _ _ hi', Function.update_of_ne hi]
-      · by_cases hi : i = D
-        · subst hi
-          simp only [kpt, hD, getD_set_eq _ _ _ hlc2, getD_set_eq _ _ _ hlh2, Function.update_self]
-          push_cast; rw [pow_succ]; field_simp; ring
-        · have hi' : (i : ℕ) ≠ d := fun h => hi (Fin.ext h)
-          simp only [kpt, getD_set_ne _ _ _ _ hi', getD_map2, Function.update_of_ne hi]
-          push_cast; rw [pow_succ]; field_simp
+  have hD : |2 ^ b.K * X D - (b.c.getD d 0 : ℝ)| ≤ (b.h.getD d 0 : ℝ) := hX D
+  rw [abs_le] at hD
+  -- membership in a half: the coordinates other than `d`, and coordinate `d`
+  have key : ∀ b' : KBox,
+      (∀ i : Fin 5, (i : ℕ) ≠ d → |2 ^ b'.K * X i - (b'.c.getD i 0 : ℝ)| ≤ (b'.h.getD i 0 : ℝ)) →
+      |2 ^ b'.K * X D - (b'.c.getD d 0 : ℝ)| ≤ (b'.h.getD d 0 : ℝ) → X ∈ b'.pts := by
+    intro b' h1 h2 i
+    by_cases hi : (i : ℕ) = d
+    · obtain rfl : i = D := Fin.ext hi
+      exact h2
+    · exact h1 i hi
+  by_cases hneg : 2 ^ b.K * X D ≤ (b.c.getD d 0 : ℝ)
+  all_goals
+    unfold KBox.split; dsimp only
+    split_ifs with he
+    · have h2 : ((b.h.getD d 0 / 2 : ℤ) : ℝ) * 2 = b.h.getD d 0 := by
+        have : b.h.getD d 0 % 2 = 0 := by have := hb.hpos D; simp only [D] at this; omega
+        exact_mod_cast Int.ediv_mul_cancel (Int.dvd_of_emod_eq_zero this)
+      first
+        | left
+          refine key _ (fun i hi => ?_) ?_
+          · simp only [getD_set_ne _ _ _ _ hi]; exact hX i
+          · simp only [getD_set_eq _ _ _ hlc, getD_set_eq _ _ _ hlh]
+            push_cast; rw [abs_le]; constructor <;> linarith
+        | right
+          refine key _ (fun i hi => ?_) ?_
+          · simp only [getD_set_ne _ _ _ _ hi]; exact hX i
+          · simp only [getD_set_eq _ _ _ hlc, getD_set_eq _ _ _ hlh]
+            push_cast; rw [abs_le]; constructor <;> linarith
+    · first
+        | left
+          refine key _ (fun i hi => ?_) ?_
+          · simp only [getD_set_ne _ _ _ _ hi, getD_map2]
+            have := abs_le.1 (hX i)
+            push_cast; rw [pow_succ, abs_le]; constructor <;> linarith
+          · simp only [getD_set_eq _ _ _ hlc2, getD_set_eq _ _ _ hlh2]
+            push_cast; rw [pow_succ, abs_le]; constructor <;> linarith
+        | right
+          refine key _ (fun i hi => ?_) ?_
+          · simp only [getD_set_ne _ _ _ _ hi, getD_map2]
+            have := abs_le.1 (hX i)
+            push_cast; rw [pow_succ, abs_le]; constructor <;> linarith
+          · simp only [getD_set_eq _ _ _ hlc2, getD_set_eq _ _ _ hlh2]
+            push_cast; rw [pow_succ, abs_le]; constructor <;> linarith
 
 theorem split_big (b : KBox) (hb : Inv b) (d : ℕ) (hd : 5 ≤ d) :
     (b.split d).1 = b ∧ (b.split d).2 = b := by
@@ -179,54 +166,42 @@ theorem holes_nil (b : KBox) (tr : KTree) (h : kCheck false b tr = true) : holes
 
 /-- **The tree walk.** A bad point of a checked box lies in one of its holes. -/
 theorem walk (hok : Bool) (tr : KTree) : ∀ b, Inv b → kCheck hok b tr = true →
-    ∀ t : Fin 5 → ℝ, (∀ i, |t i| ≤ 1) → PtOK b.chart b.face (kpt b t) →
-    Bad b.chart b.face (kpt b t) →
-    ∃ hb ∈ holes b tr, Inv hb ∧ hb.chart = b.chart ∧ hb.face = b.face ∧
-      ∃ t', (∀ i, |t' i| ≤ 1) ∧ kpt hb t' = kpt b t := by
+    ∀ X ∈ b.pts, PtOK b.chart b.face X → Bad b.chart b.face X →
+    ∃ hb ∈ holes b tr, Inv hb ∧ hb.chart = b.chart ∧ hb.face = b.face ∧ X ∈ hb.pts := by
   induction tr with
-  | hole => intro b hb _ t ht _ _; exact ⟨b, by simp [holes], hb, rfl, rfl, t, ht, rfl⟩
+  | hole => intro b hb _ X hX _ _; exact ⟨b, by simp [holes], hb, rfl, rfl, hX⟩
   | dom code =>
-    intro b hb h t ht hpt hbad
+    intro b hb h X hX hpt hbad
+    obtain ⟨t, ht, rfl⟩ := b.exists_kpt hX
     exact absurd hbad.1 (pDomOK_sound b hb.chart hb.face hb.hpos h ht hpt)
   | gap s w0 w1 =>
-    intro b hb h t ht hpt hbad
+    intro b hb h X hX hpt hbad
+    obtain ⟨t, ht, rfl⟩ := b.exists_kpt hX
     exact absurd hbad.2 (pGapOK_sound b hb.chart hb.face hb.lenc hb.lenh hb.mag h ht hpt)
   | split d l r ihl ihr =>
-    intro b hb h t ht hpt hbad
+    intro b hb h X hX hpt hbad
     simp only [kCheck, Bool.and_eq_true] at h
     obtain ⟨c1, f1⟩ := split_fst b d
     obtain ⟨c2, f2⟩ := split_snd b d
-    have go : ∀ (b' : KBox) (sub : KTree), Inv b' → b'.chart = b.chart → b'.face = b.face →
-        kCheck hok b' sub = true →
-        (∀ b'', Inv b'' → kCheck hok b'' sub = true →
-          ∀ t : Fin 5 → ℝ, (∀ i, |t i| ≤ 1) → PtOK b''.chart b''.face (kpt b'' t) →
-          Bad b''.chart b''.face (kpt b'' t) →
-          ∃ hb ∈ holes b'' sub, Inv hb ∧ hb.chart = b''.chart ∧ hb.face = b''.face ∧
-            ∃ t', (∀ i, |t' i| ≤ 1) ∧ kpt hb t' = kpt b'' t) →
-        ∀ t', (∀ i, |t' i| ≤ 1) → kpt b' t' = kpt b t →
-        ∃ hb ∈ holes b' sub, Inv hb ∧ hb.chart = b.chart ∧ hb.face = b.face ∧
-          ∃ t'', (∀ i, |t'' i| ≤ 1) ∧ kpt hb t'' = kpt b t := by
-      intro b' sub hi hc hf hk ih t' ht' he
-      rw [← hc, ← hf, ← he] at hpt hbad
-      obtain ⟨hb', hm, hi', hc', hf', t'', ht'', he'⟩ := ih b' hi hk t' ht' hpt hbad
-      exact ⟨hb', hm, hi', hc'.trans hc, hf'.trans hf, t'', ht'', he'.trans he⟩
-    rcases Nat.lt_or_ge d 5 with hd | hd
-    · obtain ⟨i1, i2⟩ := split_inv b hb d hd
-      rcases split_cover b hb d hd t ht with ⟨t', ht', he⟩ | ⟨t', ht', he⟩
-      · obtain ⟨x, hx, rest⟩ := go _ l i1 c1 f1 h.1 ihl t' ht' he
-        exact ⟨x, by simp [holes, hx], rest⟩
-      · obtain ⟨x, hx, rest⟩ := go _ r i2 c2 f2 h.2 ihr t' ht' he
-        exact ⟨x, by simp [holes, hx], rest⟩
-    · obtain ⟨e1, -⟩ := split_big b hb d hd
-      have i1 : Inv (b.split d).1 := by rw [e1]; exact hb
-      obtain ⟨x, hx, rest⟩ := go _ l i1 c1 f1 h.1 ihl t ht (by rw [e1])
-      exact ⟨x, by simp [holes, hx], rest⟩
+    have hin : Inv (b.split d).1 ∧ Inv (b.split d).2 ∧
+        (X ∈ (b.split d).1.pts ∨ X ∈ (b.split d).2.pts) := by
+      rcases Nat.lt_or_ge d 5 with hd | hd
+      · exact ⟨(split_inv b hb d hd).1, (split_inv b hb d hd).2, split_cover b hb d hd hX⟩
+      · obtain ⟨e1, e2⟩ := split_big b hb d hd
+        rw [e1, e2]; exact ⟨hb, hb, Or.inl hX⟩
+    obtain ⟨i1, i2, hX1 | hX2⟩ := hin
+    · obtain ⟨x, hx, hi, hc, hf, hm⟩ := ihl _ i1 h.1 X hX1 (by rw [c1, f1]; exact hpt)
+        (by rw [c1, f1]; exact hbad)
+      exact ⟨x, by simp [holes, hx], hi, hc.trans c1, hf.trans f1, hm⟩
+    · obtain ⟨x, hx, hi, hc, hf, hm⟩ := ihr _ i2 h.2 X hX2 (by rw [c2, f2]; exact hpt)
+        (by rw [c2, f2]; exact hbad)
+      exact ⟨x, by simp [holes, hx], hi, hc.trans c2, hf.trans f2, hm⟩
 
 /-- A hole-free checked box is covered. -/
 theorem covered_of_check (b : KBox) (hb : Inv b) (tr : KTree) (h : kCheck false b tr = true) :
     Covered b := by
-  intro t ht hpt hbad
-  obtain ⟨x, hx, -⟩ := walk false tr b hb h t ht hpt hbad
+  intro X hX hpt hbad
+  obtain ⟨x, hx, -⟩ := walk false tr b hb h X hX hpt hbad
   rw [holes_nil b tr h] at hx
   simp at hx
 

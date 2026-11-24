@@ -85,29 +85,22 @@ theorem exists_face (r : Fin 3 → ℝ) (R : ℝ) (hR : ∀ i, |r i| ≤ R) :
 
 /-! ## The root boxes -/
 
-theorem rootK_plain (i : ℕ) (hi : i < 3) :
-    (rootK i).chart = i + 1 ∧ ∀ t : Fin 5 → ℝ, kpt (rootK i) t =
-      ![1 / 2 + 1 / 2 * t 0, 1 / 4 + 1 / 4 * t 1, t 2, t 3, t 4] := by
-  refine ⟨by simp [rootK, hi], fun t => ?_⟩
-  funext k; fin_cases k <;> simp [rootK, hi, kpt] <;> ring
+theorem rootK_chart (i : ℕ) :
+    (rootK i).chart = (if i < 3 then i + 1 else if i < 9 then 0 else 4) ∧
+      (rootK i).face = (if i < 3 then 0 else if i < 9 then i - 3 else i - 9) := by
+  simp only [rootK]; split_ifs <;> exact ⟨rfl, rfl⟩
 
-theorem rootK_blow0 (f : ℕ) (hf : f < 6) :
-    (rootK (3 + f)).chart = 0 ∧ (rootK (3 + f)).face = f ∧
-      ∀ t : Fin 5 → ℝ, kpt (rootK (3 + f)) t =
-        ![1 / 2 + 1 / 2 * t 0, 1 / 4 + 1 / 4 * t 1, t 2, t 3, 1 / 2 + 1 / 2 * t 4] := by
-  have h1 : ¬ 3 + f < 3 := by omega
-  have h2 : 3 + f < 9 := by omega
-  refine ⟨by simp [rootK, h1, h2], by simp [rootK, h1, h2], fun t => ?_⟩
-  funext k; fin_cases k <;> simp [rootK, h1, h2, kpt] <;> ring
-
-theorem rootK_blow4 (f : ℕ) (hf : f < 6) :
-    (rootK (9 + f)).chart = 4 ∧ (rootK (9 + f)).face = f ∧
-      ∀ t : Fin 5 → ℝ, kpt (rootK (9 + f)) t =
-        ![1 / 2 + 1 / 2 * t 0, 1 / 4 + 1 / 4 * t 1, t 2, t 3, 1 + t 4] := by
-  have h1 : ¬ 9 + f < 3 := by omega
-  have h2 : ¬ 9 + f < 9 := by omega
-  refine ⟨by simp [rootK, h1, h2], by simp [rootK, h1, h2], fun t => ?_⟩
-  funext k; fin_cases k <;> simp [rootK, h1, h2, kpt] <;> ring
+/-- The points of root box `i`: `u ∈ [0,1]`, `v ∈ [0,1/2]`, two coordinates in `[-1,1]`, and
+the last in `[-1,1]`, `[0,1]` or `[0,2]`. -/
+theorem rootK_mem (i : ℕ) (hi : i < 15) (X : Fin 5 → ℝ) (hu0 : 0 ≤ X 0) (hu1 : X 0 ≤ 1)
+    (hv0 : 0 ≤ X 1) (hv1 : X 1 ≤ 1 / 2) (h2 : |X 2| ≤ 1) (h3 : |X 3| ≤ 1)
+    (h4 : if i < 3 then |X 4| ≤ 1 else 0 ≤ X 4 ∧ X 4 ≤ (if i < 9 then 1 else 2)) :
+    X ∈ (rootK i).pts := by
+  rw [abs_le] at h2 h3
+  intro k
+  rw [abs_le]
+  interval_cases i <;> simp only [Nat.reduceLT, ↓reduceIte, abs_le] at h4 <;> fin_cases k <;>
+    simp [rootK] <;> constructor <;> linarith
 
 theorem rootK_inv (i : ℕ) (hi : i < 15) : Inv (rootK i) := by
   interval_cases i <;>
@@ -117,66 +110,54 @@ theorem rootK_inv (i : ℕ) (hi : i < 15) : Inv (rootK i) := by
 /-! ## Coverage -/
 
 theorem cover {u v : ℝ} {j : ℕ} {r : Fin 3 → ℝ} (hred : Reduced u v j r) :
-    ∃ i < 15, ∃ t : Fin 5 → ℝ, (∀ k, |t k| ≤ 1) ∧ (rootK i).chart = j ∧
-      kpt (rootK i) t 0 = u ∧ kpt (rootK i) t 1 = v ∧
-      rOf (kblow j) (rootK i).face (kpt (rootK i) t) = r ∧
-      PtOK (rootK i).chart (rootK i).face (kpt (rootK i) t) := by
+    ∃ i < 15, ∃ X ∈ (rootK i).pts, (rootK i).chart = j ∧ X 0 = u ∧ X 1 = v ∧
+      rOf (kblow j) (rootK i).face X = r ∧ PtOK (rootK i).chart (rootK i).face X := by
   have hu1 : u ≤ 1 := by nlinarith [hred.disk, sq_nonneg v, hred.u_nonneg]
   have hv : v ≤ 1 / 2 := by linarith [hred.wedge]
   have hu0 := hred.u_nonneg
   have hv0 := hred.v_nonneg
   have hrb := hred.rb
   have hj := hred.j_lt
-  have hU : |2 * u - 1| ≤ 1 := abs_le.2 ⟨by linarith, by linarith⟩
-  have hV : |4 * v - 1| ≤ 1 := abs_le.2 ⟨by linarith, by linarith⟩
   by_cases hj04 : j = 0 ∨ j = 4
   · obtain ⟨f, hf, ρ, s0, s1, hρ0, hρR, hs0, hs1, hr⟩ := exists_face r _ hrb
-    have hrr : ∀ (X : Fin 5 → ℝ), X = ![u, v, s0, s1, ρ] → rOf (kblow j) f X = r := by
-      intro X hX
-      rcases hj04 with rfl | rfl <;> simpa [hX, rOf, kblow] using hr
-    rcases hj04 with rfl | rfl
-    · obtain ⟨hc, hface, hpt⟩ := rootK_blow0 f hf
-      simp only [show ((0 : ℕ) = 4) = False by decide, ite_false] at hρR
-      set t : Fin 5 → ℝ := ![2 * u - 1, 4 * v - 1, s0, s1, 2 * ρ - 1]
-      have hX : kpt (rootK (3 + f)) t = ![u, v, s0, s1, ρ] := by
-        rw [hpt]; funext k; fin_cases k <;> simp [t] <;> ring
-      refine ⟨3 + f, by omega, t, ?_, hc, by rw [hX]; rfl, by rw [hX]; rfl, ?_, ?_⟩
-      · intro k; fin_cases k <;> simp [t, hU, hV, hs0, hs1]
-        exact abs_le.2 ⟨by linarith, by linarith⟩
-      · rw [hface]; exact hrr _ hX
-      · rw [hc, hface, hX]
-        refine ⟨by simpa using hred.disk, fun i => ?_, fun _ => ?_⟩
-        · rw [hrr _ rfl]; have := hrb i; simp at this; linarith
-        · simp; exact ⟨hρ0, by linarith, hs0, hs1⟩
-    · obtain ⟨hc, hface, hpt⟩ := rootK_blow4 f hf
-      simp only [ite_true] at hρR
-      set t : Fin 5 → ℝ := ![2 * u - 1, 4 * v - 1, s0, s1, ρ - 1]
-      have hX : kpt (rootK (9 + f)) t = ![u, v, s0, s1, ρ] := by
-        rw [hpt]; funext k; fin_cases k <;> simp [t] <;> ring
-      refine ⟨9 + f, by omega, t, ?_, hc, by rw [hX]; rfl, by rw [hX]; rfl, ?_, ?_⟩
-      · intro k; fin_cases k <;> simp [t, hU, hV, hs0, hs1]
-        exact abs_le.2 ⟨by linarith, by linarith⟩
-      · rw [hface]; exact hrr _ hX
-      · rw [hc, hface, hX]
-        refine ⟨by simpa using hred.disk, fun i => ?_, fun _ => ?_⟩
-        · rw [hrr _ rfl]; have := hrb i; simpa using this
-        · simp; exact ⟨hρ0, hρR, hs0, hs1⟩
+    have hkb : kblow j = true := by rcases hj04 with rfl | rfl <;> rfl
+    -- root `3 + f` (chart 0) or `9 + f` (chart 4)
+    obtain ⟨i, hi, hi3, hi9⟩ : ∃ i < 15, ¬ i < 3 ∧ (i < 9 ↔ j = 0) ∧
+        (if i < 9 then i - 3 else i - 9) = f ∧ (if i < 9 then 0 else 4) = j := by
+      rcases hj04 with rfl | rfl
+      · exact ⟨3 + f, by omega, by omega, by omega, by split_ifs <;> omega, by split_ifs <;> omega⟩
+      · exact ⟨9 + f, by omega, by omega, by omega, by split_ifs <;> omega, by split_ifs <;> omega⟩
+    obtain ⟨hi9, hface, hchart⟩ := hi9
+    obtain ⟨hc, hfc⟩ := rootK_chart i
+    simp only [hi3, ↓reduceIte, hface, hchart] at hc hfc
+    have hρ : ρ ≤ (if i < 9 then 1 else 2) := by
+      rcases hj04 with rfl | rfl
+      · simpa [hi9] using hρR
+      · simpa [hi9] using hρR
+    refine ⟨i, hi, ![u, v, s0, s1, ρ], rootK_mem i hi _ hu0 hu1 hv0 hv hs0 hs1 ?_, hc, rfl, rfl,
+      ?_, ?_⟩
+    · simpa [hi3] using ⟨hρ0, hρ⟩
+    · simpa [hfc, hkb, rOf] using hr
+    · rw [hc, hfc]
+      refine ⟨by simpa using hred.disk, fun k => ?_, fun _ => ?_⟩
+      · have : rOf (kblow j) f ![u, v, s0, s1, ρ] = r := by simpa [hkb, rOf] using hr
+        rw [this]; exact (hrb k).trans (by split_ifs <;> norm_num)
+      · exact ⟨hρ0, hρ.trans (by split_ifs <;> norm_num), hs0, hs1⟩
   · push Not at hj04
-    have hj13 : j - 1 < 3 := by omega
-    obtain ⟨hc, hpt⟩ := rootK_plain (j - 1) hj13
+    have hi : j - 1 < 3 := by omega
     have hkb : kblow j = false := by simp [kblow, hj04.1, hj04.2]
-    have hr1 : ∀ i, |r i| ≤ 1 := fun i => by have := hrb i; simpa [hj04.2] using this
-    set t : Fin 5 → ℝ := ![2 * u - 1, 4 * v - 1, r 0, r 1, r 2]
-    have hX : kpt (rootK (j - 1)) t = ![u, v, r 0, r 1, r 2] := by
-      rw [hpt]; funext k; fin_cases k <;> simp [t] <;> ring
+    have hr1 : ∀ k, |r k| ≤ 1 := fun k => by have := hrb k; simpa [hj04.2] using this
+    obtain ⟨hc, hfc⟩ := rootK_chart (j - 1)
+    simp only [hi, ↓reduceIte] at hc hfc
     have hjc : (rootK (j - 1)).chart = j := by rw [hc]; omega
     have hrr : rOf (kblow j) (rootK (j - 1)).face ![u, v, r 0, r 1, r 2] = r := by
       rw [hkb]; funext k; fin_cases k <;> simp [rOf]
-    refine ⟨j - 1, by omega, t, ?_, hjc, by rw [hX]; rfl, by rw [hX]; rfl, by rw [hX, hrr], ?_⟩
-    · intro k; fin_cases k <;> simp [t, hU, hV, hr1]
-    · rw [hjc, hX]
-      refine ⟨by simpa using hred.disk, fun i => ?_, fun h => by simp [hkb] at h⟩
-      rw [hrr]; linarith [hr1 i]
+    refine ⟨j - 1, by omega, ![u, v, r 0, r 1, r 2],
+      rootK_mem _ (by omega) _ hu0 hu1 hv0 hv (hr1 0) (hr1 1) (by simpa [hi] using hr1 2), hjc,
+      rfl, rfl, hrr, ?_⟩
+    rw [hjc]
+    refine ⟨by simpa using hred.disk, fun k => ?_, fun h => by simp [hkb] at h⟩
+    rw [hrr]; linarith [hr1 k]
 
 /-! ## Assembly -/
 
@@ -195,13 +176,13 @@ theorem AllOK_mem {P : List (KBox × KTree)} (h : AllOK P) :
 theorem root_covered (b : KBox) (hb : Inv b) (S : KTree) (P : List (KBox × KTree))
     (hs : kCheck true b S = true) (hh : holes b S = P.map Prod.fst) (ha : AllOK P) :
     Covered b := by
-  intro t ht hpt hbad
-  obtain ⟨x, hx, hix, hc, hf, t', ht', he⟩ := walk true S b hb hs t ht hpt hbad
+  intro X hX hpt hbad
+  obtain ⟨x, hx, hix, hc, hf, hm⟩ := walk true S b hb hs X hX hpt hbad
   rw [hh, List.mem_map] at hx
   obtain ⟨p, hp, rfl⟩ := hx
-  apply covered_of_check p.1 hix p.2 (AllOK_mem ha p hp) t' ht'
-  · rw [hc, hf, he]; exact hpt
-  · rw [hc, hf, he]; exact hbad
+  apply covered_of_check p.1 hix p.2 (AllOK_mem ha p hp) X hm
+  · rw [hc, hf]; exact hpt
+  · rw [hc, hf]; exact hbad
 
 /-- The certificate facts for one root box. -/
 def RootOK (i : ℕ) : Prop :=
@@ -212,9 +193,9 @@ def RootOK (i : ℕ) : Prop :=
 theorem kernel_sound (h : ∀ i < 15, RootOK i) : ¬ IsRupert exactVerts := by
   intro hR
   obtain ⟨u, v, j, r, hred, hrup⟩ := reduction hR
-  obtain ⟨i, hi, t, ht, hc, hu, hv, hr, hpt⟩ := cover hred
+  obtain ⟨i, hi, X, hX, hc, hu, hv, hr, hpt⟩ := cover hred
   obtain ⟨S, P, hs, hh, ha⟩ := h i hi
-  apply root_covered (rootK i) (rootK_inv i hi) S P hs hh ha t ht hpt
+  apply root_covered (rootK i) (rootK_inv i hi) S P hs hh ha X hX hpt
   rw [hc]; unfold Bad; rw [hu, hv, hr]
   exact ⟨hred, hrup⟩
 

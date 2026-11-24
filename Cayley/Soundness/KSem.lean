@@ -37,6 +37,30 @@ def rOf (blowup : Bool) (face : ℕ) (X : Fin 5 → ℝ) : Fin 3 → ℝ :=
 noncomputable def kpt (b : K.KBox) (t : Fin 5 → ℝ) (i : Fin 5) : ℝ :=
   ((b.c.getD i 0 : ℝ) + (b.h.getD i 0 : ℝ) * t i) / 2 ^ b.K
 
+/-- The real points of a kernel box: `|2^K Xᵢ − cᵢ| ≤ hᵢ` in every coordinate. -/
+def _root_.Cayley.K.KBox.pts (b : K.KBox) : Set (Fin 5 → ℝ) :=
+  {X | ∀ i : Fin 5, |2 ^ b.K * X i - (b.c.getD i 0 : ℝ)| ≤ (b.h.getD i 0 : ℝ)}
+
+/-- Every point of a box has normalized coordinates in `[-1,1]⁵`. -/
+theorem _root_.Cayley.K.KBox.exists_kpt {b : K.KBox} {X : Fin 5 → ℝ} (hX : X ∈ b.pts) :
+    ∃ t : Fin 5 → ℝ, (∀ i, |t i| ≤ 1) ∧ kpt b t = X := by
+  refine ⟨fun i => (2 ^ b.K * X i - (b.c.getD i 0 : ℝ)) / (b.h.getD i 0 : ℝ), fun i => ?_,
+    funext fun i => ?_⟩
+  · have h := hX i
+    rcases eq_or_lt_of_le ((abs_nonneg _).trans h) with h0 | hpos
+    · simp only [← h0, div_zero, abs_zero, zero_le_one]
+    · rw [abs_div, abs_of_pos hpos, div_le_one hpos]; exact h
+  · have h := hX i
+    have hU : (2 : ℝ) ^ b.K ≠ 0 := by positivity
+    simp only [kpt]
+    rcases eq_or_lt_of_le ((abs_nonneg _).trans h) with h0 | hpos
+    · rw [← h0] at h
+      have := abs_nonpos_iff.mp h
+      rw [← h0, zero_mul, add_zero, div_eq_iff hU]
+      linarith
+    · field_simp
+      ring
+
 /-- The pose-validity facts the leaf proofs need about a box point. -/
 structure PtOK (chart face : ℕ) (X : Fin 5 → ℝ) : Prop where
   disk : X 0 ^ 2 + X 1 ^ 2 ≤ 1
