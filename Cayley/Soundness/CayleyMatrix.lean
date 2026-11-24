@@ -151,7 +151,10 @@ theorem exists_cayleyMatrix_of_trace_nonneg
       rw [cayleyDenom, hx2, hy2, hz2]; field_simp; ring
     ext i j
     fin_cases i <;> fin_cases j <;>
-      simp [cayleyMatrix, hD, hx2, hy2, hz2, hxy, hxz, hyz] <;> field_simp <;> ring
+      simp only [Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk, Fin.isValue, cayleyMatrix, hx2, hy2,
+        hz2, hD, hxy, hxz, hyz, Matrix.of_apply, Matrix.cons_val', Matrix.cons_val,
+        Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one] <;>
+      field_simp <;> ring
 end Cayley
 
 end

@@ -30,17 +30,6 @@ lemma pointsym_of_neg_image_eq {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
   exact Set.mem_image_of_mem (fun x ↦ -x) hx
 
 /--
-Topological closure preserves the property of being pointsymmetric.
--/
-theorem closure_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}
-    (s_sym : PointSym S) : PointSym (closure S) := by
-  apply pointsym_of_neg_image_eq
-  calc
-    (fun x => -x) '' closure S = closure ((fun x => -x) '' S) :=
-      Homeomorph.image_closure (Homeomorph.neg _) S
-    _ = closure S := by rw [neg_image_eq_if_pointsym S s_sym]
-
-/--
 Topological interior preserves the property of being pointsymmetric.
 -/
 theorem interior_preserves_point_sym {n : ℕ} {S : Set (EuclideanSpace ℝ (Fin n))}

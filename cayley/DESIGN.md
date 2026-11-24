@@ -29,8 +29,8 @@ parametrization and the reduction, with every step.
 Write `Sh(R) = proj(R P)`.
 
 1. **Offset.** Because `P = −P` and `P` is convex, a Rupert passage with an offset gives one
-   with offset 0. This is the existing `rupert_implies_rot_rupert`. From now on, a Rupert pose
-   means `closure Sh(R_i) ⊆ interior Sh(R_o)`.
+   with offset 0. This is `Cayley.exists_rupPair` (via `common_center`). From now on, a Rupert pose
+   means `Sh(R_i) ⊆ interior Sh(R_o)` (the inner shadow is compact, so no closure is needed).
 2. **Common left factor.** Take `L ∈ SO(3)` with `L e_z = ±e_z`, i.e. `Rz(δ)` or `Rx(π)Rz(δ)`.
    Then `proj ∘ L = ℓ ∘ proj` for a linear isometry `ℓ` of the plane. So `(L R_o, L R_i)` is
    Rupert iff `(R_o, R_i)` is. Since `Rx(π)` maps the view `n` to `−n`, this move can flip

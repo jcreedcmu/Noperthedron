@@ -45,7 +45,7 @@ Direct computation: $N(r) N(r)^T = D(r)^2 I$ and $\det N(r) = D(r)^3$.
 
 \begin{lemma}[Rodrigues form]
 \label{lem:cayley_rodrigues}
-\lean{Cayley.cayleyMatrix_apply_sub, Cayley.num_sub_denom}
+\lean{Cayley.num_sub_denom}
 \leanok
 \uses{def:cayley}
 For every $S \in \R^3$,
@@ -86,27 +86,17 @@ $|r|^2 \le 3$.
 \end{theorem}
 \begin{proof}
 \leanok
-\uses{lem:axis_angle, lem:cayley_rodrigues}
-Write $A$ as a rotation by angle $\gamma \in (-\pi, \pi]$ about a unit axis $a$
-(Lemma~\ref{lem:axis_angle}). Then $\tr A = 1 + 2 \cos\gamma \ge 0$ gives
-$\cos\gamma \ge -1/2$. Put $c = \sin\gamma / (1 + \cos\gamma) = \tan(\gamma/2)$ and
-$r = c\,a$. Then $c^2 = (1 - \cos\gamma)/(1 + \cos\gamma) \le 3$, and comparing the
-Rodrigues forms of $A$ and of $\mathrm{Cay}(r)$ gives $A = \mathrm{Cay}(r)$.
-\end{proof}
-
-\begin{lemma}[Axis-angle form]
-\label{lem:axis_angle}
-\lean{Cayley.BalancedSupport.exists_axisAngle, Cayley.BalancedSupport.AxisAngle.apply_sub_exact, Cayley.BalancedSupport.AxisAngle.first_inner_eq, Cayley.BalancedSupport.AxisAngle.matrix_trace_eq}
-\leanok
-Every $A \in SO(3)$ is a rotation by some angle $\gamma \in (-\pi, \pi]$ about some unit
-axis $a$:
-$A v - v = \sin\gamma\; a \times v + (1 - \cos\gamma)\; a \times (a \times v)$.
-Its trace is $1 + 2\cos\gamma$.
-\end{lemma}
-\begin{proof}
-\leanok
-Every element of $SO(3)$ is orthogonally conjugate to a rotation $R_z(\gamma)$ about the
-$z$-axis; transport the formula for $R_z(\gamma)$ along the conjugating frame.
+Let $d = 1 + \tr A > 0$ and let $r = (A_{21} - A_{12},\ A_{02} - A_{20},\ A_{10} - A_{01}) / d$
+be the skew part of $A$ divided by $d$. (In terms of the unit quaternion $(q_0, q)$ of $A$,
+$d = 4 q_0^2$ and $r = q / q_0$.) A rotation satisfies $A A^T = A^T A = I$ and is its own
+cofactor matrix. These quadratic relations give, by linear combination,
+\[
+  r_0^2 = \frac{1 + A_{00} - A_{11} - A_{22}}{d}, \qquad
+  r_0 r_1 = \frac{A_{01} + A_{10}}{d},
+\]
+and the four similar identities for the other squares and products. Hence
+$|r|^2 = (3 - \tr A)/d \le 3$ and $D(r) = 4/d$, and substituting the six identities into
+the entries of $N(r)/D(r)$ gives $A$.
 \end{proof}
 
 \section{Outer views}
@@ -138,18 +128,5 @@ Direct computation.
 Thus $(u,v)$ records the direction from which the outer polyhedron is viewed:
 $(0,0)$ gives the positive $z$-axis, and $u^2+v^2=1$ gives horizontal views.
 The rotation $s(u,v)$ chooses a particular orientation of the shadow in the screen;
-the following lemma says that any other rotation with the same view differs only
-by a rotation of the screen.
-
-\begin{lemma}
-\label{lem:outer_unique}
-\lean{Cayley.eq_Rz_mul_outerRot}
-\leanok
-\uses{lem:outer_view}
-If $R \in SO(3)$ has the same third row as $s(u, v)$, then
-$R = R_z(\gamma)\, s(u, v)$ for some $\gamma$.
-\end{lemma}
-\begin{proof}
-\leanok
-$R\, s(u,v)^T$ fixes $e_z$, so it is a rotation about the $z$-axis.
-\end{proof}
+any other rotation with the same view differs only by a rotation of the screen
+(Lemma~\ref{lem:outer_unique}).

@@ -4,7 +4,7 @@
 This chapter shows that if $\PPP$ is Rupert, then there is a Rupert pair of a special
 form, with coordinates in a bounded set.
 
-Theorem~\ref{thm:rupert_implies_rot_rupert} has already removed the translation,
+Lemma~\ref{lem:exists_rup_pair} has already removed the translation,
 leaving two rotations with three parameters each. Rotating both shadows together
 in the screen preserves containment, so one of these six parameters is redundant.
 We use two parameters for the outer viewing direction and three for the relative
@@ -28,17 +28,32 @@ $\mathcal{C}_{30}$, and $\PPP = -\PPP$.
 
 \begin{lemma}[Common left factor]
 \label{lem:move_left}
-\lean{Cayley.rupPair_left, Cayley.rupPair_Rz, Cayley.rupPair_RxPi}
+\lean{Cayley.rupPair_left, Cayley.rupPair_RxPi}
 \leanok
 \uses{def:shadow}
-Let $L$ be a $3 \times 3$ matrix with $\pi \circ L = \ell \circ \pi$ for some invertible
-linear map $\ell$ of the screen. If $(R_o, R_i)$ is a Rupert pair, then so is
-$(L R_o, L R_i)$. In particular this holds for $L = R_z(\gamma)$ and for the half-turn
-$L = R_x(\pi)$, since a rotation with $L e_z = \pm e_z$ has this property.
+Let $L$ be an orthogonal $3 \times 3$ matrix whose third row is $\pm e_z$. If
+$(R_o, R_i)$ is a Rupert pair, then so is $(L R_o, L R_i)$. In particular this holds for
+the half-turn $L = R_x(\pi) = \mathrm{diag}(1, -1, -1)$.
 \end{lemma}
 \begin{proof}
 \leanok
-$\mathrm{Sh}(L R) = \ell(\mathrm{Sh}(R))$, and $\ell$ is a homeomorphism.
+The third column of $L$ is $\pm e_z$ as well, so $L$ is block diagonal and its upper left
+$2 \times 2$ block $\ell$ is orthogonal. Then $\pi \circ L = \ell \circ \pi$, so
+$\mathrm{Sh}(L R) = \ell(\mathrm{Sh}(R))$, and $\ell$ is a homeomorphism of the screen.
+\end{proof}
+
+\begin{lemma}[Same view]
+\label{lem:outer_unique}
+\lean{Cayley.rupPair_of_row2_eq}
+\leanok
+\uses{lem:move_left}
+Let $(R_o, R_i)$ be a Rupert pair with $R_o \in SO(3)$, and let $S \in SO(3)$ have the same
+third row as $R_o$. Then $(S,\ S R_o^T R_i)$ is a Rupert pair.
+\end{lemma}
+\begin{proof}
+\leanok
+The third row of $L = S R_o^T$ consists of the inner products of the third row of $S$ with
+the rows of $R_o$, so it is $e_z$. Apply Lemma~\ref{lem:move_left}; $L R_o = S$.
 \end{proof}
 
 \begin{lemma}[Symmetries]
@@ -56,7 +71,7 @@ $\mathrm{Sh}(R g_k) = \mathrm{Sh}(R)$.
 
 \begin{lemma}[Inner half-turn]
 \label{lem:move_halfturn}
-\lean{Cayley.rupPair_inner_RzPi, Cayley.shadow_RzPi_mul}
+\lean{Cayley.rupPair_inner_ZR, Cayley.shadow_ZR_mul}
 \leanok
 \uses{def:shadow, lemma:nopert_point_symmetric}
 If $(R_o, R_i)$ is a Rupert pair, then so is $(R_o, R_z(\pi) R_i)$.
@@ -73,7 +88,7 @@ $\mathrm{Sh}(R_z(\pi) R) = -\mathrm{Sh}(R) = \mathrm{Sh}(R)$.
 \label{lem:step_outer}
 \lean{Cayley.step_flip, Cayley.step_azimuth, Cayley.step_outer}
 \leanok
-\uses{lem:move_left, lem:move_sym, lem:outer_unique, lem:sin_wedge}
+\uses{lem:move_left, lem:move_sym, lem:outer_unique, lem:outer_view, lem:sin_wedge}
 If there is a Rupert pair in $SO(3)$, then there is one of the form
 $(s(u, v), R_i)$ with
 \[
@@ -88,8 +103,8 @@ suitable $k$ (Lemma~\ref{lem:move_sym}) rotates the azimuth of $n$ into
 $[0, 2\pi/15]$, a wedge in which $n_y \le \frac{57}{128} n_x$ because
 $\tan(2\pi/15) \le 57/128$ (Lemma~\ref{lem:sin_wedge}). A view with $n_z \ge 0$ in this
 wedge is the view of $s(u, v)$ for $(u, v)$ in the stated set
-(Lemma~\ref{lem:outer_view}). Then $R_o = R_z(\gamma) s(u, v)$
-(Lemma~\ref{lem:outer_unique}), and the left factor $R_z(-\gamma)$ removes $R_z(\gamma)$.
+(Lemma~\ref{lem:outer_view}), so $R_o$ can be replaced by $s(u, v)$
+(Lemma~\ref{lem:outer_unique}).
 \end{proof}
 
 \section{Step B: the relative rotation}

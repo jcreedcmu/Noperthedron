@@ -24,38 +24,6 @@ The main statement: there is a finite set $V \subseteq \R^3$ whose convex hull h
 nonempty interior and which is not Rupert.
 \end{definition}
 
-\section{Rupert sets}
-
-\begin{theorem}[Rupert Polyhedron iff Rupert Set]
-\label{thm:rupert_iff_rupert_set}
-\lean{rupert_iff_rupert_set}
-\leanok
-\uses{def:rupert}
-The convex polyhedron with vertex set $V$ is Rupert if and only if the convex hull of
-$V$ is a Rupert set, i.e.\ there is a pose (two rotations and an offset) under which
-the closure of the inner shadow lies in the interior of the outer shadow.
-\end{theorem}
-\begin{proof}
-\leanok
-The convex hull of a finite set is compact, so its shadow is closed.
-\end{proof}
-
-\begin{theorem}
-\label{thm:rupert_implies_rot_rupert}
-\lean{rupert_implies_rot_rupert}
-\leanok
-\uses{def:pointsymmetric}
-Let $S \subseteq \R^3$ be point-symmetric and convex. If a pose with offset $o$
-passes $S$ through itself, then so does the same pose with offset $0$.
-\end{theorem}
-\begin{proof}
-\leanok
-Write $K$ for the closure of the inner shadow and $L$ for the interior of the outer
-shadow; both are point-symmetric and $L$ is convex. From $o + K \subseteq L$ and
-symmetry, $-o + K = -(o + K) \subseteq L$. Every $k \in K$ is the midpoint of
-$o + k \in L$ and $-o + k \in L$, so $k \in L$ by convexity.
-\end{proof}
-
 \section{Shadows and the separation criterion}
 
 From now on $\PPP$ denotes the Noperthedron (Definition~\ref{def:noperthedron}).
@@ -67,22 +35,38 @@ From now on $\PPP$ denotes the Noperthedron (Definition~\ref{def:noperthedron}).
 \uses{def:noperthedron}
 The \emph{shadow} of a $3 \times 3$ matrix $R$ is $\mathrm{Sh}(R) = \pi(R\,\PPP)$.
 A pair of matrices $(R_o, R_i)$ is a \emph{Rupert pair} if
-$\overline{\mathrm{Sh}(R_i)} \subseteq \operatorname{int} \mathrm{Sh}(R_o)$.
+$\mathrm{Sh}(R_i) \subseteq \operatorname{int} \mathrm{Sh}(R_o)$.
 \end{definition}
+
+\begin{lemma}[Common centre]
+\label{lem:common_center}
+\lean{common_center}
+\leanok
+\uses{def:pointsymmetric}
+Let $K, L \subseteq \R^2$ be point-symmetric and let $L$ be convex. If $o + K \subseteq L$
+for some $o \in \R^2$, then $K \subseteq L$.
+\end{lemma}
+\begin{proof}
+\leanok
+By symmetry, $-o + K = -(o + K) \subseteq L$. Every $k \in K$ is the midpoint of
+$o + k \in L$ and $-o + k \in L$, so $k \in L$ by convexity.
+\end{proof}
 
 \begin{lemma}
 \label{lem:exists_rup_pair}
 \lean{Cayley.exists_rupPair}
 \leanok
-\uses{def:shadow, thm:rupert_iff_rupert_set, thm:rupert_implies_rot_rupert, lemma:nopert_point_symmetric}
+\uses{def:shadow, def:rupert, lem:common_center, lemma:nopert_point_symmetric}
 If $\PPP$ is Rupert, then there is a Rupert pair $(R_o, R_i)$ with
 $R_o, R_i \in SO(3)$.
 \end{lemma}
 \begin{proof}
 \leanok
-Combine Theorem~\ref{thm:rupert_iff_rupert_set} and
-Theorem~\ref{thm:rupert_implies_rot_rupert}; $\PPP$ is point-symmetric
-(Lemma~\ref{lemma:nopert_point_symmetric}) and convex.
+By definition there are $R_i, R_o \in SO(3)$ and an offset $o$ with
+$o + \mathrm{Sh}(R_i) \subseteq \operatorname{int} \mathrm{Sh}(R_o)$. A shadow is a linear
+image of $\PPP$, so it is convex and point-symmetric
+(Lemma~\ref{lemma:nopert_point_symmetric}), and so is its interior.
+Lemma~\ref{lem:common_center} removes the offset.
 \end{proof}
 
 For $w = (w_0, w_1) \in \R^2$ write $\langle w, x \rangle = w_0 x_0 + w_1 x_1$ for
@@ -102,9 +86,11 @@ for every vertex $T$ of $\PPP$, then $(R_o, R_i)$ is not a Rupert pair.
 \begin{proof}
 \leanok
 The outer shadow is the convex hull of the points $\pi(R_o T)$, so it lies in the
-closed half-plane $\{ z : \langle w, z \rangle \le \langle w, R_i S \rangle \}$. The
-point $\pi(R_i S)$ of the inner shadow lies on the boundary line of this half-plane,
-so it is not an interior point of the outer shadow.
+closed half-plane $\{ z : \langle w, z \rangle \le \langle w, R_i S \rangle \}$. A nonzero
+linear functional is an open map, so it is strictly less than
+$\langle w, R_i S \rangle$ on the interior of the outer shadow. The
+point $\pi(R_i S)$ of the inner shadow is therefore not an interior point of the outer
+shadow.
 \end{proof}
 
 Only a non-strict inequality is needed, so poses in which the two shadows touch need

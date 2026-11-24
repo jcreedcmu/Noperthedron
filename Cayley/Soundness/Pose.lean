@@ -43,9 +43,6 @@ noncomputable def chartB : ℕ → Matrix (Fin 3) (Fin 3) ℝ
   | 3 => !![-1, 0, 0; 0, -1, 0; 0, 0, 1]
   | _ => tauR
 
-/-- The screen half-turn `Rz(π)`. -/
-def ZR : Matrix (Fin 3) (Fin 3) ℝ := !![-1, 0, 0; 0, -1, 0; 0, 0, 1]
-
 /-- The half-turn about the outer view, `sᵀ Rz(π) s`. -/
 noncomputable def Hmat (u v : ℝ) : Matrix (Fin 3) (Fin 3) ℝ := (outerRot u v)ᵀ * ZR * outerRot u v
 
@@ -95,8 +92,11 @@ theorem chartB_mem_SO3 (j : ℕ) : chartB j ∈ Matrix.specialOrthogonalGroup (F
            simp [chartB, Matrix.mul_apply, Fin.sum_univ_three]
        · simp [chartB, Matrix.det_fin_three])
 
-theorem ZR_eq : ZR = Rz_mat π := by
-  ext i j; fin_cases i <;> fin_cases j <;> simp [ZR, Rz_mat]
+theorem ZR_mem_SO3 : ZR ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
+  rw [mem_SO3_iff']
+  exact ⟨by ext a b; fin_cases a <;> fin_cases b <;>
+      simp [ZR, Matrix.mul_apply, Fin.sum_univ_three],
+    by simp [ZR, Matrix.det_fin_three]⟩
 
 theorem outerRot_mem_SO3 (u v : ℝ) : outerRot u v ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
   cayleyMatrix_mem_SO3 _ _ _
@@ -111,6 +111,12 @@ theorem SO3_mul_transpose {A : Matrix (Fin 3) (Fin 3) ℝ}
 theorem SO3_transpose_mul {A : Matrix (Fin 3) (Fin 3) ℝ}
     (h : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) : Aᵀ * A = 1 :=
   (Matrix.mem_orthogonalGroup_iff' (Fin 3) ℝ).mp (Matrix.mem_specialOrthogonalGroup_iff.mp h).1
+
+theorem SO3_transpose_mem {A : Matrix (Fin 3) (Fin 3) ℝ}
+    (h : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) :
+    Aᵀ ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
+  rw [mem_SO3_iff', Matrix.transpose_transpose, Matrix.det_transpose]
+  exact ⟨SO3_transpose_mul h, ((mem_SO3_iff' A).1 h).2⟩
 
 end Cayley
 

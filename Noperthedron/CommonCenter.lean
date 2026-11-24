@@ -1,9 +1,5 @@
 module
 
-public import Noperthedron.Rupert.Basic
-public import Noperthedron.Rupert.Set
-public import Noperthedron.MatrixPose
-public import Noperthedron.PoseClasses
 public import Noperthedron.PointSym
 
 public section
@@ -38,32 +34,5 @@ theorem common_center {A B : Set ℝ²} (psa : PointSym A) (psb : PointSym B)
     simpa [sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using psb (-a + v) hnav
   have segment_sub_b := convex_iff_segment_subset.mp b_convex h1 h2
   exact segment_sub_b (mem_segment_add_sub a v)
-
-theorem shadow_outer_pres_convex {S : Set ℝ³} (s_conv : Convex ℝ S) (p : MatrixPose) :
-    Convex ℝ (outerShadow p S) :=
-  s_conv.affine_image (PoseLike.outer p)
-
-theorem shadow_outer_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
-    PointSym (outerShadow p S) :=
-  continuousLinearMap_preserves_point_sym (MatrixPose.projRot p.outerRot) s_psym
-
-theorem shadow_inner_pres_psym {S : Set ℝ³} (s_psym : PointSym S) (p : MatrixPose) :
-    PointSym (innerShadow p.zeroOffset S) := by
-  rw [innerShadow, MatrixPose.zero_offset_elim]
-  exact continuousLinearMap_preserves_point_sym (MatrixPose.projRot p.innerRot) s_psym
-
-/--
-If a set is point symmetric and convex, then it being rupert implies
-being purely rotationally rupert.
--/
-theorem rupert_implies_rot_rupert {S : Set ℝ³} (s_sym : PointSym S) (s_convex : Convex ℝ S)
-    (p : MatrixPose) (r : RupertPose p S) : RupertPose (p.zeroOffset) S := by
-  refine common_center ?_ ?_ ?_ p.innerOffset ?_
-  · exact closure_preserves_point_sym (shadow_inner_pres_psym s_sym p)
-  · exact interior_preserves_point_sym (shadow_outer_pres_psym s_sym p)
-  · exact Convex.interior (shadow_outer_pres_convex s_convex p)
-  · change p.shift '' _ ⊆ _
-    rw [Homeomorph.image_closure, ← MatrixPose.innerShadow_eq_shift]
-    exact r
 
 end

@@ -9,16 +9,6 @@ namespace Bounding
 open scoped Matrix
 open scoped RealInnerProductSpace
 
-lemma rot3_mat_mem_O3 (d : Fin 3) (θ : ℝ) :
-    rot3_mat d θ ∈ Matrix.orthogonalGroup (Fin 3) ℝ := by
-  unfold rot3_mat
-  fin_cases d <;>
-  · constructor <;>
-    · ext i j
-      fin_cases i <;> fin_cases j <;>
-      · simp [Matrix.mul_apply, Fin.sum_univ_succ, ← sq]
-        first | done | ring
-
 noncomputable def OrthogonalGroup.toLinearEquiv {n : ℕ} (A : Matrix.orthogonalGroup (Fin n) ℝ)
     : Euc(n) ≃ₗ[ℝ] Euc(n) :=
   WithLp.linearEquiv 2 ℝ (Fin n → ℝ) ≪≫ₗ
@@ -46,7 +36,8 @@ lemma OrthogonalGroup.toLinearIsometryEquiv_apply {n : ℕ}
   OrthogonalGroup.toLinearEquiv_apply A x
 
 theorem Rz_preserves_norm (α : ℝ) (v : ℝ³) : ‖RzL α v‖ = ‖v‖ :=
-  (OrthogonalGroup.toLinearIsometryEquiv ⟨rot3_mat 2 α, rot3_mat_mem_O3 2 α⟩).norm_map v
+  (OrthogonalGroup.toLinearIsometryEquiv
+    ⟨Rz_mat α, (Matrix.mem_specialOrthogonalGroup_iff.mp (Rz_mat_mem_SO3 α)).1⟩).norm_map v
 
 end Bounding
 

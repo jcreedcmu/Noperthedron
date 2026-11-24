@@ -37,23 +37,7 @@ $\frac{98}{100} < \| C_3 \| < \frac{99}{100}$.
 Trivial arithmetic.
 \end{proof}
 
-Rotations about the $x, y, z$ axes $R_x,R_y,R_z:$  $\mathbb{R}\to \mathbb{R}^{3\times 3}$
-are defined in the usual way:
-    \[
-            R_x(\alpha)\coloneqq
-        \begin{pmatrix}
-            1 & 0 & 0\\
-            0 & \cos\alpha & -\sin\alpha\\
-            0 & \sin\alpha & \cos\alpha
-        \end{pmatrix},
-        \hspace{1cm}
-        R_y(\alpha)\coloneqq
-        \begin{pmatrix}
-            \cos\alpha & 0 & -\sin\alpha\\
-            0 & 1 & 0\\
-            \sin\alpha & 0 & \cos\alpha
-        \end{pmatrix},
-    \]
+The rotation about the $z$ axis by the angle $\alpha$ is
     \[
         R_z(\alpha)\coloneqq
         \begin{pmatrix}
@@ -100,9 +84,9 @@ A set $S \subseteq \R^3$ is {\em point-symmetric} if $x \in S$ implies $-x \in S
 
 \begin{lemma}
 \label{lemma:nopert_point_symmetric}
-\lean{Noperthedron.exactPoly_point_symmetric}
+\lean{Noperthedron.exactHull_pointSym}
 \leanok
-\uses{def:pointsymmetric, def:noperthedron, lemma:nopert_verts_norm_le_one}
+\uses{def:pointsymmetric, def:noperthedron}
 The noperthedron is point-symmetric.
 \end{lemma}
 \begin{proof}

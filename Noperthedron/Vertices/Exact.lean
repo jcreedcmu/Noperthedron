@@ -15,7 +15,8 @@ This file covers [SY25] §2.1, defining the Noperthedron vertices.
 - `Noperthedron.exactVertex`: The exact Noperthedron vertices, as a function
   from `Noperthedron.VertexIndex` to `ℝ³`.
 
-- `Noperthedron.exactPoly`: The vertices as a `GoodPoly`.
+- `Noperthedron.exactVerts`: The vertices as a `Finset`, and `Noperthedron.exactHull`,
+  their convex hull.
 
 -/
 
@@ -134,31 +135,11 @@ lemma exactVertex_norm_le_one (j : VertexIndex) : ‖exactVertex j‖ ≤ 1 := b
   · simp [Cpt, c2_norm_le_one]
   · simp [Cpt, c3_norm_le_one]
 
-noncomputable
-def exactPolyhedron : Polyhedron VertexIndex ℝ³ := {
-  v := exactVertex
-}
-
-theorem exactPolyhedron_point_symmetric : PointSym exactPolyhedron.hull := by
-  simpa [exactPolyhedron, Polyhedron.hull, exactVerts, Set.range] using
-    hull_preserves_pointsym exactVerts_pointsym
-
-lemma exactPolyhedron_hull : exactPolyhedron.hull = exactHull := by
-  simp only [Polyhedron.hull, exactPolyhedron, exactHull, exactVerts, Finset.coe_image,
-    Finset.coe_univ, Set.image_univ]
-  congr
-
-noncomputable
-def exactPoly : GoodPoly VertexIndex := {
-  vertices := exactPolyhedron,
-  vertex_radius_le_one := exactVertex_norm_le_one
-}
-
 /--
 The noperthedron is pointsymmetric.
 -/
-theorem exactPoly_point_symmetric : PointSym exactPoly.hull := by
-  simpa [exactPoly, GoodPoly.hull] using exactPolyhedron_point_symmetric
+theorem exactHull_pointSym : PointSym exactHull :=
+  hull_preserves_pointsym exactVerts_pointsym
 
 end Noperthedron
 end

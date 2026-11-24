@@ -1,15 +1,10 @@
 import Noperthedron.Basic
 import Noperthedron.Bounding.OpNorm
-import Noperthedron.Bounding.OrthEquivRotz
 import Noperthedron.CommonCenter
 import Noperthedron.EuclideanSpaceNotation
 import Noperthedron.MainTheorem
-import Noperthedron.MatrixPose
 import Noperthedron.PointSym
-import Noperthedron.PoseClasses
 import Noperthedron.Rupert.Basic
-import Noperthedron.Rupert.Equivalences.RupertEquivRupertSet
-import Noperthedron.Rupert.Set
 import Noperthedron.Vertices.Exact
 import Noperthedron.Vertices.Index
 import Noperthedron.Vertices.InteriorNonempty

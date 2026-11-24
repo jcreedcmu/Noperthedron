@@ -2,7 +2,6 @@ module
 
 public import Cayley.Soundness.Pose
 public import Cayley.Soundness.Trig
-public import Noperthedron.Bounding.OrthEquivRotz
 public import Mathlib.Analysis.SpecialFunctions.Complex.Arg
 
 @[expose] public section
@@ -20,15 +19,6 @@ open Noperthedron Real
 open scoped Matrix
 
 /-! ## Step A: the outer view -/
-
-theorem RxPi_mem_SO3 : RxPi ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-  rw [mem_SO3_iff']
-  constructor
-  · ext i j; fin_cases i <;> fin_cases j <;> simp [RxPi, Matrix.mul_apply, Fin.sum_univ_three]
-  · simp [RxPi, Matrix.det_fin_three]
-
-theorem gR_mem_SO3 (k : ℕ) : gR k ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
-  Bounding.rot3_mat_mem_SO3 2 _
 
 theorem step_flip {Ro Ri : Matrix (Fin 3) (Fin 3) ℝ}
     (hRo : Ro ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
@@ -112,37 +102,20 @@ theorem outerRot_row2 (u v : ℝ) :
   simp
   refine ⟨?_, ?_, ?_⟩ <;> ring_nf
 
-/-- An SO(3) matrix whose third row is the stereographic image of `(u, v)` is
-`Rz(γ) · s(u, v)`. -/
-theorem eq_Rz_mul_outerRot (R : Matrix (Fin 3) (Fin 3) ℝ)
-    (hR : R ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) (u v : ℝ)
-    (h0 : R 2 0 = outerRot u v 2 0) (h1 : R 2 1 = outerRot u v 2 1)
-    (h2 : R 2 2 = outerRot u v 2 2) :
-    ∃ γ, R = Rz_mat γ * outerRot u v := by
-  set S := outerRot u v
-  have hS := outerRot_mem_SO3 u v
-  set M := R * Sᵀ
-  have hM : M ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-    refine Submonoid.mul_mem _ hR ?_
-    rw [mem_SO3_iff']
-    exact ⟨by rw [Matrix.transpose_transpose, SO3_transpose_mul hS],
-      by rw [Matrix.det_transpose]; exact ((mem_SO3_iff' S).1 hS).2⟩
-  have hRR := SO3_mul_transpose hR
-  have hMz : M.toEuclideanLin !₂[0, 0, 1] = !₂[0, 0, 1] := by
-    have hrow : ∀ i, M i 2 = R i 0 * R 2 0 + R i 1 * R 2 1 + R i 2 * R 2 2 := by
-      intro i
-      simp only [M, Matrix.mul_apply, Fin.sum_univ_three, Matrix.transpose_apply, h0, h1, h2]
-    have hRR' : ∀ i, R i 0 * R 2 0 + R i 1 * R 2 1 + R i 2 * R 2 2 = (1 : Matrix (Fin 3) (Fin 3) ℝ) i 2 := by
-      intro i
-      rw [← hRR]
-      simp [Matrix.mul_apply, Fin.sum_univ_three, Matrix.transpose_apply]
-    ext i
-    fin_cases i <;> simp [Matrix.toLpLin_apply, Matrix.mulVec, dotProduct, Fin.sum_univ_three,
-      hrow, hRR']
-  obtain ⟨γ, hγ⟩ := Bounding.SO3_fixing_z_is_Rz M hM hMz
-  refine ⟨γ, ?_⟩
-  rw [← hγ]
-  simp only [M, Matrix.mul_assoc, S, SO3_transpose_mul hS, Matrix.mul_one]
+/-- Two rotations with the same view (third row) differ by a left factor that fixes the
+z-axis, so the outer rotation of a Rupert pair can be replaced by any rotation with the same
+view. -/
+theorem rupPair_of_row2_eq {Ro Ri S : Matrix (Fin 3) (Fin 3) ℝ}
+    (hRo : Ro ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
+    (hS : S ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ) (hrow : ∀ j, S 2 j = Ro 2 j)
+    (h : RupPair Ro Ri) : RupPair S (S * Roᵀ * Ri) := by
+  have hL := Submonoid.mul_mem _ hS (SO3_transpose_mem hRo)
+  have hrow2 : ∀ j, (S * Roᵀ) 2 j = (1 : Matrix (Fin 3) (Fin 3) ℝ) 2 j := by
+    intro j
+    rw [← SO3_mul_transpose hRo]
+    simp [Matrix.mul_apply, Fin.sum_univ_three, hrow]
+  have h' := rupPair_left (Matrix.mem_specialOrthogonalGroup_iff.mp hL).1 (hrow2 0) (hrow2 1) h
+  rwa [Matrix.mul_assoc, SO3_transpose_mul hRo, Matrix.mul_one] at h'
 
 /-- Step A: a Rupert pair with outer rotation `s(u, v)` in the wedge. -/
 theorem step_outer {Ro Ri : Matrix (Fin 3) (Fin 3) ℝ}
@@ -174,23 +147,22 @@ theorem step_outer {Ro Ri : Matrix (Fin 3) (Fin 3) ℝ}
   have hD : 1 + u ^ 2 + v ^ 2 = 2 / (1 + c) := by
     simp only [u, v]; field_simp; nlinarith
   obtain ⟨r0, r1, r2⟩ := outerRot_row2 u v
-  obtain ⟨γ, hγ⟩ := eq_Rz_mul_outerRot Ro2 hRo2 u v
-    (by rw [r0, hD]; simp only [u]; field_simp; rfl)
-    (by rw [r1, hD]; simp only [v]; field_simp; rfl)
-    (by rw [r2, hD]; simp only [u, v]; field_simp; nlinarith)
-  refine ⟨u, v, by positivity, by positivity, ?_, ?_, Rz_mat (-γ) * Ri1,
-    Submonoid.mul_mem _ (Bounding.rot3_mat_mem_SO3 2 _) hRi1, ?_⟩
+  have hS := outerRot_mem_SO3 u v
+  have h0 : outerRot u v 2 0 = a := by rw [r0, hD]; simp only [u]; field_simp
+  have h1 : outerRot u v 2 1 = b := by rw [r1, hD]; simp only [v]; field_simp
+  have h2' : outerRot u v 2 2 = c := by rw [r2, hD]; simp only [u, v]; field_simp; nlinarith
+  have hrow : ∀ j, outerRot u v 2 j = Ro2 2 j := by
+    intro j; fin_cases j <;> first | exact h0 | exact h1 | exact h2'
+  refine ⟨u, v, by positivity, by positivity, ?_, ?_, _,
+    Submonoid.mul_mem _ (Submonoid.mul_mem _ hS (SO3_transpose_mem hRo2)) hRi1,
+    rupPair_of_row2_eq hRo2 hS hrow h2⟩
   · simp only [u, v]; rw [div_le_iff₀ hc1]; field_simp; linarith
   · simp only [u, v]; rw [div_pow, div_pow, ← add_div, div_le_one (by positivity)]; nlinarith
-  · have h3 := rupPair_Rz (-γ) h2
-    have hinv : Rz_mat (-γ) * Rz_mat γ = 1 := by
-      simpa using (Bounding.Rz_mat_mul_neg (-γ))
-    rwa [hγ, ← Matrix.mul_assoc, hinv, Matrix.one_mul] at h3
 
 /-! ## Step B: the relative rotation's orbit -/
 
 theorem gR_mul (k k' : ℕ) : gR k * gR k' = gR (k + k') := by
-  simp only [gR_eq, Bounding.Rz_mat_mul_Rz_mat]; congr 1; push_cast; ring
+  simp only [gR_eq, Rz_mat_mul_Rz_mat]; congr 1; push_cast; ring
 
 theorem gR_mod (k : ℕ) : gR (k % 15) = gR k := by
   rw [gR_eq, gR_eq]
@@ -243,15 +215,11 @@ theorem step_orbit {u v : ℝ} {Ri : Matrix (Fin 3) (Fin 3) ℝ}
   · refine Submonoid.mul_mem _ (Submonoid.mul_mem _ ?_ hRi) (gR_mem_SO3 _)
     cases e0
     · exact Submonoid.one_mem _
-    · show ZR ∈ _
-      rw [mem_SO3_iff']
-      exact ⟨by ext a b; fin_cases a <;> fin_cases b <;>
-          simp [ZR, Matrix.mul_apply, Fin.sum_univ_three],
-        by simp [ZR, Matrix.det_fin_three]⟩
+    · exact ZR_mem_SO3
   · have h1 : RupPair s ((if e0 then ZR else 1) * Ri) := by
       cases e0
       · simpa using h
-      · simpa [ZR_eq] using rupPair_inner_RzPi h
+      · simpa using rupPair_inner_ZR h
     exact rupPair_inner_gR _ h1
   · intro e k
     rw [hQ']
@@ -303,11 +271,7 @@ theorem step_chart (Q : Matrix (Fin 3) (Fin 3) ℝ) (hQ : Q ∈ Matrix.specialOr
     have h3 := hmax' 3 (by norm_num)
     linarith
   have hA : (chartB j)ᵀ * Q ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-    refine Submonoid.mul_mem _ ?_ hQ
-    have hB := chartB_mem_SO3 j
-    rw [mem_SO3_iff'] at hB ⊢
-    exact ⟨by rw [Matrix.transpose_transpose, chartB_transpose_mul_self],
-      by rw [Matrix.det_transpose]; exact hB.2⟩
+    exact Submonoid.mul_mem _ (SO3_transpose_mem (chartB_mem_SO3 j)) hQ
   obtain ⟨x, y, z, hr, hxyz⟩ := exists_cayleyMatrix_of_trace_nonneg _ hA hnn
   set r : Fin 3 → ℝ := ![x, y, z]
   have hQr : Q = Qm j r := by
@@ -355,11 +319,8 @@ theorem reduction (h : IsRupert exactVerts) :
   obtain ⟨u, v, hu, hv, hw, hd, Ri1, hRi1, h1⟩ := step_outer hRo hRi h0
   obtain ⟨Ri2, hRi2, h2, horb⟩ := step_orbit hRi1 h1
   have hS := outerRot_mem_SO3 u v
-  have hQ : (outerRot u v)ᵀ * Ri2 ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ := by
-    refine Submonoid.mul_mem _ ?_ hRi2
-    rw [mem_SO3_iff'] at hS ⊢
-    exact ⟨by rw [Matrix.transpose_transpose, SO3_transpose_mul (outerRot_mem_SO3 u v)],
-      by rw [Matrix.det_transpose]; exact hS.2⟩
+  have hQ : (outerRot u v)ᵀ * Ri2 ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+    Submonoid.mul_mem _ (SO3_transpose_mem hS) hRi2
   obtain ⟨j, hj, r, hQr, hch, hrb⟩ := step_chart _ hQ
   have hRi2' : Ri2 = outerRot u v * Qm j r := by
     rw [← hQr, ← Matrix.mul_assoc, SO3_mul_transpose (outerRot_mem_SO3 u v), Matrix.one_mul]
