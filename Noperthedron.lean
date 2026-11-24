@@ -1,7 +1,6 @@
 import Noperthedron.Basic
 import Noperthedron.Bounding.OpNorm
 import Noperthedron.Bounding.OrthEquivRotz
-import Noperthedron.Bounding.SmallConsecutiveRotations
 import Noperthedron.CommonCenter
 import Noperthedron.EuclideanSpaceNotation
 import Noperthedron.MainTheorem

@@ -1,9 +1,8 @@
 module
 -- Ported from NopertTriakisTetrahedron (Apache-2.0): Noperts/Cayley.lean
 
-public import Mathlib.LinearAlgebra.Trace
-public import Cayley.Soundness.Rodrigues
-public import Noperthedron.Bounding.SmallConsecutiveRotations
+public import Mathlib.LinearAlgebra.Matrix.Adjugate
+public import Noperthedron.Basic
 
 @[expose] public section
 
@@ -19,9 +18,7 @@ trace is nonnegative.
 
 namespace Cayley
 
-open scoped Matrix RealInnerProductSpace
-
-open BalancedSupport
+open scoped Matrix
 
 /-- The positive denominator in the three-dimensional Cayley transform. -/
 def cayleyDenom (x y z : ℝ) : ℝ := 1 + x ^ 2 + y ^ 2 + z ^ 2
@@ -92,53 +89,6 @@ theorem cayleyMatrix_mem_SO3 (x y z : ℝ) :
     simp only [cayleyDenom]
     ring
 
-/-- The Euclidean vector represented by the three scalar coordinates. -/
-noncomputable def cayleyVector (x y z : ℝ) : ℝ³ := !₂[x, y, z]
-
-/-- Exact Rodrigues form of the Cayley transform. -/
-theorem cayleyMatrix_apply_sub (x y z : ℝ) (v : ℝ³) :
-    (cayleyMatrix x y z).toEuclideanLin v - v =
-      (2 / cayleyDenom x y z) • cross3 (cayleyVector x y z) v +
-      (2 / cayleyDenom x y z) •
-        cross3 (cayleyVector x y z) (cross3 (cayleyVector x y z) v) := by
-  ext i
-  fin_cases i <;>
-    simp [cayleyMatrix, cayleyVector, cayleyDenom, Matrix.toLpLin_apply,
-      dotProduct, Fin.sum_univ_three, cross3, cross_apply] <;>
-    field_simp <;> ring
-
-theorem cross3_smul_left (c : ℝ) (u v : ℝ³) :
-    cross3 (c • u) v = c • cross3 u v := by
-  ext i
-  fin_cases i <;> simp [cross3, cross_apply]
-
-theorem cross3_smul_right (c : ℝ) (u v : ℝ³) :
-    cross3 u (c • v) = c • cross3 u v := by
-  ext i
-  fin_cases i <;> simp [cross3, cross_apply]
-
-/-- Cayley rotation about a unit axis, written in Rodrigues form. -/
-theorem cayleyMatrix_smul_unit_apply_sub
-    (c : ℝ) (axis v : ℝ³) (haxis : ‖axis‖ = 1) :
-    (cayleyMatrix (c * axis 0) (c * axis 1) (c * axis 2)).toEuclideanLin v - v =
-      (2 * c / (1 + c ^ 2)) • cross3 axis v +
-      (2 * c ^ 2 / (1 + c ^ 2)) • cross3 axis (cross3 axis v) := by
-  have haxisSq : axis 0 ^ 2 + axis 1 ^ 2 + axis 2 ^ 2 = 1 := by
-    have h := congrArg (fun r : ℝ => r ^ 2) haxis
-    simpa [PiLp.norm_sq_eq_of_L2, Fin.sum_univ_three] using h
-  have hvec :
-      cayleyVector (c * axis 0) (c * axis 1) (c * axis 2) = c • axis := by
-    ext i
-    fin_cases i <;> simp [cayleyVector]
-  have hdenom :
-      cayleyDenom (c * axis 0) (c * axis 1) (c * axis 2) = 1 + c ^ 2 := by
-    unfold cayleyDenom
-    nlinarith
-  rw [cayleyMatrix_apply_sub, hvec, hdenom,
-    cross3_smul_left, cross3_smul_left, cross3_smul_right]
-  simp only [smul_smul]
-  module
-
 /-- Trace is a rational function of the squared Cayley radius. -/
 theorem trace_cayleyMatrix (x y z : ℝ) :
     Matrix.trace (cayleyMatrix x y z) =
@@ -147,132 +97,61 @@ theorem trace_cayleyMatrix (x y z : ℝ) :
   field_simp [cayleyDenom_ne]
   ring
 
-namespace BalancedSupport
-
-theorem inner_cross3_cycle (d u v : ℝ³) :
-    ⟪d, cross3 u v⟫ = ⟪u, cross3 v d⟫ := by
-  rw [inner_cross3_eq_det, inner_cross3_eq_det]
-  simp only [vecRows]
-  rw [← triple_product_eq_det, ← triple_product_eq_det]
-  exact triple_product_permutation d.ofLp u.ofLp v.ofLp
-
-theorem AxisAngle.first_eq_cross3 {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) (v : ℝ³) :
-    a.first v = cross3 a.axis v := by
-  apply ext_inner_left ℝ
-  intro d
-  rw [a.first_inner_eq]
-  exact (inner_cross3_cycle d a.axis v).symm
-
-private theorem zFirst_zFirst (v : ℝ³) :
-    zFirst (zFirst v) = zRemainder v := by
-  ext i
-  fin_cases i <;> simp [zFirst, zRemainder]
-
-theorem AxisAngle.first_first {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) (v : ℝ³) :
-    a.first (a.first v) = a.remainder v := by
-  simp only [AxisAngle.first, AxisAngle.remainder,
-    LinearIsometryEquiv.symm_apply_apply, zFirst_zFirst]
-
-theorem AxisAngle.remainder_eq_cross3_cross3 {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) (v : ℝ³) :
-    a.remainder v = cross3 a.axis (cross3 a.axis v) := by
-  rw [← a.first_first, a.first_eq_cross3, a.first_eq_cross3]
-
-/-- Linear trace recovers the cosine of any axis-angle presentation. -/
-theorem AxisAngle.linear_trace_eq {Q : ℝ³ →L[ℝ] ℝ³}
-    (a : AxisAngle Q) :
-    LinearMap.trace ℝ ℝ³ Q = 1 + 2 * Real.cos a.angle := by
-  calc
-    LinearMap.trace ℝ ℝ³ Q = LinearMap.trace ℝ ℝ³
-        (a.frame.toLinearIsometry.toContinuousLinearMap ∘L RzL a.angle ∘L
-          a.frame.symm.toLinearIsometry.toContinuousLinearMap) := by
-      exact congrArg
-        (fun f : ℝ³ →L[ℝ] ℝ³ => LinearMap.trace ℝ ℝ³ f)
-        a.rotation_eq
-    _ = LinearMap.trace ℝ ℝ³ (RzL a.angle) := by
-      exact LinearMap.trace_conj'
-        (RzL a.angle : ℝ³ →ₗ[ℝ] ℝ³) a.frame.toLinearEquiv
-    _ = 1 + 2 * Real.cos a.angle := Bounding.tr_RzL
-
-/-- Matrix trace recovers the cosine of an axis-angle presentation. -/
-theorem AxisAngle.matrix_trace_eq
-    {A : Matrix (Fin 3) (Fin 3) ℝ}
-    (a : AxisAngle A.toEuclideanLin.toContinuousLinearMap) :
-    Matrix.trace A = 1 + 2 * Real.cos a.angle := by
-  calc
-    Matrix.trace A = LinearMap.trace ℝ ℝ³ A.toEuclideanLin := by
-      simp only [Matrix.toLpLin_eq_toLin, Matrix.trace_toLin_eq]
-    _ = LinearMap.trace ℝ ℝ³
-        A.toEuclideanLin.toContinuousLinearMap := by
-      congr 1
-    _ = 1 + 2 * Real.cos a.angle := a.linear_trace_eq
-
-end BalancedSupport
-
 /-- Every special orthogonal matrix of nonnegative trace has a Cayley vector
 of squared radius at most three, giving a closed, bounded Cayley chart for the
-nonnegative-trace rotations. -/
+nonnegative-trace rotations.
+
+The Cayley vector is the skew part of `A` divided by `1 + tr A` (the vector part of the
+quaternion of `A` over its scalar part). That `A` is the Cayley rotation of this vector is a
+polynomial identity modulo the relations `A Aᵀ = 1`, `Aᵀ A = 1` and `adj A = Aᵀ`. -/
 theorem exists_cayleyMatrix_of_trace_nonneg
     (A : Matrix (Fin 3) (Fin 3) ℝ)
     (hA : A ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ)
     (htrace : 0 ≤ Matrix.trace A) :
     ∃ x y z : ℝ,
       x ^ 2 + y ^ 2 + z ^ 2 ≤ 3 ∧ A = cayleyMatrix x y z := by
-  obtain ⟨a⟩ := BalancedSupport.exists_axisAngle A hA
-  let co := Real.cos a.angle
-  let si := Real.sin a.angle
-  let c := si / (1 + co)
-  have hcos : -(1 / 2 : ℝ) ≤ co := by
-    dsimp only [co]
-    linarith [a.matrix_trace_eq]
-  have hdenomPos : 0 < 1 + co := by linarith
-  have hcircle : si ^ 2 + co ^ 2 = 1 := by
-    dsimp only [si, co]
-    exact Real.sin_sq_add_cos_sq a.angle
-  have hhalfDenom : (1 + co) ^ 2 + si ^ 2 = 2 * (1 + co) := by
-    nlinarith
-  have hcSqMul : c ^ 2 * (1 + co) = 1 - co := by
-    dsimp only [c]
-    field_simp [ne_of_gt hdenomPos]
-    nlinarith
-  have hcSq : c ^ 2 ≤ 3 := by
-    nlinarith
-  have hcFirst : 2 * c / (1 + c ^ 2) = si := by
-    dsimp only [c]
-    field_simp [ne_of_gt hdenomPos]
-    rw [hhalfDenom]
-    ring
-  have hcRemainder : 2 * c ^ 2 / (1 + c ^ 2) = 1 - co := by
-    dsimp only [c]
-    field_simp [ne_of_gt hdenomPos]
-    nlinarith
-  let x := c * a.axis 0
-  let y := c * a.axis 1
-  let z := c * a.axis 2
-  have haxisSq : a.axis 0 ^ 2 + a.axis 1 ^ 2 + a.axis 2 ^ 2 = 1 := by
-    have h := congrArg (fun r : ℝ => r ^ 2) a.axis_norm
-    simpa [PiLp.norm_sq_eq_of_L2, Fin.sum_univ_three] using h
-  have hxyz : x ^ 2 + y ^ 2 + z ^ 2 = c ^ 2 := by
-    dsimp only [x, y, z]
-    nlinarith
-  refine ⟨x, y, z, hxyz.le.trans hcSq, ?_⟩
-  apply Matrix.toEuclideanLin.injective
-  apply LinearMap.ext
-  intro v
-  have hcay := cayleyMatrix_smul_unit_apply_sub c a.axis v a.axis_norm
-  have hrot := a.apply_sub_exact v
-  dsimp only [x, y, z]
-  rw [hcFirst, hcRemainder, ← a.remainder_eq_cross3_cross3,
-    ← a.first_eq_cross3] at hcay
-  dsimp only [si, co] at hcay
-  have hsub :
-      (cayleyMatrix (c * a.axis 0) (c * a.axis 1)
-        (c * a.axis 2)).toEuclideanLin v - v = A.toEuclideanLin v - v :=
-    hcay.trans hrot.symm
-  exact (sub_left_inj.mp hsub).symm
-
+  obtain ⟨hO, hdet⟩ := Matrix.mem_specialOrthogonalGroup_iff.mp hA
+  have hrow := (Matrix.mem_orthogonalGroup_iff (Fin 3) ℝ).mp hO
+  have hcol := (Matrix.mem_orthogonalGroup_iff' (Fin 3) ℝ).mp hO
+  -- a rotation is its own cofactor matrix
+  have hcof : A.adjugate = Aᵀ := by
+    have h := congrArg (Aᵀ * ·) (Matrix.mul_adjugate A)
+    simpa [← Matrix.mul_assoc, hcol, hdet] using h
+  simp only [← Matrix.ext_iff, Matrix.mul_apply, Matrix.transpose_apply, Fin.sum_univ_three, Fin.isValue,
+    Fin.forall_fin_succ, Fin.succ_zero_eq_one, Fin.succ_one_eq_two, IsEmpty.forall_iff, and_true, Matrix.one_apply_eq,
+    Nat.reduceAdd, ne_eq, zero_ne_one, not_false_eq_true, Matrix.one_apply_ne, Fin.reduceEq, Fin.succ_ne_zero,
+    Matrix.adjugate_fin_three, Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_fin_one, Matrix.cons_val_zero,
+    Matrix.cons_val_succ] at hrow hcol hcof
+  obtain ⟨⟨R00, R01, R02⟩, ⟨-, R11, R12⟩, -, -, R22⟩ := hrow
+  obtain ⟨⟨C00, C01, C02⟩, ⟨-, C11, C12⟩, -, -, C22⟩ := hcol
+  obtain ⟨⟨K00, K10, K20⟩, ⟨K01, K11, K21⟩, K02, K12, K22⟩ := hcof
+  simp only [Matrix.trace, Matrix.diag_apply, Fin.sum_univ_three] at htrace
+  -- the quaternion `(d, sx, sy, sz) / 2`, up to normalization
+  set d := 1 + (A 0 0 + A 1 1 + A 2 2) with hd
+  set sx := A 2 1 - A 1 2 with hsx
+  set sy := A 0 2 - A 2 0 with hsy
+  set sz := A 1 0 - A 0 1 with hsz
+  have hdpos : 0 < d := by linarith
+  have hx2 : (sx / d) ^ 2 = (1 + A 0 0 - A 1 1 - A 2 2) / d := by
+    field_simp; linear_combination R11 + R22 - C00 + 2 * K00
+  have hy2 : (sy / d) ^ 2 = (1 - A 0 0 + A 1 1 - A 2 2) / d := by
+    field_simp; linear_combination R00 + R22 - C11 + 2 * K11
+  have hz2 : (sz / d) ^ 2 = (1 - A 0 0 - A 1 1 + A 2 2) / d := by
+    field_simp; linear_combination R00 + R11 - C22 + 2 * K22
+  have hxy : sx / d * (sy / d) = (A 0 1 + A 1 0) / d := by
+    field_simp; linear_combination K10 + K01 - R01 - C01
+  have hxz : sx / d * (sz / d) = (A 0 2 + A 2 0) / d := by
+    field_simp; linear_combination K20 + K02 - R02 - C02
+  have hyz : sy / d * (sz / d) = (A 1 2 + A 2 1) / d := by
+    field_simp; linear_combination K12 + K21 - R12 - C12
+  refine ⟨sx / d, sy / d, sz / d, ?_, ?_⟩
+  · rw [hx2, hy2, hz2, ← add_div, ← add_div, div_le_iff₀ hdpos]
+    linarith
+  · have hD : cayleyDenom (sx / d) (sy / d) (sz / d) = 4 / d := by
+      rw [cayleyDenom, hx2, hy2, hz2]; field_simp; ring
+    ext i j
+    fin_cases i <;> fin_cases j <;>
+      simp [cayleyMatrix, hD, hx2, hy2, hz2, hxy, hxz, hyz] <;> field_simp <;> ring
 end Cayley
 
 end

@@ -2,6 +2,7 @@ module
 
 public import Cayley.Soundness.Pose
 public import Cayley.Soundness.Trig
+public import Noperthedron.Bounding.OrthEquivRotz
 public import Mathlib.Analysis.SpecialFunctions.Complex.Arg
 
 @[expose] public section
