@@ -77,28 +77,24 @@ noncomputable def gR (k : ℕ) : Matrix (Fin 3) (Fin 3) ℝ := Rz_mat (2 * π * 
 theorem gR_mem_SO3 (k : ℕ) : gR k ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
   Rz_mat_mem_SO3 _
 
-theorem RzL_add_apply (α β : ℝ) (v : ℝ³) : RzL (α + β) v = RzL α (RzL β v) := by
-  have h := RzC.map_add_eq_mul α β
-  simp only [RzC_coe] at h
-  rw [h]
-  rfl
+theorem gR_mul (k k' : ℕ) : gR k * gR k' = gR (k + k') := by
+  simp only [gR, Rz_mat_mul_Rz_mat]; congr 1; push_cast; ring
 
-theorem RzL_nat_mod_15 (x : ℕ) :
-    RzL (2 * π * ((x % 15 : ℕ) : ℝ) / 15) = RzL (2 * π * (x : ℝ) / 15) := by
-  have hreal : ((x % 15 : ℕ) : ℝ) = (x : ℝ) + ((-((x / 15 : ℕ) : ℤ) : ℤ) : ℝ) * 15 := by
-    have := Nat.mod_add_div x 15
-    have h2 : ((x % 15 : ℕ) : ℝ) + 15 * ((x / 15 : ℕ) : ℝ) = (x : ℝ) := by exact_mod_cast this
-    simp only [Int.cast_neg, Int.cast_natCast]; linarith
-  rw [hreal, show 2 * π * ((x : ℝ) + ((-((x / 15 : ℕ) : ℤ) : ℤ) : ℝ) * 15) / 15 =
-    2 * π * x / 15 + ((-((x / 15 : ℕ) : ℤ) : ℤ) : ℝ) * (2 * π) by ring, RzL_add_int_mul_two_pi]
+theorem gR_mod (k : ℕ) : gR (k % 15) = gR k := by
+  have h : ((k % 15 : ℕ) : ℝ) + 15 * ((k / 15 : ℕ) : ℝ) = (k : ℝ) :=
+    mod_cast Nat.mod_add_div k 15
+  rw [gR, gR, show 2 * π * ((k % 15 : ℕ) : ℝ) / 15 =
+    2 * π * k / 15 + ((-((k / 15 : ℕ) : ℤ) : ℤ) : ℝ) * (2 * π) by
+      simp only [Int.cast_neg, Int.cast_natCast]; linear_combination (2 * π / 15) * h,
+    Rz_mat_add_int_mul_two_pi]
 
 theorem gR_exactVertex (m : ℕ) (T : VertexIndex) :
     (gR m).toEuclideanLin (exactVertex T) =
       exactVertex ⟨⟨(T.k.val + m) % 15, Nat.mod_lt _ (by norm_num)⟩, T.ℓ, T.i⟩ := by
+  have h : ∀ (k : ℕ) (v : ℝ³), RzL (2 * π * k / 15) v = (gR k).toEuclideanLin v := fun _ _ => rfl
   simp only [exactVertex]
-  rw [map_zsmul, RzL_nat_mod_15, show 2 * π * ((T.k.val + m : ℕ) : ℝ) / 15 =
-    2 * π * m / 15 + 2 * π * T.k.val / 15 by push_cast; ring, RzL_add_apply]
-  rfl
+  rw [map_zsmul, h, h, gR_mod, add_comm, ← gR_mul]
+  simp [Matrix.toLpLin_apply, Matrix.mulVec_mulVec]
 
 theorem gR_image_hull (m : ℕ) : (gR m).toEuclideanLin '' exactHull = exactHull := by
   have himg : (gR m).toEuclideanLin '' (exactVerts : Set ℝ³) = exactVerts := by

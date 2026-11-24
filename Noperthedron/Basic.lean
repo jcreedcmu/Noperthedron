@@ -43,27 +43,14 @@ def Rz_mat (θ : ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
 noncomputable
 def RzL (θ : ℝ) : (ℝ³ →L[ℝ] ℝ³) := Rz_mat θ |>.toEuclideanLin.toContinuousLinearMap
 
-noncomputable
-def RzC : AddChar ℝ (ℝ³ →L[ℝ] ℝ³) where
-  toFun α := RzL α
-  map_zero_eq_one' := by
-    ext v i
-    fin_cases i <;> simp [RzL, Matrix.vecHead, Matrix.vecTail]
-  map_add_eq_mul' a b := by
-    ext v i
-    fin_cases i <;> {
-      simp [RzL, Fin.sum_univ_succ, Matrix.toLpLin_apply, Matrix.mulVec_eq_sum, Rz_mat, cos_add, sin_add];
-      first | done | ring_nf
-    }
-
-lemma RzC_coe : RzC = RzL := rfl
+/-- RzL at angle 0 is the identity. -/
+lemma RzL_zero_eq_one : RzL (0 : ℝ) = 1 := by
+  ext v i
+  fin_cases i <;> simp [RzL, Matrix.vecHead, Matrix.vecTail]
 
 @[simp]
 theorem Rz_mat_add_int_mul_two_pi (z : ℤ) (x : ℝ) : Rz_mat (x + z * (2 * π)) = Rz_mat x := by
   ext i j; fin_cases i <;> fin_cases j <;> simp
-
-theorem RzL_add_int_mul_two_pi (z : ℤ) (x : ℝ) : RzL (x + z * (2 * π)) = RzL x := by
-  unfold RzL; rw [Rz_mat_add_int_mul_two_pi]
 
 theorem Rz_mat_mem_SO3 (θ : ℝ) : Rz_mat θ ∈ SO3 := by
   rw [Matrix.mem_specialOrthogonalGroup_iff, Matrix.mem_orthogonalGroup_iff]

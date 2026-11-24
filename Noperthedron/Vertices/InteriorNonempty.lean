@@ -42,10 +42,6 @@ theorem affineIndVertsR_span_eq_top :
   rw [affineIndVertsRAffine.affineSpan_eq_top_iff_card_eq_finrank_add_one]
   simp [Fintype.card_fin]
 
-/-- RzL at angle 0 is the identity. -/
-lemma RzL_zero_eq_one : RzL (0 : ℝ) = 1 :=
-  AddChar.map_zero_eq_one RzC
-
 /--
 All of the vertices we are showing to be affine independent actually
 occur in the Noperthedron.

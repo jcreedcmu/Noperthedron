@@ -161,18 +161,6 @@ theorem step_outer {Ro Ri : Matrix (Fin 3) (Fin 3) ℝ}
 
 /-! ## Step B: the relative rotation's orbit -/
 
-theorem gR_mul (k k' : ℕ) : gR k * gR k' = gR (k + k') := by
-  simp only [gR_eq, Rz_mat_mul_Rz_mat]; congr 1; push_cast; ring
-
-theorem gR_mod (k : ℕ) : gR (k % 15) = gR k := by
-  rw [gR_eq, gR_eq]
-  have h := Nat.mod_add_div k 15
-  have : ((k % 15 : ℕ) : ℝ) * θ₁ = (k : ℝ) * θ₁ + ((-((k / 15 : ℕ) : ℤ) : ℤ) : ℝ) * (2 * π) := by
-    have h' : ((k % 15 : ℕ) : ℝ) + 15 * ((k / 15 : ℕ) : ℝ) = (k : ℝ) := by exact_mod_cast h
-    have hk : ((k % 15 : ℕ) : ℝ) = k - 15 * ((k / 15 : ℕ) : ℝ) := by linarith
-    unfold θ₁; simp only [Int.cast_neg, Int.cast_natCast]; rw [hk]; ring
-  rw [this, Rz_mat_add_int_mul_two_pi]
-
 theorem ZR_mul_self : ZR * ZR = 1 := by
   ext i j; fin_cases i <;> fin_cases j <;> simp [ZR, Matrix.mul_apply, Fin.sum_univ_three]
 
