@@ -80,11 +80,18 @@ jobs:
 
       # `deploy-pages` lists the run's artifacts as soon as it starts, and that listing can lag
       # behind an upload finalized a moment earlier (actions/deploy-pages#451); it then fails
-      # with `No artifacts named "github-pages" were found`. Give the listing time to catch up.
-      - name: Wait for the uploaded artifact to be listed
-        if: github.event_name == 'push'
-        run: sleep 30
-
+      # with `No artifacts named "github-pages" were found`, before any deployment is created.
+      # So a failed first attempt is retried once after a short pause.
       - name: Deploy to GitHub Pages
+        id: deploy
         if: github.event_name == 'push'
+        continue-on-error: true
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+
+      - name: Pause before retrying the deployment
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 10
+
+      - name: Deploy to GitHub Pages (retry)
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
