@@ -63,12 +63,12 @@ jobs:
           lake exe mk_all --lib Noperthedron --check
 
       - name: Compile blueprint and documentation
-        # uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
-        # workaround for docs 404 issue
-        uses: dwrensha/docgen-action@8c6b36d29c4d59d70087597ff2ddb2d1b96f02d6
+        uses: leanprover-community/docgen-action@dacc1acc2a3f532cc577266979ba9c36c7593f7c # 2026-10-05
         with:
           blueprint: true
           homepage: home_page
+          # `home_page/Gemfile.lock` pins Jekyll 3.9, which predates the action's default Ruby 3.4.
+          ruby-version: "3.1"
           # Deployment is done by the steps below, with a pause before `deploy-pages`.
           deploy: false
 
