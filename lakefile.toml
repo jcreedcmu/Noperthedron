@@ -41,7 +41,7 @@ weakLinkArgs = ["-lLake"]
 # The Mathlib-free checker that the kernel runs.
 [[lean_lib]]
 name = "CayleyChecker"
-globs = ["Cayley.Checker.+"]
+globs = ["CayleyChecker", "Cayley.Checker.+"]
 
 # Soundness of the kernel checker (`Cayley.kernel_sound`). Builds without any
 # generated data.
