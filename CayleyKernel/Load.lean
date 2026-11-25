@@ -10,7 +10,7 @@ public meta import Lean
 # Elaboration-time loading of the kernel certificate
 
 `cayley_chunks "file"` reads a chunk file (one chunk per line:
-`id chart face K c₀ … c₄ h₀ … h₄ tokens…`, tokens `S<d>`, `D<code>`, `G<s>:<w₀>:<w₁>`, `H`)
+`id chart face K c₀ … c₄ h₀ … h₄ tokens…`, tokens `S<d>`, `D<code>`, `G<s>:<w₀>:<w₁>`, `B<a>:<c>:<k>:<w₀>:<w₁>`, `H`)
 and, for each chunk, adds `B_id : Box`, `T_id : Tree` and the theorem
 `ok_id : checkTree false B_id T_id = true`, proved by `Eq.refl true` (the kernel evaluates the check).
 Nothing here is trusted: the kernel only accepts true statements about whatever terms were

@@ -1,10 +1,11 @@
 #!/bin/bash
 # Export the full certificate in the root order of `Cayley.Checker.rootBox`.
 # Certificate:
-#   LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh DIR
+#   LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 BLEND=6 ./export_all.sh DIR
 # The optional second argument is the depth of the forced pre-split of each root box (the
 # 2^depth pieces are searched in parallel). A deep pre-split wastes leaves: depth 10 gives
-# 245,484 leaves where the default, 4, gives 231,486.
+# 245,484 leaves where the default, 4, gives 231,486 (both without blended leaves; with
+# BLEND=6 the default gives 212,601).
 set -e
 B=./target/release/cayley-search
 D=${1:-out}

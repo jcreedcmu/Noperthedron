@@ -127,6 +127,14 @@ error bound applies.
 The floating-point search (`search/`) tries 12 inner vertices × 13 directions per box,
 chooses each split by look-ahead (the direction whose halves can both be certified), and uses
 the Bernstein bound. Each root box is first split 4 levels deep into 16 pieces that are
-searched in parallel (a deeper forced split wastes leaves: 10 levels give 245,484). The result
-has 231,486 leaves (193,911 gap, 37,575 domain), 3.4 MB of
-preorder tokens `S<d>`, `D<code>`, `G<s>:<w0>:<w1>`.
+searched in parallel (a deeper forced split wastes leaves).
+
+Where no vertex certifies a box, the search also tries a *blended* inner point
+`((8 − k)·v_a + k·v_c)/8` on the segment between two vertices. The point is in the solid, so
+it must also project inside the outer shadow; and if it lies beyond every outer vertex in some
+direction, then so does `v_a` or `v_c`. A blended point typically works where the best vertex
+changes across the box. It has no paired vertex, so near the identity in charts 0 and 4 only
+ordinary gap leaves apply. Blended leaves remove 8% of the leaves.
+
+The result has 212,601 leaves (160,956 gap, 16,597 blended, 35,048 domain), 3.2 MB of
+preorder tokens `S<d>`, `D<code>`, `G<s>:<w0>:<w1>`, `B<a>:<c>:<k>:<w0>:<w1>`.

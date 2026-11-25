@@ -10,7 +10,7 @@ by Jakob Steininger & Sergey Yurkevich (`[SY25]`) does not
 </p>
 
 The proof is written in Lean 4 and depends only on the three standard axioms `[propext, Classical.choice, Quot.sound]`.
-Typechecking it takes about 5.5 minutes on a 16-core machine (1.3 CPU-hours).
+Typechecking it takes about 5 minutes on a 16-core machine (1.2 CPU-hours).
 
 Unlike the proof from [SY25], this one uses Cayley coordinates (closely related to quaternions)
 to parametrize rotations.
@@ -50,7 +50,8 @@ The checker, in `Cayley/Checker/`:
 * `Geometry`, `Data`: the integer tables (trigonometric constants, vertices, charts) and the
   type `Box` of boxes in pose space. `EvalNat` is a small elaborator that computes the
   packed vertex tables as numerals.
-* `Leaf`: Kronecker-packed polynomial bounds, and the gap and domain leaf tests built on them.
+* `Leaf`: Kronecker-packed polynomial bounds, and the gap, blended gap and domain leaf tests
+  built on them.
 * `Tree`: certificate trees, the 15 root boxes, and the tree walk `checkTree`.
 
 Its soundness proof, in `Cayley/Soundness/`:
@@ -62,8 +63,8 @@ Its soundness proof, in `Cayley/Soundness/`:
   within explicit errors of the true values.
 * `Pack/`: the packed polynomial arithmetic and its lower bounds (coefficient bounds and
   quadratic Bernstein bounds) are sound on `[-1,1]⁵`.
-* `Leaf/`: each leaf kind is sound (gap separation, the blown-up paired test, disk, wedge,
-  chart and orbit exclusions).
+* `Leaf/`: each leaf kind is sound (gap separation by a vertex or by a point on a segment
+  between two vertices, the blown-up paired test, disk, wedge, chart and orbit exclusions).
 * `Tree`, `Main`: the tree walk, the coverage of the reduced domain by the 15 root boxes, and
   `kernel_sound`.
 
@@ -81,12 +82,12 @@ lake exe cache get
 lake build
 ```
 
-The certificate tree (231,486 leaves, 3.4 MB) is not committed. To generate it (about
-13 minutes on 16 cores) and cut it into kernel chunks:
+The certificate tree (212,601 leaves, 3.2 MB) is not committed. To generate it (about
+15 minutes on 16 cores) and cut it into kernel chunks:
 
 ```
 cd search && cargo build --release
-LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../.cayley-data/tree
+LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 BLEND=6 ./export_all.sh ../.cayley-data/tree
 cd ..
 lake build cayleyCert
 .lake/build/bin/cayleyCert check .cayley-data/tree/cover.txt     # optional native check, about 2 minutes

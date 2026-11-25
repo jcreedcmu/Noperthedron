@@ -32,7 +32,7 @@ charts 0 and 4, also $0 \le \rho \le 2$ and $|s_0|, |s_1| \le 1$. A box is
 \end{definition}
 
 The certificate is a binary tree for each root box. Each internal node halves the box
-along one coordinate; each leaf is either a \emph{gap leaf}, which shows that no
+along one coordinate; each leaf is either a \emph{gap leaf} (possibly \emph{blended}), which shows that no
 point of the box gives a Rupert pair, or a \emph{domain leaf}, which shows that no point
 of the box is reduced.
 
@@ -149,7 +149,7 @@ applies with the inner vertex $S$ and direction $w$.
 
 \begin{definition}
 \label{def:gap_leaf}
-\lean{Cayley.Checker.pGapOK, Cayley.Checker.vtestG, Cayley.Checker.fullOK, Cayley.Checker.pairOK}
+\lean{Cayley.Checker.pGapOK, Cayley.Checker.pGapPt, Cayley.Checker.vtestG, Cayley.Checker.fullOK, Cayley.Checker.pairOK}
 \leanok
 \uses{lem:gap_poly, lem:blowup_identity}
 A gap leaf names an inner vertex $S$ and a direction $(w_0, w_1) \ne 0$. It passes if
@@ -200,6 +200,57 @@ then $\mathrm{err} \le A - \sum_k T_k E_k$ on the box.
 \begin{proof}
 \leanok
 Linear arithmetic.
+\end{proof}
+
+\section{Blended gap leaves}
+
+\begin{definition}
+\label{def:blend_leaf}
+\lean{Cayley.Checker.pBlendOK, Cayley.Checker.blendS}
+\leanok
+\uses{def:gap_leaf}
+A blended gap leaf names two inner vertices $S_a$, $S_c$, an integer $0 \le k \le 8$ and a
+direction $(w_0, w_1) \ne 0$. Its inner point is
+$\hat S = \lfloor ((8 - k) \hat S_a + k \hat S_c) / 8 \rfloor$, the tabulated point on the
+segment from $S_a$ to $S_c$, rounded down. The leaf passes if the test of
+Definition~\ref{def:gap_leaf} passes with $\hat S$ in place of the tabulated inner vertex
+and with no paired vertex: every outer vertex must pass the quick test or the full test.
+\end{definition}
+
+\begin{lemma}
+\label{lem:blend_core}
+\lean{Cayley.gap_pt_sep, Cayley.gap_core_blend, Cayley.blendS_err}
+\leanok
+\uses{thm:gap_core, thm:separation, lem:vertex_approx}
+Let $p = (1 - \lambda) S_a + \lambda S_c$ with $0 \le \lambda \le 1$, and let $\hat S$ be
+within $\tfrac54 \cdot 2^{-60}$ of $p$ in every coordinate. If the per-vertex inequality of
+Theorem~\ref{thm:gap_core} holds for $\hat S$ against every outer vertex, then $(s, s\,Q_j(r))$
+is not a Rupert pair.
+\end{lemma}
+\begin{proof}
+\leanok
+As in Theorem~\ref{thm:gap_core}, the inequality gives
+$\langle w, s T\rangle \le \langle w, s Q_j(r)\, p\rangle$ for every outer vertex $T$; the
+allowance $128$ leaves room for the larger error of $\hat S$. The right side is
+$(1 - \lambda) \langle w, s Q_j(r) S_a\rangle + \lambda \langle w, s Q_j(r) S_c\rangle$, so it
+is at most the larger of the two terms. Hence $S_a$ or $S_c$ lies beyond every outer vertex
+in the direction $w$, and Theorem~\ref{thm:separation} applies to it. The rounded blend of the
+tabulated vertices is within $2^{-60} + 2^{-160}$ of $p$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:blend_leaf_sound}
+\lean{Cayley.pBlendOK_sound}
+\leanok
+\uses{def:blend_leaf, lem:blend_core, thm:coef_bound, thm:bern_bound, lem:packed_bounds, lem:norm_guard, lem:quick_test}
+If a blended gap leaf passes on a box, then no admissible point of the box gives a Rupert
+pair $(s, s\, Q_j(r))$.
+\end{theorem}
+\begin{proof}
+\leanok
+As for Theorem~\ref{thm:gap_leaf_sound}, with Lemma~\ref{lem:blend_core} in place of
+Theorem~\ref{thm:gap_core}. The rounded blend satisfies the same magnitude bound as a
+vertex, so Lemma~\ref{lem:norm_guard} applies.
 \end{proof}
 
 \section{Domain leaves}
