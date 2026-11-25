@@ -119,10 +119,3 @@ and run
 leanblueprint all      # HTML and PDF, and check that every \lean{} name exists
 leanblueprint serve    # serve the HTML locally
 ```
-
-## License Information
-
-Portions of this project use Apache License 2.0–licensed code from
-https://github.com/badly-drawn-wizards/noperthedron
-©2025 Reuben Steenekamp
-See LICENSE for details.
