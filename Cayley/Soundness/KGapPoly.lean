@@ -12,7 +12,9 @@ public import Cayley.Soundness.KSem
 instance (polynomial expressions) are related by evaluation, and so is its real instance.
 -/
 
-namespace Cayley.Pack
+namespace Cayley
+
+open Cayley.Pack
 
 open Cayley.Checker
 
@@ -324,4 +326,4 @@ theorem gapNrm_mono (b b' : Box) (hch : b.chart = b'.chart) (hfa : b.face = b'.f
   rw [l, r]
   exact (P.get k).2
 
-end Cayley.Pack
+end Cayley

@@ -25,7 +25,7 @@ structure Box where
   h : List Int
 deriving Inhabited
 
-/-- The vertices as integers over `2^160` (`Cayley.Pack.vt_eq` says how they are computed from
+/-- The vertices as integers over `2^160` (`Cayley.vt_eq` says how they are computed from
 `cosTab`, `sinTab` and the points `C₁, C₂, C₃`). -/
 def vtxI : List (Int × Int × Int) := [
   (856614713349491466445980334776951882203105591296, 0, 1184144530365309185986056276372037852756722057216),

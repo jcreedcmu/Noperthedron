@@ -11,13 +11,13 @@ public import Noperthedron.Vertices.InteriorNonempty
 # The Noperthedron is not Rupert (kernel-checked, Cayley coordinates)
 
 The certificate is the tree in `CayleyKernel/Gen`: every leaf check is proved by `Eq.refl true`,
-so the kernel itself runs the checker. `Cayley.Pack.kernel_sound` turns the per-root facts into
+so the kernel itself runs the checker. `Cayley.kernel_sound` turns the per-root facts into
 the theorem.
 -/
 
 namespace Cayley.Kernel
 
-open Cayley.Checker Cayley.Pack Noperthedron
+open Cayley.Checker Noperthedron
 
 set_option maxRecDepth 100000 in
 theorem noperthedron_not_rupert : ¬ IsRupert exactVerts := by

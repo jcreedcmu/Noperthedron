@@ -9,7 +9,9 @@ public import Cayley.Soundness.KGapSound
 # Soundness of the kernel domain leaves
 -/
 
-namespace Cayley.Pack
+namespace Cayley
+
+open Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
@@ -387,6 +389,6 @@ theorem pDomOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6)
     have := hR.orbit (decide (i / 30 ≠ 0)) (i / 2 % 15)
     linarith
 
-end Cayley.Pack
+end Cayley
 
 end

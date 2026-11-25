@@ -11,7 +11,9 @@ public import Cayley.Soundness.KDomSound
 of `b` is a reduced Rupert pose.
 -/
 
-namespace Cayley.Pack
+namespace Cayley
+
+open Cayley.Pack
 
 open Cayley.Checker Noperthedron
 
@@ -205,6 +207,6 @@ theorem covered_of_check (b : Box) (hb : Inv b) (tr : Tree) (h : checkTree false
   rw [holes_nil b tr h] at hx
   simp at hx
 
-end Cayley.Pack
+end Cayley
 
 end

@@ -12,7 +12,9 @@ If each of the 15 root boxes carries a checked skeleton whose holes are checked 
 subtrees, then the Noperthedron is not Rupert.
 -/
 
-namespace Cayley.Pack
+namespace Cayley
+
+open Cayley.Pack
 
 open Cayley.Checker Noperthedron Real
 open scoped Matrix
@@ -199,6 +201,6 @@ theorem kernel_sound (h : ∀ i < 15, RootOK i) : ¬ IsRupert exactVerts := by
   rw [hc]; unfold Bad; rw [hu, hv, hr]
   exact ⟨hred, hrup⟩
 
-end Cayley.Pack
+end Cayley
 
 end

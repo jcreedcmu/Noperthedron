@@ -230,7 +230,7 @@ def pGapData (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : GData Int :=
 
 /-- The norm guard of a gap leaf: the box scale and the direction are small enough that the
 coefficient norms of every polynomial the leaf decodes stay below `2^390` (proved once, on the
-worst box, in `Cayley.Pack.gapNrmOK_worst`). -/
+worst box, in `Cayley.gapNrmOK_worst`). -/
 def nrmOK (b : Box) (w0 w1 : Int) : Bool :=
   Nat.ble b.K 16 && Nat.ble w0.natAbs 1024 && Nat.ble w1.natAbs 1024
 

@@ -40,7 +40,7 @@ theorem Cayley.Kernel.exists_not_rupert : ExistsNonRupertPolyhedron
 | --- | --- | --- |
 | `Noperthedron/` | `Noperthedron` | the statement, the exact vertices, and the reduction to rotation-only poses |
 | `Cayley/Checker/` | `CayleyChecker` (Mathlib-free) | the checker the kernel runs: Kronecker-packed polynomial bounds, gap and domain leaf tests, tree walk |
-| `Cayley/Soundness/` | `Cayley` | `Cayley.Pack.kernel_sound`: if the checker accepts a tree for each of the 15 root boxes, the Noperthedron is not Rupert |
+| `Cayley/Soundness/` | `Cayley` | `Cayley.kernel_sound`: if the checker accepts a tree for each of the 15 root boxes, the Noperthedron is not Rupert |
 | `CayleyKernel/` | `CayleyKernel` (not a default target) | the elaboration-time loader, the generated chunk modules, and the main theorem |
 | `search/` | Rust | the floating-point search that produces the certificate tree |
 | `CayleyCert.lean` | executable `cayleyCert` | native check of a tree, and generation of the kernel chunks |

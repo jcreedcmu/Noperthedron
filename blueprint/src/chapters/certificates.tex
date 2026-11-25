@@ -5,7 +5,7 @@
 
 \begin{definition}
 \label{def:box}
-\lean{Cayley.Checker.Box, Cayley.Checker.Box.pts, Cayley.kpt, Cayley.Checker.Box.exists_kpt, Cayley.Pack.Inv}
+\lean{Cayley.Checker.Box, Cayley.Checker.Box.pts, Cayley.kpt, Cayley.Checker.Box.exists_kpt, Cayley.Inv}
 \leanok
 \uses{def:faces}
 A \emph{box} consists of a chart $j \in \{0, \dots, 4\}$, a face $f \in \{0, \dots, 5\}$
@@ -20,7 +20,7 @@ coordinates, so that every polynomial below is bounded on the same cube $[-1,1]^
 
 \begin{definition}
 \label{def:bad}
-\lean{Cayley.Bad, Cayley.PtOK, Cayley.Pack.Covered}
+\lean{Cayley.Bad, Cayley.PtOK, Cayley.Covered}
 \leanok
 \uses{def:box, def:reduced}
 A point $X$ of a box is \emph{bad} if, with $r$ the Cayley vector of $X$
@@ -52,7 +52,7 @@ Definition~\ref{def:tau}, after scaling $C_3$ to integers) clears every denomina
 
 \begin{lemma}[Gap polynomial]
 \label{lem:gap_poly}
-\lean{Cayley.gap_identity, Cayley.Pack.Fp_real, Cayley.Pack.Fp_split}
+\lean{Cayley.gap_identity, Cayley.Fp_real, Cayley.Fp_split}
 \leanok
 \uses{def:box, def:cayley, def:outer_rot, def:charts, thm:separation}
 \[
@@ -90,7 +90,7 @@ $\rho = 0$, and no box touching $\rho = 0$ can have a positive lower bound for i
 
 \begin{lemma}[Blow-up identity]
 \label{lem:blowup_identity}
-\lean{Cayley.num_sub_denom, Cayley.Pack.Lp_real}
+\lean{Cayley.num_sub_denom, Cayley.Lp_real}
 \leanok
 \uses{lem:cayley_rodrigues, lem:gap_poly, lem:tau_pair}
 In charts 0 and 4, with $r = \rho\, c$,
@@ -170,7 +170,7 @@ following succeeds:
 
 \begin{theorem}
 \label{thm:gap_leaf_sound}
-\lean{Cayley.Pack.pGapOK_sound}
+\lean{Cayley.pGapOK_sound}
 \leanok
 \uses{def:gap_leaf, thm:gap_core, thm:coef_bound, thm:bern_bound, lem:packed_bounds, lem:norm_guard}
 If a gap leaf passes on a box, then no admissible point of the box gives a Rupert pair
@@ -187,7 +187,7 @@ and~\ref{thm:bern_bound}.
 
 \begin{lemma}[Quick test]
 \label{lem:quick_test}
-\lean{Cayley.Pack.quick_real, Cayley.Pack.quick_G1}
+\lean{Cayley.quick_real, Cayley.quick_G1}
 \leanok
 \uses{lem:gap_poly, thm:coef_bound}
 Suppose $A \ge c_0 - \mathrm{sl}$ and $|E_k - e_k| \le a_k$ on the box, where $c_0$, $e_k$
@@ -227,7 +227,7 @@ box:
 
 \begin{theorem}
 \label{thm:dom_leaf_sound}
-\lean{Cayley.Pack.pDomOK_sound, Cayley.Pack.pChartOK_sound, Cayley.Pack.pOrbitOK_sound}
+\lean{Cayley.pDomOK_sound, Cayley.pChartOK_sound, Cayley.pOrbitOK_sound}
 \leanok
 \uses{def:dom_leaf, thm:coef_bound, lem:packed_bounds, lem:group_approx}
 If a domain leaf passes on a box, then no admissible point of the box is reduced.

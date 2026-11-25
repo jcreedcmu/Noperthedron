@@ -12,7 +12,9 @@ public import Cayley.Soundness.PackBern
 `pGapOK b s w₀ w₁ = true` implies, at every point of the box, the hypotheses of `gap_core`.
 -/
 
-namespace Cayley.Pack
+namespace Cayley
+
+open Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
@@ -743,6 +745,6 @@ theorem pGapOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.l
     have hpr : pairOf b.chart s = some tt := by simpa [gPair, hbl, kPair] using hp
     exact Or.inr ⟨hbl, hpr, pair_G2 b s w0 w1 hj hf hbl hn hpo ht⟩
 
-end Cayley.Pack
+end Cayley
 
 end

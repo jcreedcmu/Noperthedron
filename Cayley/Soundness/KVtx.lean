@@ -12,7 +12,9 @@ The tables `tpx … taz` hold one 640-bit slot per outer vertex. `vtxSplit` visi
 vertices whose slot sign bit is set.
 -/
 
-namespace Cayley.Pack
+namespace Cayley
+
+open Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
@@ -121,6 +123,6 @@ theorem vtxSplit_sound (f : ℕ → ℤ → ℤ → ℤ → ℤ → ℤ → ℤ 
           have h2 : lo + n / 2 + (i - n / 2) = lo + i := by omega
           rwa [h2] at h1
 
-end Cayley.Pack
+end Cayley
 
 end

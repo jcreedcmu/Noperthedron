@@ -12,7 +12,9 @@ public import Cayley.Soundness.Reduction
 operations commute with them.
 -/
 
-namespace Cayley.Pack
+namespace Cayley
+
+open Cayley.Pack
 
 open Cayley.Checker
 
@@ -372,6 +374,6 @@ theorem orbR1 (b : Box) (hj : b.chart < 5) (g : ℕ) (a : ℕ) (ha : a = 0 ∨ a
     simp only [hkj, U, βD, Hm]
     constructor <;> ring
 
-end Cayley.Pack
+end Cayley
 
 end

@@ -20,7 +20,7 @@ There are 15 root boxes, all with $(u, v) \in [0, 1] \times [0, \frac12]$:
 
 \begin{lemma}[Coverage]
 \label{lem:cover}
-\lean{Cayley.Pack.cover, Cayley.Pack.rootBox_inv}
+\lean{Cayley.cover, Cayley.rootBox_inv}
 \leanok
 \uses{def:root_boxes, def:reduced, def:bad, lem:exists_face}
 Every reduced $(u, v, j, r)$ is an admissible point of one of the root boxes of chart $j$.
@@ -50,7 +50,7 @@ again satisfy the bounds of Definition~\ref{def:box}, and so do the root boxes.
 
 \begin{lemma}
 \label{lem:split_cover}
-\lean{Cayley.Pack.split_cover, Cayley.Pack.split_inv}
+\lean{Cayley.split_cover, Cayley.split_inv}
 \leanok
 \uses{def:kcheck}
 Every point of a box is a point of one of its two halves.
@@ -63,7 +63,7 @@ other coordinates are unchanged (or all doubled, when the scale is increased).
 
 \begin{theorem}
 \label{thm:walk}
-\lean{Cayley.Pack.walk, Cayley.Pack.covered_of_check}
+\lean{Cayley.walk, Cayley.covered_of_check}
 \leanok
 \uses{lem:split_cover, thm:gap_leaf_sound, thm:dom_leaf_sound, def:bad}
 If a tree is accepted on a box, then the box is covered.
@@ -80,7 +80,7 @@ separate theorem.
 
 \begin{lemma}
 \label{lem:root_covered}
-\lean{Cayley.Pack.root_covered, Cayley.Checker.holes}
+\lean{Cayley.root_covered, Cayley.Checker.holes}
 \leanok
 \uses{thm:walk}
 If the skeleton is accepted on a root box when holes count as passing, its holes are
@@ -97,7 +97,7 @@ Theorem~\ref{thm:walk}, and the hole's box is covered.
 
 \begin{theorem}[Soundness]
 \label{thm:kernel_sound}
-\lean{Cayley.Pack.RootOK, Cayley.Pack.kernel_sound}
+\lean{Cayley.RootOK, Cayley.kernel_sound}
 \leanok
 \uses{thm:reduction, lem:cover, lem:root_covered}
 If each of the 15 root boxes carries an accepted skeleton with accepted subtrees for its
