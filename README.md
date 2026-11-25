@@ -116,14 +116,14 @@ python3 scripts/cayley/build_certificate.py \
 ```
 
 Use a fresh output directory for each build. The generated modules, arithmetic
-timings, and final axiom audit are saved there. The numbers below were measured on the
-earlier 245,484-leaf tree (`./export_all.sh DIR 10`). This produces a 235,518-leaf
-certificate for the same polyhedron using the original mathematical checker.
-The generated `.olean` files measured 47.6 MB versus 67.2 MB for the standard
-build (about 29% smaller), with essentially unchanged kernel time: 68.3 versus
-68.0 CPU-minutes on the same machine. These measurements cover generated module
-checks with cached supporting proofs; they exclude proposal generation,
-supporting libraries, and Mathlib. The final axiom audit is unchanged.
+timings, and final axiom audit are saved there. This produces a 228,889-leaf
+certificate (1.1% fewer leaves than the 231,486 of the standard tree) for the same
+polyhedron using the original mathematical checker. The generated `.olean` files
+measured 46.3 MB versus 65.1 MB for the standard build (about 29% smaller); that
+comes from the 32-leaf chunks, not from the pruning. Kernel time is essentially
+unchanged: 67.7 versus 66.5 CPU-minutes on the same machine. These measurements
+cover generated module checks with cached supporting proofs; they exclude proposal
+generation, supporting libraries, and Mathlib. The final axiom audit is unchanged.
 
 ## Blueprint
 
