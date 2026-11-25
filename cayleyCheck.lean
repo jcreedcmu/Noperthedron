@@ -115,11 +115,13 @@ def main (args : List String) : IO UInt32 := do
       IO.FS.createDirAll outL
       let mut all : Array (K.KBox × K.KTree) := #[]
       let mut rootIds : Array (List Nat) := #[]
+      let mut skelHash : Array UInt64 := #[]
       for r in [0:15] do
         let (skel, ch) := kCut maxL (K.rootK r) (ts.getD r K.KTree.hole) #[] #[]
         let ids := (List.range ch.size).map (· + all.size)
-        IO.FS.writeFile s!"{outD}/skel_{r}.txt"
-          (" ".intercalate skel.toList ++ "\n" ++ " ".intercalate (ids.map toString) ++ "\n")
+        let skelText := " ".intercalate skel.toList ++ "\n" ++ " ".intercalate (ids.map toString) ++ "\n"
+        IO.FS.writeFile s!"{outD}/skel_{r}.txt" skelText
+        skelHash := skelHash.push (hash skelText)
         all := all ++ ch
         rootIds := rootIds.push ids
       let nMod := (all.size + perM - 1) / perM
@@ -130,7 +132,8 @@ def main (args : List String) : IO UInt32 := do
           let hdr := [toString i, toString b.chart, toString b.face, toString b.K] ++
             b.c.map toString ++ b.h.map toString
           lines := lines.push (" ".intercalate (hdr ++ (kToks #[] t).toList))
-        IO.FS.writeFile s!"{outD}/c_{m}.txt" ("\n".intercalate lines.toList ++ "\n")
+        let chunkText := "\n".intercalate lines.toList ++ "\n"
+        IO.FS.writeFile s!"{outD}/c_{m}.txt" chunkText
         IO.FS.writeFile s!"{outL}/C{m}.lean" s!"module
 
 public import CayleyKernel.Load
@@ -138,7 +141,9 @@ public meta import CayleyKernel.Load
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): kernel-checked chunks {m * perM}–{min ((m + 1) * perM) all.size - 1}. -/
+/-! GENERATED (`cayleyCheck kgen`): kernel-checked chunks {m * perM}–{min ((m + 1) * perM) all.size - 1}.
+The data file is not a build input, so its hash is recorded here to make Lake rebuild this
+module when the data changes: {hash chunkText}. -/
 
 set_option Elab.async false
 
@@ -163,7 +168,7 @@ public meta import CayleyKernel.Load
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): root box {r}. -/
+/-! GENERATED (`cayleyCheck kgen`): root box {r}. Skeleton data hash: {skelHash[r]!}. -/
 
 set_option Elab.async false
 

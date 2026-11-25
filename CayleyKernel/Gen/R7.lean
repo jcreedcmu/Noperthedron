@@ -2,12 +2,12 @@ module
 
 public import CayleyKernel.Load
 public meta import CayleyKernel.Load
+public import CayleyKernel.Gen.C37
 public import CayleyKernel.Gen.C38
-public import CayleyKernel.Gen.C39
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): root box 7. -/
+/-! GENERATED (`cayleyCheck kgen`): root box 7. Skeleton data hash: 7612012364226948811. -/
 
 set_option Elab.async false
 

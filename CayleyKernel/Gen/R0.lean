@@ -6,7 +6,7 @@ public import CayleyKernel.Gen.C0
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): root box 0. -/
+/-! GENERATED (`cayleyCheck kgen`): root box 0. Skeleton data hash: 6174914375655466811. -/
 
 set_option Elab.async false
 

@@ -126,5 +126,7 @@ error bound applies.
 
 The floating-point search (`cayley/search`) tries 12 inner vertices × 13 directions per box,
 chooses each split by look-ahead (the direction whose halves can both be certified), and uses
-the Bernstein bound. The result has 245,484 leaves (194,785 gap, 50,699 domain), 3.5 MB of
+the Bernstein bound. Each root box is first split 4 levels deep into 16 pieces that are
+searched in parallel (a deeper forced split wastes leaves: 10 levels give 245,484). The result
+has 231,486 leaves (193,911 gap, 37,575 domain), 3.4 MB of
 preorder tokens `S<d>`, `D<code>`, `G<s>:<w0>:<w1>`.

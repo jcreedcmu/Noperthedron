@@ -2,17 +2,16 @@ module
 
 public import CayleyKernel.Load
 public meta import CayleyKernel.Load
+public import CayleyKernel.Gen.C40
 public import CayleyKernel.Gen.C41
 public import CayleyKernel.Gen.C42
 public import CayleyKernel.Gen.C43
 public import CayleyKernel.Gen.C44
 public import CayleyKernel.Gen.C45
-public import CayleyKernel.Gen.C46
-public import CayleyKernel.Gen.C47
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): root box 9. -/
+/-! GENERATED (`cayleyCheck kgen`): root box 9. Skeleton data hash: 16168293291498354556. -/
 
 set_option Elab.async false
 

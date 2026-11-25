@@ -73,19 +73,21 @@ lake exe cache get
 lake build
 ```
 
-The certificate tree (245,484 leaves, 3.5 MB) is not committed. To generate it (about
-8 minutes on 16 cores) and cut it into kernel chunks:
+The certificate tree (231,486 leaves, 3.4 MB) is not committed. To generate it (about
+13 minutes on 16 cores) and cut it into kernel chunks:
 
 ```
 cd cayley/search && cargo build --release
-LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../../.cayley-data/v4
+LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../../.cayley-data/v5
 cd ../..
 lake build cayleyCheck
-.lake/build/bin/cayleyCheck kwalk .cayley-data/v4/cover.txt     # optional native check
-.lake/build/bin/cayleyCheck kgen .cayley-data/v4/cover.txt .cayley-data/kernel CayleyKernel/Gen 16 360
+.lake/build/bin/cayleyCheck kwalk .cayley-data/v5/cover.txt     # optional native check
+.lake/build/bin/cayleyCheck kgen .cayley-data/v5/cover.txt .cayley-data/kernel CayleyKernel/Gen 16 360
 ```
 
 The export is deterministic, so `kgen` reproduces the committed `CayleyKernel/Gen` modules.
+Each generated module records a hash of its data file, so a different tree changes the
+modules and Lake rebuilds them.
 Then run the kernel check:
 
 ```
@@ -106,7 +108,7 @@ audits the final theorem's axioms:
 
 ```sh
 lake build nopertPrune
-.lake/build/bin/nopertPrune .cayley-data/v4/cover.txt .cayley-data/cover-pruned.txt 8 plain
+.lake/build/bin/nopertPrune .cayley-data/v5/cover.txt .cayley-data/cover-pruned.txt 8 plain
 .lake/build/bin/nopertPrune .cayley-data/cover-pruned.txt .cayley-data/cover-optimized.txt 8 mix
 python3 scripts/cayley/build_certificate.py \
   .cayley-data/cover-optimized.txt --directory /tmp/nopert-optimized-kernel \
@@ -114,7 +116,8 @@ python3 scripts/cayley/build_certificate.py \
 ```
 
 Use a fresh output directory for each build. The generated modules, arithmetic
-timings, and final axiom audit are saved there. This produces a 235,518-leaf
+timings, and final axiom audit are saved there. The numbers below were measured on the
+earlier 245,484-leaf tree (`./export_all.sh DIR 10`). This produces a 235,518-leaf
 certificate for the same polyhedron using the original mathematical checker.
 The generated `.olean` files measured 47.6 MB versus 67.2 MB for the standard
 build (about 29% smaller), with essentially unchanged kernel time: 68.3 versus

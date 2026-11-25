@@ -5,7 +5,9 @@ public meta import CayleyKernel.Load
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): kernel-checked chunks 4320–4679. -/
+/-! GENERATED (`cayleyCheck kgen`): kernel-checked chunks 4320–4679.
+The data file is not a build input, so its hash is recorded here to make Lake rebuild this
+module when the data changes: 5643269700325561598. -/
 
 set_option Elab.async false
 

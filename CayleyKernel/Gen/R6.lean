@@ -10,11 +10,10 @@ public import CayleyKernel.Gen.C34
 public import CayleyKernel.Gen.C35
 public import CayleyKernel.Gen.C36
 public import CayleyKernel.Gen.C37
-public import CayleyKernel.Gen.C38
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): root box 6. -/
+/-! GENERATED (`cayleyCheck kgen`): root box 6. Skeleton data hash: 13512668344360924090. -/
 
 set_option Elab.async false
 
