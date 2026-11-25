@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.Pack
+public import Cayley.Soundness.Pack.Basic
 public import Cayley.Checker.Leaf
 
 @[expose] public section

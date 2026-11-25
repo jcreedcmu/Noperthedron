@@ -6,7 +6,7 @@ public import Cayley.Checker.EvalNat
 @[expose] public section
 
 /-!
-# Integer data for the kernel checker
+# Integer data for the checker
 
 Boxes with integer coordinates, the vertices as integers, the packed-table vertex walk, and the
 integer chart bases and group elements used by `Cayley.Checker.Leaf`.
@@ -141,7 +141,7 @@ uses `ta` for absolute-value error terms. The 640-bit spacing leaves room for in
 results; `pGapOK` checks bounds that prevent carries between slots.
 
 The tables are computed by `eval_nat%` when this file is elaborated, so the kernel sees
-numerals. The theorems `tpx_eq` through `onesT_eq` in `Cayley/Soundness/KVtx.lean` relate them
+numerals. The theorems `tpx_eq` through `onesT_eq` in `Cayley/Soundness/Leaf/VertexTables.lean` relate them
 to `vtxI`.
 -/
 

@@ -1,7 +1,7 @@
 module
 
-public import Cayley.Soundness.Moves
-public import Cayley.Soundness.CayleyMatrix
+public import Cayley.Soundness.Reduction.Moves
+public import Cayley.Soundness.Reduction.CayleyMatrix
 
 @[expose] public section
 
@@ -10,7 +10,7 @@ public import Cayley.Soundness.CayleyMatrix
 
 The outer rotation is `s(u, v) = Cay(v, -u, 0)`; the inner rotation is
 `s(u, v) · B_j · Cay(r)` for a chart base `B_j`. `Reduced u v j r` collects the
-inequalities that the reduction (`Cayley.Soundness.Reduction`) guarantees.
+inequalities that the reduction (`Cayley.Soundness.Reduction.Reduced`) guarantees.
 -/
 
 namespace Cayley

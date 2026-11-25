@@ -1,7 +1,7 @@
 module
 
-public import Cayley.Soundness.KDomPoly
-public import Cayley.Soundness.KGapSound
+public import Cayley.Soundness.Leaf.DomPoly
+public import Cayley.Soundness.Leaf.GapSound
 
 @[expose] public section
 

@@ -39,29 +39,37 @@ theorem Cayley.Kernel.exists_not_rupert : ExistsNonRupertPolyhedron
 | Path | Library | Contents |
 | --- | --- | --- |
 | `Noperthedron/` | `Noperthedron` | the statement, the exact vertices, and the reduction to rotation-only poses |
-| `Cayley/Checker/` | `CayleyChecker` (Mathlib-free) | the checker the kernel runs: Kronecker-packed polynomial bounds, gap and domain leaf tests, tree walk |
+| `Cayley/Checker/` | `CayleyChecker` (Mathlib-free) | the checker the kernel runs |
 | `Cayley/Soundness/` | `Cayley` | `Cayley.kernel_sound`: if the checker accepts a tree for each of the 15 root boxes, the Noperthedron is not Rupert |
 | `CayleyKernel/` | `CayleyKernel` (not a default target) | the elaboration-time loader, the generated chunk modules, and the main theorem |
 | `search/` | Rust | the floating-point search that produces the certificate tree |
 | `CayleyCert.lean` | executable `cayleyCert` | native check of a tree, and generation of the kernel chunks |
 
-Soundness, file by file:
+The checker, in `Cayley/Checker/`:
 
-* `Shadow`, `Moves`, `Reduction`, `Pose`, `CayleyMatrix`, `Rodrigues`: from
-  `IsRupert exactVerts` to a Rupert pair `(s(u,v), s(u,v)·B_j·Cay(r))` in the reduced domain
-  (a wedge of outer views, an orbit-maximal relative rotation, a 5-chart Cayley atlas).
-* `Trig`, `TrigTable`, `Approx`: the checker's tables of `cos/sin(2πk/15)`, the
-  vertices and the symmetries are within explicit errors of the true values.
-* `Pack`, `PackLayout`, `PackPoly`, `PackDecode`, `PackSound`, `PackBern`, `KVtx`: the packed
-  polynomial arithmetic and its lower bounds (coefficient bounds and quadratic Bernstein
-  bounds) are sound on `[-1,1]⁵`.
-* `KSem`, `KGapPoly`, `KGapSound`, `KDomPoly`, `KDomSound`: each leaf kind is sound (gap
-  separation, the blown-up paired test, disk, wedge, chart and orbit exclusions).
-* `KTreeSound`, `KMain`: the tree walk, the coverage of the reduced domain by the 15 root boxes,
-  and `kernel_sound`.
+* `Geometry`, `Data`: the integer tables (trigonometric constants, vertices, charts) and the
+  type `Box` of boxes in pose space. `EvalNat` is a small elaborator that computes the
+  packed vertex tables as numerals.
+* `Leaf`: Kronecker-packed polynomial bounds, and the gap and domain leaf tests built on them.
+* `Tree`: certificate trees, the 15 root boxes, and the tree walk `checkTree`.
 
-`Rodrigues.lean` and `CayleyMatrix.lean` are ported from
+Its soundness proof, in `Cayley/Soundness/`:
+
+* `Reduction/`: from `IsRupert exactVerts` to a Rupert pair `(s(u,v), s(u,v)·B_j·Cay(r))` in
+  the reduced domain (a wedge of outer views, an orbit-maximal relative rotation, a 5-chart
+  Cayley atlas).
+* `Tables/`: the checker's tables of `cos/sin(2πk/15)`, the vertices and the symmetries are
+  within explicit errors of the true values.
+* `Pack/`: the packed polynomial arithmetic and its lower bounds (coefficient bounds and
+  quadratic Bernstein bounds) are sound on `[-1,1]⁵`.
+* `Leaf/`: each leaf kind is sound (gap separation, the blown-up paired test, disk, wedge,
+  chart and orbit exclusions).
+* `Tree`, `Main`: the tree walk, the coverage of the reduced domain by the 15 root boxes, and
+  `kernel_sound`.
+
+`Cayley/Soundness/Reduction/CayleyMatrix.lean` is ported from
 [NopertTriakisTetrahedron](https://github.com/dwrensha/NopertTriakisTetrahedron) (Apache-2.0).
+[`Cayley/DESIGN.md`](Cayley/DESIGN.md) describes the mathematics.
 
 ## Building
 

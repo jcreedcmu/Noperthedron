@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.KDomSound
+public import Cayley.Soundness.Leaf.DomSound
 
 @[expose] public section
 

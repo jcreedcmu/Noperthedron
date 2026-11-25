@@ -1,7 +1,7 @@
 module
 
 public import CayleyKernel.Gen.All
-public import Cayley.Soundness.KMain
+public import Cayley.Soundness.Main
 public import Noperthedron.MainTheorem
 public import Noperthedron.Vertices.InteriorNonempty
 

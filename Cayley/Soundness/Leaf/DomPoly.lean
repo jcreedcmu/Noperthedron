@@ -1,7 +1,7 @@
 module
 
-public import Cayley.Soundness.KGapPoly
-public import Cayley.Soundness.Reduction
+public import Cayley.Soundness.Leaf.GapPoly
+public import Cayley.Soundness.Reduction.Reduced
 
 @[expose] public section
 

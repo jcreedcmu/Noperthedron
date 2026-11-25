@@ -1,7 +1,7 @@
 module
 
-public import Cayley.Soundness.PackSound
-public import Cayley.Soundness.KSem
+public import Cayley.Soundness.Pack.Sound
+public import Cayley.Soundness.Leaf.Semantics
 
 @[expose] public section
 

@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.Shadow
+public import Cayley.Soundness.Reduction.Shadow
 public import Noperthedron.Bounding.OpNorm
 
 @[expose] public section

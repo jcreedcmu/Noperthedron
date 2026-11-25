@@ -1,7 +1,7 @@
 module
 
-public import Cayley.Soundness.Pose
-public import Cayley.Soundness.TrigTable
+public import Cayley.Soundness.Reduction.Pose
+public import Cayley.Soundness.Tables.TrigTable
 
 @[expose] public section
 

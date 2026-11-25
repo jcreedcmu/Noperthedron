@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.Pack
+public import Cayley.Soundness.Pack.Basic
 public import Mathlib.Algebra.MvPolynomial.CommRing
 public import Mathlib.Algebra.Order.Ring.Star
 public import Mathlib.Algebra.Order.Star.Int

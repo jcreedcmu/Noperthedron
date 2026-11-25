@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.PackLayout
+public import Cayley.Soundness.Pack.Layout
 public import Cayley.Checker.Leaf
 public import Mathlib.Algebra.Order.Star.Real
 

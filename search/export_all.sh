@@ -1,5 +1,5 @@
 #!/bin/bash
-# Export the full certificate in the root order of `Cayley.rootBox`.
+# Export the full certificate in the root order of `Cayley.Checker.rootBox`.
 # Certificate:
 #   LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh DIR
 # The optional second argument is the depth of the forced pre-split of each root box (the

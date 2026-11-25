@@ -1,8 +1,8 @@
 module
 
-public import Cayley.Soundness.KGapPoly
-public import Cayley.Soundness.KVtx
-public import Cayley.Soundness.PackBern
+public import Cayley.Soundness.Leaf.GapPoly
+public import Cayley.Soundness.Leaf.VertexTables
+public import Cayley.Soundness.Pack.Bernstein
 
 @[expose] public section
 

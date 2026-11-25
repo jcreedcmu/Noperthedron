@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.Trig
+public import Cayley.Soundness.Tables.Trig
 public import Mathlib.Analysis.CStarAlgebra.Classes
 public import Mathlib.Tactic.IntervalCases
 
@@ -10,7 +10,7 @@ public import Mathlib.Tactic.IntervalCases
 # The checker's trigonometric tables
 
 `cos(2πk/15)` and `sin(2πk/15)` are within `2⁻⁷¹` of `cosTab` and `sinTab`: the case
-`k = 1` comes from `Cayley.Soundness.Trig`, and the multiples follow by complex
+`k = 1` comes from `Cayley.Soundness.Tables.Trig`, and the multiples follow by complex
 multiplication with the error tracked step by step.
 -/
 

@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.PackDecode
+public import Cayley.Soundness.Pack.Decode
 
 @[expose] public section
 

@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.PackPoly
+public import Cayley.Soundness.Pack.Poly
 public import Mathlib.Algebra.BigOperators.Fin
 
 @[expose] public section

@@ -1,7 +1,7 @@
 module
 
-public import Cayley.Soundness.KTreeSound
-public import Cayley.Soundness.Reduction
+public import Cayley.Soundness.Tree
+public import Cayley.Soundness.Reduction.Reduced
 
 @[expose] public section
 

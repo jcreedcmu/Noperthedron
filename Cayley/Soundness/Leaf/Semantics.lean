@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.Approx
+public import Cayley.Soundness.Tables.Approx
 public import Cayley.Checker.Tree
 
 @[expose] public section

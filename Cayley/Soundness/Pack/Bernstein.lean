@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Soundness.PackSound
+public import Cayley.Soundness.Pack.Sound
 public import Mathlib.Tactic.IntervalCases
 
 @[expose] public section
