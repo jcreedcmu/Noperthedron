@@ -59,9 +59,3 @@ globs = ["CayleyKernel.+"]
 name = "cayleyCheck"
 root = "cayleyCheck"
 buildType = "release"
-
-# Optional certificate optimizer. Its output still needs the full kernel check.
-[[lean_exe]]
-name = "nopertPrune"
-root = "nopertPrune"
-buildType = "release"
