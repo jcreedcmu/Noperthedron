@@ -27,60 +27,63 @@ open scoped Matrix
 theorem vt_eq : ∀ t < 90, vt t = vtxZ t := by
   decide +kernel
 
+/-- An integer point over `2^160` as a real vector. -/
+noncomputable def sR (S : ℤ × ℤ × ℤ) : Fin 3 → ℝ := fun i => svec S i / 2 ^ 160
+
 /-- The tabulated vertex as a real vector. -/
-noncomputable def vR (t : ℕ) : Fin 3 → ℝ := fun i => svec (vt t) i / 2 ^ 160
+noncomputable def vR (t : ℕ) : Fin 3 → ℝ := sR (vt t)
 
 theorem vR_err {t : ℕ} (ht : t < 90) : ∀ i, |(vtx t - vR t) i| ≤ 1 / 2 ^ 60 := fun i => by
-  simpa only [vR, vt_eq t ht, Pi.sub_apply] using vertex_approx t ht i
+  simpa only [vR, sR, vt_eq t ht, Pi.sub_apply] using vertex_approx t ht i
 
 /-! ## The decoded polynomials -/
 
 section polys
 
-variable (b : Box) (s : ℕ) (w0 w1 : ℤ)
+variable (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ)
 
-/-- The gap-leaf expressions for inner vertex `s`. -/
-def gp : GData PE := gapPE b (vt s) w0 w1
+/-- The gap-leaf expressions for the inner point `S`. -/
+def gp : GData PE := gapPE b S w0 w1
 
 /-- `A = Σ αₖ βₖ`. -/
-def Ap : PE := PE.add (PE.add (PE.mul (gp b s w0 w1).a0 (gp b s w0 w1).b0)
-  (PE.mul (gp b s w0 w1).a1 (gp b s w0 w1).b1)) (PE.mul (gp b s w0 w1).a2 (gp b s w0 w1).b2)
+def Ap : PE := PE.add (PE.add (PE.mul (gp b S w0 w1).a0 (gp b S w0 w1).b0)
+  (PE.mul (gp b S w0 w1).a1 (gp b S w0 w1).b1)) (PE.mul (gp b S w0 w1).a2 (gp b S w0 w1).b2)
 
 /-- `Eₖ = αₖ κD`. -/
-def Ep0 : PE := PE.mul (gp b s w0 w1).a0 (gp b s w0 w1).kd
-def Ep1 : PE := PE.mul (gp b s w0 w1).a1 (gp b s w0 w1).kd
-def Ep2 : PE := PE.mul (gp b s w0 w1).a2 (gp b s w0 w1).kd
+def Ep0 : PE := PE.mul (gp b S w0 w1).a0 (gp b S w0 w1).kd
+def Ep1 : PE := PE.mul (gp b S w0 w1).a1 (gp b S w0 w1).kd
+def Ep2 : PE := PE.mul (gp b S w0 w1).a2 (gp b S w0 w1).kd
 
 /-- `Σ Tₖ αₖ`. -/
 def xp (T : ℤ × ℤ × ℤ) : PE :=
-  PE.add (PE.add (PE.mul (PE.c T.1) (gp b s w0 w1).a0) (PE.mul (PE.c T.2.1) (gp b s w0 w1).a1))
-    (PE.mul (PE.c T.2.2) (gp b s w0 w1).a2)
+  PE.add (PE.add (PE.mul (PE.c T.1) (gp b S w0 w1).a0) (PE.mul (PE.c T.2.1) (gp b S w0 w1).a1))
+    (PE.mul (PE.c T.2.2) (gp b S w0 w1).a2)
 
 /-- `F_T = A − (Σ Tₖ αₖ) κD`. -/
-def Fp (T : ℤ × ℤ × ℤ) : PE := PE.sub (Ap b s w0 w1) (PE.mul (xp b s w0 w1 T) (gp b s w0 w1).kd)
+def Fp (T : ℤ × ℤ × ℤ) : PE := PE.sub (Ap b S w0 w1) (PE.mul (xp b S w0 w1 T) (gp b S w0 w1).kd)
 
 /-- `L = Σ αₖ Lₖ`. -/
-def Lp : PE := PE.add (PE.add (PE.mul (gp b s w0 w1).a0 (gp b s w0 w1).l0)
-  (PE.mul (gp b s w0 w1).a1 (gp b s w0 w1).l1)) (PE.mul (gp b s w0 w1).a2 (gp b s w0 w1).l2)
+def Lp : PE := PE.add (PE.add (PE.mul (gp b S w0 w1).a0 (gp b S w0 w1).l0)
+  (PE.mul (gp b S w0 w1).a1 (gp b S w0 w1).l1)) (PE.mul (gp b S w0 w1).a2 (gp b S w0 w1).l2)
 
 /-- Field values of `gp`. -/
 theorem gp_int (k : Fin 10) :
-    ((gp b s w0 w1).get k).ev (fun i => pX i.val) = (pGapData b (vt s) w0 w1).get k :=
-  gapPE_int b (vt s) w0 w1 k
+    ((gp b S w0 w1).get k).ev (fun i => pX i.val) = (pGapData b S w0 w1).get k :=
+  gapPE_int b S w0 w1 k
 
 theorem gp_real (t : Fin 5 → ℝ) (k : Fin 10) :
-    ((gp b s w0 w1).get k).ev t = (gapR b (vt s) w0 w1 t).get k :=
-  gapPE_real b (vt s) w0 w1 t k
+    ((gp b S w0 w1).get k).ev t = (gapR b S w0 w1 t).get k :=
+  gapPE_real b S w0 w1 t k
 
 theorem gp_fields_real (t : Fin 5 → ℝ) :
-    let g := gapR b (vt s) w0 w1 t
-    (gp b s w0 w1).a0.ev t = g.a0 ∧ (gp b s w0 w1).a1.ev t = g.a1 ∧ (gp b s w0 w1).a2.ev t = g.a2 ∧
-    (gp b s w0 w1).b0.ev t = g.b0 ∧ (gp b s w0 w1).b1.ev t = g.b1 ∧ (gp b s w0 w1).b2.ev t = g.b2 ∧
-    (gp b s w0 w1).kd.ev t = g.kd ∧ (gp b s w0 w1).l0.ev t = g.l0 ∧
-    (gp b s w0 w1).l1.ev t = g.l1 ∧ (gp b s w0 w1).l2.ev t = g.l2 :=
-  ⟨gp_real b s w0 w1 t 0, gp_real b s w0 w1 t 1, gp_real b s w0 w1 t 2, gp_real b s w0 w1 t 3,
-    gp_real b s w0 w1 t 4, gp_real b s w0 w1 t 5, gp_real b s w0 w1 t 6, gp_real b s w0 w1 t 7,
-    gp_real b s w0 w1 t 8, gp_real b s w0 w1 t 9⟩
+    let g := gapR b S w0 w1 t
+    (gp b S w0 w1).a0.ev t = g.a0 ∧ (gp b S w0 w1).a1.ev t = g.a1 ∧ (gp b S w0 w1).a2.ev t = g.a2 ∧
+    (gp b S w0 w1).b0.ev t = g.b0 ∧ (gp b S w0 w1).b1.ev t = g.b1 ∧ (gp b S w0 w1).b2.ev t = g.b2 ∧
+    (gp b S w0 w1).kd.ev t = g.kd ∧ (gp b S w0 w1).l0.ev t = g.l0 ∧
+    (gp b S w0 w1).l1.ev t = g.l1 ∧ (gp b S w0 w1).l2.ev t = g.l2 :=
+  ⟨gp_real b S w0 w1 t 0, gp_real b S w0 w1 t 1, gp_real b S w0 w1 t 2, gp_real b S w0 w1 t 3,
+    gp_real b S w0 w1 t 4, gp_real b S w0 w1 t 5, gp_real b S w0 w1 t 6, gp_real b S w0 w1 t 7,
+    gp_real b S w0 w1 t 8, gp_real b S w0 w1 t 9⟩
 
 theorem gapSc_eq (b : Box) : (2 : ℝ) ^ gapSc b = ((2 : ℝ) ^ b.K) ^ 2 * betaSc b := by
   unfold gapSc betaSc
@@ -88,24 +91,24 @@ theorem gapSc_eq (b : Box) : (2 : ℝ) ^ gapSc b = ((2 : ℝ) ^ b.K) ^ 2 * betaS
 
 /-- The real value of `F_T`: the scaled gap of the tabulated vertices. -/
 theorem Fp_real (hj : b.chart < 5) (t : Fin 5 → ℝ) (T : ℤ × ℤ × ℤ) :
-    (Fp b s w0 w1 T).ev t = 2 ^ gapSc b * 2 ^ 160 *
+    (Fp b S w0 w1 T).ev t = 2 ^ gapSc b * 2 ^ 160 *
       (cayleyDenom (kpt b t 1) (-kpt b t 0) 0 * kapJ b.chart *
         cayleyDenom (rOf (kblow b.chart) b.face (kpt b t) 0) (rOf (kblow b.chart) b.face (kpt b t) 1)
           (rOf (kblow b.chart) b.face (kpt b t) 2) *
         (lin w0 w1 ((outerRot (kpt b t 0) (kpt b t 1) * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t)))
-            *ᵥ vR s) -
+            *ᵥ sR S) -
           lin w0 w1 (outerRot (kpt b t 0) (kpt b t 1) *ᵥ fun i => svec T i / 2 ^ 160))) := by
-  obtain ⟨ha0, ha1, ha2, hb0, hb1, hb2, hkd, -, -, -⟩ := gp_fields_real b s w0 w1 t
-  obtain ⟨eb0, eb1, eb2, ekd⟩ := gapR_beta b hj (vt s) w0 w1 t
+  obtain ⟨ha0, ha1, ha2, hb0, hb1, hb2, hkd, -, -, -⟩ := gp_fields_real b S w0 w1 t
+  obtain ⟨eb0, eb1, eb2, ekd⟩ := gapR_beta b hj S w0 w1 t
   have hNo : NoR (kpt b t) = cayleyDenom (kpt b t 1) (-kpt b t 0) 0 • outerRot (kpt b t 0) (kpt b t 1) :=
     cayleyNumeratorMatrix_eq_denom_smul _ _ _
   set r := rOf (kblow b.chart) b.face (kpt b t)
-  set g := gapR b (vt s) w0 w1 t
-  set v := chartMR b.chart *ᵥ (cayleyNumeratorMatrix (r 0) (r 1) (r 2) *ᵥ svec (vt s))
-  have hα1 := gapR_alpha b (vt s) w0 w1 t (betaSc b • v)
-  have hα2 := gapR_alpha b (vt s) w0 w1 t (svec T)
+  set g := gapR b S w0 w1 t
+  set v := chartMR b.chart *ᵥ (cayleyNumeratorMatrix (r 0) (r 1) (r 2) *ᵥ svec S)
+  have hα1 := gapR_alpha b S w0 w1 t (betaSc b • v)
+  have hα2 := gapR_alpha b S w0 w1 t (svec T)
   simp only [Pi.smul_apply, smul_eq_mul] at hα1
-  have e : (Fp b s w0 w1 T).ev t =
+  have e : (Fp b S w0 w1 T).ev t =
       (g.a0 * (betaSc b * v 0) + g.a1 * (betaSc b * v 1) + g.a2 * (betaSc b * v 2)) -
         (g.a0 * svec T 0 + g.a1 * svec T 1 + g.a2 * svec T 2) *
           (kapJ b.chart * betaSc b * cayleyDenom (r 0) (r 1) (r 2)) := by
@@ -117,8 +120,8 @@ theorem Fp_real (hj : b.chart < 5) (t : Fin 5 → ℝ) (T : ℤ × ℤ × ℤ) :
   have hN : cayleyNumeratorMatrix (r 0) (r 1) (r 2) = cayleyDenom (r 0) (r 1) (r 2) • cayV r :=
     cayleyNumeratorMatrix_eq_denom_smul _ _ _
   have hM := chartMR_eq b.chart hj
-  have hS : svec (vt s) = (2 : ℝ) ^ 160 • vR s := by
-    funext i; simp only [vR, Pi.smul_apply, smul_eq_mul]; field_simp
+  have hS : svec S = (2 : ℝ) ^ 160 • sR S := by
+    funext i; simp only [sR, Pi.smul_apply, smul_eq_mul]; field_simp
   have hT : svec T = (2 : ℝ) ^ 160 • (fun i => svec T i / 2 ^ 160) := by
     funext i; simp only [Pi.smul_apply, smul_eq_mul]; field_simp
   simp only [v, hNo, hN, hM, hS, Qm]
@@ -129,23 +132,23 @@ theorem Fp_real (hj : b.chart < 5) (t : Fin 5 → ℝ) (T : ℤ × ℤ × ℤ) :
 
 /-- The real value of `L` (blown-up charts): the scaled paired-vertex bracket. -/
 theorem Lp_real (hj : b.chart < 5) (hbl : b.chart = 0 ∨ b.chart = 4) (t : Fin 5 → ℝ) :
-    2 * (Lp b s w0 w1).ev t = 2 ^ gapScL b * 2 ^ 160 *
+    2 * (Lp b S w0 w1).ev t = 2 ^ gapScL b * 2 ^ 160 *
       (2 * lin w0 w1 (NoR (kpt b t) *ᵥ (chartMR b.chart *ᵥ
-        (crossR (faceR b.face (kpt b t 2) (kpt b t 3)) (vR s) +
+        (crossR (faceR b.face (kpt b t 2) (kpt b t 3)) (sR S) +
           kpt b t 4 • crossR (faceR b.face (kpt b t 2) (kpt b t 3))
-            (crossR (faceR b.face (kpt b t 2) (kpt b t 3)) (vR s)))))) := by
-  obtain ⟨ha0, ha1, ha2, -, -, -, -, hl0, hl1, hl2⟩ := gp_fields_real b s w0 w1 t
-  obtain ⟨el0, el1, el2⟩ := gapR_L b hj hbl (vt s) w0 w1 t
-  set g := gapR b (vt s) w0 w1 t
+            (crossR (faceR b.face (kpt b t 2) (kpt b t 3)) (sR S)))))) := by
+  obtain ⟨ha0, ha1, ha2, -, -, -, -, hl0, hl1, hl2⟩ := gp_fields_real b S w0 w1 t
+  obtain ⟨el0, el1, el2⟩ := gapR_L b hj hbl S w0 w1 t
+  set g := gapR b S w0 w1 t
   set c := faceR b.face (kpt b t 2) (kpt b t 3)
-  set v := chartMR b.chart *ᵥ (crossR c (svec (vt s)) + kpt b t 4 • crossR c (crossR c (svec (vt s))))
-  have hα := gapR_alpha b (vt s) w0 w1 t (((2 : ℝ) ^ b.K) ^ 3 • v)
+  set v := chartMR b.chart *ᵥ (crossR c (svec S) + kpt b t 4 • crossR c (crossR c (svec S)))
+  have hα := gapR_alpha b S w0 w1 t (((2 : ℝ) ^ b.K) ^ 3 • v)
   simp only [Pi.smul_apply, smul_eq_mul] at hα
-  have e : (Lp b s w0 w1).ev t = g.a0 * ((2 ^ b.K) ^ 3 * v 0) + g.a1 * ((2 ^ b.K) ^ 3 * v 1) +
+  have e : (Lp b S w0 w1).ev t = g.a0 * ((2 ^ b.K) ^ 3 * v 0) + g.a1 * ((2 ^ b.K) ^ 3 * v 1) +
       g.a2 * ((2 ^ b.K) ^ 3 * v 2) := by
     simp only [Lp, PE.ev, ha0, ha1, ha2, hl0, hl1, hl2, el0, el1, el2]
-  have hS : svec (vt s) = (2 : ℝ) ^ 160 • vR s := by
-    funext i; simp only [vR, Pi.smul_apply, smul_eq_mul]; field_simp
+  have hS : svec S = (2 : ℝ) ^ 160 • sR S := by
+    funext i; simp only [sR, Pi.smul_apply, smul_eq_mul]; field_simp
   have hsc : (2 : ℝ) ^ gapScL b = ((2 : ℝ) ^ b.K) ^ 2 * ((2 : ℝ) ^ b.K) ^ 3 := by
     unfold gapScL; rw [← pow_mul, ← pow_mul, ← pow_add]; congr 1; ring
   rw [e, hα, hsc]
@@ -157,15 +160,15 @@ theorem Lp_real (hj : b.chart < 5) (hbl : b.chart = 0 ∨ b.chart = 4) (t : Fin 
 /-! ### Degrees and norms -/
 
 theorem gp_deg (hj : b.chart < 5) (hf : b.face < 6) (k : Fin 10) (i : Fin 5) :
-    ((gp b s w0 w1).get k).deg i ≤ degB k i := by
-  have h := congrFun (gapPE_deg b (vt s) w0 w1 k) i
+    ((gp b S w0 w1).get k).deg i ≤ degB k i := by
+  have h := congrFun (gapPE_deg b S w0 w1 k) i
   rw [gp]; exact h ▸ gapDeg_le b hj hf _ _ _ k i
 
 theorem fits_all (hj : b.chart < 5) (hf : b.face < 6) (T : ℤ × ℤ × ℤ) :
-    L3.Fits (Ap b s w0 w1) ∧ L3.Fits (Ep0 b s w0 w1) ∧ L3.Fits (Ep1 b s w0 w1) ∧
-      L3.Fits (Ep2 b s w0 w1) ∧ L3.Fits (Fp b s w0 w1 T) ∧ L3.Fits (Lp b s w0 w1) := by
-  have hd := gp_deg b s w0 w1 hj hf
-  have d : ∀ k i, ((gp b s w0 w1).get k).deg i ≤ degB k i := hd
+    L3.Fits (Ap b S w0 w1) ∧ L3.Fits (Ep0 b S w0 w1) ∧ L3.Fits (Ep1 b S w0 w1) ∧
+      L3.Fits (Ep2 b S w0 w1) ∧ L3.Fits (Fp b S w0 w1 T) ∧ L3.Fits (Lp b S w0 w1) := by
+  have hd := gp_deg b S w0 w1 hj hf
+  have d : ∀ k i, ((gp b S w0 w1).get k).deg i ≤ degB k i := hd
   refine ⟨fun i => ?_, fun i => ?_, fun i => ?_, fun i => ?_, fun i => ?_, fun i => ?_⟩ <;>
   · have h0 := d 0 i; have h1 := d 1 i; have h2 := d 2 i; have h3 := d 3 i; have h4 := d 4 i
     have h5 := d 5 i; have h6 := d 6 i; have h7 := d 7 i; have h8 := d 8 i; have h9 := d 9 i
@@ -223,8 +226,10 @@ theorem worstBox_getD (chart face i : ℕ) (hi : i < 5) :
 /-- A box with the walk's magnitude bound that passes `nrmOK` passes the norm guard. -/
 theorem gapNrmOK_box (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
     (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
-    {s : ℕ} (hs : s < 90) {w0 w1 : ℤ} (hn : nrmOK b w0 w1 = true) :
-    gapNrmOK b (vt s) w0 w1 = true := by
+    {S : ℤ × ℤ × ℤ}
+    (bv : S.1.natAbs ≤ 2 ^ 161 ∧ S.2.1.natAbs ≤ 2 ^ 161 ∧ S.2.2.natAbs ≤ 2 ^ 161)
+    {w0 w1 : ℤ} (hn : nrmOK b w0 w1 = true) :
+    gapNrmOK b S w0 w1 = true := by
   simp only [nrmOK, Bool.and_eq_true, Nat.ble_eq] at hn
   obtain ⟨⟨hK, hw0⟩, hw1⟩ := hn
   have h17 : (2 : ℤ) * 2 ^ b.K ≤ ((2 ^ 17 : ℕ) : ℤ) := by
@@ -241,7 +246,6 @@ theorem gapNrmOK_box (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.l
       rw [Int.abs_eq_natAbs] at this
       exact_mod_cast le_trans this h17
     · simp [List.getD_eq_getElem?_getD, hl, hi]
-  have bv := vt_bound s hs
   apply gapNrmOK_of_le _ (gapNrmOK_worst _ hj _ hf)
   intro k
   apply gapNrm_mono b (worstBox b.chart b.face) rfl rfl
@@ -261,24 +265,24 @@ theorem gapNrmOK_box (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.l
     split_ifs at this with hi
     · exact this
     · simp only [Int.natAbs_zero, nonpos_iff_eq_zero] at this; omega
-  · simp only [S161, Int.natAbs_natCast]; exact bv.1.le
-  · simp only [S161, Int.natAbs_natCast]; exact bv.2.1.le
-  · simp only [S161, Int.natAbs_natCast]; exact bv.2.2.le
+  · simp only [S161, Int.natAbs_natCast]; exact bv.1
+  · simp only [S161, Int.natAbs_natCast]; exact bv.2.1
+  · simp only [S161, Int.natAbs_natCast]; exact bv.2.2
   · simpa using hw0
   · simpa using hw1
 
-theorem nrm_all390 (h : gapNrmOK b (vt s) w0 w1 = true) (T : ℤ × ℤ × ℤ)
+theorem nrm_all390 (h : gapNrmOK b S w0 w1 = true) (T : ℤ × ℤ × ℤ)
     (hT : T.1.natAbs < 2 ^ 161 ∧ T.2.1.natAbs < 2 ^ 161 ∧ T.2.2.natAbs < 2 ^ 161) :
-    (Ap b s w0 w1).nrm < 2 ^ 390 ∧ (Ep0 b s w0 w1).nrm < 2 ^ 390 ∧ (Ep1 b s w0 w1).nrm < 2 ^ 390 ∧
-      (Ep2 b s w0 w1).nrm < 2 ^ 390 ∧ (Fp b s w0 w1 T).nrm < 2 ^ 390 ∧
-        (Lp b s w0 w1).nrm < 2 ^ 390 := by
-  have hn : ∀ k, ((gp b s w0 w1).get k).nrm = (gapNrm b (vt s) w0 w1).get k :=
-    gapPE_nrm b (vt s) w0 w1
+    (Ap b S w0 w1).nrm < 2 ^ 390 ∧ (Ep0 b S w0 w1).nrm < 2 ^ 390 ∧ (Ep1 b S w0 w1).nrm < 2 ^ 390 ∧
+      (Ep2 b S w0 w1).nrm < 2 ^ 390 ∧ (Fp b S w0 w1 T).nrm < 2 ^ 390 ∧
+        (Lp b S w0 w1).nrm < 2 ^ 390 := by
+  have hn : ∀ k, ((gp b S w0 w1).get k).nrm = (gapNrm b S w0 w1).get k :=
+    gapPE_nrm b S w0 w1
   have n0 := hn 0; have n1 := hn 1; have n2 := hn 2; have n3 := hn 3; have n4 := hn 4
   have n5 := hn 5; have n6 := hn 6; have n7 := hn 7; have n8 := hn 8; have n9 := hn 9
   simp only [Checker.GData.get] at n0 n1 n2 n3 n4 n5 n6 n7 n8 n9
   obtain ⟨hA, hL⟩ := gapNrmOK_spec h
-  set nb := gapNrm b (vt s) w0 w1
+  set nb := gapNrm b S w0 w1
   simp only [Ap, Ep0, Ep1, Ep2, Fp, Lp, xp, nrm_add', nrm_sub', nrm_mul', nrm_c', n0, n1, n2, n3,
     n4, n5, n6, n7, n8, n9]
   obtain ⟨t1, t2, t3⟩ := hT
@@ -304,11 +308,11 @@ theorem nrm_all390 (h : gapNrmOK b (vt s) w0 w1 = true) (T : ℤ × ℤ × ℤ)
 theorem two390_lt_O : (2 : ℕ) ^ 390 < O := by
   rw [O_eq]; exact Nat.pow_lt_pow_right (by norm_num) (by norm_num)
 
-theorem nrm_all (h : gapNrmOK b (vt s) w0 w1 = true) (T : ℤ × ℤ × ℤ)
+theorem nrm_all (h : gapNrmOK b S w0 w1 = true) (T : ℤ × ℤ × ℤ)
     (hT : T.1.natAbs < 2 ^ 161 ∧ T.2.1.natAbs < 2 ^ 161 ∧ T.2.2.natAbs < 2 ^ 161) :
-    (Ap b s w0 w1).nrm < O ∧ (Ep0 b s w0 w1).nrm < O ∧ (Ep1 b s w0 w1).nrm < O ∧
-      (Ep2 b s w0 w1).nrm < O ∧ (Fp b s w0 w1 T).nrm < O ∧ (Lp b s w0 w1).nrm < O := by
-  obtain ⟨h1, h2, h3, h4, h5, h6⟩ := nrm_all390 b s w0 w1 h T hT
+    (Ap b S w0 w1).nrm < O ∧ (Ep0 b S w0 w1).nrm < O ∧ (Ep1 b S w0 w1).nrm < O ∧
+      (Ep2 b S w0 w1).nrm < O ∧ (Fp b S w0 w1 T).nrm < O ∧ (Lp b S w0 w1).nrm < O := by
+  obtain ⟨h1, h2, h3, h4, h5, h6⟩ := nrm_all390 b S w0 w1 h T hT
   have := two390_lt_O
   exact ⟨h1.trans this, h2.trans this, h3.trans this, h4.trans this, h5.trans this, h6.trans this⟩
 
@@ -460,30 +464,30 @@ theorem quick_real {A E0 E1 E2 c0 sl e0 e1 e2 a0 a1 a2 T0 T1 T2 err : ℝ} (hA :
 
 section leaf
 
-variable (b : Box) (s : ℕ) (w0 w1 : ℤ)
+variable (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ)
 
 /-- The Kronecker point as a function. -/
 abbrev pXv : Fin 5 → ℤ := fun i => pX i.val
 
 theorem gp_fields_int :
-    let g := pGapData b (vt s) w0 w1
-    (gp b s w0 w1).a0.ev pXv = g.a0 ∧ (gp b s w0 w1).a1.ev pXv = g.a1 ∧
-    (gp b s w0 w1).a2.ev pXv = g.a2 ∧ (gp b s w0 w1).b0.ev pXv = g.b0 ∧
-    (gp b s w0 w1).b1.ev pXv = g.b1 ∧ (gp b s w0 w1).b2.ev pXv = g.b2 ∧
-    (gp b s w0 w1).kd.ev pXv = g.kd ∧ (gp b s w0 w1).l0.ev pXv = g.l0 ∧
-    (gp b s w0 w1).l1.ev pXv = g.l1 ∧ (gp b s w0 w1).l2.ev pXv = g.l2 :=
-  ⟨gp_int b s w0 w1 0, gp_int b s w0 w1 1, gp_int b s w0 w1 2, gp_int b s w0 w1 3,
-    gp_int b s w0 w1 4, gp_int b s w0 w1 5, gp_int b s w0 w1 6, gp_int b s w0 w1 7,
-    gp_int b s w0 w1 8, gp_int b s w0 w1 9⟩
+    let g := pGapData b S w0 w1
+    (gp b S w0 w1).a0.ev pXv = g.a0 ∧ (gp b S w0 w1).a1.ev pXv = g.a1 ∧
+    (gp b S w0 w1).a2.ev pXv = g.a2 ∧ (gp b S w0 w1).b0.ev pXv = g.b0 ∧
+    (gp b S w0 w1).b1.ev pXv = g.b1 ∧ (gp b S w0 w1).b2.ev pXv = g.b2 ∧
+    (gp b S w0 w1).kd.ev pXv = g.kd ∧ (gp b S w0 w1).l0.ev pXv = g.l0 ∧
+    (gp b S w0 w1).l1.ev pXv = g.l1 ∧ (gp b S w0 w1).l2.ev pXv = g.l2 :=
+  ⟨gp_int b S w0 w1 0, gp_int b S w0 w1 1, gp_int b S w0 w1 2, gp_int b S w0 w1 3,
+    gp_int b S w0 w1 4, gp_int b S w0 w1 5, gp_int b S w0 w1 6, gp_int b S w0 w1 7,
+    gp_int b S w0 w1 8, gp_int b S w0 w1 9⟩
 
 theorem ints :
-    let g := pGapData b (vt s) w0 w1
-    gA g = (Ap b s w0 w1).ev pXv ∧ gL g = (Lp b s w0 w1).ev pXv ∧
-      Int.mul g.a0 g.kd = (Ep0 b s w0 w1).ev pXv ∧ Int.mul g.a1 g.kd = (Ep1 b s w0 w1).ev pXv ∧
-      Int.mul g.a2 g.kd = (Ep2 b s w0 w1).ev pXv ∧
-      ∀ T : ℤ × ℤ × ℤ, gF g T.1 T.2.1 T.2.2 = (Fp b s w0 w1 T).ev pXv := by
+    let g := pGapData b S w0 w1
+    gA g = (Ap b S w0 w1).ev pXv ∧ gL g = (Lp b S w0 w1).ev pXv ∧
+      Int.mul g.a0 g.kd = (Ep0 b S w0 w1).ev pXv ∧ Int.mul g.a1 g.kd = (Ep1 b S w0 w1).ev pXv ∧
+      Int.mul g.a2 g.kd = (Ep2 b S w0 w1).ev pXv ∧
+      ∀ T : ℤ × ℤ × ℤ, gF g T.1 T.2.1 T.2.2 = (Fp b S w0 w1 T).ev pXv := by
   intro g
-  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9⟩ := gp_fields_int b s w0 w1
+  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9⟩ := gp_fields_int b S w0 w1
   refine ⟨?_, ?_, ?_, ?_, ?_, fun T => ?_⟩ <;>
     simp only [gA, gL, gF, Ap, Lp, Ep0, Ep1, Ep2, Fp, xp, PE.ev, h0, h1, h2, h3, h4, h5, h6, h7, h8,
       h9, Int.cast_id] <;> rfl
@@ -509,70 +513,70 @@ def G1 (t : Fin 5 → ℝ) (tt : ℕ) : Prop :=
       cayleyDenom (rOf (kblow b.chart) b.face (kpt b t) 0) (rOf (kblow b.chart) b.face (kpt b t) 1)
         (rOf (kblow b.chart) b.face (kpt b t) 2) *
       (lin w0 w1 ((outerRot (kpt b t 0) (kpt b t 1) * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t)))
-          *ᵥ vR s) - lin w0 w1 (outerRot (kpt b t 0) (kpt b t 1) *ᵥ vR tt))
+          *ᵥ sR S) - lin w0 w1 (outerRot (kpt b t 0) (kpt b t 1) *ᵥ vR tt))
 
 /-- The paired hypothesis of `gap_core`. -/
 def G2 (t : Fin 5 → ℝ) : Prop :=
   128 * kapJ b.chart * (1 / 2 ^ 60) * (|(w0 : ℝ)| + |(w1 : ℝ)|) ≤
     2 * lin w0 w1 (NoR (kpt b t) *ᵥ (chartMR b.chart *ᵥ
-      (crossR (faceR b.face (kpt b t 2) (kpt b t 3)) (vR s) +
+      (crossR (faceR b.face (kpt b t 2) (kpt b t 3)) (sR S) +
         kpt b t 4 • crossR (faceR b.face (kpt b t 2) (kpt b t 3))
-          (crossR (faceR b.face (kpt b t 2) (kpt b t 3)) (vR s)))))
+          (crossR (faceR b.face (kpt b t 2) (kpt b t 3)) (sR S)))))
 
 theorem G1_of (hj : b.chart < 5) (t : Fin 5 → ℝ) (tt : ℕ)
-    (h : (gErr b w0 w1 : ℝ) ≤ (Fp b s w0 w1 (vt tt)).ev t) : G1 b s w0 w1 t tt := by
-  rw [Fp_real b s w0 w1 hj t] at h
+    (h : (gErr b w0 w1 : ℝ) ≤ (Fp b S w0 w1 (vt tt)).ev t) : G1 b S w0 w1 t tt := by
+  rw [Fp_real b S w0 w1 hj t] at h
   exact err_scale w0 w1 b.chart h
 
-theorem full_G1 (hj : b.chart < 5) (hf : b.face < 6) (hn : gapNrmOK b (vt s) w0 w1 = true)
-    {tt : ℕ} (htt : tt < 90) (hfull : fullOK b (vt s) w0 w1 (vt tt).1 (vt tt).2.1 (vt tt).2.2 = true)
-    {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1) : G1 b s w0 w1 t tt := by
-  apply G1_of b s w0 w1 hj t tt
-  have hfit := (fits_all b s w0 w1 hj hf (vt tt)).2.2.2.2.1
-  have hb := (nrm_all b s w0 w1 hn (vt tt) (vt_bound tt htt)).2.2.2.2.1
-  have e := (ints b s w0 w1).2.2.2.2.2 (vt tt)
+theorem full_G1 (hj : b.chart < 5) (hf : b.face < 6) (hn : gapNrmOK b S w0 w1 = true)
+    {tt : ℕ} (htt : tt < 90) (hfull : fullOK b S w0 w1 (vt tt).1 (vt tt).2.1 (vt tt).2.2 = true)
+    {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1) : G1 b S w0 w1 t tt := by
+  apply G1_of b S w0 w1 hj t tt
+  have hfit := (fits_all b S w0 w1 hj hf (vt tt)).2.2.2.2.1
+  have hb := (nrm_all b S w0 w1 hn (vt tt) (vt_bound tt htt)).2.2.2.2.1
+  have e := (ints b S w0 w1).2.2.2.2.2 (vt tt)
   unfold fullOK at hfull
   rw [Bool.or_eq_true] at hfull
   rcases hfull with hfull | hfull
-  · have hl : ((pLower ((Fp b s w0 w1 (vt tt)).ev pXv) : ℤ) : ℝ) ≤ (Fp b s w0 w1 (vt tt)).ev t :=
+  · have hl : ((pLower ((Fp b S w0 w1 (vt tt)).ev pXv) : ℤ) : ℝ) ≤ (Fp b S w0 w1 (vt tt)).ev t :=
       pLower_le hfit hb ht
     have hfull' : gErr b w0 w1 ≤
-        pLower (gF (pGapData b (vt s) w0 w1) (vt tt).1 (vt tt).2.1 (vt tt).2.2) :=
+        pLower (gF (pGapData b S w0 w1) (vt tt).1 (vt tt).2.1 (vt tt).2.2) :=
       @of_decide_eq_true _ (Int.decLe _ _) hfull
-    have : ((gErr b w0 w1 : ℤ) : ℝ) ≤ ((pLower ((Fp b s w0 w1 (vt tt)).ev pXv) : ℤ) : ℝ) := by
+    have : ((gErr b w0 w1 : ℤ) : ℝ) ≤ ((pLower ((Fp b S w0 w1 (vt tt)).ev pXv) : ℤ) : ℝ) := by
       rw [← e]; exact_mod_cast hfull'
     exact this.trans hl
-  · have hr := (bern_room (nrm_all390 b s w0 w1 hn (vt tt) (vt_bound tt htt)).2.2.2.2.1).1
+  · have hr := (bern_room (nrm_all390 b S w0 w1 hn (vt tt) (vt_bound tt htt)).2.2.2.2.1).1
     rw [e] at hfull
     exact bernGE_le hfit hr hfull ht
 
 theorem pair_G2 (hj : b.chart < 5) (hf : b.face < 6) (hbl : b.chart = 0 ∨ b.chart = 4)
-    (hn : gapNrmOK b (vt s) w0 w1 = true) (hp : pairOK b (vt s) w0 w1 = true)
-    {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1) : G2 b s w0 w1 t := by
-  have hfit := (fits_all b s w0 w1 hj hf (0, 0, 0)).2.2.2.2.2
-  have hb := (nrm_all b s w0 w1 hn (0, 0, 0) (by decide)).2.2.2.2.2
-  have e := (ints b s w0 w1).2.1
+    (hn : gapNrmOK b S w0 w1 = true) (hp : pairOK b S w0 w1 = true)
+    {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1) : G2 b S w0 w1 t := by
+  have hfit := (fits_all b S w0 w1 hj hf (0, 0, 0)).2.2.2.2.2
+  have hb := (nrm_all b S w0 w1 hn (0, 0, 0) (by decide)).2.2.2.2.2
+  have e := (ints b S w0 w1).2.1
   unfold pairOK at hp
   rw [Bool.or_eq_true] at hp
-  have h1 : ((gErrL b w0 w1 : ℤ) : ℝ) ≤ 2 * (Lp b s w0 w1).ev t := by
+  have h1 : ((gErrL b w0 w1 : ℤ) : ℝ) ≤ 2 * (Lp b S w0 w1).ev t := by
     rcases hp with hp | hp
-    · have hl : ((pLower ((Lp b s w0 w1).ev pXv) : ℤ) : ℝ) ≤ (Lp b s w0 w1).ev t :=
+    · have hl : ((pLower ((Lp b S w0 w1).ev pXv) : ℤ) : ℝ) ≤ (Lp b S w0 w1).ev t :=
         pLower_le hfit hb ht
-      have hp' : gErrL b w0 w1 ≤ 2 * pLower (gL (pGapData b (vt s) w0 w1)) :=
+      have hp' : gErrL b w0 w1 ≤ 2 * pLower (gL (pGapData b S w0 w1)) :=
         @of_decide_eq_true _ (Int.decLe _ _) hp
-      have : ((gErrL b w0 w1 : ℤ) : ℝ) ≤ 2 * ((pLower ((Lp b s w0 w1).ev pXv) : ℤ) : ℝ) := by
+      have : ((gErrL b w0 w1 : ℤ) : ℝ) ≤ 2 * ((pLower ((Lp b S w0 w1).ev pXv) : ℤ) : ℝ) := by
         rw [← e]; exact_mod_cast hp'
       linarith
-    · have hfit2 : L3.Fits (PE.mul (PE.c 2) (Lp b s w0 w1)) := fun i => by
+    · have hfit2 : L3.Fits (PE.mul (PE.c 2) (Lp b S w0 w1)) := fun i => by
         have := hfit i; simp only [PE.deg, zero_add]; exact this
-      have hr := (bern_room (nrm_all390 b s w0 w1 hn (0, 0, 0) (by decide)).2.2.2.2.2).2
-      have hn2 : (PE.mul (PE.c 2) (Lp b s w0 w1)).nrm = 2 * (Lp b s w0 w1).nrm := rfl
-      have hev2 : (PE.mul (PE.c 2) (Lp b s w0 w1)).ev pXv = Int.mul 2 (gL (pGapData b (vt s) w0 w1)) := by
+      have hr := (bern_room (nrm_all390 b S w0 w1 hn (0, 0, 0) (by decide)).2.2.2.2.2).2
+      have hn2 : (PE.mul (PE.c 2) (Lp b S w0 w1)).nrm = 2 * (Lp b S w0 w1).nrm := rfl
+      have hev2 : (PE.mul (PE.c 2) (Lp b S w0 w1)).ev pXv = Int.mul 2 (gL (pGapData b S w0 w1)) := by
         rw [e]; rfl
       rw [← hev2] at hp
       have := bernGE_le hfit2 (by rw [hn2]; exact hr) hp ht
       simpa [PE.ev] using this
-  rw [Lp_real b s w0 w1 hj hbl t] at h1
+  rw [Lp_real b S w0 w1 hj hbl t] at h1
   exact err_scale w0 w1 b.chart h1
 
 
@@ -587,42 +591,42 @@ theorem pair_G2 (hj : b.chart < 5) (hf : b.face < 6) (hbl : b.chart = 0 ∨ b.ch
 
 
 theorem Fp_split (T : ℤ × ℤ × ℤ) (t : Fin 5 → ℝ) :
-    (Fp b s w0 w1 T).ev t = (Ap b s w0 w1).ev t - ((T.1 : ℝ) * (Ep0 b s w0 w1).ev t +
-      (T.2.1 : ℝ) * (Ep1 b s w0 w1).ev t + (T.2.2 : ℝ) * (Ep2 b s w0 w1).ev t) := by
+    (Fp b S w0 w1 T).ev t = (Ap b S w0 w1).ev t - ((T.1 : ℝ) * (Ep0 b S w0 w1).ev t +
+      (T.2.1 : ℝ) * (Ep1 b S w0 w1).ev t + (T.2.2 : ℝ) * (Ep2 b S w0 w1).ev t) := by
   simp only [Fp, xp, Ep0, Ep1, Ep2, PE.ev]; ring
 
-theorem quick_G1 (hj : b.chart < 5) (hf : b.face < 6) (hn : gapNrmOK b (vt s) w0 w1 = true)
+theorem quick_G1 (hj : b.chart < 5) (hf : b.face < 6) (hn : gapNrmOK b S w0 w1 = true)
     {tt : ℕ} (htt : tt < 90)
-    (hC : 0 ≤ p2 639 + quickQ b (vt s) w0 w1 - p2 170 *
-      ((((quickE b (vt s) w0 w1).1.c0.natAbs : ℤ) + (quickE b (vt s) w0 w1).2.1.c0.natAbs +
-        (quickE b (vt s) w0 w1).2.2.c0.natAbs) + (((quickE b (vt s) w0 w1).1.abs : ℤ) +
-        (quickE b (vt s) w0 w1).2.1.abs + (quickE b (vt s) w0 w1).2.2.abs)))
-    (hC2 : p2 639 + quickQ b (vt s) w0 w1 - p2 170 *
-      ((((quickE b (vt s) w0 w1).1.c0.natAbs : ℤ) + (quickE b (vt s) w0 w1).2.1.c0.natAbs +
-        (quickE b (vt s) w0 w1).2.2.c0.natAbs) + (((quickE b (vt s) w0 w1).1.abs : ℤ) +
-        (quickE b (vt s) w0 w1).2.1.abs + (quickE b (vt s) w0 w1).2.2.abs)) +
-      2 * p2 170 * ((((quickE b (vt s) w0 w1).1.c0.natAbs : ℤ) + (quickE b (vt s) w0 w1).2.1.c0.natAbs +
-        (quickE b (vt s) w0 w1).2.2.c0.natAbs) + (((quickE b (vt s) w0 w1).1.abs : ℤ) +
-        (quickE b (vt s) w0 w1).2.1.abs + (quickE b (vt s) w0 w1).2.2.abs)) < p2 640)
-    (hb : (quickV (p2 639 + quickQ b (vt s) w0 w1 - p2 170 *
-      ((((quickE b (vt s) w0 w1).1.c0.natAbs : ℤ) + (quickE b (vt s) w0 w1).2.1.c0.natAbs +
-        (quickE b (vt s) w0 w1).2.2.c0.natAbs) + (((quickE b (vt s) w0 w1).1.abs : ℤ) +
-        (quickE b (vt s) w0 w1).2.1.abs + (quickE b (vt s) w0 w1).2.2.abs)))
-      (quickE b (vt s) w0 w1).1.c0 (quickE b (vt s) w0 w1).2.1.c0 (quickE b (vt s) w0 w1).2.2.c0
-      (quickE b (vt s) w0 w1).1.abs (quickE b (vt s) w0 w1).2.1.abs
-      (quickE b (vt s) w0 w1).2.2.abs).testBit (640 * tt + 639) = true)
-    {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1) : G1 b s w0 w1 t tt := by
+    (hC : 0 ≤ p2 639 + quickQ b S w0 w1 - p2 170 *
+      ((((quickE b S w0 w1).1.c0.natAbs : ℤ) + (quickE b S w0 w1).2.1.c0.natAbs +
+        (quickE b S w0 w1).2.2.c0.natAbs) + (((quickE b S w0 w1).1.abs : ℤ) +
+        (quickE b S w0 w1).2.1.abs + (quickE b S w0 w1).2.2.abs)))
+    (hC2 : p2 639 + quickQ b S w0 w1 - p2 170 *
+      ((((quickE b S w0 w1).1.c0.natAbs : ℤ) + (quickE b S w0 w1).2.1.c0.natAbs +
+        (quickE b S w0 w1).2.2.c0.natAbs) + (((quickE b S w0 w1).1.abs : ℤ) +
+        (quickE b S w0 w1).2.1.abs + (quickE b S w0 w1).2.2.abs)) +
+      2 * p2 170 * ((((quickE b S w0 w1).1.c0.natAbs : ℤ) + (quickE b S w0 w1).2.1.c0.natAbs +
+        (quickE b S w0 w1).2.2.c0.natAbs) + (((quickE b S w0 w1).1.abs : ℤ) +
+        (quickE b S w0 w1).2.1.abs + (quickE b S w0 w1).2.2.abs)) < p2 640)
+    (hb : (quickV (p2 639 + quickQ b S w0 w1 - p2 170 *
+      ((((quickE b S w0 w1).1.c0.natAbs : ℤ) + (quickE b S w0 w1).2.1.c0.natAbs +
+        (quickE b S w0 w1).2.2.c0.natAbs) + (((quickE b S w0 w1).1.abs : ℤ) +
+        (quickE b S w0 w1).2.1.abs + (quickE b S w0 w1).2.2.abs)))
+      (quickE b S w0 w1).1.c0 (quickE b S w0 w1).2.1.c0 (quickE b S w0 w1).2.2.c0
+      (quickE b S w0 w1).1.abs (quickE b S w0 w1).2.1.abs
+      (quickE b S w0 w1).2.2.abs).testBit (640 * tt + 639) = true)
+    {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1) : G1 b S w0 w1 t tt := by
   have hq := quick_bit _ _ _ _ _ _ _ hC hC2 htt hb
-  obtain ⟨fA, fE0, fE1, fE2, -, -⟩ := fits_all b s w0 w1 hj hf (0, 0, 0)
-  obtain ⟨nA, nE0, nE1, nE2, -, -⟩ := nrm_all b s w0 w1 hn (0, 0, 0) (by decide)
-  obtain ⟨iA, -, i0, i1, i2, -⟩ := ints b s w0 w1
+  obtain ⟨fA, fE0, fE1, fE2, -, -⟩ := fits_all b S w0 w1 hj hf (0, 0, 0)
+  obtain ⟨nA, nE0, nE1, nE2, -, -⟩ := nrm_all b S w0 w1 hn (0, 0, 0) (by decide)
+  obtain ⟨iA, -, i0, i1, i2, -⟩ := ints b S w0 w1
   have sA := (pStats_sound fA nA ht).1
   have s0 := (pStats_sound fE0 nE0 ht).2
   have s1 := (pStats_sound fE1 nE1 ht).2
   have s2 := (pStats_sound fE2 nE2 ht).2
   simp only [quickQ, quickE] at hq
   rw [iA, i0, i1, i2] at hq
-  apply G1_of b s w0 w1 hj t tt
+  apply G1_of b S w0 w1 hj t tt
   rw [Fp_split]
   apply quick_real sA s0 s1 s2
   have hq' : ((0 : ℤ) : ℝ) ≤ ((_ : ℤ) : ℝ) := Int.cast_le.2 hq
@@ -633,17 +637,18 @@ end leaf
 
 /-! ## Unfolding the checker -/
 
-theorem vtestG_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (s : ℕ) (w0 w1 : ℤ)
-    (hn : gapNrmOK b (vt s) w0 w1 = true) {tt : ℕ} (htt : tt < 90)
-    (h : vtestG b s (vt s) w0 w1 tt (vt tt).1 (vt tt).2.1 (vt tt).2.2 = true) {t : Fin 5 → ℝ}
+theorem vtestG_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (pr : Option ℕ)
+    (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ)
+    (hn : gapNrmOK b S w0 w1 = true) {tt : ℕ} (htt : tt < 90)
+    (h : vtestG b pr S w0 w1 tt (vt tt).1 (vt tt).2.1 (vt tt).2.2 = true) {t : Fin 5 → ℝ}
     (ht : ∀ i, |t i| ≤ 1) :
-    G1 b s w0 w1 t tt ∨ (gPair b s = some tt ∧ pairOK b (vt s) w0 w1 = true) := by
+    G1 b S w0 w1 t tt ∨ (pr = some tt ∧ pairOK b S w0 w1 = true) := by
   unfold vtestG at h
   split_ifs at h with hp
   · rcases Bool.or_eq_true_iff.1 h with h1 | h1
     · exact Or.inr ⟨hp, h1⟩
-    · exact Or.inl (full_G1 b s w0 w1 hj hf hn htt (Bool.and_eq_true_iff.1 h1).2 ht)
-  · exact Or.inl (full_G1 b s w0 w1 hj hf hn htt h ht)
+    · exact Or.inl (full_G1 b S w0 w1 hj hf hn htt (Bool.and_eq_true_iff.1 h1).2 ht)
+  · exact Or.inl (full_G1 b S w0 w1 hj hf hn htt h ht)
 
 theorem vt_lt_BT {t : ℕ} (ht : t < 90) :
     |(vt t).1| < (BT : ℤ) ∧ |(vt t).2.1| < (BT : ℤ) ∧ |(vt t).2.2| < (BT : ℤ) := by
@@ -690,41 +695,42 @@ theorem vtxIdx_all {P : ℕ × (ℤ × ℤ × ℤ) × (ℤ × ℤ × ℤ) → Bo
   convert this using 1
   simp [vtxIdx, vt, List.getD_eq_getElem?_getD, hlen, ht]
 
-theorem pGapOK_vertex (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
+/-- A passing gap test for the inner point `S`: at every box point, each outer vertex is
+beaten in the direction `(w0, w1)`, or it is the paired vertex and the paired test passes. -/
+theorem pGapPt_vertex (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
     (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
-    {s : ℕ} {w0 w1 : ℤ} (h : pGapOK b s w0 w1 = true) :
-    s < 90 ∧ (w0 ≠ 0 ∨ w1 ≠ 0) ∧ gapNrmOK b (vt s) w0 w1 = true ∧
+    {pr : Option ℕ} {S : ℤ × ℤ × ℤ}
+    (bv : S.1.natAbs ≤ 2 ^ 161 ∧ S.2.1.natAbs ≤ 2 ^ 161 ∧ S.2.2.natAbs ≤ 2 ^ 161)
+    {w0 w1 : ℤ} (h : pGapPt b pr S w0 w1 = true) :
+    (w0 ≠ 0 ∨ w1 ≠ 0) ∧ gapNrmOK b S w0 w1 = true ∧
       ∀ tt < 90, ∀ t : Fin 5 → ℝ, (∀ i, |t i| ≤ 1) →
-      G1 b s w0 w1 t tt ∨ (gPair b s = some tt ∧ pairOK b (vt s) w0 w1 = true) := by
-  unfold pGapOK at h
-  split_ifs at h with hs
-  rw [vS_eq hs] at h
-  refine ⟨hs, ?_⟩
+      G1 b S w0 w1 t tt ∨ (pr = some tt ∧ pairOK b S w0 w1 = true) := by
+  unfold pGapPt at h
   simp only [Bool.and_eq_true, Bool.or_eq_true, bne_iff_ne, ne_eq] at h
   obtain ⟨⟨hw, hn⟩, hrest⟩ := h
-  have hn' : gapNrmOK b (vt s) w0 w1 = true := gapNrmOK_box b hj hf hlc hlh hmag hs hn
+  have hn' : gapNrmOK b S w0 w1 = true := gapNrmOK_box b hj hf hlc hlh hmag bv hn
   refine ⟨hw, hn', fun tt htt t ht => ?_⟩
   split_ifs at hrest with hpk
   · simp only [decide_eq_true_eq] at hpk
     obtain ⟨hC, hC2⟩ := hpk
-    set V := (quickV (p2 639 + quickQ b (vt s) w0 w1 - p2 170 *
-        ((((quickE b (vt s) w0 w1).1.c0.natAbs : ℤ) + (quickE b (vt s) w0 w1).2.1.c0.natAbs +
-          (quickE b (vt s) w0 w1).2.2.c0.natAbs) + (((quickE b (vt s) w0 w1).1.abs : ℤ) +
-          (quickE b (vt s) w0 w1).2.1.abs + (quickE b (vt s) w0 w1).2.2.abs)))
-        (quickE b (vt s) w0 w1).1.c0 (quickE b (vt s) w0 w1).2.1.c0 (quickE b (vt s) w0 w1).2.2.c0
-        (quickE b (vt s) w0 w1).1.abs (quickE b (vt s) w0 w1).2.1.abs
-        (quickE b (vt s) w0 w1).2.2.abs) with hV
+    set V := (quickV (p2 639 + quickQ b S w0 w1 - p2 170 *
+        ((((quickE b S w0 w1).1.c0.natAbs : ℤ) + (quickE b S w0 w1).2.1.c0.natAbs +
+          (quickE b S w0 w1).2.2.c0.natAbs) + (((quickE b S w0 w1).1.abs : ℤ) +
+          (quickE b S w0 w1).2.1.abs + (quickE b S w0 w1).2.2.abs)))
+        (quickE b S w0 w1).1.c0 (quickE b S w0 w1).2.1.c0 (quickE b S w0 w1).2.2.c0
+        (quickE b S w0 w1).1.abs (quickE b S w0 w1).2.1.abs
+        (quickE b S w0 w1).2.2.abs) with hV
     by_cases hbit : V.testBit (640 * tt + 639) = true
-    · exact Or.inl (quick_G1 b s w0 w1 hj hf hn' htt hC hC2 hbit ht)
+    · exact Or.inl (quick_G1 b S w0 w1 hj hf hn' htt hC hC2 hbit ht)
     · have hf' : (Nat.xor signT (Nat.land V signT)).testBit (640 * tt + 639) = true := by
         rw [testBit_fails V htt]; simpa using hbit
       have hv := vtxSplit_sound _ 8 0 90 _ hrest tt htt hf'
       simp only [zero_add] at hv
       obtain ⟨sx, sy, sz⟩ := slot_vals htt
       rw [sx, sy, sz] at hv
-      exact vtestG_sound b hj hf s w0 w1 hn' htt hv ht
+      exact vtestG_sound b hj hf pr S w0 w1 hn' htt hv ht
   · have hv := vtxIdx_all hrest htt
-    exact vtestG_sound b hj hf s w0 w1 hn' htt hv ht
+    exact vtestG_sound b hj hf pr S w0 w1 hn' htt hv ht
 
 /-- **Soundness of a kernel gap leaf.** -/
 theorem pGapOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
@@ -734,7 +740,11 @@ theorem pGapOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.l
     (hpt : PtOK b.chart b.face (kpt b t)) :
     ¬ RupPair (outerRot (kpt b t 0) (kpt b t 1))
       (outerRot (kpt b t 0) (kpt b t 1) * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t))) := by
-  obtain ⟨hs, hw, hn, hv⟩ := pGapOK_vertex b hj hf hlc hlh hmag h
+  unfold pGapOK at h
+  split_ifs at h with hs
+  rw [vS_eq hs] at h
+  have bv := vt_bound s hs
+  obtain ⟨hw, hn, hv⟩ := pGapPt_vertex b hj hf hlc hlh hmag ⟨bv.1.le, bv.2.1.le, bv.2.2.le⟩ h
   apply gap_core b.chart b.face hj (kpt b t) hpt s hs w0 w1 hw (vR s) (vR_err hs) vR
     (fun tt htt => vR_err htt)
   intro tt htt
@@ -743,7 +753,102 @@ theorem pGapOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.l
   · have hbl : b.chart = 0 ∨ b.chart = 4 := by
       by_contra hc; simp [gPair, hc] at hp
     have hpr : pairOf b.chart s = some tt := by simpa [gPair, hbl, kPair] using hp
-    exact Or.inr ⟨hbl, hpr, pair_G2 b s w0 w1 hj hf hbl hn hpo ht⟩
+    exact Or.inr ⟨hbl, hpr, pair_G2 b (vt s) w0 w1 hj hf hbl hn hpo ht⟩
+
+/-! ## Blended gap leaves -/
+
+theorem blendS_eq {a c : ℕ} (ha : a < 90) (hc : c < 90) (k : ℕ) :
+    blendS a c k = ((((8 - k : ℕ) : ℤ) * (vt a).1 + (k : ℤ) * (vt c).1) / 8,
+      (((8 - k : ℕ) : ℤ) * (vt a).2.1 + (k : ℤ) * (vt c).2.1) / 8,
+      (((8 - k : ℕ) : ℤ) * (vt a).2.2 + (k : ℤ) * (vt c).2.2) / 8) := by
+  simp only [blendS, vS_eq ha, vS_eq hc]; rfl
+
+theorem blend_natAbs {x y : ℤ} {k : ℕ} (hk : k ≤ 8) (hx : x.natAbs < 2 ^ 161)
+    (hy : y.natAbs < 2 ^ 161) :
+    ((((8 - k : ℕ) : ℤ) * x + (k : ℤ) * y) / 8).natAbs ≤ 2 ^ 161 := by
+  generalize (2 : ℕ) ^ 161 = P at *
+  interval_cases k <;> omega
+
+/-- A rounded blend of two approximated numbers approximates the blend. -/
+theorem blend_real {x y : ℝ} {A C : ℤ} {k : ℕ} (hk : k ≤ 8)
+    (hx : |x - (A : ℝ) / 2 ^ 160| ≤ 1 / 2 ^ 60) (hy : |y - (C : ℝ) / 2 ^ 160| ≤ 1 / 2 ^ 60) :
+    |((1 - (k : ℝ) / 8) * x + (k : ℝ) / 8 * y) -
+      (((((8 - k : ℕ) : ℤ) * A + (k : ℤ) * C) / 8 : ℤ) : ℝ) / 2 ^ 160| ≤
+        5 / 4 * (1 / 2 ^ 60) := by
+  set N : ℤ := ((8 - k : ℕ) : ℤ) * A + (k : ℤ) * C with hN
+  set m : ℤ := N / 8 with hm
+  have h1 : 8 * m ≤ N := by omega
+  have h2 : N < 8 * m + 8 := by omega
+  have hNr : (N : ℝ) = (8 - (k : ℝ)) * A + k * C := by
+    rw [hN]; push_cast [Nat.cast_sub hk]; ring
+  have h1r : (8 * m : ℝ) ≤ N := by exact_mod_cast h1
+  have h2r : (N : ℝ) < 8 * m + 8 := by exact_mod_cast h2
+  have hk0 : (0 : ℝ) ≤ k := Nat.cast_nonneg k
+  have hk8 : (k : ℝ) ≤ 8 := by exact_mod_cast hk
+  have hDbig : (1 : ℝ) / 2 ^ 160 ≤ 1 / 4 * (1 / 2 ^ 60) := by norm_num
+  have hDpos : (0 : ℝ) < 2 ^ 160 := by positivity
+  generalize (2 : ℝ) ^ 160 = D at *
+  have hε : (0 : ℝ) < 1 / 2 ^ 60 := by positivity
+  generalize (1 : ℝ) / 2 ^ 60 = ε at *
+  obtain ⟨hx1, hx2⟩ := abs_le.1 hx
+  obtain ⟨hy1, hy2⟩ := abs_le.1 hy
+  have key : (1 - (k : ℝ) / 8) * x + (k : ℝ) / 8 * y - (m : ℝ) / D =
+      (1 - (k : ℝ) / 8) * (x - A / D) + (k : ℝ) / 8 * (y - C / D) + ((N : ℝ) / 8 - m) / D := by
+    rw [hNr]; field_simp; ring
+  have hr0 : 0 ≤ ((N : ℝ) / 8 - m) / D := div_nonneg (by linarith) hDpos.le
+  have hr1 : ((N : ℝ) / 8 - m) / D ≤ 1 / D :=
+    div_le_div_of_nonneg_right (by linarith) hDpos.le
+  have hl : (0 : ℝ) ≤ 1 - (k : ℝ) / 8 := by linarith
+  have hl' : (0 : ℝ) ≤ (k : ℝ) / 8 := by positivity
+  have p1 := mul_le_mul_of_nonneg_left hx2 hl
+  have p2 := mul_le_mul_of_nonneg_left hx1 hl
+  have q1 := mul_le_mul_of_nonneg_left hy2 hl'
+  have q2 := mul_le_mul_of_nonneg_left hy1 hl'
+  rw [key, abs_le]
+  constructor <;> nlinarith
+
+theorem blendS_bound {a c k : ℕ} (ha : a < 90) (hc : c < 90) (hk : k ≤ 8) :
+    (blendS a c k).1.natAbs ≤ 2 ^ 161 ∧ (blendS a c k).2.1.natAbs ≤ 2 ^ 161 ∧
+      (blendS a c k).2.2.natAbs ≤ 2 ^ 161 := by
+  obtain ⟨a1, a2, a3⟩ := vt_bound a ha
+  obtain ⟨c1, c2, c3⟩ := vt_bound c hc
+  rw [blendS_eq ha hc]
+  exact ⟨blend_natAbs hk a1 c1, blend_natAbs hk a2 c2, blend_natAbs hk a3 c3⟩
+
+theorem blendS_err {a c k : ℕ} (ha : a < 90) (hc : c < 90) (hk : k ≤ 8) (i : Fin 3) :
+    |(((1 - (k : ℝ) / 8) • vtx a + ((k : ℝ) / 8) • vtx c) - sR (blendS a c k)) i| ≤
+      5 / 4 * (1 / 2 ^ 60) := by
+  have ea := vR_err ha i
+  have ec := vR_err hc i
+  rw [blendS_eq ha hc]
+  simp only [Pi.sub_apply, Pi.add_apply, Pi.smul_apply, smul_eq_mul, vR, sR] at ea ec ⊢
+  fin_cases i
+  · exact blend_real hk ea ec
+  · exact blend_real hk ea ec
+  · exact blend_real hk ea ec
+
+/-- **Soundness of a blended gap leaf.** -/
+theorem pBlendOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
+    (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
+    {a c k : ℕ} {w0 w1 : ℤ}
+    (h : pBlendOK b a c k w0 w1 = true) {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1)
+    (hpt : PtOK b.chart b.face (kpt b t)) :
+    ¬ RupPair (outerRot (kpt b t 0) (kpt b t 1))
+      (outerRot (kpt b t 0) (kpt b t 1) * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t))) := by
+  unfold pBlendOK at h
+  split_ifs at h with hk
+  obtain ⟨ha, hc, hk⟩ := hk
+  obtain ⟨hw, -, hv⟩ := pGapPt_vertex b hj hf hlc hlh hmag (blendS_bound ha hc hk) h
+  have hk0 : (0 : ℝ) ≤ (k : ℝ) / 8 := by positivity
+  have hk1 : (k : ℝ) / 8 ≤ 1 := by
+    have : (k : ℝ) ≤ 8 := by exact_mod_cast hk
+    linarith
+  apply gap_core_blend b.chart b.face (kpt b t) hpt a c ((k : ℝ) / 8) hk0 hk1 w0 w1 hw
+    (sR (blendS a c k)) (blendS_err ha hc hk) vR (fun tt htt => vR_err htt)
+  intro tt htt
+  rcases hv tt htt t ht with h1 | ⟨hp, -⟩
+  · exact h1
+  · cases hp
 
 end Cayley
 

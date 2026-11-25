@@ -7,7 +7,8 @@ Native driver for the Cayley kernel certificate.
     cayleyCert gen FILE OUTDATA OUTLEAN maxLeaves chunksPerModule
                               -- cut the trees into chunks and write the kernel modules
 
-FILE holds the 15 trees in preorder tokens `S<d>`, `D<code>`, `G<s>:<w0>:<w1>`.
+FILE holds the 15 trees in preorder tokens `S<d>`, `D<code>`, `G<s>:<w0>:<w1>`,
+`B<a>:<c>:<k>:<w0>:<w1>`.
 -/
 
 open Cayley
@@ -55,6 +56,13 @@ def parseTree (s : ByteArray) : Nat → Nat → Option (Checker.Tree × Nat)
         let (w0, k) := readInt s (j + 1)
         let (w1, m) := readInt s (k + 1)
         some (.gap sv.toNat w0 w1, m + 1)
+      else if c = 66 then -- 'B'
+        let (a, j) := readInt s (i + 1)
+        let (c', k) := readInt s (j + 1)
+        let (kk, m) := readInt s (k + 1)
+        let (w0, n) := readInt s (m + 1)
+        let (w1, o) := readInt s (n + 1)
+        some (.blend a.toNat c'.toNat kk.toNat w0 w1, o + 1)
       else none
     else none
 
@@ -84,6 +92,7 @@ partial def kToks (acc : Array String) : Checker.Tree → Array String
   | .split d l r => kToks (kToks (acc.push s!"S{d}") l) r
   | .dom c => acc.push s!"D{c}"
   | .gap s w0 w1 => acc.push s!"G{s}:{w0}:{w1}"
+  | .blend a c k w0 w1 => acc.push s!"B{a}:{c}:{k}:{w0}:{w1}"
   | .hole => acc.push "H"
 
 /-- Cut `t` into maximal subtrees with at most `maxL` leaves; returns the skeleton tokens. -/

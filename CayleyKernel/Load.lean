@@ -54,6 +54,12 @@ partial def treeE (toks : Array String) (i : Nat) : Expr × Nat :=
     | [s, w0, w1] =>
       (mkApp3 (mkConst ``Tree.gap) (natE s.toNat!) (intE (parseIntS w0)) (intE (parseIntS w1)), i + 1)
     | _ => (mkConst ``Tree.hole, i + 1)
+  else if c == 'B' then
+    match rest.splitOn ":" with
+    | [a, c', k, w0, w1] =>
+      (mkAppN (mkConst ``Tree.blend) #[natE a.toNat!, natE c'.toNat!, natE k.toNat!,
+        intE (parseIntS w0), intE (parseIntS w1)], i + 1)
+    | _ => (mkConst ``Tree.hole, i + 1)
   else (mkConst ``Tree.hole, i + 1)
 
 def reflTrueE : Expr :=

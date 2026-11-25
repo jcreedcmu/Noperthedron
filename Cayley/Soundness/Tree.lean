@@ -165,6 +165,7 @@ theorem holes_nil (b : Box) (tr : Tree) (h : checkTree false b tr = true) : hole
   | hole => simp [checkTree] at h
   | dom _ => rfl
   | gap _ _ _ => rfl
+  | blend _ _ _ _ _ => rfl
 
 /-- **The tree walk.** A bad point of a checked box lies in one of its holes. -/
 theorem walk (hok : Bool) (tr : Tree) : ∀ b, Inv b → checkTree hok b tr = true →
@@ -180,6 +181,10 @@ theorem walk (hok : Bool) (tr : Tree) : ∀ b, Inv b → checkTree hok b tr = tr
     intro b hb h X hX hpt hbad
     obtain ⟨t, ht, rfl⟩ := b.exists_kpt hX
     exact absurd hbad.2 (pGapOK_sound b hb.chart hb.face hb.lenc hb.lenh hb.mag h ht hpt)
+  | blend a c k w0 w1 =>
+    intro b hb h X hX hpt hbad
+    obtain ⟨t, ht, rfl⟩ := b.exists_kpt hX
+    exact absurd hbad.2 (pBlendOK_sound b hb.chart hb.face hb.lenc hb.lenh hb.mag h ht hpt)
   | split d l r ihl ihr =>
     intro b hb h X hX hpt hbad
     simp only [checkTree, Bool.and_eq_true] at h

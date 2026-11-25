@@ -263,10 +263,11 @@ def pairOK (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
 /-- The paired vertex of inner vertex `s` (blown-up charts). -/
 def gPair (b : Box) (s : Nat) : Option Nat := if b.chart = 0 ∨ b.chart = 4 then kPair b.chart s else none
 
-/-- The test of outer vertex `t` after the packed quick test (`S` is inner vertex `s`). -/
-def vtestG (b : Box) (s : Nat) (S : Int × Int × Int) (w0 w1 : Int) (t : Nat) (tx ty tz : Int) :
+/-- The test of outer vertex `t` after the packed quick test, for the inner point `S`. When `S`
+is an inner vertex in a blown-up chart, `pr` is its paired outer vertex. -/
+def vtestG (b : Box) (pr : Option Nat) (S : Int × Int × Int) (w0 w1 : Int) (t : Nat) (tx ty tz : Int) :
     Bool :=
-  if gPair b s = some t then
+  if pr = some t then
     pairOK b S w0 w1 || (!decide (b.c.getD 4 0 - b.h.getD 4 0 ≤ 0) && fullOK b S w0 w1 tx ty tz)
   else fullOK b S w0 w1 tx ty tz
 
@@ -289,21 +290,34 @@ def quickV (C e00 e01 e02 : Int) (n0 n1 n2 : Nat) : Nat :=
     (Nat.add (tab e01 tny tpy) (tab e02 tnz tpz)))
     (Nat.add (Nat.mul tax n0) (Nat.add (Nat.mul tay n1) (Nat.mul taz n2)))
 
-/-- Packed kernel gap leaf. -/
+/-- The gap test for an inner point `S` (integers over `2^160`): in the direction `(w0, w1)`
+the point lies beyond every outer vertex, on the whole box. -/
+def pGapPt (b : Box) (pr : Option Nat) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
+  let (E0, E1, E2) := quickE b S w0 w1
+  let tot : Int := ((E0.c0.natAbs : Int) + E1.c0.natAbs + E2.c0.natAbs) +
+    ((E0.abs : Int) + E1.abs + E2.abs)
+  let C : Int := p2 639 + quickQ b S w0 w1 - p2 170 * tot
+  let packOK : Bool := decide (0 ≤ C) && decide (C + 2 * p2 170 * tot < p2 640)
+  (w0 != 0 || w1 != 0) && nrmOK b w0 w1 &&
+    if packOK then
+      vtxSplit (fun t tx ty tz _ _ _ => vtestG b pr S w0 w1 t tx ty tz) 8 0 90
+        (Nat.xor signT (Nat.land (quickV C E0.c0 E1.c0 E2.c0 E0.abs E1.abs E2.abs) signT))
+    else vtxIdx.all fun (t, (tx, ty, tz), _) => vtestG b pr S w0 w1 t tx ty tz
+
+/-- Packed kernel gap leaf: the inner point is vertex `s`. -/
 def pGapOK (b : Box) (s : Nat) (w0 w1 : Int) : Bool :=
-  if s < 90 then
-    let S := vS s
-    let (E0, E1, E2) := quickE b S w0 w1
-    let tot : Int := ((E0.c0.natAbs : Int) + E1.c0.natAbs + E2.c0.natAbs) +
-      ((E0.abs : Int) + E1.abs + E2.abs)
-    let C : Int := p2 639 + quickQ b S w0 w1 - p2 170 * tot
-    let packOK : Bool := decide (0 ≤ C) && decide (C + 2 * p2 170 * tot < p2 640)
-    (w0 != 0 || w1 != 0) && nrmOK b w0 w1 &&
-      if packOK then
-        vtxSplit (fun t tx ty tz _ _ _ => vtestG b s S w0 w1 t tx ty tz) 8 0 90
-          (Nat.xor signT (Nat.land (quickV C E0.c0 E1.c0 E2.c0 E0.abs E1.abs E2.abs) signT))
-      else vtxIdx.all fun (t, (tx, ty, tz), _) => vtestG b s S w0 w1 t tx ty tz
-  else false
+  if s < 90 then pGapPt b (gPair b s) (vS s) w0 w1 else false
+
+/-- The point `((8 - k) v_a + k v_c) / 8` on the segment between two vertices, rounded down. -/
+def blendS (a c k : Nat) : Int × Int × Int :=
+  let A := vS a
+  let C := vS c
+  let m (x y : Int) : Int := Int.ediv (Int.add (Int.mul (Int.ofNat (8 - k)) x) (Int.mul (Int.ofNat k) y)) 8
+  (m A.1 C.1, m A.2.1 C.2.1, m A.2.2 C.2.2)
+
+/-- Blended gap leaf: the inner point is on the segment between vertices `a` and `c`. -/
+def pBlendOK (b : Box) (a c k : Nat) (w0 w1 : Int) : Bool :=
+  if a < 90 ∧ c < 90 ∧ k ≤ 8 then pGapPt b none (blendS a c k) w0 w1 else false
 
 /-! ### Domain leaves -/
 

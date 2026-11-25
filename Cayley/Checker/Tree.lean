@@ -18,6 +18,7 @@ inductive Tree where
   | split (d : Nat) (l r : Tree)
   | dom (code : Nat)
   | gap (s : Nat) (w0 w1 : Int)
+  | blend (a c k : Nat) (w0 w1 : Int)
   | hole
 
 /-- Halve the radius in direction `d`. -/
@@ -47,6 +48,7 @@ def checkTree (hok : Bool) (b : Box) : Tree → Bool
   | .split d l r => checkTree hok (b.split d).1 l && checkTree hok (b.split d).2 r
   | .dom code => pDomOK b code
   | .gap s w0 w1 => pGapOK b s w0 w1
+  | .blend a c k w0 w1 => pBlendOK b a c k w0 w1
   | .hole => hok
 
 /-- The boxes of the holes, left to right. -/

@@ -344,6 +344,118 @@ theorem gap_core (chart face : ℕ) (hj : chart < 5) (X : Fin 5 → ℝ) (hpt : 
       linarith [(abs_le.1 this).2]
     linarith
 
+/-- A point `p` whose approximation `Ŝ` passes the gap inequality against the approximation
+`Th` of an outer point `T` lies beyond `T` in the direction `(w0, w1)`. -/
+theorem gap_pt_sep (chart face : ℕ) (X : Fin 5 → ℝ) (hpt : PtOK chart face X)
+    (w0 w1 : ℤ) (hw : w0 ≠ 0 ∨ w1 ≠ 0) (p Ŝ T Th : Fin 3 → ℝ)
+    (hS : ∀ i, |(p - Ŝ) i| ≤ 5 / 4 * (1 / 2 ^ 60)) (hT : ∀ i, |(T - Th) i| ≤ 1 / 2 ^ 60)
+    (hv : 128 * kapJ chart * (1 / 2 ^ 60) * (|(w0 : ℝ)| + |(w1 : ℝ)|) ≤
+        cayleyDenom (X 1) (-X 0) 0 * kapJ chart *
+          cayleyDenom (rOf (kblow chart) face X 0) (rOf (kblow chart) face X 1)
+            (rOf (kblow chart) face X 2) *
+          (lin w0 w1 ((outerRot (X 0) (X 1) * Qm chart (rOf (kblow chart) face X)) *ᵥ Ŝ) -
+            lin w0 w1 (outerRot (X 0) (X 1) *ᵥ Th))) :
+    lin w0 w1 (outerRot (X 0) (X 1) *ᵥ T) ≤
+      lin w0 w1 ((outerRot (X 0) (X 1) * Qm chart (rOf (kblow chart) face X)) *ᵥ p) := by
+  set r := rOf (kblow chart) face X
+  set Ro := outerRot (X 0) (X 1)
+  set Ri := Ro * Qm chart r
+  set ε : ℝ := 1 / 2 ^ 60
+  set κ := kapJ chart
+  set Do := cayleyDenom (X 1) (-X 0) 0
+  set Dr := cayleyDenom (r 0) (r 1) (r 2)
+  set W := |(w0 : ℝ)| + |(w1 : ℝ)|
+  have hε : 0 < ε := by positivity
+  have hκ : 1 ≤ κ := kapJ_ge chart
+  have hDo : 1 ≤ Do ∧ Do ≤ 2 := by
+    simp only [Do, cayleyDenom]; constructor <;> nlinarith [hpt.disk, sq_nonneg (X 0), sq_nonneg (X 1)]
+  have hDr : 1 ≤ Dr ∧ Dr ≤ 13 := by
+    have h0 := hpt.rb 0; have h1 := hpt.rb 1; have h2 := hpt.rb 2
+    rw [abs_le] at h0 h1 h2
+    simp only [Dr, cayleyDenom]
+    constructor <;> nlinarith [sq_nonneg (r 0), sq_nonneg (r 1), sq_nonneg (r 2)]
+  have hRo : Roᵀ * Ro = 1 := SO3_transpose_mul (outerRot_mem_SO3 _ _)
+  have hRiSO : Ri ∈ Matrix.specialOrthogonalGroup (Fin 3) ℝ :=
+    Submonoid.mul_mem _ (outerRot_mem_SO3 _ _)
+      (Submonoid.mul_mem _ (chartB_mem_SO3 _) (cayV_mem_SO3 _))
+  have hRi : Riᵀ * Ri = 1 := SO3_transpose_mul hRiSO
+  have hW : 0 < W := by
+    rcases hw with h0 | h1
+    · have : (w0 : ℝ) ≠ 0 := by exact_mod_cast h0
+      have := abs_pos.2 this; positivity
+    · have : (w1 : ℝ) ≠ 0 := by exact_mod_cast h1
+      have := abs_pos.2 this; positivity
+  -- keep `ε` opaque: with its value `linarith` mishandles the fractions below
+  clear_value ε
+  have hinner : lin w0 w1 (Ri *ᵥ Ŝ) - 2 * (5 / 4 * ε) * W ≤ lin w0 w1 (Ri *ᵥ p) := by
+    have := abs_lin_mulVec_le hRi hS w0 w1
+    rw [Matrix.mulVec_sub, lin_sub] at this
+    linarith [(abs_le.1 this).1]
+  set Ĝ := lin w0 w1 (Ri *ᵥ Ŝ) - lin w0 w1 (Ro *ᵥ Th)
+  have hprod : 0 < Do * κ * Dr := by
+    have := hDo.1; have := hDr.1; positivity
+  have hĜ : 9 / 2 * ε * W ≤ Ĝ := by
+    by_contra hlt
+    push Not at hlt
+    have : Do * κ * Dr * Ĝ ≤ Do * κ * Dr * (9 / 2 * ε * W) :=
+      mul_le_mul_of_nonneg_left hlt.le hprod.le
+    have hb : Do * κ * Dr ≤ 26 * κ := by
+      have := mul_le_mul hDo.2 hDr.2 (by linarith [hDr.1]) (by norm_num)
+      nlinarith
+    have hεW : 0 < ε * W := mul_pos hε hW
+    nlinarith
+  have houter : lin w0 w1 (Ro *ᵥ T) ≤ lin w0 w1 (Ro *ᵥ Th) + 2 * ε * W := by
+    have := abs_lin_mulVec_le hRo hT w0 w1
+    rw [Matrix.mulVec_sub, lin_sub] at this
+    linarith [(abs_le.1 this).2]
+  linarith
+
+/-- The geometric core of a blended gap leaf: the inner point is `(1 - lam) v_a + lam v_c`. If
+its approximation `Ŝ` beats every outer vertex in the direction `(w0, w1)`, then so does one of
+the two vertices. -/
+theorem gap_core_blend (chart face : ℕ) (X : Fin 5 → ℝ) (hpt : PtOK chart face X)
+    (a c : ℕ) (lam : ℝ) (hl0 : 0 ≤ lam) (hl1 : lam ≤ 1)
+    (w0 w1 : ℤ) (hw : w0 ≠ 0 ∨ w1 ≠ 0)
+    (Ŝ : Fin 3 → ℝ)
+    (hS : ∀ i, |(((1 - lam) • vtx a + lam • vtx c) - Ŝ) i| ≤ 5 / 4 * (1 / 2 ^ 60))
+    (Th : ℕ → Fin 3 → ℝ) (hT : ∀ tt < 90, ∀ i, |(vtx tt - Th tt) i| ≤ 1 / 2 ^ 60)
+    (hv : ∀ tt < 90,
+      128 * kapJ chart * (1 / 2 ^ 60) * (|(w0 : ℝ)| + |(w1 : ℝ)|) ≤
+        cayleyDenom (X 1) (-X 0) 0 * kapJ chart *
+          cayleyDenom (rOf (kblow chart) face X 0) (rOf (kblow chart) face X 1)
+            (rOf (kblow chart) face X 2) *
+          (lin w0 w1 ((outerRot (X 0) (X 1) * Qm chart (rOf (kblow chart) face X)) *ᵥ Ŝ) -
+            lin w0 w1 (outerRot (X 0) (X 1) *ᵥ Th tt))) :
+    ¬ RupPair (outerRot (X 0) (X 1)) (outerRot (X 0) (X 1) * Qm chart (rOf (kblow chart) face X)) := by
+  have key := fun tt htt => gap_pt_sep chart face X hpt w0 w1 hw _ Ŝ (vtx tt) (Th tt) hS
+    (hT tt htt) (hv tt htt)
+  generalize outerRot (X 0) (X 1) * Qm chart (rOf (kblow chart) face X) = Ri at key ⊢
+  generalize outerRot (X 0) (X 1) = Ro at key ⊢
+  have hw' : (w0 : ℝ) ≠ 0 ∨ (w1 : ℝ) ≠ 0 := by
+    rcases hw with h0 | h1
+    · left; exact_mod_cast h0
+    · right; exact_mod_cast h1
+  have hlin : lin w0 w1 (Ri *ᵥ ((1 - lam) • vtx a + lam • vtx c)) =
+      (1 - lam) * lin w0 w1 (Ri *ᵥ vtx a) + lam * lin w0 w1 (Ri *ᵥ vtx c) := by
+    simp only [lin, Matrix.mulVec_add, Matrix.mulVec_smul, Pi.add_apply, Pi.smul_apply,
+      smul_eq_mul]
+    ring
+  simp only [hlin] at key
+  by_cases hac : lin w0 w1 (Ri *ᵥ vtx c) ≤ lin w0 w1 (Ri *ᵥ vtx a)
+  · apply not_rupPair_of_sep Ro Ri (vIdx a) w0 w1 hw'
+    intro T
+    obtain ⟨tt, htt, rfl⟩ := vIdx_surj T
+    change lin w0 w1 (Ro *ᵥ vtx tt) ≤ lin w0 w1 (Ri *ᵥ vtx a)
+    have := key tt htt
+    nlinarith [mul_nonneg hl0 (sub_nonneg.2 hac)]
+  · push Not at hac
+    apply not_rupPair_of_sep Ro Ri (vIdx c) w0 w1 hw'
+    intro T
+    obtain ⟨tt, htt, rfl⟩ := vIdx_surj T
+    change lin w0 w1 (Ro *ᵥ vtx tt) ≤ lin w0 w1 (Ri *ᵥ vtx c)
+    have := key tt htt
+    nlinarith [mul_nonneg (sub_nonneg.2 hl1) (sub_nonneg.2 hac.le)]
+
 end Cayley
 
 end

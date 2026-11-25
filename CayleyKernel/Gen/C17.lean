@@ -7,7 +7,7 @@ public meta import CayleyKernel.Load
 
 /-! GENERATED (`cayleyCert gen`): kernel-checked chunks 6120–6479.
 The data file is not a build input, so its hash is recorded here to make Lake rebuild this
-module when the data changes: 5439101371736214631. -/
+module when the data changes: 7038950277677119055. -/
 
 set_option Elab.async false
 
