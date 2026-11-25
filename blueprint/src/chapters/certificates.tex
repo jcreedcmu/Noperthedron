@@ -5,7 +5,7 @@
 
 \begin{definition}
 \label{def:box}
-\lean{Cayley.K.KBox, Cayley.K.KBox.pts, Cayley.kpt, Cayley.K.KBox.exists_kpt, Cayley.Pack.Inv}
+\lean{Cayley.Checker.Box, Cayley.Checker.Box.pts, Cayley.kpt, Cayley.Checker.Box.exists_kpt, Cayley.Pack.Inv}
 \leanok
 \uses{def:faces}
 A \emph{box} consists of a chart $j \in \{0, \dots, 4\}$, a face $f \in \{0, \dots, 5\}$
@@ -149,7 +149,7 @@ applies with the inner vertex $S$ and direction $w$.
 
 \begin{definition}
 \label{def:gap_leaf}
-\lean{Cayley.K.pGapOK, Cayley.K.vtestG, Cayley.K.fullOK, Cayley.K.pairOK}
+\lean{Cayley.Checker.pGapOK, Cayley.Checker.vtestG, Cayley.Checker.fullOK, Cayley.Checker.pairOK}
 \leanok
 \uses{lem:gap_poly, lem:blowup_identity}
 A gap leaf names an inner vertex $S$ and a direction $(w_0, w_1) \ne 0$. It passes if
@@ -206,7 +206,7 @@ Linear arithmetic.
 
 \begin{definition}
 \label{def:dom_leaf}
-\lean{Cayley.K.pDomOK}
+\lean{Cayley.Checker.pDomOK}
 \leanok
 \uses{def:reduced, def:box}
 A domain leaf names one condition of Definition~\ref{def:reduced} that fails on the whole

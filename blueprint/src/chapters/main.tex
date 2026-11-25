@@ -5,7 +5,7 @@
 
 \begin{definition}
 \label{def:root_boxes}
-\lean{Cayley.K.rootK}
+\lean{Cayley.Checker.rootBox}
 \leanok
 \uses{def:box}
 There are 15 root boxes, all with $(u, v) \in [0, 1] \times [0, \frac12]$:
@@ -20,7 +20,7 @@ There are 15 root boxes, all with $(u, v) \in [0, 1] \times [0, \frac12]$:
 
 \begin{lemma}[Coverage]
 \label{lem:cover}
-\lean{Cayley.Pack.cover, Cayley.Pack.rootK_inv}
+\lean{Cayley.Pack.cover, Cayley.Pack.rootBox_inv}
 \leanok
 \uses{def:root_boxes, def:reduced, def:bad, lem:exists_face}
 Every reduced $(u, v, j, r)$ is an admissible point of one of the root boxes of chart $j$.
@@ -36,7 +36,7 @@ $r = \rho\, c_f(s_0, s_1)$ with $0 \le \rho \le 1$ or $0 \le \rho \le 2$.
 
 \begin{definition}
 \label{def:kcheck}
-\lean{Cayley.K.KTree, Cayley.K.KBox.split, Cayley.K.kCheck}
+\lean{Cayley.Checker.Tree, Cayley.Checker.Box.split, Cayley.Checker.checkTree}
 \leanok
 \uses{def:gap_leaf, def:dom_leaf}
 A certificate tree has internal nodes that split a box in half along one coordinate,
@@ -80,7 +80,7 @@ separate theorem.
 
 \begin{lemma}
 \label{lem:root_covered}
-\lean{Cayley.Pack.root_covered, Cayley.K.holes}
+\lean{Cayley.Pack.root_covered, Cayley.Checker.holes}
 \leanok
 \uses{thm:walk}
 If the skeleton is accepted on a root box when holes count as passing, its holes are
@@ -121,9 +121,9 @@ need the generated data.
 \label{thm:main}
 \leanok
 \uses{thm:kernel_sound, lemma:nopert_interior, def:exists_non_rupert}
-The Noperthedron is not Rupert (\texttt{Cayley.KProof.noperthedron\_not\_rupert}). Hence
+The Noperthedron is not Rupert (\texttt{Cayley.Kernel.noperthedron\_not\_rupert}). Hence
 there is a convex polyhedron with nonempty interior that is not Rupert
-(\texttt{Cayley.KProof.exists\_not\_rupert}).
+(\texttt{Cayley.Kernel.exists\_not\_rupert}).
 \end{theorem}
 \begin{proof}
 \leanok

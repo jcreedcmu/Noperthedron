@@ -1,7 +1,7 @@
 module
 
 public import Cayley.Soundness.Pack
-public import Cayley.Checker.KPack
+public import Cayley.Checker.Leaf
 
 @[expose] public section
 
@@ -16,7 +16,7 @@ namespace Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
-open Cayley.K
+open Cayley.Checker
 
 /-- Vertex `t` of the kernel table. -/
 def vt (t : ℕ) : ℤ × ℤ × ℤ := vtxI.getD t (0, 0, 0)

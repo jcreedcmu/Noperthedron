@@ -1,7 +1,7 @@
 module
 
 public import Cayley.Soundness.Approx
-public import Cayley.Checker.KTree
+public import Cayley.Checker.Tree
 
 @[expose] public section
 
@@ -38,15 +38,15 @@ def rOf (blowup : Bool) (face : ℕ) (X : Fin 5 → ℝ) : Fin 3 → ℝ :=
   if blowup then X 4 • faceR face (X 2) (X 3) else ![X 2, X 3, X 4]
 
 /-- The real point of a kernel box at normalized coordinates . -/
-noncomputable def kpt (b : K.KBox) (t : Fin 5 → ℝ) (i : Fin 5) : ℝ :=
+noncomputable def kpt (b : Checker.Box) (t : Fin 5 → ℝ) (i : Fin 5) : ℝ :=
   ((b.c.getD i 0 : ℝ) + (b.h.getD i 0 : ℝ) * t i) / 2 ^ b.K
 
 /-- The real points of a kernel box: `|2^K Xᵢ − cᵢ| ≤ hᵢ` in every coordinate. -/
-def _root_.Cayley.K.KBox.pts (b : K.KBox) : Set (Fin 5 → ℝ) :=
+def _root_.Cayley.Checker.Box.pts (b : Checker.Box) : Set (Fin 5 → ℝ) :=
   {X | ∀ i : Fin 5, |2 ^ b.K * X i - (b.c.getD i 0 : ℝ)| ≤ (b.h.getD i 0 : ℝ)}
 
 /-- Every point of a box has normalized coordinates in `[-1,1]⁵`. -/
-theorem _root_.Cayley.K.KBox.exists_kpt {b : K.KBox} {X : Fin 5 → ℝ} (hX : X ∈ b.pts) :
+theorem _root_.Cayley.Checker.Box.exists_kpt {b : Checker.Box} {X : Fin 5 → ℝ} (hX : X ∈ b.pts) :
     ∃ t : Fin 5 → ℝ, (∀ i, |t i| ≤ 1) ∧ kpt b t = X := by
   refine ⟨fun i => (2 ^ b.K * X i - (b.c.getD i 0 : ℝ)) / (b.h.getD i 0 : ℝ), fun i => ?_,
     funext fun i => ?_⟩
@@ -81,22 +81,22 @@ noncomputable def NoR (X : Fin 5 → ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
   cayleyNumeratorMatrix (X 1) (-X 0) 0
 
 /-- The chart weights `κⱼ` and the integer chart matrices `Mⱼ = κⱼ Bⱼ`, as reals. -/
-noncomputable def kapJ (j : ℕ) : ℝ := (K.chartKI j : ℝ)
+noncomputable def kapJ (j : ℕ) : ℝ := (Checker.chartKI j : ℝ)
 
 noncomputable def chartMR (j : ℕ) : Matrix (Fin 3) (Fin 3) ℝ :=
-  let (m00, m01, m02, m10, m11, m12, m20, m21, m22) := K.chartMI j
+  let (m00, m01, m02, m10, m11, m12, m20, m21, m22) := Checker.chartMI j
   !![(m00 : ℝ), m01, m02; m10, m11, m12; m20, m21, m22]
 
 theorem chartMR_eq (j : ℕ) (hj : j < 5) : chartMR j = kapJ j • chartB j := by
   have hk : kapR ≠ 0 := by unfold kapR c3xR c3yR; norm_num
   interval_cases j
   all_goals (ext a b; fin_cases a <;> fin_cases b <;>
-    simp [chartMR, kapJ, K.chartMI, K.chartKI, chartB, tauR, kappaTau, c3x, c3y, kapR, c3xR, c3yR] <;>
+    simp [chartMR, kapJ, Checker.chartMI, Checker.chartKI, chartB, tauR, kappaTau, c3x, c3y, kapR, c3xR, c3yR] <;>
     field_simp)
   all_goals norm_num
 
 theorem kapJ_ge (j : ℕ) : 1 ≤ kapJ j := by
-  unfold kapJ K.chartKI
+  unfold kapJ Checker.chartKI
   split
   · simp [kappaTau, c3x, c3y]
   · simp

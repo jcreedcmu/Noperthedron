@@ -7,7 +7,7 @@ public import Cayley.Soundness.PackDecode
 /-!
 # The checker's packed bounds are sound
 
-`pLower`, `qLower` and `pStats` (layouts `L3`, `L5` of `Cayley.Checker.KPack`) bound polynomial
+`pLower`, `qLower` and `pStats` (layouts `L3`, `L5` of `Cayley.Checker.Leaf`) bound polynomial
 expressions that fit the layout and have coefficient norm below `2^(PW-1)`.
 -/
 
@@ -15,7 +15,7 @@ namespace Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
-open Cayley.K
+open Cayley.Checker
 
 /-- Radix 3 in every variable. -/
 def L3 : Layout := ⟨fun _ => 3, ![1, 3, 9, 27, 81], 243⟩

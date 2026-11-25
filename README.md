@@ -30,8 +30,8 @@ The final top-level proof lives in
 [CayleyKernel/Main.lean](CayleyKernel/Main.lean):
 
 ```lean
-theorem Cayley.KProof.noperthedron_not_rupert : ¬ IsRupert exactVerts
-theorem Cayley.KProof.exists_not_rupert : ExistsNonRupertPolyhedron
+theorem Cayley.Kernel.noperthedron_not_rupert : ¬ IsRupert exactVerts
+theorem Cayley.Kernel.exists_not_rupert : ExistsNonRupertPolyhedron
 ```
 
 ## Layout
@@ -97,7 +97,7 @@ lake build CayleyKernel.Main
 The build ends by printing the axioms the main theorem depends on:
 
 ```
-info: CayleyKernel/Main.lean:66:0: 'Cayley.KProof.exists_not_rupert' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: CayleyKernel/Main.lean:66:0: 'Cayley.Kernel.exists_not_rupert' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
 ## Blueprint

@@ -16,7 +16,7 @@ Nothing here is trusted: the result is an ordinary numeral, and the soundness pr
 it against the formula.
 -/
 
-namespace Cayley.K
+namespace Cayley.Checker
 
 open Lean Meta Elab Term
 
@@ -31,6 +31,6 @@ syntax (name := evalNatStx) "eval_nat% " term : term
   let some n := v.rawNatLit? | throwError "eval_nat%: not a numeral:{indentExpr v}"
   return mkNatLit n
 
-end Cayley.K
+end Cayley.Checker
 
 end

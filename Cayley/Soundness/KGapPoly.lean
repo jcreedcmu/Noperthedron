@@ -14,7 +14,7 @@ instance (polynomial expressions) are related by evaluation, and so is its real 
 
 namespace Cayley.Pack
 
-open Cayley.K
+open Cayley.Checker
 
 section map
 
@@ -70,12 +70,12 @@ end map
 open Matrix
 
 /-- The gap-leaf data at a real point `t`. -/
-noncomputable def gapR (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) : GData ℝ :=
+noncomputable def gapR (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) : GData ℝ :=
   gapGen (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t b S w0 w1
 
 theorem p2_cast (k : ℕ) : ((p2 k : ℤ) : ℝ) = 2 ^ k := by simp [p2]
 
-theorem gapR_alpha (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) (y : Fin 3 → ℝ) :
+theorem gapR_alpha (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) (y : Fin 3 → ℝ) :
     let g := gapR b S w0 w1 t
     g.a0 * y 0 + g.a1 * y 1 + g.a2 * y 2 = (2 ^ b.K) ^ 2 * lin w0 w1 (NoR (kpt b t) *ᵥ y) := by
   intro g
@@ -95,31 +95,31 @@ theorem gapR_alpha (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 �
 theorem gChart_real1 (chart : ℕ) (hj : chart < 5) (y0 y1 y2 : ℝ) :
     (gChart (· - ·) (· * ·) (fun z : ℤ => (z : ℝ)) (· + ·) chart y0 y1 y2).1 =
       ∑ j : Fin 3, chartMR chart 0 j * ![y0, y1, y2] j := by
-  interval_cases chart <;> simp [gChart, chartMR, K.chartMI, Fin.sum_univ_three]
+  interval_cases chart <;> simp [gChart, chartMR, Checker.chartMI, Fin.sum_univ_three]
 
 theorem gChart_real2 (chart : ℕ) (hj : chart < 5) (y0 y1 y2 : ℝ) :
     (gChart (· - ·) (· * ·) (fun z : ℤ => (z : ℝ)) (· + ·) chart y0 y1 y2).2.1 =
       ∑ j : Fin 3, chartMR chart 1 j * ![y0, y1, y2] j := by
-  interval_cases chart <;> simp [gChart, chartMR, K.chartMI, Fin.sum_univ_three]
+  interval_cases chart <;> simp [gChart, chartMR, Checker.chartMI, Fin.sum_univ_three]
 
 theorem gChart_real3 (chart : ℕ) (hj : chart < 5) (y0 y1 y2 : ℝ) :
     (gChart (· - ·) (· * ·) (fun z : ℤ => (z : ℝ)) (· + ·) chart y0 y1 y2).2.2 =
       ∑ j : Fin 3, chartMR chart 2 j * ![y0, y1, y2] j := by
-  interval_cases chart <;> simp [gChart, chartMR, K.chartMI, Fin.sum_univ_three]
+  interval_cases chart <;> simp [gChart, chartMR, Checker.chartMI, Fin.sum_univ_three]
 
 /-- The scale of `β`: `U⁴` (blown up) or `U²`. -/
-noncomputable def betaSc (b : KBox) : ℝ :=
+noncomputable def betaSc (b : Box) : ℝ :=
   if b.chart = 0 ∨ b.chart = 4 then ((2 : ℝ) ^ b.K) ^ 4 else ((2 : ℝ) ^ b.K) ^ 2
 
-theorem kptm2 (b : KBox) (t : Fin 5 → ℝ) :
+theorem kptm2 (b : Box) (t : Fin 5 → ℝ) :
     ((b.c.getD 2 0 : ℤ) : ℝ) + ((b.h.getD 2 0 : ℤ) : ℝ) * t 2 = 2 ^ b.K * kpt b t 2 := by
   show _ = 2 ^ b.K * ((((b.c.getD 2 0 : ℤ) : ℝ) + ((b.h.getD 2 0 : ℤ) : ℝ) * t 2) / 2 ^ b.K)
   field_simp
-theorem kptm3 (b : KBox) (t : Fin 5 → ℝ) :
+theorem kptm3 (b : Box) (t : Fin 5 → ℝ) :
     ((b.c.getD 3 0 : ℤ) : ℝ) + ((b.h.getD 3 0 : ℤ) : ℝ) * t 3 = 2 ^ b.K * kpt b t 3 := by
   show _ = 2 ^ b.K * ((((b.c.getD 3 0 : ℤ) : ℝ) + ((b.h.getD 3 0 : ℤ) : ℝ) * t 3) / 2 ^ b.K)
   field_simp
-theorem kptm4 (b : KBox) (t : Fin 5 → ℝ) :
+theorem kptm4 (b : Box) (t : Fin 5 → ℝ) :
     ((b.c.getD 4 0 : ℤ) : ℝ) + ((b.h.getD 4 0 : ℤ) : ℝ) * t 4 = 2 ^ b.K * kpt b t 4 := by
   show _ = 2 ^ b.K * ((((b.c.getD 4 0 : ℤ) : ℝ) + ((b.h.getD 4 0 : ℤ) : ℝ) * t 4) / 2 ^ b.K)
   field_simp
@@ -142,7 +142,7 @@ theorem gFace_real (face : ℕ) (U x2 x3 : ℝ) :
     · obtain ⟨k, hk⟩ : ∃ k, face / 2 = k + 2 := ⟨face / 2 - 2, by omega⟩
       simp [hk]
 
-theorem gapR_beta (b : KBox) (hj : b.chart < 5) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) :
+theorem gapR_beta (b : Box) (hj : b.chart < 5) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) :
     let g := gapR b S w0 w1 t
     let r := rOf (kblow b.chart) b.face (kpt b t)
     let v := chartMR b.chart *ᵥ (cayleyNumeratorMatrix (r 0) (r 1) (r 2) *ᵥ svec S)
@@ -176,7 +176,7 @@ theorem gapR_beta (b : KBox) (hj : b.chart < 5) (S : ℤ × ℤ × ℤ) (w0 w1 :
       Fin.isValue, Bool.false_eq_true, ↓reduceIte]
     refine ⟨by ring, by ring, by ring, by ring⟩
 
-theorem gapR_L (b : KBox) (hj : b.chart < 5) (hbl : b.chart = 0 ∨ b.chart = 4) (S : ℤ × ℤ × ℤ)
+theorem gapR_L (b : Box) (hj : b.chart < 5) (hbl : b.chart = 0 ∨ b.chart = 4) (S : ℤ × ℤ × ℤ)
     (w0 w1 : ℤ) (t : Fin 5 → ℝ) :
     let g := gapR b S w0 w1 t
     let c := faceR b.face (kpt b t 2) (kpt b t 3)
@@ -198,11 +198,11 @@ theorem gapR_L (b : KBox) (hj : b.chart < 5) (hbl : b.chart = 0 ∨ b.chart = 4)
 /-! ## The three instances -/
 
 /-- The gap-leaf polynomial expressions. -/
-def gapPE (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) : GData PE :=
+def gapPE (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) : GData PE :=
   gapGen PE.add PE.sub PE.mul PE.c PE.x b S w0 w1
 
 /-- A field of the gap data. -/
-def _root_.Cayley.K.GData.get {R : Type} (g : GData R) : Fin 10 → R
+def _root_.Cayley.Checker.GData.get {R : Type} (g : GData R) : Fin 10 → R
   | 0 => g.a0 | 1 => g.a1 | 2 => g.a2 | 3 => g.b0 | 4 => g.b1 | 5 => g.b2 | 6 => g.kd
   | 7 => g.l0 | 8 => g.l1 | 9 => g.l2
 
@@ -218,7 +218,7 @@ theorem gapGen_map' {R S : Type} (addR subR mulR : R → R → R) (cR : ℤ → 
     (addS subS mulS : S → S → S) (cS : ℤ → S) (xS : Fin 5 → S) (f : R → S)
     (hadd : ∀ a b, f (addR a b) = addS (f a) (f b)) (hsub : ∀ a b, f (subR a b) = subS (f a) (f b))
     (hmul : ∀ a b, f (mulR a b) = mulS (f a) (f b)) (hc : ∀ z, f (cR z) = cS z)
-    (hx : ∀ i, f (xR i) = xS i) (b : KBox) (s : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
+    (hx : ∀ i, f (xR i) = xS i) (b : Box) (s : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
     f ((gapGen addR subR mulR cR xR b s w0 w1).get k) =
       (gapGen addS subS mulS cS xS b s w0 w1).get k := by
   have h := gapCore_map addR subR mulR cR xR addS subS mulS cS xS f hadd hsub hmul hc hx
@@ -227,32 +227,32 @@ theorem gapGen_map' {R S : Type} (addR subR mulR : R → R → R) (cR : ℤ → 
   simp only [hc] at h
   exact gapCore_get _ f _ h k
 
-theorem gapPE_int (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
+theorem gapPE_int (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
     ((gapPE b S w0 w1).get k).ev (fun i => pX i.val) = (pGapData b S w0 w1).get k :=
   gapGen_map' PE.add PE.sub PE.mul PE.c PE.x Int.add Int.sub Int.mul (fun z => z)
     (fun i => pX i.val) (PE.ev fun i => pX i.val) (fun _ _ => rfl) (fun _ _ => rfl)
     (fun _ _ => rfl) (fun _ => by simp [PE.ev]) (fun _ => rfl) b S w0 w1 k
 
-theorem gapPE_real (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) (k : Fin 10) :
+theorem gapPE_real (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (t : Fin 5 → ℝ) (k : Fin 10) :
     ((gapPE b S w0 w1).get k).ev t = (gapR b S w0 w1 t).get k :=
   gapGen_map' PE.add PE.sub PE.mul PE.c PE.x (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t
     (PE.ev t) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl)
     b S w0 w1 k
 
 /-- Coefficient-norm bounds of the gap-leaf polynomials (the `Nat` instance of `gapGen`). -/
-def _root_.Cayley.K.gapNrm (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : GData Nat :=
+def _root_.Cayley.Checker.gapNrm (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : GData Nat :=
   gapGen Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) b S w0 w1
 
 /-- Every polynomial the gap test decodes has coefficient norm below `2^390` (room for the
 Bernstein transform; outer vertices have coordinates below `2^161`). -/
-def _root_.Cayley.K.gapNrmOK (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
+def _root_.Cayley.Checker.gapNrmOK (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
   let nb := gapNrm b S w0 w1
   let nA := Nat.add (Nat.add (Nat.mul nb.a0 nb.b0) (Nat.mul nb.a1 nb.b1)) (Nat.mul nb.a2 nb.b2)
   let nX := Nat.mul (2 ^ 161) (Nat.add (Nat.add nb.a0 nb.a1) nb.a2)
   Nat.blt (Nat.add nA (Nat.mul nX nb.kd)) (2 ^ 390) &&
     Nat.blt (Nat.add (Nat.add (Nat.mul nb.a0 nb.l0) (Nat.mul nb.a1 nb.l1)) (Nat.mul nb.a2 nb.l2)) (2 ^ 390)
 
-theorem gapPE_nrm (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
+theorem gapPE_nrm (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
     ((gapPE b S w0 w1).get k).nrm = (gapNrm b S w0 w1).get k :=
   gapGen_map' PE.add PE.sub PE.mul PE.c PE.x Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1)
     PE.nrm (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl)
@@ -267,24 +267,24 @@ def degB (k : Fin 10) (i : Fin 5) : ℕ :=
   else (if i.val < 2 then 0 else if i.val = 4 then 1 else 2)
 
 /-- The degree instance of `gapGen`. -/
-def gapDeg (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) : GData (Fin 5 → ℕ) :=
+def gapDeg (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) : GData (Fin 5 → ℕ) :=
   gapGen (fun a c i => max (a i) (c i)) (fun a c i => max (a i) (c i)) (fun a c i => a i + c i)
     (fun _ _ => 0) (fun j i => if j = i then 1 else 0) b S w0 w1
 
-theorem gapPE_deg (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
+theorem gapPE_deg (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) (k : Fin 10) :
     (fun i => ((gapPE b S w0 w1).get k).deg i) = (gapDeg b S w0 w1).get k :=
   gapGen_map' PE.add PE.sub PE.mul PE.c PE.x _ _ _ _ _ (fun e i => e.deg i)
     (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl) b S w0 w1 k
 
 /-- The degree instance only sees the chart and the face: every constant has degree `0`. -/
-theorem gapDeg_data (b : KBox) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) :
+theorem gapDeg_data (b : Box) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ) :
     gapDeg b S w0 w1 = gapDeg ⟨b.chart, b.face, 0, [], []⟩ (0, 0, 0) 0 0 := rfl
 
 theorem gapDeg_closed : ∀ chart < 5, ∀ face < 6, ∀ k : Fin 10, ∀ i : Fin 5,
     (gapDeg ⟨chart, face, 0, [], []⟩ (0, 0, 0) 0 0).get k i ≤ degB k i := by
   decide +kernel
 
-theorem gapDeg_le (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ)
+theorem gapDeg_le (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (S : ℤ × ℤ × ℤ) (w0 w1 : ℤ)
     (k : Fin 10) (i : Fin 5) : (gapDeg b S w0 w1).get k i ≤ degB k i := by
   rw [gapDeg_data]; exact gapDeg_closed _ hj _ hf k i
 
@@ -300,7 +300,7 @@ def mpC (z : ℤ) : MP := ⟨(z.natAbs, z.natAbs), le_rfl⟩
 def mpX (_ : Fin 5) : MP := ⟨(1, 1), le_rfl⟩
 
 /-- **Norm monotonicity.** The coefficient-norm bounds grow with the magnitudes of the inputs. -/
-theorem gapNrm_mono (b b' : KBox) (hch : b.chart = b'.chart) (hfa : b.face = b'.face)
+theorem gapNrm_mono (b b' : Box) (hch : b.chart = b'.chart) (hfa : b.face = b'.face)
     (hK : (p2 b.K).natAbs ≤ (p2 b'.K).natAbs)
     (hc : ∀ i, (b.c.getD i 0).natAbs ≤ (b'.c.getD i 0).natAbs)
     (hh : ∀ i, (b.h.getD i 0).natAbs ≤ (b'.h.getD i 0).natAbs)

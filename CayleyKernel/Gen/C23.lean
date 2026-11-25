@@ -5,16 +5,16 @@ public meta import CayleyKernel.Load
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): kernel-checked chunks 8280–8639.
+/-! GENERATED (`cayleyCert gen`): kernel-checked chunks 8280–8639.
 The data file is not a build input, so its hash is recorded here to make Lake rebuild this
 module when the data changes: 16043483141199395513. -/
 
 set_option Elab.async false
 
-namespace Cayley.KProof
+namespace Cayley.Kernel
 
 cayley_chunks ".cayley-data/kernel/c_23.txt"
 
-end Cayley.KProof
+end Cayley.Kernel
 
 end

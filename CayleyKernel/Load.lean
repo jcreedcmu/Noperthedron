@@ -1,7 +1,7 @@
 module
 
 public import Lean
-public import Cayley.Checker.KTree
+public import Cayley.Checker.Tree
 public meta import Lean
 
 @[expose] public section
@@ -11,15 +11,15 @@ public meta import Lean
 
 `cayley_chunks "file"` reads a chunk file (one chunk per line:
 `id chart face K c₀ … c₄ h₀ … h₄ tokens…`, tokens `S<d>`, `D<code>`, `G<s>:<w₀>:<w₁>`, `H`)
-and, for each chunk, adds `B_id : KBox`, `T_id : KTree` and the theorem
-`ok_id : kCheck false B_id T_id = true`, proved by `Eq.refl true` (the kernel evaluates the check).
+and, for each chunk, adds `B_id : Box`, `T_id : Tree` and the theorem
+`ok_id : checkTree false B_id T_id = true`, proved by `Eq.refl true` (the kernel evaluates the check).
 Nothing here is trusted: the kernel only accepts true statements about whatever terms were
 built. `cayley_root` assembles one root box from its skeleton and chunks.
 -/
 
-namespace Cayley.KLoad
+namespace Cayley.Load
 
-open Lean Meta Elab Cayley.K
+open Lean Meta Elab Cayley.Checker
 
 meta section
 
@@ -34,7 +34,7 @@ def listIntE (l : List Int) : Expr :=
     (mkApp (mkConst ``List.nil [Level.zero]) (mkConst ``Int))
 
 def boxE (chart face K : Nat) (c h : List Int) : Expr :=
-  mkAppN (mkConst ``KBox.mk) #[natE chart, natE face, natE K, listIntE c, listIntE h]
+  mkAppN (mkConst ``Box.mk) #[natE chart, natE face, natE K, listIntE c, listIntE h]
 
 def parseIntS (s : String) : Int :=
   if s.startsWith "-" then -((s.drop 1).toString.toNat! : Int) else (s.toNat! : Int)
@@ -47,14 +47,14 @@ partial def treeE (toks : Array String) (i : Nat) : Expr × Nat :=
   if c == 'S' then
     let (l, j) := treeE toks (i + 1)
     let (r, k) := treeE toks j
-    (mkApp3 (mkConst ``KTree.split) (natE rest.toNat!) l r, k)
-  else if c == 'D' then (mkApp (mkConst ``KTree.dom) (natE rest.toNat!), i + 1)
+    (mkApp3 (mkConst ``Tree.split) (natE rest.toNat!) l r, k)
+  else if c == 'D' then (mkApp (mkConst ``Tree.dom) (natE rest.toNat!), i + 1)
   else if c == 'G' then
     match rest.splitOn ":" with
     | [s, w0, w1] =>
-      (mkApp3 (mkConst ``KTree.gap) (natE s.toNat!) (intE (parseIntS w0)) (intE (parseIntS w1)), i + 1)
-    | _ => (mkConst ``KTree.hole, i + 1)
-  else (mkConst ``KTree.hole, i + 1)
+      (mkApp3 (mkConst ``Tree.gap) (natE s.toNat!) (intE (parseIntS w0)) (intE (parseIntS w1)), i + 1)
+    | _ => (mkConst ``Tree.hole, i + 1)
+  else (mkConst ``Tree.hole, i + 1)
 
 def reflTrueE : Expr :=
   mkApp2 (mkConst ``Eq.refl [Level.one]) (mkConst ``Bool) (mkConst ``Bool.true)
@@ -91,10 +91,10 @@ elab "cayley_chunks " path:str : command => do
     let tn := chunkName ns "T" id
     let t0 ← IO.monoMsNow
     Command.liftCoreM do
-      addDef bn (mkConst ``KBox) b
-      addDef tn (mkConst ``KTree) t
+      addDef bn (mkConst ``Box) b
+      addDef tn (mkConst ``Tree) t
       addThm (chunkName ns "ok" id)
-        (eqTrueE (mkApp3 (mkConst ``kCheck) (mkConst ``Bool.false) (mkConst bn) (mkConst tn))) reflTrueE
+        (eqTrueE (mkApp3 (mkConst ``checkTree) (mkConst ``Bool.false) (mkConst bn) (mkConst tn))) reflTrueE
     let dt := (← IO.monoMsNow) - t0
     n := n + 1
     tot := tot + dt
@@ -104,8 +104,8 @@ elab "cayley_chunks " path:str : command => do
   logInfo m!"cayley_chunks: {n} chunks, {tot} ms, worst {worst} ms (chunk {worstId})"
 
 /-- `cayley_root r "skel"`: the skeleton file holds the root's tokens (holes `H`) on line 1
-and the hole chunk ids on line 2. Adds `S_r`, `skel_r : kCheck true (rootK r) S_r = true`,
-`holes_r : holes (rootK r) S_r = [B_…]` and `all_r : AllOK [(B_…, T_…), …]`. -/
+and the hole chunk ids on line 2. Adds `S_r`, `skel_r : checkTree true (rootBox r) S_r = true`,
+`holes_r : holes (rootBox r) S_r = [B_…]` and `all_r : AllOK [(B_…, T_…), …]`. -/
 elab "cayley_root " r:num path:str : command => do
   let ns ← getCurrNamespace
   let root := r.getNat
@@ -115,26 +115,26 @@ elab "cayley_root " r:num path:str : command => do
   let ids := ((lines[1]!.splitOn " ").filter (· ≠ "")).map String.toNat!
   let (t, _) := treeE toks 0
   let sn := chunkName ns "S" root
-  let boxTy := mkConst ``KBox
-  let pairTy := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) boxTy (mkConst ``KTree)
-  let rootE := mkApp (mkConst ``rootK) (natE root)
+  let boxTy := mkConst ``Box
+  let pairTy := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) boxTy (mkConst ``Tree)
+  let rootE := mkApp (mkConst ``rootBox) (natE root)
   let boxList := ids.foldr (fun id acc => mkApp3 (mkConst ``List.cons [Level.zero]) boxTy
     (mkConst (chunkName ns "B" id)) acc) (mkApp (mkConst ``List.nil [Level.zero]) boxTy)
   let pairList := ids.foldr (fun id acc => mkApp3 (mkConst ``List.cons [Level.zero]) pairTy
-    (mkApp4 (mkConst ``Prod.mk [Level.zero, Level.zero]) boxTy (mkConst ``KTree)
+    (mkApp4 (mkConst ``Prod.mk [Level.zero, Level.zero]) boxTy (mkConst ``Tree)
       (mkConst (chunkName ns "B" id)) (mkConst (chunkName ns "T" id))) acc)
     (mkApp (mkConst ``List.nil [Level.zero]) pairTy)
   -- AllOK proof: nested And.intro of the chunk theorems
   let allPf := ids.foldr (fun id (acc : Expr × Expr) =>
-    let stmt := eqTrueE (mkApp3 (mkConst ``kCheck) (mkConst ``Bool.false) (mkConst (chunkName ns "B" id))
+    let stmt := eqTrueE (mkApp3 (mkConst ``checkTree) (mkConst ``Bool.false) (mkConst (chunkName ns "B" id))
       (mkConst (chunkName ns "T" id)))
     (mkApp4 (mkConst ``And.intro) stmt acc.2 (mkConst (chunkName ns "ok" id) ) acc.1,
      mkApp2 (mkConst ``And) stmt acc.2))
     (mkConst ``True.intro, mkConst ``True)
   let t0 ← IO.monoMsNow
   Command.liftCoreM do
-    addDef sn (mkConst ``KTree) t
-    addThm (chunkName ns "skel" root) (eqTrueE (mkApp3 (mkConst ``kCheck) (mkConst ``Bool.true) rootE (mkConst sn)))
+    addDef sn (mkConst ``Tree) t
+    addThm (chunkName ns "skel" root) (eqTrueE (mkApp3 (mkConst ``checkTree) (mkConst ``Bool.true) rootE (mkConst sn)))
       reflTrueE
     let holesE := mkApp2 (mkConst ``holes) rootE (mkConst sn)
     addThm (chunkName ns "holes" root)
@@ -145,6 +145,6 @@ elab "cayley_root " r:num path:str : command => do
 
 end
 
-end Cayley.KLoad
+end Cayley.Load
 
 end

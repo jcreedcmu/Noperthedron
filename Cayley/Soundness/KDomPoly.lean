@@ -14,7 +14,7 @@ operations commute with them.
 
 namespace Cayley.Pack
 
-open Cayley.K
+open Cayley.Checker
 
 section map
 
@@ -26,10 +26,10 @@ variable {R S : Type} (addR subR mulR : R → R → R) (cR : ℤ → R) (xR : Fi
 include hadd hsub hmul hc hx
 
 /-- `f` applied to every entry. -/
-def _root_.Cayley.K.NM.map {R S : Type} (f : R → S) (N : NM R) : NM S :=
+def _root_.Cayley.Checker.NM.map {R S : Type} (f : R → S) (N : NM R) : NM S :=
   ⟨f N.n00, f N.n01, f N.n02, f N.n10, f N.n11, f N.n12, f N.n20, f N.n21, f N.n22, f N.d⟩
 
-theorem numGen_map (b : KBox) :
+theorem numGen_map (b : Box) :
     (numGen addR subR mulR cR xR b).map f = numGen addS subS mulS cS xS b := by
   have hf1 := fun face a b c => (gFace_map f face a b c).1
   have hf2 := fun face a b c => (gFace_map f face a b c).2.1
@@ -43,7 +43,7 @@ theorem trGen_map (X : I9) (N : NM R) :
   obtain ⟨x00, x01, x02, x10, x11, x12, x20, x21, x22⟩ := X
   simp only [trGen, NM.map, hadd, hmul, hc]
 
-theorem chartGen_map (b : KBox) (k : ℕ) :
+theorem chartGen_map (b : Box) (k : ℕ) :
     f (chartGen addR subR mulR cR xR b k) = chartGen addS subS mulS cS xS b k := by
   simp only [chartGen, hsub, hmul, hc,
     trGen_map addR mulR cR addS mulS cS f hadd hmul hc,
@@ -67,7 +67,7 @@ theorem hGen_map (u v U : R) :
     (hGen addR subR mulR cR u v U).map f = hGen addS subS mulS cS (f u) (f v) (f U) := by
   simp only [hGen, NM.map, hadd, hsub, hmul, hc]
 
-theorem orbGen_map (b : KBox) (e g a : ℕ) :
+theorem orbGen_map (b : Box) (e g a : ℕ) :
     f (orbGen addR subR mulR cR xR b e g a).1 = (orbGen addS subS mulS cS xS b e g a).1 ∧
       f (orbGen addR subR mulR cR xR b e g a).2 = (orbGen addS subS mulS cS xS b e g a).2 := by
   have ht := trGen_map addR mulR cR addS mulS cS f hadd hmul hc
@@ -95,11 +95,11 @@ def dX (j : Fin 5) : Fin 5 → ℕ := fun i => if j = i then 1 else 0
 
 /-- The degree instance only sees the chart and the face (and not the symmetry `g`): every
 constant has degree `0`. -/
-theorem chartGen_deg (b : KBox) (k : ℕ) :
+theorem chartGen_deg (b : Box) (k : ℕ) :
     chartGen dAdd dAdd dMul dC dX b k =
       chartGen dAdd dAdd dMul dC dX ⟨b.chart, b.face, 0, [], []⟩ k := rfl
 
-theorem orbGen_deg (b : KBox) (e g a : ℕ) :
+theorem orbGen_deg (b : Box) (e g a : ℕ) :
     orbGen dAdd dAdd dMul dC dX b e g a =
       orbGen dAdd dAdd dMul dC dX ⟨b.chart, b.face, 0, [], []⟩ e 0 a := rfl
 
@@ -122,17 +122,17 @@ theorem orb_deg_closed : ∀ chart < 5, ∀ face < 6, ∀ e < 2, ∀ i : Fin 5,
 open Matrix
 
 /-- The numerator at a real point. -/
-noncomputable def numR (b : KBox) (t : Fin 5 → ℝ) : NM ℝ :=
+noncomputable def numR (b : Box) (t : Fin 5 → ℝ) : NM ℝ :=
   numGen (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t b
 
 /-- The matrix of an `NM`. -/
 def nmat {R : Type} (N : NM R) : Matrix (Fin 3) (Fin 3) R :=
   !![N.n00, N.n01, N.n02; N.n10, N.n11, N.n12; N.n20, N.n21, N.n22]
 
-theorem numSc_real (b : KBox) : ((numSc b : ℤ) : ℝ) = betaSc b := by
+theorem numSc_real (b : Box) : ((numSc b : ℤ) : ℝ) = betaSc b := by
   unfold numSc betaSc; split_ifs <;> push_cast [p2_cast] <;> ring
 
-theorem numR_eq (b : KBox) (t : Fin 5 → ℝ) :
+theorem numR_eq (b : Box) (t : Fin 5 → ℝ) :
     let r := rOf (kblow b.chart) b.face (kpt b t)
     nmat (numR b t) = betaSc b • cayleyNumeratorMatrix (r 0) (r 1) (r 2) ∧
       (numR b t).d = betaSc b * cayleyDenom (r 0) (r 1) (r 2) := by
@@ -178,7 +178,7 @@ theorem imat_mtm (A B : I9) : imat (mtm A B) = (imat A)ᵀ * imat B := by
   ext i j; fin_cases i <;> fin_cases j <;> simp [imat, mtm, Matrix.mul_apply, Fin.sum_univ_three]
 
 /-- The chart-test polynomial at a real point. -/
-theorem chartR_eq (b : KBox) (hj : b.chart < 5) (k : ℕ) (hk : k < 5) (t : Fin 5 → ℝ) :
+theorem chartR_eq (b : Box) (hj : b.chart < 5) (k : ℕ) (hk : k < 5) (t : Fin 5 → ℝ) :
     let r := rOf (kblow b.chart) b.face (kpt b t)
     chartGen (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t b k =
       kapJ b.chart ^ 2 * kapJ k * (betaSc b * cayleyDenom (r 0) (r 1) (r 2)) *
@@ -210,11 +210,11 @@ theorem imat_orbC (g a : ℕ) :
   ext i j; fin_cases i <;> fin_cases j <;>
     simp [imat, gHat, cosM, sinM, p2_cast] <;> field_simp
 
-theorem kapJ_zero : kapJ 0 = 1 := by simp [kapJ, K.chartKI]
+theorem kapJ_zero : kapJ 0 = 1 := by simp [kapJ, Checker.chartKI]
 theorem chartB_zero_eq : chartB 0 = 1 := by ext i j; fin_cases i <;> fin_cases j <;> simp [chartB]
 
 /-- The orbit polynomials for `e = 0` at a real point. -/
-theorem orbR0 (b : KBox) (hj : b.chart < 5) (g : ℕ) (a : ℕ) (ha : a = 0 ∨ a = 4)
+theorem orbR0 (b : Box) (hj : b.chart < 5) (g : ℕ) (a : ℕ) (ha : a = 0 ∨ a = 4)
     (t : Fin 5 → ℝ) :
     let r := rOf (kblow b.chart) b.face (kpt b t)
     let Q := Qm b.chart r
@@ -258,11 +258,11 @@ theorem orbR0 (b : KBox) (hj : b.chart < 5) (g : ℕ) (a : ℕ) (ha : a = 0 ∨ 
       simp
       ring
 
-theorem kptm0 (b : KBox) (t : Fin 5 → ℝ) :
+theorem kptm0 (b : Box) (t : Fin 5 → ℝ) :
     ((b.c.getD 0 0 : ℤ) : ℝ) + ((b.h.getD 0 0 : ℤ) : ℝ) * t 0 = 2 ^ b.K * kpt b t 0 := by
   show _ = 2 ^ b.K * ((((b.c.getD 0 0 : ℤ) : ℝ) + ((b.h.getD 0 0 : ℤ) : ℝ) * t 0) / 2 ^ b.K)
   field_simp
-theorem kptm1 (b : KBox) (t : Fin 5 → ℝ) :
+theorem kptm1 (b : Box) (t : Fin 5 → ℝ) :
     ((b.c.getD 1 0 : ℤ) : ℝ) + ((b.h.getD 1 0 : ℤ) : ℝ) * t 1 = 2 ^ b.K * kpt b t 1 := by
   show _ = 2 ^ b.K * ((((b.c.getD 1 0 : ℤ) : ℝ) + ((b.h.getD 1 0 : ℤ) : ℝ) * t 1) / 2 ^ b.K)
   field_simp
@@ -285,7 +285,7 @@ theorem hGen_real (x : Fin 5 → ℝ) (U : ℝ) :
     simp [hGen, nmat, NoR, cayleyNumeratorMatrix, ZR, Matrix.mul_apply, Fin.sum_univ_three] <;> ring
 
 /-- The orbit polynomials for `e = 1` at a real point. -/
-theorem orbR1 (b : KBox) (hj : b.chart < 5) (g : ℕ) (a : ℕ) (ha : a = 0 ∨ a = 4)
+theorem orbR1 (b : Box) (hj : b.chart < 5) (g : ℕ) (a : ℕ) (ha : a = 0 ∨ a = 4)
     (t : Fin 5 → ℝ) :
     let r := rOf (kblow b.chart) b.face (kpt b t)
     let Q := Qm b.chart r

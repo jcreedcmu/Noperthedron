@@ -15,9 +15,9 @@ so the kernel itself runs the checker. `Cayley.Pack.kernel_sound` turns the per-
 the theorem.
 -/
 
-namespace Cayley.KProof
+namespace Cayley.Kernel
 
-open Cayley.K Cayley.Pack Noperthedron
+open Cayley.Checker Cayley.Pack Noperthedron
 
 set_option maxRecDepth 100000 in
 theorem noperthedron_not_rupert : ¬ IsRupert exactVerts := by
@@ -59,8 +59,8 @@ theorem noperthedron_not_rupert : ¬ IsRupert exactVerts := by
 theorem exists_not_rupert : ExistsNonRupertPolyhedron :=
   ⟨exactVerts, interior_exactVerts_hull_nonempty, noperthedron_not_rupert⟩
 
-end Cayley.KProof
+end Cayley.Kernel
 
 end
 
-#print axioms Cayley.KProof.exists_not_rupert
+#print axioms Cayley.Kernel.exists_not_rupert

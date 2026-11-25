@@ -1,6 +1,6 @@
 module
 
-public import Cayley.Checker.KGap
+public import Cayley.Checker.Data
 
 @[expose] public section
 
@@ -15,7 +15,7 @@ after adding the offset `2^(W-1)` to every slot, slot `j` holds `coeff_j + 2^(W-
 bit is the sign, and a horizontal sum of slots is a remainder modulo `2^W - 1`.
 -/
 
-namespace Cayley.K
+namespace Cayley.Checker
 
 /-- Slot width in bits. -/
 def PW : Nat := 400
@@ -220,30 +220,30 @@ def gapCore {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 
 
 /-- The gap-leaf polynomials of box `b`, inner vertex `S` and direction `(w0, w1)`. -/
 def gapGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R)
-    (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : GData R :=
+    (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : GData R :=
   gapCore add sub mul c x b.chart b.face (c (p2 b.K)) (fun i => c (b.c.getD i 0))
     (fun i => c (b.h.getD i 0)) (c S.1) (c S.2.1) (c S.2.2) (c w0) (c w1)
 
 /-- The gap-leaf data in packed integers. -/
-def pGapData (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : GData Int :=
+def pGapData (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : GData Int :=
   gapGen Int.add Int.sub Int.mul (fun z => z) (fun i => pX i.val) b S w0 w1
 
 /-- The norm guard of a gap leaf: the box scale and the direction are small enough that the
 coefficient norms of every polynomial the leaf decodes stay below `2^390` (proved once, on the
 worst box, in `Cayley.Pack.gapNrmOK_worst`). -/
-def nrmOK (b : KBox) (w0 w1 : Int) : Bool :=
+def nrmOK (b : Box) (w0 w1 : Int) : Bool :=
   Nat.ble b.K 16 && Nat.ble w0.natAbs 1024 && Nat.ble w1.natAbs 1024
 
 /-- Scale exponents of `A` and of `L` beyond `2^160`. -/
-def gapSc (b : KBox) : Nat := if b.chart = 0 ∨ b.chart = 4 then 6 * b.K else 4 * b.K
-def gapScL (b : KBox) : Nat := 5 * b.K
+def gapSc (b : Box) : Nat := if b.chart = 0 ∨ b.chart = 4 then 6 * b.K else 4 * b.K
+def gapScL (b : Box) : Nat := 5 * b.K
 
 /-! ### The gap leaf -/
 
 /-- The error allowance of a gap leaf (for `A`) and of the paired test (for `L`). -/
-def gErr (b : KBox) (w0 w1 : Int) : Int :=
+def gErr (b : Box) (w0 w1 : Int) : Int :=
   128 * chartKI b.chart * ((w0.natAbs : Int) + w1.natAbs) * p2 (gapSc b + 100)
-def gErrL (b : KBox) (w0 w1 : Int) : Int :=
+def gErrL (b : Box) (w0 w1 : Int) : Int :=
   128 * chartKI b.chart * ((w0.natAbs : Int) + w1.natAbs) * p2 (gapScL b + 100)
 
 /-- `A = Σ αₖ βₖ`, `L = Σ αₖ Lₖ`, `Eₖ = αₖ κD`, `F_T = A − (Σ Tₖ αₖ) κD`. -/
@@ -253,18 +253,18 @@ def gF (g : GData Int) (tx ty tz : Int) : Int :=
   Int.sub (gA g) (Int.mul (Int.add (Int.add (Int.mul tx g.a0) (Int.mul ty g.a1)) (Int.mul tz g.a2)) g.kd)
 
 /-- The exact test against outer vertex `T`, and the paired test. -/
-def fullOK (b : KBox) (S : Int × Int × Int) (w0 w1 tx ty tz : Int) : Bool :=
+def fullOK (b : Box) (S : Int × Int × Int) (w0 w1 tx ty tz : Int) : Bool :=
   decide (gErr b w0 w1 ≤ pLower (gF (pGapData b S w0 w1) tx ty tz)) ||
     bernGE (gF (pGapData b S w0 w1) tx ty tz) (gErr b w0 w1)
-def pairOK (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
+def pairOK (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : Bool :=
   decide (gErrL b w0 w1 ≤ 2 * pLower (gL (pGapData b S w0 w1))) ||
     bernGE (Int.mul 2 (gL (pGapData b S w0 w1))) (gErrL b w0 w1)
 
 /-- The paired vertex of inner vertex `s` (blown-up charts). -/
-def gPair (b : KBox) (s : Nat) : Option Nat := if b.chart = 0 ∨ b.chart = 4 then kPair b.chart s else none
+def gPair (b : Box) (s : Nat) : Option Nat := if b.chart = 0 ∨ b.chart = 4 then kPair b.chart s else none
 
 /-- The test of outer vertex `t` after the packed quick test (`S` is inner vertex `s`). -/
-def vtestG (b : KBox) (s : Nat) (S : Int × Int × Int) (w0 w1 : Int) (t : Nat) (tx ty tz : Int) :
+def vtestG (b : Box) (s : Nat) (S : Int × Int × Int) (w0 w1 : Int) (t : Nat) (tx ty tz : Int) :
     Bool :=
   if gPair b s = some t then
     pairOK b S w0 w1 || (!decide (b.c.getD 4 0 - b.h.getD 4 0 ≤ 0) && fullOK b S w0 w1 tx ty tz)
@@ -275,10 +275,10 @@ def vS (s : Nat) : Int × Int × Int :=
   (slot tpx s - (2 ^ 170 : Nat), slot tpy s - (2 ^ 170 : Nat), slot tpz s - (2 ^ 170 : Nat))
 
 /-- The quick test's constant part `c₀(A) − slack(A) − err`, and the statistics of `Eₖ`. -/
-def quickQ (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : Int :=
+def quickQ (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : Int :=
   let sA := pStats (gA (pGapData b S w0 w1))
   sA.c0 - sA.slack - gErr b w0 w1
-def quickE (b : KBox) (S : Int × Int × Int) (w0 w1 : Int) : PStats × PStats × PStats :=
+def quickE (b : Box) (S : Int × Int × Int) (w0 w1 : Int) : PStats × PStats × PStats :=
   let g := pGapData b S w0 w1
   (pStats (Int.mul g.a0 g.kd), pStats (Int.mul g.a1 g.kd), pStats (Int.mul g.a2 g.kd))
 
@@ -290,7 +290,7 @@ def quickV (C e00 e01 e02 : Int) (n0 n1 n2 : Nat) : Nat :=
     (Nat.add (Nat.mul tax n0) (Nat.add (Nat.mul tay n1) (Nat.mul taz n2)))
 
 /-- Packed kernel gap leaf. -/
-def pGapOK (b : KBox) (s : Nat) (w0 w1 : Int) : Bool :=
+def pGapOK (b : Box) (s : Nat) (w0 w1 : Int) : Bool :=
   if s < 90 then
     let S := vS s
     let (E0, E1, E2) := quickE b S w0 w1
@@ -323,7 +323,7 @@ structure NM (R : Type) where
   d : R
 
 /-- The Cayley numerator `N(r)` and the denominator `D` of a box, generic in the arithmetic. -/
-def numGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R) (b : KBox) : NM R :=
+def numGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R) (b : Box) : NM R :=
   let U := c (p2 b.K)
   let U2 := mul U U
   if b.chart = 0 ∨ b.chart = 4 then
@@ -355,7 +355,7 @@ def numGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 �
       od r2 r0 r1 (-1), od r2 r1 r0 1, dg r2, add U2 r2s⟩
 
 /-- The scale `R²` of `N` (`U⁴` blown up, `U²` plain). -/
-def numSc (b : KBox) : Int :=
+def numSc (b : Box) : Int :=
   if b.chart = 0 ∨ b.chart = 4 then p2 b.K * p2 b.K * (p2 b.K * p2 b.K) else p2 b.K * p2 b.K
 
 /-- `tr(Xᵀ N) = Σ X_ab N_ab` for an integer matrix `X`. -/
@@ -366,7 +366,7 @@ def trGen {R : Type} (add mul : R → R → R) (c : Int → R) (X : I9) (N : NM 
     (mul (c x20) N.n20)) (mul (c x21) N.n21)) (mul (c x22) N.n22)
 
 /-- The chart-test polynomial `κⱼ tr((Mⱼᵀ M_k)ᵀ N) − κ_k tr((Mⱼᵀ Mⱼ)ᵀ N)`. -/
-def chartGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R) (b : KBox)
+def chartGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R) (b : Box)
     (k : Nat) : R :=
   let N := numGen add sub mul c x b
   let Mj := chartMI b.chart
@@ -418,7 +418,7 @@ def hGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (u v U : R) : 
     hab n02 n02 n12 n12 n22 n22, c 0⟩
 
 /-- The two orbit-test polynomials (score of the orbit element minus the scores of `Q`). -/
-def orbGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R) (b : KBox)
+def orbGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 → R) (b : Box)
     (e g a : Nat) : R × R :=
   let N := numGen add sub mul c x b
   let Mj := chartMI b.chart
@@ -452,24 +452,24 @@ def orbGen {R : Type} (add sub mul : R → R → R) (c : Int → R) (x : Fin 5 �
 def qXv (i : Fin 5) : Int := qX i.val
 
 /-- The norm guard of a domain polynomial (the `Nat` instance). -/
-def chartNrmOK (b : KBox) (k : Nat) : Bool :=
+def chartNrmOK (b : Box) (k : Nat) : Bool :=
   Nat.blt (chartGen Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) b k) (2 ^ 399)
-def orbNrmOK (b : KBox) (e g a : Nat) : Bool :=
+def orbNrmOK (b : Box) (e g a : Nat) : Bool :=
   let P := orbGen Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) b e g a
   Nat.blt P.1 (2 ^ 399) && Nat.blt P.2 (2 ^ 399)
 
 /-- Kernel chart test: chart `k` beats the box's chart `j` on the whole box. -/
-def pChartOK (b : KBox) (k : Nat) : Bool :=
+def pChartOK (b : Box) (k : Nat) : Bool :=
   chartNrmOK b k &&
     decide (0 < pLower (chartGen Int.add Int.sub Int.mul (fun z => z) (fun i => pX i.val) b k))
 
 /-- The orbit-test error allowance. -/
-def orbErr (b : KBox) (e : Nat) : Int :=
+def orbErr (b : Box) (e : Nat) : Int :=
   if e = 0 then 128 * kappaTau * chartKI b.chart * numSc b * p2 20
   else 1024 * kappaTau * chartKI b.chart * (p2 b.K * p2 b.K * (p2 b.K * p2 b.K)) * numSc b * p2 20
 
 /-- Kernel orbit test: the orbit element `H^e Q ĝ_g` (score base `a`) beats `Q`. -/
-def pOrbitOK (b : KBox) (e g a : Nat) : Bool :=
+def pOrbitOK (b : Box) (e g a : Nat) : Bool :=
   orbNrmOK b e g a &&
     if e = 0 then
       let P := orbGen Int.add Int.sub Int.mul (fun z => z) (fun i => pX i.val) b e g a
@@ -479,7 +479,7 @@ def pOrbitOK (b : KBox) (e g a : Nat) : Bool :=
       decide (orbErr b e < qLower P.1) && decide (orbErr b e < qLower P.2)
 
 /-- Packed kernel domain leaf. -/
-def pDomOK (b : KBox) (code : Nat) : Bool :=
+def pDomOK (b : Box) (code : Nat) : Bool :=
   let U := p2 b.K
   if code = 0 then
     let ulo := b.c.getD 0 0 - b.h.getD 0 0
@@ -495,6 +495,6 @@ def pDomOK (b : KBox) (code : Nat) : Bool :=
     pOrbitOK b (i / 30) (i / 2 % 15) (if i % 2 = 0 then 0 else 4)
   else false
 
-end Cayley.K
+end Cayley.Checker
 
 end

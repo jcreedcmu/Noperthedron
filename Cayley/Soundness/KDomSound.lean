@@ -13,30 +13,30 @@ namespace Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
-open Cayley.K Matrix
+open Cayley.Checker Matrix
 
 /-! ## The chart test -/
 
 /-- The chart-test expression. -/
-def chartPE (b : KBox) (k : ℕ) : PE := chartGen PE.add PE.sub PE.mul PE.c PE.x b k
+def chartPE (b : Box) (k : ℕ) : PE := chartGen PE.add PE.sub PE.mul PE.c PE.x b k
 
-theorem chartPE_int (b : KBox) (k : ℕ) :
+theorem chartPE_int (b : Box) (k : ℕ) :
     (chartPE b k).ev pXv = chartGen Int.add Int.sub Int.mul (fun z => z) (fun i => pX i.val) b k :=
   chartGen_map PE.add PE.sub PE.mul PE.c PE.x Int.add Int.sub Int.mul (fun z => z)
     (fun i => pX i.val) (PE.ev pXv) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl)
     (fun _ => by simp [PE.ev]) (fun _ => rfl) b k
 
-theorem chartPE_real (b : KBox) (k : ℕ) (t : Fin 5 → ℝ) :
+theorem chartPE_real (b : Box) (k : ℕ) (t : Fin 5 → ℝ) :
     (chartPE b k).ev t = chartGen (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t b k :=
   chartGen_map PE.add PE.sub PE.mul PE.c PE.x (· + ·) (· - ·) (· * ·) (fun z => (z : ℝ)) t
     (PE.ev t) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl) b k
 
-theorem chartPE_nrm (b : KBox) (k : ℕ) :
+theorem chartPE_nrm (b : Box) (k : ℕ) :
     (chartPE b k).nrm = chartGen Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) b k :=
   chartGen_map PE.add PE.sub PE.mul PE.c PE.x Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1)
     PE.nrm (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl) b k
 
-theorem chartPE_fits (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (k : ℕ) (hk : k < 5) :
+theorem chartPE_fits (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (k : ℕ) (hk : k < 5) :
     L3.Fits (chartPE b k) := by
   intro i
   have h := congrFun (chartGen_map PE.add PE.sub PE.mul PE.c PE.x dAdd dAdd dMul dC dX
@@ -49,7 +49,7 @@ theorem chartPE_fits (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (k : ℕ) (
   show _ < 3
   omega
 
-theorem pChartOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {k : ℕ} (hk : k < 5)
+theorem pChartOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) {k : ℕ} (hk : k < 5)
     (h : pChartOK b k = true) {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1) :
     trace ((chartB b.chart)ᵀ * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t))) <
       trace ((chartB k)ᵀ * Qm b.chart (rOf (kblow b.chart) b.face (kpt b t))) := by
@@ -108,21 +108,21 @@ theorem trace_mul_approx {Z : Matrix (Fin 3) (Fin 3) ℝ} (hZ : Z ∈ Matrix.spe
 
 
 /-- The orbit-test expressions. -/
-def orbPE (b : KBox) (e g a : ℕ) : PE × PE := orbGen PE.add PE.sub PE.mul PE.c PE.x b e g a
+def orbPE (b : Box) (e g a : ℕ) : PE × PE := orbGen PE.add PE.sub PE.mul PE.c PE.x b e g a
 
-theorem orbPE_ev {R : Type} [CommRing R] (v : Fin 5 → R) (b : KBox) (e g a : ℕ) :
+theorem orbPE_ev {R : Type} [CommRing R] (v : Fin 5 → R) (b : Box) (e g a : ℕ) :
     ((orbPE b e g a).1.ev v = (orbGen (· + ·) (· - ·) (· * ·) (fun z => (z : R)) v b e g a).1) ∧
       ((orbPE b e g a).2.ev v = (orbGen (· + ·) (· - ·) (· * ·) (fun z => (z : R)) v b e g a).2) :=
   orbGen_map PE.add PE.sub PE.mul PE.c PE.x (· + ·) (· - ·) (· * ·) (fun z => (z : R)) v (PE.ev v)
     (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl) b e g a
 
-theorem orbPE_nrm (b : KBox) (e g a : ℕ) :
+theorem orbPE_nrm (b : Box) (e g a : ℕ) :
     (orbPE b e g a).1.nrm = (orbGen Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) b e g a).1 ∧
       (orbPE b e g a).2.nrm = (orbGen Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) b e g a).2 :=
   orbGen_map PE.add PE.sub PE.mul PE.c PE.x Nat.add Nat.add Nat.mul Int.natAbs (fun _ => 1) PE.nrm
     (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ => rfl) (fun _ => rfl) b e g a
 
-theorem orbPE_deg (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (e : ℕ) (he : e < 2) (g a : ℕ)
+theorem orbPE_deg (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (e : ℕ) (he : e < 2) (g a : ℕ)
     (ha : a = 0 ∨ a = 4) (i : Fin 5) :
     (orbPE b e g a).1.deg i ≤ dBound e i ∧ (orbPE b e g a).2.deg i ≤ dBound e i := by
   obtain ⟨h1, h2⟩ := orbGen_map PE.add PE.sub PE.mul PE.c PE.x dAdd dAdd dMul dC dX
@@ -139,13 +139,13 @@ theorem orbPE_deg (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (e : ℕ) (he 
   · exact ⟨c3, c4⟩
 
 /-- The orbit scale. -/
-noncomputable def orbK (b : KBox) (e : ℕ) (t : Fin 5 → ℝ) : ℝ :=
+noncomputable def orbK (b : Box) (e : ℕ) (t : Fin 5 → ℝ) : ℝ :=
   let r := rOf (kblow b.chart) b.face (kpt b t)
   kapJ 4 * kapJ b.chart * 2 ^ 80 * (betaSc b * cayleyDenom (r 0) (r 1) (r 2)) *
     (if e = 0 then 1 else ((2 : ℝ) ^ b.K) ^ 4 * cayleyDenom (kpt b t 1) (-kpt b t 0) 0 ^ 2)
 
 /-- The orbit element `Y`. -/
-noncomputable def orbY (b : KBox) (e : ℕ) (t : Fin 5 → ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
+noncomputable def orbY (b : Box) (e : ℕ) (t : Fin 5 → ℝ) : Matrix (Fin 3) (Fin 3) ℝ :=
   if e = 0 then 1 else Hmat (kpt b t 0) (kpt b t 1)
 
 theorem L5_fits_of {e : PE} (h : ∀ i, e.deg i ≤ dBound 1 i) : L5.Fits e := by
@@ -155,7 +155,7 @@ theorem L3_fits_of {e : PE} (h : ∀ i, e.deg i ≤ dBound 0 i) : L3.Fits e := b
   intro i; have := h i; fin_cases i <;> simp [dBound, L3] at this ⊢ <;> omega
 
 /-- A passing orbit test bounds both score differences from below. -/
-theorem orbit_bounds (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : ℕ} (he : e < 2)
+theorem orbit_bounds (b : Box) (hj : b.chart < 5) (hf : b.face < 6) {e g a : ℕ} (he : e < 2)
     (ha : a = 0 ∨ a = 4) (h : pOrbitOK b e g a = true) {t : Fin 5 → ℝ}
     (ht : ∀ i, |t i| ≤ 1) :
     let r := rOf (kblow b.chart) b.face (kpt b t)
@@ -217,7 +217,7 @@ theorem orbit_bounds (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : �
     · rw [e2]; ring
 
 /-- **Soundness of a kernel orbit leaf.** -/
-theorem pOrbitOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : ℕ} (he : e < 2)
+theorem pOrbitOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) {e g a : ℕ} (he : e < 2)
     (hg : g < 15) (ha : a = 0 ∨ a = 4) (h : pOrbitOK b e g a = true) {t : Fin 5 → ℝ}
     (ht : ∀ i, |t i| ≤ 1) (hpt : PtOK b.chart b.face (kpt b t)) :
     Fsc (Qm b.chart (rOf (kblow b.chart) b.face (kpt b t))) <
@@ -318,7 +318,7 @@ theorem pOrbitOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) {e g a : 
 
 /-! ## The domain leaf -/
 
-theorem kpt_ge (b : KBox) (t : Fin 5 → ℝ) (ht : ∀ i, |t i| ≤ 1) (i : Fin 5) (hh : 0 ≤ b.h.getD i 0) :
+theorem kpt_ge (b : Box) (t : Fin 5 → ℝ) (ht : ∀ i, |t i| ≤ 1) (i : Fin 5) (hh : 0 ≤ b.h.getD i 0) :
     ((b.c.getD i 0 - b.h.getD i 0 : ℤ) : ℝ) / 2 ^ b.K ≤ kpt b t i ∧
       kpt b t i ≤ ((b.c.getD i 0 + b.h.getD i 0 : ℤ) : ℝ) / 2 ^ b.K := by
   have ht' := abs_le.1 (ht i)
@@ -327,7 +327,7 @@ theorem kpt_ge (b : KBox) (t : Fin 5 → ℝ) (ht : ∀ i, |t i| ≤ 1) (i : Fin
   constructor <;> (apply div_le_div_of_nonneg_right _ (by positivity); push_cast; nlinarith)
 
 /-- **Soundness of a kernel domain leaf.** -/
-theorem pDomOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6)
+theorem pDomOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6)
     (hh : ∀ i : Fin 5, 0 ≤ b.h.getD i 0) {code : ℕ} (h : pDomOK b code = true) {t : Fin 5 → ℝ}
     (ht : ∀ i, |t i| ≤ 1) (hpt : PtOK b.chart b.face (kpt b t)) :
     ¬ Reduced (kpt b t 0) (kpt b t 1) b.chart (rOf (kblow b.chart) b.face (kpt b t)) := by

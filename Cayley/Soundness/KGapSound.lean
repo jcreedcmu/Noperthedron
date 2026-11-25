@@ -16,7 +16,7 @@ namespace Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
-open Cayley.K Noperthedron
+open Cayley.Checker Noperthedron
 open scoped Matrix
 
 /-! ## The vertex table -/
@@ -35,7 +35,7 @@ theorem vR_err {t : ℕ} (ht : t < 90) : ∀ i, |(vtx t - vR t) i| ≤ 1 / 2 ^ 6
 
 section polys
 
-variable (b : KBox) (s : ℕ) (w0 w1 : ℤ)
+variable (b : Box) (s : ℕ) (w0 w1 : ℤ)
 
 /-- The gap-leaf expressions for inner vertex `s`. -/
 def gp : GData PE := gapPE b (vt s) w0 w1
@@ -80,7 +80,7 @@ theorem gp_fields_real (t : Fin 5 → ℝ) :
     gp_real b s w0 w1 t 4, gp_real b s w0 w1 t 5, gp_real b s w0 w1 t 6, gp_real b s w0 w1 t 7,
     gp_real b s w0 w1 t 8, gp_real b s w0 w1 t 9⟩
 
-theorem gapSc_eq (b : KBox) : (2 : ℝ) ^ gapSc b = ((2 : ℝ) ^ b.K) ^ 2 * betaSc b := by
+theorem gapSc_eq (b : Box) : (2 : ℝ) ^ gapSc b = ((2 : ℝ) ^ b.K) ^ 2 * betaSc b := by
   unfold gapSc betaSc
   split_ifs <;> simp only [← pow_mul, ← pow_add] <;> congr 1 <;> ring
 
@@ -167,7 +167,7 @@ theorem fits_all (hj : b.chart < 5) (hf : b.face < 6) (T : ℤ × ℤ × ℤ) :
   refine ⟨fun i => ?_, fun i => ?_, fun i => ?_, fun i => ?_, fun i => ?_, fun i => ?_⟩ <;>
   · have h0 := d 0 i; have h1 := d 1 i; have h2 := d 2 i; have h3 := d 3 i; have h4 := d 4 i
     have h5 := d 5 i; have h6 := d 6 i; have h7 := d 7 i; have h8 := d 8 i; have h9 := d 9 i
-    simp only [K.GData.get] at h0 h1 h2 h3 h4 h5 h6 h7 h8 h9
+    simp only [Checker.GData.get] at h0 h1 h2 h3 h4 h5 h6 h7 h8 h9
     simp only [Ap, Ep0, Ep1, Ep2, Fp, xp, Lp, PE.deg, L3]
     fin_cases i <;> simp [degB] at h0 h1 h2 h3 h4 h5 h6 h7 h8 h9 ⊢ <;> omega
 
@@ -178,7 +178,7 @@ theorem nrm_sub' (a c : PE) : (PE.sub a c).nrm = a.nrm + c.nrm := rfl
 theorem nrm_mul' (a c : PE) : (PE.mul a c).nrm = a.nrm * c.nrm := rfl
 theorem nrm_c' (z : ℤ) : (PE.c z).nrm = z.natAbs := rfl
 
-theorem gapNrmOK_spec {b : KBox} {S : ℤ × ℤ × ℤ} {w0 w1 : ℤ} (h : gapNrmOK b S w0 w1 = true) :
+theorem gapNrmOK_spec {b : Box} {S : ℤ × ℤ × ℤ} {w0 w1 : ℤ} (h : gapNrmOK b S w0 w1 = true) :
     (gapNrm b S w0 w1).a0 * (gapNrm b S w0 w1).b0 + (gapNrm b S w0 w1).a1 * (gapNrm b S w0 w1).b1 +
         (gapNrm b S w0 w1).a2 * (gapNrm b S w0 w1).b2 +
         2 ^ 161 * ((gapNrm b S w0 w1).a0 + (gapNrm b S w0 w1).a1 + (gapNrm b S w0 w1).a2) *
@@ -191,7 +191,7 @@ theorem gapNrmOK_spec {b : KBox} {S : ℤ × ℤ × ℤ} {w0 w1 : ℤ} (h : gapN
 
 /-! ### The norm guard from the cheap check `nrmOK` -/
 
-theorem gapNrmOK_of_le {b b' : KBox} {S S' : ℤ × ℤ × ℤ} {w0 w1 w0' w1' : ℤ}
+theorem gapNrmOK_of_le {b b' : Box} {S S' : ℤ × ℤ × ℤ} {w0 w1 w0' w1' : ℤ}
     (h : ∀ k, (gapNrm b S w0 w1).get k ≤ (gapNrm b' S' w0' w1').get k)
     (h' : gapNrmOK b' S' w0' w1' = true) : gapNrmOK b S w0 w1 = true := by
   obtain ⟨hA, hL⟩ := gapNrmOK_spec h'
@@ -203,7 +203,7 @@ theorem gapNrmOK_of_le {b b' : KBox} {S S' : ℤ × ℤ × ℤ} {w0 w1 w0' w1' :
   refine ⟨lt_of_le_of_lt ?_ hA, lt_of_le_of_lt ?_ hL⟩ <;> simp only [nat_add, nat_mul] <;> gcongr
 
 /-- The worst box of a chart and face: scale `2^16`, every centre and radius `2^17`. -/
-def worstBox (chart face : ℕ) : KBox :=
+def worstBox (chart face : ℕ) : Box :=
   ⟨chart, face, 16, List.replicate 5 ((2 ^ 17 : ℕ) : ℤ), List.replicate 5 ((2 ^ 17 : ℕ) : ℤ)⟩
 
 /-- Every coordinate at the vertex bound. -/
@@ -219,7 +219,7 @@ theorem worstBox_getD (chart face i : ℕ) (hi : i < 5) :
   interval_cases i <;> exact ⟨rfl, rfl⟩
 
 /-- A box with the walk's magnitude bound that passes `nrmOK` passes the norm guard. -/
-theorem gapNrmOK_box (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
+theorem gapNrmOK_box (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
     (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
     {s : ℕ} (hs : s < 90) {w0 w1 : ℤ} (hn : nrmOK b w0 w1 = true) :
     gapNrmOK b (vt s) w0 w1 = true := by
@@ -274,7 +274,7 @@ theorem nrm_all390 (h : gapNrmOK b (vt s) w0 w1 = true) (T : ℤ × ℤ × ℤ)
     gapPE_nrm b (vt s) w0 w1
   have n0 := hn 0; have n1 := hn 1; have n2 := hn 2; have n3 := hn 3; have n4 := hn 4
   have n5 := hn 5; have n6 := hn 6; have n7 := hn 7; have n8 := hn 8; have n9 := hn 9
-  simp only [K.GData.get] at n0 n1 n2 n3 n4 n5 n6 n7 n8 n9
+  simp only [Checker.GData.get] at n0 n1 n2 n3 n4 n5 n6 n7 n8 n9
   obtain ⟨hA, hL⟩ := gapNrmOK_spec h
   set nb := gapNrm b (vt s) w0 w1
   simp only [Ap, Ep0, Ep1, Ep2, Fp, Lp, xp, nrm_add', nrm_sub', nrm_mul', nrm_c', n0, n1, n2, n3,
@@ -458,7 +458,7 @@ theorem quick_real {A E0 E1 E2 c0 sl e0 e1 e2 a0 a1 a2 T0 T1 T2 err : ℝ} (hA :
 
 section leaf
 
-variable (b : KBox) (s : ℕ) (w0 w1 : ℤ)
+variable (b : Box) (s : ℕ) (w0 w1 : ℤ)
 
 /-- The Kronecker point as a function. -/
 abbrev pXv : Fin 5 → ℤ := fun i => pX i.val
@@ -631,7 +631,7 @@ end leaf
 
 /-! ## Unfolding the checker -/
 
-theorem vtestG_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (s : ℕ) (w0 w1 : ℤ)
+theorem vtestG_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (s : ℕ) (w0 w1 : ℤ)
     (hn : gapNrmOK b (vt s) w0 w1 = true) {tt : ℕ} (htt : tt < 90)
     (h : vtestG b s (vt s) w0 w1 tt (vt tt).1 (vt tt).2.1 (vt tt).2.2 = true) {t : Fin 5 → ℝ}
     (ht : ∀ i, |t i| ≤ 1) :
@@ -688,7 +688,7 @@ theorem vtxIdx_all {P : ℕ × (ℤ × ℤ × ℤ) × (ℤ × ℤ × ℤ) → Bo
   convert this using 1
   simp [vtxIdx, vt, List.getD_eq_getElem?_getD, hlen, ht]
 
-theorem pGapOK_vertex (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
+theorem pGapOK_vertex (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
     (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
     {s : ℕ} {w0 w1 : ℤ} (h : pGapOK b s w0 w1 = true) :
     s < 90 ∧ (w0 ≠ 0 ∨ w1 ≠ 0) ∧ gapNrmOK b (vt s) w0 w1 = true ∧
@@ -725,7 +725,7 @@ theorem pGapOK_vertex (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c
     exact vtestG_sound b hj hf s w0 w1 hn' htt hv ht
 
 /-- **Soundness of a kernel gap leaf.** -/
-theorem pGapOK_sound (b : KBox) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
+theorem pGapOK_sound (b : Box) (hj : b.chart < 5) (hf : b.face < 6) (hlc : b.c.length = 5)
     (hlh : b.h.length = 5) (hmag : ∀ i : Fin 5, |b.c.getD i 0| + |b.h.getD i 0| ≤ 2 * 2 ^ b.K)
     {s : ℕ} {w0 w1 : ℤ}
     (h : pGapOK b s w0 w1 = true) {t : Fin 5 → ℝ} (ht : ∀ i, |t i| ≤ 1)

@@ -9,15 +9,15 @@ public import Cayley.Checker.EvalNat
 # Integer data for the kernel checker
 
 Boxes with integer coordinates, the vertices as integers, the packed-table vertex walk, and the
-integer chart bases and group elements used by `Cayley.Checker.KPack`.
+integer chart bases and group elements used by `Cayley.Checker.Leaf`.
 
 Scales: box coordinates are integers over `U = 2^K`; vertices are integers over `2^160`.
 -/
 
-namespace Cayley.K
+namespace Cayley.Checker
 
 /-- A box with integer coordinates over `2^K`. -/
-structure KBox where
+structure Box where
   chart : Nat
   face : Nat
   K : Nat
@@ -135,7 +135,7 @@ Slot `t` (bits `640 t … 640 t + 639`) of each table holds an entry for vertex 
 `B = 2^170` and `c_t` the `x`, `y` or `z` coordinate, `tp` stores `B + c_t`, `tn` stores
 `B - c_t` and `ta` stores `B - |c_t|`. The offset keeps all entries nonnegative.
 
-`quickV` in `Cayley/Checker/KPack.lean` does arithmetic on these naturals to run the quick gap
+`quickV` in `Cayley/Checker/Leaf.lean` does arithmetic on these naturals to run the quick gap
 test on all 90 vertices at once. It selects `tn` or `tp` according to a coefficient's sign and
 uses `ta` for absolute-value error terms. The 640-bit spacing leaves room for intermediate
 results; `pGapOK` checks bounds that prevent carries between slots.
@@ -220,6 +220,6 @@ def mmI (A B : Int × Int × Int × Int × Int × Int × Int × Int × Int) :
    a10 * b00 + a11 * b10 + a12 * b20, a10 * b01 + a11 * b11 + a12 * b21, a10 * b02 + a11 * b12 + a12 * b22,
    a20 * b00 + a21 * b10 + a22 * b20, a20 * b01 + a21 * b11 + a22 * b21, a20 * b02 + a21 * b12 + a22 * b22)
 
-end Cayley.K
+end Cayley.Checker
 
 end

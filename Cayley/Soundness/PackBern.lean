@@ -17,7 +17,7 @@ namespace Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
-open Cayley.K
+open Cayley.Checker
 
 /-! ## Digits of layout `L3` -/
 

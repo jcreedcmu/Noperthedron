@@ -1,7 +1,7 @@
 module
 
 public import Cayley.Soundness.PackLayout
-public import Cayley.Checker.KPack
+public import Cayley.Checker.Leaf
 public import Mathlib.Algebra.Order.Star.Real
 
 @[expose] public section
@@ -18,7 +18,7 @@ namespace Cayley.Pack
 
 set_option exponentiation.threshold 1024
 
-open Cayley.K
+open Cayley.Checker
 
 /-! ## Masks on packed numbers -/
 

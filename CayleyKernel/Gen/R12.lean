@@ -12,14 +12,14 @@ public import CayleyKernel.Gen.C72
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): root box 12. Skeleton data hash: 5593135449279564453. -/
+/-! GENERATED (`cayleyCert gen`): root box 12. Skeleton data hash: 5593135449279564453. -/
 
 set_option Elab.async false
 
-namespace Cayley.KProof
+namespace Cayley.Kernel
 
 cayley_root 12 ".cayley-data/kernel/skel_12.txt"
 
-end Cayley.KProof
+end Cayley.Kernel
 
 end
