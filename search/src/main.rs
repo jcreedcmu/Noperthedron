@@ -492,9 +492,100 @@ fn check_cand(ctx: &Ctx, b: &Bx, bp: &BoxPolys, c: &Cand) -> (bool, f64, [f64; 5
 }
 
 fn check_cand_full(ctx: &Ctx, b: &Bx, bp: &BoxPolys, c: &Cand) -> (bool, f64, [f64; 5]) {
-    let w = c.w;
+    let paired = if b.blowup() { ctx.pair(b.chart, c.s) } else { None };
+    check_point(ctx, b, bp, ctx.verts[c.s], paired, c.w)
+}
+
+/// A blended inner point `(1 - k/8) v_a + (k/8) v_c` with a direction.
+#[derive(Clone, Copy, Debug)]
+pub struct Blend {
+    pub a: usize,
+    pub c: usize,
+    pub k: usize,
+    pub w: [f64; 2],
+}
+
+fn blend_pt(ctx: &Ctx, bl: &Blend) -> V3 {
+    let t = bl.k as f64 / 8.0;
+    let (p, q) = (ctx.verts[bl.a], ctx.verts[bl.c]);
+    [(1.0 - t) * p[0] + t * q[0], (1.0 - t) * p[1] + t * q[1], (1.0 - t) * p[2] + t * q[2]]
+}
+
+/// Blended candidates for a box: vertex pairs taken from the best vertices at the centre and at
+/// the ends of each axis, with the direction that maximizes the worst sampled gap.
+fn blend_cands(ctx: &Ctx, b: &Bx, nkeep: usize) -> Vec<Blend> {
+    const ND: usize = 256;
+    let n = ctx.verts.len();
+    let mut pts: Vec<[f64; 5]> = vec![[0.0; 5]];
+    for i in 0..5 { for sg in [-1.0, 1.0] { let mut y = [0.0; 5]; y[i] = sg; pts.push(y); } }
+    let dirs: Vec<[f64; 2]> = (0..ND).map(|d| { let th = 2.0 * PI * d as f64 / ND as f64; [th.cos(), th.sin()] }).collect();
+    let mut h1: Vec<Vec<f64>> = vec![];
+    let mut qq: Vec<Vec<[f64; 2]>> = vec![];
+    let mut pool: Vec<usize> = vec![];
+    for y in pts.iter() {
+        let u = b.c(0) + b.h(0) * y[0];
+        let v = b.c(1) + b.h(1) * y[1];
+        let ro = outer(u, v);
+        let r = b.r_at([y[2], y[3], y[4]]);
+        let ri = mm(&ro, &mm(&chart(b.chart), &cay(r[0], r[1], r[2])));
+        let p = proj_pts(&ro, &ctx.verts);
+        let q = proj_pts(&ri, &ctx.verts);
+        let h: Vec<f64> = dirs.iter().map(|w| p.iter().map(|x| w[0] * x[0] + w[1] * x[1]).fold(f64::NEG_INFINITY, f64::max)).collect();
+        let mut sc: Vec<(f64, usize)> = (0..n).map(|s| {
+            let m = (0..ND).map(|d| dirs[d][0] * q[s][0] + dirs[d][1] * q[s][1] - h[d]).fold(f64::NEG_INFINITY, f64::max);
+            (m, s)
+        }).collect();
+        sc.sort_by(|a, c| c.0.partial_cmp(&a.0).unwrap());
+        for &(_, s) in sc.iter().take(3) { if !pool.contains(&s) { pool.push(s); } }
+        h1.push(h);
+        qq.push(q);
+    }
+    pool.truncate(10);
+    let np = pts.len();
+    let mut out: Vec<(f64, Blend)> = vec![];
+    for i in 0..pool.len() {
+        for j in 0..pool.len() {
+            if i == j { continue; }
+            let (a, c) = (pool[i], pool[j]);
+            for k in 1..=4usize {
+                if k == 4 && a > c { continue; }
+                let t = k as f64 / 8.0;
+                let mut best = (f64::NEG_INFINITY, 0usize);
+                for d in 0..ND {
+                    let mut m = f64::INFINITY;
+                    for e in 0..np {
+                        let x = (1.0 - t) * (dirs[d][0] * qq[e][a][0] + dirs[d][1] * qq[e][a][1])
+                            + t * (dirs[d][0] * qq[e][c][0] + dirs[d][1] * qq[e][c][1]) - h1[e][d];
+                        if x < m { m = x; }
+                        if m <= best.0 { break; }
+                    }
+                    if m > best.0 { best = (m, d); }
+                }
+                if best.0 > 0.0 {
+                    let w = dirs[best.1];
+                    out.push((best.0, Blend { a, c, k, w: [(w[0] * 1024.0).round(), (w[1] * 1024.0).round()] }));
+                }
+            }
+        }
+    }
+    out.sort_by(|x, y| y.0.partial_cmp(&x.0).unwrap());
+    out.into_iter().take(nkeep).map(|x| x.1).collect()
+}
+
+fn blend_on() -> usize {
+    static B: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+    *B.get_or_init(|| std::env::var("BLEND").ok().and_then(|s| s.parse().ok()).unwrap_or(0))
+}
+
+/// A blended candidate that certifies the box, if one is found.
+fn find_blend(ctx: &Ctx, b: &Bx, bp: &BoxPolys) -> Option<Blend> {
+    let nk = blend_on();
+    if nk == 0 { return None; }
+    blend_cands(ctx, b, nk).into_iter().find(|bl| check_point(ctx, b, bp, blend_pt(ctx, bl), None, bl.w).0)
+}
+
+fn check_point(ctx: &Ctx, b: &Bx, bp: &BoxPolys, sv: V3, paired: Option<usize>, w: [f64; 2]) -> (bool, f64, [f64; 5]) {
     let alpha: Vec<P> = (0..3).map(|k| bp.no[0][k].scale(w[0]).add(&bp.no[1][k].scale(w[1]))).collect();
-    let sv = ctx.verts[c.s];
     let nx = alpha[0].c.len();
     let ny = bp.dr.c.len();
     let mut a = B::zero(nx, ny);
@@ -506,7 +597,6 @@ fn check_cand_full(ctx: &Ctx, b: &Bx, bp: &BoxPolys, c: &Cand) -> (bool, f64, [f
         a.add_outer(&alpha[k], &beta, 1.0);
     }
     let mut worst = f64::INFINITY;
-    let paired = if b.blowup() { ctx.pair(b.chart, c.s) } else { None };
     if paired.is_some() {
         let bm = chart(b.chart);
         // L = 2 α·(c×S + ρ c×(c×S))
@@ -788,6 +878,12 @@ fn solve_rec(ctx: &Ctx, b: Bx, depth: usize, max_depth: usize, st: &mut Stats, f
         out.push_str(&format!("G{}:{}:{} ", c.s, c.w[0] as i64, c.w[1] as i64));
         return;
     }
+    if let Some(bl) = find_blend(ctx, &b, &bp) {
+        st.cert += 1;
+        st.vol_cert += volume(&b);
+        out.push_str(&format!("B{}:{}:{}:{}:{} ", bl.a, bl.c, bl.k, bl.w[0] as i64, bl.w[1] as i64));
+        return;
+    }
     if let Some((s, aw)) = try_affine(ctx, &b, &bp) {
         st.cert += 1;
         st.vol_cert += volume(&b);
@@ -812,7 +908,7 @@ fn solve_rec(ctx: &Ctx, b: Bx, depth: usize, max_depth: usize, st: &mut Stats, f
             if domain_excluded(ctx, bb, &bpp).is_some() { return true; }
             let qs: usize = std::env::var("QS").ok().and_then(|s| s.parse().ok()).unwrap_or(4);
             let cs = if qs >= 12 { candidates_wide(ctx, bb, 12, &[0.0, -0.02, 0.02, -0.04, 0.04, -0.06, 0.06, -0.08, 0.08, -0.1, 0.1, -0.12, 0.12]) } else { candidates_wide(ctx, bb, qs, &[0.0, -0.04, 0.04]) };
-            cs.iter().any(|c| check_cand(ctx, bb, &bpp, c).0) || try_affine(ctx, bb, &bpp).is_some()
+            cs.iter().any(|c| check_cand(ctx, bb, &bpp, c).0) || find_blend(ctx, bb, &bpp).is_some() || try_affine(ctx, bb, &bpp).is_some()
         };
         let mut best = (0usize, i);
         for &d in order.iter().take(nl) {
