@@ -1,7 +1,7 @@
 module
 
 public import Cayley.Checker.Geometry
-public import Cayley.Checker.KTab
+public import Cayley.Checker.EvalNat
 
 @[expose] public section
 
@@ -119,6 +119,44 @@ def vtxI : List (Int × Int × Int) := [
   (-1248594110284634120748530844990623082416133191429, -421087531734924675576628706803698423964660368117, -581816437168531777583991323662460237375659311104),
   (-1408969509738580907457471946155430748480715336238, -220301544386902185328074669951108462734669843174, -179854509644263896791744904561535746804316897280)
 ]
+
+/-- Packs a list of entries into 640-bit slots, entry `t` at bits `640 t … 640 t + 639`. -/
+def packT : List Nat → Nat
+  | [] => 0
+  | d :: l => Nat.add d (Nat.shiftLeft (packT l) 640)
+
+/-- The slot offset of the packed vertex tables. -/
+def offT : Int := Int.ofNat (2 ^ 170)
+
+/-!
+### Packed vertex tables
+
+Slot `t` (bits `640 t … 640 t + 639`) of each table holds an entry for vertex `t`: with
+`B = 2^170` and `c_t` the `x`, `y` or `z` coordinate, `tp` stores `B + c_t`, `tn` stores
+`B - c_t` and `ta` stores `B - |c_t|`. The offset keeps all entries nonnegative.
+
+`quickV` in `Cayley/Checker/KPack.lean` does arithmetic on these naturals to run the quick gap
+test on all 90 vertices at once. It selects `tn` or `tp` according to a coefficient's sign and
+uses `ta` for absolute-value error terms. The 640-bit spacing leaves room for intermediate
+results; `pGapOK` checks bounds that prevent carries between slots.
+
+The tables are computed by `eval_nat%` when this file is elaborated, so the kernel sees
+numerals. The theorems `tpx_eq` through `onesT_eq` in `Cayley/Soundness/KVtx.lean` relate them
+to `vtxI`.
+-/
+
+def tpx : Nat := eval_nat% packT (vtxI.map fun v => (offT + v.1).toNat)
+def tnx : Nat := eval_nat% packT (vtxI.map fun v => (offT - v.1).toNat)
+def tax : Nat := eval_nat% packT (vtxI.map fun v => (offT - Int.ofNat v.1.natAbs).toNat)
+def tpy : Nat := eval_nat% packT (vtxI.map fun v => (offT + v.2.1).toNat)
+def tny : Nat := eval_nat% packT (vtxI.map fun v => (offT - v.2.1).toNat)
+def tay : Nat := eval_nat% packT (vtxI.map fun v => (offT - Int.ofNat v.2.1.natAbs).toNat)
+def tpz : Nat := eval_nat% packT (vtxI.map fun v => (offT + v.2.2).toNat)
+def tnz : Nat := eval_nat% packT (vtxI.map fun v => (offT - v.2.2).toNat)
+def taz : Nat := eval_nat% packT (vtxI.map fun v => (offT - Int.ofNat v.2.2.natAbs).toNat)
+
+/-- One in each of the 90 slots. Multiplying by a constant puts that constant in every slot. -/
+def onesT : Nat := eval_nat% packT (vtxI.map fun _ => 1)
 
 /-- The vertices with their indices and coordinate absolute values. -/
 def vtxIdx : List (Nat × (Int × Int × Int) × (Int × Int × Int)) :=
