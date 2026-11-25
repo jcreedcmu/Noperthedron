@@ -3,9 +3,9 @@ import Cayley.Checker.KTree
 /-!
 Native driver for the Cayley kernel certificate.
 
-    cayleyCheck kwalk FILE                            -- run `kCheck` natively on the 15 trees
-    cayleyCheck kgen FILE OUTDATA OUTLEAN maxLeaves chunksPerModule
-                                                      -- write the kernel chunk modules
+    cayleyCert check FILE     -- run the checker natively on the 15 trees
+    cayleyCert gen FILE OUTDATA OUTLEAN maxLeaves chunksPerModule
+                              -- cut the trees into chunks and write the kernel modules
 
 FILE holds the 15 trees in preorder tokens `S<d>`, `D<code>`, `G<s>:<w0>:<w1>`.
 -/
@@ -101,8 +101,8 @@ partial def maxK (b : K.KBox) : K.KTree → Nat
   | _ => b.K
 
 def main (args : List String) : IO UInt32 := do
-  if args[0]! == "kgen" then
-    -- kgen DATA OUTDATA OUTLEAN maxLeaves chunksPerModule
+  if args[0]! == "gen" then
+    -- gen DATA OUTDATA OUTLEAN maxLeaves chunksPerModule
     let data ← IO.FS.readFile args[1]!
     let outD := args[2]!
     let outL := args[3]!
@@ -141,7 +141,7 @@ public meta import CayleyKernel.Load
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): kernel-checked chunks {m * perM}–{min ((m + 1) * perM) all.size - 1}.
+/-! GENERATED (`cayleyCert gen`): kernel-checked chunks {m * perM}–{min ((m + 1) * perM) all.size - 1}.
 The data file is not a build input, so its hash is recorded here to make Lake rebuild this
 module when the data changes: {hash chunkText}. -/
 
@@ -168,7 +168,7 @@ public meta import CayleyKernel.Load
 
 @[expose] public section
 
-/-! GENERATED (`cayleyCheck kgen`): root box {r}. Skeleton data hash: {skelHash[r]!}. -/
+/-! GENERATED (`cayleyCert gen`): root box {r}. Skeleton data hash: {skelHash[r]!}. -/
 
 set_option Elab.async false
 
@@ -182,9 +182,9 @@ end
 "
       IO.FS.writeFile s!"{outL}/All.lean" ("module\n\n" ++ "\n".intercalate
         ((List.range 15).map fun r => s!"public import {modName outL}.R{r}") ++ "\n")
-      IO.println s!"kgen: {all.size} chunks in {nMod} modules"
+      IO.println s!"gen: {all.size} chunks in {nMod} modules"
       return 0
-  if args[0]! == "kwalk" then
+  if args[0]! == "check" then
     let data ← IO.FS.readFile args[1]!
     match parseAll data.toUTF8 with
     | none => return 1
@@ -201,9 +201,9 @@ end
       for (r, t) in tasks do
         if !t.get then
           bad := bad + 1
-          if bad ≤ 5 then IO.println s!"kwalk reject in root {r}"
+          if bad ≤ 5 then IO.println s!"check: reject in root {r}"
       let t1 ← IO.monoMsNow
-      IO.println s!"kwalk: {tasks.size} tasks, {bad} rejected, max K {mk}, {t1 - t0} ms"
+      IO.println s!"check: {tasks.size} tasks, {bad} rejected, max K {mk}, {t1 - t0} ms"
       return 0
-  IO.println "usage: cayleyCheck (kwalk FILE | kgen FILE OUTDATA OUTLEAN maxLeaves chunksPerModule)"
+  IO.println "usage: cayleyCert (check FILE | gen FILE OUTDATA OUTLEAN maxLeaves chunksPerModule)"
   return 1

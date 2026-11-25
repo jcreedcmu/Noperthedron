@@ -10,7 +10,7 @@ public import Mathlib.Analysis.SpecialFunctions.Complex.Arg
 # The reduction to a reduced Cayley pose
 
 Every Rupert pair of rotations yields a Rupert pair `(s(u,v), s(u,v) · B_j · Cay(r))`
-with `Reduced u v j r`. See `cayley/DESIGN.md`, steps A–C.
+with `Reduced u v j r`. See `Cayley/DESIGN.md`, steps A–C.
 -/
 
 namespace Cayley

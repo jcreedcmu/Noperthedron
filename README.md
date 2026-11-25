@@ -42,8 +42,8 @@ theorem Cayley.KProof.exists_not_rupert : ExistsNonRupertPolyhedron
 | `Cayley/Checker/` | `CayleyChecker` (Mathlib-free) | the checker the kernel runs: Kronecker-packed polynomial bounds, gap and domain leaf tests, tree walk |
 | `Cayley/Soundness/` | `Cayley` | `Cayley.Pack.kernel_sound`: if the checker accepts a tree for each of the 15 root boxes, the Noperthedron is not Rupert |
 | `CayleyKernel/` | `CayleyKernel` (not a default target) | the elaboration-time loader, the generated chunk modules, and the main theorem |
-| `cayley/search/` | Rust | the floating-point search that produces the certificate tree |
-| `cayleyCheck.lean` | executable | native validation of a tree, and generation of the kernel chunks |
+| `search/` | Rust | the floating-point search that produces the certificate tree |
+| `CayleyCert.lean` | executable `cayleyCert` | native check of a tree, and generation of the kernel chunks |
 
 Soundness, file by file:
 
@@ -77,15 +77,15 @@ The certificate tree (231,486 leaves, 3.4 MB) is not committed. To generate it (
 13 minutes on 16 cores) and cut it into kernel chunks:
 
 ```
-cd cayley/search && cargo build --release
-LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../../.cayley-data/v5
-cd ../..
-lake build cayleyCheck
-.lake/build/bin/cayleyCheck kwalk .cayley-data/v5/cover.txt     # optional native check
-.lake/build/bin/cayleyCheck kgen .cayley-data/v5/cover.txt .cayley-data/kernel CayleyKernel/Gen 16 360
+cd search && cargo build --release
+LOOK=1 NL=5 QS=12 WIDE=1 NS=12 AMAX=0.12 NA=6 BERN=1 ./export_all.sh ../.cayley-data/tree
+cd ..
+lake build cayleyCert
+.lake/build/bin/cayleyCert check .cayley-data/tree/cover.txt     # optional native check, about 2 minutes
+.lake/build/bin/cayleyCert gen .cayley-data/tree/cover.txt .cayley-data/kernel CayleyKernel/Gen 16 360
 ```
 
-The export is deterministic, so `kgen` reproduces the committed `CayleyKernel/Gen` modules.
+The export is deterministic, so `cayleyCert gen` reproduces the committed `CayleyKernel/Gen` modules.
 Each generated module records a hash of its data file, so a different tree changes the
 modules and Lake rebuilds them.
 Then run the kernel check:
